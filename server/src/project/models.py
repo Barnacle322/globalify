@@ -29,3 +29,13 @@ class User(UserMixin, db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    @staticmethod
+    def get(id: int):
+        try:
+            user = User.query.filter(User.id == id).first()
+            return user
+        except:
+            return None
+        finally:
+            db.session.close()

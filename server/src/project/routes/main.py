@@ -3,7 +3,13 @@ from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from ..extensions import db, login_manager
 
+from ..models import User
+
 main = Blueprint("main", __name__)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
 
 
 @main.route("/", methods=["GET", "POST"])

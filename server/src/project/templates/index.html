@@ -7,15 +7,33 @@
         <link rel="stylesheet" href="../static/css/main.css" />
         <title>Document</title>
     </head>
-    <body class="w-full bg-black">
-        <nav class="flex h-24 w-full items-center justify-between bg-opacity-0 px-9">
+    <body class="w-full bg-black text-white">
+        <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-between px-9">
             <img class="h-[30px] w-[113px]" src="../static/elements/globalify.png" />
             <div class="flex items-center justify-center">
-                <div class="w-[55px] text-center text-[20px] text-white">Login</div>
+                <div class="w-[55px] text-center text-[20px]">Login</div>
                 <div class="relative h-5 w-5">
                     <img class="w-50 h-5" src="../static/elements/arrow-right-alt.svg" />
                 </div>
             </div>
         </nav>
+        <main class="relative mt-24 flex w-full justify-center text-white">
+            <div class="flex flex-col items-center justify-center gap-6">
+                <div class="max-w-[700px] text-center text-8xl">
+                    Connect globally with Globalify
+                </div>
+                <div class="flex max-w-[700px] text-center text-2xl font-normal text-stone-300">
+                    Search for investors from all around the world on Globalify. Lorem ipsum dolor
+                    sit amet.
+                </div>
+                <a
+                    href="/register"
+                    class="flex h-10 w-48 items-center justify-center rounded-md bg-sky-400"
+                >
+                    <div class="flex text-base font-medium">Find investors now!</div>
+                </a>
+                <img class="h-[376px] w-[901px]" src="../static/elements/hero.png" />
+            </div>
+        </main>
     </body>
 </html>

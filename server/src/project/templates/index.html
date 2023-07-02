@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')}}">
-    <title>Document</title>
-</head>
-<body>
-    <h1 class="h-80 w-auto flex justify-center items-center text-4xl">Eric's gay</h1>
-</body>
-</html> 
+        <link rel="stylesheet" href="../static/css/main.css" />
+        <title>Document</title>
+    </head>
+    <body class="w-full bg-black">
+        <nav class="flex h-24 w-full items-center justify-between bg-opacity-0 px-9">
+            <img class="h-[30px] w-[113px]" src="../static/elements/globalify.png" />
+            <div class="flex items-center justify-center">
+                <div class="w-[55px] text-center text-[20px] text-white">Login</div>
+                <div class="relative h-5 w-5">
+                    <img class="w-50 h-5" src="../static/elements/arrow-right-alt.svg" />
+                </div>
+            </div>
+        </nav>
+    </body>
+</html>

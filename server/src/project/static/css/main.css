@@ -588,6 +588,10 @@ select {
   outline: 1px auto -webkit-focus-ring-color;
 }
 
+html {
+  font-family: "League Spartan";
+}
+
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
@@ -692,39 +696,155 @@ select {
   position: static;
 }
 
+.absolute {
+  position: absolute;
+}
+
+.relative {
+  position: relative;
+}
+
+.left-0 {
+  left: 0px;
+}
+
+.top-0 {
+  top: 0px;
+}
+
 .flex {
   display: flex;
 }
 
-.h-auto {
-  height: auto;
-}
-
-.h-full {
-  height: 100%;
-}
-
-.h-56 {
-  height: 14rem;
+.inline-flex {
+  display: inline-flex;
 }
 
 .h-80 {
   height: 20rem;
 }
 
+.h-24 {
+  height: 6rem;
+}
+
+.h-5 {
+  height: 1.25rem;
+}
+
+.h-\[30px\] {
+  height: 30px;
+}
+
 .w-auto {
   width: auto;
+}
+
+.w-5 {
+  width: 1.25rem;
+}
+
+.w-\[113px\] {
+  width: 113px;
+}
+
+.w-\[1440px\] {
+  width: 1440px;
+}
+
+.w-\[55px\] {
+  width: 55px;
+}
+
+.w-full {
+  width: 100%;
 }
 
 .items-center {
   align-items: center;
 }
 
+.justify-start {
+  justify-content: flex-start;
+}
+
 .justify-center {
   justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-stretch {
+  justify-content: stretch;
+}
+
+.gap-1 {
+  gap: 0.25rem;
+}
+
+.gap-\[1166px\] {
+  gap: 1166px;
+}
+
+.bg-black {
+  --tw-bg-opacity: 1;
+  background-color: rgb(0 0 0 / var(--tw-bg-opacity));
+}
+
+.bg-zinc-300 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(212 212 216 / var(--tw-bg-opacity));
+}
+
+.bg-white {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+}
+
+.bg-opacity-0 {
+  --tw-bg-opacity: 0;
+}
+
+.fill-white {
+  fill: #fff;
+}
+
+.px-9 {
+  padding-left: 2.25rem;
+  padding-right: 2.25rem;
+}
+
+.py-\[33px\] {
+  padding-top: 33px;
+  padding-bottom: 33px;
+}
+
+.text-center {
+  text-align: center;
 }
 
 .text-4xl {
   font-size: 2.25rem;
   line-height: 2.5rem;
 }
+
+.text-\[20px\] {
+  font-size: 20px;
+}
+
+.font-normal {
+  font-weight: 400;
+}
+
+.text-white {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+@font-face {
+  font-family: "League Spartan";
+
+  src: url('../elements/LeagueSpartan.ttf');
+}           

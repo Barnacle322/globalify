@@ -7,17 +7,18 @@
         <link rel="stylesheet" href="../static/css/main.css" />
         <title>Login</title>
     </head>
-    <body class="flex h-full w-full flex-row items-center justify-between bg-black text-white overflow-hidden">
+    <body class="flex h-full w-full flex-row items-center justify-between overflow-hidden bg-black text-white">
         <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-start px-9">
             <a href="/"><img class="h-[30px] w-[113px]" src="../static/elements/globalify.png" /></a>
         </nav>
-        <main class="px-16 inline-flex sm:w-1/2 w-full">
+        <main class="inline-flex w-full px-16 sm:w-1/2">
             <form action="/register" method="POST" class="flex w-[313px] flex-col gap-[25px] font-medium">
                 <div class="">
                     <div class="text-4xl">Welcome</div>
-                    <div clas   s="text-4xl">{{ status }}</div>
+                    <div clas s="text-4xl">{{ status }}</div>
                     <div class="">
-                        <span class="text-sm">Have an account? Click </span><a href="/login" class="text-class underline">here</a
+                        <span class="text-sm">Have an account? Click </span
+                        ><a href="/login" class="text-class underline">here</a
                         ><span class="text-class"> to sign in</span>
                     </div>
                 </div>
@@ -60,24 +61,30 @@
                 <div class="w-full text-center text-sm">Or continue with</div>
                 <div class="gap-2">
                     <div class="inline-flex h-[30px] w-full gap-4 text-base">
-                        <a href="" class="flex w-full items-center justify-center gap-1 rounded bg-white hover:bg-gray-200">
+                        <a
+                            href=""
+                            class="flex w-full items-center justify-center gap-1 rounded bg-white hover:bg-gray-200"
+                        >
                             <img src="../static/elements/apple.svg" alt="" />
                             <div class="text-black">Apple</div>
                         </a>
-                        <a href="" class="flex w-full items-center justify-center gap-1 rounded bg-white hover:bg-gray-200">
+                        <a
+                            href=""
+                            class="flex w-full items-center justify-center gap-1 rounded bg-white hover:bg-gray-200"
+                        >
                             <img src="../static/elements/google.svg" alt="" />
                             <div class="text-black">Google</div>
                         </a>
                     </div>
-                    <div class="text-xs text-stone-300 my-2">
+                    <div class="my-2 text-xs text-stone-300">
                         <span>By signing up, you agree to </span><span class="underline">Terms of Service</span
                         ><span> and </span><span class="underline">Privacy Policy</span>
                     </div>
                 </div>
             </form>
         </main>
-        <div class="sm:block hidden w-1/2 h-full mt-48 bg-white rounded-tl-3xl overflow-hidden">
-            <img class="w-full h-full object-cover" src="../static/elements/register_stock.png" alt="">
+        <div class="mt-48 hidden h-full w-1/2 overflow-hidden rounded-tl-3xl bg-white sm:block">
+            <img class="h-full w-full object-cover" src="../static/elements/register_stock.png" alt="" />
         </div>
     </body>
 </html>

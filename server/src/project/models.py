@@ -8,16 +8,14 @@ from .extensions import db
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(30), nullable=False, unique=True)
-    password_hash = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(50), nullable=False, unique=True)
-    first_name = db.Column(db.String(30), nullable=False)
-    last_name = db.Column(db.String(30), nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    first_name = db.Column(db.String(30), nullable=True)
+    last_name = db.Column(db.String(30), nullable=True)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
-    is_active = db.Column(db.Boolean, nullable=False, default=True)
 
     def __repr__(self):
-        return f"<User {self.username}>"
+        return f"<User {self.email}>"
 
     @property
     def password(self):
@@ -31,9 +29,19 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     @staticmethod
-    def get(id: int):
+    def get_by_id(id: int):
         try:
             user = User.query.filter(User.id == id).first()
+            return user
+        except:
+            return None
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_by_email(email: str):
+        try:
+            user = User.query.filter(User.email == email).first()
             return user
         except:
             return None

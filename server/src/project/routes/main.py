@@ -13,7 +13,7 @@ from flask import (
 from flask_login import current_user, login_required, login_user, logout_user
 
 from ..extensions import db, login_manager
-from ..models import User
+from ..models import User, EmailForNewsletter
 
 main = Blueprint("main", __name__)
 
@@ -44,9 +44,35 @@ def load_user(user_id):
     return User.get_by_id(user_id)
 
 
-@main.route("/", methods=["GET", "POST"])
+@main.get("/")
 def index():
-    return render_template("index.html")
+    # return render_template("index.html")
+    return render_template("index_newsletter.html")
+
+
+@main.route("/newsletter", methods=["POST"])
+def newsletter():
+    email = request.get_json().get("email")
+
+    if not email:
+        status = Status(StatusType.ERROR, "Please enter an email.")
+        return jsonify(status.get_status())
+
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        status = Status(StatusType.ERROR, "Please enter a valid email.")
+        return jsonify(status.get_status())
+
+    email_for_newsletter = EmailForNewsletter.get_by_email(email)
+    if email_for_newsletter:
+        status = Status(StatusType.ERROR, "Email is already in the system.")
+        return jsonify(status.get_status())
+
+    email_for_newsletter = EmailForNewsletter(email=email)
+
+    db.session.add(email_for_newsletter)
+    db.session.commit()
+    status = Status(StatusType.SUCCESS, "Email added.")
+    return jsonify(status.get_status())
 
 
 @main.route("/register", methods=["GET", "POST"])

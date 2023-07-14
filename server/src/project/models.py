@@ -47,3 +47,24 @@ class User(UserMixin, db.Model):
             return None
         finally:
             db.session.close()
+
+
+class EmailForNewsletter(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(50), nullable=False, unique=True)
+    added_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+
+    def __repr__(self):
+        return f"<EmailForNewsletter {self.email}>"
+
+    @staticmethod
+    def get_by_email(email: str):
+        try:
+            email = EmailForNewsletter.query.filter(
+                EmailForNewsletter.email == email
+            ).first()
+            return email
+        except:
+            return None
+        finally:
+            db.session.close()

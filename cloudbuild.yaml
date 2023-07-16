@@ -30,9 +30,7 @@ steps:
       - '--region=$_DEPLOY_REGION'
       - '--quiet'
       - '--set-env-vars'
-      - '_DATABASE_URL=${_DATABASE_URL}'
-      - '_OAUTH2_CLIENT_ID=${_OAUTH2_CLIENT_ID}'
-      - '_OAUTH2_CLIENT_SECRET=${_OAUTH2_CLIENT_SECRET}'
+      - '_DATABASE_URL=${_DATABASE_URL}, _OAUTH2_CLIENT_ID=${_OAUTH2_CLIENT_ID}, _OAUTH2_CLIENT_SECRET=${_OAUTH2_CLIENT_SECRET}'
     id: Deploy
     entrypoint: gcloud
 images:

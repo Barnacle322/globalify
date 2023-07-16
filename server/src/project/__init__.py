@@ -24,8 +24,8 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
     oauth.init_app(app)
 
     oauth_config = {
-        "OAUTH2_CLIENT_ID": os.getenv("_OAUTH2_CLIENT_ID"),
-        "OAUTH2_CLIENT_SECRET": os.getenv("_OAUTH2_CLIENT_SECRET"),
+        "OAUTH2_CLIENT_ID": str(os.getenv("_OAUTH2_CLIENT_ID")),
+        "OAUTH2_CLIENT_SECRET": str(os.getenv("_OAUTH2_CLIENT_SECRET")),
         "OAUTH2_META_URL": "https://accounts.google.com/.well-known/openid-configuration",
         "FLASK_SECRET": "230a59ee-9caa-43d8-bf33-6c1d57cc4721",
     }

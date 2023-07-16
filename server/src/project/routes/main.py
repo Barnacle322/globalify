@@ -159,7 +159,7 @@ def login():
 @main.route("/login-google")
 def google_login():
     return oauth.globalify.authorize_redirect(
-        redirect_uri=url_for("main.google_callback", _external=True)
+        redirect_uri="https://globalify.xyz/google-oauth"
     )
 
 

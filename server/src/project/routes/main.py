@@ -58,8 +58,8 @@ def oauth_user(email: str):
 
 @main.get("/")
 def index():
-    return render_template("index.html")
-    # return render_template("index_newsletter.html")
+    # return render_template("index.html")
+    return render_template("index_newsletter.html")
 
 
 @main.route("/newsletter", methods=["POST"])

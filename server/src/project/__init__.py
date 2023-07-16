@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .extensions import db, login_manager, oauth
 from .routes.main import main, page_not_found, unauthorized
@@ -18,6 +19,8 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
 
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(401, unauthorized)
+
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     db.init_app(app)
     login_manager.init_app(app)

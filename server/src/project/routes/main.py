@@ -1,6 +1,8 @@
+import json
 import re
 from enum import Enum
 
+import requests
 from flask import (
     Blueprint,
     jsonify,
@@ -12,8 +14,8 @@ from flask import (
 )
 from flask_login import current_user, login_required, login_user, logout_user
 
-from ..extensions import db, login_manager
-from ..models import User, EmailForNewsletter
+from ..extensions import db, login_manager, oauth
+from ..models import EmailForNewsletter, User
 
 main = Blueprint("main", __name__)
 
@@ -44,10 +46,20 @@ def load_user(user_id):
     return User.get_by_id(user_id)
 
 
+def oauth_user(email: str):
+    user = User.get_by_email(email)
+    if not user:
+        user = User(email=email)
+        db.session.add(user)
+        db.session.commit()
+
+    return user
+
+
 @main.get("/")
 def index():
-    # return render_template("index.html")
-    return render_template("index_newsletter.html")
+    return render_template("index.html")
+    # return render_template("index_newsletter.html")
 
 
 @main.route("/newsletter", methods=["POST"])
@@ -94,6 +106,11 @@ def register():
             status = Status(StatusType.ERROR, "Passwords do not match.")
             return render_template("register.html", status=status.get_status())
 
+        signed_with_oauth = User.signed_with_oauth(email)
+        if signed_with_oauth:
+            status = Status(StatusType.WARNING, "Please sign in with Google.")
+            return render_template("register.html", status=status.get_status())
+
         user = User.get_by_email(email)
         if user:
             status = Status(StatusType.ERROR, "Email is already in use.")
@@ -125,6 +142,10 @@ def login():
             status = Status(StatusType.ERROR, "Email does not exist.")
             return render_template("login.html", status=status.get_status())
 
+        if User.signed_with_oauth(email):
+            status = Status(StatusType.WARNING, "Please sign in with Google.")
+            return render_template("login.html", status=status.get_status())
+
         if not user.verify_password(password):
             status = Status(StatusType.ERROR, "Password is incorrect.")
             return render_template("login.html", status=status.get_status())
@@ -133,6 +154,53 @@ def login():
         return redirect(url_for("main.index"))
 
     return render_template("login.html")
+
+
+@main.route("/login-google")
+def google_login():
+    return oauth.globalify.authorize_redirect(
+        redirect_uri=url_for("main.google_callback", _external=True)
+    )
+
+
+@main.route("/google-oauth")
+def google_callback():
+    authorization = oauth.globalify.authorize_access_token()
+    if authorization:
+        user_info = authorization.get("userinfo")
+        if user_info:
+            email = user_info.get("email")
+
+            user = oauth_user(email)
+
+            first_name = user_info.get("given_name")
+            last_name = user_info.get("family_name")
+            picture = user_info.get("picture")
+
+            user.first_name = first_name
+            user.last_name = last_name
+            user.picture = picture
+            db.session.commit()
+            login_user(user)
+
+    return redirect(url_for("main.index"))
+
+
+@main.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("main.index"))
+
+
+@main.route("/terms-of-service")
+def terms_of_service():
+    return render_template("terms_of_service.html")
+
+
+@main.route("/privacy-policy")
+def privacy_policy():
+    return render_template("privacy_policy.html")
 
 
 @main.errorhandler(404)

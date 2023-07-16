@@ -19,7 +19,7 @@
             property="og:description"
             content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
         />
-        <meta property="og:image" content="https://metatags.io/images/meta-tags.png" />
+        <!-- <meta property="og:image" content="https://metatags.io/images/meta-tags.png" /> -->
 
         <!-- Twitter -->
         <meta property="twitter:card" content="summary_large_image" />
@@ -29,7 +29,7 @@
             property="twitter:description"
             content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
         />
-        <meta property="twitter:image" content="https://metatags.io/images/meta-tags.png" />
+        <!-- <meta property="twitter:image" content="https://metatags.io/images/meta-tags.png" /> -->
 
         <!-- Meta Tags Generated with https://metatags.io -->
 
@@ -77,6 +77,9 @@
                     </button>
                 </form>
             </div>
+            {% if current_user.is_authenticated %}
+                Hi {{ current_user.first_name }} {{ current_user.last_name }} | {{ current_user.email }}!
+            {% endif %}
         </main>
     </body>
 </html>

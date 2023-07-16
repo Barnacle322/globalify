@@ -692,10 +692,6 @@ html {
   --tw-backdrop-sepia:  ;
 }
 
-.invisible {
-  visibility: hidden;
-}
-
 .absolute {
   position: absolute;
 }
@@ -854,36 +850,16 @@ html {
   width: 901px;
 }
 
-.w-full {
-  width: 100%;
-}
-
-.w-0 {
-  width: 0px;
-}
-
-.w-\[\] {
-  width: ;
-}
-
 .w-\[97px\] {
   width: 97px;
 }
 
-.min-w-\[200px\] {
-  min-width: 200px;
+.w-full {
+  width: 100%;
 }
 
 .min-w-\[300px\] {
   min-width: 300px;
-}
-
-.min-w-\[313px\] {
-  min-width: 313px;
-}
-
-.max-w-\[313px\] {
-  max-width: 313px;
 }
 
 .max-w-\[400px\] {
@@ -900,18 +876,6 @@ html {
 
 .max-w-\[800px\] {
   max-width: 800px;
-}
-
-.max-w-\[64px\] {
-  max-width: 64px;
-}
-
-.max-w-\[96px\] {
-  max-width: 96px;
-}
-
-.max-w-\[97px\] {
-  max-width: 97px;
 }
 
 .flex-row {
@@ -1152,26 +1116,10 @@ html {
   text-decoration-line: underline;
 }
 
-.opacity-0 {
-  opacity: 0;
-}
-
 .transition-all {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
-}
-
-.transition {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-backdrop-filter;
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-.duration-300 {
-  transition-duration: 300ms;
 }
 
 .duration-1000 {
@@ -1186,14 +1134,6 @@ html {
   font-family: "League Spartan";
 
   src: url('../elements/LeagueSpartan.ttf');
-}
-
-.hover\:flex:hover {
-  display: flex;
-}
-
-.hover\:hidden:hover {
-  display: none;
 }
 
 .hover\:bg-gray-200:hover {

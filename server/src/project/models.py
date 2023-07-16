@@ -9,9 +9,10 @@ from .extensions import db
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(50), nullable=False, unique=True)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(128), nullable=True)
     first_name = db.Column(db.String(30), nullable=True)
     last_name = db.Column(db.String(30), nullable=True)
+    picture = db.Column(db.String, nullable=True)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
 
     def __repr__(self):
@@ -45,6 +46,19 @@ class User(UserMixin, db.Model):
             return user
         except:
             return None
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def signed_with_oauth(email: str) -> bool:
+        """
+        Returns False if the user signed up with email and password or doesn't exist.
+        """
+        try:
+            user = User.query.filter(User.email == email).first()
+            return True if user.password_hash is None else False
+        except:
+            return False
         finally:
             db.session.close()
 

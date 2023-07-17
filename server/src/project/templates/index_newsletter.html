@@ -38,11 +38,11 @@
         <script src="../static/scripts/newsletter.js" defer></script>
         <title>Globalify — Connect to the whole world of investment</title>
     </head>
-    <body class="w-full bg-black text-white">
+    <body class="w-full bg-black text-white h-full">
         <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-between px-9">
             <img class="h-[30px] w-[113px]" src="../static/elements/globalify.png" />
         </nav>
-        <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden text-white">
+        <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden text-white overflow-y-hidden">
             <div class="flex flex-col items-center justify-center gap-6">
                 <div class="max-w-[700px] px-4 text-center text-6xl sm:text-8xl">Connect globally with Globalify</div>
                 <div class="flex max-w-[700px] px-4 text-center text-lg text-stone-300 sm:text-2xl">
@@ -50,10 +50,11 @@
                 </div>
             </div>
             <div class="mt-20 flex flex-col items-center justify-center gap-10 lg:mt-60 lg:flex-row">
-                <div class="inline-flex flex-col items-start justify-center px-4">
-                    <div class="min-w-[300px] max-w-[400px] text-[40px] font-medium text-white">
-                        Get notified when we’re launching 🚀
+                <div class="inline-flex flex-col items-start justify-center px-4 relative">
+                    <div class="min-w-[300px] max-w-[400px] text-5xl font-medium text-white">
+                        Get notified when we’re launching 
                     </div>
+                    <div class="absolute left-[340px] top-[55px] animate-flyoff text-4xl"><div class="absolute top-6 -right-[15px] animate-fadeoff rotate-[135deg]">💨</div><div class="absolute animate-wiggle">🚀</div></div>
                     <div class="min-w-[300px] text-base font-normal text-stone-300 sm:text-xl">
                         Be the first to know when Globalify can help you with your ventures!
                     </div>
@@ -65,7 +66,7 @@
                         type="email"
                         autocomplete="email"
                         required
-                        class="flex h-9 w-full rounded border-2 border-stone-300 bg-black px-2"
+                        class="animate-pulse flex h-9 w-full rounded border-2 border-stone-300 bg-black px-2"
                         placeholder="Enter your email"
                     />
                     <button

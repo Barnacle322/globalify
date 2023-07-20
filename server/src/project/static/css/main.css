@@ -1177,6 +1177,10 @@ html {
   position: relative;
 }
 
+.-right-\[15px\] {
+  right: -15px;
+}
+
 .left-0 {
   left: 0px;
 }
@@ -1195,90 +1199,6 @@ html {
 
 .top-\[55px\] {
   top: 55px;
-}
-
-.left-3 {
-  left: 0.75rem;
-}
-
-.right-3 {
-  right: 0.75rem;
-}
-
-.right-10 {
-  right: 2.5rem;
-}
-
-.right-12 {
-  right: 3rem;
-}
-
-.right-20 {
-  right: 5rem;
-}
-
-.right-1 {
-  right: 0.25rem;
-}
-
-.left-20 {
-  left: 5rem;
-}
-
-.right-\[5px\] {
-  right: 5px;
-}
-
-.right-\[1px\] {
-  right: 1px;
-}
-
-.left-\[1px\] {
-  left: 1px;
-}
-
-.left-\[10px\] {
-  left: 10px;
-}
-
-.left-\[3px\] {
-  left: 3px;
-}
-
-.left-\[5px\] {
-  left: 5px;
-}
-
-.left-\[15px\] {
-  left: 15px;
-}
-
-.right-\[15px\] {
-  right: 15px;
-}
-
-.-right-\[1px\] {
-  right: -1px;
-}
-
-.right-\[-1px\] {
-  right: -1px;
-}
-
-.right-\[-right-\\\[1px\\\]\] {
-  right: -right-\[1px\];
-}
-
-.-right-\[10px\] {
-  right: -10px;
-}
-
-.-right-\[14px\] {
-  right: -14px;
-}
-
-.-right-\[15px\] {
-  right: -15px;
 }
 
 .isolate {
@@ -1482,7 +1402,7 @@ html {
 }
 
 @keyframes fadeoff {
-  0%, 25% {
+  0%, 75% {
     opacity: 0;
   }
 
@@ -1492,7 +1412,7 @@ html {
 }
 
 .animate-fadeoff {
-  animation: fadeoff 1s ease-in-out forwards;
+  animation: fadeoff 2s ease-in-out forwards;
 }
 
 @keyframes flyoff {
@@ -1500,12 +1420,12 @@ html {
     transform: translateX(0) translateY(0);
   }
 
-  25% {
+  50% {
     transform: translateX(0) translateY(0);
   }
 
   100% {
-    transform: translateX(1500px) translateY(-1500px);
+    transform: translateX(2000px) translateY(-2000px);
   }
 }
 
@@ -1629,20 +1549,12 @@ html {
   overflow: hidden;
 }
 
-.overflow-visible {
-  overflow: visible;
-}
-
 .overflow-x-hidden {
   overflow-x: hidden;
 }
 
 .overflow-y-hidden {
   overflow-y: hidden;
-}
-
-.overflow-y-visible {
-  overflow-y: visible;
 }
 
 .rounded {

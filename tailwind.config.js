@@ -15,18 +15,18 @@ module.exports = {
         },
         flyoff: {
           '0%': {transform: 'translateX(0) translateY(0)'},
-          '25%': {transform: 'translateX(0) translateY(0)'},
-          '100%': {transform: 'translateX(1500px) translateY(-1500px)'}
+          '50%': {transform: 'translateX(0) translateY(0)'},
+          '100%': {transform: 'translateX(2000px) translateY(-2000px)'}
         },
         fadeoff: {
-          '0%, 25%': {opacity: '0'},
+          '0%, 75%': {opacity: '0'},
           '100%': {opacity: '1'},
         }
       }, 
       animation: {
         wiggle: 'wiggle 0.2s ease-in-out infinite',
         flyoff: 'flyoff 3s ease-in forwards',
-        fadeoff: 'fadeoff 1s ease-in-out forwards'
+        fadeoff: 'fadeoff 2s ease-in-out forwards'
       }
     },
   },

@@ -15,7 +15,15 @@ from flask import (
 from flask_login import current_user, login_required, login_user, logout_user
 
 from ..extensions import db, login_manager, oauth
-from ..models import EmailForNewsletter, User
+from ..models import (
+    EmailForNewsletter,
+    Industry,
+    Round,
+    User,
+    Company,
+    IndustrialGroup,
+    Country,
+)
 
 main = Blueprint("main", __name__)
 
@@ -211,3 +219,35 @@ def page_not_found(e):
 @main.errorhandler(401)
 def unauthorized(e):
     return render_template("401.html"), 401
+
+
+@main.route("/test")
+def test():
+    db.session.rollback()
+    country = db.session.query(Country).filter_by(code="KG").first()
+    new_industrial_group = IndustrialGroup.query.filter_by(name="Agriculture").first()
+    new_industrial_group2 = IndustrialGroup.query.filter_by(name="Automotive").first()
+    new_industry = Industry.query.filter_by(name="Manufacturing").first()
+    new_round = Round.query.filter_by(name="Seed").first()
+    new_company = Company(
+        name="test",
+        description="test",
+        number_of_employees=1,
+        country=country,
+        website="test",
+        picture="test",
+        preferred_round=new_round,
+        industrial_group=[new_industrial_group, new_industrial_group2],
+        industry=[new_industry],
+    )
+    db.session.add(new_company)
+    db.session.commit()
+    return "Hello world"
+
+
+@main.route("/test2")
+def test2():
+    company = Company.query.filter_by(name="test").first()
+    # return jsonify(company.country.code)
+    print(company.industry)
+    return jsonify(list(map(lambda x: x.name, company.industry)))

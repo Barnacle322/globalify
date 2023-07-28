@@ -1,36 +1,55 @@
-from flask_login import UserMixin
-from sqlalchemy.orm import relationship
+from __future__ import annotations
 
+from typing import List, Set, Union
+
+from flask_login import UserMixin
+from sqlalchemy import (
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Boolean,
+    Table,
+    Column,
+    DateTime,
+)
+from sqlalchemy.orm import Mapped, relationship, mapped_column
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .extensions import db
 
+import pycountry
+
+
+def populate_database():
+    Country.populate()
+    IndustrialGroup.populate()
+    Industry.populate()
+    Round.populate()
+
 
 class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(50), nullable=False, unique=True)
-    password_hash = db.Column(db.String(128), nullable=True)
-    first_name = db.Column(db.String(30), nullable=True)
-    last_name = db.Column(db.String(30), nullable=True)
-    picture = db.Column(db.String, nullable=True)
-    is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    password_hash: Mapped[str] = mapped_column(String(128), nullable=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return f"<User {self.email}>"
 
     @property
-    def password(self):
+    def password(self) -> None:
         raise AttributeError("Password is not a readable attribute.")
 
     @password.setter
-    def password(self, password):
+    def password(self, password) -> None:
         self.password_hash = generate_password_hash(password)
 
-    def verify_password(self, password):
+    def verify_password(self, password) -> bool:
         return check_password_hash(self.password_hash, password)
 
     @staticmethod
-    def get_by_id(id: int):
+    def get_by_id(id: int) -> Union[User, None]:
         try:
             user = User.query.filter(User.id == id).first()
             return user
@@ -40,7 +59,7 @@ class User(UserMixin, db.Model):
             db.session.close()
 
     @staticmethod
-    def get_by_email(email: str):
+    def get_by_email(email: str) -> Union[User, None]:
         try:
             user = User.query.filter(User.email == email).first()
             return user
@@ -63,16 +82,252 @@ class User(UserMixin, db.Model):
             db.session.close()
 
 
+class UserInfo(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    user: Mapped[User] = relationship("User", backref="user_info", lazy=True)
+    username: Mapped[str] = mapped_column(String(50), nullable=False)
+    first_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    last_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    linkedin: Mapped[str] = mapped_column(String, nullable=True)
+    # twitter = mapped_column(String, nullable=True)
+    instagram: Mapped[str] = mapped_column(String, nullable=True)
+
+    @staticmethod
+    def get_by_user_id(id: int) -> Union[User, None]:
+        try:
+            full_user = (
+                db.session.query(
+                    UserInfo.id,
+                    User.email,
+                    UserInfo.username,
+                    UserInfo.first_name,
+                    UserInfo.last_name,
+                    UserInfo.linkedin,
+                    UserInfo.instagram,
+                    User.is_admin,
+                )
+                .filter(UserInfo.user_id == id)
+                .join(User)
+                .first()
+            )
+            return full_user
+        except:
+            return None
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_by_username(username: str) -> Union[User, None]:
+        try:
+            full_user = (
+                db.session.query(
+                    UserInfo.id,
+                    User.email,
+                    UserInfo.username,
+                    UserInfo.first_name,
+                    UserInfo.last_name,
+                    UserInfo.linkedin,
+                    UserInfo.instagram,
+                    User.is_admin,
+                )
+                .filter(UserInfo.username == username)
+                .join(User)
+                .first()
+            )
+            return full_user
+        except:
+            return None
+        finally:
+            db.session.close()
+
+
+company_industrial_group = db.Table(
+    "company_industrial_group",
+    Column("company_id", Integer, ForeignKey("company.id"), primary_key=True),
+    Column(
+        "industrial_group_id",
+        Integer,
+        ForeignKey("industrial_group.id"),
+        primary_key=True,
+    ),
+)
+
+company_industry = db.Table(
+    "company_industry",
+    Column("company_id", Integer, ForeignKey("company.id"), primary_key=True),
+    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+)
+
+
+class Company(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    description = mapped_column(String, nullable=True)
+    number_of_employees = mapped_column(Integer, nullable=True)
+    website: Mapped[str] = mapped_column(String, nullable=True)
+    picture: Mapped[str] = mapped_column(String, nullable=True)
+
+    country_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("country.id"), nullable=True
+    )
+    country: Mapped[Country] = relationship()
+
+    preferred_round_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("round.id"), nullable=True
+    )
+    preferred_round: Mapped[Round] = relationship()
+
+    industrial_group: Mapped[List[IndustrialGroup]] = relationship(
+        secondary=company_industrial_group
+    )
+    industry: Mapped[List[Industry]] = relationship(secondary=company_industry)
+
+    @staticmethod
+    def get_by_id(id: int) -> Union[Company, None]:
+        try:
+            company = Company.query.filter(Company.id == id).first()
+            return company
+        except:
+            return None
+        finally:
+            db.session.close()
+
+
+class Round(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+
+    @staticmethod
+    def populate() -> None:
+        try:
+            round_list = ["Pre-Seed", "Seed", "Series A", "Series B", "Series C"]
+            db.session.add_all(list(map(lambda x: Round(name=x), round_list)))
+            db.session.commit()
+        except:
+            db.session.rollback()
+        finally:
+            db.session.close()
+
+
+class IndustrialGroup(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+
+    @staticmethod
+    def populate() -> None:
+        try:
+            industrial_group_list = [
+                "Agriculture",
+                "Automotive",
+                "Banking",
+                "Chemical",
+                "Construction",
+                "Consumer Goods",
+                "Education",
+                "Energy",
+                "Entertainment",
+                "Financial Services",
+                "Food & Beverage",
+                "Healthcare",
+                "Hospitality",
+                "Insurance",
+                "Manufacturing",
+                "Media",
+                "Mining",
+                "Pharmaceutical",
+                "Real Estate",
+                "Retail",
+                "Telecommunications",
+                "Transportation",
+                "Utilities",
+            ]
+            db.session.add_all(
+                list(map(lambda x: IndustrialGroup(name=x), industrial_group_list))
+            )
+            db.session.commit()
+        except:
+            db.session.rollback()
+        finally:
+            db.session.close()
+
+
+class Industry(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+
+    @staticmethod
+    def populate() -> None:
+        try:
+            industry_list = [
+                "Manufacturing",
+                "Sales",
+                "Marketing",
+                "Information Technology",
+                "Health Care",
+                "Human Resources",
+                "Accounting",
+                "Media & Communications",
+                "Administrative",
+                "Customer Service",
+                "Business",
+                "Finance",
+                "Engineering",
+                "Arts & Design",
+                "Education",
+                "Legal",
+                "Entrepreneurship",
+                "Writing",
+                "Entertainment",
+                "Research",
+                "Maintenance & Repair",
+                "Community & Social Services",
+                "Construction",
+                "Installation & Repair",
+                "Personal Care & Services",
+                "Transportation & Logistics",
+                "Social Media",
+            ]
+
+            db.session.add_all(list(map(lambda x: Industry(name=x), industry_list)))
+            db.session.commit()
+        except:
+            db.session.rollback()
+        finally:
+            db.session.close()
+
+
+class Country(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    code: Mapped[str] = mapped_column(String(2), nullable=False, unique=True)
+
+    @staticmethod
+    def populate() -> None:
+        try:
+            country_list = []
+            for country in pycountry.countries:
+                country_list.append(Country(name=country.name, code=country.alpha_2))
+            db.session.add_all(country_list)
+            db.session.commit()
+        except:
+            db.session.rollback()
+        finally:
+            db.session.close()
+
+
 class EmailForNewsletter(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(50), nullable=False, unique=True)
-    added_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    email: Mapped[int] = mapped_column(String(255), nullable=False, unique=True)
+    added_at: Mapped[DateTime] = mapped_column(
+        DateTime, nullable=False, default=db.func.now()
+    )
 
     def __repr__(self):
         return f"<EmailForNewsletter {self.email}>"
 
     @staticmethod
-    def get_by_email(email: str):
+    def get_by_email(email: str) -> Union[EmailForNewsletter, None]:
         try:
             email = EmailForNewsletter.query.filter(
                 EmailForNewsletter.email == email

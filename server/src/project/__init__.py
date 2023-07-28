@@ -4,7 +4,7 @@ from datetime import timedelta
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import db, login_manager, oauth
+from .extensions import db, login_manager, oauth, migrate
 from .routes.main import main, page_not_found, unauthorized
 
 
@@ -23,6 +23,7 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     db.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     oauth.init_app(app)
 

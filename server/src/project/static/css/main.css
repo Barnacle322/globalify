@@ -1248,6 +1248,10 @@ html {
   margin-top: 12rem;
 }
 
+.mb-16 {
+  margin-bottom: 4rem;
+}
+
 .flex {
   display: flex;
 }
@@ -1555,6 +1559,10 @@ html {
 
 .overflow-y-hidden {
   overflow-y: hidden;
+}
+
+.scroll-smooth {
+  scroll-behavior: smooth;
 }
 
 .rounded {

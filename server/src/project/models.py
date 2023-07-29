@@ -90,8 +90,11 @@ class UserInfo(db.Model):
     first_name: Mapped[str] = mapped_column(String(50), nullable=False)
     last_name: Mapped[str] = mapped_column(String(50), nullable=False)
     linkedin: Mapped[str] = mapped_column(String, nullable=True)
-    # twitter = mapped_column(String, nullable=True)
     instagram: Mapped[str] = mapped_column(String, nullable=True)
+    bio: Mapped[Text] = mapped_column(Text, nullable=True)
+
+    def __repr__(self):
+        return f"<UserInfo {self.username}>"
 
     @staticmethod
     def get_by_user_id(id: int) -> Union[User, None]:
@@ -105,6 +108,7 @@ class UserInfo(db.Model):
                     UserInfo.last_name,
                     UserInfo.linkedin,
                     UserInfo.instagram,
+                    UserInfo.bio,
                     User.is_admin,
                 )
                 .filter(UserInfo.user_id == id)
@@ -129,6 +133,7 @@ class UserInfo(db.Model):
                     UserInfo.last_name,
                     UserInfo.linkedin,
                     UserInfo.instagram,
+                    UserInfo.bio,
                     User.is_admin,
                 )
                 .filter(UserInfo.username == username)
@@ -163,8 +168,8 @@ company_industry = db.Table(
 class Company(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
-    description = mapped_column(String, nullable=True)
-    number_of_employees = mapped_column(Integer, nullable=True)
+    description: Mapped[str] = mapped_column(String, nullable=True)
+    number_of_employees: Mapped[int] = mapped_column(Integer, nullable=True)
     website: Mapped[str] = mapped_column(String, nullable=True)
     picture: Mapped[str] = mapped_column(String, nullable=True)
 
@@ -183,6 +188,9 @@ class Company(db.Model):
     )
     industry: Mapped[List[Industry]] = relationship(secondary=company_industry)
 
+    def __repr__(self):
+        return f"<Company {self.name}>"
+
     @staticmethod
     def get_by_id(id: int) -> Union[Company, None]:
         try:
@@ -194,25 +202,12 @@ class Company(db.Model):
             db.session.close()
 
 
-class Round(db.Model):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
-
-    @staticmethod
-    def populate() -> None:
-        try:
-            round_list = ["Pre-Seed", "Seed", "Series A", "Series B", "Series C"]
-            db.session.add_all(list(map(lambda x: Round(name=x), round_list)))
-            db.session.commit()
-        except:
-            db.session.rollback()
-        finally:
-            db.session.close()
-
-
 class IndustrialGroup(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+
+    def __repr__(self):
+        return f"<IndustrialGroup {self.name}>"
 
     @staticmethod
     def populate() -> None:
@@ -256,6 +251,9 @@ class Industry(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
 
+    def __repr__(self):
+        return f"<Industry {self.name}>"
+
     @staticmethod
     def populate() -> None:
         try:
@@ -297,10 +295,52 @@ class Industry(db.Model):
             db.session.close()
 
 
+class Round(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+
+    def __repr__(self):
+        return f"<Round {self.name}>"
+
+    @staticmethod
+    def populate() -> None:
+        try:
+            round_list = ["Pre-Seed", "Seed", "Series A", "Series B", "Series C"]
+            db.session.add_all(list(map(lambda x: Round(name=x), round_list)))
+            db.session.commit()
+        except:
+            db.session.rollback()
+        finally:
+            db.session.close()
+
+
 class Country(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     code: Mapped[str] = mapped_column(String(2), nullable=False, unique=True)
+
+    def __repr__(self):
+        return f"<Country {self.name}>"
+
+    @staticmethod
+    def get_by_code(code: str) -> Union[Country, None]:
+        try:
+            country = Country.query.filter(Country.code == code).first()
+            return country
+        except:
+            return None
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_by_id(id: int) -> Union[Country, None]:
+        try:
+            country = Country.query.filter(Country.id == id).first()
+            return country
+        except:
+            return None
+        finally:
+            db.session.close()
 
     @staticmethod
     def populate() -> None:
@@ -333,6 +373,16 @@ class EmailForNewsletter(db.Model):
                 EmailForNewsletter.email == email
             ).first()
             return email
+        except:
+            return None
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_all() -> List[EmailForNewsletter]:
+        try:
+            email_list = EmailForNewsletter.query.all()
+            return email_list
         except:
             return None
         finally:

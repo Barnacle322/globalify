@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "globalify"
+version = "0.1.0"
+description = ""
+authors = ["Barnacle322 <arstan.usenov@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^2.3.2"
+flask-sqlalchemy = "^3.0.5"
+flask-login = "^0.6.2"
+flask-migrate = "^4.0.4"
+authlib = "^1.2.1"
+requests = "^2.31.0"
+pycountry = "^22.3.5"
+pre-commit = "^3.3.3"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+black = "^23.7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

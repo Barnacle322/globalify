@@ -15,7 +15,15 @@ from flask import (
 from flask_login import current_user, login_required, login_user, logout_user
 
 from ..extensions import db, login_manager, oauth
-from ..models import EmailForNewsletter, User
+from ..models import (
+    EmailForNewsletter,
+    Industry,
+    Round,
+    User,
+    Company,
+    IndustrialGroup,
+    Country,
+)
 
 main = Blueprint("main", __name__)
 
@@ -156,16 +164,47 @@ def login():
     return render_template("login.html")
 
 
+@main.route("/login-linkedin")
+def linkedin_login():
+    return oauth.linkedin.authorize_redirect(
+        redirect_uri=url_for("main.linkedin_callback", _external=True)
+    )
+
+
+@main.route("/linkedin-oauth")
+def linkedin_callback():
+    authorization = oauth.linkedin.authorize_access_token()
+    if authorization:
+        print(authorization)
+        # user_info = authorization.get("user")
+        # if user_info:
+        #     email = user_info.get("emailAddress")
+
+        #     user = oauth_user(email)
+
+        #     first_name = user_info.get("firstName")
+        #     last_name = user_info.get("lastName")
+        #     picture = user_info.get("profilePicture")
+
+        #     user.first_name = first_name
+        #     user.last_name = last_name
+        #     user.picture = picture
+        #     db.session.commit()
+        #     login_user(user)
+
+    return redirect(url_for("main.index"))
+
+
 @main.route("/login-google")
 def google_login():
-    return oauth.globalify.authorize_redirect(
+    return oauth.google.authorize_redirect(
         redirect_uri=url_for("main.google_callback", _external=True)
     )
 
 
 @main.route("/google-oauth")
 def google_callback():
-    authorization = oauth.globalify.authorize_access_token()
+    authorization = oauth.google.authorize_access_token()
     if authorization:
         user_info = authorization.get("userinfo")
         if user_info:
@@ -211,3 +250,35 @@ def page_not_found(e):
 @main.errorhandler(401)
 def unauthorized(e):
     return render_template("401.html"), 401
+
+
+@main.route("/test")
+def test():
+    db.session.rollback()
+    country = db.session.query(Country).filter_by(code="KG").first()
+    new_industrial_group = IndustrialGroup.query.filter_by(name="Agriculture").first()
+    new_industrial_group2 = IndustrialGroup.query.filter_by(name="Automotive").first()
+    new_industry = Industry.query.filter_by(name="Manufacturing").first()
+    new_round = Round.query.filter_by(name="Seed").first()
+    new_company = Company(
+        name="test",
+        description="test",
+        number_of_employees=1,
+        country=country,
+        website="test",
+        picture="test",
+        preferred_round=new_round,
+        industrial_group=[new_industrial_group, new_industrial_group2],
+        industry=[new_industry],
+    )
+    db.session.add(new_company)
+    db.session.commit()
+    return "Hello world"
+
+
+@main.route("/test2")
+def test2():
+    company = Company.query.filter_by(name="test").first()
+    # return jsonify(company.country.code)
+    print(company.industry)
+    return jsonify(list(map(lambda x: x.name, company.industry)))

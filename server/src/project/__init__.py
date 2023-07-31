@@ -4,7 +4,7 @@ from datetime import timedelta
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import db, login_manager, oauth
+from .extensions import db, login_manager, oauth, migrate
 from .routes.main import main, page_not_found, unauthorized
 
 
@@ -23,22 +23,38 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     db.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     oauth.init_app(app)
 
-    oauth_config = {
-        "OAUTH2_CLIENT_ID": str(os.getenv("_OAUTH2_CLIENT_ID")),
-        "OAUTH2_CLIENT_SECRET": str(os.getenv("_OAUTH2_CLIENT_SECRET")),
+    oauth_config_google = {
+        "OAUTH2_CLIENT_ID": str(os.getenv("_GOOGLE_OAUTH2_CLIENT_ID")),
+        "OAUTH2_CLIENT_SECRET": str(os.getenv("_GOOGLE_OAUTH2_CLIENT_SECRET")),
         "OAUTH2_META_URL": "https://accounts.google.com/.well-known/openid-configuration",
         "FLASK_SECRET": "230a59ee-9caa-43d8-bf33-6c1d57cc4721",
     }
 
+    oauth_config_linkedin = {
+        "OAUTH2_CLIENT_ID": str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_ID")),
+        "OAUTH2_CLIENT_SECRET": str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_SECRET")),
+        "OAUTH2_META_URL": "https://www.linkedin.com/oauth/v2/authorization",
+        "FLASK_SECRET": "15a104fc-03ed-4c48-9e7e-872fcd6e4c58",
+    }
+
     oauth.register(
-        "globalify",
-        client_id=oauth_config.get("OAUTH2_CLIENT_ID"),
-        client_secret=oauth_config.get("OAUTH2_CLIENT_SECRET"),
-        server_metadata_url=oauth_config.get("OAUTH2_META_URL"),
+        "google",
+        client_id=oauth_config_google.get("OAUTH2_CLIENT_ID"),
+        client_secret=oauth_config_google.get("OAUTH2_CLIENT_SECRET"),
+        server_metadata_url=oauth_config_google.get("OAUTH2_META_URL"),
         client_kwargs={"scope": "openid email profile"},
+    )
+
+    oauth.register(
+        "linkedin",
+        client_id=oauth_config_linkedin.get("OAUTH2_CLIENT_ID"),
+        client_secret=oauth_config_linkedin.get("OAUTH2_CLIENT_SECRET"),
+        authorize_url=oauth_config_linkedin.get("OAUTH2_META_URL"),
+        client_kwargs={"scope": "r_liteprofile r_emailaddress"},
     )
 
     return app

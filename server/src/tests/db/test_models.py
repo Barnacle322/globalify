@@ -27,6 +27,22 @@ def new_user_info(new_user):
     return user_info
 
 
+@pytest.fixture(scope="module")
+def full_user():
+    full_user = (
+        1,
+        "testuser@example.com",
+        "testusername",
+        "testfirstname",
+        "testlastname",
+        "testlinkedin",
+        "testinstagram",
+        "testbio",
+        False,
+    )
+    return full_user
+
+
 def test_new_user(new_user, app):
     with app.app_context():
         db.session.add(new_user)
@@ -66,17 +82,17 @@ def test_new_user_info(new_user_info, app):
         assert new_user_info.user_id == 1
 
 
-def test_get_user_info_by_user_id(new_user_info, app):
+def test_get_user_info_by_user_id(new_user_info, app, full_user):
     with app.app_context():
         db.session.add(new_user_info)
         db.session.commit()
         user_info = UserInfo.get_by_user_id(1)
-        print(user_info)
+        assert user_info == full_user
 
 
-def test_get_user_info_by_username(new_user_info, app):
+def test_get_user_info_by_username(new_user_info, app, full_user):
     with app.app_context():
         db.session.add(new_user_info)
         db.session.commit()
         user_info = UserInfo.get_by_username("testusername")
-        print(user_info)
+        assert user_info == full_user

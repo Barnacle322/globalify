@@ -164,16 +164,47 @@ def login():
     return render_template("login.html")
 
 
+@main.route("/login-linkedin")
+def linkedin_login():
+    return oauth.linkedin.authorize_redirect(
+        redirect_uri=url_for("main.linkedin_callback", _external=True)
+    )
+
+
+@main.route("/linkedin-oauth")
+def linkedin_callback():
+    authorization = oauth.linkedin.authorize_access_token()
+    if authorization:
+        print(authorization)
+        # user_info = authorization.get("user")
+        # if user_info:
+        #     email = user_info.get("emailAddress")
+
+        #     user = oauth_user(email)
+
+        #     first_name = user_info.get("firstName")
+        #     last_name = user_info.get("lastName")
+        #     picture = user_info.get("profilePicture")
+
+        #     user.first_name = first_name
+        #     user.last_name = last_name
+        #     user.picture = picture
+        #     db.session.commit()
+        #     login_user(user)
+
+    return redirect(url_for("main.index"))
+
+
 @main.route("/login-google")
 def google_login():
-    return oauth.globalify.authorize_redirect(
+    return oauth.google.authorize_redirect(
         redirect_uri=url_for("main.google_callback", _external=True)
     )
 
 
 @main.route("/google-oauth")
 def google_callback():
-    authorization = oauth.globalify.authorize_access_token()
+    authorization = oauth.google.authorize_access_token()
     if authorization:
         user_info = authorization.get("userinfo")
         if user_info:

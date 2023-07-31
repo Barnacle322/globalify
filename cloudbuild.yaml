@@ -30,7 +30,12 @@ steps:
       - '--region=$_DEPLOY_REGION'
       - '--quiet'
       - '--set-env-vars'
-      - '_DATABASE_URL=${_DATABASE_URL}, _OAUTH2_CLIENT_ID=${_OAUTH2_CLIENT_ID}, _OAUTH2_CLIENT_SECRET=${_OAUTH2_CLIENT_SECRET}'
+      - >-
+        _DATABASE_URL=${_DATABASE_URL},
+        _GOOGLE_OAUTH2_CLIENT_ID=${_GOOGLE_OAUTH2_CLIENT_ID},
+        _GOOGLE_OAUTH2_CLIENT_SECRET=${_GOOGLE_OAUTH2_CLIENT_SECRET},
+        _LINKEDIN_OAUTH2_CLIENT_ID=${_LINKEDIN_OAUTH2_CLIENT_ID},
+        _LINKEDIN_OAUTH2_CLIENT_SECRET=${_LINKEDIN_OAUTH2_CLIENT_SECRET}
     id: Deploy
     entrypoint: gcloud
 images:
@@ -39,11 +44,11 @@ images:
 options:
   substitutionOption: ALLOW_LOOSE
 substitutions:
-  _AR_HOSTNAME: europe-north1-docker.pkg.dev
-  _TRIGGER_ID: f78bc905-44d2-4d17-a8fd-de1e488491a2
   _PLATFORM: managed
   _SERVICE_NAME: globalifyxyz
   _DEPLOY_REGION: europe-north1
+  _AR_HOSTNAME: europe-north1-docker.pkg.dev
+  _TRIGGER_ID: f78bc905-44d2-4d17-a8fd-de1e488491a2
 tags:
   - gcp-cloud-build-deploy-cloud-run
   - gcp-cloud-build-deploy-cloud-run-managed

@@ -1,24 +1,23 @@
 from __future__ import annotations
 
 from typing import List, Set, Union
-
+import enum
+import pycountry
 from flask_login import UserMixin
 from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
     ForeignKey,
     Integer,
     String,
     Text,
-    Boolean,
-    Table,
-    Column,
-    DateTime,
 )
-from sqlalchemy.orm import Mapped, relationship, mapped_column
+from sqlalchemy import Enum as dbEnum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .extensions import db
-
-import pycountry
 
 
 def populate_database():
@@ -28,10 +27,18 @@ def populate_database():
     Round.populate()
 
 
+class OauthProvider(enum.Enum):
+    GOOGLE = "google"
+    LINKEDIN = "linkedin"
+
+
 class User(UserMixin, db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String(128), nullable=True)
+    oauth_provider: Mapped[OauthProvider] = mapped_column(
+        dbEnum(OauthProvider), nullable=True
+    )
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __repr__(self):
@@ -51,7 +58,7 @@ class User(UserMixin, db.Model):
     @staticmethod
     def get_by_id(id: int) -> Union[User, None]:
         try:
-            user = User.query.filter(User.id == id).first()
+            user: User = User.query.filter(User.id == id).first()
             return user
         except:
             return None
@@ -61,7 +68,7 @@ class User(UserMixin, db.Model):
     @staticmethod
     def get_by_email(email: str) -> Union[User, None]:
         try:
-            user = User.query.filter(User.email == email).first()
+            user: User = User.query.filter(User.email == email).first()
             return user
         except:
             return None
@@ -69,13 +76,13 @@ class User(UserMixin, db.Model):
             db.session.close()
 
     @staticmethod
-    def signed_with_oauth(email: str) -> bool:
+    def signed_with_oauth(email: str) -> Union[bool, OauthProvider]:
         """
         Returns False if the user signed up with email and password or doesn't exist.
         """
         try:
-            user = User.query.filter(User.email == email).first()
-            return True if user.password_hash is None else False
+            user: User = User.query.filter(User.email == email).first()
+            return False if user.oauth_provider is None else user.oauth_provider
         except:
             return False
         finally:
@@ -83,12 +90,28 @@ class User(UserMixin, db.Model):
 
 
 class UserInfo(db.Model):
+    """
+    ```python
+    def __init__(
+        id: int,
+        user_id: int,
+        user: User,
+        username: str,
+        first_name: str,
+        last_name: str,
+        linkedin: str,
+        instagram: str,
+        bio: str,
+    ):
+    ```
+    """
+
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     user: Mapped[User] = relationship("User", backref="user_info", lazy=True)
-    username: Mapped[str] = mapped_column(String(50), nullable=False)
-    first_name: Mapped[str] = mapped_column(String(50), nullable=False)
-    last_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    username: Mapped[str] = mapped_column(String(50), nullable=True)
+    first_name: Mapped[str] = mapped_column(String(50), nullable=True)
+    last_name: Mapped[str] = mapped_column(String(50), nullable=True)
     linkedin: Mapped[str] = mapped_column(String, nullable=True)
     instagram: Mapped[str] = mapped_column(String, nullable=True)
     bio: Mapped[Text] = mapped_column(Text, nullable=True)
@@ -194,7 +217,7 @@ class Company(db.Model):
     @staticmethod
     def get_by_id(id: int) -> Union[Company, None]:
         try:
-            company = Company.query.filter(Company.id == id).first()
+            company: Company = Company.query.filter(Company.id == id).first()
             return company
         except:
             return None
@@ -325,7 +348,7 @@ class Country(db.Model):
     @staticmethod
     def get_by_code(code: str) -> Union[Country, None]:
         try:
-            country = Country.query.filter(Country.code == code).first()
+            country: Country = Country.query.filter(Country.code == code).first()
             return country
         except:
             return None
@@ -335,7 +358,7 @@ class Country(db.Model):
     @staticmethod
     def get_by_id(id: int) -> Union[Country, None]:
         try:
-            country = Country.query.filter(Country.id == id).first()
+            country: Country = Country.query.filter(Country.id == id).first()
             return country
         except:
             return None
@@ -345,7 +368,7 @@ class Country(db.Model):
     @staticmethod
     def populate() -> None:
         try:
-            country_list = []
+            country_list: List[Country] = []
             for country in pycountry.countries:
                 country_list.append(Country(name=country.name, code=country.alpha_2))
             db.session.add_all(country_list)
@@ -369,7 +392,7 @@ class EmailForNewsletter(db.Model):
     @staticmethod
     def get_by_email(email: str) -> Union[EmailForNewsletter, None]:
         try:
-            email = EmailForNewsletter.query.filter(
+            email: EmailForNewsletter = EmailForNewsletter.query.filter(
                 EmailForNewsletter.email == email
             ).first()
             return email
@@ -379,9 +402,9 @@ class EmailForNewsletter(db.Model):
             db.session.close()
 
     @staticmethod
-    def get_all() -> List[EmailForNewsletter]:
+    def get_all() -> Union[List[EmailForNewsletter], None]:
         try:
-            email_list = EmailForNewsletter.query.all()
+            email_list: List[EmailForNewsletter] = EmailForNewsletter.query.all()
             return email_list
         except:
             return None

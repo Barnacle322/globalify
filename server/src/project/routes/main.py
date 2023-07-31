@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from enum import Enum
 
@@ -16,15 +17,18 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from ..extensions import db, login_manager, oauth
 from ..models import (
+    Company,
+    Country,
     EmailForNewsletter,
+    IndustrialGroup,
     Industry,
     Round,
     User,
-    Company,
-    IndustrialGroup,
-    Country,
+    OauthProvider,
+    UserInfo,
 )
 
+LINKEDIN_SECRET = os.environ.get("_LINKEDIN_OAUTH2_CLIENT_SECRET")
 main = Blueprint("main", __name__)
 
 
@@ -150,8 +154,10 @@ def login():
             status = Status(StatusType.ERROR, "Email does not exist.")
             return render_template("login.html", status=status.get_status())
 
-        if User.signed_with_oauth(email):
-            status = Status(StatusType.WARNING, "Please sign in with Google.")
+        if oauth := User.signed_with_oauth(email):
+            status = Status(
+                StatusType.WARNING, f"Please sign in with {oauth.value.capitalize()}."
+            )
             return render_template("login.html", status=status.get_status())
 
         if not user.verify_password(password):
@@ -173,24 +179,37 @@ def linkedin_login():
 
 @main.route("/linkedin-oauth")
 def linkedin_callback():
-    authorization = oauth.linkedin.authorize_access_token()
+    # BUG: For some reason client_secret is not being passed during
+    # app initialization. Hardcoding it for now.
+    authorization = oauth.linkedin.authorize_access_token(client_secret=LINKEDIN_SECRET)
+    access_token = authorization.get("access_token")
     if authorization:
-        print(authorization)
-        # user_info = authorization.get("user")
-        # if user_info:
-        #     email = user_info.get("emailAddress")
+        email_response = requests.get(
+            "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))",
+            headers={"Authorization": f"Bearer {access_token}"},
+        ).json()
+        email = email_response.get("elements")[0].get("handle~").get("emailAddress")
 
-        #     user = oauth_user(email)
+        if email:
+            user_info_response = requests.get(
+                "https://api.linkedin.com/v2/me",
+                headers={"Authorization": f"Bearer {access_token}"},
+            ).json()
+            first_name = user_info_response.get("localizedFirstName")
+            last_name = user_info_response.get("localizedLastName")
 
-        #     first_name = user_info.get("firstName")
-        #     last_name = user_info.get("lastName")
-        #     picture = user_info.get("profilePicture")
+            user: User = oauth_user(email)
+            user_info = UserInfo(
+                user_id=user.id,
+                user=user,
+                first_name=first_name,
+                last_name=last_name,
+            )
+            db.session.add(user_info)
+            user.oauth_provider = OauthProvider.LINKEDIN
 
-        #     user.first_name = first_name
-        #     user.last_name = last_name
-        #     user.picture = picture
-        #     db.session.commit()
-        #     login_user(user)
+            db.session.commit()
+            login_user(user)
 
     return redirect(url_for("main.index"))
 
@@ -214,11 +233,11 @@ def google_callback():
 
             first_name = user_info.get("given_name")
             last_name = user_info.get("family_name")
-            picture = user_info.get("picture")
 
             user.first_name = first_name
             user.last_name = last_name
-            user.picture = picture
+            user.oauth_provider = OauthProvider.GOOGLE
+
             db.session.commit()
             login_user(user)
 
@@ -242,43 +261,63 @@ def privacy_policy():
     return render_template("privacy_policy.html")
 
 
-@main.errorhandler(404)
-def page_not_found(e):
-    return render_template("404.html"), 404
+@main.errorhandler(400)
+def bad_request(e):
+    return render_template("errors/400.html"), 400
 
 
 @main.errorhandler(401)
 def unauthorized(e):
-    return render_template("401.html"), 401
+    return render_template("errors/401.html"), 401
 
 
-@main.route("/test")
-def test():
-    db.session.rollback()
-    country = db.session.query(Country).filter_by(code="KG").first()
-    new_industrial_group = IndustrialGroup.query.filter_by(name="Agriculture").first()
-    new_industrial_group2 = IndustrialGroup.query.filter_by(name="Automotive").first()
-    new_industry = Industry.query.filter_by(name="Manufacturing").first()
-    new_round = Round.query.filter_by(name="Seed").first()
-    new_company = Company(
-        name="test",
-        description="test",
-        number_of_employees=1,
-        country=country,
-        website="test",
-        picture="test",
-        preferred_round=new_round,
-        industrial_group=[new_industrial_group, new_industrial_group2],
-        industry=[new_industry],
-    )
-    db.session.add(new_company)
-    db.session.commit()
-    return "Hello world"
+@main.errorhandler(403)
+def forbidden(e):
+    return render_template("errors/403.html"), 403
 
 
-@main.route("/test2")
-def test2():
-    company = Company.query.filter_by(name="test").first()
-    # return jsonify(company.country.code)
-    print(company.industry)
-    return jsonify(list(map(lambda x: x.name, company.industry)))
+@main.errorhandler(404)
+def page_not_found(e):
+    return render_template("errors/404.html"), 404
+
+
+@main.errorhandler(500)
+def internal_server_error(e):
+    return render_template("errors/500.html"), 500
+
+
+@main.errorhandler(503)
+def service_unavailable(e):
+    return render_template("errors/503.html"), 503
+
+
+# @main.route("/test")
+# def test():
+#     db.session.rollback()
+#     country = db.session.query(Country).filter_by(code="KG").first()
+#     new_industrial_group = IndustrialGroup.query.filter_by(name="Agriculture").first()
+#     new_industrial_group2 = IndustrialGroup.query.filter_by(name="Automotive").first()
+#     new_industry = Industry.query.filter_by(name="Manufacturing").first()
+#     new_round = Round.query.filter_by(name="Seed").first()
+#     new_company = Company(
+#         name="test",
+#         description="test",
+#         number_of_employees=1,
+#         country=country,
+#         website="test",
+#         picture="test",
+#         preferred_round=new_round,
+#         industrial_group=[new_industrial_group, new_industrial_group2],
+#         industry=[new_industry],
+#     )
+#     db.session.add(new_company)
+#     db.session.commit()
+#     return "Hello world"
+
+
+# @main.route("/test2")
+# def test2():
+#     company = Company.query.filter_by(name="test").first()
+#     # return jsonify(company.country.code)
+#     print(company.industry)
+#     return jsonify(list(map(lambda x: x.name, company.industry)))

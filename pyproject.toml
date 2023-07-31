@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-flask = "^2.3.2"
+flask = {extras = ["async"], version = "^2.3.2"}
 flask-sqlalchemy = "^3.0.5"
 flask-login = "^0.6.2"
 flask-migrate = "^4.0.4"
@@ -15,6 +15,7 @@ authlib = "^1.2.1"
 requests = "^2.31.0"
 pycountry = "^22.3.5"
 pre-commit = "^3.3.3"
+psycopg2 = "^2.9.6"
 
 
 [tool.poetry.group.dev.dependencies]

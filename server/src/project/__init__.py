@@ -5,7 +5,7 @@ from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .extensions import db, login_manager, oauth, migrate
-from .routes.main import main, page_not_found, unauthorized
+from .routes.main import main, page_not_found, unauthorized, bad_request
 
 
 def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
@@ -17,8 +17,10 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
 
     app.register_blueprint(main)
 
-    app.register_error_handler(404, page_not_found)
+    app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)
+    app.register_error_handler(403, unauthorized)
+    app.register_error_handler(404, page_not_found)
 
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
@@ -37,7 +39,7 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
     oauth_config_linkedin = {
         "OAUTH2_CLIENT_ID": str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_ID")),
         "OAUTH2_CLIENT_SECRET": str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_SECRET")),
-        "OAUTH2_META_URL": "https://www.linkedin.com/oauth/v2/authorization",
+        "OAUTH2_META_URL": "https://www.linkedin.com/oauth/.well-known/openid-configuration",
         "FLASK_SECRET": "15a104fc-03ed-4c48-9e7e-872fcd6e4c58",
     }
 
@@ -53,7 +55,7 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
         "linkedin",
         client_id=oauth_config_linkedin.get("OAUTH2_CLIENT_ID"),
         client_secret=oauth_config_linkedin.get("OAUTH2_CLIENT_SECRET"),
-        authorize_url=oauth_config_linkedin.get("OAUTH2_META_URL"),
+        server_metadata_url=oauth_config_linkedin.get("OAUTH2_META_URL"),
         client_kwargs={"scope": "r_liteprofile r_emailaddress"},
     )
 

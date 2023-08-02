@@ -2,12 +2,13 @@ import pytest
 
 from ...project import db
 from ...project.models import User, UserInfo
-from ..conftest import client, app
+
+# from ..conftest import client, app
 
 
 @pytest.fixture(scope="module")
 def new_user():
-    user = User(email="testuser@example.com")
+    user = User(email="testuser@example.com")  # type: ignore
     user.password = "testpassword"
     return user
 
@@ -71,7 +72,7 @@ def test_signed_with_oauth(new_user, app):
         db.session.add(new_user)
         db.session.commit()
         signed_with_oauth = User.signed_with_oauth("testuser@example.com")
-        assert signed_with_oauth == False
+        assert not signed_with_oauth
 
 
 def test_new_user_info(new_user_info, app):

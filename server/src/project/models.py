@@ -1,19 +1,13 @@
 from __future__ import annotations
 
-from typing import List, Set, Union
 import enum
+from typing import List, Union
+
 import pycountry
 from flask_login import UserMixin
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-)
+from sqlalchemy import Boolean, Column, DateTime
 from sqlalchemy import Enum as dbEnum
+from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -33,8 +27,20 @@ class OauthProvider(enum.Enum):
 
 
 class User(UserMixin, db.Model):
+    """
+    ```python
+    def __init__(
+        id: int,
+        email: str,
+        password_hash: str,
+        oauth_provider: OauthProvider,
+        is_admin: bool,
+    ):
+    ```
+    """
+
     id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String(128), nullable=True)
     oauth_provider: Mapped[OauthProvider] = mapped_column(
         dbEnum(OauthProvider), nullable=True
@@ -60,7 +66,7 @@ class User(UserMixin, db.Model):
         try:
             user: User = User.query.filter(User.id == id).first()
             return user
-        except:
+        except Exception:
             return None
         finally:
             db.session.close()
@@ -70,7 +76,7 @@ class User(UserMixin, db.Model):
         try:
             user: User = User.query.filter(User.email == email).first()
             return user
-        except:
+        except Exception:
             return None
         finally:
             db.session.close()
@@ -78,12 +84,12 @@ class User(UserMixin, db.Model):
     @staticmethod
     def signed_with_oauth(email: str) -> Union[bool, OauthProvider]:
         """
-        Returns False if the user signed up with email and password or doesn't exist.
+        Returns OauthProvider if signed with oauth, False otherwise or if user does not exist.
         """
         try:
             user: User = User.query.filter(User.email == email).first()
             return False if user.oauth_provider is None else user.oauth_provider
-        except:
+        except Exception:
             return False
         finally:
             db.session.close()
@@ -139,7 +145,7 @@ class UserInfo(db.Model):
                 .first()
             )
             return full_user
-        except:
+        except Exception:
             return None
         finally:
             db.session.close()
@@ -164,7 +170,7 @@ class UserInfo(db.Model):
                 .first()
             )
             return full_user
-        except:
+        except Exception:
             return None
         finally:
             db.session.close()
@@ -189,6 +195,26 @@ company_industry = db.Table(
 
 
 class Company(db.Model):
+    """
+    ```python
+    def __init__(
+
+        id: int,
+        name: str,
+        description: str,
+        number_of_employees: int,
+        website: str,
+        picture: str,
+        country_id: int,
+        country: Country,
+        preferred_round_id: int,
+        preferred_round: Round,
+        industrial_group: List[IndustrialGroup],
+        industry: List[Industry],
+    ):
+    ```
+    """
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=True)
@@ -219,13 +245,21 @@ class Company(db.Model):
         try:
             company: Company = Company.query.filter(Company.id == id).first()
             return company
-        except:
+        except Exception:
             return None
         finally:
             db.session.close()
 
 
 class IndustrialGroup(db.Model):
+    """
+    ```python
+    def __init__(
+        id: int, name: str
+    ):
+    ```
+    """
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
 
@@ -264,13 +298,22 @@ class IndustrialGroup(db.Model):
                 list(map(lambda x: IndustrialGroup(name=x), industrial_group_list))
             )
             db.session.commit()
-        except:
+        except Exception:
             db.session.rollback()
         finally:
             db.session.close()
 
 
 class Industry(db.Model):
+    """
+    ```python
+    def __init__(
+        id: int,
+        name: str
+    ):
+    ```
+    """
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
 
@@ -312,13 +355,22 @@ class Industry(db.Model):
 
             db.session.add_all(list(map(lambda x: Industry(name=x), industry_list)))
             db.session.commit()
-        except:
+        except Exception:
             db.session.rollback()
         finally:
             db.session.close()
 
 
 class Round(db.Model):
+    """
+    ```python
+    def __init__(
+        id: int,
+        name: str,
+    ):
+    ```
+    """
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
 
@@ -331,13 +383,23 @@ class Round(db.Model):
             round_list = ["Pre-Seed", "Seed", "Series A", "Series B", "Series C"]
             db.session.add_all(list(map(lambda x: Round(name=x), round_list)))
             db.session.commit()
-        except:
+        except Exception:
             db.session.rollback()
         finally:
             db.session.close()
 
 
 class Country(db.Model):
+    """
+    ```python
+    def __init__(
+        id: int,
+        name: str,
+        code: str,
+    ):
+    ```
+    """
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     code: Mapped[str] = mapped_column(String(2), nullable=False, unique=True)
@@ -350,7 +412,7 @@ class Country(db.Model):
         try:
             country: Country = Country.query.filter(Country.code == code).first()
             return country
-        except:
+        except Exception:
             return None
         finally:
             db.session.close()
@@ -360,7 +422,7 @@ class Country(db.Model):
         try:
             country: Country = Country.query.filter(Country.id == id).first()
             return country
-        except:
+        except Exception:
             return None
         finally:
             db.session.close()
@@ -373,13 +435,23 @@ class Country(db.Model):
                 country_list.append(Country(name=country.name, code=country.alpha_2))
             db.session.add_all(country_list)
             db.session.commit()
-        except:
+        except Exception:
             db.session.rollback()
         finally:
             db.session.close()
 
 
 class EmailForNewsletter(db.Model):
+    """
+    ```python
+    def __init__(
+        id: int,
+        email: str,
+        added_at: datetime,
+    ):
+    ```
+    """
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[int] = mapped_column(String(255), nullable=False, unique=True)
     added_at: Mapped[DateTime] = mapped_column(
@@ -392,11 +464,11 @@ class EmailForNewsletter(db.Model):
     @staticmethod
     def get_by_email(email: str) -> Union[EmailForNewsletter, None]:
         try:
-            email: EmailForNewsletter = EmailForNewsletter.query.filter(
+            email_obj: EmailForNewsletter = EmailForNewsletter.query.filter(
                 EmailForNewsletter.email == email
             ).first()
-            return email
-        except:
+            return email_obj
+        except Exception:
             return None
         finally:
             db.session.close()
@@ -406,7 +478,7 @@ class EmailForNewsletter(db.Model):
         try:
             email_list: List[EmailForNewsletter] = EmailForNewsletter.query.all()
             return email_list
-        except:
+        except Exception:
             return None
         finally:
             db.session.close()

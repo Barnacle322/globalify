@@ -1,0 +1,4 @@
+[flake8]
+ignore = E501
+exclude = .git,__pycache__,.venv,node_modules,.vscode,.pytest_cache,migrations
+max-complexity = 10

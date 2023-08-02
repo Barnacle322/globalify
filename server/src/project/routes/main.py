@@ -1,32 +1,13 @@
-import json
 import os
 import re
 from enum import Enum
 
 import requests
-from flask import (
-    Blueprint,
-    jsonify,
-    redirect,
-    render_template,
-    request,
-    session,
-    url_for,
-)
-from flask_login import current_user, login_required, login_user, logout_user
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask_login import login_required, login_user, logout_user
 
 from ..extensions import db, login_manager, oauth
-from ..models import (
-    Company,
-    Country,
-    EmailForNewsletter,
-    IndustrialGroup,
-    Industry,
-    Round,
-    User,
-    OauthProvider,
-    UserInfo,
-)
+from ..models import EmailForNewsletter, OauthProvider, User, UserInfo
 
 LINKEDIN_SECRET = os.environ.get("_LINKEDIN_OAUTH2_CLIENT_SECRET")
 main = Blueprint("main", __name__)
@@ -61,7 +42,7 @@ def load_user(user_id):
 def oauth_user(email: str):
     user = User.get_by_email(email)
     if not user:
-        user = User(email=email)
+        user = User(email=email)  # type: ignore
         db.session.add(user)
         db.session.commit()
 
@@ -128,7 +109,7 @@ def register():
             status = Status(StatusType.ERROR, "Email is already in use.")
             return render_template("register.html", status=status.get_status())
 
-        new_user = User(email=email)
+        new_user = User(email=email)  # type: ignore
         new_user.password = password
 
         db.session.add(new_user)
@@ -156,7 +137,7 @@ def login():
 
         if oauth := User.signed_with_oauth(email):
             status = Status(
-                StatusType.WARNING, f"Please sign in with {oauth.value.capitalize()}."
+                StatusType.WARNING, f"Please sign in with {oauth.value.capitalize()}."  # type: ignore
             )
             return render_template("login.html", status=status.get_status())
 
@@ -172,7 +153,7 @@ def login():
 
 @main.route("/login-linkedin")
 def linkedin_login():
-    return oauth.linkedin.authorize_redirect(
+    return oauth.linkedin.authorize_redirect(  # type: ignore
         redirect_uri=url_for("main.linkedin_callback", _external=True)
     )
 
@@ -181,7 +162,7 @@ def linkedin_login():
 def linkedin_callback():
     # BUG: For some reason client_secret is not being passed during
     # app initialization. Hardcoding it for now.
-    authorization = oauth.linkedin.authorize_access_token(client_secret=LINKEDIN_SECRET)
+    authorization = oauth.linkedin.authorize_access_token(client_secret=LINKEDIN_SECRET)  # type: ignore
     access_token = authorization.get("access_token")
     if authorization:
         email_response = requests.get(
@@ -216,14 +197,14 @@ def linkedin_callback():
 
 @main.route("/login-google")
 def google_login():
-    return oauth.google.authorize_redirect(
+    return oauth.google.authorize_redirect(  # type: ignore
         redirect_uri=url_for("main.google_callback", _external=True)
     )
 
 
 @main.route("/google-oauth")
 def google_callback():
-    authorization = oauth.google.authorize_access_token()
+    authorization = oauth.google.authorize_access_token()  # type: ignore
     if authorization:
         user_info = authorization.get("userinfo")
         if user_info:

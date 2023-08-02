@@ -1,5 +1,6 @@
 from ..project import create_app, db
-from ..project.models import User
+
+# from ..project.models import User
 import pytest
 
 

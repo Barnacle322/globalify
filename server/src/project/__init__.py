@@ -29,19 +29,26 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
     login_manager.init_app(app)
     oauth.init_app(app)
 
-    oauth_config_google = {
+    oauth_config_google: dict = {
         "OAUTH2_CLIENT_ID": str(os.getenv("_GOOGLE_OAUTH2_CLIENT_ID")),
         "OAUTH2_CLIENT_SECRET": str(os.getenv("_GOOGLE_OAUTH2_CLIENT_SECRET")),
         "OAUTH2_META_URL": "https://accounts.google.com/.well-known/openid-configuration",
         "FLASK_SECRET": "230a59ee-9caa-43d8-bf33-6c1d57cc4721",
     }
 
-    oauth_config_linkedin = {
+    oauth_config_linkedin: dict = {
         "OAUTH2_CLIENT_ID": str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_ID")),
         "OAUTH2_CLIENT_SECRET": str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_SECRET")),
         "OAUTH2_META_URL": "https://www.linkedin.com/oauth/.well-known/openid-configuration",
         "FLASK_SECRET": "15a104fc-03ed-4c48-9e7e-872fcd6e4c58",
     }
+
+    # oauth_config_apple: dict = {
+    #     "OAUTH2_CLIENT_ID": str(os.getenv("_APPLE_OAUTH2_CLIENT_ID")),
+    #     "OAUTH2_CLIENT_SECRET": str(os.getenv("_APPLE_OAUTH2_CLIENT_SECRET")),
+    #     "OAUTH2_META_URL": "https://appleid.apple.com/.well-known/openid-configuration",
+    #     "FLASK_SECRET": "aaea93b4-7a34-46c7-921a-d9642880216c",
+    # }
 
     oauth.register(
         "google",
@@ -58,6 +65,14 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
         server_metadata_url=oauth_config_linkedin.get("OAUTH2_META_URL"),
         client_kwargs={"scope": "r_liteprofile r_emailaddress"},
     )
+
+    # oauth.register(
+    #     "apple",
+    #     client_id=oauth_config_apple.get("OAUTH2_CLIENT_ID"),
+    #     client_secret=oauth_config_apple.get("OAUTH2_CLIENT_SECRET"),
+    #     server_metadata_url=oauth_config_apple.get("OAUTH2_META_URL"),
+    #     client_kwargs={"scope": "name email"},
+    # )
 
     return app
 

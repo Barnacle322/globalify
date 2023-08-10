@@ -14,13 +14,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from .extensions import db
 
 
-def populate_database():
-    Country.populate()
-    IndustrialGroup.populate()
-    Industry.populate()
-    Round.populate()
-
-
 class OauthProvider(enum.Enum):
     GOOGLE = "google"
     LINKEDIN = "linkedin"

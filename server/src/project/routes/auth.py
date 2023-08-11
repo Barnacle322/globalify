@@ -75,15 +75,15 @@ def register():
         confirm_password = request.form.get("confirm_password")
 
         if not email or not password or not confirm_password:
-            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE)
+            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
             return redirect(url_for("auth.register", **status))  # type: ignore
 
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-            status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL)
+            status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
             return redirect(url_for("auth.register", **status))  # type: ignore
 
         if password != confirm_password:
-            status = Status(StatusType.ERROR, AUTH_MISMATCHED_PASSWORDS)
+            status = Status(StatusType.ERROR, AUTH_MISMATCHED_PASSWORDS).get_status()
             return redirect(url_for("auth.register", **status))  # type: ignore
 
         if oauth := User.signed_with_oauth(email):
@@ -94,7 +94,7 @@ def register():
 
         user = User.get_by_email(email)
         if user:
-            status = Status(StatusType.ERROR, AUTH_EMAIL_USED)
+            status = Status(StatusType.ERROR, AUTH_EMAIL_USED).get_status()
             return redirect(url_for("auth.register", **status))  # type: ignore
 
         new_user = User(email=email)  # type: ignore

@@ -132,3 +132,9 @@ Run the app
 ```bash
 flask run
 ```
+
+Start the TailwindCSS compiler in a separate terminal
+
+```bash
+npm run create-css
+```

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+import datetime
 from typing import List, Union
 
 import pycountry
@@ -88,6 +89,72 @@ class User(UserMixin, db.Model):
             db.session.close()
 
 
+class UserPayment(db.Model):
+    """
+    ```python
+    def __init__(
+        id: int,
+        user_id: int,
+        user: User,
+        customer_id: str,
+        subscription_id: str,
+        created: datetime,
+        expires_at: datetime,
+    ):
+    ```
+    """
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user.id"), nullable=False, unique=True
+    )
+    user: Mapped[User] = relationship("User", backref="user_payment", lazy=True)
+    customer_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    subscription_id: Mapped[str] = mapped_column(String(255), nullable=True)
+    created: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+    expires_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+
+    @property
+    def created_epoch(self) -> DateTime:
+        return self.created
+
+    @property
+    def expires_at_epoch(self) -> DateTime:
+        return self.expires_at
+
+    @created_epoch.setter
+    def created_epoch(self, created_epoch: int) -> None:
+        self.created = datetime.datetime.utcfromtimestamp(created_epoch)  # type: ignore
+
+    @expires_at_epoch.setter
+    def expires_at_epoch(self, expires_at_epoch: int) -> None:
+        self.expires_at = datetime.datetime.utcfromtimestamp(expires_at_epoch)  # type: ignore
+
+    @staticmethod
+    def get_by_customer_id(customer_id: str) -> Union[UserPayment, None]:
+        try:
+            user_payment: UserPayment = UserPayment.query.filter(
+                UserPayment.customer_id == customer_id
+            ).first()
+            return user_payment
+        except Exception:
+            return None
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> Union[UserPayment, None]:
+        try:
+            user_payment: UserPayment = UserPayment.query.filter(
+                UserPayment.user_id == user_id
+            ).first()
+            return user_payment
+        except Exception:
+            return None
+        finally:
+            db.session.close()
+
+
 class UserInfo(db.Model):
     """
     ```python
@@ -119,7 +186,7 @@ class UserInfo(db.Model):
         return f"<UserInfo {self.username}>"
 
     @staticmethod
-    def get_by_user_id(id: int) -> Union[User, None]:
+    def get_by_user_id(id: int) -> Union[UserInfo, None]:
         try:
             full_user = (
                 db.session.query(
@@ -144,7 +211,7 @@ class UserInfo(db.Model):
             db.session.close()
 
     @staticmethod
-    def get_by_username(username: str) -> Union[User, None]:
+    def get_by_username(username: str) -> Union[UserInfo, None]:
         try:
             full_user = (
                 db.session.query(

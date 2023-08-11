@@ -1,71 +1,100 @@
 import json
 import os
+from typing import Union
+
 import stripe
+from flask import Blueprint, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 
-from flask import Blueprint, jsonify, redirect, render_template, request
-
+from ..extensions import db
+from ..models import User, UserPayment
+from ..utils import Status, StatusType
 
 payment = Blueprint("payment", __name__)
 
 stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
 
 
+def create_customer(authenticated_user: User) -> Union[UserPayment, None]:
+    user_payment = None
+    try:
+        if not (user_payment := UserPayment.get_by_user_id(authenticated_user.id)):
+            customer = stripe.Customer.create(
+                email=authenticated_user.email,
+            )
+            user_payment = UserPayment(
+                user_id=authenticated_user.id,
+                customer_id=customer.id,
+            )
+            db.session.add(user_payment)
+            db.session.commit()
+    except Exception:
+        db.session.rollback()
+    finally:
+        db.session.close()
+
+    return user_payment
+
+
 @payment.route("/", methods=["GET"])
+@login_required
 def index():
     return render_template("payment/index.html")
 
 
+@payment.route("/create-checkout-session", methods=["POST"])
+@login_required
+def create_checkout_session():
+    authenticated_user: User = current_user  # type: ignore
+    user_payment = create_customer(authenticated_user)
+
+    if not user_payment:
+        status = Status(StatusType.ERROR, "User payment not found").get_status()
+        return redirect(url_for("payment.index", **status))  # type: ignore
+
+    success_url = request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}"
+    cancel_url = request.host_url + "payment/cancel"
+
+    checkout_session = stripe.checkout.Session.create(
+        customer=user_payment.customer_id,
+        line_items=[
+            {
+                "price": "price_1NdKLmDsBtpSnIdQdw4tyKam",
+                "quantity": 1,
+            },
+        ],
+        mode="subscription",
+        success_url=success_url,
+        cancel_url=cancel_url,
+    )
+    return redirect(checkout_session.url, code=303)
+
+
 @payment.route("/success", methods=["GET"])
+@login_required
 def success():
     return render_template("payment/success.html")
 
 
-@payment.route("/create-checkout-session", methods=["POST"])
-def create_checkout_session():
-    print()
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            line_items=[
-                {
-                    "price": "price_1NdKLmDsBtpSnIdQdw4tyKam",
-                    "quantity": 1,
-                },
-            ],
-            mode="subscription",
-            success_url=(
-                request.host_url + "/payment/success?session_id={CHECKOUT_SESSION_ID}"
-            ),
-            cancel_url=f"{request.host_url}/payment/cancel",
-        )
-        return redirect(checkout_session.url, code=303)
-    except Exception as e:
-        raise e
-
-
 @payment.route("/create-portal-session", methods=["POST"])
+@login_required
 def customer_portal():
-    # TODO: For demonstration purposes, we're using the Checkout session to retrieve the customer ID.
-    # Typically this is stored alongside the authenticated user in your database.
-    if not (checkout_session_id := request.form.get("session_id")):
-        return (
-            jsonify({"error": {"message": "Missing stripe checkout session id"}}),
-            400,
-        )
-
-    checkout_session = stripe.checkout.Session.retrieve(checkout_session_id)
-
-    # This is the URL to which the customer will be redirected after they are
-    # done managing their billing with the portal.
     return_url = request.host_url
+    authenticated_user: User = current_user  # type: ignore
+    user_payment = create_customer(authenticated_user)
+
+    if not user_payment:
+        status = Status(StatusType.ERROR, "User payment not found").get_status()
+        return redirect(url_for("payment.index", **status))  # type: ignore
 
     portalSession = stripe.billing_portal.Session.create(
-        customer=checkout_session.customer,
+        customer=user_payment.customer_id,
         return_url=return_url,
     )
     return redirect(portalSession.url, code=303)
 
 
-@payment.route("/webhook", methods=["POST"])  # type: ignore
+@payment.route("/webhook", methods=["POST"])
 def webhook_received():
     # Replace this endpoint secret with your endpoint's unique secret
     # If you are testing with the CLI, find the secret by running 'stripe listen'
@@ -83,7 +112,7 @@ def webhook_received():
             )
             data = event["data"]
         except Exception as e:
-            return e
+            return {"status": "error", "message": str(e)}, 403
         # Get the type of webhook event sent - used to check the status of PaymentIntents.
         event_type = event["type"]
     else:
@@ -91,10 +120,11 @@ def webhook_received():
         event_type = request_data["type"]
     data_object = data["object"]  # noqa
 
-    print("event " + event_type)
-
     if event_type == "checkout.session.completed":
+        print("-------------------")
+        print(data_object)
         print("🔔 Payment succeeded!")
+        print("-------------------")
     elif event_type == "customer.subscription.trial_will_end":
         print("Subscription trial will end")
     elif event_type == "customer.subscription.created":
@@ -106,9 +136,9 @@ def webhook_received():
         # upon your subscription settings. Or if the user cancels it.
         print("Subscription canceled: %s", event.id)  # type: ignore
 
-    return jsonify({"status": "success"})
+    return {"status": "success"}
 
 
-@payment.errorhandler(Exception)
-def exception_handler(e):
-    return render_template("errors/500.html")
+# @payment.errorhandler(Exception)
+# def exception_handler(e):
+#     return render_template("errors/500.html")

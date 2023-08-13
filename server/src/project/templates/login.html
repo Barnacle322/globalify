@@ -4,6 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+        <meta name="view-transition" content="same-origin" />
         <link rel="stylesheet" href="../static/css/main.css" />
         <title>Login | Globalify</title>
     </head>
@@ -15,7 +16,6 @@
             <form action="/login" method="POST" class="flex w-[313px] flex-col gap-[25px] font-medium">
                 <div class="">
                     <div class="text-4xl">Welcome back</div>
-                    <div class="text-4xl">{{ status }}</div>
                     <div class="">
                         <span class="text-sm">No account? Click </span
                         ><a href="/register" class="text-class underline">here</a
@@ -29,7 +29,6 @@
                         name="email"
                         type="email"
                         class="h-9 w-full rounded border-2 border-stone-300 bg-black px-2"
-                        
                         required
                     />
                 </div>
@@ -39,11 +38,19 @@
                         id="password"
                         name="password"
                         type="password"
-                        minlength="8
+                        minlength="8"
                         class="h-9 w-full rounded border-2 border-stone-300 bg-black px-2"
                         required
                     />
+                    {% if status_type %} {% if status_type == '3' %}
+                    <div class="rounded text-red-500">{{ msg }}</div>
+                    {% endif %} {% if status_type == '2' %}
+                    <div class="rounded text-orange-400">{{ msg }}</div>
+                    {% endif %} {% if status_type == '1' %}
+                    <div class="rounded text-lime-500">{{ msg }}</div>
+                    {% endif %} {% endif %}
                 </div>
+
                 <button
                     type="submit"
                     class="inline-flex h-8 w-full items-center justify-center rounded bg-sky-400 hover:bg-sky-500"
@@ -57,7 +64,7 @@
                             href="/login-linkedin"
                             class="flex w-full items-center justify-center gap-1 rounded bg-white hover:bg-gray-200"
                         >
-                            <img class="w-[14px] " src="../static/elements/linkedin.svg" alt="" />
+                            <img class="w-[14px]" src="../static/elements/linkedin.svg" alt="" />
                             <div class="text-black">LinkedIn</div>
                         </a>
                         <a

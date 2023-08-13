@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="https://js.stripe.com/v3/"></script>
+        <script src="{{ url_for('static', filename='scripts/payment.js') }}" defer></script>
+        <link rel="stylesheet" href="../static/css/main.css" />
+
+        <title>Payment</title>
+    </head>
+    <body class="full flex w-full justify-center bg-black text-white">
+        <main class="mt-20 font-medium">
+            <h1 class="text-3xl">Checkout with Stripe</h1>
+            <form id="payment-form">
+                <div id="payment-element"></div>
+                <button
+                    type="submit"
+                    class="mt-7 inline-flex h-8 w-full items-center justify-center rounded bg-sky-400 hover:bg-sky-500"
+                >
+                    <div class="text-base">Pay</div>
+                </button>
+                <div id="error-messages"></div>
+            </form>
+        </main>
+    </body>
+</html>

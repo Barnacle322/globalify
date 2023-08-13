@@ -4,8 +4,10 @@ from datetime import timedelta
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import db, login_manager, oauth, migrate
-from .routes.main import main, page_not_found, unauthorized, bad_request
+from .extensions import db, login_manager, migrate, oauth
+from .routes.auth import auth
+from .routes.main import bad_request, main, page_not_found, unauthorized
+from .routes.payment import payment
 
 
 def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
@@ -13,9 +15,11 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
-    app.secret_key = os.getenv("SECRET_KEY", os.urandom(32))
+    app.secret_key = os.getenv("SECRET_KEY", "18c2ff95-83a1-4998-8bee-0c6a2170497c")
 
     app.register_blueprint(main)
+    app.register_blueprint(payment, url_prefix="/payment")
+    app.register_blueprint(auth)
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

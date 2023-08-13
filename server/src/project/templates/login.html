@@ -4,6 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+        <meta name="view-transition" content="same-origin" />
         <link rel="stylesheet" href="../static/css/main.css" />
         <title>Login | Globalify</title>
     </head>
@@ -28,7 +29,6 @@
                         name="email"
                         type="email"
                         class="h-9 w-full rounded border-2 border-stone-300 bg-black px-2"
-                        
                         required
                     />
                 </div>
@@ -42,23 +42,13 @@
                         class="h-9 w-full rounded border-2 border-stone-300 bg-black px-2"
                         required
                     />
-                    {% if status_type %}
-                    {% if status_type == '3' %}
-                    <div class="text-red-500 rounded">
-                        {{ msg }}
-                    </div>
-                    {% endif %}
-                    {% if status_type == '2' %}
-                    <div class="text-orange-400 rounded">
-                        {{ msg }}
-                    </div>
-                    {% endif %}
-                    {% if status_type == '1' %}
-                    <div class="text-lime-500 rounded">
-                        {{ msg }}
-                    </div>
-                    {% endif %}
-                    {% endif %}
+                    {% if status_type %} {% if status_type == '3' %}
+                    <div class="rounded text-red-500">{{ msg }}</div>
+                    {% endif %} {% if status_type == '2' %}
+                    <div class="rounded text-orange-400">{{ msg }}</div>
+                    {% endif %} {% if status_type == '1' %}
+                    <div class="rounded text-lime-500">{{ msg }}</div>
+                    {% endif %} {% endif %}
                 </div>
 
                 <button
@@ -74,7 +64,7 @@
                             href="/login-linkedin"
                             class="flex w-full items-center justify-center gap-1 rounded bg-white hover:bg-gray-200"
                         >
-                            <img class="w-[14px] " src="../static/elements/linkedin.svg" alt="" />
+                            <img class="w-[14px]" src="../static/elements/linkedin.svg" alt="" />
                             <div class="text-black">LinkedIn</div>
                         </a>
                         <a

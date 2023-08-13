@@ -36,6 +36,29 @@ def create_customer(authenticated_user: User) -> Union[UserPayment, None]:
     return user_payment
 
 
+def create_checkout(
+    customer_id: str, trial_period_days: int = 14
+) -> stripe.checkout.Session:
+    success_url = request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}"
+    cancel_url = request.host_url + "payment/cancel"
+
+    checkout_session = stripe.checkout.Session.create(
+        customer=customer_id,
+        line_items=[
+            {
+                "price": "price_1NdKLmDsBtpSnIdQdw4tyKam",
+                "quantity": 1,
+            },
+        ],
+        mode="subscription",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        subscription_data={"trial_period_days": trial_period_days},
+    )
+
+    return checkout_session
+
+
 @payment.route("/", methods=["GET"])
 @login_required
 def index():
@@ -52,22 +75,12 @@ def create_checkout_session():
         status = Status(StatusType.ERROR, "User payment not found").get_status()
         return redirect(url_for("payment.index", **status))  # type: ignore
 
-    success_url = request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}"
-    cancel_url = request.host_url + "payment/cancel"
+    subscriptions = stripe.Subscription.list(customer=user_payment.customer_id)
+    print(subscriptions)
+    return subscriptions
+    # checkout_session = create_checkout(customer_id=user_payment.customer_id)
 
-    checkout_session = stripe.checkout.Session.create(
-        customer=user_payment.customer_id,
-        line_items=[
-            {
-                "price": "price_1NdKLmDsBtpSnIdQdw4tyKam",
-                "quantity": 1,
-            },
-        ],
-        mode="subscription",
-        success_url=success_url,
-        cancel_url=cancel_url,
-    )
-    return redirect(checkout_session.url, code=303)
+    # return redirect(checkout_session.url, code=303)
 
 
 @payment.route("/success", methods=["GET"])
@@ -121,16 +134,19 @@ def webhook_received():
     data_object = data["object"]  # noqa
 
     if event_type == "checkout.session.completed":
-        print("-------------------")
-        print(data_object)
         print("🔔 Payment succeeded!")
-        print("-------------------")
     elif event_type == "customer.subscription.trial_will_end":
         print("Subscription trial will end")
     elif event_type == "customer.subscription.created":
         print("Subscription created %s", event.id)  # type: ignore
     elif event_type == "customer.subscription.updated":
+        is_canceled = data_object.get("canceled_at")
+        if is_canceled:
+            print("Subscription canceled %s", event.id)  # type: ignore
+        print("-------------------")
+        print(data_object)
         print("Subscription created %s", event.id)  # type: ignore
+        print("-------------------")
     elif event_type == "customer.subscription.deleted":
         # handle subscription canceled automatically based
         # upon your subscription settings. Or if the user cancels it.

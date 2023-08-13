@@ -92,6 +92,9 @@ source .venv/bin/activate
 -   `_GOOGLE_OAUTH2_CLIENT_SECRET=""`
 -   `_LINKEDIN_OAUTH2_CLIENT_ID=""`
 -   `_LINKEDIN_OAUTH2_CLIENT_SECRET=""`
+-   `_STRIPE_PUBLISHABLE_KEY`
+-   `_STRIPE_SECRET_KEY`
+-   `_STRIPE_WEBHOOK_SECRET`
 
 #### Powershell
 

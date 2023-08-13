@@ -1,4 +1,3 @@
-import os
 import re
 
 from flask import Blueprint, jsonify, render_template, request
@@ -8,14 +7,14 @@ from ..extensions import db
 from ..models import EmailForNewsletter
 from ..utils import Status, StatusType
 
-LINKEDIN_SECRET = os.environ.get("_LINKEDIN_OAUTH2_CLIENT_SECRET")
 main = Blueprint("main", __name__)
 
 
 @main.get("/")
 def index():
+    return render_template("index_new.html")
     # return render_template("index.html")
-    return render_template("index_newsletter.html")
+    # return render_template("index_newsletter.html")
 
 
 @main.route("/newsletter", methods=["POST"])

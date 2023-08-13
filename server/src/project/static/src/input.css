@@ -5,11 +5,26 @@
 
 @font-face {
     font-family: "League Spartan";
-    src: url('../elements/LeagueSpartan.ttf');
+    src: url('../elements/fonts/LeagueSpartan.ttf');
+}
+
+@font-face {
+    font-family: "Muoto-Light";
+    src: url('../elements/fonts/Muoto-Light.woff');
+}
+
+@font-face {
+    font-family: "Muoto-Regular";
+    src: url('../elements/fonts/Muoto-Regular.woff');
+}
+
+@font-face {
+    font-family: "Sohne";
+    src: url('../elements/fonts/Sohne.woff2');
 }
 
 @layer base {
     html {
-        font-family: "League Spartan";
+        font-family: "League Spartan", sans-serif;
     }
-}           
+}

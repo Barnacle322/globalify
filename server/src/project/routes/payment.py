@@ -106,11 +106,11 @@ def create_checkout_session():
         status = Status(StatusType.ERROR, "User payment not found").get_status()
         return redirect(url_for("payment.index", **status))  # type: ignore
 
-    if no_subscriptions(user_payment.customer_id):
-        status = Status(
-            StatusType.ERROR, "A subscription is already exists"
-        ).get_status()
-        return redirect(url_for("payment.index", **status))  # type: ignore
+    # if no_subscriptions(user_payment.customer_id):
+    #     status = Status(
+    #         StatusType.ERROR, "A subscription is already exists"
+    #     ).get_status()
+    #     return redirect(url_for("payment.index", **status))  # type: ignore
 
     checkout_session = create_checkout(customer_id=user_payment.customer_id)
 

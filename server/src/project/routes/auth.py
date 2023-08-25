@@ -3,6 +3,9 @@ import re
 from typing import Any
 
 import requests
+from flask import Blueprint, redirect, render_template, request, url_for
+from flask_login import current_user, login_required, login_user, logout_user
+
 from ..error_messages import (
     AUTH_EMAIL_NOT_FOUNDS,
     AUTH_EMAIL_USED,
@@ -16,9 +19,6 @@ from ..error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
-from flask import Blueprint, redirect, render_template, request, url_for
-from flask_login import login_required, login_user, logout_user
-
 from ..extensions import db, login_manager, oauth
 from ..models import OauthProvider, User, UserInfo
 from ..utils import Status, StatusType
@@ -98,9 +98,11 @@ def register():
             return redirect(url_for("auth.register", **status))  # type: ignore
 
         new_user = User(email=email)  # type: ignore
+        new_user_info = UserInfo(user_id=new_user.id)  # type: ignore
         new_user.password = password
 
         db.session.add(new_user)
+        db.session.add(new_user_info)
         db.session.commit()
 
         return redirect(url_for("auth.login"))
@@ -139,9 +141,51 @@ def login():
             return redirect(url_for("auth.login", **status))  # type: ignore
 
         login_user(user)
-        return redirect(url_for("main.index"))
+
+        user_info = UserInfo.get_by_user_id(user.id)
+        if user_info and not user_info.completed:
+            return redirect(url_for("auth.login_form"))
+        else:
+            return redirect(url_for("main.dashboard"))
 
     return render_template("login.html", status_type=status_type, msg=msg)
+
+
+@auth.route("/login-form", methods=["GET", "POST"])
+@login_required
+def login_form():
+    authenticated_user: User = current_user  # type: ignore
+    if not authenticated_user:
+        return redirect(url_for("auth.login"))
+
+    user_info = UserInfo.get_by_user_id(authenticated_user.id, False)
+    if not user_info:
+        return redirect(url_for("auth.login"))
+
+    if request.method == "POST":
+        first_name = request.form.get("first-name")
+        last_name = request.form.get("last-name")
+        username = request.form.get("username")
+        about = request.form.get("about")
+        linkedin = request.form.get("linkedin")
+        instagram = request.form.get("instagram")
+
+        user_info.first_name = first_name  # type: ignore
+        user_info.last_name = last_name  # type: ignore
+        user_info.username = username  # type: ignore
+        user_info.bio = about  # type: ignore
+        user_info.linkedin = linkedin  # type: ignore
+        user_info.instagram = instagram  # type: ignore
+        user_info.completed = True
+
+        db.session.commit()
+        return redirect(url_for("main.dashboard"))
+
+    # TODO: Add languages to database
+    languages = ["English", "Spanish", "French", "German", "Italian", "Portuguese"]
+    return render_template(
+        "login_form.html", languages=languages, user_info=user_info.sanitize()
+    )
 
 
 @auth.route("/login-linkedin")
@@ -184,18 +228,26 @@ def linkedin_callback():
         status = Status(StatusType.ERROR, OAUTH_MISMATCHED_PROVIDER).get_status()
         return redirect(url_for("auth.login", **status))  # type: ignore
 
-    user_info = UserInfo(
-        user_id=user.id,
-        user=user,
-        first_name=first_name,
-        last_name=last_name,
-    )
-    db.session.add(user_info)
     user.oauth_provider = OauthProvider.LINKEDIN
     db.session.commit()
+    user_info = UserInfo.get_by_user_id(user.id)
+    if not user_info:
+        user_info = UserInfo(
+            user_id=user.id,
+            user=user,
+            first_name=first_name,
+            last_name=last_name,
+        )
+        db.session.add(user_info)
+
+        db.session.commit()
+
     login_user(user)
 
-    return redirect(url_for("main.index"))
+    if not user_info.completed:
+        return redirect(url_for("auth.login_form"))
+    else:
+        return redirect(url_for("main.dashboard"))
 
 
 @auth.route("/login-google")
@@ -212,12 +264,12 @@ def google_callback():
         status = Status(StatusType.ERROR, OAUTH_ACCESS_TOKEN).get_status()
         return redirect(url_for("auth.login", **status))  # type: ignore
 
-    user_info = authorization.get("userinfo")
-    if not user_info:
+    google_user_info = authorization.get("userinfo")
+    if not google_user_info:
         status = Status(StatusType.ERROR, OAUTH_NO_USER_INFO).get_status()
         return redirect(url_for("auth.login", **status))  # type: ignore
 
-    email: str = user_info.get("email")
+    email: str = google_user_info.get("email")
     if not email:
         status = Status(StatusType.ERROR, OAUTH_NO_EMAIL).get_status()
         return redirect(url_for("auth.login", **status))  # type: ignore
@@ -228,17 +280,25 @@ def google_callback():
         return redirect(url_for("auth.login", **status))  # type: ignore
 
     user.oauth_provider = OauthProvider.GOOGLE
-    user_info = UserInfo(
-        user_id=user.id,
-        user=user,
-        first_name=user_info.get("given_name"),
-        last_name=user_info.get("family_name"),
-    )
-    db.session.add(user_info)
     db.session.commit()
+
+    user_info = UserInfo.get_by_user_id(user.id)
+    if not user_info:
+        user_info = UserInfo(
+            user_id=user.id,
+            user=user,
+            first_name=google_user_info.get("given_name"),
+            last_name=google_user_info.get("family_name"),
+        )
+        db.session.add(user_info)
+        db.session.commit()
+
     login_user(user)
 
-    return redirect(url_for("main.index"))
+    if not user_info.completed:
+        return redirect(url_for("auth.login_form"))
+    else:
+        return redirect(url_for("main.dashboard"))
 
 
 @auth.route("/logout")

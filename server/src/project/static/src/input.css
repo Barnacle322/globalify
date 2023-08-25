@@ -23,8 +23,13 @@
     src: url('../elements/fonts/Sohne.woff2');
 }
 
+@font-face {
+    font-family: "Lexend";
+    src: url('../elements/fonts/Lexend.ttf');
+}
+
 @layer base {
     html {
-        font-family: "League Spartan", sans-serif;
+        font-family: "Lexend", sans-serif;
     }
 }

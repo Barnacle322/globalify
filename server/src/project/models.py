@@ -162,54 +162,49 @@ class UserInfo(db.Model):
         id: int,
         user_id: int,
         user: User,
-        username: str,
         first_name: str,
         last_name: str,
+        username: str,
+        bio: str,
         linkedin: str,
         instagram: str,
-        bio: str,
+        twitter: str,
+        completed: bool,
     ):
     ```
     """
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user.id"), nullable=False, unique=True
+    )
     user: Mapped[User] = relationship("User", backref="user_info", lazy=True)
-    username: Mapped[str] = mapped_column(String(50), nullable=True)
     first_name: Mapped[str] = mapped_column(String(50), nullable=True)
     last_name: Mapped[str] = mapped_column(String(50), nullable=True)
+    username: Mapped[str] = mapped_column(String(50), nullable=True)
+    bio: Mapped[Text] = mapped_column(Text, nullable=True)
     linkedin: Mapped[str] = mapped_column(String, nullable=True)
     instagram: Mapped[str] = mapped_column(String, nullable=True)
-    bio: Mapped[Text] = mapped_column(Text, nullable=True)
+    twitter: Mapped[str] = mapped_column(String, nullable=True)
+    completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return f"<UserInfo {self.username}>"
 
     @staticmethod
-    def get_by_user_id(id: int) -> Union[UserInfo, None]:
+    def get_by_user_id(id: int, close_session: bool = True) -> Union[UserInfo, None]:
         try:
-            full_user = (
-                db.session.query(
-                    UserInfo.id,
-                    User.email,
-                    UserInfo.username,
-                    UserInfo.first_name,
-                    UserInfo.last_name,
-                    UserInfo.linkedin,
-                    UserInfo.instagram,
-                    UserInfo.bio,
-                    User.is_admin,
-                )
-                .filter(UserInfo.user_id == id)
-                .join(User)
-                .first()
+            user_info = (
+                db.session.query(UserInfo).filter(UserInfo.user_id == id).first()
             )
-            return full_user
+            return user_info
         except Exception:
             return None
         finally:
-            db.session.close()
+            if close_session:
+                db.session.close()
 
+    # TODO: redo
     @staticmethod
     def get_by_username(username: str) -> Union[UserInfo, None]:
         try:
@@ -234,6 +229,18 @@ class UserInfo(db.Model):
             return None
         finally:
             db.session.close()
+
+    def sanitize(self) -> dict[str, str]:
+        user_info = {
+            "user_id": self.user_id,
+            "username": self.username,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "linkedin": self.linkedin,
+            "instagram": self.instagram,
+            "bio": self.bio,
+        }
+        return user_info
 
 
 company_industrial_group = db.Table(
@@ -297,6 +304,9 @@ class Company(db.Model):
     )
     industry: Mapped[List[Industry]] = relationship(secondary=company_industry)
 
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    user: Mapped[User] = relationship("User", backref="company", lazy=True)
+
     def __repr__(self):
         return f"<Company {self.name}>"
 
@@ -315,7 +325,8 @@ class IndustrialGroup(db.Model):
     """
     ```python
     def __init__(
-        id: int, name: str
+        id: int,
+        name: str,
     ):
     ```
     """

@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Union
 
 import stripe
 from flask import Blueprint, redirect, render_template, request, url_for
@@ -15,23 +14,33 @@ payment = Blueprint("payment", __name__)
 stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
 
 
-def create_customer(authenticated_user: User) -> Union[UserPayment, None]:
-    user_payment = None
-    try:
-        if not (user_payment := UserPayment.get_by_user_id(authenticated_user.id)):
+def create_customer(authenticated_user: User):
+    user_payment = UserPayment.get_by_user_id(authenticated_user.id)
+    if not user_payment:
+        customer_data = stripe.Customer.search(
+            query="email:'{}'".format(authenticated_user.email),
+        )
+
+        if not customer_data:
             customer = stripe.Customer.create(
                 email=authenticated_user.email,
             )
-            user_payment = UserPayment(
-                user_id=authenticated_user.id,
-                customer_id=customer.id,
+
+        elif len(customer_list := customer_data.get("data")) == 1:  # type: ignore
+            customer = customer_list[0]  # type: ignore
+
+        else:
+            raise Exception(
+                "Multiple customers with same email found. Please contact support."
             )
-            db.session.add(user_payment)
-            db.session.commit()
-    except Exception:
-        db.session.rollback()
-    finally:
-        db.session.close()
+
+        user_payment = UserPayment(
+            user_id=authenticated_user.id,
+            customer_id=customer.id,
+        )
+
+        db.session.add(user_payment)
+        db.session.commit()
 
     return user_payment
 
@@ -59,6 +68,17 @@ def create_checkout(
     return checkout_session
 
 
+def no_subscriptions(customer_id: str):
+    active_subscriptions = stripe.Subscription.list(
+        status="active", customer=customer_id
+    )
+    trialing_subscriptions = stripe.Subscription.list(
+        status="trialing", customer=customer_id
+    )
+
+    return True if not (active_subscriptions and trialing_subscriptions) else False
+
+
 @payment.route("/", methods=["GET"])
 @login_required
 def index():
@@ -68,19 +88,33 @@ def index():
 @payment.route("/create-checkout-session", methods=["POST"])
 @login_required
 def create_checkout_session():
+    """
+    DOCS: https://stripe.com/docs/payments/checkout/accept-a-payment
+    """
     authenticated_user: User = current_user  # type: ignore
-    user_payment = create_customer(authenticated_user)
+    if not authenticated_user:
+        status = Status(StatusType.ERROR, "You are not logged in").get_status()
+        return redirect(url_for("payment.index", **status))  # type: ignore
+
+    try:
+        user_payment = create_customer(authenticated_user)
+    except Exception as e:
+        status = Status(StatusType.ERROR, e.args[0])
+        return redirect(url_for("payment.index", **status))  # type: ignore
 
     if not user_payment:
         status = Status(StatusType.ERROR, "User payment not found").get_status()
         return redirect(url_for("payment.index", **status))  # type: ignore
 
-    subscriptions = stripe.Subscription.list(customer=user_payment.customer_id)
-    print(subscriptions)
-    return subscriptions
-    # checkout_session = create_checkout(customer_id=user_payment.customer_id)
+    if no_subscriptions(user_payment.customer_id):
+        status = Status(
+            StatusType.ERROR, "A subscription is already exists"
+        ).get_status()
+        return redirect(url_for("payment.index", **status))  # type: ignore
 
-    # return redirect(checkout_session.url, code=303)
+    checkout_session = create_checkout(customer_id=user_payment.customer_id)
+
+    return redirect(checkout_session.url, code=303)
 
 
 @payment.route("/success", methods=["GET"])
@@ -92,6 +126,10 @@ def success():
 @payment.route("/create-portal-session", methods=["POST"])
 @login_required
 def customer_portal():
+    """
+    DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
+    """
+
     return_url = request.host_url
     authenticated_user: User = current_user  # type: ignore
     user_payment = create_customer(authenticated_user)
@@ -100,19 +138,19 @@ def customer_portal():
         status = Status(StatusType.ERROR, "User payment not found").get_status()
         return redirect(url_for("payment.index", **status))  # type: ignore
 
-    portalSession = stripe.billing_portal.Session.create(
+    portal_session = stripe.billing_portal.Session.create(
         customer=user_payment.customer_id,
         return_url=return_url,
     )
-    return redirect(portalSession.url, code=303)
+    return redirect(portal_session.url, code=303)
 
 
+# TODO
 @payment.route("/webhook", methods=["POST"])
 def webhook_received():
-    # Replace this endpoint secret with your endpoint's unique secret
-    # If you are testing with the CLI, find the secret by running 'stripe listen'
-    # If you are using an endpoint defined with the API or dashboard, look in your webhook settings
-    # at https://dashboard.stripe.com/webhooks
+    """
+    DOCS: https://stripe.com/docs/webhooks
+    """
     webhook_secret = os.getenv("_STRIPE_WEBHOOK_SECRET")
     request_data = json.loads(request.data)
 
@@ -126,7 +164,6 @@ def webhook_received():
             data = event["data"]
         except Exception as e:
             return {"status": "error", "message": str(e)}, 403
-        # Get the type of webhook event sent - used to check the status of PaymentIntents.
         event_type = event["type"]
     else:
         data = request_data["data"]

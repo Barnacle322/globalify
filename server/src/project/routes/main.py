@@ -1,10 +1,11 @@
-import re
+import base64
 
-from flask import Blueprint, jsonify, render_template, request
-from flask_login import login_required
+from flask import Blueprint, redirect, render_template, url_for
+from flask_login import current_user, login_required
 
-from ..extensions import db
-from ..models import EmailForNewsletter
+# from ..extensions import db
+from ..google_storage import download_blob_into_memory
+from ..models import UserInfo
 from ..utils import Status, StatusType
 
 main = Blueprint("main", __name__)
@@ -13,39 +14,25 @@ main = Blueprint("main", __name__)
 @main.get("/")
 def index():
     return render_template("index_new.html")
-    # return render_template("index.html")
-    # return render_template("index_newsletter.html")
-
-
-@main.route("/newsletter", methods=["POST"])
-def newsletter():
-    email = request.get_json().get("email")
-
-    if not email:
-        status = Status(StatusType.ERROR, "Please enter an email.")
-        return jsonify(status.get_status())
-
-    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-        status = Status(StatusType.ERROR, "Please enter a valid email.")
-        return jsonify(status.get_status())
-
-    email_for_newsletter = EmailForNewsletter.get_by_email(email)
-    if email_for_newsletter:
-        status = Status(StatusType.ERROR, "Email is already in the system.")
-        return jsonify(status.get_status())
-
-    email_for_newsletter = EmailForNewsletter(email=email)
-
-    db.session.add(email_for_newsletter)
-    db.session.commit()
-    status = Status(StatusType.SUCCESS, "Email added.")
-    return jsonify(status.get_status())
 
 
 @main.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
+    authenticated_user = UserInfo.get_by_user_id(current_user.id)  # type: ignore
+    if not authenticated_user:
+        status = Status(StatusType.ERROR, "You are not logged in").get_status()
+        return redirect(url_for("payment.index", **status))  # type: ignore
+
+    pfp_base64 = False
+    try:
+        if pfp_uuid := authenticated_user.pfp_uuid:
+            pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
+            pfp_base64 = base64.b64encode(pfp).decode("utf-8")
+    except Exception as e:
+        print(e)
+
+    return render_template("dashboard.html", pfp_base64=pfp_base64)
 
 
 @main.route("/terms-of-service")

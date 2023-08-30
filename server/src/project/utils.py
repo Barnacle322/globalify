@@ -22,3 +22,8 @@ class Status:
 
     def get_status(self) -> dict[str, str]:
         return {"type": str(self.type.value), "msg": self.msg}
+
+
+class OauthProvider(Enum):
+    GOOGLE = "google"
+    LINKEDIN = "linkedin"

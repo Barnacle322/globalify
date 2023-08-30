@@ -1,3 +1,4 @@
+import io
 import os
 import re
 from typing import Any
@@ -5,6 +6,7 @@ from typing import Any
 import requests
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
+from PIL import Image
 
 from ..error_messages import (
     AUTH_EMAIL_NOT_FOUNDS,
@@ -15,13 +17,15 @@ from ..error_messages import (
     AUTH_MISMATCHED_PASSWORDS,
     AUTH_OAUTH_USED,
     OAUTH_ACCESS_TOKEN,
+    OAUTH_COULD_NOT_RETRIEVE_DATA,
     OAUTH_MISMATCHED_PROVIDER,
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
 from ..extensions import db, login_manager, oauth
-from ..models import OauthProvider, User, UserInfo
-from ..utils import Status, StatusType
+from ..google_storage import upload_blob
+from ..models import User, UserInfo
+from ..utils import OauthProvider, Status, StatusType
 
 auth = Blueprint("auth", __name__)
 
@@ -37,10 +41,10 @@ def load_user(user_id: int) -> User:
     return User.get_by_id(user_id)
 
 
-def oauth_user(email: str, oauth_provider: OauthProvider):
+def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
     """
     - No User -> create and return new User
-    - User exists, but OAuth provider is different -> return False
+    - User exists, but OAuth provider is different -> raise Exception
     - User exists, OAuth provider is correct -> return User
     """
     user = User.get_by_email(email)
@@ -50,7 +54,10 @@ def oauth_user(email: str, oauth_provider: OauthProvider):
         db.session.commit()
         return user
 
-    return False if user.oauth_provider != oauth_provider else user
+    if user.oauth_provider != oauth_provider:
+        raise Exception(OAUTH_MISMATCHED_PROVIDER)
+
+    return user
 
 
 def api_call(url: str, access_token: str) -> Any:
@@ -140,10 +147,10 @@ def login():
             status = Status(StatusType.ERROR, AUTH_INCORRECT_PASSWORD).get_status()
             return redirect(url_for("auth.login", **status))  # type: ignore
 
-        login_user(user)
+        login_user(user, remember=True)
 
         user_info = UserInfo.get_by_user_id(user.id)
-        if user_info and not user_info.completed:
+        if user_info and not user_info.is_complete:
             return redirect(url_for("auth.login_form"))
         else:
             return redirect(url_for("main.dashboard"))
@@ -158,7 +165,7 @@ def login_form():
     if not authenticated_user:
         return redirect(url_for("auth.login"))
 
-    user_info = UserInfo.get_by_user_id(authenticated_user.id, False)
+    user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info:
         return redirect(url_for("auth.login"))
 
@@ -170,13 +177,24 @@ def login_form():
         linkedin = request.form.get("linkedin")
         instagram = request.form.get("instagram")
 
+        if pfp := request.files["pfp"]:
+            pfp_image = Image.open(io.BytesIO(pfp.read()))
+            pfp_image.thumbnail((500, 500))
+
+            resized_pfp = io.BytesIO()
+            pfp_image.save(resized_pfp, format="JPEG")
+            resized_pfp.seek(0)
+
+            pfp_uuid = upload_blob(resized_pfp.read())
+            user_info.pfp_uuid = str(pfp_uuid)  # type: ignore
+
         user_info.first_name = first_name  # type: ignore
         user_info.last_name = last_name  # type: ignore
         user_info.username = username  # type: ignore
         user_info.bio = about  # type: ignore
         user_info.linkedin = linkedin  # type: ignore
         user_info.instagram = instagram  # type: ignore
-        user_info.completed = True
+        user_info.is_complete = True
 
         db.session.commit()
         return redirect(url_for("main.dashboard"))
@@ -210,6 +228,9 @@ def linkedin_callback():
         url=LINKEDIN_EMAIL_URL,
         access_token=access_token,
     )
+    if not email_response:
+        status = Status(StatusType.ERROR, OAUTH_COULD_NOT_RETRIEVE_DATA).get_status()
+        return redirect(url_for("auth_login"), **status)  # type: ignore
 
     email = email_response.get("elements")[0].get("handle~").get("emailAddress")
     if not email:
@@ -220,13 +241,18 @@ def linkedin_callback():
         url=LINKEDIN_PERSONAL_INFO_URL,
         access_token=access_token,
     )
+    if not user_info_response:
+        status = Status(StatusType.ERROR, OAUTH_COULD_NOT_RETRIEVE_DATA).get_status()
+        return redirect(url_for("auth_login"), **status)  # type: ignore
+
     first_name = user_info_response.get("localizedFirstName")
     last_name = user_info_response.get("localizedLastName")
 
-    user = oauth_user(email, OauthProvider.LINKEDIN)
-    if not user:
-        status = Status(StatusType.ERROR, OAUTH_MISMATCHED_PROVIDER).get_status()
-        return redirect(url_for("auth.login", **status))  # type: ignore
+    try:
+        user = oauth_user(email, OauthProvider.LINKEDIN)
+    except Exception as e:
+        status = Status(StatusType.ERROR, e.args[0]).get_status()
+        return redirect(url_for("auth.login"), **status)  # type: ignore
 
     user.oauth_provider = OauthProvider.LINKEDIN
     db.session.commit()
@@ -242,9 +268,9 @@ def linkedin_callback():
 
         db.session.commit()
 
-    login_user(user)
+    login_user(user, remember=True)
 
-    if not user_info.completed:
+    if not user_info.is_complete:
         return redirect(url_for("auth.login_form"))
     else:
         return redirect(url_for("main.dashboard"))
@@ -269,15 +295,16 @@ def google_callback():
         status = Status(StatusType.ERROR, OAUTH_NO_USER_INFO).get_status()
         return redirect(url_for("auth.login", **status))  # type: ignore
 
-    email: str = google_user_info.get("email")
+    email = google_user_info.get("email")
     if not email:
         status = Status(StatusType.ERROR, OAUTH_NO_EMAIL).get_status()
         return redirect(url_for("auth.login", **status))  # type: ignore
 
-    user = oauth_user(email, OauthProvider.GOOGLE)
-    if not user:
-        status = Status(StatusType.ERROR, OAUTH_MISMATCHED_PROVIDER).get_status()
-        return redirect(url_for("auth.login", **status))  # type: ignore
+    try:
+        user = oauth_user(email, OauthProvider.GOOGLE)
+    except Exception as e:
+        status = Status(StatusType.ERROR, e.args[0]).get_status()
+        return redirect(url_for("auth.login"), **status)  # type: ignore
 
     user.oauth_provider = OauthProvider.GOOGLE
     db.session.commit()
@@ -293,7 +320,7 @@ def google_callback():
         db.session.add(user_info)
         db.session.commit()
 
-    login_user(user)
+    login_user(user, remember=True)
 
     if not user_info.completed:
         return redirect(url_for("auth.login_form"))

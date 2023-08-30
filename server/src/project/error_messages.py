@@ -12,3 +12,6 @@ OAUTH_MISMATCHED_PROVIDER = (
     "Authentication failed. Try using different authentication provider."
 )
 OAUTH_NO_USER_INFO = "Authentication failed. Could not get user info."
+OAUTH_COULD_NOT_RETRIEVE_DATA = (
+    "Data could not be retrieved from the OAuth provider. Try again later"
+)

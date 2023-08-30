@@ -4,11 +4,11 @@ from datetime import timedelta
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import db, login_manager, migrate, oauth
+from .extensions import csrf, db, login_manager, migrate, oauth
 from .routes.auth import auth
-from .routes.main import bad_request, main, page_not_found, unauthorized
-from .routes.payment import payment
 from .routes.blog import blog
+from .routes.main import bad_request, forbidden, main, page_not_found, unauthorized
+from .routes.payment import payment
 
 
 def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
@@ -25,7 +25,7 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)
-    app.register_error_handler(403, unauthorized)
+    app.register_error_handler(403, forbidden)
     app.register_error_handler(404, page_not_found)
 
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
@@ -34,6 +34,7 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     oauth.init_app(app)
+    csrf.init_app(app)
 
     oauth_config_google: dict = {
         "OAUTH2_CLIENT_ID": str(os.getenv("_GOOGLE_OAUTH2_CLIENT_ID")),

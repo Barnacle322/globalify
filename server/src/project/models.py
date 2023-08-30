@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import enum
 import datetime
 from typing import List, Union
 
@@ -8,34 +7,19 @@ import pycountry
 from flask_login import UserMixin
 from sqlalchemy import Boolean, Column, DateTime
 from sqlalchemy import Enum as dbEnum
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import ForeignKey, Integer, String, Text, event
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .extensions import db
-
-
-class OauthProvider(enum.Enum):
-    GOOGLE = "google"
-    LINKEDIN = "linkedin"
+from .utils import OauthProvider
 
 
 class User(UserMixin, db.Model):
-    """
-    ```python
-    def __init__(
-        id: int,
-        email: str,
-        password_hash: str,
-        oauth_provider: OauthProvider,
-        is_admin: bool,
-    ):
-    ```
-    """
-
     id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
-    password_hash: Mapped[str] = mapped_column(String(128), nullable=True)
+    email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    password_hash: Mapped[str] = mapped_column(String, nullable=True)
     oauth_provider: Mapped[OauthProvider] = mapped_column(
         dbEnum(OauthProvider), nullable=True
     )
@@ -60,20 +44,16 @@ class User(UserMixin, db.Model):
         try:
             user: User = User.query.filter(User.id == id).first()
             return user
-        except Exception:
+        except NoResultFound:
             return None
-        finally:
-            db.session.close()
 
     @staticmethod
     def get_by_email(email: str) -> Union[User, None]:
         try:
             user: User = User.query.filter(User.email == email).first()
             return user
-        except Exception:
+        except NoResultFound:
             return None
-        finally:
-            db.session.close()
 
     @staticmethod
     def signed_with_oauth(email: str) -> Union[bool, OauthProvider]:
@@ -85,34 +65,19 @@ class User(UserMixin, db.Model):
             return False if user.oauth_provider is None else user.oauth_provider
         except Exception:
             return False
-        finally:
-            db.session.close()
 
 
 class UserPayment(db.Model):
-    """
-    ```python
-    def __init__(
-        id: int,
-        user_id: int,
-        user: User,
-        customer_id: str,
-        subscription_id: str,
-        created: datetime,
-        expires_at: datetime,
-    ):
-    ```
-    """
-
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id"), nullable=False, unique=True
     )
     user: Mapped[User] = relationship("User", backref="user_payment", lazy=True)
-    customer_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    subscription_id: Mapped[str] = mapped_column(String(255), nullable=True)
+    customer_id: Mapped[str] = mapped_column(String, nullable=False)
+    subscription_id: Mapped[str] = mapped_column(String, nullable=True)
     created: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
     expires_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     @property
     def created_epoch(self) -> DateTime:
@@ -137,10 +102,8 @@ class UserPayment(db.Model):
                 UserPayment.customer_id == customer_id
             ).first()
             return user_payment
-        except Exception:
+        except NoResultFound:
             return None
-        finally:
-            db.session.close()
 
     @staticmethod
     def get_by_user_id(user_id: int) -> Union[UserPayment, None]:
@@ -149,60 +112,38 @@ class UserPayment(db.Model):
                 UserPayment.user_id == user_id
             ).first()
             return user_payment
-        except Exception:
+        except NoResultFound:
             return None
-        finally:
-            db.session.close()
 
 
 class UserInfo(db.Model):
-    """
-    ```python
-    def __init__(
-        id: int,
-        user_id: int,
-        user: User,
-        first_name: str,
-        last_name: str,
-        username: str,
-        bio: str,
-        linkedin: str,
-        instagram: str,
-        twitter: str,
-        completed: bool,
-    ):
-    ```
-    """
-
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id"), nullable=False, unique=True
     )
     user: Mapped[User] = relationship("User", backref="user_info", lazy=True)
-    first_name: Mapped[str] = mapped_column(String(50), nullable=True)
-    last_name: Mapped[str] = mapped_column(String(50), nullable=True)
-    username: Mapped[str] = mapped_column(String(50), nullable=True)
+    first_name: Mapped[str] = mapped_column(String, nullable=True)
+    last_name: Mapped[str] = mapped_column(String, nullable=True)
+    username: Mapped[str] = mapped_column(String, nullable=True)
     bio: Mapped[Text] = mapped_column(Text, nullable=True)
     linkedin: Mapped[str] = mapped_column(String, nullable=True)
     instagram: Mapped[str] = mapped_column(String, nullable=True)
     twitter: Mapped[str] = mapped_column(String, nullable=True)
-    completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    pfp_uuid: Mapped[String] = mapped_column(String, nullable=True)
 
     def __repr__(self):
         return f"<UserInfo {self.username}>"
 
     @staticmethod
-    def get_by_user_id(id: int, close_session: bool = True) -> Union[UserInfo, None]:
+    def get_by_user_id(id: int) -> Union[UserInfo, None]:
         try:
             user_info = (
                 db.session.query(UserInfo).filter(UserInfo.user_id == id).first()
             )
             return user_info
-        except Exception:
+        except NoResultFound:
             return None
-        finally:
-            if close_session:
-                db.session.close()
 
     # TODO: redo
     @staticmethod
@@ -225,10 +166,8 @@ class UserInfo(db.Model):
                 .first()
             )
             return full_user
-        except Exception:
+        except NoResultFound:
             return None
-        finally:
-            db.session.close()
 
     def sanitize(self) -> dict[str, str]:
         user_info = {
@@ -239,6 +178,7 @@ class UserInfo(db.Model):
             "linkedin": self.linkedin,
             "instagram": self.instagram,
             "bio": self.bio,
+            "pfp": self.pfp_uuid,
         }
         return user_info
 
@@ -262,49 +202,26 @@ company_industry = db.Table(
 
 
 class Company(db.Model):
-    """
-    ```python
-    def __init__(
-
-        id: int,
-        name: str,
-        description: str,
-        number_of_employees: int,
-        website: str,
-        picture: str,
-        country_id: int,
-        country: Country,
-        preferred_round_id: int,
-        preferred_round: Round,
-        industrial_group: List[IndustrialGroup],
-        industry: List[Industry],
-    ):
-    ```
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=True)
     number_of_employees: Mapped[int] = mapped_column(Integer, nullable=True)
     website: Mapped[str] = mapped_column(String, nullable=True)
     picture: Mapped[str] = mapped_column(String, nullable=True)
-
     country_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("country.id"), nullable=True
     )
-    country: Mapped[Country] = relationship()
-
     preferred_round_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("round.id"), nullable=True
     )
-    preferred_round: Mapped[Round] = relationship()
-
     industrial_group: Mapped[List[IndustrialGroup]] = relationship(
         secondary=company_industrial_group
     )
-    industry: Mapped[List[Industry]] = relationship(secondary=company_industry)
 
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    industry: Mapped[List[Industry]] = relationship(secondary=company_industry)
+    country: Mapped[Country] = relationship()
+    preferred_round: Mapped[Round] = relationship()
     user: Mapped[User] = relationship("User", backref="company", lazy=True)
 
     def __repr__(self):
@@ -315,24 +232,13 @@ class Company(db.Model):
         try:
             company: Company = Company.query.filter(Company.id == id).first()
             return company
-        except Exception:
+        except NoResultFound:
             return None
-        finally:
-            db.session.close()
 
 
 class IndustrialGroup(db.Model):
-    """
-    ```python
-    def __init__(
-        id: int,
-        name: str,
-    ):
-    ```
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     def __repr__(self):
         return f"<IndustrialGroup {self.name}>"
@@ -371,22 +277,11 @@ class IndustrialGroup(db.Model):
             db.session.commit()
         except Exception:
             db.session.rollback()
-        finally:
-            db.session.close()
 
 
 class Industry(db.Model):
-    """
-    ```python
-    def __init__(
-        id: int,
-        name: str
-    ):
-    ```
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     def __repr__(self):
         return f"<Industry {self.name}>"
@@ -428,22 +323,11 @@ class Industry(db.Model):
             db.session.commit()
         except Exception:
             db.session.rollback()
-        finally:
-            db.session.close()
 
 
 class Round(db.Model):
-    """
-    ```python
-    def __init__(
-        id: int,
-        name: str,
-    ):
-    ```
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
 
     def __repr__(self):
         return f"<Round {self.name}>"
@@ -456,24 +340,12 @@ class Round(db.Model):
             db.session.commit()
         except Exception:
             db.session.rollback()
-        finally:
-            db.session.close()
 
 
 class Country(db.Model):
-    """
-    ```python
-    def __init__(
-        id: int,
-        name: str,
-        code: str,
-    ):
-    ```
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-    code: Mapped[str] = mapped_column(String(2), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    code: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     def __repr__(self):
         return f"<Country {self.name}>"
@@ -483,20 +355,16 @@ class Country(db.Model):
         try:
             country: Country = Country.query.filter(Country.code == code).first()
             return country
-        except Exception:
+        except NoResultFound:
             return None
-        finally:
-            db.session.close()
 
     @staticmethod
     def get_by_id(id: int) -> Union[Country, None]:
         try:
             country: Country = Country.query.filter(Country.id == id).first()
             return country
-        except Exception:
+        except NoResultFound:
             return None
-        finally:
-            db.session.close()
 
     @staticmethod
     def populate() -> None:
@@ -508,48 +376,82 @@ class Country(db.Model):
             db.session.commit()
         except Exception:
             db.session.rollback()
-        finally:
-            db.session.close()
 
 
-class EmailForNewsletter(db.Model):
-    """
-    ```python
-    def __init__(
-        id: int,
-        email: str,
-        added_at: datetime,
-    ):
-    ```
-    """
+investor_round = db.Table(
+    "investor_round",
+    Column("investor_id", Integer, ForeignKey("investor.id"), primary_key=True),
+    Column("round_id", Integer, ForeignKey("round.id"), primary_key=True),
+)
 
+investor_industry = db.Table(
+    "investor_industry",
+    Column("investor_id", Integer, ForeignKey("investor.id"), primary_key=True),
+    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+)
+
+investor_industrial_group = db.Table(
+    "investor_industrial_group",
+    Column("investor_id", Integer, ForeignKey("investor.id"), primary_key=True),
+    Column(
+        "industrial_group_id",
+        Integer,
+        ForeignKey("industrial_group.id"),
+        primary_key=True,
+    ),
+)
+
+
+class Investor(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    email: Mapped[int] = mapped_column(String(255), nullable=False, unique=True)
-    added_at: Mapped[DateTime] = mapped_column(
-        DateTime, nullable=False, default=db.func.now()
+    first_name: Mapped[str] = mapped_column(String, nullable=False)
+    last_name: Mapped[str] = mapped_column(String, nullable=True)
+    firm_name: Mapped[str] = mapped_column(String, nullable=True)
+    website: Mapped[str] = mapped_column(String, nullable=True)
+    email: Mapped[str] = mapped_column(String, nullable=True, unique=True)
+    position: Mapped[str] = mapped_column(String, nullable=True)
+
+    rounds: Mapped[List[Round]] = relationship(secondary=investor_round)
+    industries: Mapped[List[Industry]] = relationship(secondary=investor_industry)
+    industrial_groups: Mapped[List[IndustrialGroup]] = relationship(
+        secondary=investor_industrial_group
     )
 
     def __repr__(self):
-        return f"<EmailForNewsletter {self.email}>"
+        return f"<Investor {self.first_name} {self.last_name}>"
 
     @staticmethod
-    def get_by_email(email: str) -> Union[EmailForNewsletter, None]:
+    def get_by_id(id: int) -> Union[Investor, None]:
         try:
-            email_obj: EmailForNewsletter = EmailForNewsletter.query.filter(
-                EmailForNewsletter.email == email
-            ).first()
-            return email_obj
-        except Exception:
+            investor = Investor.query.filter_by(id=id).one()
+            return investor
+        except NoResultFound:
             return None
-        finally:
-            db.session.close()
 
     @staticmethod
-    def get_all() -> Union[List[EmailForNewsletter], None]:
+    def get_by_email(email: str) -> Union[Investor, None]:
         try:
-            email_list: List[EmailForNewsletter] = EmailForNewsletter.query.all()
-            return email_list
-        except Exception:
+            investor: Investor = Investor.query.filter(Investor.email == email).first()
+            return investor
+        except NoResultFound:
             return None
-        finally:
-            db.session.close()
+
+
+@event.listens_for(Country.__table__, "after_create")
+def populate_country(*args, **kwargs):
+    Country.populate()
+
+
+@event.listens_for(Round.__table__, "after_create")
+def populate_round(*args, **kwargs):
+    Round.populate()
+
+
+@event.listens_for(Industry.__table__, "after_create")
+def populate_industry(*args, **kwargs):
+    Industry.populate()
+
+
+@event.listens_for(IndustrialGroup.__table__, "after_create")
+def populate_industrial_group(*args, **kwargs):
+    IndustrialGroup.populate()

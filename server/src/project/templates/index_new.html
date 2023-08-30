@@ -48,7 +48,13 @@
                     <a href="#faq">FAQ</a>
                 </div>
             </div>
-            <a href="/login" class="flex items-center justify-center pr-9">Login</a>
+            <div class="pr-9">
+                {% if current_user.is_authenticated %}
+                <a href="/dashboard" class="flex items-center justify-center">Dashboard</a>
+                {% else %}
+                <a href="/login" class="flex items-center justify-center">Login</a>
+                {% endif %}
+            </div>
         </nav>
         <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-slate-50">
             <section class="mx-auto max-w-7xl bg-transparent px-4 pb-16 pt-20 text-center sm:px-6 lg:px-8 lg:pt-32">

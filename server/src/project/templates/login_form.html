@@ -22,7 +22,8 @@
             <a href="/logout" class="">Logout</a>
         </nav>
         <main class="mt-28 flex flex-col items-center justify-center p-6 sm:mt-36">
-            <form action="/login-form" method="POST">
+            <form action="/login-form" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <div class="space-y-12">
                     <div class="border-b border-gray-900/10 pb-12">
                         <h1 class="mb-4 text-3xl font-semibold leading-7 text-gray-900">Profile</h1>
@@ -120,12 +121,14 @@
                                             clip-rule="evenodd"
                                         />
                                     </svg>
-                                    <button
-                                        type="button"
-                                        class="rounded bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-2 ring-inset ring-stone-300 hover:bg-gray-50"
-                                    >
-                                        Change
-                                    </button>
+                                    <input 
+                                        class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 "
+                                        type="file" 
+                                        id="pfp"
+                                        name="pfp" 
+                                        accept="image/png, image/jpeg" 
+                                    />
+                                
                                 </div>
                             </div>
                             <div class="sm:col-span-3">

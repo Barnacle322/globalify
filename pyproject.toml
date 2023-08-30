@@ -17,6 +17,9 @@ pycountry = "^22.3.5"
 stripe = "^6.1.0"
 psycopg = "^3.1.10"
 psycopg2 = "^2.9.7"
+flask-wtf = "^1.1.1"
+google-cloud-storage = "^2.10.0"
+pillow = "^10.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"

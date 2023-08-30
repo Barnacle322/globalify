@@ -14,7 +14,7 @@ payment = Blueprint("payment", __name__)
 stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
 
 
-def create_customer(authenticated_user: User):
+def create_customer(authenticated_user: User) -> UserPayment:
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
     if not user_payment:
         customer_data = stripe.Customer.search(
@@ -25,10 +25,8 @@ def create_customer(authenticated_user: User):
             customer = stripe.Customer.create(
                 email=authenticated_user.email,
             )
-
         elif len(customer_list := customer_data.get("data")) == 1:  # type: ignore
             customer = customer_list[0]  # type: ignore
-
         else:
             raise Exception(
                 "Multiple customers with same email found. Please contact support."
@@ -68,7 +66,7 @@ def create_checkout(
     return checkout_session
 
 
-def no_subscriptions(customer_id: str):
+def has_subscriptions(customer_id: str) -> bool:
     active_subscriptions = stripe.Subscription.list(
         status="active", customer=customer_id
     )
@@ -76,7 +74,7 @@ def no_subscriptions(customer_id: str):
         status="trialing", customer=customer_id
     )
 
-    return True if not (active_subscriptions and trialing_subscriptions) else False
+    return active_subscriptions or trialing_subscriptions  # type: ignore
 
 
 @payment.route("/", methods=["GET"])
@@ -106,11 +104,9 @@ def create_checkout_session():
         status = Status(StatusType.ERROR, "User payment not found").get_status()
         return redirect(url_for("payment.index", **status))  # type: ignore
 
-    # if no_subscriptions(user_payment.customer_id):
-    #     status = Status(
-    #         StatusType.ERROR, "A subscription is already exists"
-    #     ).get_status()
-    #     return redirect(url_for("payment.index", **status))  # type: ignore
+    if has_subscriptions(user_payment.customer_id):
+        status = Status(StatusType.ERROR, "A subscription already exists").get_status()
+        return redirect(url_for("payment.index", **status))  # type: ignore
 
     checkout_session = create_checkout(customer_id=user_payment.customer_id)
 

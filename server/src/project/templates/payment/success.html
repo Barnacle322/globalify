@@ -12,6 +12,7 @@
                 </div>
             </div>
             <form action="/payment/create-portal-session" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button id="checkout-and-portal-button" type="submit">Manage your billing information</button>
             </form>
         </section>

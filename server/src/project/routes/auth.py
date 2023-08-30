@@ -322,7 +322,7 @@ def google_callback():
 
     login_user(user, remember=True)
 
-    if not user_info.completed:
+    if not user_info.is_complete:
         return redirect(url_for("auth.login_form"))
     else:
         return redirect(url_for("main.dashboard"))

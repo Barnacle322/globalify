@@ -2,8 +2,9 @@ import json
 import os
 
 import stripe
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from stripe.error import SignatureVerificationError
 
 from ..extensions import db
 from ..models import User, UserPayment
@@ -48,20 +49,25 @@ def create_checkout(
 ) -> stripe.checkout.Session:
     success_url = request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = request.host_url + "payment/cancel"
+    try:
+        prices = stripe.Price.list(lookup_keys=["basic"], expand=["data.product"])
 
-    checkout_session = stripe.checkout.Session.create(
-        customer=customer_id,
-        line_items=[
-            {
-                "price": "price_1NdKLmDsBtpSnIdQdw4tyKam",
-                "quantity": 1,
-            },
-        ],
-        mode="subscription",
-        success_url=success_url,
-        cancel_url=cancel_url,
-        subscription_data={"trial_period_days": trial_period_days},
-    )
+        checkout_session = stripe.checkout.Session.create(
+            customer=customer_id,
+            line_items=[
+                {
+                    "price": prices.data[0].id,
+                    "quantity": 1,
+                },
+            ],
+            mode="subscription",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            subscription_data={"trial_period_days": trial_period_days},
+        )
+    except Exception as e:
+        status = Status(StatusType.ERROR, e.args[0]).get_status()
+        return redirect(url_for("payment.index", **status))  # type: ignore
 
     return checkout_session
 
@@ -97,7 +103,7 @@ def create_checkout_session():
     try:
         user_payment = create_customer(authenticated_user)
     except Exception as e:
-        status = Status(StatusType.ERROR, e.args[0])
+        status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", **status))  # type: ignore
 
     if not user_payment:
@@ -138,6 +144,7 @@ def customer_portal():
         customer=user_payment.customer_id,
         return_url=return_url,
     )
+
     return redirect(portal_session.url, code=303)
 
 
@@ -158,8 +165,9 @@ def webhook_received():
                 payload=request.data, sig_header=signature, secret=webhook_secret  # type: ignore
             )
             data = event["data"]
-        except Exception as e:
-            return {"status": "error", "message": str(e)}, 403
+        except SignatureVerificationError as e:
+            print("⚠️  Webhook signature verification failed." + str(e))
+            return jsonify(success=False)
         event_type = event["type"]
     else:
         data = request_data["data"]
@@ -176,13 +184,7 @@ def webhook_received():
         is_canceled = data_object.get("canceled_at")
         if is_canceled:
             print("Subscription canceled %s", event.id)  # type: ignore
-        print("-------------------")
-        print(data_object)
-        print("Subscription created %s", event.id)  # type: ignore
-        print("-------------------")
     elif event_type == "customer.subscription.deleted":
-        # handle subscription canceled automatically based
-        # upon your subscription settings. Or if the user cancels it.
         print("Subscription canceled: %s", event.id)  # type: ignore
 
     return {"status": "success"}

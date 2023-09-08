@@ -13,6 +13,7 @@ RUN pip install Flask==2.3.2 \
     google-cloud-storage==2.10.0 \ 
     pillow==10.0.0 \
     stripe==6.1.0 \
+    faker==19.5.0 \
     --no-cache-dir
 
 COPY src/ app/

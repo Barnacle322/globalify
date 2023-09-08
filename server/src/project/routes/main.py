@@ -1,11 +1,11 @@
 import base64
 
-from flask import Blueprint, redirect, render_template, url_for
+from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 # from ..extensions import db
 from ..google_storage import download_blob_into_memory
-from ..models import UserInfo
+from ..models import Investor, UserInfo
 from ..utils import Status, StatusType
 
 main = Blueprint("main", __name__)
@@ -13,7 +13,7 @@ main = Blueprint("main", __name__)
 
 @main.get("/")
 def index():
-    return render_template("index_new.html")
+    return render_template("index.html")
 
 
 @main.route("/dashboard")
@@ -33,6 +33,20 @@ def dashboard():
         print(e)
 
     return render_template("dashboard.html", pfp_base64=pfp_base64)
+
+
+@main.route("/search")
+def search():
+    search_query = request.args.get("q", "")
+    page_num = request.args.get("page", 1, type=int)
+    investors = Investor.get_pagination(page=page_num, query=search_query)
+
+    if page_num > investors.pages and investors.pages > 0:  # type: ignore
+        return redirect(url_for("main.search", search=search_query, pagenum=1))
+
+    return render_template(
+        "search.html", investors=investors, search_query=search_query
+    )
 
 
 @main.route("/terms-of-service")

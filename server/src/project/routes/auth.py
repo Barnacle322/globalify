@@ -24,7 +24,7 @@ from ..error_messages import (
 )
 from ..extensions import db, login_manager, oauth
 from ..google_storage import upload_blob
-from ..models import User, UserInfo
+from ..models import Company, Country, Industry, Round, User, UserInfo
 from ..utils import OauthProvider, Status, StatusType
 
 auth = Blueprint("auth", __name__)
@@ -105,10 +105,11 @@ def register():
             return redirect(url_for("auth.register", **status))  # type: ignore
 
         new_user = User(email=email)  # type: ignore
-        new_user_info = UserInfo(user_id=new_user.id)  # type: ignore
         new_user.password = password
-
         db.session.add(new_user)
+        db.session.commit()
+
+        new_user_info = UserInfo(user_id=new_user.id)
         db.session.add(new_user_info)
         db.session.commit()
 
@@ -170,39 +171,91 @@ def login_form():
         return redirect(url_for("auth.login"))
 
     if request.method == "POST":
-        first_name = request.form.get("first-name")
-        last_name = request.form.get("last-name")
-        username = request.form.get("username")
-        about = request.form.get("about")
-        linkedin = request.form.get("linkedin")
-        instagram = request.form.get("instagram")
-
-        if pfp := request.files["pfp"]:
-            pfp_image = Image.open(io.BytesIO(pfp.read()))
-            pfp_image.thumbnail((500, 500))
-
-            resized_pfp = io.BytesIO()
-            pfp_image.save(resized_pfp, format="JPEG")
-            resized_pfp.seek(0)
-
-            pfp_uuid = upload_blob(resized_pfp.read())
-            user_info.pfp_uuid = str(pfp_uuid)  # type: ignore
-
-        user_info.first_name = first_name  # type: ignore
-        user_info.last_name = last_name  # type: ignore
-        user_info.username = username  # type: ignore
-        user_info.bio = about  # type: ignore
-        user_info.linkedin = linkedin  # type: ignore
-        user_info.instagram = instagram  # type: ignore
+        user_info.first_name = request.form.get("first-name")  # type: ignore
+        user_info.last_name = request.form.get("last-name")  # type: ignore
+        user_info.username = request.form.get("username")  # type: ignore
+        user_info.bio = request.form.get("about")  # type: ignore
+        user_info.linkedin = request.form.get("linkedin")  # type: ignore
+        user_info.instagram = request.form.get("instagram")  # type: ignore
+        user_info.twitter = request.form.get("twitter")  # type: ignore
         user_info.is_complete = True
 
+        if pfp := request.files["pfp"]:
+            try:
+                pfp_image = Image.open(io.BytesIO(pfp.read()))
+                pfp_image.thumbnail((500, 500))
+
+                resized_pfp = io.BytesIO()
+                pfp_image.save(resized_pfp, format="JPEG")
+                resized_pfp.seek(0)
+
+                pfp_uuid = upload_blob(resized_pfp.read())
+                user_info.pfp_uuid = str(pfp_uuid)  # type: ignore
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
         db.session.commit()
-        return redirect(url_for("main.dashboard"))
+        return redirect(url_for("auth.company_form"))
 
     # TODO: Add languages to database
     languages = ["English", "Spanish", "French", "German", "Italian", "Portuguese"]
     return render_template(
         "login_form.html", languages=languages, user_info=user_info.sanitize()
+    )
+
+
+@auth.route("/company-form", methods=["GET", "POST"])
+@login_required
+def company_form():
+    authenticated_user: User = current_user  # type: ignore
+    if not authenticated_user:
+        return redirect(url_for("auth.login"))
+
+    user_info = UserInfo.get_by_user_id(authenticated_user.id)
+    if not user_info:
+        return redirect(url_for("auth.login"))
+
+    company: Company = Company.get_by_user_id(authenticated_user.id)
+    if company:
+        return redirect(url_for("main.dashboard"))
+
+    industries = Industry.get_all()
+    rounds = Round.get_all()
+    countries = Country.get_all()
+    if request.method == "POST":
+        company = Company(
+            user_id=authenticated_user.id,
+            name=request.form.get("company-name"),
+            description=request.form.get("about"),
+            country_id=request.form.get("country"),
+            preferred_round_id=request.form.get("round"),
+            industry_id=request.form.get("industry"),
+            website=request.form.get("website"),
+        )
+
+        if pfp := request.files["pfp"]:
+            try:
+                pfp_image = Image.open(io.BytesIO(pfp.read()))
+                pfp_image.thumbnail((500, 500))
+
+                resized_pfp = io.BytesIO()
+                pfp_image.save(resized_pfp, format="JPEG")
+                resized_pfp.seek(0)
+
+                pfp_uuid = upload_blob(resized_pfp.read())
+                company.pfp_uuid = str(pfp_uuid)  # type: ignore
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+        db.session.add(company)
+        db.session.commit()
+        return redirect(url_for("main.dashboard"))
+
+    return render_template(
+        "company_form.html",
+        industries=industries,
+        rounds=rounds,
+        countries=countries,
     )
 
 

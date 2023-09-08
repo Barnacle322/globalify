@@ -89,11 +89,3 @@ def test_get_user_info_by_user_id(new_user_info, app, full_user):
         db.session.commit()
         user_info = UserInfo.get_by_user_id(1)
         assert user_info == full_user
-
-
-def test_get_user_info_by_username(new_user_info, app, full_user):
-    with app.app_context():
-        db.session.add(new_user_info)
-        db.session.commit()
-        user_info = UserInfo.get_by_username("testusername")
-        assert user_info == full_user

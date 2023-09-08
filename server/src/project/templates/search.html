@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../static/css/main.css" />
+        <meta name="view-transition" content="same-origin" />
+        <script src="../static/scripts/search.js" defer></script>
+
+        <title>Search</title>
+    </head>
+    <body class="w-full bg-slate-50">
+        <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-center bg-slate-50">
+            <div class="flex w-full max-w-7xl items-center gap-7 px-9">
+                <a href="/"><img class="h-[30px] w-[113px]" src="../static/elements/logo-black.png" /></a>
+                <div class="hidden gap-7 sm:flex">
+                    <a href="/">Search</a>
+                    <a href="">Blog</a>
+                    <a href="">Team</a>
+                    <a href="">FAQ</a>
+                </div>
+            </div>
+            <a href="/logout" class="mr-9">Logout</a>
+        </nav>
+        <main class="mt-28 flex h-full  w-full overflow-scroll">
+            <div class="flex flex-col mx-auto px-4">
+                <div class="-m-1.5 overflow-x-auto">
+                    <div class="inline-block min-w-full p-1.5 align-middle">
+                        <div class="divide-y divide-gray-200 rounded-xl border">
+                            <div class="px-4 py-3">
+                                <div class="relative max-w-xs flex gap-2">
+                                    <label for="search" class="sr-only">Search</label>
+                                    <input
+                                        type="text"
+                                        name="search"
+                                        id="search"
+                                        class="block w-full rounded-md border-gray-200 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="Search"
+                                        value="{{ search_query }}"
+                                    />
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                                        <svg
+                                            class="h-3.5 w-3.5 text-gray-400"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="16"
+                                            height="16"
+                                            fill="currentColor"
+                                            viewBox="0 0 16 16"
+                                        >
+                                            <path
+                                                d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <button class="bg-sky-500 rounded-xl px-2 text-white text-sm" onclick="search()">Search</button>
+                                </div>
+                            </div>
+                            <div>
+                                <table class="table-auto divide-y divide-gray-200">
+                                    <thead class="bg-gray-50 px-3">
+                                        <tr class="text-left text-xs font-medium uppercase text-gray-500">
+                                            <th class="pl-4 py-4">
+                                                <div class="flex h-5 items-center">
+                                                    <input
+                                                        id="checkbox-all"
+                                                        type="checkbox"
+                                                        class="rounded border-gray-200 text-blue-600 focus:ring-blue-500"
+                                                    />
+                                                    <label for="checkbox-all" class="sr-only">Checkbox</label>
+                                                </div>
+                                            </th>
+                                            <th class="pl-4">Full name</th>
+                                            <th class="pl-4">Firm name</th>
+                                            <th class="pl-4">Position</th>
+                                            <th class="pl-4">Rounds</th>
+                                            <th class="pl-4">Industries</th>
+                                            <th class="px-4">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        {% if investors %} {% for investor in investors %}
+                                        <tr class="whitespace-nowrap text-sm text-gray-800">
+                                            <td class="pl-4">
+                                                <div class="flex h-5 items-center">
+                                                    <input
+                                                        id="checkbox"
+                                                        type="checkbox"
+                                                        class="rounded border-gray-200 text-sky-500 focus:ring-blue-500"
+                                                    />
+                                                    <label for="checkbox" class="sr-only"
+                                                        >Checkbox</label
+                                                    >
+                                                </div>
+                                            </td>
+                                            <td class="font-medium py-6 pl-4">{{ investor.full_name }}</td>
+                                            <td class="py-6 pl-4">{{ investor.firm_name}}</td>
+                                            <td class="py-6 pl-4">{{ investor.position }}</td>
+                                            <td class="py-6 pl-4">
+                                                <div class="flex flex-wrap gap-1">
+                                                    {% for round in investor.rounds %}
+                                                    <div
+                                                        class="min-w-max rounded-full bg-sky-500 px-3 py-1 text-center text-white"
+                                                    >
+                                                        {{ round.name }}
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </td>
+                                            <td class="py-6 pl-4">
+                                                <div class="flex flex-wrap gap-1 max-w-xs">
+                                                    {% for industry in investor.industries %}
+                                                    <div
+                                                        class="min-w-max rounded-full bg-sky-500 px-3 py-1 text-center text-white"
+                                                    >
+                                                        {{ industry.name}}
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </td>
+                                            <td class="font-medium py-6 pl-4">
+                                                <a class="text-blue-500 hover:text-blue-700" href="#">Delete</a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %} {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="px-4 py-1">
+                                <nav class="flex items-center">
+                                    {% if investors.has_prev %}
+                                    <a
+                                        class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
+                                        href="/search?page={{ investors.prev_num }}{{ '&q=' + search_query if search_query else ''}}"
+                                    >
+                                        <span aria-hidden="true">«</span>
+                                        <span class="sr-only">Previous</span>
+                                    </a>
+                                    {% endif %} {% for page in investors.iter_pages() %} {% if page %} {% if
+                                    investors.page == page %}
+                                    <a
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500 text-sm font-medium text-white hover:bg-sky-400"
+                                        href="/search?page={{ page }}{{ '&q=' + search_query if search_query else ''}}"
+                                        aria-current="page"
+                                        >{{ page }}</a
+                                    >
+                                    {% else %}
+                                    <a
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-medium text-gray-400 hover:text-sky-400"
+                                        href="/search?page={{ page }}{{ '&q=' + search_query if search_query else ''}}"
+                                        >{{ page }}</a
+                                    >
+                                    {% endif %} {% else %}
+                                    <div class="text-gray-400">...</div>
+                                    {% endif %} {% endfor %} {% if investors.has_next %}
+                                    <a
+                                        class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
+                                        href="/search?page={{ investors.next_num }}{{ '&search=' + search_query if search_query else ''}}"
+                                    >
+                                        <span class="sr-only">Next</span>
+                                        <span aria-hidden="true">»</span>
+                                    </a>
+                                    {% endif %}
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

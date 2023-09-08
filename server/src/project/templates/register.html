@@ -14,7 +14,7 @@
             <a href="/"><img class="h-[30px] w-[113px]" src="../static/elements/logo-black.png" /></a>
         </nav>
         <main class="inline-flex w-full justify-center px-16 md:w-1/2 md:justify-start">
-            <form action="/login" method="POST" class="flex w-80 flex-col gap-7 font-medium">
+            <form action="/register" method="POST" class="flex w-80 flex-col gap-7 font-medium">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <div class="flex flex-col gap-1">
                     <div class="text-4xl">Welcome back</div>
@@ -50,7 +50,7 @@
                     <input
                         id="password"
                         name="confirm_password"
-                        type="confirm_password"
+                        type="password"
                         minlength="8"
                         class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                         required

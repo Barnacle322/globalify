@@ -3,10 +3,11 @@ import base64
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-# from ..extensions import db
-from ..google_storage import download_blob_into_memory
 from ..models import Investor, UserInfo
-from ..utils import Status, StatusType
+
+# from ..extensions import db
+from ..utils.google_storage import download_blob_into_memory
+from ..utils.status_enum import Status, StatusType
 
 main = Blueprint("main", __name__)
 

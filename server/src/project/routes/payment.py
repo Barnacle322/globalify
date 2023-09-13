@@ -8,7 +8,7 @@ from stripe.error import SignatureVerificationError
 
 from ..extensions import db
 from ..models import User, UserPayment
-from ..utils import Status, StatusType
+from ..utils.status_enum import Status, StatusType
 
 payment = Blueprint("payment", __name__)
 

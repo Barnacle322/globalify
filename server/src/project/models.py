@@ -13,7 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .extensions import db
-from .fake_data import (
+from .utils.fake_data import (
     get_companies,
     get_emails,
     get_job_positions,
@@ -21,7 +21,7 @@ from .fake_data import (
     get_names,
     get_websites,
 )
-from .utils import OauthProvider
+from .utils.status_enum import OauthProvider
 
 
 class User(UserMixin, db.Model):
@@ -247,8 +247,6 @@ class Industry(db.Model):
             }
             for industry in industries:
                 industry_dict[industry.category].append(industry)
-            # A clever one-liner that does the same thing as the above for loop
-            # industry_dict = {category: [industry.name for industry in industries if industry.category == category] for category in set(map(lambda x: x.category, industries))}
             return industry_dict
         except NoResultFound:
             return {}

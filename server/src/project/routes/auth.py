@@ -1,4 +1,3 @@
-import io
 import os
 import re
 from typing import Any
@@ -6,9 +5,10 @@ from typing import Any
 import requests
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
-from PIL import Image
 
-from ..error_messages import (
+from ..extensions import db, login_manager, oauth
+from ..models import Company, Country, Industry, Round, User, UserInfo
+from ..utils.errors.auth_error_messages import (
     AUTH_EMAIL_NOT_FOUNDS,
     AUTH_EMAIL_USED,
     AUTH_FIELDS_INCOMPLETE,
@@ -22,10 +22,8 @@ from ..error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
-from ..extensions import db, login_manager, oauth
-from ..google_storage import upload_blob
-from ..models import Company, Country, Industry, Round, User, UserInfo
-from ..utils import OauthProvider, Status, StatusType
+from ..utils.google_storage import prepare_picture, upload_blob
+from ..utils.status_enum import OauthProvider, Status, StatusType
 
 auth = Blueprint("auth", __name__)
 
@@ -152,16 +150,16 @@ def login():
 
         user_info = UserInfo.get_by_user_id(user.id)
         if user_info and not user_info.is_complete:
-            return redirect(url_for("auth.login_form"))
+            return redirect(url_for("auth.onboarding"))
         else:
             return redirect(url_for("main.dashboard"))
 
     return render_template("login.html", status_type=status_type, msg=msg)
 
 
-@auth.route("/login-form", methods=["GET", "POST"])
+@auth.route("/onboarding", methods=["GET", "POST"])
 @login_required
-def login_form():
+def onboarding():
     authenticated_user: User = current_user  # type: ignore
     if not authenticated_user:
         return redirect(url_for("auth.login"))
@@ -182,12 +180,7 @@ def login_form():
 
         if pfp := request.files["pfp"]:
             try:
-                pfp_image = Image.open(io.BytesIO(pfp.read()))
-                pfp_image.thumbnail((500, 500))
-
-                resized_pfp = io.BytesIO()
-                pfp_image.save(resized_pfp, format="JPEG")
-                resized_pfp.seek(0)
+                resized_pfp = prepare_picture(pfp)
 
                 pfp_uuid = upload_blob(resized_pfp.read())
                 user_info.pfp_uuid = str(pfp_uuid)  # type: ignore
@@ -235,13 +228,7 @@ def company_form():
 
         if pfp := request.files["pfp"]:
             try:
-                pfp_image = Image.open(io.BytesIO(pfp.read()))
-                pfp_image.thumbnail((500, 500))
-
-                resized_pfp = io.BytesIO()
-                pfp_image.save(resized_pfp, format="JPEG")
-                resized_pfp.seek(0)
-
+                resized_pfp = prepare_picture(pfp)
                 pfp_uuid = upload_blob(resized_pfp.read())
                 company.pfp_uuid = str(pfp_uuid)  # type: ignore
             except Exception as e:
@@ -324,7 +311,7 @@ def linkedin_callback():
     login_user(user, remember=True)
 
     if not user_info.is_complete:
-        return redirect(url_for("auth.login_form"))
+        return redirect(url_for("auth.onboarding"))
     else:
         return redirect(url_for("main.dashboard"))
 
@@ -376,7 +363,7 @@ def google_callback():
     login_user(user, remember=True)
 
     if not user_info.is_complete:
-        return redirect(url_for("auth.login_form"))
+        return redirect(url_for("auth.onboarding"))
     else:
         return redirect(url_for("main.dashboard"))
 

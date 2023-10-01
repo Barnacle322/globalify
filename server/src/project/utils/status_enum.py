@@ -20,8 +20,8 @@ class Status:
     def __repr__(self):
         return f"<{self.type} {self.msg}>"
 
-    def get_status(self) -> dict[str, str]:
-        return {"type": str(self.type.value), "msg": self.msg}
+    def get_status(self, **kwargs) -> dict[str, str]:
+        return {"type": str(self.type.value), "msg": self.msg, **kwargs}
 
 
 class OauthProvider(Enum):

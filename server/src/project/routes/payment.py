@@ -45,12 +45,15 @@ def create_customer(authenticated_user: User) -> UserPayment:
 
 
 def create_checkout(
-    customer_id: str, trial_period_days: int = 14
+    customer_id: str,
+    trial_period_days: int = 14,
+    tier: str = "basic",
 ) -> stripe.checkout.Session:
     success_url = request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = request.host_url + "payment/cancel"
+
     try:
-        prices = stripe.Price.list(lookup_keys=["basic"], expand=["data.product"])
+        prices = stripe.Price.list(lookup_keys=[tier], expand=["data.product"])
 
         checkout_session = stripe.checkout.Session.create(
             customer=customer_id,
@@ -125,6 +128,12 @@ def success():
     return render_template("payment/success.html")
 
 
+@payment.route("/cancel", methods=["GET"])
+@login_required
+def cancel():
+    return render_template("payment/cancel.html")
+
+
 @payment.route("/create-portal-session", methods=["POST"])
 @login_required
 def customer_portal():
@@ -187,7 +196,7 @@ def webhook_received():
     elif event_type == "customer.subscription.deleted":
         print("Subscription canceled: %s", event.id)  # type: ignore
 
-    return {"status": "success"}
+    return {"status": "success"}, 200
 
 
 # @payment.errorhandler(Exception)

@@ -1,0 +1,79 @@
+{% extends "layouts/layout_clean.html" %} {% block title %}Login{% endblock %} {% block head %} {{ super() }} {%
+endblock %} {% block content %}
+<main class="flex h-full w-full flex-row items-center overflow-hidden bg-slate-50 text-slate-900">
+    <div class="inline-flex w-full justify-center px-9 pt-16 min-[330px]:pt-0 md:w-1/2 md:justify-start md:px-16">
+        <form action="/login" method="POST" class="flex w-80 flex-col gap-7 font-medium">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="flex flex-col gap-1">
+                <div class="text-4xl">Welcome back</div>
+                <div class="">
+                    <span class="text-sm">No account? Click </span
+                    ><a href="/register" class="text-class underline">here</a
+                    ><span class="text-class"> to sign up</span>
+                </div>
+            </div>
+            <div class="flex w-full flex-col gap-2">
+                <div class="text-base">Email</div>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                    required
+                />
+            </div>
+            <div class="flex w-full flex-col gap-2">
+                <div class="text-base">Password</div>
+                <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    minlength="8"
+                    class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                    required
+                />
+                {% if status_type %} {% if status_type == '3' %}
+                <div class="rounded-xl text-red-500">{{ msg }}</div>
+                {% endif %} {% if status_type == '2' %}
+                <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                {% endif %} {% if status_type == '1' %}
+                <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                {% endif %} {% endif %}
+            </div>
+            <button
+                type="submit"
+                class="inline-flex h-12 w-full items-center justify-center rounded-xl bg-sky-500 transition-colors ease-in-out hover:bg-sky-400"
+            >
+                <div class="text-base text-white">Sign in</div>
+            </button>
+            <div class="w-full text-center text-sm">Or continue with</div>
+            <div class="gap-2">
+                <div class="inline-flex h-10 w-full gap-4 text-base">
+                    <a
+                        href="/login-linkedin"
+                        class="flex w-full items-center justify-center gap-1 rounded-xl bg-white transition-colors ease-in-out hover:bg-slate-100"
+                    >
+                        <img class="w-4" src="../static/elements/linkedin.svg" alt="" />
+                        <div class="text-black">LinkedIn</div>
+                    </a>
+                    <a
+                        href="/login-google"
+                        class="flex w-full items-center justify-center gap-1 rounded-xl bg-white transition-colors ease-in-out hover:bg-slate-100"
+                    >
+                        <img src="../static/elements/google.svg" alt="" />
+                        <div class="text-black">Google</div>
+                    </a>
+                </div>
+                <div class="my-2 text-xs text-slate-400">
+                    <span>By signing in, you agree to </span
+                    ><a href="/terms-of-service" class="underline">Terms of Service</a><span> and </span
+                    ><a href="/privacy-policy" class="underline">Privacy Policy</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="mt-48 hidden h-full w-1/2 overflow-hidden rounded-tl-3xl bg-white md:block">
+        <img class="h-full w-full object-cover" src="../static/elements/login_stock.png" alt="" />
+    </div>
+</main>
+{% endblock %}

@@ -33,11 +33,6 @@ def dashboard():
     except Exception as e:
         print(e)
 
-    return render_template("dashboard.html", pfp_base64=pfp_base64)
-
-
-@main.route("/search")
-def search():
     search_query = request.args.get("q", "")
     page_num = request.args.get("page", 1, type=int)
     investors = Investor.get_pagination(page=page_num, query=search_query)
@@ -46,8 +41,20 @@ def search():
         return redirect(url_for("main.search", search=search_query, pagenum=1))
 
     return render_template(
-        "search.html", investors=investors, search_query=search_query
+        "dashboard.html",
+        pfp_base64=pfp_base64,
+        search_query=search_query,
+        investors=investors,
     )
+
+
+@main.route("/investor/<int:investor_id>")
+def investor(investor_id):
+    investor = Investor.get_by_id(investor_id)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    return render_template("investor.html", investor=investor)
 
 
 @main.route("/terms-of-service")
@@ -67,7 +74,8 @@ def bad_request(e):
 
 @main.errorhandler(401)
 def unauthorized(e):
-    return render_template("errors/401.html"), 401
+    next_url = str(request.path)
+    return redirect(url_for("auth.login", next=next_url))
 
 
 @main.errorhandler(403)

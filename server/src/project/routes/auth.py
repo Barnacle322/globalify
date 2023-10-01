@@ -3,7 +3,7 @@ import re
 from typing import Any
 
 import requests
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from ..extensions import db, login_manager, oauth
@@ -16,6 +16,7 @@ from ..utils.errors.auth_error_messages import (
     AUTH_INVALID_EMAIL,
     AUTH_MISMATCHED_PASSWORDS,
     AUTH_OAUTH_USED,
+    AUTH_USERNAME_USED,
     OAUTH_ACCESS_TOKEN,
     OAUTH_COULD_NOT_RETRIEVE_DATA,
     OAUTH_MISMATCHED_PROVIDER,
@@ -113,7 +114,7 @@ def register():
 
         return redirect(url_for("auth.login"))
 
-    return render_template("register.html", status_type=status_type, msg=msg)
+    return render_template("auth/register.html", status_type=status_type, msg=msg)
 
 
 @auth.route("/login", methods=["GET", "POST"])
@@ -154,7 +155,7 @@ def login():
         else:
             return redirect(url_for("main.dashboard"))
 
-    return render_template("login.html", status_type=status_type, msg=msg)
+    return render_template("auth/login.html", status_type=status_type, msg=msg)
 
 
 @auth.route("/onboarding", methods=["GET", "POST"])
@@ -178,6 +179,12 @@ def onboarding():
         user_info.twitter = request.form.get("twitter")  # type: ignore
         user_info.is_complete = True
 
+        is_taken = UserInfo.is_taken(request.form.get("username"))  # type: ignore
+        if is_taken:
+            status = Status(StatusType.ERROR, AUTH_USERNAME_USED).get_status()
+            return redirect(url_for("auth.onboarding", **status))  # type: ignore
+
+        # TODO: Add a UI warning for this
         if pfp := request.files["pfp"]:
             try:
                 resized_pfp = prepare_picture(pfp)
@@ -193,8 +200,20 @@ def onboarding():
     # TODO: Add languages to database
     languages = ["English", "Spanish", "French", "German", "Italian", "Portuguese"]
     return render_template(
-        "login_form.html", languages=languages, user_info=user_info.sanitize()
+        "auth/onboarding.html", languages=languages, user_info=user_info.sanitize()
     )
+
+
+@auth.get("/username/<username>")
+@login_required
+def username(username: str):
+    authenticated_user: User = current_user  # type: ignore
+    if not authenticated_user:
+        return redirect(url_for("auth.login"))
+
+    is_taken = UserInfo.is_taken(username)
+
+    return jsonify({"is_taken": is_taken})
 
 
 @auth.route("/company-form", methods=["GET", "POST"])
@@ -215,6 +234,7 @@ def company_form():
     industries = Industry.get_all()
     rounds = Round.get_all()
     countries = Country.get_all()
+
     if request.method == "POST":
         company = Company(
             user_id=authenticated_user.id,
@@ -239,7 +259,7 @@ def company_form():
         return redirect(url_for("main.dashboard"))
 
     return render_template(
-        "company_form.html",
+        "auth/company_form.html",
         industries=industries,
         rounds=rounds,
         countries=countries,
@@ -257,6 +277,7 @@ def linkedin_login():
 def linkedin_callback():
     # BUG: For some reason client_secret is not being passed during
     # app initialization. Hardcoding it for now.
+    # Making this the only OAuth provider doesn't fix the issue.
     authorization = oauth.linkedin.authorize_access_token(client_secret=LINKEDIN_SECRET)  # type: ignore
     access_token = authorization.get("access_token")
 
@@ -364,8 +385,8 @@ def google_callback():
 
     if not user_info.is_complete:
         return redirect(url_for("auth.onboarding"))
-    else:
-        return redirect(url_for("main.dashboard"))
+
+    return redirect(url_for("main.dashboard"))
 
 
 @auth.route("/logout")

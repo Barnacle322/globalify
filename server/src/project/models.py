@@ -96,14 +96,12 @@ class UserInfo(db.Model):
         return f"<UserInfo {self.username}>"
 
     @staticmethod
-    def username_available(username: str) -> bool:
+    def is_taken(username: str) -> bool:
         try:
-            user_info: UserInfo = UserInfo.query.filter(
-                UserInfo.username == username
-            ).first()
-            return False if user_info else True
+            user_info = UserInfo.query.filter(UserInfo.username == username).first()
+            return True if user_info else False
         except NoResultFound:
-            return True
+            return False
 
     @staticmethod
     def get_by_user_id(id: int) -> Union[UserInfo, None]:

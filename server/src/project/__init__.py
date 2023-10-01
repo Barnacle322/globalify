@@ -6,7 +6,6 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .extensions import csrf, db, login_manager, migrate, oauth
 from .routes.auth import auth
-from .routes.blog import blog
 from .routes.main import bad_request, forbidden, main, page_not_found, unauthorized
 from .routes.payment import payment
 
@@ -21,7 +20,6 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
     app.register_blueprint(main)
     app.register_blueprint(payment, url_prefix="/payment")
     app.register_blueprint(auth)
-    app.register_blueprint(blog, url_prefix="/blog")
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

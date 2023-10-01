@@ -5,6 +5,7 @@ AUTH_MISMATCHED_PASSWORDS = "Passwords do not match."
 AUTH_INCORRECT_PASSWORD = "The password is incorrect"
 AUTH_OAUTH_USED = "Please sign in with {}."
 AUTH_FIELDS_INCOMPLETE = "Please fill out all fields."
+AUTH_USERNAME_USED = "Username is already in use."
 
 OAUTH_ACCESS_TOKEN = "Authentication failed. Could not authorize access token."
 OAUTH_NO_EMAIL = "Authentication failed. Could not get email."

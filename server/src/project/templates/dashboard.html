@@ -1,85 +1,139 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="../static/css/main.css" />
-        <meta name="view-transition" content="same-origin" />
-        <script src="../static/scripts/dashboard.js" defer></script>
-
-        <title>Dashboard</title>
-    </head>
-    <body class="h-full">
-        <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-center bg-black text-white">
-            <div class="flex w-full max-w-7xl items-center gap-7 px-9">
-                <a href="/"><img class="h-[30px] w-[113px]" src="../static/elements/globalify.png" /></a>
-                <div class="hidden gap-7 sm:flex">
-                    <a href="">Search</a>
-                    <a href="">Blog</a>
-                    <a href="">Resources</a>
-                    <a href="">Help</a>
-                </div>
-            </div>
-            <div class="pr-9">
-                <!-- <a href="/logout">Logout</a> -->
-                <div class="relative ml-3">
-                    <button
-                        type="button"
-                        class="w-8 h-8 items-center text-sm bg-gray-800 rounded-full"
-                        id="user-menu-button"
-                        aria-expanded="false"
-                        aria-haspopup="true"
-                    >
-                        <span class="sr-only">Open user menu</span>
-                        <img
-                            class="w-8 h-8 rounded-full aspect-square"
-                            src="data:image/png;base64,{{ pfp_base64 }}"
-                            alt="Profile picture"
-                        />
-                    </button>
-                    <div
-                        class="absolute right-0 z-10 w-48 py-1 mt-2 transition duration-100 ease-in-out origin-top-right transform scale-95 bg-white rounded-md shadow-lg opacity-0 ring-1 ring-black ring-opacity-5 focus:outline-none"
-                        id="user-menu"
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="user-menu-button"
-                        tabindex="-1"
-                    >
-                        <!-- Active: "bg-gray-100", Not Active: "" -->
-                        <a
-                            href="/profile"
-                            class="block px-4 py-2 text-sm text-gray-700 transition-colors duration-100 ease-in hover:bg-gray-100"
-                            role="menuitem"
-                            tabindex="-1"
-                            id="user-menu-item-0"
-                            >Profile</a
+{% extends "layouts/layout_app.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }}
+<script src="../static/scripts/dashboard.js" defer></script>
+<script src="../static/scripts/search.js" defer></script>
+{% endblock %} {% block content %}
+<main class="mt-28 flex h-full w-full overflow-x-auto pb-16">
+    <div class="mx-auto flex w-full max-w-7xl flex-col px-4">
+        <div class="divide-y divide-gray-200 rounded-xl border">
+            <div class="px-4 py-3">
+                <div class="relative flex max-w-xs gap-2">
+                    <label for="search" class="sr-only">Search</label>
+                    <input
+                        type="text"
+                        name="search"
+                        id="search"
+                        class="block w-full rounded-md border-gray-200 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Search"
+                        value="{{ search_query }}"
+                    />
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                        <svg
+                            class="h-3.5 w-3.5 text-gray-400"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                            viewBox="0 0 16 16"
                         >
-
-                        <a
-                            href="/settings"
-                            class="block px-4 py-2 text-sm text-gray-700 transition-colors duration-100 ease-in hover:bg-gray-100"
-                            role="menuitem"
-                            tabindex="-1"
-                            id="user-menu-item-1"
-                            >Settings</a
-                        >
-
-                        <a
-                            href="/logout"
-                            class="block px-4 py-2 text-sm text-gray-700 transition-colors duration-100 ease-in hover:bg-gray-100"
-                            role="menuitem"
-                            tabindex="-1"
-                            id="user-menu-item-2"
-                            >Logout</a
-                        >
+                            <path
+                                d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"
+                            />
+                        </svg>
                     </div>
+                    <button class="rounded-xl bg-sky-500 px-2 text-sm text-white" onclick="search()">Search</button>
                 </div>
             </div>
-        </nav>
-        <main class="mt-28 flex h-full items-center justify-center">
-            <a href="/">Home</a>
-            <a href="/payment">Payment</a>
-            <a href="/search">Search</a>
-        </main>
-    </body>
-</html>
+            <div>
+                <table class="table-auto divide-y divide-gray-200">
+                    <thead class="bg-gray-50 px-3">
+                        <tr class="text-left text-xs font-medium uppercase text-gray-500">
+                            <th class="py-4 pl-4">
+                                <div class="flex h-5 items-center">
+                                    <input
+                                        id="checkbox-all"
+                                        type="checkbox"
+                                        class="rounded border-gray-200 text-sky-500 focus:ring-blue-500"
+                                    />
+                                    <label for="checkbox-all" class="sr-only">Checkbox</label>
+                                </div>
+                            </th>
+                            <th class="pl-4">Full name</th>
+                            <th class="pl-4">Firm namee</th>
+                            <th class="pl-4">Position</th>
+                            <th class="pl-4">Rounds</th>
+                            <th class="pl-4">Industries</th>
+                            <th class="px-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% if investors %} {% for investor in investors %}
+                        <tr class="whitespace-nowrap text-sm text-gray-800">
+                            <td class="pl-4">
+                                <div class="flex h-5 items-center">
+                                    <input
+                                        id="checkbox"
+                                        type="checkbox"
+                                        class="rounded border-gray-200 text-sky-500 focus:ring-blue-500"
+                                    />
+                                    <label for="checkbox" class="sr-only">Checkbox</label>
+                                </div>
+                            </td>
+                            <td class="py-6 pl-4 font-medium">{{ investor.full_name }}</td>
+                            <td class="py-6 pl-4">{{ investor.firm_name}}</td>
+                            <td class="py-6 pl-4">{{ investor.position }}</td>
+                            <td class="py-6 pl-4">
+                                <div class="flex flex-wrap gap-1">
+                                    {% for round in investor.rounds %}
+                                    <div class="min-w-max rounded-full bg-sky-500 px-3 py-1 text-center text-white">
+                                        {{ round.name }}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td class="py-6 pl-4">
+                                <div class="flex max-w-xs flex-wrap gap-1">
+                                    {% for industry in investor.industries %}
+                                    <div class="min-w-max rounded-full bg-sky-500 px-3 py-1 text-center text-white">
+                                        {{ industry.name}}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td class="py-6 pl-4 font-medium">
+                                <a class="text-blue-500 hover:text-blue-700" href="/investor/{{ investor.id }}">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %} {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-4 py-1">
+                <nav class="flex items-center">
+                    {% if investors.has_prev %}
+                    <a
+                        class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
+                        href="/dashboard?page={{ investors.prev_num }}{{ '&q=' + search_query if search_query else ''}}"
+                    >
+                        <span aria-hidden="true">«</span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    {% endif %} {% for page in investors.iter_pages() %} {% if page %} {% if investors.page == page %}
+                    <a
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500 text-sm font-medium text-white hover:bg-sky-400"
+                        href="/dashboard?page={{ page }}{{ '&q=' + search_query if search_query else ''}}"
+                        aria-current="page"
+                        >{{ page }}</a
+                    >
+                    {% else %}
+                    <a
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-medium text-gray-400 hover:text-sky-400"
+                        href="/dashboard?page={{ page }}{{ '&q=' + search_query if search_query else ''}}"
+                        >{{ page }}</a
+                    >
+                    {% endif %} {% else %}
+                    <div class="text-gray-400">...</div>
+                    {% endif %} {% endfor %} {% if investors.has_next %}
+                    <a
+                        class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
+                        href="/dashboard?page={{ investors.next_num }}{{ '&search=' + search_query if search_query else ''}}"
+                    >
+                        <span class="sr-only">Next</span>
+                        <span aria-hidden="true">»</span>
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

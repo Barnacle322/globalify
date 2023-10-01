@@ -1,7 +1,8 @@
 import os
-from datetime import timedelta
+import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta
 
-from flask import Flask
+from flask import Flask, make_response
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .extensions import csrf, db, login_manager, migrate, oauth
@@ -16,6 +17,46 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
     app.secret_key = os.getenv("SECRET_KEY", "18c2ff95-83a1-4998-8bee-0c6a2170497c")
+
+    @app.route("/sitemap.xml")
+    def sitemap():
+        pages = []
+        ten_days_ago = (datetime.now() - timedelta(days=10)).date().isoformat()
+
+        # Add static pages
+        for rule in app.url_map.iter_rules():
+            if "GET" in rule.methods and len(rule.arguments) == 0:  # type: ignore
+                pages.append([rule.rule, ten_days_ago])
+
+        # Add dynamic pages
+        # pages.append(["/dynamic-page", ten_days_ago])
+
+        # Create the XML sitemap
+        root = ET.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+        for page in pages:
+            url = ET.SubElement(root, "url")
+            loc = ET.SubElement(url, "loc")
+            loc.text = page[0]
+            lastmod = ET.SubElement(url, "lastmod")
+            lastmod.text = page[1]
+            changefreq = ET.SubElement(url, "changefreq")
+            changefreq.text = "weekly"
+            priority = ET.SubElement(url, "priority")
+            priority.text = "0.5"
+
+        # Return the XML sitemap as a response
+        sitemap_xml = ET.tostring(root, encoding="utf-8")
+        response = make_response(sitemap_xml)
+        response.headers["Content-Type"] = "application/xml"
+
+        return response
+
+    @app.route("/robots.txt")
+    def robots():
+        robots_txt = "User-agent: *\nDisallow: /admin\nDisallow: /logout\nDisallow: /onboarding\nDisallow: /company-form\nDisallow: /login-linkedin\nDisallow: /login-google\nDisallow: /google-oauth\nDisallow: /linkedin-oauth\n\nSitemap: https://globalify.xyz/sitemap.xml"
+        response = make_response(robots_txt)
+        response.headers["Content-Type"] = "text/plain"
+        return response
 
     app.register_blueprint(main)
     app.register_blueprint(payment, url_prefix="/payment")

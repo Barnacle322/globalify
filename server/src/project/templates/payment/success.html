@@ -1,7 +1,7 @@
-{% extends "layouts/layout_payment.html" %} {% block title %}Payment success{% endblock %} {% block head %} {{ super() }} {%
-endblock %} {% block content %}
+{% extends "layouts/layout_payment.html" %} {% block title %}Payment success{% endblock %} {% block head %} {{ super()
+}} {% endblock %} {% block content %}
 <main
-    class="relative mt-24 flex w-full flex-col items-center justify-center gap-10 overflow-x-hidden bg-slate-50 dark:bg-slate-900 dark:text-slate-50 pb-52"
+    class="relative mt-24 flex w-full flex-col items-center justify-center gap-10 overflow-x-hidden bg-slate-50 pb-52 dark:bg-slate-900 dark:text-slate-50"
 >
     <h1 class="mt-48 text-8xl font-bold">Thank you!</h1>
     <p class="text-xl">You have successfully subscribed to Globalify</p>
@@ -25,7 +25,7 @@ endblock %} {% block content %}
                     ></path>
                 </svg>
                 <span class="ml-3">Manage your billing information</span>
-            </a>
+            </button>
         </form>
     </div>
 </main>

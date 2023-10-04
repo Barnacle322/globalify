@@ -4,8 +4,6 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from ..models import InvestmentFirm, Investor, UserInfo
-
-# from ..extensions import db
 from ..utils.google_storage import download_blob_into_memory
 from ..utils.status_enum import Status, StatusType
 

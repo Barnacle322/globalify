@@ -1300,10 +1300,6 @@ html {
   margin-bottom: 1rem;
 }
 
-.mb-52 {
-  margin-bottom: 13rem;
-}
-
 .ml-3 {
   margin-left: 0.75rem;
 }
@@ -1358,10 +1354,6 @@ html {
 
 .mt-6 {
   margin-top: 1.5rem;
-}
-
-.mt-32 {
-  margin-top: 8rem;
 }
 
 .block {
@@ -1462,6 +1454,10 @@ html {
 
 .h-full {
   height: 100%;
+}
+
+.h-16 {
+  height: 4rem;
 }
 
 .w-1\/2 {
@@ -1799,6 +1795,10 @@ html {
   border-radius: 0.75rem;
 }
 
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
 .rounded-tl-3xl {
   border-top-left-radius: 1.5rem;
 }
@@ -2006,6 +2006,10 @@ html {
   padding-bottom: 4rem;
 }
 
+.pb-52 {
+  padding-bottom: 13rem;
+}
+
 .pb-8 {
   padding-bottom: 2rem;
 }
@@ -2040,10 +2044,6 @@ html {
 
 .pt-8 {
   padding-top: 2rem;
-}
-
-.pb-52 {
-  padding-bottom: 13rem;
 }
 
 .text-left {

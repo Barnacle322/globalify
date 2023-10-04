@@ -26,8 +26,8 @@ def create_customer(authenticated_user: User) -> UserPayment:
             customer = stripe.Customer.create(
                 email=authenticated_user.email,
             )
-        elif len(customer_list := customer_data.get("data")) == 1:  # type: ignore
-            customer = customer_list[0]  # type: ignore
+        elif len(customer_list := customer_data.get("data", [])) == 1:
+            customer = customer_list[0]
         else:
             raise Exception(
                 "Multiple customers with same email found. Please contact support."
@@ -70,7 +70,7 @@ def create_checkout(
         )
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
-        return redirect(url_for("payment.index", **status))  # type: ignore
+        return redirect(url_for("payment.index", _external=False, **status))  # type: ignore
 
     return checkout_session
 
@@ -101,21 +101,21 @@ def create_checkout_session():
     authenticated_user: User = current_user  # type: ignore
     if not authenticated_user:
         status = Status(StatusType.ERROR, "You are not logged in").get_status()
-        return redirect(url_for("payment.index", **status))  # type: ignore
+        return redirect(url_for("payment.index", _external=False, **status))
 
     try:
         user_payment = create_customer(authenticated_user)
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
-        return redirect(url_for("payment.index", **status))  # type: ignore
+        return redirect(url_for("payment.index", _external=False, **status))
 
     if not user_payment:
         status = Status(StatusType.ERROR, "User payment not found").get_status()
-        return redirect(url_for("payment.index", **status))  # type: ignore
+        return redirect(url_for("payment.index", _external=False, **status))
 
     if has_subscriptions(user_payment.customer_id):
         status = Status(StatusType.ERROR, "A subscription already exists").get_status()
-        return redirect(url_for("payment.index", **status))  # type: ignore
+        return redirect(url_for("payment.index", _external=False, **status))
 
     checkout_session = create_checkout(customer_id=user_payment.customer_id)
 
@@ -147,7 +147,7 @@ def customer_portal():
 
     if not user_payment:
         status = Status(StatusType.ERROR, "User payment not found").get_status()
-        return redirect(url_for("payment.index", **status))  # type: ignore
+        return redirect(url_for("payment.index", _external=False, **status))
 
     portal_session = stripe.billing_portal.Session.create(
         customer=user_payment.customer_id,
@@ -159,12 +159,13 @@ def customer_portal():
 
 # TODO
 @payment.route("/webhook", methods=["POST"])
-def webhook_received():
+def webhook_received():  # noqa
     """
     DOCS: https://stripe.com/docs/webhooks
     """
     webhook_secret = os.getenv("_STRIPE_WEBHOOK_SECRET")
     request_data = json.loads(request.data)
+    event = None
 
     if webhook_secret:
         # Retrieve the event by verifying the signature using the raw body and secret if webhook signing is configured.
@@ -183,19 +184,23 @@ def webhook_received():
         event_type = request_data["type"]
     data_object = data["object"]  # noqa
 
+    if not event:
+        return jsonify(success=False)
+
     if event_type == "checkout.session.completed":
         print("🔔 Payment succeeded!")
     elif event_type == "customer.subscription.trial_will_end":
         print("Subscription trial will end")
     elif event_type == "customer.subscription.created":
-        print("Subscription created %s", event.id)  # type: ignore
+        print("Subscription created %s", event.id)
     elif event_type == "customer.subscription.updated":
         is_canceled = data_object.get("canceled_at")
         if is_canceled:
-            print("Subscription canceled %s", event.id)  # type: ignore
+            print("Subscription canceled %s", event.id)
     elif event_type == "customer.subscription.deleted":
-        print("Subscription canceled: %s", event.id)  # type: ignore
+        print("Subscription canceled: %s", event.id)
 
+    # NOTE: This endpoint should return 200 - 299 to acknowledge receipt of the event.
     return {"status": "success"}, 200
 
 

@@ -27,3 +27,5 @@ class Status:
 class OauthProvider(Enum):
     GOOGLE = "google"
     LINKEDIN = "linkedin"
+    APPLE = "apple"
+    REGULAR = "regular"

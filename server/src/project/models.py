@@ -6,8 +6,8 @@ from typing import List, Union
 import pycountry
 from flask_login import UserMixin
 from sqlalchemy import Boolean, Column, DateTime
-from sqlalchemy import Enum as dbEnum
-from sqlalchemy import ForeignKey, Integer, String, Text, event
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import ForeignKey, Integer, String, event
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -27,11 +27,14 @@ from .utils.status_enum import OauthProvider
 class User(UserMixin, db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    password_hash: Mapped[str] = mapped_column(String, nullable=True)
+    password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
     oauth_provider: Mapped[OauthProvider] = mapped_column(
-        dbEnum(OauthProvider), nullable=True
+        SQLEnum(OauthProvider), nullable=True
     )
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
 
     def __repr__(self):
         return f"<User {self.email}>"
@@ -45,12 +48,14 @@ class User(UserMixin, db.Model):
         self.password_hash = generate_password_hash(password)
 
     def verify_password(self, password) -> bool:
+        if not self.password_hash:
+            return False
         return check_password_hash(self.password_hash, password)
 
     @staticmethod
     def get_by_id(id: int) -> Union[User, None]:
         try:
-            user: User = User.query.filter(User.id == id).first()
+            user = User.query.filter(User.id == id).first()
             return user
         except NoResultFound:
             return None
@@ -58,21 +63,23 @@ class User(UserMixin, db.Model):
     @staticmethod
     def get_by_email(email: str) -> Union[User, None]:
         try:
-            user: User = User.query.filter(User.email == email).first()
+            user = User.query.filter(User.email == email).first()
             return user
         except NoResultFound:
             return None
 
     @staticmethod
-    def signed_with_oauth(email: str) -> Union[bool, OauthProvider]:
+    def signed_with_oauth(email: str) -> OauthProvider:
         """
         Returns OauthProvider if signed with oauth, False otherwise or if user does not exist.
         """
         try:
-            user: User = User.query.filter(User.email == email).first()
-            return False if user.oauth_provider is None else user.oauth_provider
-        except Exception:
-            return False
+            user = User.query.filter(User.email == email).first()
+            if not user:
+                return OauthProvider.REGULAR
+            return user.oauth_provider
+        except NoResultFound:
+            return OauthProvider.REGULAR
 
 
 class UserInfo(db.Model):
@@ -81,22 +88,25 @@ class UserInfo(db.Model):
         Integer, ForeignKey("user.id"), nullable=False, unique=True
     )
     user: Mapped[User] = relationship("User", backref="user_info", lazy=True)
-    first_name: Mapped[str] = mapped_column(String, nullable=True)
-    last_name: Mapped[str] = mapped_column(String, nullable=True)
-    username: Mapped[str] = mapped_column(String, nullable=True)
-    bio: Mapped[Text] = mapped_column(Text, nullable=True)
-    linkedin: Mapped[str] = mapped_column(String, nullable=True)
-    instagram: Mapped[str] = mapped_column(String, nullable=True)
-    twitter: Mapped[str] = mapped_column(String, nullable=True)
+    first_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    username: Mapped[str | None] = mapped_column(String, nullable=True)
+    bio: Mapped[str | None] = mapped_column(String(), nullable=True)
+    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
+    instagram: Mapped[str | None] = mapped_column(String, nullable=True)
+    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
     # Google storage blob id
-    pfp_uuid: Mapped[String] = mapped_column(String, nullable=True)
+    pfp_uuid: Mapped[str | None] = mapped_column(String, nullable=True)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    def __init__(self, **kwargs):
+        super(UserInfo, self).__init__(**kwargs)
 
     def __repr__(self):
         return f"<UserInfo {self.username}>"
 
     @staticmethod
-    def is_taken(username: str) -> bool:
+    def is_taken(username: str | None) -> bool:
         try:
             user_info = UserInfo.query.filter(UserInfo.username == username).first()
             return True if user_info else False
@@ -106,9 +116,7 @@ class UserInfo(db.Model):
     @staticmethod
     def get_by_user_id(id: int) -> Union[UserInfo, None]:
         try:
-            user_info = (
-                db.session.query(UserInfo).filter(UserInfo.user_id == id).first()
-            )
+            user_info = UserInfo.query.filter(UserInfo.user_id == id).first()
             return user_info
         except NoResultFound:
             return None
@@ -139,6 +147,9 @@ class UserPayment(db.Model):
     expires_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
+    def __init__(self, **kwargs):
+        super(UserPayment, self).__init__(**kwargs)
+
     @property
     def created_epoch(self) -> DateTime:
         return self.created
@@ -158,7 +169,7 @@ class UserPayment(db.Model):
     @staticmethod
     def get_by_customer_id(customer_id: str) -> Union[UserPayment, None]:
         try:
-            user_payment: UserPayment = UserPayment.query.filter(
+            user_payment = UserPayment.query.filter(
                 UserPayment.customer_id == customer_id
             ).first()
             return user_payment
@@ -168,7 +179,7 @@ class UserPayment(db.Model):
     @staticmethod
     def get_by_user_id(user_id: int) -> Union[UserPayment, None]:
         try:
-            user_payment: UserPayment = UserPayment.query.filter(
+            user_payment = UserPayment.query.filter(
                 UserPayment.user_id == user_id
             ).first()
             return user_payment
@@ -207,13 +218,16 @@ class Company(db.Model):
     preferred_round: Mapped[Round] = relationship()
     industry: Mapped[Industry] = relationship()
 
+    def __init__(self, **kwargs):
+        super(Company, self).__init__(**kwargs)
+
     def __repr__(self):
         return f"<Company {self.name}>"
 
     @staticmethod
     def get_by_user_id(user_id: int) -> Union[Company, None]:
         try:
-            company: Company = Company.query.filter(Company.user_id == user_id).first()
+            company = Company.query.filter(Company.user_id == user_id).first()
             return company
         except NoResultFound:
             return None
@@ -221,7 +235,7 @@ class Company(db.Model):
     @staticmethod
     def get_by_id(id: int) -> Union[Company, None]:
         try:
-            company: Company = Company.query.filter(Company.id == id).first()
+            company = Company.query.filter(Company.id == id).first()
             return company
         except NoResultFound:
             return None
@@ -231,6 +245,9 @@ class Industry(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     category: Mapped[str] = mapped_column(String, nullable=False)
+
+    def __init__(self, **kwargs):
+        super(Industry, self).__init__(**kwargs)
 
     def __repr__(self):
         return f"<Industry {self.name}>"
@@ -252,7 +269,7 @@ class Industry(db.Model):
     @staticmethod
     def get_by_id(id: int) -> Union[Industry, None]:
         try:
-            industry: Industry = Industry.query.filter(Industry.id == id).first()
+            industry = Industry.query.filter(Industry.id == id).first()
             return industry
         except NoResultFound:
             return None
@@ -260,7 +277,7 @@ class Industry(db.Model):
     @staticmethod
     def get_by_name(name: str) -> Union[Industry, None]:
         try:
-            industry: Industry = Industry.query.filter(Industry.name == name).first()
+            industry = Industry.query.filter(Industry.name == name).first()
             return industry
         except NoResultFound:
             return None
@@ -478,6 +495,9 @@ class Round(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
 
+    def __init__(self, **kwargs):
+        super(Round, self).__init__(**kwargs)
+
     def __repr__(self):
         return f"<Round {self.name}>"
 
@@ -492,16 +512,16 @@ class Round(db.Model):
     @staticmethod
     def get_by_id(id: int) -> Union[Round, None]:
         try:
-            round: Round = Round.query.filter(Round.id == id).first()
-            return round
+            investment_round = Round.query.filter(Round.id == id).first()
+            return investment_round
         except NoResultFound:
             return None
 
     @staticmethod
     def get_by_name(name: str) -> Union[Round, None]:
         try:
-            round: Round = Round.query.filter(Round.name == name).first()
-            return round
+            investment_round = Round.query.filter(Round.name == name).first()
+            return investment_round
         except NoResultFound:
             return None
 
@@ -520,6 +540,9 @@ class Country(db.Model):
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     code: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
+    def __init__(self, **kwargs):
+        super(Country, self).__init__(**kwargs)
+
     def __repr__(self):
         return f"<Country {self.name}>"
 
@@ -534,7 +557,7 @@ class Country(db.Model):
     @staticmethod
     def get_by_code(code: str) -> Union[Country, None]:
         try:
-            country: Country = Country.query.filter(Country.code == code).first()
+            country = Country.query.filter(Country.code == code).first()
             return country
         except NoResultFound:
             return None
@@ -542,7 +565,7 @@ class Country(db.Model):
     @staticmethod
     def get_by_id(id: int) -> Union[Country, None]:
         try:
-            country: Country = Country.query.filter(Country.id == id).first()
+            country = Country.query.filter(Country.id == id).first()
             return country
         except NoResultFound:
             return None
@@ -571,18 +594,49 @@ investor_industry = db.Table(
     Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
 )
 
+investment_firm_round = db.Table(
+    "investment_firm_round",
+    Column(
+        "investment_firm_id",
+        Integer,
+        ForeignKey("investment_firm.id"),
+        primary_key=True,
+    ),
+    Column("round_id", Integer, ForeignKey("round.id"), primary_key=True),
+)
+
+investment_firm_industry = db.Table(
+    "investment_firm_industry",
+    Column(
+        "investment_firm_id",
+        Integer,
+        ForeignKey("investment_firm.id"),
+        primary_key=True,
+    ),
+    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+)
+
 
 class Investor(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
     last_name: Mapped[str] = mapped_column(String, nullable=True)
     firm_name: Mapped[str] = mapped_column(String, nullable=True)
+    about: Mapped[str] = mapped_column(String, nullable=True)
     position: Mapped[str] = mapped_column(String, nullable=True)
     website: Mapped[str] = mapped_column(String, nullable=True)
     email: Mapped[str] = mapped_column(String, nullable=True, unique=True)
+    phone_number: Mapped[str] = mapped_column(String, nullable=True)
+    n_investments: Mapped[int] = mapped_column(Integer, nullable=True)
+    n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
+    min_investment: Mapped[str] = mapped_column(String, nullable=True)
+    max_investment: Mapped[str] = mapped_column(String, nullable=True)
 
     rounds: Mapped[List[Round]] = relationship(secondary=investor_round)
     industries: Mapped[List[Industry]] = relationship(secondary=investor_industry)
+
+    def __init__(self, **kwargs):
+        super(Investor, self).__init__(**kwargs)
 
     @property
     def full_name(self):
@@ -617,7 +671,7 @@ class Investor(db.Model):
                     | Investor.last_name.icontains(query)
                     | Investor.firm_name.icontains(query)
                     | Investor.position.icontains(query)
-                    | Investor.website.icontains(query)
+                    | Investor.about.icontains(query)
                 ).paginate(page=page, per_page=per_page, error_out=error_out)
 
             return investors
@@ -635,7 +689,7 @@ class Investor(db.Model):
     @staticmethod
     def get_by_email(email: str) -> Union[Investor, None]:
         try:
-            investor: Investor = Investor.query.filter(Investor.email == email).first()
+            investor = Investor.query.filter(Investor.email == email).first()
             return investor
         except NoResultFound:
             return None
@@ -674,21 +728,93 @@ class Investor(db.Model):
             db.session.rollback()
 
 
-@event.listens_for(Country.__table__, "after_create")
+class InvestmentFirm(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, nullable=True)
+    about: Mapped[str] = mapped_column(String, nullable=True)
+    position: Mapped[str] = mapped_column(String, nullable=True)
+    website: Mapped[str] = mapped_column(String, nullable=True)
+    email: Mapped[str] = mapped_column(String, nullable=True, unique=True)
+    phone_number: Mapped[str] = mapped_column(String, nullable=True)
+    n_investments: Mapped[int] = mapped_column(Integer, nullable=True)
+    n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
+    n_employees: Mapped[int] = mapped_column(Integer, nullable=True)
+    min_investment: Mapped[str] = mapped_column(String, nullable=True)
+    max_investment: Mapped[str] = mapped_column(String, nullable=True)
+
+    rounds: Mapped[List[Round]] = relationship(secondary=investment_firm_round)
+    industries: Mapped[List[Industry]] = relationship(
+        secondary=investment_firm_industry
+    )
+
+    def __init__(self, **kwargs):
+        super(InvestmentFirm, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<InvestmentFirm {self.name}>"
+
+    @staticmethod
+    def get_all() -> List[InvestmentFirm]:
+        try:
+            firms: List[InvestmentFirm] = InvestmentFirm.query.all()
+            return firms
+        except NoResultFound:
+            return []
+
+    @staticmethod
+    def get_pagination(
+        page: int = 1,
+        per_page: int = 10,
+        error_out: bool = False,
+        query: str = "",
+    ):
+        try:
+            if query == "":
+                firms = InvestmentFirm.query.paginate(
+                    page=page, per_page=per_page, error_out=error_out
+                )
+            else:
+                firms = InvestmentFirm.query.filter(
+                    InvestmentFirm.name.icontains(query)
+                    | InvestmentFirm.about.icontains(query)
+                ).paginate(page=page, per_page=per_page, error_out=error_out)
+
+            return firms
+        except NoResultFound:
+            return []
+
+    @staticmethod
+    def get_by_id(id: int) -> Union[InvestmentFirm, None]:
+        try:
+            firm = InvestmentFirm.query.filter(InvestmentFirm.id == id).one()
+            return firm
+        except NoResultFound:
+            return None
+
+    @staticmethod
+    def get_by_email(email: str) -> Union[InvestmentFirm, None]:
+        try:
+            firm = InvestmentFirm.query.filter(InvestmentFirm.email == email).first()
+            return firm
+        except NoResultFound:
+            return None
+
+
+@event.listens_for(Country.__table__, "after_create")  # type: ignore
 def populate_country(*args, **kwargs):
     Country.populate()
 
 
-@event.listens_for(Round.__table__, "after_create")
+@event.listens_for(Round.__table__, "after_create")  # type: ignore
 def populate_round(*args, **kwargs):
     Round.populate()
 
 
-@event.listens_for(Industry.__table__, "after_create")
+@event.listens_for(Industry.__table__, "after_create")  # type: ignore
 def populate_industry(*args, **kwargs):
     Industry.populate()
 
 
-@event.listens_for(Investor.__table__, "after_create")
+@event.listens_for(Investor.__table__, "after_create")  # type: ignore
 def populate_investor(*args, **kwargs):
     Investor.populate()

@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Any
+from typing import Any, Union
 
 import requests
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
@@ -36,8 +36,11 @@ LINKEDIN_PERSONAL_INFO_URL = "https://api.linkedin.com/v2/me"
 
 
 @login_manager.user_loader
-def load_user(user_id: int) -> User:
-    return User.get_by_id(user_id)
+def load_user(user_id: int) -> Union[User, None]:
+    user = User.get_by_id(user_id)
+    if user:
+        return user
+    return None
 
 
 def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
@@ -48,7 +51,7 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
     """
     user = User.get_by_email(email)
     if not user:
-        user = User(email=email)  # type: ignore
+        user = User(email=email)
         db.session.add(user)
         db.session.commit()
         return user
@@ -82,28 +85,28 @@ def register():
 
         if not email or not password or not confirm_password:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
-            return redirect(url_for("auth.register", **status))  # type: ignore
+            return redirect(url_for("auth.register", _external=False, **status))
 
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
-            return redirect(url_for("auth.register", **status))  # type: ignore
+            return redirect(url_for("auth.register", _external=False, **status))
 
         if password != confirm_password:
             status = Status(StatusType.ERROR, AUTH_MISMATCHED_PASSWORDS).get_status()
-            return redirect(url_for("auth.register", **status))  # type: ignore
+            return redirect(url_for("auth.register", _external=False, **status))
 
         if oauth := User.signed_with_oauth(email):
             status = Status(
-                StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())  # type: ignore
+                StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())
             ).get_status()
-            return redirect(url_for("auth.register", **status))  # type: ignore
+            return redirect(url_for("auth.register", _external=False, **status))
 
         user = User.get_by_email(email)
         if user:
             status = Status(StatusType.ERROR, AUTH_EMAIL_USED).get_status()
-            return redirect(url_for("auth.register", **status))  # type: ignore
+            return redirect(url_for("auth.register", _external=False, **status))
 
-        new_user = User(email=email)  # type: ignore
+        new_user = User(email=email, oauth_provider=OauthProvider.REGULAR)
         new_user.password = password
         db.session.add(new_user)
         db.session.commit()
@@ -130,22 +133,22 @@ def login():
 
         if not email or not password:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
-            return redirect(url_for("auth.login", **status))  # type: ignore
+            return redirect(url_for("auth.login", _external=False, **status))
 
         user = User.get_by_email(email)
         if not user:
             status = Status(StatusType.ERROR, AUTH_EMAIL_NOT_FOUNDS).get_status()
-            return redirect(url_for("auth.login", **status))  # type: ignore
+            return redirect(url_for("auth.login", _external=False, **status))
 
         if oauth := User.signed_with_oauth(email):
             status = Status(
-                StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())  # type: ignore
+                StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())
             ).get_status()
-            return redirect(url_for("auth.login", **status))  # type: ignore
+            return redirect(url_for("auth.login", _external=False, **status))
 
         if not user.verify_password(password):
             status = Status(StatusType.ERROR, AUTH_INCORRECT_PASSWORD).get_status()
-            return redirect(url_for("auth.login", **status))  # type: ignore
+            return redirect(url_for("auth.login", _external=False, **status))
 
         login_user(user, remember=True)
 
@@ -169,20 +172,32 @@ def onboarding():
     if not user_info:
         return redirect(url_for("auth.login"))
 
-    if request.method == "POST":
-        user_info.first_name = request.form.get("first-name")  # type: ignore
-        user_info.last_name = request.form.get("last-name")  # type: ignore
-        user_info.username = request.form.get("username")  # type: ignore
-        user_info.bio = request.form.get("about")  # type: ignore
-        user_info.linkedin = request.form.get("linkedin")  # type: ignore
-        user_info.instagram = request.form.get("instagram")  # type: ignore
-        user_info.twitter = request.form.get("twitter")  # type: ignore
-        user_info.is_complete = True
+    # TODO: Add languages to database
+    languages = ["English", "Spanish", "French", "German", "Italian", "Portuguese"]
 
-        is_taken = UserInfo.is_taken(request.form.get("username"))  # type: ignore
+    if request.method == "POST":
+        first_name, last_name, username = (
+            request.form.get("first-name"),
+            request.form.get("last-name"),
+            request.form.get("username"),
+        )
+        if not first_name or not last_name or not username:
+            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
+            return redirect(url_for("auth.onboarding", _external=False, **status))
+
+        is_taken = UserInfo.is_taken(username)
         if is_taken:
             status = Status(StatusType.ERROR, AUTH_USERNAME_USED).get_status()
-            return redirect(url_for("auth.onboarding", **status))  # type: ignore
+            return redirect(url_for("auth.onboarding", _external=False, **status))
+
+        user_info.first_name = first_name
+        user_info.last_name = last_name
+        user_info.username = username
+        user_info.bio = request.form.get("about")
+        user_info.linkedin = request.form.get("linkedin")
+        user_info.instagram = request.form.get("instagram")
+        user_info.twitter = request.form.get("twitter")
+        user_info.is_complete = True
 
         # TODO: Add a UI warning for this
         if pfp := request.files["pfp"]:
@@ -190,15 +205,13 @@ def onboarding():
                 resized_pfp = prepare_picture(pfp)
 
                 pfp_uuid = upload_blob(resized_pfp.read())
-                user_info.pfp_uuid = str(pfp_uuid)  # type: ignore
+                user_info.pfp_uuid = str(pfp_uuid)
             except Exception as e:
                 print(f"An error occurred: {e}")
 
         db.session.commit()
         return redirect(url_for("auth.company_form"))
 
-    # TODO: Add languages to database
-    languages = ["English", "Spanish", "French", "German", "Italian", "Portuguese"]
     return render_template(
         "auth/onboarding.html", languages=languages, user_info=user_info.sanitize()
     )
@@ -227,7 +240,7 @@ def company_form():
     if not user_info:
         return redirect(url_for("auth.login"))
 
-    company: Company = Company.get_by_user_id(authenticated_user.id)
+    company = Company.get_by_user_id(authenticated_user.id)
     if company:
         return redirect(url_for("main.dashboard"))
 
@@ -250,7 +263,7 @@ def company_form():
             try:
                 resized_pfp = prepare_picture(pfp)
                 pfp_uuid = upload_blob(resized_pfp.read())
-                company.pfp_uuid = str(pfp_uuid)  # type: ignore
+                company.pfp_uuid = str(pfp_uuid)
             except Exception as e:
                 print(f"An error occurred: {e}")
 
@@ -277,13 +290,13 @@ def linkedin_login():
 def linkedin_callback():
     # BUG: For some reason client_secret is not being passed during
     # app initialization. Hardcoding it for now.
-    # Making this the only OAuth provider doesn't fix the issue.
+    # NOTE: Making this the only OAuth provider doesn't fix the issue.
     authorization = oauth.linkedin.authorize_access_token(client_secret=LINKEDIN_SECRET)  # type: ignore
     access_token = authorization.get("access_token")
 
     if not authorization:
         status = Status(StatusType.ERROR, OAUTH_ACCESS_TOKEN).get_status()
-        return redirect(url_for("auth.login", **status))  # type: ignore
+        return redirect(url_for("auth.login", _external=False, **status))
 
     email_response = api_call(
         url=LINKEDIN_EMAIL_URL,
@@ -291,12 +304,12 @@ def linkedin_callback():
     )
     if not email_response:
         status = Status(StatusType.ERROR, OAUTH_COULD_NOT_RETRIEVE_DATA).get_status()
-        return redirect(url_for("auth_login"), **status)  # type: ignore
+        return redirect(url_for("auth_login", _external=False, **status))
 
     email = email_response.get("elements")[0].get("handle~").get("emailAddress")
     if not email:
         status = Status(StatusType.ERROR, OAUTH_NO_EMAIL).get_status()
-        return redirect(url_for("auth.login", **status))  # type: ignore
+        return redirect(url_for("auth.login", _external=False, **status))
 
     user_info_response = api_call(
         url=LINKEDIN_PERSONAL_INFO_URL,
@@ -304,7 +317,7 @@ def linkedin_callback():
     )
     if not user_info_response:
         status = Status(StatusType.ERROR, OAUTH_COULD_NOT_RETRIEVE_DATA).get_status()
-        return redirect(url_for("auth_login"), **status)  # type: ignore
+        return redirect(url_for("auth_login", _external=False, **status))
 
     first_name = user_info_response.get("localizedFirstName")
     last_name = user_info_response.get("localizedLastName")
@@ -313,7 +326,7 @@ def linkedin_callback():
         user = oauth_user(email, OauthProvider.LINKEDIN)
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
-        return redirect(url_for("auth.login"), **status)  # type: ignore
+        return redirect(url_for("auth.login", _external=False, **status))
 
     user.oauth_provider = OauthProvider.LINKEDIN
     db.session.commit()
@@ -349,23 +362,23 @@ def google_callback():
     authorization = oauth.google.authorize_access_token()  # type: ignore
     if not authorization:
         status = Status(StatusType.ERROR, OAUTH_ACCESS_TOKEN).get_status()
-        return redirect(url_for("auth.login", **status))  # type: ignore
+        return redirect(url_for("auth.login", _external=False, **status))
 
     google_user_info = authorization.get("userinfo")
     if not google_user_info:
         status = Status(StatusType.ERROR, OAUTH_NO_USER_INFO).get_status()
-        return redirect(url_for("auth.login", **status))  # type: ignore
+        return redirect(url_for("auth.login", _external=False, **status))
 
     email = google_user_info.get("email")
     if not email:
         status = Status(StatusType.ERROR, OAUTH_NO_EMAIL).get_status()
-        return redirect(url_for("auth.login", **status))  # type: ignore
+        return redirect(url_for("auth.login", _external=False, **status))
 
     try:
         user = oauth_user(email, OauthProvider.GOOGLE)
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
-        return redirect(url_for("auth.login"), **status)  # type: ignore
+        return redirect(url_for("auth.login", _external=False, **status))
 
     user.oauth_provider = OauthProvider.GOOGLE
     db.session.commit()

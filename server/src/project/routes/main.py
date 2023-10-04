@@ -98,6 +98,19 @@ def investment_firm(firm_id):
     return render_template("investment_firm.html", investment_firm=investment_firm)
 
 
+@main.route("/pricing")
+@main.route("/docs")
+@main.route("/about")
+@main.route("/jobs")
+@main.route("/partners")
+@main.route("/claim")
+@main.route("/investor-database")
+@main.route("/startup-database")
+@main.route("/digest")
+def construction():
+    return render_template("construction.html")
+
+
 @main.route("/settings")
 def settings():
     return render_template("settings.html")

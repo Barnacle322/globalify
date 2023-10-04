@@ -1,38 +1,19 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  mode: 'jit',
-  content: ["./server/src/project/templates/**/*.{html,htm}"],
-  theme: {
-    extend: {
-      gridTemplateColumns: {
-        'auto-repeat': 'repeat(auto-fit, 12rem)',
-        'auto-repeat-mobile': 'repeat(auto-fit, 9rem)',
-      },
-      keyframes: {
-        wiggle: {
-          '0%, 100%': { transform: 'rotate(-1deg)' },
-          '50%': { transform: 'rotate(1deg)' },
+    mode: "jit",
+    content: ["./server/src/project/templates/**/*.{html,htm}"],
+    theme: {
+        extend: {
+            gridTemplateColumns: {
+                "auto-repeat": "repeat(auto-fit, 12rem)",
+                "auto-repeat-mobile": "repeat(auto-fit, 9rem)",
+            },
         },
-        flyoff: {
-          '0%': {transform: 'translateX(0) translateY(0)'},
-          '50%': {transform: 'translateX(0) translateY(0)'},
-          '100%': {transform: 'translateX(2000px) translateY(-2000px)'}
-        },
-        fadeoff: {
-          '0%, 75%': {opacity: '0'},
-          '100%': {opacity: '1'},
-        }
-      }, 
-      animation: {
-        wiggle: 'wiggle 0.2s ease-in-out infinite',
-        flyoff: 'flyoff 3s ease-in forwards',
-        fadeoff: 'fadeoff 2s ease-in-out forwards'
-      }
     },
-  },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-    require('@tailwindcss/line-clamp'),
-  ],
-}
+    darkMode: "class",
+    plugins: [
+      require("@tailwindcss/forms"), 
+      require("@tailwindcss/typography"), 
+      require("@tailwindcss/line-clamp")
+    ],
+};

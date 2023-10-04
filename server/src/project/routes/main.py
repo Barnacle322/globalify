@@ -3,10 +3,9 @@ import base64
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-# from ..extensions import db
-from ..google_storage import download_blob_into_memory
-from ..models import Investor, UserInfo
-from ..utils import Status, StatusType
+from ..models import InvestmentFirm, Investor, UserInfo
+from ..utils.google_storage import download_blob_into_memory
+from ..utils.status_enum import Status, StatusType
 
 main = Blueprint("main", __name__)
 
@@ -17,12 +16,13 @@ def index():
 
 
 @main.route("/dashboard")
+@main.route("/dashboard/investors")
 @login_required
 def dashboard():
     authenticated_user = UserInfo.get_by_user_id(current_user.id)  # type: ignore
     if not authenticated_user:
         status = Status(StatusType.ERROR, "You are not logged in").get_status()
-        return redirect(url_for("payment.index", **status))  # type: ignore
+        return redirect(url_for("payment.index", _external=False, **status))
 
     pfp_base64 = False
     try:
@@ -32,11 +32,6 @@ def dashboard():
     except Exception as e:
         print(e)
 
-    return render_template("dashboard.html", pfp_base64=pfp_base64)
-
-
-@main.route("/search")
-def search():
     search_query = request.args.get("q", "")
     page_num = request.args.get("page", 1, type=int)
     investors = Investor.get_pagination(page=page_num, query=search_query)
@@ -45,8 +40,78 @@ def search():
         return redirect(url_for("main.search", search=search_query, pagenum=1))
 
     return render_template(
-        "search.html", investors=investors, search_query=search_query
+        "dashboard_investor.html",
+        pfp_base64=pfp_base64,
+        search_query=search_query,
+        investors=investors,
     )
+
+
+@main.route("/dashboard/investment-firms")
+@login_required
+def investment_firms():
+    authenticated_user = UserInfo.get_by_user_id(current_user.id)  # type: ignore
+    if not authenticated_user:
+        status = Status(StatusType.ERROR, "You are not logged in").get_status()
+        return redirect(url_for("payment.index", _external=False, **status))
+
+    pfp_base64 = False
+    try:
+        if pfp_uuid := authenticated_user.pfp_uuid:
+            pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
+            pfp_base64 = base64.b64encode(pfp).decode("utf-8")
+    except Exception as e:
+        print(e)
+
+    search_query = request.args.get("q", "")
+    page_num = request.args.get("page", 1, type=int)
+    investment_firms = InvestmentFirm.get_pagination(page=page_num, query=search_query)
+
+    if page_num > investment_firms.pages and investment_firms.pages > 0:  # type: ignore
+        return redirect(url_for("main.search", search=search_query, pagenum=1))
+
+    return render_template(
+        "dashboard_firm.html",
+        pfp_base64=pfp_base64,
+        search_query=search_query,
+        investment_firms=investment_firms,
+    )
+
+
+@main.route("/investor/<int:investor_id>")
+def investor(investor_id):
+    investor = Investor.get_by_id(investor_id)
+    if not investor:
+        return redirect(url_for("main.dashboard"))
+
+    return render_template("investor.html", investor=investor)
+
+
+@main.route("/investment-firm/<int:firm_id>")
+def investment_firm(firm_id):
+    investment_firm = InvestmentFirm.get_by_id(firm_id)
+    if not investment_firm:
+        return redirect(url_for("main.dashboard"))
+
+    return render_template("investment_firm.html", investment_firm=investment_firm)
+
+
+@main.route("/pricing")
+@main.route("/docs")
+@main.route("/about")
+@main.route("/jobs")
+@main.route("/partners")
+@main.route("/claim")
+@main.route("/investor-database")
+@main.route("/startup-database")
+@main.route("/digest")
+def construction():
+    return render_template("construction.html")
+
+
+@main.route("/settings")
+def settings():
+    return render_template("settings.html")
 
 
 @main.route("/terms-of-service")
@@ -66,7 +131,8 @@ def bad_request(e):
 
 @main.errorhandler(401)
 def unauthorized(e):
-    return render_template("errors/401.html"), 401
+    status = Status(StatusType.ERROR, "You are not logged in").get_status()
+    return redirect(url_for("auth.login", _external=False, **status))
 
 
 @main.errorhandler(403)

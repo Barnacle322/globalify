@@ -1,394 +1,226 @@
-<!DOCTYPE html>
-<html lang="en" class="scroll-pt-12 scroll-smooth">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-        <!-- Primary Meta Tags -->
-        <meta name="title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            name="description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://globalify.xyz/" />
-        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="og:description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
-
-        <!-- Twitter -->
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://globalify.xyz/" />
-        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="twitter:description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
-
-        <!-- Meta Tags Generated with https://metatags.io -->
-        <meta name="view-transition" content="same-origin" />
-        <link rel="stylesheet" href="../static/css/main.css" />
-        <title>Globalify — Connect to the whole world of investment</title>
-    </head>
-    <body class="w-full">
-        <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-center bg-slate-50">
-            <div class="flex w-full max-w-7xl items-center gap-7 px-9">
-                <a href="/"><img class="h-[30px] w-[113px]" src="../static/elements/logo-black.png" /></a>
-                <div class="hidden gap-7 sm:flex">
-                    <a href="">Search</a>
-                    <a href="https://globalifyxyz.wordpress.com/">Blog</a>
-                    <a href="#team">Team</a>
-                    <a href="#faq">FAQ</a>
-                </div>
-            </div>
-            <div class="pr-9">
-                {% if current_user.is_authenticated %}
-                <a href="/dashboard" class="flex items-center justify-center">Dashboard</a>
-                {% else %}
-                <a href="/login" class="flex items-center justify-center">Login</a>
-                {% endif %}
-            </div>
-        </nav>
-        <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-slate-50">
-            <section class="mx-auto max-w-7xl bg-transparent px-4 pb-16 pt-20 text-center sm:px-6 lg:px-8 lg:pt-32">
-                <h1
-                    class="font-display mx-auto max-w-4xl text-5xl font-medium tracking-tight text-slate-900 sm:text-7xl"
+{% extends "layouts/layout.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock
+%} {% block content %}
+<main
+    class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-slate-50 dark:bg-slate-900 dark:text-slate-50"
+>
+    <section class="mx-auto max-w-7xl bg-transparent px-4 pb-16 pt-20 text-center sm:px-6 lg:px-8 lg:pt-32">
+        <h1
+            class="font-display mx-auto max-w-4xl text-5xl font-medium tracking-tight text-slate-900 dark:text-slate-50 sm:text-7xl"
+        >
+            Connect
+            <span class="relative whitespace-nowrap text-sky-500 dark:text-sky-400"
+                ><svg
+                    aria-hidden="true"
+                    viewBox="0 0 418 42"
+                    class="absolute left-0 top-2/3 h-[0.58em] w-full fill-sky-300/70"
+                    preserveAspectRatio="none"
                 >
-                    Connect
-                    <span class="relative whitespace-nowrap text-sky-500"
-                        ><svg
-                            aria-hidden="true"
-                            viewBox="0 0 418 42"
-                            class="absolute left-0 top-2/3 h-[0.58em] w-full fill-sky-300/70"
-                            preserveAspectRatio="none"
-                        >
-                            <path
-                                d="M203.371.916c-26.013-2.078-76.686 1.963-124.73 9.946L67.3 12.749C35.421 18.062 18.2 21.766 6.004 25.934 1.244 27.561.828 27.778.874 28.61c.07 1.214.828 1.121 9.595-1.176 9.072-2.377 17.15-3.92 39.246-7.496C123.565 7.986 157.869 4.492 195.942 5.046c7.461.108 19.25 1.696 19.17 2.582-.107 1.183-7.874 4.31-25.75 10.366-21.992 7.45-35.43 12.534-36.701 13.884-2.173 2.308-.202 4.407 4.442 4.734 2.654.187 3.263.157 15.593-.78 35.401-2.686 57.944-3.488 88.365-3.143 46.327.526 75.721 2.23 130.788 7.584 19.787 1.924 20.814 1.98 24.557 1.332l.066-.011c1.201-.203 1.53-1.825.399-2.335-2.911-1.31-4.893-1.604-22.048-3.261-57.509-5.556-87.871-7.36-132.059-7.842-23.239-.254-33.617-.116-50.627.674-11.629.54-42.371 2.494-46.696 2.967-2.359.259 8.133-3.625 26.504-9.81 23.239-7.825 27.934-10.149 28.304-14.005.417-4.348-3.529-6-16.878-7.066Z"
-                            ></path>
-                        </svg>
-                        <span class="relative">globally</span>
-                    </span>
-                    with Globalify
-                </h1>
-                <p class="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700">
-                    Find investors faster with Globalify 🌍🌎🌏
+                    <path
+                        d="M203.371.916c-26.013-2.078-76.686 1.963-124.73 9.946L67.3 12.749C35.421 18.062 18.2 21.766 6.004 25.934 1.244 27.561.828 27.778.874 28.61c.07 1.214.828 1.121 9.595-1.176 9.072-2.377 17.15-3.92 39.246-7.496C123.565 7.986 157.869 4.492 195.942 5.046c7.461.108 19.25 1.696 19.17 2.582-.107 1.183-7.874 4.31-25.75 10.366-21.992 7.45-35.43 12.534-36.701 13.884-2.173 2.308-.202 4.407 4.442 4.734 2.654.187 3.263.157 15.593-.78 35.401-2.686 57.944-3.488 88.365-3.143 46.327.526 75.721 2.23 130.788 7.584 19.787 1.924 20.814 1.98 24.557 1.332l.066-.011c1.201-.203 1.53-1.825.399-2.335-2.911-1.31-4.893-1.604-22.048-3.261-57.509-5.556-87.871-7.36-132.059-7.842-23.239-.254-33.617-.116-50.627.674-11.629.54-42.371 2.494-46.696 2.967-2.359.259 8.133-3.625 26.504-9.81 23.239-7.825 27.934-10.149 28.304-14.005.417-4.348-3.529-6-16.878-7.066Z"
+                    ></path>
+                </svg>
+                <span class="relative">globally</span>
+            </span>
+            with Globalify
+        </h1>
+        <p class="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700 dark:text-slate-400">
+            Find investors faster with Globalify 🌍🌎🌏
+        </p>
+        <div class="mt-10 flex justify-center gap-x-6">
+            <a
+                class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-50 hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
+                href="/register"
+                >Get started now</a
+            >
+
+            <!-- <a
+                class="group inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 hover:text-slate-900 hover:ring-slate-300 focus:outline-none focus-visible:outline-blue-600 focus-visible:ring-slate-300 active:bg-slate-100 active:text-slate-600"
+                href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            >
+                <svg aria-hidden="true" class="h-3 w-3 flex-none fill-blue-600 group-active:fill-current">
+                    <path
+                        d="m9.997 6.91-7.583 3.447A1 1 0 0 1 1 9.447V2.553a1 1 0 0 1 1.414-.91L9.997 5.09c.782.355.782 1.465 0 1.82Z"
+                    ></path>
+                </svg>
+                <span class="ml-3">Watch video</span>
+            </a> -->
+        </div>
+    </section>
+    <section class="flex-col items-center justify-center gap-2.5 py-24 dark:bg-slate-900 dark:text-slate-50">
+        <div class="flex flex-col items-center justify-center">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 md:text-center lg:px-8">
+                <h2 class="font-display text-3xl tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
+                    Tailored experience for specific regions
+                </h2>
+                <p class="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-400">
+                    Experts from around the world are here to help
                 </p>
-                <div class="mt-10 flex justify-center gap-x-6">
-                    <a
-                        class="group inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
-                        href="/register"
-                        >Get started now</a
-                    >
-                    <!-- <a
-                        class="group inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 hover:text-slate-900 hover:ring-slate-300 focus:outline-none focus-visible:outline-blue-600 focus-visible:ring-slate-300 active:bg-slate-100 active:text-slate-600"
-                        href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-                    >
-                        <svg aria-hidden="true" class="h-3 w-3 flex-none fill-blue-600 group-active:fill-current">
-                            <path
-                                d="m9.997 6.91-7.583 3.447A1 1 0 0 1 1 9.447V2.553a1 1 0 0 1 1.414-.91L9.997 5.09c.782.355.782 1.465 0 1.82Z"
-                            ></path>
-                        </svg>
-                        <span class="ml-3">Watch video</span>
-                    </a> -->
+            </div>
+            <div class="mt-6 flex flex-wrap items-center justify-center gap-6">
+                <div class="relative flex flex-col items-center justify-center gap-2">
+                    <img class="h-48" src="../static/elements/jp.svg" alt="" />
+                    <div class="text-slate-700dark:text-slate-400">Japan</div>
                 </div>
-            </section>
-            <section class="flex-col items-center justify-center gap-2.5 bg-slate-900 py-24 text-white shadow-md">
-                <div class="flex flex-col items-center justify-center">
-                    <div class="mx-auto max-w-7xl px-4 sm:px-6 md:text-center lg:px-8">
-                        <h2 class="font-display text-3xl tracking-tight text-white sm:text-4xl">
-                            Tailored experience for specific regions
-                        </h2>
-                        <p class="mt-4 text-lg tracking-tight text-slate-400">
-                            Experts from around the world are here to help
-                        </p>
-                    </div>
-                    <div class="mt-6 flex flex-wrap items-center justify-center gap-6">
-                        <div class="relative flex flex-col items-center justify-center gap-2">
-                            <img class="h-48" src="../static/elements/jp.svg" alt="" />
-                            <div class="text-slate-400">Japan</div>
-                        </div>
-                        <div class="relative flex flex-col items-center justify-between gap-2">
-                            <img class="h-48 py-8" src="../static/elements/kg.svg" alt="" />
-                            <div class="text-slate-400">Kyrgyzstan</div>
-                        </div>
-                        <div class="relative flex flex-col items-center justify-center gap-2">
-                            <img class="h-48 py-8" src="../static/elements/kz.svg" alt="" />
-                            <div class="text-slate-400">Kazakhstan</div>
-                        </div>
-                        <div class="relative flex flex-col items-center justify-center gap-2">
-                            <img class="h-48 py-8 text-slate-400" src="../static/elements/hk.svg" alt="" />
-                            <div class="text-slate-400">Hong Kong</div>
-                        </div>
-                    </div>
+                <div class="relative flex flex-col items-center justify-between gap-2">
+                    <img class="h-48 py-8" src="../static/elements/kg.svg" alt="" />
+                    <div class="text-slate-700 dark:text-slate-400">Kyrgyzstan</div>
                 </div>
-            </section>
-            <section id="team" class="z-10 flex flex-col items-center justify-center gap-[51px] bg-transparent py-24">
-                <div class="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl">The team</div>
-                <div class="flex flex-col items-start justify-center gap-[30px] xl:flex-row">
-                    <div class="inline-flex flex-col items-start justify-start">
-                        <img
-                            class="mb-1.5 h-[400px] w-[300px] rounded-xl bg-zinc-300"
-                            src="../static/elements/Team/Arisa.JPG"
-                            alt=""
-                        />
-                        <div class="text-xl sm:text-3xl">Arisa Ueno</div>
-                        <div class="text-lg sm:text-2xl">CEO</div>
-                    </div>
-                    <div class="inline-flex flex-col items-start justify-start">
-                        <img
-                            class="mb-1.5 h-[400px] w-[300px] rounded-xl bg-zinc-300"
-                            src="../static/elements/Team/Eric.JPG"
-                            alt=""
-                        />
-                        <div class="text-xl sm:text-3xl">Eric Fung</div>
-                        <div class="text-lg\ sm:text-2xl">COO</div>
-                    </div>
-                    <div class="inline-flex flex-col items-start justify-start">
-                        <img
-                            class="mb-1.5 h-[400px] w-[300px] rounded-xl bg-zinc-300"
-                            src="../static/elements/Team/Arstan.JPG"
-                            alt=""
-                        />
-                        <div class="text-xl sm:text-3xl">Arstanbek Usenov</div>
-                        <div class="text-lg sm:text-2xl">CTO</div>
-                    </div>
+                <div class="relative flex flex-col items-center justify-center gap-2">
+                    <img class="h-48 py-8" src="../static/elements/kz.svg" alt="" />
+                    <div class="text-slate-700 dark:text-slate-400">Kazakhstan</div>
                 </div>
-            </section>
-            <section id="faq" aria-labelledby="faq-title" class="relative bg-transparent py-20 sm:py-32">
+                <div class="relative flex flex-col items-center justify-center gap-2">
+                    <img class="h-48 py-8" src="../static/elements/hk.svg" alt="" />
+                    <div class="text-slate-700 dark:text-slate-400">Hong Kong</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="team" class="z-10 flex flex-col items-center justify-center gap-[51px] bg-transparent py-24">
+        <div class="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl">The team</div>
+        <div class="flex flex-col items-start justify-center gap-[30px] xl:flex-row">
+            <div class="inline-flex flex-col items-start justify-start">
                 <img
+                    class="mb-1.5 h-[400px] w-[300px] rounded-xl bg-zinc-300"
+                    src="../static/elements/Team/Arisa.JPG"
                     alt=""
-                    loading="lazy"
-                    width="1558"
-                    height="946"
-                    decoding="async"
-                    data-nimg="1"
-                    class="absolute left-1/2 top-0 max-w-none -translate-y-1/4 translate-x-[-30%]"
-                    src="https://salient.tailwindui.com/_next/static/media/background-faqs.55d2e36a.jpg"
-                    style="color: transparent; --darkreader-inline-color: transparent"
-                    data-darkreader-inline-color=""
                 />
-                <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div class="mx-auto max-w-2xl lg:mx-0">
-                        <h2 id="faq-title" class="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl">
-                            Frequently asked questions
-                        </h2>
-                        <p class="mt-4 text-lg tracking-tight text-slate-700">
-                            If you can’t find what you’re looking for, email our support team and if you’re lucky
-                            someone will get back to you.
-                        </p>
-                    </div>
-                    <ul role="list" class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3">
+                <div class="text-xl sm:text-3xl">Arisa Ueno</div>
+                <div class="text-lg sm:text-2xl">CEO</div>
+            </div>
+            <div class="inline-flex flex-col items-start justify-start">
+                <img
+                    class="mb-1.5 h-[400px] w-[300px] rounded-xl bg-zinc-300"
+                    src="../static/elements/Team/Eric.JPG"
+                    alt=""
+                />
+                <div class="text-xl sm:text-3xl">Eric Fung</div>
+                <div class="text-lg\ sm:text-2xl">COO</div>
+            </div>
+            <div class="inline-flex flex-col items-start justify-start">
+                <img
+                    class="mb-1.5 h-[400px] w-[300px] rounded-xl bg-zinc-300"
+                    src="../static/elements/Team/Arstan.JPG"
+                    alt=""
+                />
+                <div class="text-xl sm:text-3xl">Arstanbek Usenov</div>
+                <div class="text-lg sm:text-2xl">CTO</div>
+            </div>
+        </div>
+    </section>
+    <section id="faq" aria-labelledby="faq-title" class="relative bg-transparent py-20 sm:py-32">
+        <img
+            alt=""
+            loading="lazy"
+            width="1558"
+            height="946"
+            decoding="async"
+            data-nimg="1"
+            class="absolute left-1/2 top-0 max-w-none -translate-y-1/4 translate-x-[-30%] dark:hidden"
+            src="https://salient.tailwindui.com/_next/static/media/background-faqs.55d2e36a.jpg"
+            style="color: transparent; --darkreader-inline-color: transparent"
+            data-darkreader-inline-color=""
+        />
+        <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-2xl lg:mx-0">
+                <h2
+                    id="faq-title"
+                    class="font-display text-3xl tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl"
+                >
+                    Frequently asked questions
+                </h2>
+                <p class="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-400">
+                    If you can’t find what you’re looking for, email our support team and if you’re lucky someone will
+                    get back to you.
+                </p>
+            </div>
+            <ul role="list" class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3">
+                <li>
+                    <ul role="list" class="flex flex-col gap-y-8">
                         <li>
-                            <ul role="list" class="flex flex-col gap-y-8">
-                                <li>
-                                    <h3 class="font-display text-lg leading-7 text-slate-900">What is Globalify?</h3>
-                                    <p class="mt-4 text-sm text-slate-700">
-                                        Globalify is a hub for entrepreneurs to connect with investors around the world
-                                    </p>
-                                </li>
-                                <li>
-                                    <h3 class="font-display text-lg leading-7 text-slate-900">
-                                        What can I do with Globalify?
-                                    </h3>
-                                    <p class="mt-4 text-sm text-slate-700">
-                                        For now you can only create a profile and connect with investors. In the future
-                                        we are planning on adding a lot more features
-                                    </p>
-                                </li>
-                                <li>
-                                    <h3 class="font-display text-lg leading-7 text-slate-900">
-                                        Why should I use Globalify?
-                                    </h3>
-                                    <p class="mt-4 text-sm text-slate-700">
-                                        Because we are the best, and we have a really cool website
-                                    </p>
-                                </li>
-                            </ul>
+                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                                What is Globalify?
+                            </h3>
+                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                                Globalify is a hub for entrepreneurs to connect with investors around the world
+                            </p>
                         </li>
                         <li>
-                            <ul role="list" class="flex flex-col gap-y-8">
-                                <li>
-                                    <h3 class="font-display text-lg leading-7 text-slate-900">Do you offer refunds?</h3>
-                                    <p class="mt-4 text-sm text-slate-700">
-                                        Yes, if you aren't happy with your subscription you can get a full refund
-                                    </p>
-                                </li>
-                                <li>
-                                    <h3 class="font-display text-lg leading-7 text-slate-900">
-                                        Is there a free trial?
-                                    </h3>
-                                    <p class="mt-4 text-sm text-slate-700">
-                                        Yes, you can try out our free plan for 14 days
-                                    </p>
-                                </li>
-                                <li>
-                                    <h3 class="font-display text-lg leading-7 text-slate-900">
-                                        I found other companies called Globalify, are you sure you can use this name?
-                                    </h3>
-                                    <p class="mt-4 text-sm text-slate-700">Yes, we are sure</p>
-                                </li>
-                            </ul>
+                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                                What can I do with Globalify?
+                            </h3>
+                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                                For now you can only create a profile and connect with investors. In the future we are
+                                planning on adding a lot more features
+                            </p>
                         </li>
                         <li>
-                            <ul role="list" class="flex flex-col gap-y-8">
-                                <li>
-                                    <h3 class="font-display text-lg leading-7 text-slate-900">
-                                        What do you do with the data you collect?
-                                    </h3>
-                                    <p class="mt-4 text-sm text-slate-700">
-                                        About the data we collect you can read in our
-                                        <a class="underline" href="/privacy-policy">privacy policy</a>
-                                    </p>
-                                </li>
-                                <li>
-                                    <h3 class="font-display text-lg leading-7 text-slate-900">
-                                        What exactly do I get?
-                                    </h3>
-                                    <p class="mt-4 text-sm text-slate-700">
-                                        You can read about our plans <a class="underline" href="/pricing">here</a>
-                                    </p>
-                                </li>
-                                <li>
-                                    <h3 class="font-display text-lg leading-7 text-slate-900">
-                                        Can I get a copy of my data?
-                                    </h3>
-                                    <p class="mt-4 text-sm text-slate-700">
-                                        Yes, you can request a copy of your data in your profile settings
-                                    </p>
-                                </li>
-                            </ul>
+                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                                Why should I use Globalify?
+                            </h3>
+                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                                Because we are the best, and we have a really cool website
+                            </p>
                         </li>
                     </ul>
-                </div>
-            </section>
-        </main>
-        <footer class="bg-slate-50 text-sm text-slate-900" aria-labelledby="footer-heading">
-            <h2 id="footer-heading" class="sr-only">Footer</h2>
-            <div class="mx-auto max-w-7xl px-6 pb-8 sm:pt-24 lg:px-8 lg:pt-32">
-                <div class="grid xl:grid-cols-3 xl:gap-8">
-                    <div class="space-y-8">
-                        <img
-                            class="h-7"
-                            src="{{ url_for('static', filename='elements/logo-black.png')}}"
-                            alt="Globalify"
-                        />
-                        <p class="">A companion in your business ventures 💰</p>
-                        <div class="flex space-x-6">
-                            <a href="https://www.instagram.com/globalifyxyz/" target="_blank" class="">
-                                <span class="sr-only">Instagram</span>
-                                <svg fill="currentColor" viewBox="0 0 24 24" class="h-6 w-6" aria-hidden="true">
-                                    <path
-                                        fill-rule="evenodd"
-                                        d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"
-                                        clip-rule="evenodd"
-                                    ></path>
-                                </svg>
-                            </a>
-                            <a href="https://twitter.com/globalifyxyz" target="_blank" class="">
-                                <span class="sr-only">Twitter</span>
-                                <svg fill="currentColor" viewBox="0 0 24 24" class="h-6 w-6" aria-hidden="true">
-                                    <path
-                                        d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"
-                                    ></path>
-                                </svg>
-                            </a>
-                            <!-- <a href="#" class="">
-                                <span class="sr-only">YouTube</span>
-                                <svg fill="currentColor" viewBox="0 0 24 24" class="h-6 w-6" aria-hidden="true">
-                                    <path
-                                        fill-rule="evenodd"
-                                        d="M19.812 5.418c.861.23 1.538.907 1.768 1.768C21.998 8.746 22 12 22 12s0 3.255-.418 4.814a2.504 2.504 0 0 1-1.768 1.768c-1.56.419-7.814.419-7.814.419s-6.255 0-7.814-.419a2.505 2.505 0 0 1-1.768-1.768C2 15.255 2 12 2 12s0-3.255.417-4.814a2.507 2.507 0 0 1 1.768-1.768C5.744 5 11.998 5 11.998 5s6.255 0 7.814.418ZM15.194 12 10 15V9l5.194 3Z"
-                                        clip-rule="evenodd"
-                                    ></path>
-                                </svg>
-                            </a> -->
-                        </div>
-                    </div>
-                    <div class="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
-                        <div class="md:grid md:grid-cols-2 md:gap-8">
-                            <div>
-                                <h3 class="font-semibold text-slate-900">Solutions</h3>
-                                <ul role="list" class="mt-6 space-y-4">
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Marketing</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Analytics</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Commerce</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Insights</a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="mt-10 md:mt-0">
-                                <h3 class="font-semibold text-slate-900">Support</h3>
-                                <ul role="list" class="mt-6 space-y-4">
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Pricing</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Documentation</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Guides</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">API Status</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="md:grid md:grid-cols-2 md:gap-8">
-                            <div>
-                                <h3 class="font-semibold text-slate-900">Company</h3>
-                                <ul role="list" class="mt-6 space-y-4">
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">About</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Blog</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Jobs</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Press</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Partners</a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="mt-10 md:mt-0">
-                                <h3 class="font-semibold text-slate-900">Legal</h3>
-                                <ul role="list" class="mt-6 space-y-4">
-                                    <li>
-                                        <a href="#" class="hover:text-slate-900">Claim</a>
-                                    </li>
-                                    <li>
-                                        <a href="/privacy-policy" class="hover:text-slate-900">Privacy Policy</a>
-                                    </li>
-                                    <li>
-                                        <a href="/terms-of-service" class="hover:text-slate-900">Terms of Service</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-16 border-t border-gray-900/10 pt-8 sm:mt-20 lg:mt-24">
-                        <p class="text-xs leading-5">© 2023 Globalify. All rights reserved.</p>
-                    </div>
-                </div>
-            </div>
-        </footer>
-    </body>
-</html>
+                </li>
+                <li>
+                    <ul role="list" class="flex flex-col gap-y-8">
+                        <li>
+                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                                Do you offer refunds?
+                            </h3>
+                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                                Yes, if you aren't happy with your subscription you can get a full refund
+                            </p>
+                        </li>
+                        <li>
+                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                                Is there a free trial?
+                            </h3>
+                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                                Yes, you can try out our free plan for 14 days
+                            </p>
+                        </li>
+                        <li>
+                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                                I found other companies called Globalify, are you sure you can use this name?
+                            </h3>
+                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">Yes, we are sure</p>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul role="list" class="flex flex-col gap-y-8">
+                        <li>
+                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                                What do you do with the data you collect?
+                            </h3>
+                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                                About the data we collect you can read in our
+                                <a class="underline" href="/privacy-policy">privacy policy</a>
+                            </p>
+                        </li>
+                        <li>
+                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                                What exactly do I get?
+                            </h3>
+                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                                You can read about our plans <a class="underline" href="/pricing">here</a>
+                            </p>
+                        </li>
+                        <li>
+                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                                Can I get a copy of my data?
+                            </h3>
+                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                                Yes, you can request a copy of your data in your profile settings
+                            </p>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </section>
+</main>
+{% endblock %}

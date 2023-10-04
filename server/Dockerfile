@@ -1,15 +1,15 @@
-FROM python:3.11.4-alpine
+FROM python:3.11.0-alpine
 
-RUN pip install Flask==2.3.2 \
+RUN pip install Flask==2.3.3 \
     Flask-SQLalchemy==3.0.5 \
     Flask-Login==0.6.2 \
     Flask-Migrate==4.0.4 \
     Flask-WTF==1.1.1 \
-    psycopg2-binary==2.9.6 \
+    psycopg2-binary==2.9.7 \
     Authlib==1.2.1 \
     requests==2.31.0 \
     pycountry==22.3.5 \
-    gunicorn==20.1.0 \
+    gunicorn==21.2.0 \
     google-cloud-storage==2.10.0 \ 
     pillow==10.0.0 \
     stripe==6.1.0 \

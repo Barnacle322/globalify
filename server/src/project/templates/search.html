@@ -7,7 +7,7 @@
         <meta name="view-transition" content="same-origin" />
         <script src="../static/scripts/search.js" defer></script>
 
-        <title>Search</title>
+        <title>Search | Globalify</title>
     </head>
     <body class="w-full bg-slate-50">
         <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-center bg-slate-50">
@@ -23,12 +23,12 @@
             <a href="/logout" class="mr-9">Logout</a>
         </nav>
         <main class="mt-28 flex h-full w-full">
-            <div class="flex flex-col mx-auto px-4">
+            <div class="mx-auto flex flex-col px-4">
                 <div class="-m-1.5 overflow-x-auto">
                     <div class="inline-block min-w-full p-1.5 align-middle">
                         <div class="divide-y divide-gray-200 rounded-xl border">
                             <div class="px-4 py-3">
-                                <div class="relative max-w-xs flex gap-2">
+                                <div class="relative flex max-w-xs gap-2">
                                     <label for="search" class="sr-only">Search</label>
                                     <input
                                         type="text"
@@ -52,14 +52,16 @@
                                             />
                                         </svg>
                                     </div>
-                                    <button class="bg-sky-500 rounded-xl px-2 text-white text-sm" onclick="search()">Search</button>
+                                    <button class="rounded-xl bg-sky-500 px-2 text-sm text-white" onclick="search()">
+                                        Search
+                                    </button>
                                 </div>
                             </div>
                             <div>
                                 <table class="table-auto divide-y divide-gray-200">
                                     <thead class="bg-gray-50 px-3">
                                         <tr class="text-left text-xs font-medium uppercase text-gray-500">
-                                            <th class="pl-4 py-4">
+                                            <th class="py-4 pl-4">
                                                 <div class="flex h-5 items-center">
                                                     <input
                                                         id="checkbox-all"
@@ -87,12 +89,10 @@
                                                         type="checkbox"
                                                         class="rounded border-gray-200 text-sky-500 focus:ring-blue-500"
                                                     />
-                                                    <label for="checkbox" class="sr-only"
-                                                        >Checkbox</label
-                                                    >
+                                                    <label for="checkbox" class="sr-only">Checkbox</label>
                                                 </div>
                                             </td>
-                                            <td class="font-medium py-6 pl-4">{{ investor.full_name }}</td>
+                                            <td class="py-6 pl-4 font-medium">{{ investor.full_name }}</td>
                                             <td class="py-6 pl-4">{{ investor.firm_name}}</td>
                                             <td class="py-6 pl-4">{{ investor.position }}</td>
                                             <td class="py-6 pl-4">
@@ -107,7 +107,7 @@
                                                 </div>
                                             </td>
                                             <td class="py-6 pl-4">
-                                                <div class="flex flex-wrap gap-1 max-w-xs">
+                                                <div class="flex max-w-xs flex-wrap gap-1">
                                                     {% for industry in investor.industries %}
                                                     <div
                                                         class="min-w-max rounded-full bg-sky-500 px-3 py-1 text-center text-white"
@@ -117,8 +117,12 @@
                                                     {% endfor %}
                                                 </div>
                                             </td>
-                                            <td class="font-medium py-6 pl-4">
-                                                <a class="text-blue-500 hover:text-blue-700" href="/investor/{{ investor.id }}">View</a>
+                                            <td class="py-6 pl-4 font-medium">
+                                                <a
+                                                    class="text-blue-500 hover:text-blue-700"
+                                                    href="/investor/{{ investor.id }}"
+                                                    >View</a
+                                                >
                                             </td>
                                         </tr>
                                         {% endfor %} {% endif %}

@@ -1,6 +1,7 @@
 FROM python:3.11.0-alpine
 
-RUN pip install Flask==2.3.3 \
+RUN pip install Werkzeug==2.3.7 \
+    Flask==2.3.3 \
     Flask-SQLalchemy==3.0.5 \
     Flask-Login==0.6.2 \
     Flask-Migrate==4.0.4 \

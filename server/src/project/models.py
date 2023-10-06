@@ -31,6 +31,7 @@ class User(UserMixin, db.Model):
     oauth_provider: Mapped[OauthProvider] = mapped_column(
         SQLEnum(OauthProvider), nullable=True
     )
+    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __init__(self, **kwargs):
@@ -109,6 +110,19 @@ class UserInfo(db.Model):
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
 
+    def sanitize(self) -> dict[str, str]:
+        user_info = {
+            "user_id": self.user_id,
+            "username": self.username,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "linkedin": self.linkedin,
+            "instagram": self.instagram,
+            "bio": self.bio,
+            "pfp": self.pfp_uuid,
+        }
+        return user_info
+
     @staticmethod
     def is_taken(username: str | None) -> bool:
         try:
@@ -124,19 +138,6 @@ class UserInfo(db.Model):
             return user_info
         except NoResultFound:
             return None
-
-    def sanitize(self) -> dict[str, str]:
-        user_info = {
-            "user_id": self.user_id,
-            "username": self.username,
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "linkedin": self.linkedin,
-            "instagram": self.instagram,
-            "bio": self.bio,
-            "pfp": self.pfp_uuid,
-        }
-        return user_info
 
 
 class UserPayment(db.Model):
@@ -154,9 +155,6 @@ class UserPayment(db.Model):
     def __init__(self, **kwargs):
         super(UserPayment, self).__init__(**kwargs)
 
-    def is_expired(self) -> bool:
-        return self.expires_at < datetime.datetime.utcnow()  # type: ignore
-
     @property
     def created_epoch(self) -> DateTime:
         return self.created
@@ -172,6 +170,9 @@ class UserPayment(db.Model):
     @expires_at_epoch.setter
     def expires_at_epoch(self, expires_at_epoch: int) -> None:
         self.expires_at = datetime.datetime.utcfromtimestamp(expires_at_epoch)  # type: ignore
+
+    def is_expired(self) -> bool:
+        return self.expires_at < datetime.datetime.utcnow()  # type: ignore
 
     @staticmethod
     def get_by_customer_id(customer_id: str) -> Union[UserPayment, None]:
@@ -645,12 +646,12 @@ class Investor(db.Model):
     def __init__(self, **kwargs):
         super(Investor, self).__init__(**kwargs)
 
+    def __repr__(self):
+        return f"<Investor {self.first_name} {self.last_name}>"
+
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
-
-    def __repr__(self):
-        return f"<Investor {self.first_name} {self.last_name}>"
 
     @staticmethod
     def get_all() -> List[Investor]:

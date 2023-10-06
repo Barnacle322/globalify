@@ -6,8 +6,9 @@ from flask import Blueprint, jsonify, redirect, render_template, request, url_fo
 from flask_login import current_user, login_required
 from stripe.error import SignatureVerificationError
 
-from ..extensions import db
-from ..models import User, UserPayment
+from ..extensions import csrf, db
+from ..models import User, UserInfo, UserPayment
+from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
 from ..utils.status_enum import Status, StatusType
 
 payment = Blueprint("payment", __name__)
@@ -16,30 +17,53 @@ stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
 
 
 def create_customer(authenticated_user: User) -> UserPayment:
+    user_info = UserInfo.get_by_user_id(authenticated_user.id)
+    if not user_info or not user_info.is_complete:
+        raise Exception("Please complete your profile before subscribing")
+
+    # Find customer by email
+    customer_data = stripe.Customer.search(
+        query="email:'{}'".format(authenticated_user.email)
+    )
+    # If multiple customers are found, raise an exception
+    if len(customer_list := customer_data.get("data", [])) > 1:
+        raise Exception(
+            "Multiple customers associated with your email address are found. Please contact support."
+        )
+    # If no customer is found, create a new one
+    elif not customer_list:
+        stripe_customer = stripe.Customer.create(
+            email=authenticated_user.email,
+            name=user_info.full_name,
+        )
+    # If a customer is found, use it
+    else:
+        stripe_customer = customer_list[0]
+
+    # Find customer in database
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
-    if not user_payment:
-        customer_data = stripe.Customer.search(
-            query="email:'{}'".format(authenticated_user.email),
-        )
+    if user_payment:
+        stripe_customer_id = stripe_customer.get("id")
+        # If customer is found, check if customer_id matches
+        if (
+            user_payment.customer_id == stripe_customer_id
+            and user_payment.customer_id
+            and stripe_customer_id
+        ):
+            return user_payment
+        # If not, sync them
+        elif stripe_customer_id:
+            user_payment.customer_id = stripe_customer_id
+            db.session.commit()
+            return user_payment
 
-        if not customer_data:
-            customer = stripe.Customer.create(
-                email=authenticated_user.email,
-            )
-        elif len(customer_list := customer_data.get("data", [])) == 1:
-            customer = customer_list[0]
-        else:
-            raise Exception(
-                "Multiple customers with same email found. Please contact support."
-            )
-
-        user_payment = UserPayment(
-            user_id=authenticated_user.id,
-            customer_id=customer.id,
-        )
-
-        db.session.add(user_payment)
-        db.session.commit()
+    # If customer isn't in DB, create a new one
+    user_payment = UserPayment(
+        user_id=authenticated_user.id,
+        customer_id=stripe_customer.get("id"),
+    )
+    db.session.add(user_payment)
+    db.session.commit()
 
     return user_payment
 
@@ -86,12 +110,6 @@ def has_subscriptions(customer_id: str) -> bool:
     return active_subscriptions or trialing_subscriptions  # type: ignore
 
 
-@payment.route("/", methods=["GET"])
-@login_required
-def index():
-    return render_template("payment/index.html")
-
-
 @payment.route("/create-checkout-session", methods=["POST"])
 @login_required
 def create_checkout_session():
@@ -100,7 +118,7 @@ def create_checkout_session():
     """
     authenticated_user: User = current_user  # type: ignore
     if not authenticated_user:
-        status = Status(StatusType.ERROR, "You are not logged in").get_status()
+        status = Status(StatusType.ERROR, NOT_AUTHORIZED).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
     try:
@@ -120,6 +138,11 @@ def create_checkout_session():
     checkout_session = create_checkout(customer_id=user_payment.customer_id)
 
     return redirect(checkout_session.url, code=303)
+
+
+@payment.route("/subscriptions", methods=["GET"])
+def index():
+    return render_template("payment/index.html")
 
 
 @payment.route("/success", methods=["GET"])
@@ -143,8 +166,11 @@ def customer_portal():
 
     return_url = request.host_url
     authenticated_user: User = current_user  # type: ignore
-    user_payment = create_customer(authenticated_user)
+    if not authenticated_user:
+        status = Status(StatusType.ERROR, NOT_AUTHORIZED).get_status()
+        return redirect(url_for("payment.index", _external=False, **status))
 
+    user_payment = create_customer(authenticated_user)
     if not user_payment:
         status = Status(StatusType.ERROR, "User payment not found").get_status()
         return redirect(url_for("payment.index", _external=False, **status))
@@ -159,6 +185,7 @@ def customer_portal():
 
 # TODO
 @payment.route("/webhook", methods=["POST"])
+@csrf.exempt
 def webhook_received():  # noqa
     """
     DOCS: https://stripe.com/docs/webhooks
@@ -187,23 +214,60 @@ def webhook_received():  # noqa
     if not event:
         return jsonify(success=False)
 
-    if event_type == "checkout.session.completed":
-        print("🔔 Payment succeeded!")
-    elif event_type == "customer.subscription.trial_will_end":
-        print("Subscription trial will end")
-    elif event_type == "customer.subscription.created":
-        print("Subscription created %s", event.id)
-    elif event_type == "customer.subscription.updated":
-        is_canceled = data_object.get("canceled_at")
-        if is_canceled:
-            print("Subscription canceled %s", event.id)
-    elif event_type == "customer.subscription.deleted":
-        print("Subscription canceled: %s", event.id)
+    if event_type == "invoice.paid":
+        stripe_customer_id = data_object.get("customer")
+        user_payment = UserPayment.get_by_customer_id(stripe_customer_id)
+        if not user_payment:
+            return {"status": "fail"}, 200
+
+        user_payment.created_epoch = data_object.get("effective_at")
+        user_payment.expires_at_epoch = (
+            data_object.get("lines").get("data")[0].get("period").get("end")
+        )
+        user_payment.is_active = True
+        user_payment.subscription_id = (
+            data_object.get("lines").get("data")[0].get("subscription")
+        )
+
+        db.session.commit()
+
+    if event_type == "customer.subscription.deleted":
+        stripe_customer_id = data_object.get("customer")
+        user_payment = UserPayment.get_by_customer_id(stripe_customer_id)
+        if not user_payment:
+            return {"status": "fail"}, 200
+
+        user_payment.is_active = False
+        user_payment.subscription_id = ""
+
+        db.session.commit()
+
+    if event_type == "invoice.upcoming":
+        # Add logic to send an email to user about an upcoming charge
+        ...
+
+    if event_type == "customer.subscription.trial_will_end":
+        # Add logic to send an email to user about their trial ending soon
+        ...
+
+    if event_type == "invoice.payment_failed":
+        # Add logic that notifies user that their payment failed
+        # NOTE: use 'attempt_count' and 'attempted' to determine if this is the first time the payment failed
+        # After the 4th attempt the subscription was cenceled with the 'customer.subscription.deleted' event
+        ...
+
+    # # if event_type == "checkout.session.completed":
+    #     print("🔔 Payment succeeded!")
+    # elif event_type == "customer.subscription.trial_will_end":
+    #     print("Subscription trial will end")
+    # elif event_type == "customer.subscription.created":
+    #     print("Subscription created %s", event.id)
+    # elif event_type == "customer.subscription.updated":
+    #     is_canceled = data_object.get("canceled_at")
+    #     if is_canceled:
+    #         print("Subscription canceled %s", event.id)
+    # elif event_type == "customer.subscription.deleted":
+    #     print("Subscription canceled: %s", event.id)
 
     # NOTE: This endpoint should return 200 - 299 to acknowledge receipt of the event.
     return {"status": "success"}, 200
-
-
-# @payment.errorhandler(Exception)
-# def exception_handler(e):
-#     return render_template("errors/500.html")

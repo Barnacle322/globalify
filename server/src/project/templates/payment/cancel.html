@@ -1,9 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Document</title>
-    </head>
-    <body></body>
-</html>
+{% extends "layouts/layout_payment.html" %} {% block title %}Payment success{% endblock %} {% block head %} {{ super()
+}} {% endblock %} {% block content %}
+<main
+    class="relative mt-24 flex w-full flex-col items-center justify-center gap-8 overflow-x-hidden bg-slate-50 pb-52 dark:bg-slate-900 dark:text-slate-50 px-4"
+>
+    <h1 class="md:mt-48 mt-24 md:text-8xl font-bold text-5xl text-center">Payment canceled❌</h1>
+    <p class="text-xl max-w-xl text-center">You have not been charged. If you aren't happy with the price, check out our other options.</p>
+    <div class="flex justify-center gap-x-6 overflow-visible">
+        <a
+            href="/dashboard"
+            class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-50 hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
+        >
+            Go to dashboard
+        </a>
+        <a
+            class="group inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 hover:text-slate-900 hover:ring-slate-300 focus:outline-none focus-visible:outline-blue-600 focus-visible:ring-slate-300 active:bg-slate-100 active:text-slate-600"
+            href="/payment"
+        >
+            <!-- <svg aria-hidden="true" class="h-3 w-3 flex-none fill-blue-600 group-active:fill-current">
+                <path
+                    d="m9.997 6.91-7.583 3.447A1 1 0 0 1 1 9.447V2.553a1 1 0 0 1 1.414-.91L9.997 5.09c.782.355.782 1.465 0 1.82Z"
+                ></path>
+            </svg> -->
+            <span>See other tiers</span>
+        </a>
+    </div>
+</main>
+
+{% endblock %}

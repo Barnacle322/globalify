@@ -105,6 +105,10 @@ class UserInfo(db.Model):
     def __repr__(self):
         return f"<UserInfo {self.username}>"
 
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
     @staticmethod
     def is_taken(username: str | None) -> bool:
         try:
@@ -149,6 +153,9 @@ class UserPayment(db.Model):
 
     def __init__(self, **kwargs):
         super(UserPayment, self).__init__(**kwargs)
+
+    def is_expired(self) -> bool:
+        return self.expires_at < datetime.datetime.utcnow()  # type: ignore
 
     @property
     def created_epoch(self) -> DateTime:

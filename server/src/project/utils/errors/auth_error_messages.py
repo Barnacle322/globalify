@@ -18,3 +18,10 @@ OAUTH_COULD_NOT_RETRIEVE_DATA = (
 )
 
 NOT_AUTHORIZED = "Please login first."
+
+ONBOARDING_INCOMPLETE = "Please complete your profile before subscribing."
+
+PAYMENT_EMAIL_USED = "Multiple customers associated with your email address are found. Please contact support."
+PAYMENT_NOT_FOUND = "Something went wrong with associating your account with Stripe. Please contact support."
+
+SUBSCRIPTION_EXISTS = "You already have a active subscription."

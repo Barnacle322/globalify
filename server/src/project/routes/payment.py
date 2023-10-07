@@ -8,7 +8,14 @@ from stripe.error import SignatureVerificationError
 
 from ..extensions import csrf, db
 from ..models import User, UserInfo, UserPayment
-from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
+from ..utils.errors.auth_error_messages import (
+    NOT_AUTHORIZED,
+    ONBOARDING_INCOMPLETE,
+    PAYMENT_EMAIL_USED,
+    PAYMENT_NOT_FOUND,
+    SUBSCRIPTION_EXISTS,
+)
+from ..utils.sendgrid_email import send_email
 from ..utils.status_enum import Status, StatusType
 
 payment = Blueprint("payment", __name__)
@@ -19,7 +26,7 @@ stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
 def handle_customer(authenticated_user: User) -> UserPayment:
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info or not user_info.is_complete:
-        raise Exception("Please complete your profile before subscribing")
+        raise Exception(ONBOARDING_INCOMPLETE)
 
     # Find customer by email
     customer_data = stripe.Customer.search(
@@ -27,9 +34,7 @@ def handle_customer(authenticated_user: User) -> UserPayment:
     )
     # If multiple customers are found, raise an exception
     if len(customer_list := customer_data.get("data", [])) > 1:
-        raise Exception(
-            "Multiple customers associated with your email address are found. Please contact support."
-        )
+        raise Exception(PAYMENT_EMAIL_USED)
     # If no customer is found, create a new one
     elif not customer_list:
         stripe_customer = stripe.Customer.create(
@@ -75,26 +80,21 @@ def create_checkout(
 ) -> stripe.checkout.Session:
     success_url = request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = request.host_url + "payment/cancel"
+    prices = stripe.Price.list(lookup_keys=[tier], expand=["data.product"])
 
-    try:
-        prices = stripe.Price.list(lookup_keys=[tier], expand=["data.product"])
-
-        checkout_session = stripe.checkout.Session.create(
-            customer=customer_id,
-            line_items=[
-                {
-                    "price": prices.data[0].id,
-                    "quantity": 1,
-                },
-            ],
-            mode="subscription",
-            success_url=success_url,
-            cancel_url=cancel_url,
-            subscription_data={"trial_period_days": trial_period_days},
-        )
-    except Exception as e:
-        status = Status(StatusType.ERROR, e.args[0]).get_status()
-        return redirect(url_for("payment.index", _external=False, **status))  # type: ignore
+    checkout_session = stripe.checkout.Session.create(
+        customer=customer_id,
+        line_items=[
+            {
+                "price": prices.data[0].id,
+                "quantity": 1,
+            },
+        ],
+        mode="subscription",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        subscription_data={"trial_period_days": trial_period_days},
+    )
 
     return checkout_session
 
@@ -128,14 +128,18 @@ def create_checkout_session():
         return redirect(url_for("payment.index", _external=False, **status))
 
     if not user_payment:
-        status = Status(StatusType.ERROR, "User payment not found").get_status()
+        status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
     if has_subscriptions(user_payment.customer_id):
-        status = Status(StatusType.ERROR, "A subscription already exists").get_status()
+        status = Status(StatusType.ERROR, SUBSCRIPTION_EXISTS).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    checkout_session = create_checkout(customer_id=user_payment.customer_id)
+    try:
+        checkout_session = create_checkout(customer_id=user_payment.customer_id)
+    except Exception as e:
+        status = Status(StatusType.ERROR, e.args[0]).get_status()
+        return redirect(url_for("payment.index", _external=False, **status))  # type: ignore
 
     return redirect(checkout_session.url, code=303)
 
@@ -153,9 +157,14 @@ def customer_portal():
         status = Status(StatusType.ERROR, NOT_AUTHORIZED).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    user_payment = handle_customer(authenticated_user)
+    try:
+        user_payment = handle_customer(authenticated_user)
+    except Exception as e:
+        status = Status(StatusType.ERROR, e.args[0]).get_status()
+        return redirect(url_for("payment.index", _external=False, **status))
+
     if not user_payment:
-        status = Status(StatusType.ERROR, "User payment not found").get_status()
+        status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
     portal_session = stripe.billing_portal.Session.create(
@@ -217,13 +226,23 @@ def subscription_deleted(data_object):
 
 
 def invoice_upcoming(data_object):
-    # Add logic to send an email to user about an upcoming charge
     ...
 
 
 def trial_will_end(data_object):
-    # Add logic to send an email to user about their trial ending soon
-    ...
+    templates_dir = os.path.join(os.getcwd(), "project", "templates")
+    expires_file = os.path.join(templates_dir, "email", "subscription_expires.html")
+    with open(expires_file, "r") as f:
+        html_content = f.read()
+
+    stripe_customer_id = data_object.get("customer")
+    customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
+
+    send_email(
+        recepients=customer_email,
+        subject="Your subscription is about to expire",
+        html_content=html_content,
+    )
 
 
 def payment_failed(data_object):
@@ -231,6 +250,13 @@ def payment_failed(data_object):
     # NOTE: use 'attempt_count' and 'attempted' to determine if this is the first time the payment failed
     # After the 4th attempt the subscription is canceled and 'customer.subscription.deleted' is triggered
     ...
+
+
+@payment.route("/test")
+def test():
+    data_object = {"customer": "cus_OlHbJOXcqtkIdD"}
+    trial_will_end(data_object)
+    return jsonify(success=True)
 
 
 @payment.route("/webhook", methods=["POST"])

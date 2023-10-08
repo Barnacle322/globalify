@@ -226,7 +226,20 @@ def subscription_deleted(data_object):
 
 
 def invoice_upcoming(data_object):
-    ...
+    templates_dir = os.path.join(os.getcwd(), "project", "templates")
+    # TODO
+    expires_file = os.path.join(templates_dir, "email", "invoice_upcoming.html")
+    with open(expires_file, "r") as f:
+        html_content = f.read()
+
+    stripe_customer_id = data_object.get("customer")
+    customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
+
+    send_email(
+        recepients=customer_email,
+        subject="Your subscription will renew soon",
+        html_content=html_content,
+    )
 
 
 def trial_will_end(data_object):
@@ -240,7 +253,7 @@ def trial_will_end(data_object):
 
     send_email(
         recepients=customer_email,
-        subject="Your subscription is about to expire",
+        subject="Your trial is about to expire",
         html_content=html_content,
     )
 
@@ -290,6 +303,9 @@ def webhook_received():
     if not event:
         return jsonify(success=False)
 
+    """
+    DOCS: https://stripe.com/docs/billing/subscriptions/webhooks
+    """
     match event_type:
         case "invoice.paid":
             invoice_paid(data_object)

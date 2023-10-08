@@ -87,11 +87,11 @@ source .venv/bin/activate
 
 -   `FLASK_APP="project"`
 -   `FLASK_DEBUG="true"`
--   `_DATABASE_URL=""`
--   `_GOOGLE_OAUTH2_CLIENT_ID=""`
--   `_GOOGLE_OAUTH2_CLIENT_SECRET=""`
--   `_LINKEDIN_OAUTH2_CLIENT_ID=""`
--   `_LINKEDIN_OAUTH2_CLIENT_SECRET=""`
+-   `_DATABASE_URL`
+-   `_GOOGLE_OAUTH2_CLIENT_ID`
+-   `_GOOGLE_OAUTH2_CLIENT_SECRET`
+-   `_LINKEDIN_OAUTH2_CLIENT_ID`
+-   `_LINKEDIN_OAUTH2_CLIENT_SECRET`
 -   `_STRIPE_PUBLISHABLE_KEY`
 -   `_STRIPE_SECRET_KEY`
 -   `_STRIPE_WEBHOOK_SECRET`
@@ -139,5 +139,15 @@ flask run
 Start the TailwindCSS compiler in a separate terminal
 
 ```bash
-npm run create-css
+npm run css
+```
+
+### 4. Linting and formatting
+
+All linting and formatting for python is done automatically on commit using [pre-commit](https://pre-commit.com/).
+
+To lint html code you can run a script
+
+```bash
+npm run html
 ```

@@ -199,7 +199,6 @@ def invoice_paid(data_object):
     stripe_period_end = stripe_data.get("period").get("end")
     stripe_created = data_object.get("effective_at")
     stripe_customer_id = data_object.get("customer")
-
     user_payment = UserPayment.get_by_customer_id(stripe_customer_id)
     if not user_payment:
         return jsonify(success=False)
@@ -309,6 +308,11 @@ def webhook_received():
     """
     DOCS: https://stripe.com/docs/billing/subscriptions/webhooks
     """
+    print("--------------")
+    print("--------------")
+    print(data_object)
+    print("--------------")
+    print("--------------")
     match event_type:
         case "invoice.paid":
             invoice_paid(data_object)

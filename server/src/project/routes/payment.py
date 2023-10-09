@@ -201,7 +201,7 @@ def invoice_paid(data_object):
     stripe_customer_id = data_object.get("customer")
     user_payment = UserPayment.get_by_customer_id(stripe_customer_id)
     if not user_payment:
-        return jsonify(success=False)
+        return jsonify(success=False, error_message="Could not retrieve user payment")
 
     user_payment.subscription_id = stripe_subscription_id
     user_payment.expires_at_epoch = stripe_period_end
@@ -216,7 +216,7 @@ def subscription_deleted(data_object):
 
     user_payment = UserPayment.get_by_customer_id(stripe_customer_id)
     if not user_payment:
-        return jsonify(success=False)
+        return jsonify(success=False, error_message="Could not retrieve user payment")
 
     user_payment.is_active = False
     user_payment.subscription_id = ""
@@ -293,7 +293,7 @@ def webhook_received():
             data = event["data"]
         except SignatureVerificationError as e:
             print("⚠️  Webhook signature verification failed." + str(e))
-            return jsonify(success=False)
+            return jsonify(success=False, error_message=e)
 
         event_type = event["type"]
     else:
@@ -303,16 +303,11 @@ def webhook_received():
     data_object = data["object"]
 
     if not event:
-        return jsonify(success=False)
+        return jsonify(success=False, error_message="Event not found")
 
     """
     DOCS: https://stripe.com/docs/billing/subscriptions/webhooks
     """
-    print("--------------")
-    print("--------------")
-    print(data_object)
-    print("--------------")
-    print("--------------")
     match event_type:
         case "invoice.paid":
             invoice_paid(data_object)

@@ -101,6 +101,7 @@ def investment_firm(firm_id):
 @main.route("/about")
 @main.route("/jobs")
 @main.route("/partners")
+@main.route("/help")
 @main.route("/claim")
 @main.route("/investor-database")
 @main.route("/startup-database")

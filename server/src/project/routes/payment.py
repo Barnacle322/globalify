@@ -6,8 +6,16 @@ from flask import Blueprint, jsonify, redirect, render_template, request, url_fo
 from flask_login import current_user, login_required
 from stripe.error import SignatureVerificationError
 
-from ..extensions import db
-from ..models import User, UserPayment
+from ..extensions import csrf, db
+from ..models import User, UserInfo, UserPayment
+from ..utils.errors.auth_error_messages import (
+    NOT_AUTHORIZED,
+    ONBOARDING_INCOMPLETE,
+    PAYMENT_EMAIL_USED,
+    PAYMENT_NOT_FOUND,
+    SUBSCRIPTION_EXISTS,
+)
+from ..utils.sendgrid_email import send_email
 from ..utils.status_enum import Status, StatusType
 
 payment = Blueprint("payment", __name__)
@@ -15,31 +23,52 @@ payment = Blueprint("payment", __name__)
 stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
 
 
-def create_customer(authenticated_user: User) -> UserPayment:
+def handle_customer(authenticated_user: User) -> UserPayment:
+    user_info = UserInfo.get_by_user_id(authenticated_user.id)
+    if not user_info or not user_info.is_complete:
+        raise Exception(ONBOARDING_INCOMPLETE)
+
+    # Find customer by email
+    customer_data = stripe.Customer.search(
+        query="email:'{}'".format(authenticated_user.email)
+    )
+    # If multiple customers are found, raise an exception
+    if len(customer_list := customer_data.get("data", [])) > 1:
+        raise Exception(PAYMENT_EMAIL_USED)
+    # If no customer is found, create a new one
+    elif not customer_list:
+        stripe_customer = stripe.Customer.create(
+            email=authenticated_user.email,
+            name=user_info.full_name,
+        )
+    # If a customer is found, use it
+    else:
+        stripe_customer = customer_list[0]
+
+    # Find customer in database
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
-    if not user_payment:
-        customer_data = stripe.Customer.search(
-            query="email:'{}'".format(authenticated_user.email),
-        )
+    if user_payment:
+        stripe_customer_id = stripe_customer.get("id")
+        # If customer is found, check if customer_id matches
+        if (
+            user_payment.customer_id == stripe_customer_id
+            and user_payment.customer_id
+            and stripe_customer_id
+        ):
+            return user_payment
+        # If not, sync them
+        elif stripe_customer_id:
+            user_payment.customer_id = stripe_customer_id
+            db.session.commit()
+            return user_payment
 
-        if not customer_data:
-            customer = stripe.Customer.create(
-                email=authenticated_user.email,
-            )
-        elif len(customer_list := customer_data.get("data", [])) == 1:
-            customer = customer_list[0]
-        else:
-            raise Exception(
-                "Multiple customers with same email found. Please contact support."
-            )
-
-        user_payment = UserPayment(
-            user_id=authenticated_user.id,
-            customer_id=customer.id,
-        )
-
-        db.session.add(user_payment)
-        db.session.commit()
+    # If customer isn't in DB, create a new one
+    user_payment = UserPayment(
+        user_id=authenticated_user.id,
+        customer_id=stripe_customer.get("id"),
+    )
+    db.session.add(user_payment)
+    db.session.commit()
 
     return user_payment
 
@@ -51,26 +80,21 @@ def create_checkout(
 ) -> stripe.checkout.Session:
     success_url = request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = request.host_url + "payment/cancel"
+    prices = stripe.Price.list(lookup_keys=[tier], expand=["data.product"])
 
-    try:
-        prices = stripe.Price.list(lookup_keys=[tier], expand=["data.product"])
-
-        checkout_session = stripe.checkout.Session.create(
-            customer=customer_id,
-            line_items=[
-                {
-                    "price": prices.data[0].id,
-                    "quantity": 1,
-                },
-            ],
-            mode="subscription",
-            success_url=success_url,
-            cancel_url=cancel_url,
-            subscription_data={"trial_period_days": trial_period_days},
-        )
-    except Exception as e:
-        status = Status(StatusType.ERROR, e.args[0]).get_status()
-        return redirect(url_for("payment.index", _external=False, **status))  # type: ignore
+    checkout_session = stripe.checkout.Session.create(
+        customer=customer_id,
+        line_items=[
+            {
+                "price": prices.data[0].id,
+                "quantity": 1,
+            },
+        ],
+        mode="subscription",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        subscription_data={"trial_period_days": trial_period_days},
+    )
 
     return checkout_session
 
@@ -86,12 +110,6 @@ def has_subscriptions(customer_id: str) -> bool:
     return active_subscriptions or trialing_subscriptions  # type: ignore
 
 
-@payment.route("/", methods=["GET"])
-@login_required
-def index():
-    return render_template("payment/index.html")
-
-
 @payment.route("/create-checkout-session", methods=["POST"])
 @login_required
 def create_checkout_session():
@@ -100,26 +118,66 @@ def create_checkout_session():
     """
     authenticated_user: User = current_user  # type: ignore
     if not authenticated_user:
-        status = Status(StatusType.ERROR, "You are not logged in").get_status()
+        status = Status(StatusType.ERROR, NOT_AUTHORIZED).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
     try:
-        user_payment = create_customer(authenticated_user)
+        user_payment = handle_customer(authenticated_user)
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
     if not user_payment:
-        status = Status(StatusType.ERROR, "User payment not found").get_status()
+        status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
     if has_subscriptions(user_payment.customer_id):
-        status = Status(StatusType.ERROR, "A subscription already exists").get_status()
+        status = Status(StatusType.ERROR, SUBSCRIPTION_EXISTS).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    checkout_session = create_checkout(customer_id=user_payment.customer_id)
+    try:
+        checkout_session = create_checkout(customer_id=user_payment.customer_id)
+    except Exception as e:
+        status = Status(StatusType.ERROR, e.args[0]).get_status()
+        return redirect(url_for("payment.index", _external=False, **status))  # type: ignore
 
     return redirect(checkout_session.url, code=303)
+
+
+@payment.route("/create-portal-session", methods=["POST"])
+@login_required
+def customer_portal():
+    """
+    DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
+    """
+
+    return_url = request.host_url
+    authenticated_user: User = current_user  # type: ignore
+    if not authenticated_user:
+        status = Status(StatusType.ERROR, NOT_AUTHORIZED).get_status()
+        return redirect(url_for("payment.index", _external=False, **status))
+
+    try:
+        user_payment = handle_customer(authenticated_user)
+    except Exception as e:
+        status = Status(StatusType.ERROR, e.args[0]).get_status()
+        return redirect(url_for("payment.index", _external=False, **status))
+
+    if not user_payment:
+        status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
+        return redirect(url_for("payment.index", _external=False, **status))
+
+    portal_session = stripe.billing_portal.Session.create(
+        customer=user_payment.customer_id,
+        return_url=return_url,
+    )
+
+    return redirect(portal_session.url, code=303)
+
+
+@payment.route("/subscriptions", methods=["GET"])
+def index():
+    return render_template("payment/index.html")
 
 
 @payment.route("/success", methods=["GET"])
@@ -134,32 +192,92 @@ def cancel():
     return render_template("payment/cancel.html")
 
 
-@payment.route("/create-portal-session", methods=["POST"])
-@login_required
-def customer_portal():
-    """
-    DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
-    """
+def invoice_paid(data_object):
+    stripe_data = data_object.get("lines").get("data")[0]
 
-    return_url = request.host_url
-    authenticated_user: User = current_user  # type: ignore
-    user_payment = create_customer(authenticated_user)
+    stripe_subscription_id = stripe_data.get("subscription")
+    stripe_period_end = stripe_data.get("period").get("end")
+    stripe_created = data_object.get("effective_at")
+    stripe_customer_id = data_object.get("customer")
 
+    user_payment = UserPayment.get_by_customer_id(stripe_customer_id)
     if not user_payment:
-        status = Status(StatusType.ERROR, "User payment not found").get_status()
-        return redirect(url_for("payment.index", _external=False, **status))
+        return jsonify(success=False)
 
-    portal_session = stripe.billing_portal.Session.create(
-        customer=user_payment.customer_id,
-        return_url=return_url,
+    user_payment.subscription_id = stripe_subscription_id
+    user_payment.expires_at_epoch = stripe_period_end
+    user_payment.created_epoch = stripe_created
+    user_payment.is_active = True
+
+    db.session.commit()
+
+
+def subscription_deleted(data_object):
+    stripe_customer_id = data_object.get("customer")
+
+    user_payment = UserPayment.get_by_customer_id(stripe_customer_id)
+    if not user_payment:
+        return jsonify(success=False)
+
+    user_payment.is_active = False
+    user_payment.subscription_id = ""
+
+    db.session.commit()
+
+
+def invoice_upcoming(data_object):
+    stripe_customer_id = data_object.get("customer")
+    customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
+
+    html_content = render_template("email/invoice_upcoming.html")
+
+    send_email(
+        recepients=customer_email,
+        subject="Your subscription will be soon renewed",
+        html_content=html_content,
     )
 
-    return redirect(portal_session.url, code=303)
+
+def trial_will_end(data_object):
+    stripe_customer_id = data_object.get("customer")
+    customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
+
+    html_content = render_template("email/subscription_expires.html")
+
+    send_email(
+        recepients=customer_email,
+        subject="Your trial ends soon!",
+        html_content=html_content,
+    )
 
 
-# TODO
+def payment_failed(data_object):
+    stripe_customer_id = data_object.get("customer")
+    customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
+
+    attempt_count = data_object.get("attempt_count")
+    html_content = render_template(
+        "email/payment_failed.html", attempt_count=attempt_count
+    )
+
+    send_email(
+        recepients=customer_email,
+        subject="Subscription could not be renewed",
+        html_content=html_content,
+    )
+
+
+# TODO: DELETE BEFORE PRODUCTION
+# @payment.route("/test")
+# def test():
+#     data_object = {"customer": "cus_OlHbJOXcqtkIdD", "attempt_count": 4}
+#     payment_failed(data_object)
+#     return jsonify(success=True)
+
+
 @payment.route("/webhook", methods=["POST"])
-def webhook_received():  # noqa
+@csrf.exempt
+def webhook_received():
     """
     DOCS: https://stripe.com/docs/webhooks
     """
@@ -168,7 +286,6 @@ def webhook_received():  # noqa
     event = None
 
     if webhook_secret:
-        # Retrieve the event by verifying the signature using the raw body and secret if webhook signing is configured.
         signature = request.headers.get("stripe-signature")
         try:
             event = stripe.Webhook.construct_event(
@@ -178,32 +295,30 @@ def webhook_received():  # noqa
         except SignatureVerificationError as e:
             print("⚠️  Webhook signature verification failed." + str(e))
             return jsonify(success=False)
+
         event_type = event["type"]
     else:
         data = request_data["data"]
         event_type = request_data["type"]
-    data_object = data["object"]  # noqa
+
+    data_object = data["object"]
 
     if not event:
         return jsonify(success=False)
 
-    if event_type == "checkout.session.completed":
-        print("🔔 Payment succeeded!")
-    elif event_type == "customer.subscription.trial_will_end":
-        print("Subscription trial will end")
-    elif event_type == "customer.subscription.created":
-        print("Subscription created %s", event.id)
-    elif event_type == "customer.subscription.updated":
-        is_canceled = data_object.get("canceled_at")
-        if is_canceled:
-            print("Subscription canceled %s", event.id)
-    elif event_type == "customer.subscription.deleted":
-        print("Subscription canceled: %s", event.id)
+    """
+    DOCS: https://stripe.com/docs/billing/subscriptions/webhooks
+    """
+    match event_type:
+        case "invoice.paid":
+            invoice_paid(data_object)
+        case "customer.subscription.deleted":
+            subscription_deleted(data_object)
+        case "invoice.upcoming":
+            invoice_upcoming(data_object)
+        case "customer.subscription.trial_will_end":
+            trial_will_end(data_object)
+        case "invoice.payment_failed":
+            payment_failed(data_object)
 
-    # NOTE: This endpoint should return 200 - 299 to acknowledge receipt of the event.
-    return {"status": "success"}, 200
-
-
-# @payment.errorhandler(Exception)
-# def exception_handler(e):
-#     return render_template("errors/500.html")
+    return jsonify(success=True)

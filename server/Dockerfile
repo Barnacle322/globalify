@@ -15,6 +15,7 @@ RUN pip install Werkzeug==2.3.7 \
     pillow==10.0.0 \
     stripe==6.1.0 \
     faker==19.5.0 \
+    sendgrid==6.10.0 \
     --no-cache-dir
 
 COPY src/ app/

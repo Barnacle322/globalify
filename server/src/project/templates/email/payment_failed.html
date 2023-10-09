@@ -32,7 +32,7 @@
                 }
             </style>
         <![endif]-->
-        <title>Trial expires soon</title>
+        <title>Subscription could not be renewed</title>
         <style>
             .hover-important-text-decoration-underline:hover {
                 text-decoration: underline !important;
@@ -67,7 +67,7 @@
         "
     >
         <div style="display: none">
-            Just reminding you that you will be charged soon &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;
+            We couldn't process your payment &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;
             &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;
             &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;
             &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;
@@ -104,7 +104,7 @@
             &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;
             &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;
             &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;
-            &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;
+            &#8199;&#65279;&#847; &#8199;&#65279;&#847;
         </div>
         <div role="article" aria-roledescription="email" aria-label="Confirm your email address" lang="en">
             <div
@@ -139,11 +139,12 @@
                                             color: #334155;
                                             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
                                         "
-                                    >
+                                    >   
+                                        {% if attempt_count == 4%}
                                         <img
-                                            src="https://globalify.xyz/static/elements/email/receipt.png"
+                                            src="https://globalify.xyz/static/elements/email/cancel.png"
                                             width="250"
-                                            alt="Receipt illustration"
+                                            alt="Cancel illustration"
                                             style="
                                                 max-width: 100%;
                                                 vertical-align: middle;
@@ -152,6 +153,20 @@
                                                 margin-bottom: 24px;
                                             "
                                         />
+                                        {% else %}
+                                        <img
+                                            src="https://globalify.xyz/static/elements/email/warning.png"
+                                            width="250"
+                                            alt="Warning illustration"
+                                            style="
+                                                max-width: 100%;
+                                                vertical-align: middle;
+                                                line-height: 1;
+                                                border: 0;
+                                                margin-bottom: 24px;
+                                            "
+                                        />
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 <tr>
@@ -176,12 +191,29 @@
                                                 color: #000;
                                             "
                                         >
-                                            Subscription payment upcoming
+                                            We couldn't process your payment
                                         </h1>
                                         <p style="margin: 0; line-height: 24px">
                                             <br />
-                                            If you are happy with our services, no action is required. Otherwise, you
-                                            can cancel your subscription in your account settings.
+                                            {% if attempt_count == 1 %}
+                                            <span
+                                                >We have made an attempt to renew your subscription. However, something
+                                                went wrong. Try reviewing your payment details and we will try again
+                                                soon.</span
+                                            >
+                                            {% elif attempt_count == 4 %}
+                                            <span
+                                                >We couldn't renew your subscription again, so we won't be trying again.
+                                                If you wish to use our services again, you can resubscribe in your
+                                                account settings.</span
+                                            >
+                                            {% elif attempt_count > 1 %}
+                                            <span
+                                                >We have made {{ attempt_count }} attempts to renew your subscription.
+                                                However, something went wrong. Try reviewing your payment details and we
+                                                will try again soon.</span
+                                            >
+                                            {% endif %}
                                         </p>
                                         <div role="separator" style="line-height: 24px">&zwj;</div>
                                         <div style="text-align: center">

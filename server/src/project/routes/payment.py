@@ -230,9 +230,10 @@ def invoice_upcoming(data_object):
     customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
 
     html_content = render_template("email/invoice_upcoming.html")
+
     send_email(
         recepients=customer_email,
-        subject="Your subscription will renew soon",
+        subject="Your subscription will be soon renewed",
         html_content=html_content,
     )
 
@@ -242,25 +243,36 @@ def trial_will_end(data_object):
     customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
 
     html_content = render_template("email/subscription_expires.html")
+
     send_email(
         recepients=customer_email,
-        subject="Your trial is about to expire",
+        subject="Your trial ends soon!",
         html_content=html_content,
     )
 
 
 def payment_failed(data_object):
-    # Add logic that notifies user that their payment failed
-    # NOTE: use 'attempt_count' and 'attempted' to determine if this is the first time the payment failed
-    # After the 4th attempt the subscription is canceled and 'customer.subscription.deleted' is triggered
-    ...
+    stripe_customer_id = data_object.get("customer")
+    customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
+
+    attempt_count = data_object.get("attempt_count")
+    html_content = render_template(
+        "email/payment_failed.html", attempt_count=attempt_count
+    )
+
+    send_email(
+        recepients=customer_email,
+        subject="Subscription could not be renewed",
+        html_content=html_content,
+    )
 
 
-@payment.route("/test")
-def test():
-    data_object = {"customer": "cus_OlHbJOXcqtkIdD"}
-    trial_will_end(data_object)
-    return jsonify(success=True)
+# TODO: DELETE BEFORE PRODUCTION
+# @payment.route("/test")
+# def test():
+#     data_object = {"customer": "cus_OlHbJOXcqtkIdD", "attempt_count": 4}
+#     payment_failed(data_object)
+#     return jsonify(success=True)
 
 
 @payment.route("/webhook", methods=["POST"])

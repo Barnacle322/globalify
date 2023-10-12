@@ -21,7 +21,7 @@ from .utils.fake_data import (
     get_names,
     get_websites,
 )
-from .utils.status_enum import OauthProvider
+from .utils.status_enum import OauthProvider, Tier
 
 
 class User(UserMixin, db.Model):
@@ -46,7 +46,7 @@ class User(UserMixin, db.Model):
 
     @password.setter
     def password(self, password) -> None:
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password, "scrypt")
 
     def verify_password(self, password) -> bool:
         if not self.password_hash:
@@ -71,9 +71,6 @@ class User(UserMixin, db.Model):
 
     @staticmethod
     def signed_with_oauth(email: str) -> OauthProvider:
-        """
-        Returns OauthProvider if signed with oauth, False otherwise or if user does not exist.
-        """
         try:
             user = User.query.filter(User.email == email).first()
             if not user:
@@ -88,7 +85,6 @@ class UserInfo(db.Model):
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id"), nullable=False, unique=True
     )
-    user: Mapped[User] = relationship("User", backref="user_info", lazy=True)
     first_name: Mapped[str | None] = mapped_column(String, nullable=True)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -99,12 +95,15 @@ class UserInfo(db.Model):
     # Google storage blob id
     pfp_uuid: Mapped[str | None] = mapped_column(String, nullable=True)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    language: Mapped[str] = mapped_column(String, nullable=True)
+
+    user: Mapped[User] = relationship("User", backref="user_info", lazy=True)
 
     def __init__(self, **kwargs):
         super(UserInfo, self).__init__(**kwargs)
 
     def __repr__(self):
-        return f"<UserInfo {self.username}>"
+        return f"<UserInfo: {self.username} | {'Incomplete' if not self.is_complete else 'Complete'}>"
 
     @property
     def full_name(self):
@@ -145,22 +144,24 @@ class UserPayment(db.Model):
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id"), nullable=False, unique=True
     )
-    user: Mapped[User] = relationship("User", backref="user_payment", lazy=True)
-    customer_id: Mapped[str] = mapped_column(String, nullable=False)
+    customer_id: Mapped[str] = mapped_column(String, nullable=True)
     subscription_id: Mapped[str] = mapped_column(String, nullable=True)
-    created: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    expires_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
+    expires_at: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    tier: Mapped[Tier] = mapped_column(SQLEnum(Tier), nullable=False, default=Tier.FREE)
+
+    user: Mapped[User] = relationship("User", backref="user_payment", lazy=True)
 
     def __init__(self, **kwargs):
         super(UserPayment, self).__init__(**kwargs)
 
     @property
-    def created_epoch(self) -> DateTime:
+    def created_epoch(self) -> Union[DateTime, None]:
         return self.created
 
     @property
-    def expires_at_epoch(self) -> DateTime:
+    def expires_at_epoch(self) -> Union[DateTime, None]:
         return self.expires_at
 
     @created_epoch.setter
@@ -193,6 +194,16 @@ class UserPayment(db.Model):
             return user_payment
         except NoResultFound:
             return None
+
+    def sanitize(self):
+        subscription = {
+            "created": self.created,
+            "expires_at": self.expires_at.date(),  # type: ignore
+            "is_acrive": self.is_active,
+            "tier": self.tier,
+            "subscription_id": self.subscription_id,
+        }
+        return subscription
 
 
 company_industry = db.Table(
@@ -823,6 +834,6 @@ def populate_industry(*args, **kwargs):
     Industry.populate()
 
 
-@event.listens_for(Investor.__table__, "after_create")  # type: ignore
-def populate_investor(*args, **kwargs):
-    Investor.populate()
+# @event.listens_for(Investor.__table__, "after_create")  # type: ignore
+# def populate_investor(*args, **kwargs):
+#     Investor.populate()

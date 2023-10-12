@@ -6,12 +6,17 @@ from PIL import Image
 
 
 def upload_blob(
-    content: bytes, bucket_name: str = "globalify_profile_pictures"
+    content: bytes,
+    old_blob_id: str | None = None,
+    bucket_name: str = "globalify_profile_pictures",
+    destination_blob_name: UUID = uuid4(),
 ) -> UUID:
-    destination_blob_name = uuid4()
-
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
+    if old_blob_id:
+        blob = bucket.blob(old_blob_id)
+        blob.delete()
+
     blob = bucket.blob(str(destination_blob_name))
 
     blob.upload_from_file(io.BytesIO(content))
@@ -34,6 +39,12 @@ def download_blob_into_memory(
 
 def prepare_picture(image):
     input_image = Image.open(io.BytesIO(image.read()))
+
+    # Convert RGBA images to RGB mode
+    if input_image.mode == "RGBA":
+        background = Image.new("RGB", input_image.size, (255, 255, 255))
+        background.paste(input_image, mask=input_image.split()[3])
+        input_image = background.convert("RGB")
 
     width, height = input_image.size
     size = min(width, height)

@@ -4,10 +4,16 @@ from typing import Any, Union
 
 import requests
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
-from flask_login import current_user, login_required, login_user, logout_user
+from flask_login import (
+    AnonymousUserMixin,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
 
 from ..extensions import db, login_manager, oauth
-from ..models import Company, Country, Industry, Round, User, UserInfo
+from ..models import Company, Country, Industry, Round, User, UserInfo, UserPayment
 from ..utils.errors.auth_error_messages import (
     AUTH_EMAIL_NOT_FOUNDS,
     AUTH_EMAIL_USED,
@@ -24,6 +30,7 @@ from ..utils.errors.auth_error_messages import (
     OAUTH_NO_USER_INFO,
 )
 from ..utils.google_storage import prepare_picture, upload_blob
+from ..utils.info_lists import languages as LANGUAGE_LIST
 from ..utils.status_enum import OauthProvider, Status, StatusType
 
 auth = Blueprint("auth", __name__)
@@ -95,7 +102,7 @@ def register():
             status = Status(StatusType.ERROR, AUTH_MISMATCHED_PASSWORDS).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 
-        if oauth := User.signed_with_oauth(email):
+        if (oauth := User.signed_with_oauth(email)) != OauthProvider.REGULAR:
             status = Status(
                 StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())
             ).get_status()
@@ -112,7 +119,8 @@ def register():
         db.session.commit()
 
         new_user_info = UserInfo(user_id=new_user.id)
-        db.session.add(new_user_info)
+        new_user_payment = UserPayment(user_id=new_user.id, billing_address=email)
+        db.session.add_all((new_user_info, new_user_payment))
         db.session.commit()
 
         return redirect(url_for("auth.login"))
@@ -140,7 +148,7 @@ def login():
             status = Status(StatusType.ERROR, AUTH_EMAIL_NOT_FOUNDS).get_status()
             return redirect(url_for("auth.login", _external=False, **status))
 
-        if oauth := User.signed_with_oauth(email):
+        if (oauth := User.signed_with_oauth(email)) != OauthProvider.REGULAR:
             status = Status(
                 StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())
             ).get_status()
@@ -155,8 +163,8 @@ def login():
         user_info = UserInfo.get_by_user_id(user.id)
         if user_info and not user_info.is_complete:
             return redirect(url_for("auth.onboarding"))
-        else:
-            return redirect(url_for("main.dashboard"))
+
+        return redirect(url_for("main.dashboard"))
 
     return render_template("auth/login.html", status_type=status_type, msg=msg)
 
@@ -165,15 +173,12 @@ def login():
 @login_required
 def onboarding():
     authenticated_user: User = current_user  # type: ignore
-    if not authenticated_user:
+    if isinstance(authenticated_user, AnonymousUserMixin):
         return redirect(url_for("auth.login"))
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info:
         return redirect(url_for("auth.login"))
-
-    # TODO: Add languages to database
-    languages = ["English", "Spanish", "French", "German", "Italian", "Portuguese"]
 
     if request.method == "POST":
         first_name, last_name, username = (
@@ -194,6 +199,7 @@ def onboarding():
         user_info.last_name = last_name
         user_info.username = username
         user_info.bio = request.form.get("about")
+        user_info.language = request.form.get("language")  # type: ignore
         user_info.linkedin = request.form.get("linkedin")
         user_info.instagram = request.form.get("instagram")
         user_info.twitter = request.form.get("twitter")
@@ -213,7 +219,7 @@ def onboarding():
         return redirect(url_for("auth.company_form"))
 
     return render_template(
-        "auth/onboarding.html", languages=languages, user_info=user_info.sanitize()
+        "auth/onboarding.html", languages=LANGUAGE_LIST, user_info=user_info.sanitize()
     )
 
 
@@ -221,7 +227,7 @@ def onboarding():
 @login_required
 def username(username: str):
     authenticated_user: User = current_user  # type: ignore
-    if not authenticated_user:
+    if isinstance(authenticated_user, AnonymousUserMixin):
         return redirect(url_for("auth.login"))
 
     is_taken = UserInfo.is_taken(username)
@@ -233,7 +239,7 @@ def username(username: str):
 @login_required
 def company_form():
     authenticated_user: User = current_user  # type: ignore
-    if not authenticated_user:
+    if isinstance(authenticated_user, AnonymousUserMixin):
         return redirect(url_for("auth.login"))
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
@@ -298,15 +304,15 @@ def linkedin_callback():
         status = Status(StatusType.ERROR, OAUTH_ACCESS_TOKEN).get_status()
         return redirect(url_for("auth.login", _external=False, **status))
 
-    email_response = api_call(
+    email_data = api_call(
         url=LINKEDIN_EMAIL_URL,
         access_token=access_token,
     )
-    if not email_response:
+    if not email_data:
         status = Status(StatusType.ERROR, OAUTH_COULD_NOT_RETRIEVE_DATA).get_status()
         return redirect(url_for("auth_login", _external=False, **status))
 
-    email = email_response.get("elements")[0].get("handle~").get("emailAddress")
+    email = email_data.get("elements")[0].get("handle~").get("emailAddress")
     if not email:
         status = Status(StatusType.ERROR, OAUTH_NO_EMAIL).get_status()
         return redirect(url_for("auth.login", _external=False, **status))
@@ -330,6 +336,7 @@ def linkedin_callback():
 
     user.oauth_provider = OauthProvider.LINKEDIN
     db.session.commit()
+
     user_info = UserInfo.get_by_user_id(user.id)
     if not user_info:
         user_info = UserInfo(
@@ -338,16 +345,22 @@ def linkedin_callback():
             first_name=first_name,
             last_name=last_name,
         )
-        db.session.add(user_info)
 
+        db.session.add(user_info)
+        db.session.commit()
+
+    user_payment = UserPayment.get_by_user_id(user.id)
+    if not user_payment:
+        user_payment = UserPayment(user_id=user.id, billing_address=email)
+        db.session.add(user_payment)
         db.session.commit()
 
     login_user(user, remember=True)
 
     if not user_info.is_complete:
         return redirect(url_for("auth.onboarding"))
-    else:
-        return redirect(url_for("main.dashboard"))
+
+    return redirect(url_for("main.dashboard"))
 
 
 @auth.route("/login-google")
@@ -391,7 +404,14 @@ def google_callback():
             first_name=google_user_info.get("given_name"),
             last_name=google_user_info.get("family_name"),
         )
+
         db.session.add(user_info)
+        db.session.commit()
+
+    user_payment = UserPayment.get_by_user_id(user.id)
+    if not user_payment:
+        user_payment = UserPayment(user_id=user.id, billing_address=email)
+        db.session.add(user_payment)
         db.session.commit()
 
     login_user(user, remember=True)

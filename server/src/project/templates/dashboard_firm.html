@@ -90,7 +90,11 @@
                                 </div>
                             </td>
                             <td class="py-6 pl-4 font-medium">
-                                <a class="text-blue-500 hover:text-blue-700" href="/investment_firm/{{ investment_firm.id }}">View</a>
+                                <a
+                                    class="text-blue-500 hover:text-blue-700"
+                                    href="/investment_firm/{{ investment_firm.id }}"
+                                    >View</a
+                                >
                             </td>
                         </tr>
                         {% endfor %} {% endif %}
@@ -107,7 +111,8 @@
                         <span aria-hidden="true">«</span>
                         <span class="sr-only">Previous</span>
                     </a>
-                    {% endif %} {% for page in investments_firms.iter_pages() %} {% if page %} {% if investments_firms.page == page %}
+                    {% endif %} {% for page in investments_firms.iter_pages() %} {% if page %} {% if
+                    investments_firms.page == page %}
                     <a
                         class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500 text-sm font-medium text-white hover:bg-sky-400"
                         href="/dashboard/investment-firms?page={{ page }}{{ '&q=' + search_query if search_query else ''}}"

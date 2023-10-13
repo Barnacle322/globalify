@@ -14,6 +14,7 @@ from ..utils.google_storage import download_blob_into_memory
 from ..utils.info_lists import languages as LANGUAGE_LIST
 from ..utils.status_enum import Status, StatusType
 from .main import check_user_info_complete, check_verification
+from .payment import get_invoices
 
 settings = Blueprint("settings", __name__)
 
@@ -115,10 +116,14 @@ def billing():
     except Exception as e:
         print(e)
 
+    invoices = get_invoices(authenticated_user)
+    print(invoices)
+
     return render_template(
         "settings/billing.html",
         user=authenticated_user,
         pfp_base64=pfp_base64,
+        invoices=invoices,
     )
 
 

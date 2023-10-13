@@ -131,97 +131,26 @@
             </div>
             <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
                 <div>
-                    <h2 class="font-medium leading-7">Personal Information</h2>
-                    <p class="mt-1 leading-6 text-slate-700">Use a permanent address where you can receive mail.</p>
+                    <h2 class="font-medium leading-7">Invoice history</h2>
+                    <p class="mt-1 leading-6 text-slate-700">See your invoice history here.</p>
                 </div>
-                <form class="md:col-span-2">
-                    <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
-                        <div class="col-span-3">
-                            <label for="first-name" class="block text-sm font-medium leading-6">First name</label>
-                            <div class="mt-2">
-                                <input
-                                    type="text"
-                                    name="first-name"
-                                    id="first-name"
-                                    autocomplete="given-name"
-                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                    value="{{ user.user_info[0].first_name }}"
-                                />
-                            </div>
-                        </div>
-                        <div class="col-span-3">
-                            <label for="last-name" class="block text-sm font-medium leading-6">Last name</label>
-                            <div class="mt-2">
-                                <input
-                                    type="text"
-                                    name="last-name"
-                                    id="last-name"
-                                    autocomplete="family-name"
-                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                    value="{{ user.user_info[0].last_name }}"
-                                />
-                            </div>
-                        </div>
-                        <div class="col-span-full">
-                            <label for="email" class="block text-sm font-medium leading-6">Email address</label>
-                            <div class="mt-2">
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    autocomplete="email"
-                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                    value="{{ user.email }}"
-                                />
-                            </div>
-                        </div>
-                        <div class="col-span-full">
-                            <label for="username" class="block text-sm font-medium leading-6">Username</label>
-                            <div class="mt-2">
-                                <span class="absolute hidden h-12 select-none items-center pl-3 text-gray-500 sm:flex">
-                                    globalify.com/user/
-                                </span>
-                                <input
-                                    type="text"
-                                    name="username"
-                                    id="username"
-                                    autocomplete="username"
-                                    pattern="[a-zA-Z0-9_]{3,20}"
-                                    class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2 sm:pl-[168px]"
-                                    minlength="4"
-                                    placeholder="janesmith"
-                                    required
-                                    value="{{ user.user_info[0].username }}"
-                                />
-                            </div>
-                        </div>
-                        <div class="col-span-full">
-                            <label for="language" class="block text-sm font-medium leading-6">Language</label>
-                            <div class="mt-2">
-                                <select
-                                    id="language"
-                                    name="language"
-                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                >
-                                    <option value="" disabled selected hidden>Select a language</option>
-                                    {% for lang in languages %} {% if lang == user.user_info[0].language %}
-                                    <option value="{{ lang }}" selected>{{ lang }}</option>
-                                    {% else %}
-                                    <option value="{{ lang }}">{{ lang }}</option>
-                                    {% endif %} {% endfor %}
-                                </select>
-                            </div>
-                        </div>
+                <div class="md:col-span-2">
+                    {% if invoices %}
+                    {% for invoice in invoices %}
+                    <div class="flex rounded-xl justify-between mb-2">
+                        <span>{{ invoice.created }}</span>
+                        <span>${{ invoice.amount_due }}</span>
+                        <span>${{ invoice.amount_paid }}</span>
+                        <span>{{ invoice.status.title() }}</span>
+                        <a href="{{ invoice.hosted_invoice_url }}" class="underline">Invoice</a>
                     </div>
-                    <div class="mt-8 flex">
-                        <button
-                            type="submit"
-                            class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
-                        >
-                            Save
-                        </button>
+                    {% endfor %}
+                    {% else %}
+                    <div>
+                        <span class="text-slate-700">No invoices found</span>
                     </div>
-                </form>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </main>

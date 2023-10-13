@@ -79,6 +79,9 @@ class User(UserMixin, db.Model):
         except NoResultFound:
             return OauthProvider.REGULAR
 
+    def uses_oauth(self) -> bool:
+        return self.oauth_provider != OauthProvider.REGULAR
+
 
 class UserInfo(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)

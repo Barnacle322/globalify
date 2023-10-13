@@ -123,7 +123,7 @@
                                 <p class="mt-2 text-xs leading-5">JPG or PNG</p>
                             </div>
                         </div>
-                        <div class="col-span-3">
+                        <div class="sm:col-span-3">
                             <label for="first-name" class="block text-sm font-medium leading-6">First name</label>
                             <div class="mt-2">
                                 <input
@@ -136,7 +136,7 @@
                                 />
                             </div>
                         </div>
-                        <div class="col-span-3">
+                        <div class="sm:col-span-3">
                             <label for="last-name" class="block text-sm font-medium leading-6">Last name</label>
                             <div class="mt-2">
                                 <input
@@ -150,6 +150,21 @@
                             </div>
                         </div>
                         <div class="col-span-full">
+                            {% if user.uses_oauth() %}
+                            <label for="email" class="block text-sm font-medium leading-6">Email address</label>
+                            <div class="mt-2">
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    autocomplete="email"
+                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 text-slate-700 cursor-not-allowed"
+                                    value="{{ user.email }}"
+                                    disabled
+                                />
+                            </div>
+                            <span class="text-xs text-slate-700">Logged in with OAuth</span>
+                            {% else %}
                             <label for="email" class="block text-sm font-medium leading-6">Email address</label>
                             <div class="mt-2">
                                 <input
@@ -161,6 +176,7 @@
                                     value="{{ user.email }}"
                                 />
                             </div>
+                            {% endif %}
                         </div>
                         <div class="col-span-full">
                             <label for="username" class="block text-sm font-medium leading-6">Username</label>

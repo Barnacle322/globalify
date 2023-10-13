@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 
 import stripe
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
@@ -21,6 +22,32 @@ from .main import check_user_info_complete
 payment = Blueprint("payment", __name__)
 
 stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
+
+
+def get_invoices(authenticated_user: User):
+    user_info = UserInfo.get_by_user_id(authenticated_user.id)
+    if not user_info or not user_info.is_complete:
+        raise Exception(ONBOARDING_INCOMPLETE)
+
+    user_payment = UserPayment.get_by_user_id(authenticated_user.id)
+    if not user_payment:
+        return []
+
+    stripe_invoices = stripe.Invoice.list(customer=user_payment.customer_id)
+    invoices = []
+    for stripe_invoice in stripe_invoices:
+        invoice = {
+            "id": stripe_invoice.get("id"),
+            "created": datetime.utcfromtimestamp(stripe_invoice.get("created")).date(),
+            "amount_due": stripe_invoice.get("amount_due"),
+            "amount_paid": stripe_invoice.get("amount_paid"),
+            "currency": stripe_invoice.get("currency"),
+            "status": stripe_invoice.get("status"),
+            "hosted_invoice_url": stripe_invoice.get("hosted_invoice_url"),
+        }
+        invoices.append(invoice)
+
+    return invoices
 
 
 def handle_customer(authenticated_user: User) -> UserPayment:

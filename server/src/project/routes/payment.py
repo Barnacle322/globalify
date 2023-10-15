@@ -5,7 +5,7 @@ from datetime import datetime
 import stripe
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import AnonymousUserMixin, current_user, login_required
-from stripe.error import SignatureVerificationError
+from stripe.error import InvalidRequestError, SignatureVerificationError
 
 from ..extensions import csrf, db
 from ..models import User, UserInfo, UserPayment
@@ -270,18 +270,27 @@ def subscription_cancel():
 
     subscription_id = request.form.get("subscription_id")
 
-    portal_session = stripe.billing_portal.Session.create(
-        customer=user_payment.customer_id,
-        return_url=return_url,
-        flow_data={
-            "type": "subscription_cancel",
-            "subscription_cancel": {"subscription": subscription_id},
-            "after_completion": {
-                "type": "redirect",
-                "redirect": {"return_url": return_url},
+    try:
+        portal_session = stripe.billing_portal.Session.create(
+            customer=user_payment.customer_id,
+            return_url=return_url,
+            flow_data={
+                "type": "subscription_cancel",
+                "subscription_cancel": {"subscription": subscription_id},
+                "after_completion": {
+                    "type": "redirect",
+                    "redirect": {"return_url": return_url},
+                },
             },
-        },
-    )
+        )
+    except InvalidRequestError:
+        status = Status(
+            StatusType.ERROR, "The subscription is already pending cancelation"
+        ).get_status()
+        return redirect(url_for("settings.plan", _external=False, **status))
+    except Exception:
+        status = Status(StatusType.ERROR, "Could not cancel subscription").get_status()
+        return redirect(url_for("settings.plan", _external=False, **status))
 
     return redirect(portal_session.url, code=303)
 

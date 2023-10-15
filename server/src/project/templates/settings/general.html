@@ -98,7 +98,7 @@
                     <h2 class="font-medium leading-7">Personal Information</h2>
                     <p class="mt-1 leading-6 text-slate-700">Use a permanent address where you can receive mail.</p>
                 </div>
-                <form class="md:col-span-2">
+                <form class="md:col-span-2" action="/settings/personal-info" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
                         <div class="col-span-full flex items-center gap-x-8">
@@ -115,11 +115,15 @@
                                 class="h-16 w-16 flex-none rounded-xl object-cover"
                             />
                             {% endif %}
-
                             <div>
-                                <button type="button" class="rounded-xl bg-sky-500 px-3 py-2 text-white">
+                                <input                                 
+                                    type="file"
+                                    id="pfp"
+                                    name="pfp"
+                                    accept="image/png, image/jpeg" 
+                                    class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
                                     Change avatar
-                                </button>
+                                </input>
                                 <p class="mt-2 text-xs leading-5">JPG or PNG</p>
                             </div>
                         </div>
@@ -216,13 +220,14 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-8 flex">
+                    <div class="mt-8 flex gap-5">
                         <button
                             type="submit"
                             class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
                         >
                             Save
                         </button>
+                        <a class="flex justify-center items-center text-slate-700 underline " href="/settings/general">Cancel</a>
                     </div>
                 </form>
             </div>

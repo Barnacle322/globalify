@@ -1,18 +1,13 @@
 import base64
 
 from flask import Blueprint, redirect, render_template, request, url_for
-from flask_login import (
-    AnonymousUserMixin,
-    current_user,
-    fresh_login_required,
-    login_required,
-)
+from flask_login import current_user, fresh_login_required, login_required
 
 from ..extensions import db
-from ..models import User, UserPayment
+from ..models import User, UserInfo, UserPayment
 from ..utils.google_storage import download_blob_into_memory
 from ..utils.info_lists import languages as LANGUAGE_LIST
-from ..utils.status_enum import Status, StatusType
+from ..utils.status_enum import OauthProvider, Status, StatusType
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
@@ -26,7 +21,7 @@ settings = Blueprint("settings", __name__)
 @check_verification
 def index():
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if not authenticated_user.is_authenticated:
         return redirect(url_for("auth.login"))
 
     pfp_base64 = False
@@ -51,7 +46,7 @@ def index():
 @check_verification
 def security():
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if not authenticated_user.is_authenticated:
         return redirect(url_for("auth.login"))
 
     pfp_base64 = False
@@ -75,7 +70,7 @@ def security():
 @check_verification
 def plan():
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if not authenticated_user.is_authenticated:
         return redirect(url_for("auth.login"))
 
     pfp_base64 = False
@@ -105,7 +100,7 @@ def plan():
 @check_verification
 def billing():
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if not authenticated_user.is_authenticated:
         return redirect(url_for("auth.login"))
 
     pfp_base64 = False
@@ -127,7 +122,6 @@ def billing():
     )
 
 
-# TODO
 @settings.post("/change-password")
 @login_required
 @check_user_info_complete
@@ -135,7 +129,7 @@ def billing():
 @fresh_login_required
 def change_password():
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if not authenticated_user.is_authenticated:
         return redirect(url_for("auth.login"))
 
     current_password = request.form.get("current-password")
@@ -155,3 +149,49 @@ def change_password():
     status = Status(StatusType.SUCCESS, "Password successfully changed.").get_status()
 
     return redirect(url_for("main.settings", _external=False, **status))
+
+
+@settings.post("/personal-info")
+@login_required
+@check_user_info_complete
+@check_verification
+@fresh_login_required
+def change_personal_info():
+    authenticated_user: User = current_user  # type: ignore
+    if not authenticated_user.is_authenticated:
+        return redirect(url_for("auth.login"))
+
+    first_name = request.form.get("first-name")
+    last_name = request.form.get("last-name")
+    email = request.form.get("email")
+    username = request.form.get("username")
+    language = request.form.get("language")
+
+    if first_name:
+        authenticated_user.user_info[0].first_name = first_name
+    if last_name:
+        authenticated_user.user_info[0].last_name = last_name
+    if email:
+        if not authenticated_user.oauth_provider == OauthProvider.REGULAR:
+            status = Status(
+                StatusType.ERROR, "Cannot change email for oauth users."
+            ).get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
+
+        authenticated_user.email = email
+    if username:
+        if UserInfo.is_taken(username):
+            status = Status(StatusType.ERROR, "Username is taken.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
+
+        authenticated_user.username = username
+    if language:
+        authenticated_user.user_info[0].language = language
+
+    db.session.commit()
+
+    status = Status(
+        StatusType.SUCCESS, "Personal info successfully changed."
+    ).get_status()
+
+    return redirect(url_for("settings.index", _external=False, **status))

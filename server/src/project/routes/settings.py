@@ -1,10 +1,12 @@
 import base64
+import re
 
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required
 
 from ..extensions import db
 from ..models import User, UserInfo, UserPayment
+from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
 from ..utils.google_storage import download_blob_into_memory
 from ..utils.info_lists import languages as LANGUAGE_LIST
 from ..utils.status_enum import OauthProvider, Status, StatusType
@@ -156,7 +158,7 @@ def change_password():
 @check_user_info_complete
 @check_verification
 @fresh_login_required
-def change_personal_info():
+def change_personal_info():  # noqa
     authenticated_user: User = current_user  # type: ignore
     if not authenticated_user.is_authenticated:
         return redirect(url_for("auth.login"))
@@ -167,11 +169,29 @@ def change_personal_info():
     username = request.form.get("username")
     language = request.form.get("language")
 
-    if first_name:
-        authenticated_user.user_info[0].first_name = first_name
-    if last_name:
-        authenticated_user.user_info[0].last_name = last_name
-    if email:
+    if first_name and first_name.strip() != authenticated_user.user_info[0].first_name:
+        if first_name == " ":
+            status = Status(
+                StatusType.ERROR, "First name cannot be empty."
+            ).get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
+        authenticated_user.user_info[0].first_name = first_name.strip()
+
+    if last_name and last_name.strip() != authenticated_user.user_info[0].last_name:
+        if last_name != " ":
+            status = Status(StatusType.ERROR, "Last name cannot be empty.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
+        authenticated_user.user_info[0].last_name = last_name.strip()
+
+    if email and email != authenticated_user.email:
+        if email == " ":
+            status = Status(StatusType.ERROR, "Email cannot be empty.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
+
+        if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
+            status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
+            return redirect(url_for("auth.register", _external=False, **status))
+
         if not authenticated_user.oauth_provider == OauthProvider.REGULAR:
             status = Status(
                 StatusType.ERROR, "Cannot change email for oauth users."
@@ -179,13 +199,25 @@ def change_personal_info():
             return redirect(url_for("settings.index", _external=False, **status))
 
         authenticated_user.email = email
-    if username:
+
+    if username and username.strip() != authenticated_user.user_info[0].username:
+        if username == " ":
+            status = Status(StatusType.ERROR, "Username cannot be empty.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
         if UserInfo.is_taken(username):
             status = Status(StatusType.ERROR, "Username is taken.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
-        authenticated_user.username = username
-    if language:
+        authenticated_user.user_info[0].username = username.strip()
+
+    if language and language != authenticated_user.user_info[0].language:
+        if language == " ":
+            status = Status(StatusType.ERROR, "Language cannot be empty.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
+        if language not in LANGUAGE_LIST:
+            status = Status(StatusType.ERROR, "Invalid language.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
+
         authenticated_user.user_info[0].language = language
 
     db.session.commit()
@@ -195,3 +227,16 @@ def change_personal_info():
     ).get_status()
 
     return redirect(url_for("settings.index", _external=False, **status))
+
+
+@settings.route("/delete-account", methods=["GET", "POST"])
+@login_required
+@check_user_info_complete
+@check_verification
+@fresh_login_required
+def delete_account():
+    authenticated_user: User = current_user  # type: ignore
+    if not authenticated_user.is_authenticated:
+        return redirect(url_for("auth.login"))
+
+    return render_template("settings/delete_account.html")

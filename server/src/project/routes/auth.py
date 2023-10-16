@@ -94,7 +94,7 @@ def register():
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
             status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 

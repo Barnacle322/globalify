@@ -116,14 +116,13 @@
                             />
                             {% endif %}
                             <div>
-                                <input                                 
+                                <input
                                     type="file"
                                     id="pfp"
                                     name="pfp"
-                                    accept="image/png, image/jpeg" 
+                                    accept="image/png, image/jpeg"
                                     class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
-                                    Change avatar
-                                </input>
+                                />
                                 <p class="mt-2 text-xs leading-5">JPG or PNG</p>
                             </div>
                         </div>
@@ -162,7 +161,7 @@
                                     name="email"
                                     type="email"
                                     autocomplete="email"
-                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 text-slate-700 cursor-not-allowed"
+                                    class="h-12 w-full cursor-not-allowed rounded-xl border-2 border-stone-300 px-2 text-slate-700"
                                     value="{{ user.email }}"
                                     disabled
                                 />
@@ -227,7 +226,9 @@
                         >
                             Save
                         </button>
-                        <a class="flex justify-center items-center text-slate-700 underline " href="/settings/general">Cancel</a>
+                        <a class="flex items-center justify-center text-slate-700 underline" href="/settings/general"
+                            >Cancel</a
+                        >
                     </div>
                 </form>
             </div>

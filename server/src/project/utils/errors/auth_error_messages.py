@@ -17,7 +17,7 @@ OAUTH_COULD_NOT_RETRIEVE_DATA = (
     "Data could not be retrieved from the OAuth provider. Try again later."
 )
 
-NOT_AUTHORIZED = "Please login first."
+NOT_AUTHORIZED = "Oops! Looks like you aren't logged in"
 
 ONBOARDING_INCOMPLETE = "Please complete your profile before subscribing."
 

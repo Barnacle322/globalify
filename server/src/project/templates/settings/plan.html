@@ -2,7 +2,7 @@
 <script src="../static/scripts/dashboard.js" defer></script>
 {% endblock %} {% block content %}
 <div class="mx-auto block max-w-7xl pt-24 lg:flex lg:gap-x-16 lg:px-8">
-    <aside class="flex overflow-x-auto border-0 border-b py-4 lg:block lg:w-64 lg:flex-none lg:py-20">
+    <aside class="flex overflow-x-auto py-4 lg:block lg:w-64 lg:flex-none lg:py-20">
         <nav class="flex-none px-4 sm:px-6 xl:px-0">
             <ul class="flex gap-x-3 gap-y-1 whitespace-nowrap lg:flex-col">
                 <li>
@@ -111,6 +111,7 @@
                             >
                         </div>
                         <div class="flex items-baseline justify-end gap-4">
+                            {% if subscription.tier.value != "free" %}
                             <form action="/payment/create-portal-session-subscription-cancel" method="POST">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                                 <input
@@ -127,14 +128,42 @@
                                     name="subscription_id"
                                     value="{{ subscription.subscription_id }}"
                                 />
-                                <button class="rounded-lg bg-white px-4 py-2 text-xs">Upgrade</button>
+                                <button
+                                    class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
+                                >
+                                    Upgrade
+                                </button>
                             </form>
+                            {% else %}
+                            <a
+                                href="/payment/pricing"
+                                class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
+                                >Upgrade</a
+                            >
+                            {% endif %}
                         </div>
                     </div>
-                    <div class="mt-5 text-xs leading-4">
-                        You have full access to Globalify services. Your subscription will be renewed on
+                    {% if subscription.tier.value == "free" %}
+                    <div class="mt-5 text-xs leading-4 text-slate-900">
+                        You have free access to some Globalify features
+                    </div>
+                    {% elif subscription.tier.value == "elevate" %}
+                    <div class="mt-5 text-xs leading-4 text-slate-900">
+                        You have access to our investor database. Your subscription will be renewed on
                         <u>{{ subscription.expires_at}}</u>
                     </div>
+                    {% elif subscription.tier.value == "connect pro" %}
+                    <div class="mt-5 text-xs leading-4 text-slate-900">
+                        You have access to our database and also will be promoted to investors. Your subscription will
+                        be renewed on
+                        <u>{{ subscription.expires_at}}</u>
+                    </div>
+                    {% elif subscription.tier.value == "boost academy" %}
+                    <div class="mt-5 text-xs leading-4 text-slate-900">
+                        You have full access to our services. Your subscription will be renewed on
+                        <u>{{ subscription.expires_at}}</u>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -30,7 +30,7 @@ def get_invoices(authenticated_user: User):
         raise Exception(ONBOARDING_INCOMPLETE)
 
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
-    if not user_payment:
+    if not user_payment or not user_payment.customer_id:
         return []
 
     stripe_invoices = stripe.Invoice.list(customer=user_payment.customer_id)

@@ -2,14 +2,14 @@ import base64
 import re
 
 from flask import Blueprint, redirect, render_template, request, url_for
-from flask_login import current_user, fresh_login_required, login_required
+from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
 from ..models import User, UserInfo, UserPayment
 from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
 from ..utils.google_storage import download_blob_into_memory
 from ..utils.info_lists import languages as LANGUAGE_LIST
-from ..utils.status_enum import OauthProvider, Status, StatusType
+from ..utils.status_enum import OauthProvider, Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
@@ -84,8 +84,8 @@ def plan():
         print(e)
 
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
-    subscription = {}
-    if user_payment:
+    subscription = {"tier": Tier.FREE}
+    if user_payment and user_payment.customer_id and user_payment.subscription_id:
         subscription = user_payment.sanitize()
 
     return render_template(
@@ -238,5 +238,15 @@ def delete_account():
     authenticated_user: User = current_user  # type: ignore
     if not authenticated_user.is_authenticated:
         return redirect(url_for("auth.login"))
+
+    if request.method == "POST":
+        db.session.delete(authenticated_user)
+        db.session.commit()
+        logout_user()
+
+        return redirect(url_for("main.index", _external=False))
+
+    if authenticated_user.oauth_provider != OauthProvider.REGULAR:
+        return render_template("settings/delete_oauth_account.html")
 
     return render_template("settings/delete_account.html")

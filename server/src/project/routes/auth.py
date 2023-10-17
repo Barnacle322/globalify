@@ -119,7 +119,7 @@ def register():
         db.session.commit()
 
         new_user_info = UserInfo(user_id=new_user.id)
-        new_user_payment = UserPayment(user_id=new_user.id, billing_address=email)
+        new_user_payment = UserPayment(user_id=new_user.id)
         db.session.add_all((new_user_info, new_user_payment))
         db.session.commit()
 
@@ -351,7 +351,7 @@ def linkedin_callback():
 
     user_payment = UserPayment.get_by_user_id(user.id)
     if not user_payment:
-        user_payment = UserPayment(user_id=user.id, billing_address=email)
+        user_payment = UserPayment(user_id=user.id)
         db.session.add(user_payment)
         db.session.commit()
 
@@ -410,7 +410,7 @@ def google_callback():
 
     user_payment = UserPayment.get_by_user_id(user.id)
     if not user_payment:
-        user_payment = UserPayment(user_id=user.id, billing_address=email)
+        user_payment = UserPayment(user_id=user.id)
         db.session.add(user_payment)
         db.session.commit()
 

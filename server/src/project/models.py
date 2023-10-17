@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import random
 from typing import List, Union
 
 import pycountry
@@ -9,7 +10,7 @@ from sqlalchemy import Boolean, Column, DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, Integer, String, event
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .extensions import db
@@ -100,7 +101,9 @@ class UserInfo(db.Model):
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     language: Mapped[str] = mapped_column(String, nullable=True)
 
-    user: Mapped[User] = relationship("User", backref="user_info", lazy=True)
+    user: Mapped[User] = relationship(
+        "User", backref=backref("user_info", cascade="all, delete"), lazy=True
+    )
 
     def __init__(self, **kwargs):
         super(UserInfo, self).__init__(**kwargs)
@@ -154,7 +157,9 @@ class UserPayment(db.Model):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     tier: Mapped[Tier] = mapped_column(SQLEnum(Tier), nullable=False, default=Tier.FREE)
 
-    user: Mapped[User] = relationship("User", backref="user_payment", lazy=True)
+    user: Mapped[User] = relationship(
+        "User", backref=backref("user_payment", cascade="all, delete"), lazy=True
+    )
 
     def __init__(self, **kwargs):
         super(UserPayment, self).__init__(**kwargs)
@@ -209,13 +214,6 @@ class UserPayment(db.Model):
         return subscription
 
 
-company_industry = db.Table(
-    "company_industry",
-    Column("company_id", Integer, ForeignKey("company.id"), primary_key=True),
-    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
-)
-
-
 class Company(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
@@ -235,7 +233,9 @@ class Company(db.Model):
         Integer, ForeignKey("industry.id"), nullable=True
     )
 
-    user: Mapped[User] = relationship("User", backref="company", lazy=True)
+    user: Mapped[User] = relationship(
+        "User", backref=backref("company", cascade="all, delete"), lazy=True
+    )
     country: Mapped[Country] = relationship()
     preferred_round: Mapped[Round] = relationship()
     industry: Mapped[Industry] = relationship()
@@ -720,13 +720,22 @@ class Investor(db.Model):
     def populate():
         try:
             investor_list = []
-            firstnames = get_names(200)
-            lastnames = get_last_names(200)
-            emails = get_emails(200)
-            websites = get_websites(200)
-            job_positions = get_job_positions(200)
-            companies = get_companies(200)
-            for i in range(1, 200):
+            firstnames = get_names(50)
+            lastnames = get_last_names(50)
+            emails = get_emails(50)
+            websites = get_websites(50)
+            job_positions = get_job_positions(50)
+            companies = get_companies(50)
+            for i in range(1, 50):
+                num_rounds = random.randint(1, 5)
+                rounds = [
+                    Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)
+                ]
+                num_industries = random.randint(1, 6)
+                industries = [
+                    Industry.get_by_id(random.randint(1, 138))
+                    for _ in range(num_industries)
+                ]
                 investor_list.append(
                     Investor(
                         first_name=f"{firstnames[i]}",
@@ -735,12 +744,8 @@ class Investor(db.Model):
                         position=f"{job_positions[i]}",
                         website=f"{websites[i]}",
                         email=f"{str(i) + emails[i]}",
-                        rounds=[Round.get_by_id(1), Round.get_by_id(2)],
-                        industries=[
-                            Industry.get_by_id(1),
-                            Industry.get_by_id(2),
-                            Industry.get_by_id(3),
-                        ],
+                        rounds=list(set(rounds)),
+                        industries=list(set(industries)),
                     )
                 )
             db.session.add_all(investor_list)

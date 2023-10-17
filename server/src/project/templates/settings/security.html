@@ -1,0 +1,176 @@
+{% extends "layouts/layout_app.html" %} {% block title %}Settings{% endblock %} {% block head %} {{ super() }}
+<script src="../static/scripts/dashboard.js" defer></script>
+{% endblock %} {% block content %}
+<div class="mx-auto block max-w-7xl pt-24 lg:flex lg:gap-x-16 lg:px-8">
+    <aside class="flex overflow-x-auto py-4 lg:block lg:w-64 lg:flex-none lg:py-20">
+        <nav class="flex-none px-4 sm:px-6 xl:px-0">
+            <ul class="flex gap-x-3 gap-y-1 whitespace-nowrap lg:flex-col">
+                <li>
+                    <a href="/settings/general" class="flex gap-x-3 rounded-lg py-2 pl-2 pr-3 font-medium leading-6">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            class="h-6 w-6 shrink-0"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
+                            ></path>
+                        </svg>
+                        General
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="/settings/security"
+                        class="flex gap-x-3 rounded-md bg-slate-100 py-2 pl-2 pr-3 font-medium leading-6 text-sky-500"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            class="h-6 w-6 shrink-0"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M7.864 4.243A7.5 7.5 0 0119.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 004.5 10.5a7.464 7.464 0 01-1.15 3.993m1.989 3.559A11.209 11.209 0 008.25 10.5a3.75 3.75 0 117.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 01-3.6 9.75m6.633-4.596a18.666 18.666 0 01-2.485 5.33"
+                            ></path>
+                        </svg>
+                        Security
+                    </a>
+                </li>
+                <li>
+                    <a href="/settings/plan" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            class="h-6 w-6 shrink-0"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
+                            ></path>
+                        </svg>
+                        Plan
+                    </a>
+                </li>
+                <li>
+                    <a href="/settings/billing" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            class="h-6 w-6 shrink-0"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"
+                            ></path>
+                        </svg>
+                        Billing
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    <main class="flex-auto px-4 sm:px-6 lg:px-0 lg:py-4">
+        <div class="acc acx">
+            <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+                <div>
+                    <h2 class="font-medium leading-7">Change password</h2>
+                    <p class="mt-1 leading-6 text-slate-700">Update your password associated with your account.</p>
+                </div>
+                <form class="md:col-span-2" action="/change-password">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
+                        <div class="col-span-full">
+                            <label for="current-password" class="block text-sm font-medium leading-6"
+                                >Current password</label
+                            >
+                            <div class="mt-2">
+                                <input
+                                    id="current-password"
+                                    name="current_password"
+                                    type="password"
+                                    autocomplete="current-password"
+                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                />
+                            </div>
+                        </div>
+                        <div class="col-span-full">
+                            <label for="new-password" class="block text-sm font-medium leading-6">New password</label>
+                            <div class="mt-2">
+                                <input
+                                    id="new-password"
+                                    name="new_password"
+                                    type="password"
+                                    autocomplete="new-password"
+                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                />
+                            </div>
+                        </div>
+                        <div class="col-span-full">
+                            <label for="confirm-password" class="block text-sm font-medium leading-6"
+                                >Confirm password</label
+                            >
+                            <div class="mt-2">
+                                <input
+                                    id="confirm-password"
+                                    name="confirm_password"
+                                    type="password"
+                                    autocomplete="new-password"
+                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex">
+                        <button
+                            type="submit"
+                            class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
+                        >
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+                <div>
+                    <h2 class="font-medium leading-7">Delete account</h2>
+                    <p class="mt-1 leading-6 text-slate-700">
+                        No longer want to use our service? You can delete your account here. This action is not
+                        reversible. All information related to this account will be deleted permanently.
+                    </p>
+                </div>
+                <div class="lx yx md:col-span-2">
+                    <a
+                        href="/settings/delete-account"
+                        type="submit"
+                        class="inline-flex h-12 items-center justify-center rounded-xl bg-red-500 px-4 text-white transition-colors ease-in-out hover:bg-red-600"
+                    >
+                        Yes, delete my account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

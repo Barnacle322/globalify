@@ -8,20 +8,20 @@ class StatusType(Enum):
 
 
 class Status:
-    type: StatusType
+    status_type: StatusType
     msg: str
 
     def __init__(
         self, type: StatusType = StatusType.ERROR, msg="An unknown error occurred."
     ):
-        self.type = type
+        self.status_type = type
         self.msg = msg
 
     def __repr__(self):
-        return f"<{self.type} {self.msg}>"
+        return f"<{self.status_type} {self.msg}>"
 
     def get_status(self, **kwargs) -> dict[str, str]:
-        return {"type": str(self.type.value), "msg": self.msg, **kwargs}
+        return {"type": str(self.status_type.value), "msg": self.msg, **kwargs}
 
 
 class OauthProvider(Enum):
@@ -29,3 +29,10 @@ class OauthProvider(Enum):
     LINKEDIN = "linkedin"
     APPLE = "apple"
     REGULAR = "regular"
+
+
+class Tier(Enum):
+    FREE = "free"
+    ELEVATE = "elevate"
+    CONNECT = "connect pro"
+    BOOST = "boost academy"

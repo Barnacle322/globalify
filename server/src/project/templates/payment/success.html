@@ -1,10 +1,10 @@
 {% extends "layouts/layout_payment.html" %} {% block title %}Payment success{% endblock %} {% block head %} {{ super()
 }} {% endblock %} {% block content %}
 <main
-    class="relative mt-24 flex w-full flex-col items-center justify-center gap-8 overflow-x-hidden bg-slate-50 pb-52 dark:bg-slate-900 dark:text-slate-50 px-4"
+    class="relative mt-24 flex w-full flex-col items-center justify-center gap-8 overflow-x-hidden bg-slate-50 px-4 pb-52 dark:bg-slate-900 dark:text-slate-50"
 >
-    <h1 class="md:mt-48 mt-24 md:text-8xl font-bold text-5xl text-center">Thank you! ✅</h1>
-    <p class="text-xl max-w-xl text-center">You have successfully subscribed to Globalify</p>
+    <h1 class="mt-24 text-center text-5xl font-bold md:mt-48 md:text-8xl">Thank you! ✅</h1>
+    <p class="max-w-xl text-center text-xl">You have successfully subscribed to Globalify</p>
     <div class="flex justify-center gap-x-6 overflow-visible">
         <a
             href="/dashboard"

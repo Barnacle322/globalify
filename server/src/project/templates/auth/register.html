@@ -5,7 +5,7 @@ endblock %} {% block content %}
         <form action="/register" method="POST" class="flex w-80 flex-col gap-7 font-medium">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <div class="flex flex-col gap-1">
-                <div class="text-4xl">Welcome back</div>
+                <div class="text-4xl">Welcome!</div>
                 <div class="">
                     <span class="text-sm">Have and account? Click </span
                     ><a href="/login" class="text-class underline">here</a><span class="text-class"> to sign in</span>
@@ -55,7 +55,7 @@ endblock %} {% block content %}
                 type="submit"
                 class="inline-flex h-12 w-full items-center justify-center rounded-xl bg-sky-500 transition-colors ease-in-out hover:bg-sky-400"
             >
-                <div class="text-base text-white">Sign in</div>
+                <div class="text-base text-white">Sign up</div>
             </button>
             <div class="w-full text-center text-sm">Or continue with</div>
             <div class="gap-2">
@@ -76,7 +76,7 @@ endblock %} {% block content %}
                     </a>
                 </div>
                 <div class="my-2 text-xs text-slate-400">
-                    <span>By signing in, you agree to </span
+                    <span>By signing up, you agree to </span
                     ><a href="/terms-of-service" class="underline">Terms of Service</a><span> and </span
                     ><a href="/privacy-policy" class="underline">Privacy Policy</a>
                 </div>

@@ -34,27 +34,38 @@
 
         <meta name="view-transition" content="same-origin" />
         <link rel="stylesheet" href="../static/css/main.css" />
+        <link rel="icon" type="image/png" href="../static/elements/icon.png" />
         <title>{% block title %}{% endblock %} | Globalify</title>
         {% endblock %}
     </head>
     <body class="w-full">
         <nav
-            class="absolute left-0 top-0 flex h-24 w-full items-center justify-center bg-slate-50 dark:bg-slate-800 dark:text-slate-50"
+            class="absolute left-0 top-0 flex h-24 w-full items-center justify-center bg-slate-50 text-slate-900 dark:bg-slate-800 dark:text-slate-50"
         >
             <div class="flex w-full max-w-7xl items-center gap-7 px-9">
                 <a href="/"><img class="h-[30px] w-[113px]" src="../static/elements/logo-black.png" /></a>
-                <div class="hidden gap-7 sm:flex">
-                    <a href="/search">Search</a>
-                    <a href="https://blog.globalify.xyz">Blog</a>
-                    <a href="#team">Team</a>
-                    <a href="#faq">FAQ</a>
-                </div>
+                <ul class="hidden gap-7 font-medium sm:flex">
+                    <a class="transition-colors ease-in-out hover:text-slate-700" href="/about">About us</a>
+                    <a class="transition-colors ease-in-out hover:text-slate-700" href="https://blog.globalify.xyz"
+                        >Blog</a
+                    >
+                    <a class="transition-colors ease-in-out hover:text-slate-700" href="/payment/pricing">Pricing</a>
+                    <a class="transition-colors ease-in-out hover:text-slate-700" href="#faq">FAQ</a>
+                </ul>
             </div>
             <div class="pr-9">
                 {% if current_user.is_authenticated %}
-                <a href="/dashboard" class="flex items-center justify-center">Dashboard</a>
+                <a
+                    href="/dashboard"
+                    class="flex items-center justify-center rounded-xl bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+                    >Dashboard</a
+                >
                 {% else %}
-                <a href="/login" class="flex items-center justify-center">Login</a>
+                <a
+                    href="/login"
+                    class="flex items-center justify-center rounded-xl bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+                    >Login</a
+                >
                 {% endif %}
             </div>
         </nav>

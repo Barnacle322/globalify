@@ -7,8 +7,17 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .extensions import csrf, db, login_manager, migrate, oauth
 from .routes.auth import auth
-from .routes.main import bad_request, forbidden, main, page_not_found, unauthorized
+from .routes.main import (
+    bad_request,
+    forbidden,
+    internal_server_error,
+    main,
+    page_not_found,
+    service_unavailable,
+    unauthorized,
+)
 from .routes.payment import payment
+from .routes.settings import settings
 
 
 def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
@@ -58,15 +67,19 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
         response.headers["Content-Type"] = "text/plain"
         return response
 
+    app.register_blueprint(auth)
     app.register_blueprint(main)
     app.register_blueprint(payment, url_prefix="/payment")
-    app.register_blueprint(auth)
+    app.register_blueprint(settings, url_prefix="/settings")
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)
     app.register_error_handler(403, forbidden)
     app.register_error_handler(404, page_not_found)
+    app.register_error_handler(500, internal_server_error)
+    app.register_error_handler(503, service_unavailable)
 
+    # Reverse proxy support
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     db.init_app(app)

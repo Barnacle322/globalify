@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import random
 from typing import List, Union
 
 import pycountry
@@ -9,7 +10,7 @@ from sqlalchemy import Boolean, Column, DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, Integer, String, event
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .extensions import db
@@ -21,7 +22,7 @@ from .utils.fake_data import (
     get_names,
     get_websites,
 )
-from .utils.status_enum import OauthProvider
+from .utils.status_enum import OauthProvider, Tier
 
 
 class User(UserMixin, db.Model):
@@ -46,7 +47,7 @@ class User(UserMixin, db.Model):
 
     @password.setter
     def password(self, password) -> None:
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password, "scrypt")
 
     def verify_password(self, password) -> bool:
         if not self.password_hash:
@@ -71,9 +72,6 @@ class User(UserMixin, db.Model):
 
     @staticmethod
     def signed_with_oauth(email: str) -> OauthProvider:
-        """
-        Returns OauthProvider if signed with oauth, False otherwise or if user does not exist.
-        """
         try:
             user = User.query.filter(User.email == email).first()
             if not user:
@@ -82,13 +80,15 @@ class User(UserMixin, db.Model):
         except NoResultFound:
             return OauthProvider.REGULAR
 
+    def uses_oauth(self) -> bool:
+        return self.oauth_provider != OauthProvider.REGULAR
+
 
 class UserInfo(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id"), nullable=False, unique=True
     )
-    user: Mapped[User] = relationship("User", backref="user_info", lazy=True)
     first_name: Mapped[str | None] = mapped_column(String, nullable=True)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -99,12 +99,17 @@ class UserInfo(db.Model):
     # Google storage blob id
     pfp_uuid: Mapped[str | None] = mapped_column(String, nullable=True)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    language: Mapped[str] = mapped_column(String, nullable=True)
+
+    user: Mapped[User] = relationship(
+        "User", backref=backref("user_info", cascade="all, delete"), lazy=True
+    )
 
     def __init__(self, **kwargs):
         super(UserInfo, self).__init__(**kwargs)
 
     def __repr__(self):
-        return f"<UserInfo {self.username}>"
+        return f"<UserInfo: {self.username} | {'Incomplete' if not self.is_complete else 'Complete'}>"
 
     @property
     def full_name(self):
@@ -145,22 +150,26 @@ class UserPayment(db.Model):
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id"), nullable=False, unique=True
     )
-    user: Mapped[User] = relationship("User", backref="user_payment", lazy=True)
-    customer_id: Mapped[str] = mapped_column(String, nullable=False)
+    customer_id: Mapped[str] = mapped_column(String, nullable=True)
     subscription_id: Mapped[str] = mapped_column(String, nullable=True)
-    created: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    expires_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
+    expires_at: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    tier: Mapped[Tier] = mapped_column(SQLEnum(Tier), nullable=False, default=Tier.FREE)
+
+    user: Mapped[User] = relationship(
+        "User", backref=backref("user_payment", cascade="all, delete"), lazy=True
+    )
 
     def __init__(self, **kwargs):
         super(UserPayment, self).__init__(**kwargs)
 
     @property
-    def created_epoch(self) -> DateTime:
+    def created_epoch(self) -> Union[DateTime, None]:
         return self.created
 
     @property
-    def expires_at_epoch(self) -> DateTime:
+    def expires_at_epoch(self) -> Union[DateTime, None]:
         return self.expires_at
 
     @created_epoch.setter
@@ -194,12 +203,15 @@ class UserPayment(db.Model):
         except NoResultFound:
             return None
 
-
-company_industry = db.Table(
-    "company_industry",
-    Column("company_id", Integer, ForeignKey("company.id"), primary_key=True),
-    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
-)
+    def sanitize(self):
+        subscription = {
+            "created": self.created,
+            "expires_at": self.expires_at.date(),  # type: ignore
+            "is_acrive": self.is_active,
+            "tier": self.tier,
+            "subscription_id": self.subscription_id,
+        }
+        return subscription
 
 
 class Company(db.Model):
@@ -221,7 +233,9 @@ class Company(db.Model):
         Integer, ForeignKey("industry.id"), nullable=True
     )
 
-    user: Mapped[User] = relationship("User", backref="company", lazy=True)
+    user: Mapped[User] = relationship(
+        "User", backref=backref("company", cascade="all, delete"), lazy=True
+    )
     country: Mapped[Country] = relationship()
     preferred_round: Mapped[Round] = relationship()
     industry: Mapped[Industry] = relationship()
@@ -706,13 +720,22 @@ class Investor(db.Model):
     def populate():
         try:
             investor_list = []
-            firstnames = get_names(200)
-            lastnames = get_last_names(200)
-            emails = get_emails(200)
-            websites = get_websites(200)
-            job_positions = get_job_positions(200)
-            companies = get_companies(200)
-            for i in range(1, 200):
+            firstnames = get_names(50)
+            lastnames = get_last_names(50)
+            emails = get_emails(50)
+            websites = get_websites(50)
+            job_positions = get_job_positions(50)
+            companies = get_companies(50)
+            for i in range(1, 50):
+                num_rounds = random.randint(1, 5)
+                rounds = [
+                    Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)
+                ]
+                num_industries = random.randint(1, 6)
+                industries = [
+                    Industry.get_by_id(random.randint(1, 138))
+                    for _ in range(num_industries)
+                ]
                 investor_list.append(
                     Investor(
                         first_name=f"{firstnames[i]}",
@@ -721,12 +744,8 @@ class Investor(db.Model):
                         position=f"{job_positions[i]}",
                         website=f"{websites[i]}",
                         email=f"{str(i) + emails[i]}",
-                        rounds=[Round.get_by_id(1), Round.get_by_id(2)],
-                        industries=[
-                            Industry.get_by_id(1),
-                            Industry.get_by_id(2),
-                            Industry.get_by_id(3),
-                        ],
+                        rounds=list(set(rounds)),
+                        industries=list(set(industries)),
                     )
                 )
             db.session.add_all(investor_list)
@@ -823,6 +842,6 @@ def populate_industry(*args, **kwargs):
     Industry.populate()
 
 
-@event.listens_for(Investor.__table__, "after_create")  # type: ignore
-def populate_investor(*args, **kwargs):
-    Investor.populate()
+# @event.listens_for(Investor.__table__, "after_create")  # type: ignore
+# def populate_investor(*args, **kwargs):
+#     Investor.populate()

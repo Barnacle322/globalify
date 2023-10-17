@@ -1,13 +1,41 @@
 import base64
+from functools import wraps
 
 from flask import Blueprint, redirect, render_template, request, url_for
-from flask_login import current_user, login_required
+from flask_login import AnonymousUserMixin, current_user, login_required
 
-from ..models import InvestmentFirm, Investor, UserInfo
+from ..models import InvestmentFirm, Investor, User
+from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
 from ..utils.google_storage import download_blob_into_memory
 from ..utils.status_enum import Status, StatusType
 
 main = Blueprint("main", __name__)
+
+
+def check_user_info_complete(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:  # type: ignore
+            return redirect(url_for("auth.login"))
+        elif not current_user.user_info[0].is_complete:  # type: ignore
+            return redirect(url_for("auth.onboarding"))
+        return func(*args, **kwargs)
+
+    return decorated_function
+
+
+def check_verification(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:  # type: ignore
+            return redirect(url_for("auth.login"))
+        # TODO
+        elif not current_user.is_verified:  # type: ignore
+            # return redirect(url_for("auth.verify"))
+            pass
+        return func(*args, **kwargs)
+
+    return decorated_function
 
 
 @main.get("/")
@@ -18,15 +46,16 @@ def index():
 @main.route("/dashboard")
 @main.route("/dashboard/investors")
 @login_required
+@check_user_info_complete
+@check_verification
 def dashboard():
-    authenticated_user = UserInfo.get_by_user_id(current_user.id)  # type: ignore
-    if not authenticated_user:
-        status = Status(StatusType.ERROR, "You are not logged in").get_status()
-        return redirect(url_for("payment.index", _external=False, **status))
+    authenticated_user: User = current_user  # type: ignore
+    if isinstance(authenticated_user, AnonymousUserMixin):
+        return redirect(url_for("auth.login"))
 
     pfp_base64 = False
     try:
-        if pfp_uuid := authenticated_user.pfp_uuid:
+        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:
             pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
             pfp_base64 = base64.b64encode(pfp).decode("utf-8")
     except Exception as e:
@@ -38,7 +67,6 @@ def dashboard():
 
     if page_num > investors.pages and investors.pages > 0:  # type: ignore
         return redirect(url_for("main.search", search=search_query, pagenum=1))
-
     return render_template(
         "dashboard_investor.html",
         pfp_base64=pfp_base64,
@@ -49,15 +77,16 @@ def dashboard():
 
 @main.route("/dashboard/investment-firms")
 @login_required
+@check_user_info_complete
+@check_verification
 def investment_firms():
-    authenticated_user = UserInfo.get_by_user_id(current_user.id)  # type: ignore
-    if not authenticated_user:
-        status = Status(StatusType.ERROR, "You are not logged in").get_status()
-        return redirect(url_for("payment.index", _external=False, **status))
+    authenticated_user: User = current_user  # type: ignore
+    if isinstance(authenticated_user, AnonymousUserMixin):
+        return redirect(url_for("auth.login"))
 
     pfp_base64 = False
     try:
-        if pfp_uuid := authenticated_user.pfp_uuid:
+        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:
             pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
             pfp_base64 = base64.b64encode(pfp).decode("utf-8")
     except Exception as e:
@@ -79,6 +108,9 @@ def investment_firms():
 
 
 @main.route("/investor/<int:investor_id>")
+@login_required
+@check_user_info_complete
+@check_verification
 def investor(investor_id):
     investor = Investor.get_by_id(investor_id)
     if not investor:
@@ -88,6 +120,9 @@ def investor(investor_id):
 
 
 @main.route("/investment-firm/<int:firm_id>")
+@login_required
+@check_user_info_complete
+@check_verification
 def investment_firm(firm_id):
     investment_firm = InvestmentFirm.get_by_id(firm_id)
     if not investment_firm:
@@ -110,11 +145,6 @@ def construction():
     return render_template("construction.html")
 
 
-@main.route("/settings")
-def settings():
-    return render_template("settings.html")
-
-
 @main.route("/terms-of-service")
 def terms_of_service():
     return render_template("terms_of_service.html")
@@ -132,7 +162,7 @@ def bad_request(e):
 
 @main.errorhandler(401)
 def unauthorized(e):
-    status = Status(StatusType.ERROR, "You are not logged in").get_status()
+    status = Status(StatusType.ERROR, NOT_AUTHORIZED).get_status()
     return redirect(url_for("auth.login", _external=False, **status))
 
 

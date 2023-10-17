@@ -102,31 +102,60 @@ def handle_customer(authenticated_user: User) -> UserPayment:
 
 def create_checkout(
     customer_id: str,
-    trial_period_days: int = 14,
     tier: str = "elevate",
+    trial_period_days: int = 0,
 ) -> stripe.checkout.Session:
     """
     Elevate: elevate
     Connect Pro: connect
     Boost Academy: boost
     """
+    ELEVATE_TRIAL_PERIOD_DAYS = 14
     success_url = request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = request.host_url + "payment/cancel"
     prices = stripe.Price.list(lookup_keys=[tier], expand=["data.product"])
 
-    checkout_session = stripe.checkout.Session.create(
-        customer=customer_id,
-        line_items=[
-            {
-                "price": prices.data[0].id,
-                "quantity": 1,
-            },
-        ],
-        mode="subscription",
-        success_url=success_url,
-        cancel_url=cancel_url,
-        subscription_data={"trial_period_days": trial_period_days},
-    )
+    if tier == "elevate":
+        checkout_session = stripe.checkout.Session.create(
+            customer=customer_id,
+            line_items=[
+                {
+                    "price": prices.data[0].id,
+                    "quantity": 1,
+                },
+            ],
+            mode="subscription",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            subscription_data={"trial_period_days": ELEVATE_TRIAL_PERIOD_DAYS},
+        )
+    elif trial_period_days != 0:
+        checkout_session = stripe.checkout.Session.create(
+            customer=customer_id,
+            line_items=[
+                {
+                    "price": prices.data[0].id,
+                    "quantity": 1,
+                },
+            ],
+            mode="subscription",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            subscription_data={"trial_period_days": trial_period_days},
+        )
+    else:
+        checkout_session = stripe.checkout.Session.create(
+            customer=customer_id,
+            line_items=[
+                {
+                    "price": prices.data[0].id,
+                    "quantity": 1,
+                },
+            ],
+            mode="subscription",
+            success_url=success_url,
+            cancel_url=cancel_url,
+        )
 
     return checkout_session
 
@@ -142,7 +171,7 @@ def has_subscriptions(customer_id: str) -> bool:
     return active_subscriptions or trialing_subscriptions  # type: ignore
 
 
-@payment.route("/create-checkout-session", methods=["POST"])
+@payment.post("/create-checkout-session")
 @login_required
 @check_user_info_complete
 def create_checkout_session():
@@ -167,8 +196,15 @@ def create_checkout_session():
         status = Status(StatusType.ERROR, SUBSCRIPTION_EXISTS).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
+    if request.form.get("tier"):
+        tier = request.form.get("tier")
+    if not tier:
+        tier = "elevate"
+
     try:
-        checkout_session = create_checkout(customer_id=user_payment.customer_id)
+        checkout_session = create_checkout(
+            customer_id=user_payment.customer_id, tier=tier
+        )
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))  # type: ignore
@@ -176,7 +212,7 @@ def create_checkout_session():
     return redirect(checkout_session.url, code=303)
 
 
-@payment.route("/create-portal-session", methods=["POST"])
+@payment.post("/create-portal-session")
 @login_required
 @check_user_info_complete
 def customer_portal():
@@ -210,7 +246,7 @@ def customer_portal():
     return redirect(portal_session.url, code=303)
 
 
-@payment.route("/create-portal-session-subscription-update", methods=["POST"])
+@payment.post("/create-portal-session-subscription-update")
 @login_required
 @check_user_info_complete
 def subscription_update():
@@ -246,7 +282,7 @@ def subscription_update():
     return redirect(portal_session.url, code=303)
 
 
-@payment.route("/create-portal-session-subscription-cancel", methods=["POST"])
+@payment.post("/create-portal-session-subscription-cancel")
 @login_required
 @check_user_info_complete
 def subscription_cancel():
@@ -399,7 +435,7 @@ def payment_failed(data_object):
     )
 
 
-@payment.route("/webhook", methods=["POST"])
+@payment.post("/webhook")
 @csrf.exempt
 def webhook_received():
     """

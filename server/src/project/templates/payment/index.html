@@ -19,6 +19,7 @@
                 <span class="text-4xl font-semibold">$10<span class="text-base font-normal">/month</span></span>
                 <form action="/payment/create-checkout-session" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="tier" value="elevate">
                     <button
                         class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
                         type="submit"
@@ -85,6 +86,7 @@
                 <span class="text-4xl font-semibold">20$<span class="text-base font-normal">/month</span></span>
                 <form action="/payment/create-checkout-session" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="tier" value="connect">
                     <button
                         class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
                         type="submit"
@@ -150,6 +152,7 @@
                 <span class="text-stone-500">Take advantage of everything we offer with Boost Academy.</span>
                 <span class="text-4xl font-semibold">$40<span class="text-base font-normal">/month</span></span>
                 <form action="/payment/create-checkout-session" method="POST">
+                    <input type="hidden" name="tier" value="boost">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <button
                         class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"

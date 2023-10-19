@@ -132,8 +132,16 @@ def investment_firm(firm_id):
 
 
 @main.route("/pricing")
-@main.route("/docs")
+def pricing():
+    return render_template("pricing.html")
+
+
 @main.route("/about")
+def about():
+    return render_template("about.html")
+
+
+@main.route("/docs")
 @main.route("/jobs")
 @main.route("/partners")
 @main.route("/help")

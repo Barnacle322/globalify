@@ -1,0 +1,30 @@
+{% extends "layouts/layout.html" %} {% block title %}About us{% endblock %} {% block head %} {{ super() }} {% endblock
+%} {% block content %}
+
+<main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-slate-50">
+    <section class="mx-auto pt-12 sm:pt-20 md:pt-32 lg:pt-20">
+        <div class="max-w-7xl px-4 sm:px-12 lg:px-8 xl:px-16">
+            <h1
+                class="mx-auto mb-14 max-w-3xl text-center text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl"
+            >
+                Unite the world through ideas
+            </h1>
+            <p class="mx-auto max-w-2xl text-center text-slate-700">
+                Globalify is a platform that connects startups and investors from all over the world. We believe that
+                the best ideas can come from anywhere, and that they should be given the chance to succeed.
+            </p>
+        </div>
+    </section>
+    <section class="py-32">
+        <div class="mx-auto max-w-7xl px-4 sm:px-12 lg:px-8 xl:px-16">
+            <h2 class="text-center text-lg font-medium text-slate-900">Want to talk? Hit is up at:</h2>
+            <div class="mt-4 text-center transition-all duration-500 hover:scale-105">
+                <span
+                    class="bg-gradient-to-r from-sky-600 to-sky-500 bg-clip-text text-4xl font-medium text-slate-700 transition duration-700 hover:text-transparent sm:text-7xl"
+                    >info@globalify.xyz</span
+                >
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

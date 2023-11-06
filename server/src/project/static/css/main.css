@@ -2326,14 +2326,6 @@ html {
   letter-spacing: -0.025em;
 }
 
-.tracking-wide {
-  letter-spacing: 0.025em;
-}
-
-.tracking-normal {
-  letter-spacing: 0em;
-}
-
 .text-black {
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity));
@@ -2856,12 +2848,6 @@ html {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
-.hover\:scale-100:hover {
-  --tw-scale-x: 1;
-  --tw-scale-y: 1;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
 .hover\:border-slate-300:hover {
   --tw-border-opacity: 1;
   border-color: rgb(203 213 225 / var(--tw-border-opacity));
@@ -2900,26 +2886,6 @@ html {
 .hover\:bg-slate-800:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(30 41 59 / var(--tw-bg-opacity));
-}
-
-.hover\:tracking-wide:hover {
-  letter-spacing: 0.025em;
-}
-
-.hover\:tracking-\[0\2c 0\]:hover {
-  letter-spacing: 0,0;
-}
-
-.hover\:tracking-\[0\.020em\]:hover {
-  letter-spacing: 0.020em;
-}
-
-.hover\:tracking-\[0\.010em\]:hover {
-  letter-spacing: 0.010em;
-}
-
-.hover\:tracking-\[0\.015em\]:hover {
-  letter-spacing: 0.015em;
 }
 
 .hover\:text-blue-700:hover {

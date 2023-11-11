@@ -4,7 +4,7 @@ from datetime import datetime
 
 import stripe
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
-from flask_login import AnonymousUserMixin, current_user, login_required
+from flask_login import current_user, login_required
 from stripe.error import InvalidRequestError, SignatureVerificationError
 
 from ..extensions import csrf, db
@@ -13,7 +13,6 @@ from ..utils.errors.auth_error_messages import (
     ONBOARDING_INCOMPLETE,
     PAYMENT_EMAIL_USED,
     PAYMENT_NOT_FOUND,
-    SUBSCRIPTION_EXISTS,
 )
 from ..utils.sendgrid_email import send_email
 from ..utils.status_enum import Status, StatusType, Tier
@@ -38,7 +37,9 @@ def get_invoices(authenticated_user: User):
     for stripe_invoice in stripe_invoices:
         invoice = {
             "id": stripe_invoice.get("id"),
-            "created": datetime.utcfromtimestamp(stripe_invoice.get("created")).date(),
+            "created": datetime.utcfromtimestamp(
+                stripe_invoice.get("created", 0)
+            ).date(),
             "amount_due": stripe_invoice.get("amount_due"),
             "amount_paid": stripe_invoice.get("amount_paid"),
             "currency": stripe_invoice.get("currency"),
@@ -109,13 +110,27 @@ def create_checkout(
     Elevate: elevate
     Connect Pro: connect
     Boost Academy: boost
+    Waitlist: teaser
     """
     ELEVATE_TRIAL_PERIOD_DAYS = 14
     success_url = request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = request.host_url + "payment/cancel"
     prices = stripe.Price.list(lookup_keys=[tier], expand=["data.product"])
 
-    if tier == "elevate":
+    if tier == "teaser":
+        checkout_session = stripe.checkout.Session.create(
+            customer=customer_id,
+            line_items=[
+                {
+                    "price": prices.data[0].id,
+                    "quantity": 1,
+                },
+            ],
+            mode="payment",
+            success_url=success_url,
+            cancel_url=cancel_url,
+        )
+    elif tier == "elevate":
         checkout_session = stripe.checkout.Session.create(
             customer=customer_id,
             line_items=[
@@ -171,6 +186,37 @@ def has_subscriptions(customer_id: str) -> bool:
     return active_subscriptions or trialing_subscriptions  # type: ignore
 
 
+@payment.post("/waitlist")
+def waitlist():
+    email = request.form.get("email", "")
+    first_name = request.form.get("first-name", "")
+    last_name = request.form.get("last-name", "")
+
+    full_name = f"{first_name} {last_name}"
+
+    customer_data = stripe.Customer.search(query="email:'{}'".format(email))
+
+    if len(customer_list := customer_data.get("data", [])) > 1:
+        raise Exception(PAYMENT_EMAIL_USED)
+    elif not customer_list:
+        stripe_customer = stripe.Customer.create(
+            email=email,
+            name=full_name,
+        )
+    else:
+        stripe_customer = customer_list[0]
+
+    try:
+        checkout_session = create_checkout(
+            customer_id=stripe_customer.get("id", ""), tier="teaser"
+        )
+    except Exception as e:
+        status = Status(StatusType.ERROR, e.args[0]).get_status()
+        return redirect(url_for("payment.index", _external=False, **status))
+
+    return redirect(checkout_session.url, code=303)  # type: ignore
+
+
 @payment.post("/create-checkout-session")
 @login_required
 @check_user_info_complete
@@ -179,7 +225,7 @@ def create_checkout_session():
     DOCS: https://stripe.com/docs/payments/checkout/accept-a-payment
     """
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if authenticated_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
     try:
@@ -192,14 +238,15 @@ def create_checkout_session():
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    if has_subscriptions(user_payment.customer_id):
-        status = Status(StatusType.ERROR, SUBSCRIPTION_EXISTS).get_status()
-        return redirect(url_for("payment.index", _external=False, **status))
+    # NOTE: Removed for now as Stripe can handle it
+    # if has_subscriptions(user_payment.customer_id):
+    #     status = Status(StatusType.ERROR, SUBSCRIPTION_EXISTS).get_status()
+    #     return redirect(url_for("payment.index", _external=False, **status))
 
-    if request.form.get("tier"):
-        tier = request.form.get("tier")
-    if not tier:
-        tier = "elevate"
+    tier = request.form.get("tier", "elevate")
+    if tier not in ["elevate", "connect", "boost"]:
+        status = Status(StatusType.ERROR, "Invalid tier").get_status()
+        return redirect(url_for("payment.index", _external=False, **status))
 
     try:
         checkout_session = create_checkout(
@@ -207,9 +254,9 @@ def create_checkout_session():
         )
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
-        return redirect(url_for("payment.index", _external=False, **status))  # type: ignore
+        return redirect(url_for("payment.index", _external=False, **status))
 
-    return redirect(checkout_session.url, code=303)
+    return redirect(checkout_session.url, code=303)  # type: ignore
 
 
 @payment.post("/create-portal-session")
@@ -225,7 +272,7 @@ def customer_portal():
         return_url = request.host_url
 
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if authenticated_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
     try:
@@ -255,7 +302,7 @@ def subscription_update():
     """
     return_url = request.host_url + "settings/plan"
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if authenticated_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
     try:
@@ -268,7 +315,7 @@ def subscription_update():
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    subscription_id = request.form.get("subscription_id")
+    subscription_id = request.form.get("subscription_id", "")
 
     portal_session = stripe.billing_portal.Session.create(
         customer=user_payment.customer_id,
@@ -291,7 +338,7 @@ def subscription_cancel():
     """
     return_url = request.host_url + "settings/plan"
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if authenticated_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
     try:
@@ -304,7 +351,7 @@ def subscription_cancel():
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    subscription_id = request.form.get("subscription_id")
+    subscription_id = request.form.get("subscription_id", "")
 
     try:
         portal_session = stripe.billing_portal.Session.create(
@@ -351,6 +398,10 @@ def cancel():
 
 
 def invoice_paid(data_object):
+    # Check for the charge to be a subscription
+    if data_object.get("billing_reason") != "subscription_create":
+        return
+
     stripe_data = data_object.get("lines").get("data")[0]
 
     stripe_subscription_id = stripe_data.get("subscription")
@@ -448,8 +499,8 @@ def webhook_received():
     if webhook_secret:
         signature = request.headers.get("stripe-signature")
         try:
-            event = stripe.Webhook.construct_event(
-                payload=request.data, sig_header=signature, secret=webhook_secret  # type: ignore
+            event = stripe.Webhook.construct_event(  # type: ignore
+                payload=request.data, sig_header=signature, secret=webhook_secret
             )
             data = event["data"]
         except SignatureVerificationError as e:
@@ -469,6 +520,8 @@ def webhook_received():
     """
     DOCS: https://stripe.com/docs/billing/subscriptions/webhooks
     """
+    # TODO: Add an event to handle the teaser product
+    # charge.succeded checkout.session.completed payment_intent.created payment_intent.succeeded
     match event_type:
         case "invoice.paid":
             invoice_paid(data_object)

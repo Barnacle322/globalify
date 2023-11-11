@@ -215,6 +215,11 @@ class UserPayment(db.Model):
         return subscription
 
 
+# TODO
+# class WaitlistCharage(db.Model):
+#     pass
+
+
 class Company(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)

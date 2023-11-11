@@ -2,7 +2,7 @@ import base64
 from functools import wraps
 
 from flask import Blueprint, redirect, render_template, request, url_for
-from flask_login import AnonymousUserMixin, current_user, login_required
+from flask_login import current_user, login_required
 
 from ..models import InvestmentFirm, Investor, User
 from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
@@ -40,7 +40,12 @@ def check_verification(func):
 
 @main.get("/")
 def index():
-    return render_template("index.html")
+    return render_template("coming_soon.html")
+
+
+@main.get("/waitlist")
+def waitlist():
+    return render_template("waitlist.html")
 
 
 @main.route("/dashboard")
@@ -50,13 +55,13 @@ def index():
 @check_verification
 def dashboard():
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if authenticated_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
     pfp_base64 = False
     try:
-        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:
-            pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
+        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:  # type: ignore
+            pfp = download_blob_into_memory(pfp_uuid)
             pfp_base64 = base64.b64encode(pfp).decode("utf-8")
     except Exception as e:
         print(e)
@@ -81,13 +86,13 @@ def dashboard():
 @check_verification
 def investment_firms():
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if authenticated_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
     pfp_base64 = False
     try:
-        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:
-            pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
+        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:  # type: ignore
+            pfp = download_blob_into_memory(pfp_uuid)
             pfp_base64 = base64.b64encode(pfp).decode("utf-8")
     except Exception as e:
         print(e)

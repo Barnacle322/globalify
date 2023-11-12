@@ -38,9 +38,9 @@
         <title>{% block title %}{% endblock %} | Globalify</title>
         {% endblock %}
     </head>
-    <body class="h-full bg-slate-50">
-        <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-center bg-slate-50">
-            <img class="h-[30px] w-[113px]" src="../static/elements/logo-black.png" />
+    <body class="h-full w-full overflow-y-auto xl:overflow-hidden">
+        <nav class="left-0 top-0 flex h-24 w-full items-center justify-start bg-slate-50 px-9">
+            <a href="/"><img class="h-[30px] w-[113px]" src="../static/elements/logo-black.png" /></a>
         </nav>
         {% block content %} {% endblock %}
     </body>

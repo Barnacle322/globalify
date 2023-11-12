@@ -215,9 +215,58 @@ class UserPayment(db.Model):
         return subscription
 
 
-# TODO
-# class WaitlistCharage(db.Model):
-#     pass
+class WaitlistCharge(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    stripe_customer_id = mapped_column(String, nullable=False)
+    charge_id = mapped_column(String, nullable=False)
+    customer_email = mapped_column(String, nullable=False)
+    customer_name = mapped_column(String, nullable=False)
+
+    def __init__(self, **kwargs):
+        super(WaitlistCharge, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<WaitlistCharge {self.customer_email}>"
+
+    @staticmethod
+    def get_by_id(id: int) -> Union[WaitlistCharge, None]:
+        try:
+            waitlist_charge = WaitlistCharge.query.filter(
+                WaitlistCharge.id == id
+            ).first()
+            return waitlist_charge
+        except NoResultFound:
+            return None
+
+    @staticmethod
+    def get_by_customer_id(customer_id: str) -> Union[WaitlistCharge, None]:
+        try:
+            waitlist_charge = WaitlistCharge.query.filter(
+                WaitlistCharge.stripe_customer_id == customer_id
+            ).first()
+            return waitlist_charge
+        except NoResultFound:
+            return None
+
+    @staticmethod
+    def get_by_charge_id(charge_id: str) -> Union[WaitlistCharge, None]:
+        try:
+            waitlist_charge = WaitlistCharge.query.filter(
+                WaitlistCharge.charge_id == charge_id
+            ).first()
+            return waitlist_charge
+        except NoResultFound:
+            return None
+
+    @staticmethod
+    def get_by_customer_email(customer_email: str) -> Union[WaitlistCharge, None]:
+        try:
+            waitlist_charge = WaitlistCharge.query.filter(
+                WaitlistCharge.customer_email == customer_email
+            ).first()
+            return waitlist_charge
+        except NoResultFound:
+            return None
 
 
 class Company(db.Model):

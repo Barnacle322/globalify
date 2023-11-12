@@ -135,12 +135,19 @@
                     <p class="mt-1 leading-6 text-slate-700">See your invoice history here.</p>
                 </div>
                 <div class="md:col-span-2">
+                    <div class="mb-2 flex justify-between rounded-xl">
+                        <b>Date</b>
+                        <b>Amount Due</b>
+                        <b>Amount Paid</b>
+                        <b>Status</b>
+                        <b>Invoice</b>
+                    </div>
                     {% if invoices %} {% for invoice in invoices %}
                     <div class="mb-2 flex justify-between rounded-xl">
                         <span>{{ invoice.created }}</span>
-                        <span>${{ invoice.amount_due if invoice.amount_due == 0 else invoice.amount_due / 10 }}</span>
+                        <span>${{ invoice.amount_due if invoice.amount_due == 0 else invoice.amount_due / 100 }}</span>
                         <span
-                            >${{ invoice.amount_paid if invoice.amount_paid == 0 else invoice.amount_paid / 10 }}</span
+                            >${{ invoice.amount_paid if invoice.amount_paid == 0 else invoice.amount_paid / 100 }}</span
                         >
                         <span>{{ invoice.status.title() }}</span>
                         <a href="{{ invoice.hosted_invoice_url }}" class="underline">Invoice</a>

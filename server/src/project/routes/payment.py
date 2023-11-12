@@ -8,7 +8,7 @@ from flask_login import current_user, login_required
 from stripe.error import InvalidRequestError, SignatureVerificationError
 
 from ..extensions import csrf, db
-from ..models import User, UserInfo, UserPayment
+from ..models import User, UserInfo, UserPayment, WaitlistCharge
 from ..utils.errors.auth_error_messages import (
     ONBOARDING_INCOMPLETE,
     PAYMENT_EMAIL_USED,
@@ -486,6 +486,33 @@ def payment_failed(data_object):
     )
 
 
+def charge_succeeded(data_object):
+    print("---------------\n")
+    print(data_object)
+    print("---------------\n")
+    stripe_customer_id = data_object.get("customer")
+    charge_id = data_object.get("id")
+    customer_email = data_object.get("billing_details").get("email")
+    customer_name = data_object.get("billing_details").get("name")
+
+    new_waitlist_charge = WaitlistCharge(
+        stripe_customer_id=stripe_customer_id,
+        charge_id=charge_id,
+        customer_email=customer_email,
+        customer_name=customer_name,
+    )
+    db.session.add(new_waitlist_charge)
+    db.session.commit()
+
+    # html_content = render_template("email/payment_succeeded.html")
+
+    # send_email(
+    #     recepients=customer_email,
+    #     subject="Your payment was successful",
+    #     html_content=html_content,
+    # )
+
+
 @payment.post("/webhook")
 @csrf.exempt
 def webhook_received():
@@ -533,5 +560,7 @@ def webhook_received():
             trial_will_end(data_object)
         case "invoice.payment_failed":
             payment_failed(data_object)
+        case "charge.succeeded":
+            charge_succeeded(data_object)
 
     return jsonify(success=True)

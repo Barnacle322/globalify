@@ -180,6 +180,9 @@ def onboarding():
     if not user_info:
         return redirect(url_for("auth.login"))
 
+    if user_info.is_complete:
+        return redirect(url_for("auth.company_form"))
+
     if request.method == "POST":
         first_name, last_name, username = (
             request.form.get("first-name"),

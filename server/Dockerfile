@@ -1,6 +1,6 @@
 FROM python:3.12.0-alpine
 
-RUN pip install Werkzeug==2.3.7 \
+RUN pip install Werkzeug==3.0.1 \
     Flask==3.0.0 \
     Flask-SQLalchemy==3.1.1 \
     Flask-Login==0.6.3 \

@@ -7,6 +7,7 @@ RUN pip install Werkzeug==3.0.1 \
     Flask-Migrate==4.0.5 \
     Flask-WTF==1.2.1 \
     psycopg-binary==3.1.12 \
+    psycopg==3.1.12 \
     Authlib==1.2.1 \
     requests==2.31.0 \
     pycountry==22.3.5 \

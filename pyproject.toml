@@ -56,7 +56,9 @@ exclude = [
     "node_modules",
     "venv",
     ".venv",
-    ".old_venv"
+    ".old_venv",
+    "migrations",
+    "instance"
 ]
 
 # Same as Black.

@@ -102,7 +102,7 @@ class UserInfo(db.Model):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<UserInfo: {self.username} | {'Incomplete' if not self.is_complete else 'Complete'}>"
+        return f"<UserInfo: {self.username} | {'Complete' if self.is_complete else 'Incomplete'}>"
 
     @property
     def full_name(self):
@@ -152,6 +152,9 @@ class UserPayment(db.Model):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<UserPayment: {self.customer_id} | {'Active' if self.is_active else 'Inactive'}>"
 
     @property
     def created_epoch(self) -> DateTime | None:

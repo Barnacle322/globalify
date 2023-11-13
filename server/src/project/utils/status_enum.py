@@ -11,9 +11,7 @@ class Status:
     status_type: StatusType
     msg: str
 
-    def __init__(
-        self, type: StatusType = StatusType.ERROR, msg="An unknown error occurred."
-    ):
+    def __init__(self, type: StatusType = StatusType.ERROR, msg="An unknown error occurred."):
         self.status_type = type
         self.msg = msg
 

@@ -2,7 +2,7 @@ import os
 import re
 
 import requests
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
 from flask_login import (
     AnonymousUserMixin,
     current_user,
@@ -113,11 +113,15 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
+        current_app.logger.info(f"User created {new_user}")
+
         new_user_info = UserInfo(user_id=new_user.id)
         new_user_payment = UserPayment(user_id=new_user.id)
         db.session.add_all((new_user_info, new_user_payment))
         db.session.commit()
 
+        current_app.logger.info(f"UserInfo created {new_user_info}")
+        current_app.logger.info(f"UserPayment created {new_user_payment}")
         return redirect(url_for("auth.login"))
 
     return render_template("auth/register.html", status_type=status_type, msg=msg)

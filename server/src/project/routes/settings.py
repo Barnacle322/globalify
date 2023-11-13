@@ -1,4 +1,3 @@
-import base64
 import re
 
 from flask import Blueprint, redirect, render_template, request, url_for
@@ -7,27 +6,13 @@ from flask_login import current_user, fresh_login_required, login_required, logo
 from ..extensions import db
 from ..models import User, UserInfo, UserPayment
 from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
-from ..utils.google_storage import download_blob_into_memory
+from ..utils.google_storage import load_pfp
 from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import OauthProvider, Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
 settings = Blueprint("settings", __name__)
-
-
-def load_pfp(pfp_uuid):
-    if not pfp_uuid:
-        return False
-
-    try:
-        pfp = download_blob_into_memory(pfp_uuid)
-        pfp_base64 = base64.b64encode(pfp).decode("utf-8")
-    except Exception as e:
-        pfp_base64 = False
-        print(e)
-
-    return pfp_base64
 
 
 @settings.route("/")

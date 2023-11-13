@@ -1,5 +1,6 @@
 import os
 
+from flask import current_app
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Email, Mail
 
@@ -22,10 +23,8 @@ def send_email(recepients: str | list[str], subject: str, html_content: str) -> 
 
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
-        response = sg.send(message)
-        print(response.status_code)
-        print(response.body)
-        print(response.headers)
+        sg.send(message)
+        current_app.logger.info(f"Email sent to {recepients}")
     except Exception as e:
-        print("⚠️  Email could not be sent.")
-        print(e)
+        current_app.logger.error(f"Email could not be sent to {recepients}")
+        current_app.logger.error(e)

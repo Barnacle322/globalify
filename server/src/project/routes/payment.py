@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 import stripe
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from stripe.error import InvalidRequestError, SignatureVerificationError
 
@@ -484,13 +484,13 @@ def charge_succeeded(data_object):
     db.session.add(new_waitlist_charge)
     db.session.commit()
 
-    # html_content = render_template("email/payment_succeeded.html")
+    html_content = render_template("email/payment_succeeded.html")
 
-    # send_email(
-    #     recepients=customer_email,
-    #     subject="Your payment was successful",
-    #     html_content=html_content,
-    # )
+    send_email(
+        recepients=customer_email,
+        subject="Your payment was successful",
+        html_content=html_content,
+    )
 
 
 @payment.post("/webhook")
@@ -511,7 +511,7 @@ def webhook_received():
             )
             data = event["data"]
         except SignatureVerificationError as e:
-            print("⚠️  Webhook signature verification failed." + str(e))
+            current_app.logger.warning("⚠️  Webhook signature verification failed." + str(e))
             return jsonify(success=False, error_message=e)
 
         event_type = event["type"]

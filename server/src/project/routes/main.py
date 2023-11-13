@@ -107,7 +107,7 @@ def investment_firms():
 @check_user_info_complete
 @check_verification
 def investor(investor_id):
-    investor = Investor.get_by_id(investor_id)
+    investor = Investor.get_by_id(int(investor_id))
     if not investor:
         return redirect(url_for("main.dashboard"))
 
@@ -119,7 +119,7 @@ def investor(investor_id):
 @check_user_info_complete
 @check_verification
 def investment_firm(firm_id):
-    investment_firm = InvestmentFirm.get_by_id(firm_id)
+    investment_firm = InvestmentFirm.get_by_id(int(firm_id))
     if not investment_firm:
         return redirect(url_for("main.dashboard"))
 

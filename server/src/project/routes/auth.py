@@ -41,7 +41,7 @@ LINKEDIN_PERSONAL_INFO_URL = "https://api.linkedin.com/v2/me"
 
 @login_manager.user_loader
 def load_user(user_id: int) -> User | None:
-    user = User.get_by_id(user_id)
+    user = User.get_by_id(int(user_id))
     if user:
         return user
     return None

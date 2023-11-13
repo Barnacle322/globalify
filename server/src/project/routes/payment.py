@@ -94,9 +94,7 @@ def handle_customer(authenticated_user: User) -> UserPayment:
 
 
 def create_checkout(
-    customer_id: str,
-    tier: str = "elevate",
-    trial_period_days: int = 0,
+    customer_id: str, tier: str = "elevate", trial_period_days: int = 0, success_url: str = "", cancel_url: str = ""
 ) -> stripe.checkout.Session:
     """
     Elevate: elevate
@@ -105,8 +103,10 @@ def create_checkout(
     Waitlist: teaser
     """
     elevate_trial_period_days = 14
-    success_url = request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}"
-    cancel_url = request.host_url + "payment/cancel"
+    success_url = (
+        request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}" if not success_url else success_url
+    )
+    cancel_url = request.host_url + "payment/cancel" if not cancel_url else cancel_url
     prices = stripe.Price.list(lookup_keys=[tier], expand=["data.product"])
 
     if tier == "teaser":

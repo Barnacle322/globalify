@@ -25,7 +25,7 @@ from .utils.status_enum import OauthProvider, Tier
 
 
 class User(UserMixin, db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider), nullable=True)
@@ -82,7 +82,7 @@ class User(UserMixin, db.Model):
 
 
 class UserInfo(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False, unique=True)
     first_name: Mapped[str | None] = mapped_column(String, nullable=True)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -139,7 +139,7 @@ class UserInfo(db.Model):
 
 
 class UserPayment(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False, unique=True)
     customer_id: Mapped[str] = mapped_column(String, nullable=True)
     subscription_id: Mapped[str] = mapped_column(String, nullable=True)
@@ -203,7 +203,7 @@ class UserPayment(db.Model):
 
 
 class WaitlistCharge(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     stripe_customer_id = mapped_column(String, nullable=False)
     charge_id = mapped_column(String, nullable=False)
     customer_email = mapped_column(String, nullable=False)
@@ -246,6 +246,11 @@ class WaitlistCharge(db.Model):
             return waitlist_charge
         except NoResultFound:
             return None
+
+
+class Waitlist(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
 
 class Company(db.Model):

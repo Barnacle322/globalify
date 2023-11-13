@@ -1,5 +1,5 @@
-{% extends "layouts/layout_payment.html" %} {% block title %}Subscriptions{% endblock %} {% block head %} {{ super() }}
-{% endblock %} {% block content %}
+{% extends "layouts/layout.html" %} {% block title %}Pricing{% endblock %} {% block head %} {{ super() }} {% endblock %}
+{% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-slate-50 text-slate-900">
     <section class="mx-auto mb-28 mt-24 flex max-w-7xl flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
         <div class="mb-10 md:text-center">
@@ -17,16 +17,12 @@
                 <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Elevate</span>
                 <span class="text-stone-500">Full access to our database with Elevate tier.</span>
                 <span class="text-4xl font-semibold">$10<span class="text-base font-normal">/month</span></span>
-                <form action="/payment/create-checkout-session" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <input type="hidden" name="tier" value="elevate" />
-                    <button
-                        class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
-                        type="submit"
-                    >
-                        Subscribe
-                    </button>
-                </form>
+                <a
+                    class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
+                    href="/register"
+                >
+                    Subscribe
+                </a>
                 <ul>
                     <li class="flex flex-row">
                         <svg
@@ -84,16 +80,12 @@
                 <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Connect Pro</span>
                 <span class="text-stone-500">Connect Pro makes it easier for investors to discover your idea.</span>
                 <span class="text-4xl font-semibold">20$<span class="text-base font-normal">/month</span></span>
-                <form action="/payment/create-checkout-session" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <input type="hidden" name="tier" value="connect" />
-                    <button
-                        class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
-                        type="submit"
-                    >
-                        Subscribe
-                    </button>
-                </form>
+                <a
+                    class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
+                    href="/register"
+                >
+                    Subscribe
+                </a>
                 <ul>
                     <li class="flex flex-row">
                         <svg
@@ -151,16 +143,12 @@
                 <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Boost Academy</span>
                 <span class="text-stone-500">Take advantage of everything we offer with Boost Academy.</span>
                 <span class="text-4xl font-semibold">$40<span class="text-base font-normal">/month</span></span>
-                <form action="/payment/create-checkout-session" method="POST">
-                    <input type="hidden" name="tier" value="boost" />
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <button
-                        class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
-                        type="submit"
-                    >
-                        Subscribe
-                    </button>
-                </form>
+                <a
+                    class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
+                    href="/register"
+                >
+                    Subscribe
+                </a>
                 <ul>
                     <li class="flex flex-row">
                         <svg

@@ -1,9 +1,8 @@
 import os
 import re
-from typing import Any, Union
 
 import requests
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
 from flask_login import (
     AnonymousUserMixin,
     current_user,
@@ -30,20 +29,18 @@ from ..utils.errors.auth_error_messages import (
     OAUTH_NO_USER_INFO,
 )
 from ..utils.google_storage import prepare_picture, upload_blob
-from ..utils.info_lists import languages as LANGUAGE_LIST
+from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import OauthProvider, Status, StatusType
 
 auth = Blueprint("auth", __name__)
 
 LINKEDIN_SECRET = os.environ.get("_LINKEDIN_OAUTH2_CLIENT_SECRET")
-LINKEDIN_EMAIL_URL = (
-    "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))"
-)
+LINKEDIN_EMAIL_URL = "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))"
 LINKEDIN_PERSONAL_INFO_URL = "https://api.linkedin.com/v2/me"
 
 
 @login_manager.user_loader
-def load_user(user_id: int) -> Union[User, None]:
+def load_user(user_id: int) -> User | None:
     user = User.get_by_id(user_id)
     if user:
         return user
@@ -69,7 +66,7 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
     return user
 
 
-def api_call(url: str, access_token: str) -> Any:
+def api_call(url: str, access_token: str):
     response = requests.get(
         url,
         headers={"Authorization": f"Bearer {access_token}"},
@@ -103,9 +100,7 @@ def register():
             return redirect(url_for("auth.register", _external=False, **status))
 
         if (oauth := User.signed_with_oauth(email)) != OauthProvider.REGULAR:
-            status = Status(
-                StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())
-            ).get_status()
+            status = Status(StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 
         user = User.get_by_email(email)
@@ -118,11 +113,15 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
+        current_app.logger.info(f"User created {new_user}")
+
         new_user_info = UserInfo(user_id=new_user.id)
         new_user_payment = UserPayment(user_id=new_user.id)
         db.session.add_all((new_user_info, new_user_payment))
         db.session.commit()
 
+        current_app.logger.info(f"UserInfo created {new_user_info}")
+        current_app.logger.info(f"UserPayment created {new_user_payment}")
         return redirect(url_for("auth.login"))
 
     return render_template("auth/register.html", status_type=status_type, msg=msg)
@@ -149,9 +148,7 @@ def login():
             return redirect(url_for("auth.login", _external=False, **status))
 
         if (oauth := User.signed_with_oauth(email)) != OauthProvider.REGULAR:
-            status = Status(
-                StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())
-            ).get_status()
+            status = Status(StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())).get_status()
             return redirect(url_for("auth.login", _external=False, **status))
 
         if not user.verify_password(password):
@@ -179,6 +176,9 @@ def onboarding():
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info:
         return redirect(url_for("auth.login"))
+
+    if user_info.is_complete:
+        return redirect(url_for("auth.company_form"))
 
     if request.method == "POST":
         first_name, last_name, username = (
@@ -218,9 +218,7 @@ def onboarding():
         db.session.commit()
         return redirect(url_for("auth.company_form"))
 
-    return render_template(
-        "auth/onboarding.html", languages=LANGUAGE_LIST, user_info=user_info.sanitize()
-    )
+    return render_template("auth/onboarding.html", languages=language_list, user_info=user_info.sanitize())
 
 
 @auth.get("/username/<username>")

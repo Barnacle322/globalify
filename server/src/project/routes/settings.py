@@ -1,4 +1,3 @@
-import base64
 import re
 
 from flask import Blueprint, redirect, render_template, request, url_for
@@ -7,8 +6,8 @@ from flask_login import current_user, fresh_login_required, login_required, logo
 from ..extensions import db
 from ..models import User, UserInfo, UserPayment
 from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
-from ..utils.google_storage import download_blob_into_memory
-from ..utils.info_lists import languages as LANGUAGE_LIST
+from ..utils.google_storage import load_pfp
+from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import OauthProvider, Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
@@ -26,19 +25,13 @@ def index():
     if not authenticated_user.is_authenticated:
         return redirect(url_for("auth.login"))
 
-    pfp_base64 = False
-    try:
-        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:
-            pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
-            pfp_base64 = base64.b64encode(pfp).decode("utf-8")
-    except Exception as e:
-        print(e)
+    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     return render_template(
         "settings/general.html",
         user=authenticated_user,
         pfp_base64=pfp_base64,
-        languages=LANGUAGE_LIST,
+        languages=language_list,
     )
 
 
@@ -51,13 +44,7 @@ def security():
     if not authenticated_user.is_authenticated:
         return redirect(url_for("auth.login"))
 
-    pfp_base64 = False
-    try:
-        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:
-            pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
-            pfp_base64 = base64.b64encode(pfp).decode("utf-8")
-    except Exception as e:
-        print(e)
+    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     return render_template(
         "settings/security.html",
@@ -75,13 +62,7 @@ def plan():
     if not authenticated_user.is_authenticated:
         return redirect(url_for("auth.login"))
 
-    pfp_base64 = False
-    try:
-        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:
-            pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
-            pfp_base64 = base64.b64encode(pfp).decode("utf-8")
-    except Exception as e:
-        print(e)
+    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
     subscription = {"tier": Tier.FREE}
@@ -105,16 +86,9 @@ def billing():
     if not authenticated_user.is_authenticated:
         return redirect(url_for("auth.login"))
 
-    pfp_base64 = False
-    try:
-        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:
-            pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
-            pfp_base64 = base64.b64encode(pfp).decode("utf-8")
-    except Exception as e:
-        print(e)
+    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     invoices = get_invoices(authenticated_user)
-    print(invoices)
 
     return render_template(
         "settings/billing.html",
@@ -169,19 +143,18 @@ def change_personal_info():  # noqa
     username = request.form.get("username")
     language = request.form.get("language")
 
-    if first_name and first_name.strip() != authenticated_user.user_info[0].first_name:
+    user_info = authenticated_user.user_info[0]  # type: ignore
+    if first_name and first_name.strip() != user_info.first_name:
         if first_name == " ":
-            status = Status(
-                StatusType.ERROR, "First name cannot be empty."
-            ).get_status()
+            status = Status(StatusType.ERROR, "First name cannot be empty.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
-        authenticated_user.user_info[0].first_name = first_name.strip()
+        user_info.first_name = first_name.strip()
 
-    if last_name and last_name.strip() != authenticated_user.user_info[0].last_name:
+    if last_name and last_name.strip() != user_info.last_name:
         if last_name != " ":
             status = Status(StatusType.ERROR, "Last name cannot be empty.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
-        authenticated_user.user_info[0].last_name = last_name.strip()
+        user_info.last_name = last_name.strip()
 
     if email and email != authenticated_user.email:
         if email == " ":
@@ -193,14 +166,12 @@ def change_personal_info():  # noqa
             return redirect(url_for("auth.register", _external=False, **status))
 
         if not authenticated_user.oauth_provider == OauthProvider.REGULAR:
-            status = Status(
-                StatusType.ERROR, "Cannot change email for oauth users."
-            ).get_status()
+            status = Status(StatusType.ERROR, "Cannot change email for oauth users.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
         authenticated_user.email = email
 
-    if username and username.strip() != authenticated_user.user_info[0].username:
+    if username and username.strip() != user_info.username:
         if username == " ":
             status = Status(StatusType.ERROR, "Username cannot be empty.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
@@ -208,23 +179,21 @@ def change_personal_info():  # noqa
             status = Status(StatusType.ERROR, "Username is taken.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
-        authenticated_user.user_info[0].username = username.strip()
+        user_info.username = username.strip()
 
-    if language and language != authenticated_user.user_info[0].language:
+    if language and language != user_info.language:
         if language == " ":
             status = Status(StatusType.ERROR, "Language cannot be empty.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
-        if language not in LANGUAGE_LIST:
+        if language not in language_list:
             status = Status(StatusType.ERROR, "Invalid language.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
-        authenticated_user.user_info[0].language = language
+        user_info.language = language
 
     db.session.commit()
 
-    status = Status(
-        StatusType.SUCCESS, "Personal info successfully changed."
-    ).get_status()
+    status = Status(StatusType.SUCCESS, "Personal info successfully changed.").get_status()
 
     return redirect(url_for("settings.index", _external=False, **status))
 

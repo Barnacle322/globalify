@@ -1,3 +1,4 @@
+import base64
 import io
 from uuid import UUID, uuid4
 
@@ -9,7 +10,7 @@ def upload_blob(
     content: bytes,
     old_blob_id: str | None = None,
     bucket_name: str = "globalify_profile_pictures",
-    destination_blob_name: UUID = uuid4(),
+    destination_blob_name: UUID = uuid4(),  # noqa: B008
 ) -> UUID:
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
@@ -24,9 +25,7 @@ def upload_blob(
     return destination_blob_name
 
 
-def download_blob_into_memory(
-    blob_name: UUID, bucket_name: str = "globalify_profile_pictures"
-) -> bytes:
+def download_blob_into_memory(blob_name: UUID, bucket_name: str = "globalify_profile_pictures") -> bytes:
     storage_client = storage.Client()
 
     bucket = storage_client.bucket(bucket_name)
@@ -61,3 +60,17 @@ def prepare_picture(image):
     resized_pfp.seek(0)
 
     return resized_pfp
+
+
+def load_pfp(pfp_uuid):
+    if not pfp_uuid:
+        return False
+
+    try:
+        pfp = download_blob_into_memory(pfp_uuid)
+        pfp_base64 = base64.b64encode(pfp).decode("utf-8")
+    except Exception as e:
+        pfp_base64 = False
+        print(e)
+
+    return pfp_base64

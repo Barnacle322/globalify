@@ -111,6 +111,7 @@ endblock %} {% block content %}
                                 name="language"
                                 autocomplete="language"
                                 class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                                required
                             >
                                 <option value="" disabled selected hidden>Select a language</option>
                                 {% if languages %} {% for language in languages %}
@@ -185,7 +186,6 @@ endblock %} {% block content %}
             </div>
         </div>
         <div class="mt-6 flex items-center justify-end gap-x-6">
-            <button type="button" class="text-sm font-semibold leading-6 text-gray-900">Cancel</button>
             <button
                 type="submit"
                 class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"

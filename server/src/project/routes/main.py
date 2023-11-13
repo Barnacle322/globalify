@@ -1,12 +1,13 @@
-import base64
+import xml.etree.ElementTree as ElementTree
+from datetime import datetime, timedelta
 from functools import wraps
 
-from flask import Blueprint, redirect, render_template, request, url_for
-from flask_login import AnonymousUserMixin, current_user, login_required
+from flask import Blueprint, current_app, make_response, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 
 from ..models import InvestmentFirm, Investor, User
 from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
-from ..utils.google_storage import download_blob_into_memory
+from ..utils.google_storage import load_pfp
 from ..utils.status_enum import Status, StatusType
 
 main = Blueprint("main", __name__)
@@ -40,7 +41,12 @@ def check_verification(func):
 
 @main.get("/")
 def index():
-    return render_template("index.html")
+    return render_template("coming_soon.html")
+
+
+@main.get("/waitlist")
+def waitlist():
+    return render_template("waitlist.html")
 
 
 @main.route("/dashboard")
@@ -50,16 +56,10 @@ def index():
 @check_verification
 def dashboard():
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if authenticated_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
-    pfp_base64 = False
-    try:
-        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:
-            pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
-            pfp_base64 = base64.b64encode(pfp).decode("utf-8")
-    except Exception as e:
-        print(e)
+    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     search_query = request.args.get("q", "")
     page_num = request.args.get("page", 1, type=int)
@@ -67,6 +67,7 @@ def dashboard():
 
     if page_num > investors.pages and investors.pages > 0:  # type: ignore
         return redirect(url_for("main.search", search=search_query, pagenum=1))
+
     return render_template(
         "dashboard_investor.html",
         pfp_base64=pfp_base64,
@@ -81,16 +82,10 @@ def dashboard():
 @check_verification
 def investment_firms():
     authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if authenticated_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
-    pfp_base64 = False
-    try:
-        if pfp_uuid := authenticated_user.user_info[0].pfp_uuid:
-            pfp = download_blob_into_memory(pfp_uuid)  # type: ignore
-            pfp_base64 = base64.b64encode(pfp).decode("utf-8")
-    except Exception as e:
-        print(e)
+    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     search_query = request.args.get("q", "")
     page_num = request.args.get("page", 1, type=int)
@@ -132,8 +127,16 @@ def investment_firm(firm_id):
 
 
 @main.route("/pricing")
-@main.route("/docs")
+def pricing():
+    return render_template("pricing.html")
+
+
 @main.route("/about")
+def about():
+    return render_template("about.html")
+
+
+@main.route("/docs")
 @main.route("/jobs")
 @main.route("/partners")
 @main.route("/help")
@@ -153,6 +156,48 @@ def terms_of_service():
 @main.route("/privacy-policy")
 def privacy_policy():
     return render_template("privacy_policy.html")
+
+
+@main.route("/sitemap.xml")
+def sitemap():
+    pages = []
+    ten_days_ago = (datetime.now() - timedelta(days=10)).date().isoformat()
+
+    # Add static pages
+    for rule in current_app.url_map.iter_rules():
+        if "GET" in rule.methods and len(rule.arguments) == 0:  # type: ignore
+            pages.append([rule.rule, ten_days_ago])
+
+    # Add dynamic pages
+    # pages.append(["/dynamic-page", ten_days_ago])
+
+    # Create the XML sitemap
+    root = ElementTree.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+    for page in pages:
+        url = ElementTree.SubElement(root, "url")
+        loc = ElementTree.SubElement(url, "loc")
+        loc.text = page[0]
+        lastmod = ElementTree.SubElement(url, "lastmod")
+        lastmod.text = page[1]
+        changefreq = ElementTree.SubElement(url, "changefreq")
+        changefreq.text = "weekly"
+        priority = ElementTree.SubElement(url, "priority")
+        priority.text = "0.5"
+
+    # Return the XML sitemap as a response
+    sitemap_xml = ElementTree.tostring(root, encoding="utf-8")
+    response = make_response(sitemap_xml)
+    response.headers["Content-Type"] = "application/xml"
+
+    return response
+
+
+@main.route("/robots.txt")
+def robots():
+    robots_txt = "User-agent: *\nDisallow: /admin\nDisallow: /logout\nDisallow: /onboarding\nDisallow: /company-form\nDisallow: /login-linkedin\nDisallow: /login-google\nDisallow: /google-oauth\nDisallow: /linkedin-oauth\n\nSitemap: https://globalify.xyz/sitemap.xml"
+    response = make_response(robots_txt)
+    response.headers["Content-Type"] = "text/plain"
+    return response
 
 
 @main.errorhandler(400)

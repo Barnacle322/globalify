@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import datetime
 import random
-from typing import List, Union
 
 import pycountry
 from flask_login import UserMixin
-from sqlalchemy import Boolean, Column, DateTime
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import ForeignKey, Integer, String, event
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -22,6 +20,7 @@ from .utils.fake_data import (
     get_names,
     get_websites,
 )
+from .utils.info_lists import aggregate as industry_aggregate
 from .utils.status_enum import OauthProvider, Tier
 
 
@@ -29,14 +28,12 @@ class User(UserMixin, db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
-    oauth_provider: Mapped[OauthProvider] = mapped_column(
-        SQLEnum(OauthProvider), nullable=True
-    )
+    oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider), nullable=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __init__(self, **kwargs):
-        super(User, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f"<User {self.email}>"
@@ -55,7 +52,7 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     @staticmethod
-    def get_by_id(id: int) -> Union[User, None]:
+    def get_by_id(id: int) -> User | None:
         try:
             user = User.query.filter(User.id == id).first()
             return user
@@ -63,7 +60,7 @@ class User(UserMixin, db.Model):
             return None
 
     @staticmethod
-    def get_by_email(email: str) -> Union[User, None]:
+    def get_by_email(email: str) -> User | None:
         try:
             user = User.query.filter(User.email == email).first()
             return user
@@ -86,9 +83,7 @@ class User(UserMixin, db.Model):
 
 class UserInfo(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user.id"), nullable=False, unique=True
-    )
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False, unique=True)
     first_name: Mapped[str | None] = mapped_column(String, nullable=True)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -99,17 +94,15 @@ class UserInfo(db.Model):
     # Google storage blob id
     pfp_uuid: Mapped[str | None] = mapped_column(String, nullable=True)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    language: Mapped[str] = mapped_column(String, nullable=True)
+    language: Mapped[str] = mapped_column(String, nullable=True, default="English")
 
-    user: Mapped[User] = relationship(
-        "User", backref=backref("user_info", cascade="all, delete"), lazy=True
-    )
+    user: Mapped[User] = relationship("User", backref=backref("user_info", cascade="all, delete"), lazy=True)
 
     def __init__(self, **kwargs):
-        super(UserInfo, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<UserInfo: {self.username} | {'Incomplete' if not self.is_complete else 'Complete'}>"
+        return f"<UserInfo: {self.username} | {'Complete' if self.is_complete else 'Incomplete'}>"
 
     @property
     def full_name(self):
@@ -137,7 +130,7 @@ class UserInfo(db.Model):
             return False
 
     @staticmethod
-    def get_by_user_id(id: int) -> Union[UserInfo, None]:
+    def get_by_user_id(id: int) -> UserInfo | None:
         try:
             user_info = UserInfo.query.filter(UserInfo.user_id == id).first()
             return user_info
@@ -147,9 +140,7 @@ class UserInfo(db.Model):
 
 class UserPayment(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user.id"), nullable=False, unique=True
-    )
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False, unique=True)
     customer_id: Mapped[str] = mapped_column(String, nullable=True)
     subscription_id: Mapped[str] = mapped_column(String, nullable=True)
     created: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
@@ -157,19 +148,20 @@ class UserPayment(db.Model):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     tier: Mapped[Tier] = mapped_column(SQLEnum(Tier), nullable=False, default=Tier.FREE)
 
-    user: Mapped[User] = relationship(
-        "User", backref=backref("user_payment", cascade="all, delete"), lazy=True
-    )
+    user: Mapped[User] = relationship("User", backref=backref("user_payment", cascade="all, delete"), lazy=True)
 
     def __init__(self, **kwargs):
-        super(UserPayment, self).__init__(**kwargs)
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<UserPayment: {self.customer_id} | {'Active' if self.is_active else 'Inactive'}>"
 
     @property
-    def created_epoch(self) -> Union[DateTime, None]:
+    def created_epoch(self) -> DateTime | None:
         return self.created
 
     @property
-    def expires_at_epoch(self) -> Union[DateTime, None]:
+    def expires_at_epoch(self) -> DateTime | None:
         return self.expires_at
 
     @created_epoch.setter
@@ -184,21 +176,17 @@ class UserPayment(db.Model):
         return self.expires_at < datetime.datetime.utcnow()  # type: ignore
 
     @staticmethod
-    def get_by_customer_id(customer_id: str) -> Union[UserPayment, None]:
+    def get_by_customer_id(customer_id: str) -> UserPayment | None:
         try:
-            user_payment = UserPayment.query.filter(
-                UserPayment.customer_id == customer_id
-            ).first()
+            user_payment = UserPayment.query.filter(UserPayment.customer_id == customer_id).first()
             return user_payment
         except NoResultFound:
             return None
 
     @staticmethod
-    def get_by_user_id(user_id: int) -> Union[UserPayment, None]:
+    def get_by_user_id(user_id: int) -> UserPayment | None:
         try:
-            user_payment = UserPayment.query.filter(
-                UserPayment.user_id == user_id
-            ).first()
+            user_payment = UserPayment.query.filter(UserPayment.user_id == user_id).first()
             return user_payment
         except NoResultFound:
             return None
@@ -214,6 +202,52 @@ class UserPayment(db.Model):
         return subscription
 
 
+class WaitlistCharge(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    stripe_customer_id = mapped_column(String, nullable=False)
+    charge_id = mapped_column(String, nullable=False)
+    customer_email = mapped_column(String, nullable=False)
+    customer_name = mapped_column(String, nullable=False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<WaitlistCharge {self.customer_email}>"
+
+    @staticmethod
+    def get_by_id(id: int) -> WaitlistCharge | None:
+        try:
+            waitlist_charge = WaitlistCharge.query.filter(WaitlistCharge.id == id).first()
+            return waitlist_charge
+        except NoResultFound:
+            return None
+
+    @staticmethod
+    def get_by_customer_id(customer_id: str) -> WaitlistCharge | None:
+        try:
+            waitlist_charge = WaitlistCharge.query.filter(WaitlistCharge.stripe_customer_id == customer_id).first()
+            return waitlist_charge
+        except NoResultFound:
+            return None
+
+    @staticmethod
+    def get_by_charge_id(charge_id: str) -> WaitlistCharge | None:
+        try:
+            waitlist_charge = WaitlistCharge.query.filter(WaitlistCharge.charge_id == charge_id).first()
+            return waitlist_charge
+        except NoResultFound:
+            return None
+
+    @staticmethod
+    def get_by_customer_email(customer_email: str) -> WaitlistCharge | None:
+        try:
+            waitlist_charge = WaitlistCharge.query.filter(WaitlistCharge.customer_email == customer_email).first()
+            return waitlist_charge
+        except NoResultFound:
+            return None
+
+
 class Company(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
@@ -223,31 +257,23 @@ class Company(db.Model):
     website: Mapped[str] = mapped_column(String, nullable=True)
     # Google storage blob id
     pfp_uuid: Mapped[str] = mapped_column(String, nullable=True)
-    country_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("country.id"), nullable=True
-    )
-    preferred_round_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("round.id"), nullable=True
-    )
-    industry_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("industry.id"), nullable=True
-    )
+    country_id: Mapped[int] = mapped_column(Integer, ForeignKey("country.id"), nullable=True)
+    preferred_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
+    industry_id: Mapped[int] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True)
 
-    user: Mapped[User] = relationship(
-        "User", backref=backref("company", cascade="all, delete"), lazy=True
-    )
+    user: Mapped[User] = relationship("User", backref=backref("company", cascade="all, delete"), lazy=True)
     country: Mapped[Country] = relationship()
     preferred_round: Mapped[Round] = relationship()
     industry: Mapped[Industry] = relationship()
 
     def __init__(self, **kwargs):
-        super(Company, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f"<Company {self.name}>"
 
     @staticmethod
-    def get_by_user_id(user_id: int) -> Union[Company, None]:
+    def get_by_user_id(user_id: int) -> Company | None:
         try:
             company = Company.query.filter(Company.user_id == user_id).first()
             return company
@@ -255,7 +281,7 @@ class Company(db.Model):
             return None
 
     @staticmethod
-    def get_by_id(id: int) -> Union[Company, None]:
+    def get_by_id(id: int) -> Company | None:
         try:
             company = Company.query.filter(Company.id == id).first()
             return company
@@ -269,7 +295,7 @@ class Industry(db.Model):
     category: Mapped[str] = mapped_column(String, nullable=False)
 
     def __init__(self, **kwargs):
-        super(Industry, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f"<Industry {self.name}>"
@@ -277,11 +303,9 @@ class Industry(db.Model):
     @staticmethod
     def get_all():
         try:
-            industries: List[Industry] = Industry.query.all()
+            industries: list[Industry] = Industry.query.all()
 
-            industry_dict = {
-                category: [] for category in list(map(lambda x: x.category, industries))
-            }
+            industry_dict = {category: [] for category in list(map(lambda x: x.category, industries))}
             for industry in industries:
                 industry_dict[industry.category].append(industry)
             return industry_dict
@@ -289,7 +313,7 @@ class Industry(db.Model):
             return {}
 
     @staticmethod
-    def get_by_id(id: int) -> Union[Industry, None]:
+    def get_by_id(id: int) -> Industry | None:
         try:
             industry = Industry.query.filter(Industry.id == id).first()
             return industry
@@ -297,7 +321,7 @@ class Industry(db.Model):
             return None
 
     @staticmethod
-    def get_by_name(name: str) -> Union[Industry, None]:
+    def get_by_name(name: str) -> Industry | None:
         try:
             industry = Industry.query.filter(Industry.name == name).first()
             return industry
@@ -307,207 +331,8 @@ class Industry(db.Model):
     @staticmethod
     def populate() -> None:
         try:
-            retail = [
-                "Software",
-                "Clothing and accessories",
-                "Convenience stores",
-                "Beauty products",
-                "Home goods and furniture",
-                "Home electronics",
-                "Auto parts and accessories",
-                "Jewelry Stores, Watches, Clocks, and Silverware Stores",
-                "Precious Stones and Metals, Watches and Jewelry",
-                "Other merchandise",
-            ]
-
-            digital_products = [
-                "Software as a service",
-                "Apps",
-                "Books",
-                "Music or other media",
-                "Games",
-                "Blogs and written content",
-                "Other digital goods",
-            ]
-
-            food_and_drink = [
-                "Restaurants and nightlife",
-                "Grocery stores",
-                "Caterers",
-                "Other food and dining",
-            ]
-
-            professional_services = [
-                "Consulting",
-                "Printing and publishing",
-                "Attorneys and lawyers",
-                "Bankruptcy services",
-                "Bail Bonds",
-                "Accounting, auditing, or tax prep",
-                "Computer repair",
-                "Testing laboratories",
-                "Auto services",
-                "Car rentals",
-                "Car sales",
-                "Lead generation",
-                "Direct marketing",
-                "Utilities",
-                "Government services",
-                "Telemarketing",
-                "Credit counseling or credit repair",
-                "Mortgage consulting services",
-                "Debt reduction services",
-                "Warranty Services",
-                "Other Marketing Services",
-                "Other business services",
-            ]
-
-            membership_organzations = [
-                "Civic, fraternal, or social associations",
-                "Charities or social service organizations",
-                "Religious organizations",
-                "Country clubs",
-                "Political organizations",
-                "Other membership organizations",
-            ]
-
-            personal_services = [
-                "Photography studios",
-                "Health and beauty spas",
-                "Salons or barbers",
-                "Landscaping services",
-                "Massage parlors",
-                "Counseling services",
-                "Health and wellness coaching",
-                "Laundry or cleaning services",
-                "Dating services",
-                "Other personal services",
-            ]
-
-            transportation = [
-                "Ridesharing",
-                "Taxis and limos",
-                "Courier services",
-                "Parking lots",
-                "Travel agencies",
-                "Freight forwarders",
-                "Shipping or forwarding",
-                "Commuter transportation",
-                "Cruise lines",
-                "Airlines and air carriers",
-                "Other transportation services",
-            ]
-
-            travel_and_lodging = [
-                "Property rentals",
-                "Hotels, inns, or motels",
-                "Timeshares",
-                "Other travel and lodging",
-            ]
-
-            medical_services = [
-                "Medical devices",
-                "Doctors and physicians",
-                "Opticians and eyeglasses",
-                "Dentists and orthodontists",
-                "Chiropractors",
-                "Nursing or personal care facilities",
-                "Hospitals",
-                "Personal fundraising or crowdfunding",
-                "Mental health services",
-                "Assisted living",
-                "Veterinary services",
-                "Medical organizations",
-                "Telemedicine and Telehealth",
-                "Other medical services",
-            ]
-
-            education = [
-                "Child care services",
-                "Colleges or universities",
-                "Vocational schools or trade schools",
-                "Elementary or secondary schools",
-                "Other educational services",
-            ]
-
-            entertainment_and_recreation = [
-                "Event ticketing",
-                "Tourist attractions",
-                "Recreational camps",
-                "Musicians, bands, or orchestras",
-                "Amusement parks, carnivals, or circuses",
-                "Fortune tellers",
-                "Movie theaters",
-                "Betting or fantasy sports",
-                "Lotteries",
-                "Sports forecasting or prediction services",
-                "Online gambling",
-                "Other entertainment and recreation",
-            ]
-
-            building_services = [
-                "General contractors",
-                "Electrical contractors",
-                "Carpentry contractors",
-                "Special trade contractors",
-                "Telecom services",
-                "Telecom equipment",
-                "A/C and heating contractors",
-                "Other building services",
-            ]
-
-            financial_services = [
-                "Insurance",
-                "Security brokers or dealers",
-                "Money orders",
-                "Currency exchanges",
-                "Wire transfers",
-                "Check Cashing",
-                "Loans or lending",
-                "Collections agencies",
-                "Money services or transmission",
-                "Investment services",
-                "Virtual currencies",
-                "Digital Wallets",
-                "Cryptocurrencies",
-                "Other financial institutions",
-                "Financial information and research",
-            ]
-
-            regulated = [
-                "Pharmacies or pharmaceuticals",
-                "Tobacco or cigars",
-                "Adult content or services",
-                "Vapes, e-cigarettes, e-juice or related products",
-                "Weapons or munitions",
-                "Supplements or nutraceuticals",
-                "Marijuana dispensaries",
-                "Marijuana-related products",
-                "Accessories for tobacco and marijuana",
-                "Alcohol",
-            ]
-
-            aggregate = {
-                "Retail": retail,
-                "Digital Products": digital_products,
-                "Food and Drink": food_and_drink,
-                "Professional Services": professional_services,
-                "Membership Organizations": membership_organzations,
-                "Personal Services": personal_services,
-                "Transportation": transportation,
-                "Travel and Lodging": travel_and_lodging,
-                "Medical Services": medical_services,
-                "Education": education,
-                "Entertainment and Recreation": entertainment_and_recreation,
-                "Building Services": building_services,
-                "Financial Services": financial_services,
-                "Regulated": regulated,
-            }
-
-            for category, industries in aggregate.items():
-                db.session.add_all(
-                    list(map(lambda x: Industry(name=x, category=category), industries))
-                )
+            for category, industries in industry_aggregate.items():
+                db.session.add_all(list(map(lambda x: Industry(name=x, category=category), industries)))
             db.session.commit()
         except Exception:
             db.session.rollback()
@@ -518,21 +343,21 @@ class Round(db.Model):
     name: Mapped[str] = mapped_column(String, nullable=False)
 
     def __init__(self, **kwargs):
-        super(Round, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f"<Round {self.name}>"
 
     @staticmethod
-    def get_all() -> List[Round]:
+    def get_all() -> list[Round]:
         try:
-            rounds: List[Round] = Round.query.all()
+            rounds: list[Round] = Round.query.all()
             return rounds
         except NoResultFound:
             return []
 
     @staticmethod
-    def get_by_id(id: int) -> Union[Round, None]:
+    def get_by_id(id: int) -> Round | None:
         try:
             investment_round = Round.query.filter(Round.id == id).first()
             return investment_round
@@ -540,7 +365,7 @@ class Round(db.Model):
             return None
 
     @staticmethod
-    def get_by_name(name: str) -> Union[Round, None]:
+    def get_by_name(name: str) -> Round | None:
         try:
             investment_round = Round.query.filter(Round.name == name).first()
             return investment_round
@@ -563,21 +388,21 @@ class Country(db.Model):
     code: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     def __init__(self, **kwargs):
-        super(Country, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f"<Country {self.name}>"
 
     @staticmethod
-    def get_all() -> List[Country]:
+    def get_all() -> list[Country]:
         try:
-            countries: List[Country] = Country.query.all()
+            countries: list[Country] = Country.query.all()
             return countries
         except NoResultFound:
             return []
 
     @staticmethod
-    def get_by_code(code: str) -> Union[Country, None]:
+    def get_by_code(code: str) -> Country | None:
         try:
             country = Country.query.filter(Country.code == code).first()
             return country
@@ -585,7 +410,7 @@ class Country(db.Model):
             return None
 
     @staticmethod
-    def get_by_id(id: int) -> Union[Country, None]:
+    def get_by_id(id: int) -> Country | None:
         try:
             country = Country.query.filter(Country.id == id).first()
             return country
@@ -595,7 +420,7 @@ class Country(db.Model):
     @staticmethod
     def populate() -> None:
         try:
-            country_list: List[Country] = []
+            country_list: list[Country] = []
             for country in pycountry.countries:
                 country_list.append(Country(name=country.name, code=country.alpha_2))
             db.session.add_all(country_list)
@@ -647,18 +472,21 @@ class Investor(db.Model):
     about: Mapped[str] = mapped_column(String, nullable=True)
     position: Mapped[str] = mapped_column(String, nullable=True)
     website: Mapped[str] = mapped_column(String, nullable=True)
+    linkedin: Mapped[str] = mapped_column(String, nullable=True)
+    twitter: Mapped[str] = mapped_column(String, nullable=True)
     email: Mapped[str] = mapped_column(String, nullable=True, unique=True)
     phone_number: Mapped[str] = mapped_column(String, nullable=True)
     n_investments: Mapped[int] = mapped_column(Integer, nullable=True)
     n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
     min_investment: Mapped[str] = mapped_column(String, nullable=True)
     max_investment: Mapped[str] = mapped_column(String, nullable=True)
+    location: Mapped[str] = mapped_column(String, nullable=True)
 
-    rounds: Mapped[List[Round]] = relationship(secondary=investor_round)
-    industries: Mapped[List[Industry]] = relationship(secondary=investor_industry)
+    rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=investor_industry)
 
     def __init__(self, **kwargs):
-        super(Investor, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f"<Investor {self.first_name} {self.last_name}>"
@@ -668,9 +496,9 @@ class Investor(db.Model):
         return f"{self.first_name} {self.last_name}"
 
     @staticmethod
-    def get_all() -> List[Investor]:
+    def get_all() -> list[Investor]:
         try:
-            investors: List[Investor] = Investor.query.all()
+            investors: list[Investor] = Investor.query.all()
             return investors
         except NoResultFound:
             return []
@@ -684,9 +512,7 @@ class Investor(db.Model):
     ):
         try:
             if query == "":
-                investors = Investor.query.paginate(
-                    page=page, per_page=per_page, error_out=error_out
-                )
+                investors = Investor.query.paginate(page=page, per_page=per_page, error_out=error_out)
             else:
                 investors = Investor.query.filter(
                     Investor.first_name.icontains(query)
@@ -701,7 +527,7 @@ class Investor(db.Model):
             return []
 
     @staticmethod
-    def get_by_id(id: int) -> Union[Investor, None]:
+    def get_by_id(id: int) -> Investor | None:
         try:
             investor = Investor.query.filter(Investor.id == id).one()
             return investor
@@ -709,7 +535,7 @@ class Investor(db.Model):
             return None
 
     @staticmethod
-    def get_by_email(email: str) -> Union[Investor, None]:
+    def get_by_email(email: str) -> Investor | None:
         try:
             investor = Investor.query.filter(Investor.email == email).first()
             return investor
@@ -728,14 +554,9 @@ class Investor(db.Model):
             companies = get_companies(50)
             for i in range(1, 50):
                 num_rounds = random.randint(1, 5)
-                rounds = [
-                    Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)
-                ]
+                rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
                 num_industries = random.randint(1, 6)
-                industries = [
-                    Industry.get_by_id(random.randint(1, 138))
-                    for _ in range(num_industries)
-                ]
+                industries = [Industry.get_by_id(random.randint(1, 138)) for _ in range(num_industries)]
                 investor_list.append(
                     Investor(
                         first_name=f"{firstnames[i]}",
@@ -769,21 +590,19 @@ class InvestmentFirm(db.Model):
     min_investment: Mapped[str] = mapped_column(String, nullable=True)
     max_investment: Mapped[str] = mapped_column(String, nullable=True)
 
-    rounds: Mapped[List[Round]] = relationship(secondary=investment_firm_round)
-    industries: Mapped[List[Industry]] = relationship(
-        secondary=investment_firm_industry
-    )
+    rounds: Mapped[list[Round]] = relationship(secondary=investment_firm_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=investment_firm_industry)
 
     def __init__(self, **kwargs):
-        super(InvestmentFirm, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f"<InvestmentFirm {self.name}>"
 
     @staticmethod
-    def get_all() -> List[InvestmentFirm]:
+    def get_all() -> list[InvestmentFirm]:
         try:
-            firms: List[InvestmentFirm] = InvestmentFirm.query.all()
+            firms: list[InvestmentFirm] = InvestmentFirm.query.all()
             return firms
         except NoResultFound:
             return []
@@ -797,13 +616,10 @@ class InvestmentFirm(db.Model):
     ):
         try:
             if query == "":
-                firms = InvestmentFirm.query.paginate(
-                    page=page, per_page=per_page, error_out=error_out
-                )
+                firms = InvestmentFirm.query.paginate(page=page, per_page=per_page, error_out=error_out)
             else:
                 firms = InvestmentFirm.query.filter(
-                    InvestmentFirm.name.icontains(query)
-                    | InvestmentFirm.about.icontains(query)
+                    InvestmentFirm.name.icontains(query) | InvestmentFirm.about.icontains(query)
                 ).paginate(page=page, per_page=per_page, error_out=error_out)
 
             return firms
@@ -811,7 +627,7 @@ class InvestmentFirm(db.Model):
             return []
 
     @staticmethod
-    def get_by_id(id: int) -> Union[InvestmentFirm, None]:
+    def get_by_id(id: int) -> InvestmentFirm | None:
         try:
             firm = InvestmentFirm.query.filter(InvestmentFirm.id == id).one()
             return firm
@@ -819,7 +635,7 @@ class InvestmentFirm(db.Model):
             return None
 
     @staticmethod
-    def get_by_email(email: str) -> Union[InvestmentFirm, None]:
+    def get_by_email(email: str) -> InvestmentFirm | None:
         try:
             firm = InvestmentFirm.query.filter(InvestmentFirm.email == email).first()
             return firm

@@ -95,6 +95,7 @@ source .venv/bin/activate
 -   `_STRIPE_PUBLISHABLE_KEY`
 -   `_STRIPE_SECRET_KEY`
 -   `_STRIPE_WEBHOOK_SECRET`
+-   `_SENDGRID_API_KEY`
 
 #### Powershell
 

@@ -1,6 +1,5 @@
 import os
 import re
-from typing import Any, Union
 
 import requests
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
@@ -30,20 +29,18 @@ from ..utils.errors.auth_error_messages import (
     OAUTH_NO_USER_INFO,
 )
 from ..utils.google_storage import prepare_picture, upload_blob
-from ..utils.info_lists import languages as LANGUAGE_LIST
+from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import OauthProvider, Status, StatusType
 
 auth = Blueprint("auth", __name__)
 
 LINKEDIN_SECRET = os.environ.get("_LINKEDIN_OAUTH2_CLIENT_SECRET")
-LINKEDIN_EMAIL_URL = (
-    "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))"
-)
+LINKEDIN_EMAIL_URL = "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))"
 LINKEDIN_PERSONAL_INFO_URL = "https://api.linkedin.com/v2/me"
 
 
 @login_manager.user_loader
-def load_user(user_id: int) -> Union[User, None]:
+def load_user(user_id: int) -> User | None:
     user = User.get_by_id(user_id)
     if user:
         return user
@@ -69,7 +66,7 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
     return user
 
 
-def api_call(url: str, access_token: str) -> Any:
+def api_call(url: str, access_token: str):
     response = requests.get(
         url,
         headers={"Authorization": f"Bearer {access_token}"},
@@ -103,9 +100,7 @@ def register():
             return redirect(url_for("auth.register", _external=False, **status))
 
         if (oauth := User.signed_with_oauth(email)) != OauthProvider.REGULAR:
-            status = Status(
-                StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())
-            ).get_status()
+            status = Status(StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 
         user = User.get_by_email(email)
@@ -149,9 +144,7 @@ def login():
             return redirect(url_for("auth.login", _external=False, **status))
 
         if (oauth := User.signed_with_oauth(email)) != OauthProvider.REGULAR:
-            status = Status(
-                StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())
-            ).get_status()
+            status = Status(StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())).get_status()
             return redirect(url_for("auth.login", _external=False, **status))
 
         if not user.verify_password(password):
@@ -221,9 +214,7 @@ def onboarding():
         db.session.commit()
         return redirect(url_for("auth.company_form"))
 
-    return render_template(
-        "auth/onboarding.html", languages=LANGUAGE_LIST, user_info=user_info.sanitize()
-    )
+    return render_template("auth/onboarding.html", languages=language_list, user_info=user_info.sanitize())
 
 
 @auth.get("/username/<username>")

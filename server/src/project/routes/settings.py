@@ -8,7 +8,7 @@ from ..extensions import db
 from ..models import User, UserInfo, UserPayment
 from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
 from ..utils.google_storage import download_blob_into_memory
-from ..utils.info_lists import languages as LANGUAGE_LIST
+from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import OauthProvider, Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
@@ -46,7 +46,7 @@ def index():
         "settings/general.html",
         user=authenticated_user,
         pfp_base64=pfp_base64,
-        languages=LANGUAGE_LIST,
+        languages=language_list,
     )
 
 
@@ -161,9 +161,7 @@ def change_personal_info():  # noqa
     user_info = authenticated_user.user_info[0]  # type: ignore
     if first_name and first_name.strip() != user_info.first_name:
         if first_name == " ":
-            status = Status(
-                StatusType.ERROR, "First name cannot be empty."
-            ).get_status()
+            status = Status(StatusType.ERROR, "First name cannot be empty.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.first_name = first_name.strip()
 
@@ -183,9 +181,7 @@ def change_personal_info():  # noqa
             return redirect(url_for("auth.register", _external=False, **status))
 
         if not authenticated_user.oauth_provider == OauthProvider.REGULAR:
-            status = Status(
-                StatusType.ERROR, "Cannot change email for oauth users."
-            ).get_status()
+            status = Status(StatusType.ERROR, "Cannot change email for oauth users.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
         authenticated_user.email = email
@@ -204,7 +200,7 @@ def change_personal_info():  # noqa
         if language == " ":
             status = Status(StatusType.ERROR, "Language cannot be empty.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
-        if language not in LANGUAGE_LIST:
+        if language not in language_list:
             status = Status(StatusType.ERROR, "Invalid language.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
@@ -212,9 +208,7 @@ def change_personal_info():  # noqa
 
     db.session.commit()
 
-    status = Status(
-        StatusType.SUCCESS, "Personal info successfully changed."
-    ).get_status()
+    status = Status(StatusType.SUCCESS, "Personal info successfully changed.").get_status()
 
     return redirect(url_for("settings.index", _external=False, **status))
 

@@ -1,5 +1,5 @@
 import os
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
 
 from flask import Flask, make_response
@@ -20,9 +20,9 @@ from .routes.payment import payment
 from .routes.settings import settings
 
 
-def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
+def create_app(database_url="sqlite:///db.sqlite"):
     app = Flask(__name__)
-    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("_DATABASE_URL", database_url)
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
     app.secret_key = os.getenv("SECRET_KEY", "18c2ff95-83a1-4998-8bee-0c6a2170497c")
@@ -41,20 +41,20 @@ def create_app(DATABASE_URL=os.getenv("_DATABASE_URL", "sqlite:///db.sqlite")):
         # pages.append(["/dynamic-page", ten_days_ago])
 
         # Create the XML sitemap
-        root = ET.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+        root = ElementTree.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
         for page in pages:
-            url = ET.SubElement(root, "url")
-            loc = ET.SubElement(url, "loc")
+            url = ElementTree.SubElement(root, "url")
+            loc = ElementTree.SubElement(url, "loc")
             loc.text = page[0]
-            lastmod = ET.SubElement(url, "lastmod")
+            lastmod = ElementTree.SubElement(url, "lastmod")
             lastmod.text = page[1]
-            changefreq = ET.SubElement(url, "changefreq")
+            changefreq = ElementTree.SubElement(url, "changefreq")
             changefreq.text = "weekly"
-            priority = ET.SubElement(url, "priority")
+            priority = ElementTree.SubElement(url, "priority")
             priority.text = "0.5"
 
         # Return the XML sitemap as a response
-        sitemap_xml = ET.tostring(root, encoding="utf-8")
+        sitemap_xml = ElementTree.tostring(root, encoding="utf-8")
         response = make_response(sitemap_xml)
         response.headers["Content-Type"] = "application/xml"
 

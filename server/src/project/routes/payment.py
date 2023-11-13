@@ -37,9 +37,7 @@ def get_invoices(authenticated_user: User):
     for stripe_invoice in stripe_invoices:
         invoice = {
             "id": stripe_invoice.get("id"),
-            "created": datetime.utcfromtimestamp(
-                stripe_invoice.get("created", 0)
-            ).date(),
+            "created": datetime.utcfromtimestamp(stripe_invoice.get("created", 0)).date(),
             "amount_due": stripe_invoice.get("amount_due"),
             "amount_paid": stripe_invoice.get("amount_paid"),
             "currency": stripe_invoice.get("currency"),
@@ -57,9 +55,7 @@ def handle_customer(authenticated_user: User) -> UserPayment:
         raise Exception(ONBOARDING_INCOMPLETE)
 
     # Find customer by email
-    customer_data = stripe.Customer.search(
-        query="email:'{}'".format(authenticated_user.email)
-    )
+    customer_data = stripe.Customer.search(query=f"email:'{authenticated_user.email}'")
     # If multiple customers are found, raise an exception
     if len(customer_list := customer_data.get("data", [])) > 1:
         raise Exception(PAYMENT_EMAIL_USED)
@@ -78,11 +74,7 @@ def handle_customer(authenticated_user: User) -> UserPayment:
     if user_payment:
         stripe_customer_id = stripe_customer.get("id")
         # If customer is found, check if customer_id matches
-        if (
-            user_payment.customer_id == stripe_customer_id
-            and user_payment.customer_id
-            and stripe_customer_id
-        ):
+        if user_payment.customer_id == stripe_customer_id and user_payment.customer_id and stripe_customer_id:
             return user_payment
         # If not, sync them
         elif stripe_customer_id:
@@ -112,7 +104,7 @@ def create_checkout(
     Boost Academy: boost
     Waitlist: teaser
     """
-    ELEVATE_TRIAL_PERIOD_DAYS = 14
+    elevate_trial_period_days = 14
     success_url = request.host_url + "payment/success?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = request.host_url + "payment/cancel"
     prices = stripe.Price.list(lookup_keys=[tier], expand=["data.product"])
@@ -142,7 +134,7 @@ def create_checkout(
             mode="subscription",
             success_url=success_url,
             cancel_url=cancel_url,
-            subscription_data={"trial_period_days": ELEVATE_TRIAL_PERIOD_DAYS},
+            subscription_data={"trial_period_days": elevate_trial_period_days},
         )
     elif trial_period_days != 0:
         checkout_session = stripe.checkout.Session.create(
@@ -176,12 +168,8 @@ def create_checkout(
 
 
 def has_subscriptions(customer_id: str) -> bool:
-    active_subscriptions = stripe.Subscription.list(
-        status="active", customer=customer_id
-    )
-    trialing_subscriptions = stripe.Subscription.list(
-        status="trialing", customer=customer_id
-    )
+    active_subscriptions = stripe.Subscription.list(status="active", customer=customer_id)
+    trialing_subscriptions = stripe.Subscription.list(status="trialing", customer=customer_id)
 
     return active_subscriptions or trialing_subscriptions  # type: ignore
 
@@ -194,7 +182,7 @@ def waitlist():
 
     full_name = f"{first_name} {last_name}"
 
-    customer_data = stripe.Customer.search(query="email:'{}'".format(email))
+    customer_data = stripe.Customer.search(query=f"email:'{email}'")
 
     if len(customer_list := customer_data.get("data", [])) > 1:
         raise Exception(PAYMENT_EMAIL_USED)
@@ -207,9 +195,7 @@ def waitlist():
         stripe_customer = customer_list[0]
 
     try:
-        checkout_session = create_checkout(
-            customer_id=stripe_customer.get("id", ""), tier="teaser"
-        )
+        checkout_session = create_checkout(customer_id=stripe_customer.get("id", ""), tier="teaser")
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
@@ -249,9 +235,7 @@ def create_checkout_session():
         return redirect(url_for("payment.index", _external=False, **status))
 
     try:
-        checkout_session = create_checkout(
-            customer_id=user_payment.customer_id, tier=tier
-        )
+        checkout_session = create_checkout(customer_id=user_payment.customer_id, tier=tier)
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
@@ -367,9 +351,7 @@ def subscription_cancel():
             },
         )
     except InvalidRequestError:
-        status = Status(
-            StatusType.ERROR, "The subscription is already pending cancelation"
-        ).get_status()
+        status = Status(StatusType.ERROR, "The subscription is already pending cancelation").get_status()
         return redirect(url_for("settings.plan", _external=False, **status))
     except Exception:
         status = Status(StatusType.ERROR, "Could not cancel subscription").get_status()
@@ -475,9 +457,7 @@ def payment_failed(data_object):
     customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
 
     attempt_count = data_object.get("attempt_count")
-    html_content = render_template(
-        "email/payment_failed.html", attempt_count=attempt_count
-    )
+    html_content = render_template("email/payment_failed.html", attempt_count=attempt_count)
 
     send_email(
         recepients=customer_email,
@@ -487,9 +467,9 @@ def payment_failed(data_object):
 
 
 def charge_succeeded(data_object):
-    print("---------------\n")
-    print(data_object)
-    print("---------------\n")
+    if int(data_object.get("amount")) != 5000:
+        return jsonify(success=True)
+
     stripe_customer_id = data_object.get("customer")
     charge_id = data_object.get("id")
     customer_email = data_object.get("billing_details").get("email")

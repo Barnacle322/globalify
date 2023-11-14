@@ -484,11 +484,11 @@ def charge_succeeded(data_object):
     db.session.add(new_waitlist_charge)
     db.session.commit()
 
-    html_content = render_template("email/payment_succeeded.html")
+    html_content = render_template("email/payment_succeeded.html", uuid=new_waitlist_charge.random_key)
 
     send_email(
         recepients=customer_email,
-        subject="Your payment was successful",
+        subject="Your have signed up for the waitlist!",
         html_content=html_content,
     )
 

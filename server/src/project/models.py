@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import random
+from uuid import uuid4
 
 import pycountry
 from flask_login import UserMixin
@@ -204,16 +205,17 @@ class UserPayment(db.Model):
 
 class WaitlistCharge(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    stripe_customer_id = mapped_column(String, nullable=False)
-    charge_id = mapped_column(String, nullable=False)
-    customer_email = mapped_column(String, nullable=False)
-    customer_name = mapped_column(String, nullable=False)
+    stripe_customer_id: Mapped[str] = mapped_column(String, nullable=False)
+    charge_id: Mapped[str] = mapped_column(String, nullable=False)
+    customer_email: Mapped[str] = mapped_column(String, nullable=False)
+    customer_name: Mapped[str] = mapped_column(String, nullable=False)
+    random_key: Mapped[str] = mapped_column(String, nullable=False, default=str(uuid4()))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<WaitlistCharge {self.customer_email}>"
+        return f"<WaitlistCharge {self.customer_email} | {self.random_key}>"
 
     @staticmethod
     def get_by_id(id: int) -> WaitlistCharge | None:

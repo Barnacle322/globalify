@@ -210,6 +210,7 @@ class WaitlistCharge(db.Model):
     customer_email: Mapped[str] = mapped_column(String, nullable=False)
     customer_name: Mapped[str] = mapped_column(String, nullable=False)
     random_key: Mapped[str] = mapped_column(String, nullable=False, default=str(uuid4()))
+    downloaded: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -249,10 +250,29 @@ class WaitlistCharge(db.Model):
         except NoResultFound:
             return None
 
+    @staticmethod
+    def get_by_random_key(random_key: str) -> WaitlistCharge | None:
+        try:
+            waitlist_charge = WaitlistCharge.query.filter(WaitlistCharge.random_key == random_key).first()
+            return waitlist_charge
+        except NoResultFound:
+            return None
+
 
 class Waitlist(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def get_by_email(email: str):
+        try:
+            waitlist = Waitlist.query.filter(Waitlist.email == email).first()
+            return waitlist
+        except NoResultFound:
+            return None
 
 
 class Company(db.Model):

@@ -35,12 +35,13 @@
         <meta name="view-transition" content="same-origin" />
         <link rel="stylesheet" href="../static/css/main.css" />
         <link rel="icon" type="image/png" href="../static/elements/icon.png" />
-        <script src="../static/scripts/menu.js"></script>
+        <script src="../static/scripts/menu.js" defer></script>
+        <script src="../static/scripts/email.js" defer></script>
 
         <title>{% block title %}{% endblock %} | Globalify</title>
         {% endblock %}
     </head>
-    <body class="w-full">
+    <body class="w-full bg-slate-50">
         <nav
             class="absolute left-0 top-0 flex h-24 w-full items-center justify-center bg-slate-50 text-slate-900 dark:bg-slate-800 dark:text-slate-50"
         >

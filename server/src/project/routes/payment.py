@@ -195,7 +195,12 @@ def waitlist():
         stripe_customer = customer_list[0]
 
     try:
-        checkout_session = create_checkout(customer_id=stripe_customer.get("id", ""), tier="teaser")
+        checkout_session = create_checkout(
+            customer_id=stripe_customer.get("id", ""),
+            tier="teaser",
+            cancel_url=request.host_url + "waitlist/cancel",
+            success_url=request.host_url + "waitlist/success",
+        )
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))

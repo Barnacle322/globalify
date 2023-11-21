@@ -1539,6 +1539,10 @@ html {
   width: 0.875rem;
 }
 
+.w-3\/4 {
+  width: 75%;
+}
+
 .w-36 {
   width: 9rem;
 }
@@ -1828,6 +1832,10 @@ html {
 
 .gap-y-8 {
   row-gap: 2rem;
+}
+
+.gap-y-3 {
+  row-gap: 0.75rem;
 }
 
 .space-x-3 > :not([hidden]) ~ :not([hidden]) {
@@ -2215,11 +2223,6 @@ html {
 .py-8 {
   padding-top: 2rem;
   padding-bottom: 2rem;
-}
-
-.py-9 {
-  padding-top: 2.25rem;
-  padding-bottom: 2.25rem;
 }
 
 .py-\[7px\] {
@@ -2874,11 +2877,6 @@ html {
   }
 }
 
-.first-line\:mx-auto::first-line {
-  margin-left: auto;
-  margin-right: auto;
-}
-
 .file\:mr-4::file-selector-button {
   margin-right: 1rem;
 }
@@ -3013,10 +3011,6 @@ html {
 .hover\:text-slate-900:hover {
   --tw-text-opacity: 1;
   color: rgb(15 23 42 / var(--tw-text-opacity));
-}
-
-.hover\:text-transparent:hover {
-  color: transparent;
 }
 
 .hover\:text-white:hover {

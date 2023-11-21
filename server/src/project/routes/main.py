@@ -1,11 +1,23 @@
+import re
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
 from functools import wraps
 
-from flask import Blueprint, current_app, make_response, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    current_app,
+    jsonify,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 from flask_login import current_user, login_required
 
-from ..models import InvestmentFirm, Investor, User
+from ..extensions import db
+from ..models import InvestmentFirm, Investor, User, Waitlist, WaitlistCharge
 from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
 from ..utils.google_storage import load_pfp
 from ..utils.status_enum import Status, StatusType
@@ -47,6 +59,68 @@ def index():
 @main.get("/waitlist")
 def waitlist():
     return render_template("waitlist.html")
+
+
+@main.post("/waitlist-email")
+def waitlist_email():
+    email = request.get_json().get("email")
+
+    if not email:
+        status = Status(StatusType.ERROR, "Please enter an email.").get_status()
+        return jsonify()
+
+    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
+        status = Status(StatusType.ERROR, "Please enter a valid email.").get_status()
+        return jsonify(**status)
+
+    email_for_newsletter = Waitlist.get_by_email(email)
+    if email_for_newsletter:
+        status = Status(StatusType.ERROR, "Email is already in the system.").get_status()
+        return jsonify(**status)
+
+    new_waitlist = Waitlist(email=email)
+    db.session.add(new_waitlist)
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Email added.").get_status()
+    return jsonify(**status)
+
+
+@main.get("/waitlist/cancel")
+def cancel_waitlist():
+    return render_template("waitlist/cancel.html")
+
+
+@main.get("/waitlist/success")
+def success_waitlist():
+    return render_template("waitlist/success.html")
+
+
+@main.get("/download/<key>")
+def download(key):
+    waitlist_charge = WaitlistCharge.get_by_random_key(key)
+
+    if not waitlist_charge:
+        return render_template("download.html", can_download=False)
+
+    if waitlist_charge.downloaded:
+        return render_template("download.html", can_download=False)
+
+    return render_template("download.html", can_download=True, random_key=key)
+
+
+@main.post("/download")
+def post_download():
+    random_key = request.form.get("random_key", "")
+    waitlist_charge = WaitlistCharge.get_by_random_key(random_key)
+
+    if not waitlist_charge or waitlist_charge.downloaded:
+        return redirect(url_for("main.index"))
+
+    waitlist_charge.downloaded = True
+    db.session.commit()
+
+    return send_from_directory("static", "elements/apple.svg", as_attachment=True)
 
 
 @main.route("/dashboard")
@@ -161,7 +235,7 @@ def privacy_policy():
 @main.route("/sitemap.xml")
 def sitemap():
     pages = []
-    ten_days_ago = (datetime.now() - timedelta(days=10)).date().isoformat()
+    ten_days_ago = (datetime.now() - timedelta(days=10)).date().isoformat()  # type: ignore
 
     # Add static pages
     for rule in current_app.url_map.iter_rules():

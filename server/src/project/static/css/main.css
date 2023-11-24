@@ -1435,6 +1435,10 @@ html {
   display: none;
 }
 
+.aspect-\[21\/9\] {
+  aspect-ratio: 21/9;
+}
+
 .aspect-square {
   aspect-ratio: 1 / 1;
 }
@@ -1620,6 +1624,10 @@ html {
   max-width: 48rem;
 }
 
+.max-w-5xl {
+  max-width: 64rem;
+}
+
 .max-w-7xl {
   max-width: 80rem;
 }
@@ -1767,6 +1775,14 @@ html {
   gap: 0.25rem;
 }
 
+.gap-10 {
+  gap: 2.5rem;
+}
+
+.gap-12 {
+  gap: 3rem;
+}
+
 .gap-2 {
   gap: 0.5rem;
 }
@@ -1830,12 +1846,12 @@ html {
   row-gap: 2.5rem;
 }
 
-.gap-y-8 {
-  row-gap: 2rem;
-}
-
 .gap-y-3 {
   row-gap: 0.75rem;
+}
+
+.gap-y-8 {
+  row-gap: 2rem;
 }
 
 .space-x-3 > :not([hidden]) ~ :not([hidden]) {
@@ -2113,6 +2129,11 @@ html {
      object-fit: cover;
 }
 
+.object-right-top {
+  -o-object-position: right top;
+     object-position: right top;
+}
+
 .p-1 {
   padding: 0.25rem;
 }
@@ -2230,6 +2251,11 @@ html {
   padding-bottom: 7px;
 }
 
+.py-28 {
+  padding-top: 7rem;
+  padding-bottom: 7rem;
+}
+
 .pb-12 {
   padding-bottom: 3rem;
 }
@@ -2294,6 +2320,10 @@ html {
   padding-top: 6rem;
 }
 
+.pt-28 {
+  padding-top: 7rem;
+}
+
 .pt-8 {
   padding-top: 2rem;
 }
@@ -2304,6 +2334,10 @@ html {
 
 .text-center {
   text-align: center;
+}
+
+.text-start {
+  text-align: start;
 }
 
 .align-middle {
@@ -3258,6 +3292,11 @@ html {
     line-height: 1;
   }
 
+  .sm\:text-6xl {
+    font-size: 3.75rem;
+    line-height: 1;
+  }
+
   .sm\:leading-9 {
     line-height: 2.25rem;
   }
@@ -3349,12 +3388,24 @@ html {
     display: flex;
   }
 
+  .lg\:w-2\/5 {
+    width: 40%;
+  }
+
+  .lg\:w-3\/5 {
+    width: 60%;
+  }
+
   .lg\:w-64 {
     width: 16rem;
   }
 
   .lg\:max-w-4xl {
     max-width: 56rem;
+  }
+
+  .lg\:max-w-\[304px\] {
+    max-width: 304px;
   }
 
   .lg\:max-w-none {
@@ -3369,6 +3420,10 @@ html {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .lg\:flex-row {
+    flex-direction: row;
+  }
+
   .lg\:flex-col {
     flex-direction: column;
   }
@@ -3376,6 +3431,10 @@ html {
   .lg\:gap-x-16 {
     -moz-column-gap: 4rem;
          column-gap: 4rem;
+  }
+
+  .lg\:rounded-3xl {
+    border-radius: 1.5rem;
   }
 
   .lg\:px-0 {
@@ -3398,12 +3457,26 @@ html {
     padding-bottom: 1rem;
   }
 
+  .lg\:py-32 {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+  }
+
+  .lg\:py-36 {
+    padding-top: 9rem;
+    padding-bottom: 9rem;
+  }
+
   .lg\:pt-20 {
     padding-top: 5rem;
   }
 
   .lg\:pt-24 {
     padding-top: 6rem;
+  }
+
+  .lg\:pt-28 {
+    padding-top: 7rem;
   }
 
   .lg\:pt-32 {

@@ -473,7 +473,7 @@ def payment_failed(data_object):
 
 def charge_succeeded(data_object):
     if int(data_object.get("amount")) != 100:
-        return jsonify(success=True)
+        return jsonify(success=True, msg="Not a waitlist charge")
 
     stripe_customer_id = data_object.get("customer")
     charge_id = data_object.get("id")
@@ -493,7 +493,7 @@ def charge_succeeded(data_object):
 
     send_email(
         recepients=customer_email,
-        subject="Your have signed up for the waitlist!",
+        subject="You have signed up for the waitlist!",
         html_content=html_content,
     )
 

@@ -1,5 +1,5 @@
-{% extends "layouts/layout_teaser.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock
-%} {% block content %}
+{% extends "layouts/layout_teaser.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {%
+endblock %} {% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-slate-50">
     <section class="mx-auto max-w-7xl bg-transparent px-4 pb-16 pt-16 text-center sm:px-6 lg:px-8 lg:pt-24">
         <h1
@@ -15,7 +15,7 @@
     <section class="flex-col items-center justify-center gap-2.5 py-24 dark:bg-slate-900 dark:text-slate-50">
         <div class="flex flex-col items-center justify-center">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 md:text-center lg:px-8">
-                <h2 class="font-display text-3xl tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
+                <h2 class="font-medium text-3xl tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
                     We just need a few more details
                 </h2>
                 <p class="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-400">
@@ -82,7 +82,7 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="mx-auto lg:mx-0">
                 <h2
-                    class="font-display mx-auto text-center text-3xl tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl"
+                    class="font-medium mx-auto text-center text-3xl tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl"
                 >
                     Frequently asked questions
                 </h2>
@@ -95,27 +95,31 @@
                     <ul role="list" class="flex flex-col gap-y-8">
                         <li>
                             <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                What is Globalify?
+                                What is the pre-preview beta version of the search engine?
                             </h3>
                             <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
-                                Globalify is a hub for entrepreneurs to connect with investors from around the world
+                                It's a special early version of our search engine that connects users with investors and
+                                venture capital. This version lets us test and improve the product with feedback from
+                                users like you!
                             </p>
                         </li>
                         <li>
                             <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                What can I do with Globalify?
+                                How much does the pre-preview beta version cost?
                             </h3>
                             <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
-                                For now you can only create a profile and connect with investors. In the future we are
-                                planning on adding a lot more features
+                                Normally, it's priced at USD 300, but for our early bird supporters, it's available at
+                                only USD 150. A one - time fee.
                             </p>
                         </li>
                         <li>
                             <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                Why should I use Globalify?
+                                Why is there a charge for the pre-preview beta version?
                             </h3>
                             <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
-                                Because we are the best, and we have a really cool website
+                                We're offering a sophisticated and unique service that involves sensitive data and
+                                advanced technology. The fee helps us maintain and improve this service while giving you
+                                an exclusive first look.
                             </p>
                         </li>
                     </ul>
@@ -124,10 +128,11 @@
                     <ul role="list" class="flex flex-col gap-y-8">
                         <li>
                             <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                Do you offer refunds?
+                                Will I automatically get the preview edition?
                             </h3>
                             <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
-                                Yes, if you aren't happy with your subscription you can get a full refund
+                                Yes! If you're using the pre-preview beta version, you'll be automatically upgraded to
+                                the preview edition of the Enterprise version in early Q1 of 2024.
                             </p>
                         </li>
                         <li>
@@ -140,9 +145,12 @@
                         </li>
                         <li>
                             <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                I found other companies called Globalify, are you sure you can use this name?
+                                Why are there only 100 spots available for the pre-preview beta?
                             </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">Yes, we are sure</p>
+                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                                We're keeping it limited to ensure we can focus on each user's feedback. This helps us
+                                make the best product possible using secret data and technology.
+                            </p>
                         </li>
                     </ul>
                 </li>

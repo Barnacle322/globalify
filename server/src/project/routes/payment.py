@@ -472,7 +472,7 @@ def payment_failed(data_object):
 
 
 def charge_succeeded(data_object):
-    if int(data_object.get("amount")) != 10000:
+    if int(data_object.get("amount")) != 100:
         return jsonify(success=True)
 
     stripe_customer_id = data_object.get("customer")

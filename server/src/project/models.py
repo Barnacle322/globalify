@@ -88,7 +88,7 @@ class UserInfo(db.Model):
     first_name: Mapped[str | None] = mapped_column(String, nullable=True)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
-    bio: Mapped[str | None] = mapped_column(String(), nullable=True)
+    bio: Mapped[str | None] = mapped_column(String, nullable=True)
     linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
     instagram: Mapped[str | None] = mapped_column(String, nullable=True)
     twitter: Mapped[str | None] = mapped_column(String, nullable=True)

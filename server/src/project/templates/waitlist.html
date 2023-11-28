@@ -1,21 +1,37 @@
 {% extends "layouts/layout_teaser.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {%
 endblock %} {% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-slate-50">
-    <section class="mx-auto max-w-7xl bg-transparent px-4 pb-16 pt-16 text-center sm:px-6 lg:px-8 lg:pt-24">
-        <h1
-            class="mx-auto mb-10 max-w-2xl text-center text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl"
-        >
-            Join our exclusive waitlist and get early access
+    <section
+        class="mx-auto flex max-w-7xl flex-col items-center gap-5 bg-transparent px-4 pb-16 pt-16 text-center sm:px-6 lg:px-8 lg:pt-24"
+    >
+        <h1 class="mx-auto max-w-2xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+            Early Bird Offer!
         </h1>
-        <p class="mx-auto mb-10 max-w-2xl text-center text-lg text-slate-700">
-            For a one time fee of $100 you can get early access to our currated list of investors.
+
+        <p class="mx-auto max-w-2xl text-lg text-slate-700">
+            Unlock the full potential of your startup with our custom-made preview pack, featuring ideal investors for
+            you in various industries.
+
+            <br /><br />
+            Be one of the first to explore our beta search engine, launching in Q1. Now available at a special price of
+            $100 for a limited time.
         </p>
-        <img class="mt-10" src="../static/elements/waitlist_hero.svg" alt="" />
+        <a
+            href="#payment"
+            class="flex items-center justify-center rounded-xl bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+        >
+            Only 100 Spots Open!
+        </a>
+
+        <img class="mt-10 w-96" src="../static/elements/waitlist_hero.svg" alt="" />
     </section>
-    <section class="flex-col items-center justify-center gap-2.5 py-24 dark:bg-slate-900 dark:text-slate-50">
+    <section
+        id="payment"
+        class="flex-col items-center justify-center gap-2.5 py-24 dark:bg-slate-900 dark:text-slate-50"
+    >
         <div class="flex flex-col items-center justify-center">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 md:text-center lg:px-8">
-                <h2 class="font-medium text-3xl tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
+                <h2 class="text-3xl font-medium tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
                     We just need a few more details
                 </h2>
                 <p class="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-400">
@@ -82,7 +98,7 @@ endblock %} {% block content %}
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="mx-auto lg:mx-0">
                 <h2
-                    class="font-medium mx-auto text-center text-3xl tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl"
+                    class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl"
                 >
                     Frequently asked questions
                 </h2>

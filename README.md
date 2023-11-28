@@ -58,7 +58,7 @@ pip3 install poetry
 #### Python dependencies
 
 ```bash
-poetry install
+poetry install --with dev --no-root
 ```
 
 #### Node dependencies

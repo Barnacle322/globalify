@@ -218,6 +218,7 @@ def about():
 @main.route("/investor-database")
 @main.route("/startup-database")
 @main.route("/digest")
+@main.route("/data-request")
 def construction():
     return render_template("construction.html")
 

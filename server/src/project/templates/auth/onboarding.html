@@ -1,6 +1,6 @@
 {% extends "layouts/layout_clean.html" %} {% block title %}Onboarding{% endblock %} {% block head %} {{ super() }} {%
 endblock %} {% block content %}
-<main class="mt-24 flex flex-col items-center justify-center overflow-x-hidden bg-slate-50 p-6">
+<main class="mt-24 flex flex-col items-center justify-center overflow-x-hidden p-6">
     <form action="/onboarding" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="space-y-12">

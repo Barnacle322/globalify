@@ -120,7 +120,9 @@ def post_download():
     waitlist_charge.downloaded = True
     db.session.commit()
 
-    return send_from_directory("static", "elements/apple.svg", as_attachment=True)
+    return send_from_directory(
+        "static", "elements/download/Globalify_Early_Bird_Investor_List.xlsx", as_attachment=True
+    )
 
 
 @main.route("/dashboard")
@@ -214,7 +216,6 @@ def about():
 @main.route("/jobs")
 @main.route("/partners")
 @main.route("/help")
-@main.route("/claim")
 @main.route("/investor-database")
 @main.route("/startup-database")
 @main.route("/digest")

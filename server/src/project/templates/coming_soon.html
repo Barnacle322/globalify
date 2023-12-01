@@ -1,6 +1,6 @@
 {% extends "layouts/layout_teaser.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {%
 endblock %} {% block content %}
-<main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-slate-50">
+<main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
     <section class="mx-auto max-w-7xl bg-transparent px-4 pb-16 pt-16 text-center sm:px-6 lg:px-8 lg:pt-24">
         <h1
             class="mx-auto mb-10 max-w-lg text-center text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl"
@@ -9,14 +9,14 @@ endblock %} {% block content %}
             <span class="bg-gradient-to-r from-sky-600 to-sky-400 bg-clip-text text-transparent">Launching Soon</span>
         </h1>
         <p class="mx-auto mb-10 max-w-2xl text-center text-lg text-slate-700">
-            Limited to just <b>100 Early Bird spots!</b> Get ahead with our exclusive preview pack and discover leading
-            investors, handpicked just for your startup in various industries.
+            Limited to just <b>100 Early Access spots!</b> Get ahead with our exclusive preview pack and discover
+            leading investors, handpicked just for your startup in various industries.
         </p>
         <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
             <a
-                class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 font-semibold text-slate-50 transition-colors ease-in-out hover:bg-slate-800 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
+                class="dark: inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 font-semibold text-slate-50 transition-colors ease-in-out hover:bg-slate-800 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300 dark:text-slate-900 dark:hover:bg-slate-200"
                 href="/waitlist"
-                >Join early bird now!</a
+                >Get early access now!</a
             >
 
             <button
@@ -62,7 +62,7 @@ endblock %} {% block content %}
                 </button>
             </form>
         </div>
-        <img class="mt-10" src="../static/elements/globalify_hero.png" alt="" />
+        <img class="mt-10 drop-shadow-lg" src="../static/elements/globalify_hero.png" alt="" />
     </section>
     <section class="flex-col items-center justify-center gap-2.5 py-24 dark:bg-slate-900 dark:text-slate-50">
         <div class="flex flex-col items-center justify-center">
@@ -144,11 +144,11 @@ endblock %} {% block content %}
                         </li>
                         <li>
                             <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                How do I sign up for the pre-preview beta?
+                                How do I sign up for the early access?
                             </h3>
                             <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
-                                You can sign up <a href="/waitlsit">Here</a>. It's very simple! Just fill in your
-                                details and process payment through Stripe.
+                                You can sign up <a href="/waitlsit" class="underline">here</a>. It's very simple! Just
+                                fill in your details and process payment through Stripe.
                             </p>
                         </li>
                     </ul>
@@ -160,7 +160,8 @@ endblock %} {% block content %}
                                 Do you offer refunds?
                             </h3>
                             <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
-                                We offer a free 14 day trial. If you are not satisfied with our product, you can cancel
+                                Yes! You can get your money back with no questions asked. We also offer a free 14 day
+                                trial. If you are not satisfied with our product, you can cancel anytime.
                             </p>
                         </li>
                         <li>
@@ -196,19 +197,21 @@ endblock %} {% block content %}
                         </li>
                         <li>
                             <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                Will there be updates to the pre-preview beta version?
+                                When will you launch?
                             </h3>
                             <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
-                                Yes, we'll regularly update each month, based on feedback and new developments.
+                                We plan to launch in Q2 2023. We are currently in the process of building our product
+                                and are looking for early adopters to help us test it out.
                             </p>
                         </li>
                         <li>
                             <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                Are there any tutorials or guides available?
+                                I'd like to know more about Globalify before I sign up.
                             </h3>
                             <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
-                                Yes, there are FAQs, but we hope to have Globalify as a ease of use, and no need to an
-                                explanatory system.
+                                You can ask us anything! Just send us an email at
+                                <a href="mailto:info@globalify.xyz" class="font-bold underline">info@globalify.xyz</a>
+                                and we will get back to you as soon as possible.
                             </p>
                         </li>
                     </ul>

@@ -1,6 +1,6 @@
 {% extends "layouts/layout_auth.html" %} {% block title %}Register{% endblock %} {% block head %} {{ super() }} {%
 endblock %} {% block content %}
-<main class="flex h-full w-full flex-row bg-slate-50 text-slate-900 sm:items-center">
+<main class="flex h-full w-full flex-row text-slate-900 sm:items-center">
     <div class="inline-flex w-full justify-center px-9 md:w-1/2 md:justify-start md:px-16">
         <form action="/register" method="POST" class="flex w-80 flex-col gap-7 font-medium">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />

@@ -4,7 +4,6 @@ FROM python:3.12.0-alpine as python-base
 COPY src/ app/
 COPY pyproject.toml /app
 COPY poetry.lock /app
-COPY poetry.toml /app
 
 WORKDIR /app
 

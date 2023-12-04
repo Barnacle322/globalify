@@ -9,13 +9,9 @@ AUTH_USERNAME_USED = "Username is already in use."
 
 OAUTH_ACCESS_TOKEN = "Authentication failed. Could not authorize access token."
 OAUTH_NO_EMAIL = "Authentication failed. Could not get email."
-OAUTH_MISMATCHED_PROVIDER = (
-    "Authentication failed. Try using different authentication provider."
-)
+OAUTH_MISMATCHED_PROVIDER = "Authentication failed. Try using different authentication provider."
 OAUTH_NO_USER_INFO = "Authentication failed. Could not get user info."
-OAUTH_COULD_NOT_RETRIEVE_DATA = (
-    "Data could not be retrieved from the OAuth provider. Try again later."
-)
+OAUTH_COULD_NOT_RETRIEVE_DATA = "Data could not be retrieved from the OAuth provider. Try again later."
 
 NOT_AUTHORIZED = "Oops! Looks like you aren't logged in"
 

@@ -88,41 +88,47 @@ endblock %} {% block content %}
 
     <section id="team" class="z-10 flex flex-col items-center gap-12 pt-28">
         <div class="text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">The team</div>
-        <div class="flex flex-col items-start justify-center gap-7 lg:flex-row">
+        <div class="flex flex-col items-start justify-center gap-x-12 gap-y-7 lg:flex-row">
             <div class="flex flex-col gap-2">
-                <img
-                    class="mb-1.5 h-[400px] w-[300px] rounded-xl bg-zinc-300 transition-transform duration-300 ease-in-out hover:-translate-y-3"
-                    src="../static/elements/Team/Arisa.JPG"
-                    alt=""
-                />
+                <a href="/arisa" class="mb-1.5 h-[400px] w-[300px] overflow-hidden rounded-xl bg-zinc-300">
+                    <img
+                        class="transform rounded-xl transition duration-[400ms] hover:scale-105 "
+                        src="../static/elements/Team/Arisa.JPG"
+                        alt=""
+                    />
+                </a>
                 <p>
-                    <span class="text-xl sm:text-3xl">Arisa Ueno</span>
+                    <span class="text-2xl sm:text-3xl">Arisa Ueno</span>
                     <br />
-                    <span class="text-lg sm:text-2xl">CEO</span>
+                    <span class="text-xl sm:text-2xl">CEO</span>
                 </p>
             </div>
             <div class="flex flex-col gap-2">
-                <img
-                    class="mb-1.5 h-[400px] w-[300px] rounded-xl bg-zinc-300 transition-transform duration-300 ease-in-out hover:-translate-y-3"
-                    src="../static/elements/Team/Eric.JPG"
-                    alt=""
-                />
+                <a href="/eric" class="mb-1.5 h-[400px] w-[300px] overflow-hidden rounded-xl bg-zinc-300">
+                    <img
+                        class="transform rounded-xl transition duration-[400ms] hover:scale-105"
+                        src="../static/elements/Team/Eric.JPG"
+                        alt=""
+                    />
+                </a>
                 <p>
-                    <span class="text-xl sm:text-3xl">Eric Fung</span>
+                    <span class="text-2xl sm:text-3xl">Eric Fung</span>
                     <br />
-                    <span class="text-lg\ sm:text-2xl">COO</span>
+                    <span class="text-xl sm:text-2xl">COO</span>
                 </p>
             </div>
             <div class="flex flex-col gap-2">
-                <img
-                    class="mb-1.5 h-[400px] w-[300px] rounded-xl bg-zinc-300 transition-transform duration-300 ease-in-out hover:-translate-y-3"
-                    src="../static/elements/Team/Arstan.JPG"
-                    alt=""
-                />
+                <a href="/arstan" class="mb-1.5 h-[400px] w-[300px] overflow-hidden rounded-xl bg-zinc-300">
+                    <img
+                        class="transform rounded-xl transition duration-[400ms] hover:scale-105"
+                        src="../static/elements/Team/Arstan.JPG"
+                        alt=""
+                    />
+                </a>
                 <p>
-                    <span class="text-xl sm:text-3xl">Arstan Usenov</span>
+                    <span class="text-2xl sm:text-3xl">Arstan Usenov</span>
                     <br />
-                    <span class="text-lg sm:text-2xl">CTO</span>
+                    <span class="text-xl sm:text-2xl">CTO</span>
                 </p>
             </div>
         </div>

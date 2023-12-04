@@ -1,16 +1,16 @@
 {% extends "layouts/layout_teaser.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {%
 endblock %} {% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-white">
-    <section id="payment" class="mx-auto w-full max-w-7xl bg-transparent px-4 pb-16 pt-16 sm:px-6 lg:px-8 lg:pt-24">
-        <div class="relative flex flex-col gap-10 rounded-3xl border-2 p-10 shadow-lg xl:flex-row">
+    <section id="payment" class="mx-auto w-full max-w-7xl bg-transparent px-4 pb-16 pt-3 sm:px-6 lg:pt-24">
+        <div class="relative flex flex-col gap-10 rounded-3xl border-2 p-10 shadow-lg lg:flex-row">
             <img
-                class="absolute bottom-10 left-10 hidden w-40 xl:block"
+                class="absolute bottom-10 left-10 hidden w-40 lg:block"
                 src="../static/elements/logo-black.png"
                 alt=""
             />
-            <div class="flex flex-col gap-5 xl:w-3/4">
-                <span class="text-6xl font-semibold">Early Access Offer!</span>
-                <span class="text-xl text-slate-700">
+            <div class="flex flex-col gap-5 lg:w-3/4">
+                <span class="text-4xl font-semibold text-slate-900 lg:text-6xl">Early Access Offer!</span>
+                <span class="lg:text-xl text-lg text-slate-700">
                     Unlock the full potential of your startup with our custom-made preview pack, featuring ideal
                     investors for you in various industries.
 
@@ -19,7 +19,11 @@ endblock %} {% block content %}
                     price of $100 for a limited time.
                 </span>
             </div>
-            <form action="/payment/waitlist" method="POST" class="flex flex-col gap-5 font-medium xl:w-2/5">
+            <form
+                action="/payment/waitlist"
+                method="POST"
+                class="flex flex-col gap-5 font-medium text-slate-900 xl:w-2/5"
+            >
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <div class="flex w-full flex-col gap-2">
                     <div class="text-base">Email</div>
@@ -71,81 +75,14 @@ endblock %} {% block content %}
             </form>
         </div>
     </section>
-    <!-- <section id="payment" class="flex-col items-center justify-center gap-2.5 py-24 dark:bg-slate-900">
-        <div class="flex flex-col items-center justify-center">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 md:text-center lg:px-8">
-                <h2 class="text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
-                    We just need a few more details
-                </h2>
-                <p class="mt-4 text-lg tracking-tight text-slate-700">
-                    You will be redirected to
-                    <a href="https://stripe.com" class="font-bold text-[#635bff] underline" target="_blank">Stripe</a>
-                    to complete the transaction
-                </p>
-            </div>
-            <div class="mt-6">
-                <form action="/payment/waitlist" method="POST" class="flex w-80 flex-col gap-7 font-medium">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <div class="flex w-full flex-col gap-2">
-                        <div class="text-base">Email</div>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            autocomplete="email"
-                            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-                            class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                            required
-                        />
-                    </div>
-                    <div class="flex w-full flex-col gap-2">
-                        <div class="text-base">First name</div>
-                        <input
-                            id="first-name"
-                            name="first-name"
-                            type="text"
-                            autocomplete="given-name"
-                            class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                            required
-                        />
-                    </div>
-                    <div class="flex w-full flex-col gap-2">
-                        <div class="text-base">Last name</div>
-                        <input
-                            id="last-name"
-                            name="last-name"
-                            type="text"
-                            autocomplete="family-name"
-                            class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                            required
-                        />
-                    </div>
-                    <div class="gap-2">
-                        <button
-                            type="submit"
-                            class="inline-flex min-h-[3rem] w-full items-center justify-center rounded-xl bg-sky-500 transition-colors ease-in-out hover:bg-sky-400"
-                        >
-                            <div class="text-base text-white">Proceed</div>
-                        </button>
-                        <div class="my-2 text-xs text-slate-400">
-                            <span>By proceeding, you agree to </span
-                            ><a href="/terms-of-service" class="underline">Terms of Service</a><span> and </span
-                            ><a href="/privacy-policy" class="underline">Privacy Policy</a>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </section> -->
+
     <section id="faq" aria-labelledby="faq-title" class="bg-transparent py-20 sm:py-32">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="mx-auto lg:mx-0">
-                <h2
-                    class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl"
-                >
+                <h2 class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
                     Frequently asked questions
                 </h2>
-                <p class="mx-auto mt-4 text-center text-lg tracking-tight text-slate-700 dark:text-slate-400">
+                <p class="mx-auto mt-4 text-center text-lg tracking-tight text-slate-700">
                     If you can’t find what you’re looking for, email our support team and we will get back to you.
                 </p>
             </div>
@@ -153,26 +90,24 @@ endblock %} {% block content %}
                 <li>
                     <ul role="list" class="flex flex-col gap-y-8">
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                            <h3 class="text-lg text-slate-900 font-medium">
                                 What is the early access version of Globalify?
                             </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <p class="mt-4 text-slate-700">
                                 We’re still developing the platform, but we want to share what we have already built.
                                 That’s why we are launching an early access version with some of the planned
                                 functionality.
                             </p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                            <h3 class="text-lg text-slate-900 font-medium">
                                 How much do you charge for the early access version?
                             </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">Early access costs $(USD)100.</p>
+                            <p class="mt-4 text-slate-700">Early access costs $(USD)100.</p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                What do I get for that?
-                            </h3>
-                            <ol class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <h3 class="text-lg text-slate-900 font-medium">What do I get for that?</h3>
+                            <ol class="mt-4 text-slate-700">
                                 <li>- A curated list of top 500 investors and investment firms.</li>
                                 <li>- An early access to our platform, while it’s still under development.</li>
                                 <li>- 3 months of our top-tier subscription after the end of the early access.</li>
@@ -184,28 +119,22 @@ endblock %} {% block content %}
                 <li>
                     <ul role="list" class="flex flex-col gap-y-8">
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                How long will the early access last?
-                            </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <h3 class="text-lg text-slate-900 font-medium">How long will the early access last?</h3>
+                            <p class="mt-4 text-slate-700">
                                 We don’t have an exact date, but we aim to launch in Q2 2024. Until that time we plan to
                                 update the platform weekly, if not daily!
                             </p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                How would you be using my money?
-                            </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <h3 class="text-lg text-slate-900 font-medium">How would you be using my money?</h3>
+                            <p class="mt-4 text-slate-700">
                                 We use all the money we get to build and grow Globalify further. That includes paying
                                 for the server infrastructure and giving salaries to our employees.
                             </p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                Can I get a refund?
-                            </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <h3 class="text-lg text-slate-900 font-medium">Can I get a refund?</h3>
+                            <p class="mt-4 text-slate-700">
                                 Yes! If you don’t like our service, we can offer you a full refund. No questions asked.
                             </p>
                         </li>
@@ -214,29 +143,29 @@ endblock %} {% block content %}
                 <li>
                     <ul role="list" class="flex flex-col gap-y-8">
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                            <h3 class="text-lg text-slate-900 font-medium">
                                 How do I sign up for the early access version?
                             </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <p class="mt-4 text-slate-700">
                                 Fill out your details in the <a href="#payment" class="underline">form above</a>, and
                                 pay with Stripe, Apple Pay, or Google Pay, if it's still open.
                             </p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                            <h3 class="text-lg text-slate-900 font-medium">
                                 Can I give feedback about something I don’t like?
                             </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <p class="mt-4 text-slate-700">
                                 Yes, absolutely! We want to hear everything you have in mind because that helps us build
                                 a better product. You can reach us at
                                 <a class="underline" href="mailto:info@globalify.xyz">info@globalify.xyz</a>
                             </p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                            <h3 class="text-lg text-slate-900 font-medium">
                                 Can I get a copy of my data?Why are there only 100 spots for the early access version?
                             </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <p class="mt-4 text-slate-700">
                                 We limit the number to 100 so we can pay close attention to what each user says. This
                                 helps us improve the tech to make the best product.
                             </p>

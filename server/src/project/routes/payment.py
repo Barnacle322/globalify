@@ -532,8 +532,7 @@ def webhook_received():
     """
     DOCS: https://stripe.com/docs/billing/subscriptions/webhooks
     """
-    # TODO: Add an event to handle the teaser product
-    # charge.succeded checkout.session.completed payment_intent.created payment_intent.succeeded
+
     match event_type:
         case "invoice.paid":
             invoice_paid(data_object)

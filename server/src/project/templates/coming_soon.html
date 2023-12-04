@@ -3,10 +3,13 @@ endblock %} {% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
     <section class="mx-auto max-w-7xl bg-transparent px-4 pb-16 pt-16 text-center sm:px-6 lg:px-8 lg:pt-24">
         <h1
-            class="mx-auto mb-10 max-w-lg text-center text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl"
+            class="mx-auto mb-10 max-w-sm text-center text-4xl font-bold tracking-tight text-slate-900 sm:max-w-lg sm:text-5xl lg:text-6xl"
         >
             Globalify is
-            <span class="bg-gradient-to-r from-sky-600 to-sky-400 bg-clip-text text-transparent">Launching Soon</span>
+            <span
+                class="background-animate bg-gradient-to-r from-sky-500 via-teal-500 to-indigo-500 bg-clip-text text-transparent"
+                >Launching Soon</span
+            >
         </h1>
         <p class="mx-auto mb-10 max-w-2xl text-center text-lg text-slate-700">
             Limited to just <b>100 Early Access spots!</b> Get ahead with our exclusive preview pack and discover
@@ -14,7 +17,7 @@ endblock %} {% block content %}
         </p>
         <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
             <a
-                class="dark: inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 font-semibold text-slate-50 transition-colors ease-in-out hover:bg-slate-800 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300 dark:text-slate-900 dark:hover:bg-slate-200"
+                class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 font-semibold text-slate-50 transition-colors ease-in-out hover:bg-slate-800 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
                 href="/waitlist"
                 >Get early access now!</a
             >
@@ -64,15 +67,13 @@ endblock %} {% block content %}
         </div>
         <img class="mt-10 drop-shadow-lg" src="../static/elements/globalify_hero.png" alt="" />
     </section>
-    <section class="flex-col items-center justify-center gap-2.5 py-24 dark:bg-slate-900 dark:text-slate-50">
+    <section class="flex-col items-center justify-center gap-2.5 py-24">
         <div class="flex flex-col items-center justify-center">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 md:text-center lg:px-8">
-                <h2 class="text-3xl font-medium tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
+                <h2 class="text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
                     Tailored experience for specific regions
                 </h2>
-                <p class="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-400">
-                    Experts from around the world are here to help
-                </p>
+                <p class="mt-4 text-lg tracking-tight text-slate-700">Experts from around the world are here to help</p>
             </div>
             <div class="mt-6 flex flex-wrap items-center justify-center gap-6">
                 <div class="relative flex flex-col items-center justify-center gap-2">
@@ -81,7 +82,7 @@ endblock %} {% block content %}
                         src="../static/elements/jp.svg"
                         alt=""
                     />
-                    <div class="text-slate-700 dark:text-slate-400">Japan</div>
+                    <div class="text-slate-700">Japan</div>
                 </div>
                 <div class="relative flex flex-col items-center justify-between gap-2">
                     <img
@@ -89,7 +90,7 @@ endblock %} {% block content %}
                         src="../static/elements/kg.svg"
                         alt=""
                     />
-                    <div class="text-slate-700 dark:text-slate-400">Kyrgyzstan</div>
+                    <div class="text-slate-700">Kyrgyzstan</div>
                 </div>
                 <div class="relative flex flex-col items-center justify-center gap-2">
                     <img
@@ -97,7 +98,7 @@ endblock %} {% block content %}
                         src="../static/elements/kz.svg"
                         alt=""
                     />
-                    <div class="text-slate-700 dark:text-slate-400">Kazakhstan</div>
+                    <div class="text-slate-700">Kazakhstan</div>
                 </div>
                 <div class="relative flex flex-col items-center justify-center gap-2">
                     <img
@@ -105,20 +106,18 @@ endblock %} {% block content %}
                         src="../static/elements/hk.svg"
                         alt=""
                     />
-                    <div class="text-slate-700 dark:text-slate-400">Hong Kong</div>
+                    <div class="text-slate-700">Hong Kong</div>
                 </div>
             </div>
         </div>
     </section>
-    <section id="faq" aria-labelledby="faq-title" class="bg-transparent py-20 sm:py-32">
+    <section id="faq" aria-labelledby="faq-title" class="bg-transparent pb-20 sm:py-32">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="mx-auto lg:mx-0">
-                <h2
-                    class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl"
-                >
+                <h2 class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
                     Frequently asked questions
                 </h2>
-                <p class="mx-auto mt-4 text-center text-lg tracking-tight text-slate-700 dark:text-slate-400">
+                <p class="mx-auto mt-4 text-center text-lg tracking-tight text-slate-700">
                     If you can’t find what you’re looking for, email our support team and we will get back to you.
                 </p>
             </div>
@@ -126,27 +125,21 @@ endblock %} {% block content %}
                 <li>
                     <ul role="list" class="flex flex-col gap-y-8">
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                What is Globalify?
-                            </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <h3 class="text-lg font-medium text-slate-900">What is Globalify?</h3>
+                            <p class="mt-4 text-slate-700">
                                 Globalify is a hub for entrepreneurs to connect with investors from around the world.
                             </p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                What can I do with Globalify?
-                            </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <h3 class="text-lg font-medium text-slate-900">What can I do with Globalify?</h3>
+                            <p class="mt-4 text-slate-700">
                                 For now you can create a profile and look at the list of investors. In the future we are
                                 planning on adding a lot more features.
                             </p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                How do I sign up for the early access?
-                            </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <h3 class="text-lg font-medium text-slate-900">How do I sign up for the early access?</h3>
+                            <p class="mt-4 text-slate-700">
                                 You can sign up <a href="/waitlsit" class="underline">here</a>. It's very simple! Just
                                 fill in your details and process payment through Stripe.
                             </p>
@@ -156,27 +149,23 @@ endblock %} {% block content %}
                 <li>
                     <ul role="list" class="flex flex-col gap-y-8">
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                Do you offer refunds?
-                            </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <h3 class="text-lg font-medium text-slate-900">Do you offer refunds?</h3>
+                            <p class="mt-4 text-slate-700">
                                 Yes! You can get your money back with no questions asked. We also offer a free 14 day
                                 trial. If you are not satisfied with our product, you can cancel anytime.
                             </p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                Is my data safe with your search engine?
-                            </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <h3 class="text-lg font-medium text-slate-900">Is my data safe with your search engine?</h3>
+                            <p class="mt-4 text-slate-700">
                                 Absolutely! We use the latest security measures to keep your data safe and private.
                             </p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                            <h3 class="text-lg font-medium text-slate-900">
                                 How can I provide feedback about the product?
                             </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <p class="mt-4 text-slate-700">
                                 You can send us feedback via email or through a feedback form on our website or email us
                                 at
                                 <a href="mailto:info@globalify.xyz" class="font-bold underline">info@globalify.xyz</a>
@@ -187,28 +176,26 @@ endblock %} {% block content %}
                 <li>
                     <ul role="list" class="flex flex-col gap-y-8">
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                            <h3 class="text-lg font-medium text-slate-900">
                                 What do you do with the data you collect?
                             </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <p class="mt-4 text-slate-700">
                                 About the data we collect you can read in our
                                 <a class="underline" href="/privacy-policy">privacy policy</a>
                             </p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
-                                When will you launch?
-                            </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <h3 class="text-lg font-medium text-slate-900">When will you launch?</h3>
+                            <p class="mt-4 text-slate-700">
                                 We plan to launch in Q2 2023. We are currently in the process of building our product
                                 and are looking for early adopters to help us test it out.
                             </p>
                         </li>
                         <li>
-                            <h3 class="font-display text-lg leading-7 text-slate-900 dark:text-slate-50">
+                            <h3 class="text-lg font-medium text-slate-900">
                                 I'd like to know more about Globalify before I sign up.
                             </h3>
-                            <p class="mt-4 text-sm text-slate-700 dark:text-slate-400">
+                            <p class="mt-4 text-slate-700">
                                 You can ask us anything! Just send us an email at
                                 <a href="mailto:info@globalify.xyz" class="font-bold underline">info@globalify.xyz</a>
                                 and we will get back to you as soon as possible.

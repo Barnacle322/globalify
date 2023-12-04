@@ -1660,6 +1660,10 @@ html {
   max-width: 28rem;
 }
 
+.max-w-sm {
+  max-width: 24rem;
+}
+
 .max-w-xl {
   max-width: 36rem;
 }
@@ -1839,6 +1843,11 @@ html {
   gap: 51px;
 }
 
+.gap-x-12 {
+  -moz-column-gap: 3rem;
+       column-gap: 3rem;
+}
+
 .gap-x-3 {
   -moz-column-gap: 0.75rem;
        column-gap: 0.75rem;
@@ -1864,6 +1873,10 @@ html {
 
 .gap-y-3 {
   row-gap: 0.75rem;
+}
+
+.gap-y-7 {
+  row-gap: 1.75rem;
 }
 
 .gap-y-8 {
@@ -2095,6 +2108,12 @@ html {
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
+.from-sky-500 {
+  --tw-gradient-from: #0ea5e9 var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(14 165 233 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
 .from-sky-600 {
   --tw-gradient-from: #0284c7 var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(2 132 199 / 0) var(--tw-gradient-to-position);
@@ -2106,12 +2125,17 @@ html {
   --tw-gradient-stops: var(--tw-gradient-from), #c084fc var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
 
-.to-pink-300 {
-  --tw-gradient-to: #f9a8d4 var(--tw-gradient-to-position);
+.via-teal-500 {
+  --tw-gradient-to: rgb(20 184 166 / 0)  var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), #14b8a6 var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
 
-.to-sky-400 {
-  --tw-gradient-to: #38bdf8 var(--tw-gradient-to-position);
+.to-indigo-500 {
+  --tw-gradient-to: #6366f1 var(--tw-gradient-to-position);
+}
+
+.to-pink-300 {
+  --tw-gradient-to: #f9a8d4 var(--tw-gradient-to-position);
 }
 
 .to-sky-500 {
@@ -2179,6 +2203,11 @@ html {
 
 .p-6 {
   padding: 1.5rem;
+}
+
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
 }
 
 .px-2 {
@@ -2274,6 +2303,10 @@ html {
   padding-bottom: 4rem;
 }
 
+.pb-20 {
+  padding-bottom: 5rem;
+}
+
 .pb-3 {
   padding-bottom: 0.75rem;
 }
@@ -2332,6 +2365,10 @@ html {
 
 .pt-28 {
   padding-top: 7rem;
+}
+
+.pt-3 {
+  padding-top: 0.75rem;
 }
 
 .pt-8 {
@@ -2454,11 +2491,6 @@ html {
 
 .tracking-tight {
   letter-spacing: -0.025em;
-}
-
-.text-\[\#635bff\] {
-  --tw-text-opacity: 1;
-  color: rgb(99 91 255 / var(--tw-text-opacity));
 }
 
 .text-black {
@@ -2672,6 +2704,10 @@ html {
   transition-duration: 700ms;
 }
 
+.duration-\[400ms\] {
+  transition-duration: 400ms;
+}
+
 .ease-in {
   transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
 }
@@ -2683,31 +2719,50 @@ html {
 @font-face {
   font-family: "League Spartan";
 
-  src: url('../elements/fonts/LeagueSpartan.ttf');
+  src: url("../elements/fonts/LeagueSpartan.ttf");
 }
 
 @font-face {
   font-family: "Muoto-Light";
 
-  src: url('../elements/fonts/Muoto-Light.woff');
+  src: url("../elements/fonts/Muoto-Light.woff");
 }
 
 @font-face {
   font-family: "Muoto-Regular";
 
-  src: url('../elements/fonts/Muoto-Regular.woff');
+  src: url("../elements/fonts/Muoto-Regular.woff");
 }
 
 @font-face {
   font-family: "Sohne";
 
-  src: url('../elements/fonts/Sohne.woff2');
+  src: url("../elements/fonts/Sohne.woff2");
 }
 
 @font-face {
   font-family: "Lexend";
 
-  src: url('../elements/fonts/Lexend.ttf');
+  src: url("../elements/fonts/Lexend.ttf");
+}
+
+.background-animate {
+  background-size: 500%;
+  animation: gradient 10s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -3229,6 +3284,10 @@ html {
     display: none;
   }
 
+  .sm\:max-w-lg {
+    max-width: 32rem;
+  }
+
   .sm\:max-w-sm {
     max-width: 24rem;
   }
@@ -3397,6 +3456,10 @@ html {
     width: 40%;
   }
 
+  .lg\:w-3\/4 {
+    width: 75%;
+  }
+
   .lg\:w-3\/5 {
     width: 60%;
   }
@@ -3487,6 +3550,11 @@ html {
     font-size: 3.75rem;
     line-height: 1;
   }
+
+  .lg\:text-xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
 }
 
 @media (min-width: 1280px) {
@@ -3502,16 +3570,8 @@ html {
     margin-top: 0px;
   }
 
-  .xl\:block {
-    display: block;
-  }
-
   .xl\:w-2\/5 {
     width: 40%;
-  }
-
-  .xl\:w-3\/4 {
-    width: 75%;
   }
 
   .xl\:origin-center {

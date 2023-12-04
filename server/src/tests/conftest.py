@@ -1,10 +1,10 @@
-from ..project import create_app, db
-
 # from ..project.models import User
 import pytest
 
+from ..project import create_app, db
 
-@pytest.fixture(scope="module")
+
+@pytest.fixture()
 def app():
     app = create_app("sqlite:///test_db.sqlite")
     with app.app_context():
@@ -14,6 +14,6 @@ def app():
     yield app
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def client(app):
     return app.test_client()

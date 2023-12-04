@@ -15,4 +15,4 @@ RUN pip install gunicorn==20.1.0
 
 ENV PORT 8080
 
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 project:application
+CMD exec poetry run gunicorn --bind :$PORT --workers 1 --threads 8 project:application

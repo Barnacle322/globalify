@@ -48,11 +48,11 @@ images:
 options:
   substitutionOption: ALLOW_LOOSE
 substitutions:
+  _AR_HOSTNAME: europe-north1-docker.pkg.dev
   _TRIGGER_ID: f78bc905-44d2-4d17-a8fd-de1e488491a2
   _PLATFORM: managed
   _SERVICE_NAME: globalifyxyz
   _DEPLOY_REGION: europe-north1
-  _AR_HOSTNAME: europe-north1-docker.pkg.dev
 tags:
   - gcp-cloud-build-deploy-cloud-run
   - gcp-cloud-build-deploy-cloud-run-managed

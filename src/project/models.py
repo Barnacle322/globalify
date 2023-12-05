@@ -123,20 +123,20 @@ class UserInfo(db.Model):
         return user_info
 
     @staticmethod
-    def is_taken(username: str | None) -> bool:
-        try:
-            user_info = UserInfo.query.filter(UserInfo.username == username).first()
-            return True if user_info else False
-        except NoResultFound:
-            return False
-
-    @staticmethod
     def get_by_user_id(id: int) -> UserInfo | None:
         try:
             user_info = UserInfo.query.filter(UserInfo.user_id == id).first()
             return user_info
         except NoResultFound:
             return None
+
+    @staticmethod
+    def is_taken(username: str | None) -> bool:
+        try:
+            user_info = UserInfo.query.filter(UserInfo.username == username).first()
+            return True if user_info else False
+        except NoResultFound:
+            return False
 
 
 class UserPayment(db.Model):

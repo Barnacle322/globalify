@@ -493,7 +493,7 @@ def charge_succeeded(data_object):
 
     send_email(
         recepients=customer_email,
-        subject="You have signed up for the waitlist!",
+        subject="You have signed up for the Early Access!",
         html_content=html_content,
     )
 

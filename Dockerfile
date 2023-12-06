@@ -1,5 +1,4 @@
-FROM python:3.12.0-alpine as python-base
-
+FROM python:3.12.0-alpine
 
 COPY src/ app/
 COPY pyproject.toml /app

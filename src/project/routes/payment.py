@@ -119,6 +119,7 @@ def create_checkout(
                 },
             ],
             mode="payment",
+            allow_promotion_codes=True,
             success_url=success_url,
             cancel_url=cancel_url,
         )

@@ -122,6 +122,7 @@ def create_checkout(
             allow_promotion_codes=True,
             success_url=success_url,
             cancel_url=cancel_url,
+            metadata={"product": "teaser"},  # type: ignore
         )
     elif tier == "elevate":
         checkout_session = stripe.checkout.Session.create(
@@ -472,14 +473,18 @@ def payment_failed(data_object):
     )
 
 
-def charge_succeeded(data_object):
-    if int(data_object.get("amount")) != 10000:
-        return jsonify(success=True, msg="Not a waitlist charge")
+def new_waitlist(data_object):
+    metadata = data_object.get("metadata")
+    if product := metadata.get("product", ""):
+        if product != "teaser":
+            return jsonify(success=False, message="Invalid product")
 
     stripe_customer_id = data_object.get("customer")
     charge_id = data_object.get("id")
-    customer_email = data_object.get("billing_details").get("email")
-    customer_name = data_object.get("billing_details").get("name")
+    customer_email = data_object.get("customer_details").get("email")
+    if not customer_email:
+        return jsonify(success=False, message="No email found")
+    customer_name = data_object.get("customer_details").get("name", "Dear Supporter")
 
     new_waitlist_charge = WaitlistCharge(
         stripe_customer_id=stripe_customer_id,
@@ -545,7 +550,7 @@ def webhook_received():
             trial_will_end(data_object)
         case "invoice.payment_failed":
             payment_failed(data_object)
-        case "charge.succeeded":
-            charge_succeeded(data_object)
+        case "checkout.session.completed":
+            new_waitlist(data_object)
 
     return jsonify(success=True)

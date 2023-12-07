@@ -20,6 +20,7 @@ from ..extensions import db
 from ..models import InvestmentFirm, Investor, User, Waitlist, WaitlistCharge
 from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
 from ..utils.google_storage import load_pfp
+from ..utils.parse_medium import parse_medium_html
 from ..utils.status_enum import Status, StatusType
 
 main = Blueprint("main", __name__)
@@ -53,7 +54,8 @@ def check_verification(func):
 
 @main.get("/")
 def index():
-    return render_template("coming_soon.html")
+    posts = parse_medium_html()
+    return render_template("coming_soon.html", posts=posts)
 
 
 @main.get("/waitlist")

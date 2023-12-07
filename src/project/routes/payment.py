@@ -551,6 +551,9 @@ def webhook_received():
         case "invoice.payment_failed":
             payment_failed(data_object)
         case "checkout.session.completed":
+            """
+            https://stripe.com/docs/payments/checkout/fulfill-orders
+            """
             new_waitlist(data_object)
 
     return jsonify(success=True)

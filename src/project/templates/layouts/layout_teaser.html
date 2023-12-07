@@ -36,7 +36,7 @@
         <link rel="stylesheet" href="../static/css/main.css" />
         <link rel="icon" type="image/png" href="../static/elements/icon.png" />
         <script src="../static/scripts/menu.js" defer></script>
-        <script src="../static/scripts/email.js" defer></script>
+        {% block additional_scripts %}{% endblock %}
 
         <title>{% block title %}{% endblock %} | Globalify</title>
         {% endblock %}
@@ -56,13 +56,11 @@
                     <a class="transition-colors ease-in-out hover:text-slate-700" href="/#faq">FAQ</a>
                 </ul>
             </div>
-            <div class="hidden pr-9 sm:block">
-                <a
-                    href="/waitlist"
-                    class="flex items-center justify-center rounded-xl bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
-                    >Early access</a
-                >
-            </div>
+            <a
+                href="/waitlist"
+                class="mr-9 hidden min-w-max rounded-xl bg-sky-500 px-3 py-2 text-center text-white transition-colors ease-in-out hover:bg-sky-400 sm:block"
+                >Early access</a
+            >
             <button class="mr-9 block sm:hidden" onclick="openMenu()">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

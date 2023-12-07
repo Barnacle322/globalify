@@ -4,8 +4,8 @@
   "description": "",
   "main": "tailwind.config.js",
   "scripts": {
-    "css": "npx tailwindcss -i ./server/src/project/static/src/input.css -o ./server/src/project/static/css/main.css --watch",
-    "html": "npx prettier --write ./server/src/project/templates/**/*.html --plugin=prettier-plugin-tailwindcss"
+    "css": "npx tailwindcss -i ./src/project/static/src/input.css -o ./src/project/static/css/main.css --watch",
+    "html": "npx prettier --write ./src/project/templates/**/*.html --plugin=prettier-plugin-tailwindcss"
   },
   "author": "",
   "license": "ISC",

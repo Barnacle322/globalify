@@ -1,5 +1,7 @@
-{% extends "layouts/layout_teaser.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {%
-endblock %} {% block content %}
+{% extends "layouts/layout_teaser.html" %} {% block additional_scripts %}
+<script src="../static/scripts/email.js" defer></script>
+{% endblock %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
+%}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
     <section class="mx-auto max-w-7xl bg-transparent px-4 pb-16 pt-16 text-center sm:px-6 lg:px-8 lg:pt-24">
         <h1

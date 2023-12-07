@@ -1222,16 +1222,8 @@ html {
   bottom: 0px;
 }
 
-.bottom-10 {
-  bottom: 2.5rem;
-}
-
 .left-0 {
   left: 0px;
-}
-
-.left-10 {
-  left: 2.5rem;
 }
 
 .right-0 {
@@ -1561,10 +1553,6 @@ html {
 
 .w-4 {
   width: 1rem;
-}
-
-.w-40 {
-  width: 10rem;
 }
 
 .w-48 {
@@ -2130,6 +2118,10 @@ html {
   --tw-gradient-stops: var(--tw-gradient-from), #14b8a6 var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
 
+.to-blue-500 {
+  --tw-gradient-to: #3b82f6 var(--tw-gradient-to-position);
+}
+
 .to-indigo-500 {
   --tw-gradient-to: #6366f1 var(--tw-gradient-to-position);
 }
@@ -2140,6 +2132,10 @@ html {
 
 .to-sky-500 {
   --tw-gradient-to: #0ea5e9 var(--tw-gradient-to-position);
+}
+
+.bg-cover {
+  background-size: cover;
 }
 
 .bg-clip-text {
@@ -2223,6 +2219,11 @@ html {
 .px-4 {
   padding-left: 1rem;
   padding-right: 1rem;
+}
+
+.px-5 {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
 }
 
 .px-6 {
@@ -2416,6 +2417,10 @@ html {
   line-height: 1;
 }
 
+.text-\[40px\] {
+  font-size: 40px;
+}
+
 .text-base {
   font-size: 1rem;
   line-height: 1.5rem;
@@ -2487,6 +2492,10 @@ html {
 
 .leading-none {
   line-height: 1;
+}
+
+.leading-tight {
+  line-height: 1.25;
 }
 
 .tracking-tight {
@@ -3452,12 +3461,12 @@ html {
     display: flex;
   }
 
-  .lg\:w-2\/5 {
-    width: 40%;
+  .lg\:w-1\/2 {
+    width: 50%;
   }
 
-  .lg\:w-3\/4 {
-    width: 75%;
+  .lg\:w-2\/5 {
+    width: 40%;
   }
 
   .lg\:w-3\/5 {
@@ -3466,6 +3475,10 @@ html {
 
   .lg\:w-64 {
     width: 16rem;
+  }
+
+  .lg\:w-72 {
+    width: 18rem;
   }
 
   .lg\:max-w-4xl {
@@ -3503,6 +3516,10 @@ html {
 
   .lg\:rounded-3xl {
     border-radius: 1.5rem;
+  }
+
+  .lg\:bg-\[linear-gradient\(to_right\2c rgba\(0\2c 0\2c 0\2c 1\)_40\%\2c rgba\(0\2c 0\2c 0\2c 0\)_70\%\)\2c url\(\'\/static\/elements\/waitlist_hero\.jpg\'\)\] {
+    background-image: linear-gradient(to right,rgba(0,0,0,1) 40%,rgba(0,0,0,0) 70%),url('/static/elements/waitlist_hero.jpg');
   }
 
   .lg\:px-0 {
@@ -3568,10 +3585,6 @@ html {
 
   .xl\:mt-0 {
     margin-top: 0px;
-  }
-
-  .xl\:w-2\/5 {
-    width: 40%;
   }
 
   .xl\:origin-center {

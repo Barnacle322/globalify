@@ -61,6 +61,11 @@ def waitlist():
     return render_template("waitlist.html")
 
 
+@main.get("/waitlist/apply")
+def waitlist_apply():
+    return render_template("waitlist/apply.html")
+
+
 @main.post("/waitlist-email")
 def waitlist_email():
     email = request.get_json().get("email")

@@ -1,0 +1,58 @@
+{% extends "layouts/layout_teaser.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {%
+endblock %} {% block content %}
+<main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-white">
+    <section class="mx-auto w-full max-w-md bg-transparent px-4 pb-16 pt-3 sm:px-6 lg:pt-24">
+        <form action="/payment/waitlist" method="POST" class="flex flex-col gap-5 font-medium text-black">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="w-full text-center text-4xl">Join Globalify!</div>
+            <div class="flex w-full flex-col gap-2">
+                <div class="text-base">Email</div>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autocomplete="email"
+                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                    required
+                />
+            </div>
+            <div class="flex w-full flex-col gap-2">
+                <div class="text-base">First name</div>
+                <input
+                    id="first-name"
+                    name="first-name"
+                    type="text"
+                    autocomplete="given-name"
+                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                    required
+                />
+            </div>
+            <div class="flex w-full flex-col gap-2">
+                <div class="text-base">Last name</div>
+                <input
+                    id="last-name"
+                    name="last-name"
+                    type="text"
+                    autocomplete="family-name"
+                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                    required
+                />
+            </div>
+            <div class="gap-2">
+                <button
+                    type="submit"
+                    class="inline-flex min-h-[3rem] w-full items-center justify-center rounded-xl bg-sky-500 transition-colors ease-in-out hover:bg-sky-400"
+                >
+                    <div class="text-base text-white">Proceed</div>
+                </button>
+                <div class="my-2 text-xs text-slate-400">
+                    <span>By proceeding, you agree to our </span
+                    ><a href="/terms-of-service" class="underline">Terms of Service</a><span> and </span
+                    ><a href="/privacy-policy" class="underline">Privacy Policy</a>
+                </div>
+            </div>
+        </form>
+    </section>
+</main>
+{% endblock %}

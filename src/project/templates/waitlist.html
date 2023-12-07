@@ -2,77 +2,37 @@
 endblock %} {% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-white">
     <section id="payment" class="mx-auto w-full max-w-7xl bg-transparent px-4 pb-16 pt-3 sm:px-6 lg:pt-24">
-        <div class="relative flex flex-col gap-10 rounded-3xl border-2 p-10 shadow-lg lg:flex-row">
-            <img
-                class="absolute bottom-10 left-10 hidden w-40 lg:block"
-                src="../static/elements/logo-black.png"
-                alt=""
-            />
-            <div class="flex flex-col gap-5 lg:w-3/4">
-                <span class="text-4xl font-semibold text-slate-900 lg:text-6xl">Early Access Offer!</span>
-                <span class="text-lg text-slate-700 lg:text-xl">
-                    Unlock the full potential of your startup with our custom-made preview pack, featuring ideal
-                    investors for you in various industries.
+        <div
+            class="relative flex flex-col gap-10 overflow-hidden rounded-3xl border-2 bg-black bg-cover p-10 shadow-lg lg:flex-row lg:bg-[linear-gradient(to_right,rgba(0,0,0,1)_40%,rgba(0,0,0,0)_70%),url('/static/elements/waitlist_hero.jpg')]"
+        >
+            <div class="flex flex-col gap-5 text-white lg:w-1/2">
+                <span class="text-[40px] font-semibold leading-tight"
+                    >Limited time offer!
+                    <br />
+                    Get
+                    <span class="bg-gradient-to-r from-sky-500 via-teal-500 to-blue-500 bg-clip-text text-transparent"
+                        >Early Access</span
+                    >
+                    now</span
+                >
+                <p class="text-lg lg:text-xl">
+                    Get early access to our investor network and find the right investors for your startup.
 
                     <br /><br />
                     Be one of the first to explore our beta search engine, launching in Q1. Now available at a special
-                    price of $100 for a limited time.
-                </span>
+                    price of $199 for a limited time.
+                </p>
+                <p class="text-4xl">
+                    <s class="text-slate-400">$499</s>
+                    $199<span class="text-base">USD</span>
+                </p>
+                <a
+                    href="/waitlist/apply"
+                    class="rounded-xl bg-sky-500 px-5 py-3 text-center transition-colors ease-in-out hover:bg-sky-400 lg:w-72"
+                >
+                    Apply now!
+                </a>
             </div>
-            <form
-                action="/payment/waitlist"
-                method="POST"
-                class="flex flex-col gap-5 font-medium text-slate-900 xl:w-2/5"
-            >
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <div class="flex w-full flex-col gap-2">
-                    <div class="text-base">Email</div>
-                    <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        autocomplete="email"
-                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                        required
-                    />
-                </div>
-                <div class="flex w-full flex-col gap-2">
-                    <div class="text-base">First name</div>
-                    <input
-                        id="first-name"
-                        name="first-name"
-                        type="text"
-                        autocomplete="given-name"
-                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                        required
-                    />
-                </div>
-                <div class="flex w-full flex-col gap-2">
-                    <div class="text-base">Last name</div>
-                    <input
-                        id="last-name"
-                        name="last-name"
-                        type="text"
-                        autocomplete="family-name"
-                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                        required
-                    />
-                </div>
-                <div class="gap-2">
-                    <button
-                        type="submit"
-                        class="inline-flex min-h-[3rem] w-full items-center justify-center rounded-xl bg-sky-500 transition-colors ease-in-out hover:bg-sky-400"
-                    >
-                        <div class="text-base text-white">Proceed</div>
-                    </button>
-                    <div class="my-2 text-xs text-slate-400">
-                        <span>By proceeding, you agree to our </span
-                        ><a href="/terms-of-service" class="underline">Terms of Service</a><span> and </span
-                        ><a href="/privacy-policy" class="underline">Privacy Policy</a>
-                    </div>
-                </div>
-            </form>
         </div>
     </section>
 
@@ -103,7 +63,7 @@ endblock %} {% block content %}
                             <h3 class="text-lg font-medium text-slate-900">
                                 How much do you charge for the early access version?
                             </h3>
-                            <p class="mt-4 text-slate-700">Early access costs $(USD)100.</p>
+                            <p class="mt-4 text-slate-700">Early access costs $(USD)199.</p>
                         </li>
                         <li>
                             <h3 class="text-lg font-medium text-slate-900">What do I get for that?</h3>

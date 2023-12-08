@@ -1,22 +1,20 @@
 {% extends "layouts/layout_teaser.html" %} {% block title %}Pricing{% endblock %} {% block head %} {{ super() }} {%
 endblock %} {% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden text-slate-900">
-    <section class="mx-auto mb-28 mt-24 flex max-w-7xl flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div class="mb-10 md:text-center">
-            <h2 class="font-display text-3xl font-medium tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
-                Simple pricing for everyone.
-            </h2>
-            <p class="mt-4 text-lg text-slate-700">
-                It doesn’t matter what size your business is, our solution will work well for you.
-            </p>
-        </div>
-        <div class="flex flex-wrap items-center justify-center gap-7">
+    <section class="mx-auto mb-28 mt-5 lg:mt-24 flex max-w-7xl flex-col items-center justify-center px-8 sm:px-6 lg:px-8">
+        <h2 class="font-display text-3xl font-medium tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
+            Simple pricing for everyone.
+        </h2>
+        <p class="mt-4 text-lg text-slate-700">
+            It doesn’t matter what size your business is, our solution will work well for you.
+        </p>
+        <div class="mt-10 flex flex-col items-center justify-center gap-3 lg:flex-row">
             <div
-                class="flex h-96 w-64 flex-col justify-start gap-4 rounded-3xl border-2 p-6 transition-all ease-in-out"
+                class="flex h-[500px] w-72 flex-col justify-start gap-4 rounded-3xl border-2 p-6 transition-all ease-in-out"
             >
-                <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Elevate</span>
-                <span class="text-stone-500">Full access to our database with Elevate tier.</span>
-                <span class="text-4xl font-semibold">$TBD<span class="text-base font-normal">/month</span></span>
+                <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Free</span>
+                <span class="h-20 text-stone-500">Perfect for small start-ups that are still ideating.</span>
+                <span class="text-4xl font-semibold">$0<span class="text-base font-normal">/month</span></span>
                 <a
                     class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
                     href="/waitlist"
@@ -40,46 +38,14 @@ endblock %} {% block content %}
                         </svg>
                         <span>Database access</span>
                     </li>
-                    <!-- <li class="flex flex-row">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            class="mr-1 inline-block h-5 w-5 text-sky-500"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span></span>
-                    </li> -->
-                    <!-- <li class="flex flex-row">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            class="mr-1 inline-block h-5 w-5 text-sky-500"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span></span>
-                    </li> -->
                 </ul>
             </div>
             <div
-                class="flex h-96 w-64 flex-col justify-start gap-4 rounded-3xl border-2 border-sky-500 p-6 transition-all ease-in-out"
+                class="flex h-[500px] w-72 flex-col justify-start gap-4 rounded-3xl border-2 p-6 transition-all ease-in-out"
             >
-                <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Connect Pro</span>
-                <span class="text-stone-500">Connect Pro makes it easier for investors to discover your idea.</span>
-                <span class="text-4xl font-semibold">$TBD<span class="text-base font-normal">/month</span></span>
+                <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Starter</span>
+                <span class="h-20 text-stone-500">Works best for start-ups in their pre-seed and seed rounds.</span>
+                <span class="text-4xl font-semibold">$49<span class="text-base font-normal">/month</span></span>
                 <a
                     class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
                     href="/waitlist"
@@ -138,11 +104,74 @@ endblock %} {% block content %}
                 </ul>
             </div>
             <div
-                class="flex h-96 w-64 flex-col justify-start gap-4 rounded-3xl border-2 p-6 transition-all ease-in-out"
+                class="flex h-[500px] w-72 flex-col justify-start gap-4 rounded-3xl border-2 border-sky-500 p-6 transition-all ease-in-out"
             >
-                <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Boost Academy</span>
-                <span class="text-stone-500">Take advantage of everything we offer with Boost Academy.</span>
-                <span class="text-4xl font-semibold">$TBD<span class="text-base font-normal">/month</span></span>
+                <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Early Access</span>
+                <span class="h-20 text-stone-500">Get a preview of what we are building, while supporting us.</span>
+                <span class="text-4xl font-semibold">$199<span class="text-base font-normal">once</span></span>
+                <a
+                    class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
+                    href="/waitlist"
+                >
+                    Subscribe
+                </a>
+                <ul>
+                    <li class="flex flex-row">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                            class="mr-1 inline-block h-5 w-5 text-sky-500"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                                clip-rule="evenodd"
+                            ></path>
+                        </svg>
+                        <span>Database access</span>
+                    </li>
+                    <li class="flex flex-row">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                            class="mr-1 inline-block h-5 w-5 text-sky-500"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                                clip-rule="evenodd"
+                            ></path>
+                        </svg>
+                        <span>Investor discoverability</span>
+                    </li>
+                    <li class="flex flex-row">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                            class="mr-1 inline-block h-5 w-5 text-sky-500"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                                clip-rule="evenodd"
+                            ></path>
+                        </svg>
+                        <span>Knowledge hub</span>
+                    </li>
+                </ul>
+            </div>
+            <div
+                class="flex h-[500px] w-72 flex-col justify-start gap-4 rounded-3xl border-2 p-6 transition-all ease-in-out"
+            >
+                <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Pro</span>
+                <span class="h-20 text-stone-500">Best for companies in their A and B series rounds.</span>
+                <span class="text-4xl font-semibold">$79<span class="text-base font-normal">/month</span></span>
                 <a
                     class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
                     href="/waitlist"
@@ -202,28 +231,26 @@ endblock %} {% block content %}
             </div>
         </div>
     </section>
-    <section class="relative isolate overflow-hidden px-6 py-24 sm:py-32 lg:px-8">
-        <div class="mx-auto max-w-2xl lg:max-w-4xl">
-            <img class="mx-auto h-12" src="../static/elements/logo-black.png" alt="" />
-            <figure class="mt-10">
-                <blockquote class="text-center text-xl font-semibold leading-8 text-gray-900 sm:text-2xl sm:leading-9">
-                    <p>
-                        “We want to help founders with good ideas find all the resources they need. Get on board to help
-                        us with our ambition”
-                    </p>
-                </blockquote>
-                <figcaption class="mt-10">
-                    <img class="mx-auto h-10 w-10 rounded-full" src="../static/elements/Team/arisa_square.JPG" alt="" />
-                    <div class="mt-4 flex items-center justify-center space-x-3 text-base">
-                        <div class="font-semibold text-gray-900">Arisa Ueno</div>
-                        <svg viewBox="0 0 2 2" width="3" height="3" aria-hidden="true" class="fill-gray-900">
-                            <circle cx="1" cy="1" r="1" />
-                        </svg>
-                        <div class="text-gray-600">CEO of Globalify</div>
-                    </div>
-                </figcaption>
-            </figure>
-        </div>
+    <section class="relative mx-auto max-w-2xl overflow-hidden px-8 py-24 sm:py-32 lg:max-w-4xl lg:px-8">
+        <img class="mx-auto h-12" src="../static/elements/logo-black.png" alt="" />
+        <figure class="mt-10">
+            <blockquote class="text-center text-xl font-semibold leading-8 text-gray-900 sm:text-2xl sm:leading-9">
+                <p>
+                    “We want to help founders with good ideas find all the resources they need. Get on board to help us
+                    with our ambition”
+                </p>
+            </blockquote>
+            <figcaption class="mt-10">
+                <img class="mx-auto h-10 w-10 rounded-full" src="../static/elements/Team/arisa_square.JPG" alt="" />
+                <div class="mt-4 flex items-center justify-center space-x-3 text-base">
+                    <div class="font-semibold text-gray-900">Arisa Ueno</div>
+                    <svg viewBox="0 0 2 2" width="3" height="3" aria-hidden="true" class="fill-gray-900">
+                        <circle cx="1" cy="1" r="1" />
+                    </svg>
+                    <div class="text-gray-600">CEO of Globalify</div>
+                </div>
+            </figcaption>
+        </figure>
     </section>
 </main>
 

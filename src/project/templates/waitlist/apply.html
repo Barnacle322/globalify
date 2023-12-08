@@ -1,7 +1,7 @@
 {% extends "layouts/layout_teaser.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {%
 endblock %} {% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-white">
-    <section class="mx-auto w-full max-w-md bg-transparent px-4 pb-16 pt-3 sm:px-6 lg:pt-24">
+    <section class="mx-auto w-full max-w-md bg-transparent px-8 pb-16 pt-3 sm:px-6 lg:pt-24">
         <form action="/payment/waitlist" method="POST" class="flex flex-col gap-5 font-medium text-black">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <div class="w-full text-center text-4xl">Join Globalify!</div>

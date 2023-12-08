@@ -60,8 +60,6 @@ def parse_medium_html() -> list:
         parser.feed(entry.summary)
 
         parsed = parser.get_result().get("children")
-        print(parsed)
-        print("\n\n")
 
         subtitle = "Continue reading on Globalify »"
         if parsed:

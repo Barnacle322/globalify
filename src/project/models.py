@@ -44,10 +44,10 @@ class User(UserMixin, db.Model):
         raise AttributeError("Password is not a readable attribute.")
 
     @password.setter
-    def password(self, password) -> None:
+    def password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password, "scrypt")
 
-    def verify_password(self, password) -> bool:
+    def verify_password(self, password: str) -> bool:
         if not self.password_hash:
             return False
         return check_password_hash(self.password_hash, password)

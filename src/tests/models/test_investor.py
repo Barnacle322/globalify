@@ -82,7 +82,6 @@ def new_round(app):
         db.session.add(round)
         db.session.commit()
 
-
 def test_investor(new_investor, app):
     with app.app_context():
         investor = Investor.query.first()
@@ -144,3 +143,4 @@ def test_round(new_round, app):
         round = Round.query.filter_by(name="Test").first()
         assert round
         assert round.name == "Test"
+

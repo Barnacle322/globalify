@@ -1,8 +1,8 @@
-import random
 import pytest
+import random
 
 from ...project import db
-from ...project.models import Investor, InvestmentFirm, Round, Industry
+from ...project.models import Investor, Round, Industry
 
 
 @pytest.fixture()

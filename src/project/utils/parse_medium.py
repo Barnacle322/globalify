@@ -2,6 +2,10 @@ import time
 from html.parser import HTMLParser
 
 import feedparser
+import requests
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class HTMLtoDictParser(HTMLParser):
@@ -47,7 +51,8 @@ class HTMLtoDictParser(HTMLParser):
 
 
 def parse_medium_html() -> list:
-    feed = feedparser.parse("https://blog.globalify.xyz/feed")
+    response = requests.get("https://blog.globalify.xyz/feed", verify=False)
+    feed = feedparser.parse(response.text)
     posts = []
 
     def get_img(summary):

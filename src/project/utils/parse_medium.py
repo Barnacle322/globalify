@@ -68,7 +68,7 @@ def parse_medium_html() -> list:
                     if child.get("tag") == "p":
                         subtitle = child.get("text")
                         if len(subtitle) < 150 and parsed[index + 1].get("tag") == "p":
-                            subtitle = f"{subtitle} {parsed[index + 1].get("text")}"
+                            subtitle = f"{subtitle} {parsed[index + 1].get('text')}"
                         break
             elif parsed[0].get("tag") == "div":
                 subtitle = parsed[0].get("children")[1].get("text")

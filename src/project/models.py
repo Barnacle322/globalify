@@ -607,7 +607,6 @@ class InvestmentFirm(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=True)
     about: Mapped[str] = mapped_column(String, nullable=True)
-    position: Mapped[str] = mapped_column(String, nullable=True)
     website: Mapped[str] = mapped_column(String, nullable=True)
     email: Mapped[str] = mapped_column(String, nullable=True, unique=True)
     phone_number: Mapped[str] = mapped_column(String, nullable=True)

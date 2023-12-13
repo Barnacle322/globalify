@@ -361,7 +361,8 @@ class Industry(db.Model):
             for category, industries in industry_aggregate.items():
                 db.session.add_all(list(map(lambda x: Industry(name=x, category=category), industries)))
             db.session.commit()
-        except Exception:
+        except Exception as e:
+            print(e)
             db.session.rollback()
 
 
@@ -583,7 +584,7 @@ class Investor(db.Model):
                 num_rounds = random.randint(1, 5)
                 rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
                 num_industries = random.randint(1, 6)
-                industries = [Industry.get_by_id(random.randint(1, 138)) for _ in range(num_industries)]
+                industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
                 investor_list.append(
                     Investor(
                         first_name=f"{firstnames[i]}",

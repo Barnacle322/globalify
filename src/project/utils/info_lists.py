@@ -34,12 +34,10 @@ technology_innovation = [
     "DeepTech",
     "Developer Tools",
     "Digital Health",
-    "EdTech",
     "EnergyTech",
     "Enterprise Applications",
     "Enterprise Infrastructure",
     "FinTech",
-    "HealthTech/MedTech",
     "IoT",
     "Robotics",
     "SaaS",
@@ -55,7 +53,6 @@ business_commerce = [
     "Commercial Services",
     "Consumer",
     "Consumer Durables",
-    "Consumer Health",
     "Consumer Non-Durables",
     "Direct-to-Consumer (DTC)",
     "E-Commerce",
@@ -121,7 +118,6 @@ other_sectors = [
     "Social Commerce",
     "Social Networks",
     "Space",
-    "Security",
 ]
 
 aggregate = {

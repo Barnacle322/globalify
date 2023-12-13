@@ -17,7 +17,7 @@ from flask import (
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import InvestmentFirm, Investor, User, Waitlist, WaitlistCharge
+from ..models import Industry, InvestmentFirm, Investor, Round, User, Waitlist, WaitlistCharge
 from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
 from ..utils.google_storage import load_pfp
 from ..utils.parse_medium import parse_medium_html
@@ -145,8 +145,26 @@ def dashboard():
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     search_query = request.args.get("q", "")
+    filter_by_field = request.args.get("filter_by", None)
+    sort_by_field = request.args.get("sort_by", None)
+    sort_descending = request.args.get("sort_descending", False)
     page_num = request.args.get("page", 1, type=int)
-    investors = Investor.get_pagination(page=page_num, query=search_query)
+
+    rounds = [Round.get_by_name(name) for name in request.args.getlist("rounds")]
+    rounds = [round_obj for round_obj in rounds if round_obj]
+
+    industries = [Industry.get_by_name(name) for name in request.args.getlist("industry")]
+    industries = [industry_obj for industry_obj in industries if industry_obj]
+
+    investors = Investor.get_pagination(
+        page=page_num,
+        query=search_query,
+        sort_by_field=sort_by_field,
+        sort_descending=sort_descending,
+        filter_by_field=filter_by_field,
+        rounds=rounds,
+        industries=industries
+        )
 
     if page_num > investors.pages and investors.pages > 0:  # type: ignore
         return redirect(url_for("main.search", search=search_query, pagenum=1))

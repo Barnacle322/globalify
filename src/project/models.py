@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pycountry
 from flask_login import UserMixin
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, and_, desc, event
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
@@ -532,23 +532,67 @@ class Investor(db.Model):
             return []
 
     @staticmethod
+    def apply_search_filters(query, query_string, filter_field):
+        if query_string:
+            search_filters = (
+                Investor.first_name.ilike(f"%{query_string}%")
+                | Investor.last_name.ilike(f"%{query_string}%")
+                | Investor.firm_name.ilike(f"%{query_string}%")
+                | Investor.position.ilike(f"%{query_string}%")
+                | Investor.about.ilike(f"%{query_string}%")
+            )
+            query = query.filter(search_filters)
+            if filter_field and hasattr(Investor, filter_field):
+                filter_condition = getattr(Investor, filter_field).ilike(f"%{query_string}%")
+            return query.filter(filter_condition)
+        return query
+
+    @staticmethod
+    def apply_sorting(query, sort_field, descending):
+        if sort_field:
+            if descending:
+                return query.order_by(desc(sort_field))
+            else:
+                return query.order_by(sort_field)
+        return query
+
+    @staticmethod
+    def filter_by_rounds(base_query, rounds):
+        if rounds:
+            round_ids = [r.id for r in rounds]
+            round_filters = [Investor.rounds.any(Round.id == rid) for rid in round_ids]
+            return base_query.filter(and_(*round_filters))
+        return base_query
+
+    @staticmethod
+    def filter_by_industries(base_query, industries):
+        if industries:
+            industry_ids = [i.id for i in industries]
+            industry_filters = [Investor.industries.any(Industry.id == iid) for iid in industry_ids]
+            return base_query.filter(and_(*industry_filters))
+        return base_query
+
+    @staticmethod
     def get_pagination(
         page: int = 1,
         per_page: int = 10,
         error_out: bool = False,
         query: str = "",
+        sort_by_field: str = None,
+        sort_descending: bool = False,
+        filter_by_field: str = None,
+        rounds: list[Round] = None,
+        industries: list[Industry] = None
     ):
         try:
-            if query == "":
-                investors = Investor.query.paginate(page=page, per_page=per_page, error_out=error_out)
-            else:
-                investors = Investor.query.filter(
-                    Investor.first_name.icontains(query)
-                    | Investor.last_name.icontains(query)
-                    | Investor.firm_name.icontains(query)
-                    | Investor.position.icontains(query)
-                    | Investor.about.icontains(query)
-                ).paginate(page=page, per_page=per_page, error_out=error_out)
+            base_query = Investor.query
+
+            base_query = Investor.apply_search_filters(base_query, query, filter_by_field)
+            base_query = Investor.apply_sorting(base_query, sort_by_field, sort_descending)
+            base_query = Investor.filter_by_rounds(base_query, rounds)
+            base_query = Investor.filter_by_industries(base_query, industries)
+
+            investors = base_query.paginate(page=page, per_page=per_page, error_out=error_out)
 
             return investors
         except NoResultFound:

@@ -7,6 +7,7 @@ COPY poetry.lock /app
 WORKDIR /app
 
 RUN pip install poetry
-RUN poetry install --with dev --no-root --no-directory
+RUN poetry install --with dev --no-root --no-directory --no-cache
+RUN rm -rf /root/.cache/pip/*
 
 CMD exec poetry run flask run --host=0.0.0.0

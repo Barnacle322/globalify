@@ -8,8 +8,9 @@ WORKDIR /app
 
 RUN pip install poetry
 RUN poetry config virtualenvs.create false
-RUN poetry install --without dev --no-root
+RUN poetry install --without dev --no-root --no-cache
 RUN pip install gunicorn==20.1.0
+RUN rm -rf /root/.cache/pip/*
 
 ENV PORT 8080
 

@@ -1,8 +1,7 @@
 import pytest
-import random
 
 from ...project import db
-from ...project.models import Investor, Round, Industry
+from ...project.models import Industry, Investor, Round
 
 
 @pytest.fixture()
@@ -25,7 +24,7 @@ def new_investor(app):
             max_investment="$50M",
             location="Germany",
             rounds=[Round.get_by_id(1)],
-            industries=[Industry.get_by_id(1)]
+            industries=[Industry.get_by_id(1)],
         )
         db.session.add(investor)
         db.session.commit()

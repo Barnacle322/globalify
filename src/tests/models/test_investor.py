@@ -1,7 +1,7 @@
 import pytest
 
 from ...project import db
-from ...project.models import Industry, InvestmentFirm, Investor, Round
+from ...project.models import Country, Industry, InvestmentFirm, Investor, Round
 
 
 @pytest.fixture()
@@ -51,6 +51,38 @@ def new_investment_firm(app):
         db.session.commit()
 
 
+@pytest.fixture()
+def new_country(app):
+    with app.app_context():
+        country = Country(
+            name="Test",
+            code="TEST"
+        )
+        db.session.add(country)
+        db.session.commit()
+
+
+@pytest.fixture()
+def new_industry(app):
+    with app.app_context():
+        industry = Industry(
+            name="Test",
+            category="test category"
+        )
+        db.session.add(industry)
+        db.session.commit()
+
+
+@pytest.fixture()
+def new_round(app):
+    with app.app_context():
+        round = Round(
+            name="Test",
+        )
+        db.session.add(round)
+        db.session.commit()
+
+
 def test_investor(new_investor, app):
     with app.app_context():
         investor = Investor.query.first()
@@ -89,3 +121,26 @@ def test_investment_firm(new_investment_firm, app):
         assert investment_firm.max_investment == "$999T"
         assert investment_firm.rounds == [Round.get_by_id(1)]
         assert investment_firm.industries == [Industry.get_by_id(1)]
+
+
+def test_country(new_country, app):
+    with app.app_context():
+        country = Country.query.filter_by(name="Test").first()
+        assert country
+        assert country.name == "Test"
+        assert country.code == "TEST"
+
+
+def test_industry(new_industry, app):
+    with app.app_context():
+        industry = Industry.query.filter_by(name="Test").first()
+        assert industry
+        assert industry.name == "Test"
+        assert industry.category == "test category"
+
+
+def test_round(new_round, app):
+    with app.app_context():
+        round = Round.query.filter_by(name="Test").first()
+        assert round
+        assert round.name == "Test"

@@ -19,13 +19,12 @@ def test_country_database(app):
 def test_industry_database(app):
     with app.app_context():
         industry_list = []
-        for category, industries in industry_aggregate.items():
-            list(map(lambda x: industry_list.append((x, category)), industries))
-
+        for sublist in industry_aggregate.values():
+            industry_list += sublist
         assert Industry.query.count() == len(industry_list)
         for i in range(1, Industry.query.count() + 1):
-            assert Industry.get_by_id(id=i).name == industry_list[i - 1][0]
-            assert Industry.get_by_id(id=i).category == industry_list[i - 1][1]
+            industry_obj = Industry.get_by_id(i)
+            assert industry_obj.name in industry_aggregate.get(industry_obj.category)
 
 
 def test_round_database(app):

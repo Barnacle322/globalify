@@ -144,27 +144,38 @@ def dashboard():
 
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
+    # ?q=Julie
     search_query = request.args.get("q", "")
-    filter_by_field = request.args.get("filter_by", None)
-    sort_by_field = request.args.get("sort_by", None)
-    sort_descending = request.args.get("sort_descending", False)
+    # ?page=1
     page_num = request.args.get("page", 1, type=int)
+    # ?filter_field=firm_name
+    filter_field = request.args.get("filter_field", None)
+    # ?sort_field=firm_name
+    sort_field = request.args.get("sort_field", None)
+    # ?descending= or ?descending=1
+    descending = request.args.get("descending", type=bool)
 
-    rounds = [Round.get_by_name(name) for name in request.args.getlist("rounds")]
-    rounds = [round_obj for round_obj in rounds if round_obj]
+    # ?round=Seed&round=Series+A
+    rounds = []
+    for round_name in request.args.getlist("round"):
+        if round_object := Round.get_by_name(round_name):
+            rounds.append(round_object)
 
-    industries = [Industry.get_by_name(name) for name in request.args.getlist("industry")]
-    industries = [industry_obj for industry_obj in industries if industry_obj]
+    # ?industry=Healthcare&industry=FinTech
+    industries = []
+    for industry_name in request.args.getlist("industry"):
+        if industry_object := Industry.get_by_name(industry_name):
+            industries.append(industry_object)
 
     investors = Investor.get_pagination(
         page=page_num,
         query=search_query,
-        sort_by_field=sort_by_field,
-        sort_descending=sort_descending,
-        filter_by_field=filter_by_field,
+        sort_field=sort_field,
+        descending=descending,
+        filter_field=filter_field,
         rounds=rounds,
-        industries=industries
-        )
+        industries=industries,
+    )
 
     if page_num > investors.pages and investors.pages > 0:  # type: ignore
         return redirect(url_for("main.search", search=search_query, pagenum=1))

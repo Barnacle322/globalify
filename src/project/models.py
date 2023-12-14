@@ -398,7 +398,7 @@ class Round(db.Model):
             investment_round = Round.query.filter(Round.name == name).first()
             return investment_round
         except NoResultFound:
-            return None
+            pass
 
     @staticmethod
     def populate() -> None:
@@ -532,67 +532,73 @@ class Investor(db.Model):
             return []
 
     @staticmethod
-    def apply_search_filters(query, query_string, filter_field):
-        if query_string:
-            search_filters = (
-                Investor.first_name.ilike(f"%{query_string}%")
-                | Investor.last_name.ilike(f"%{query_string}%")
-                | Investor.firm_name.ilike(f"%{query_string}%")
-                | Investor.position.ilike(f"%{query_string}%")
-                | Investor.about.ilike(f"%{query_string}%")
-            )
-            query = query.filter(search_filters)
-            if filter_field and hasattr(Investor, filter_field):
-                filter_condition = getattr(Investor, filter_field).ilike(f"%{query_string}%")
-            return query.filter(filter_condition)
-        return query
-
-    @staticmethod
-    def apply_sorting(query, sort_field, descending):
-        if sort_field:
-            if descending:
-                return query.order_by(desc(sort_field))
-            else:
-                return query.order_by(sort_field)
-        return query
-
-    @staticmethod
-    def filter_by_rounds(base_query, rounds):
-        if rounds:
-            round_ids = [r.id for r in rounds]
-            round_filters = [Investor.rounds.any(Round.id == rid) for rid in round_ids]
-            return base_query.filter(and_(*round_filters))
-        return base_query
-
-    @staticmethod
-    def filter_by_industries(base_query, industries):
-        if industries:
-            industry_ids = [i.id for i in industries]
-            industry_filters = [Investor.industries.any(Industry.id == iid) for iid in industry_ids]
-            return base_query.filter(and_(*industry_filters))
-        return base_query
-
-    @staticmethod
     def get_pagination(
         page: int = 1,
         per_page: int = 10,
         error_out: bool = False,
         query: str = "",
-        sort_by_field: str = None,
-        sort_descending: bool = False,
-        filter_by_field: str = None,
-        rounds: list[Round] = None,
-        industries: list[Industry] = None
+        sort_field: str | None = None,
+        descending: bool | None = None,
+        filter_field: str | None = None,
+        rounds: list[Round] | None = None,
+        industries: list[Industry] | None = None,
     ):
+        class QueryBuilder:
+            def __init__(self, base_query):
+                self.query = base_query
+
+            def apply_search_filters(self, query_string, filter_field):
+                if query_string:
+                    if filter_field and hasattr(Investor, filter_field):
+                        filter_condition = getattr(Investor, filter_field).ilike(f"%{query_string}%")
+                        self.query = self.query.filter(filter_condition)
+
+                        return self
+
+                    search_filters = (
+                        Investor.first_name.ilike(f"%{query_string}%")
+                        | Investor.last_name.ilike(f"%{query_string}%")
+                        | Investor.firm_name.ilike(f"%{query_string}%")
+                        | Investor.position.ilike(f"%{query_string}%")
+                        | Investor.about.ilike(f"%{query_string}%")
+                    )
+                    self.query = self.query.filter(search_filters)
+
+                return self
+
+            def apply_sorting(self, sort_field, descending):
+                if sort_field:
+                    self.query = (
+                        self.query.order_by(desc(sort_field)) if descending else self.query.order_by(sort_field)
+                    )
+                return self
+
+            def filter_by_rounds(self, rounds):
+                if rounds:
+                    round_filters = [Investor.rounds.any(Round.id == round_obj.id) for round_obj in rounds]
+                    self.query = self.query.filter(and_(*round_filters))
+                return self
+
+            def filter_by_industries(self, industries):
+                if industries:
+                    industry_filters = [
+                        Investor.industries.any(Industry.id == industry_obj.id) for industry_obj in industries
+                    ]
+                    self.query = self.query.filter(and_(*industry_filters))
+                return self
+
+            def build(self):
+                return self.query
+
         try:
-            base_query = Investor.query
-
-            base_query = Investor.apply_search_filters(base_query, query, filter_by_field)
-            base_query = Investor.apply_sorting(base_query, sort_by_field, sort_descending)
-            base_query = Investor.filter_by_rounds(base_query, rounds)
-            base_query = Investor.filter_by_industries(base_query, industries)
-
-            investors = base_query.paginate(page=page, per_page=per_page, error_out=error_out)
+            query_builder = (
+                QueryBuilder(Investor.query)
+                .apply_search_filters(query, filter_field)
+                .apply_sorting(sort_field, descending)
+                .filter_by_rounds(rounds)
+                .filter_by_industries(industries)
+            )
+            investors = query_builder.build().paginate(page=page, per_page=per_page, error_out=error_out)
 
             return investors
         except NoResultFound:

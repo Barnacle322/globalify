@@ -560,7 +560,6 @@ class Investor(db.Model):
                         | Investor.last_name.ilike(f"%{query_string}%")
                         | Investor.firm_name.ilike(f"%{query_string}%")
                         | Investor.position.ilike(f"%{query_string}%")
-                        | Investor.about.ilike(f"%{query_string}%")
                     )
                     self.query = self.query.filter(search_filters)
 

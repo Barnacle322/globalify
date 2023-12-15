@@ -1,6 +1,7 @@
 {% extends "layouts/layout_app.html" %} {% block title %}Investors{% endblock %} {% block head %} {{ super() }}
 <script src="../static/scripts/dashboard.js" defer></script>
 <script src="../static/scripts/search.js" defer></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 {% endblock %} {% block content %}
 <main class="mt-28 flex h-full w-full overflow-x-auto pb-16">
     <div class="mx-auto w-full max-w-[83rem] px-4">
@@ -127,7 +128,37 @@
             </div>
         </div>
         <div class="flex flex-wrap justify-between gap-3 pb-3 pt-1">
-            <div class="flex flex-wrap gap-3">Hello world</div>
+            <br>
+            <div class="flex flex-wrap gap-3">
+                {% for round in round_list %}
+                    <input type="checkbox" name="round" value="{{ round.name }}" class="filter-round-checkbox">{{ round.name }}<br>
+                {% endfor %}
+            </div>
+            <br>
+            <div class="flex flex-wrap gap-3">
+                <div  class="checkbox-dropdown">
+                    <label for="categoryDropdown">Select Category:</label>
+                    <div class="checkbox-options hidden">
+                        {% for industry in industry_list %}
+                        <div class="checkbox-option">
+                            <input type="checkbox" name="industry" value="{{ industry.name }}" class="filter-industry-checkbox">{{ industry.name }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <br>
+            <label>Sort by:</label>
+            <div class="flex flex-wrap gap-3">
+                    <input type="checkbox" name="sort_field" value="first_name" class="filter-field-checkbox">Name<br>
+                    <input type="checkbox" name="sort_field" value="firm_name" class="filter-field-checkbox">Firm name<br>
+                    <input type="checkbox" name="sort_field" value="position" class="filter-field-checkbox">Position<br>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <input type="checkbox" name="sort" value="" class="filter-sort-checkbox">A-Z<br>
+                <input type="checkbox" name="sort" value="1" class="filter-sort-checkbox">Z-A<br>
+            </div>
+            <br>
         </div>
 
         <table class="w-full divide-y divide-gray-200 border">

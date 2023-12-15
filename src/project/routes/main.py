@@ -177,6 +177,9 @@ def dashboard():
         industries=industries,
     )
 
+    round_list = Round.query.all()
+    industry_list = Industry.query.all()
+
     if page_num > investors.pages and investors.pages > 0:  # type: ignore
         return redirect(url_for("main.search", search=search_query, pagenum=1))
 
@@ -185,6 +188,8 @@ def dashboard():
         pfp_base64=pfp_base64,
         search_query=search_query,
         investors=investors,
+        industry_list=industry_list,
+        round_list=round_list,
     )
 
 

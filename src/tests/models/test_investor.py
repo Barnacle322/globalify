@@ -1,4 +1,5 @@
 import pytest
+from flask_sqlalchemy.pagination import Pagination
 
 from ...project import db
 from ...project.models import Industry, InvestmentFirm, Investor, Round
@@ -74,6 +75,12 @@ def test_investor(new_investor, app):
         assert investor.industries == [Industry.get_by_id(1)]
 
 
+@pytest.fixture()
+def populate_investor(app):
+    with app.app_context():
+        Investor.populate()
+
+
 def test_investment_firm(new_investment_firm, app):
     with app.app_context():
         investment_firm = InvestmentFirm.query.first()
@@ -91,133 +98,139 @@ def test_investment_firm(new_investment_firm, app):
         assert investment_firm.industries == [Industry.get_by_id(1)]
 
 
-def test_pagination(new_investor, app):
+def test_pagination(populate_investor, app):
     with app.app_context():
-        Investor.populate()
         page_size = 10
         page_number = 1
-        paginated_investors = Investor.get_pagination(page=page_number, per_page=page_size)
-        assert len(paginated_investors.items) == page_size
+
+        paginated_investors_1 = Investor.get_pagination(page=page_number, per_page=page_size)
+        paginated_investors_2 = Investor.get_pagination(page=page_number, per_page=page_size)
+
+        assert isinstance(paginated_investors_1, Pagination)
+        assert len(paginated_investors_1.items) == page_size
 
         page_number = 2
-        paginated_investors = Investor.get_pagination(page=page_number, per_page=page_size)
-        assert len(paginated_investors.items) > 0
-        assert len(paginated_investors.items) <= page_size
+        assert isinstance(paginated_investors_2, Pagination)
+        assert len(paginated_investors_2.items) > 0
+        assert len(paginated_investors_2.items) <= page_size
 
 
-@pytest.mark.parametrize("query_name, filter_field, expected_value", [
-    ("Jane", "first_name", "Jane"),
-    ("Doe", "last_name", "Doe"),
-    ("BerkshireHathaway", "firm_name", "BerkshireHathaway"),
-    ("Investment Analyst", "position", "Investment Analyst"),
-])
+@pytest.mark.parametrize(
+    "query_name, filter_field, expected_value",
+    [
+        ("Jane", "first_name", "Jane"),
+        ("Doe", "last_name", "Doe"),
+        ("BerkshireHathaway", "firm_name", "BerkshireHathaway"),
+        ("Investment Analyst", "position", "Investment Analyst"),
+    ],
+)
 def test_filtering_by_field(new_investor, app, query_name, filter_field, expected_value):
     with app.app_context():
         filtered_items = Investor.get_pagination(query=query_name, filter_field=filter_field)
+
+        assert isinstance(filtered_items, Pagination)
         assert len(filtered_items.items) == 1
         assert getattr(filtered_items.items[0], filter_field) == expected_value
 
 
 def test_search_without_filtering(new_investor, app):
     with app.app_context():
-        query_name = "Jane"
+        query = "Jane"
 
-        search_results = Investor.get_pagination(query=query_name)
+        paginated_investors = Investor.get_pagination(query=query)
 
-        assert len(search_results.items) >= 1
+        assert isinstance(paginated_investors, Pagination)
+        assert len(paginated_investors.items) >= 1
 
-        found = any(
-            query_name.lower() in field.lower()
-            for item in search_results.items
+        assert any(
+            query.lower() in field.lower()
+            for item in paginated_investors.items
             for field in [item.first_name, item.last_name, item.firm_name, item.position]
         )
-        assert found is True
 
 
-def test_filter_by_rounds(new_investor, app):
+def test_filter_by_rounds(app):
     with app.app_context():
         round_2 = Round.get_by_id(2)
         round_3 = Round.get_by_id(3)
 
-        investor_with_round_1 = Investor(
-            first_name="Investor1",
-            rounds=[round_2]
-        )
-        investor_with_round_2 = Investor(
-            first_name="Investor2",
-            rounds=[round_3]
-        )
-        investor_with_both_rounds = Investor(
-            first_name="Investor3",
-            rounds=[round_2, round_3]
-        )
+        assert round_2 and round_3
+
+        investor_with_round_1 = Investor(first_name="Investor1", rounds=[round_2])
+        investor_with_round_2 = Investor(first_name="Investor2", rounds=[round_3])
+        investor_with_both_rounds = Investor(first_name="Investor3", rounds=[round_2, round_3])
 
         db.session.add_all([investor_with_round_1, investor_with_round_2, investor_with_both_rounds])
         db.session.commit()
 
-        filtered_by_round_2 = Investor.get_pagination(rounds=[round_2])
-        assert len(filtered_by_round_2.items) == 2
+        paginated_investors_1 = Investor.get_pagination(rounds=[round_2])
+        paginated_investors_2 = Investor.get_pagination(rounds=[round_3])
+        paginated_investors_3 = Investor.get_pagination(rounds=[round_2, round_3])
+
+        assert isinstance(paginated_investors_1, Pagination)
+        assert len(paginated_investors_1.items) == 2
+
+        assert isinstance(paginated_investors_2, Pagination)
+        assert len(paginated_investors_2.items) == 2
+
+        assert isinstance(paginated_investors_3, Pagination)
+        assert len(paginated_investors_3.items) == 1
 
 
-        filtered_by_round_3 = Investor.get_pagination(rounds=[round_3])
-        assert len(filtered_by_round_3.items) == 2
-
-        filtered_by_both_rounds = Investor.get_pagination(rounds=[round_2, round_3])
-        assert len(filtered_by_both_rounds.items) == 1
-
-
-def test_filter_by_industries(new_investor, app):
+def test_filter_by_industries(app):
     with app.app_context():
         industry_2 = Industry.get_by_id(2)
         industry_3 = Industry.get_by_id(3)
 
-        investor_with_industry_1 = Investor(
-            first_name="Investor1",
-            industries=[industry_2]
-        )
-        investor_with_industry_2 = Investor(
-            first_name="Investor2",
-            industries=[industry_3]
-        )
-        investor_with_both_industries = Investor(
-            first_name="Investor3",
-            industries=[industry_2, industry_3]
-        )
+        assert industry_2 and industry_3
+
+        investor_with_industry_1 = Investor(first_name="Investor1", industries=[industry_2])
+        investor_with_industry_2 = Investor(first_name="Investor2", industries=[industry_3])
+        investor_with_both_industries = Investor(first_name="Investor3", industries=[industry_2, industry_3])
 
         db.session.add_all([investor_with_industry_1, investor_with_industry_2, investor_with_both_industries])
         db.session.commit()
-        print(Investor.query.all())
-        filtered_by_industry_2 = Investor.get_pagination(industries=[industry_2])
-        assert len(filtered_by_industry_2.items) == 2
 
-        filtered_by_industry_3 = Investor.get_pagination(industries=[industry_3])
-        assert len(filtered_by_industry_3.items) == 2
+        paginated_investors_1 = Investor.get_pagination(industries=[industry_2])
+        paginated_investors_2 = Investor.get_pagination(industries=[industry_3])
+        paginated_investors_3 = Investor.get_pagination(industries=[industry_2, industry_3])
 
-        filtered_by_both_industries = Investor.get_pagination(industries=[industry_2, industry_3])
-        assert len(filtered_by_both_industries.items) == 1
+        assert isinstance(paginated_investors_1, Pagination)
+        assert len(paginated_investors_1.items) == 2
+
+        assert isinstance(paginated_investors_2, Pagination)
+        assert len(paginated_investors_2.items) == 2
+
+        assert isinstance(paginated_investors_3, Pagination)
+        assert len(paginated_investors_3.items) == 1
 
 
-@pytest.mark.parametrize("sort_field", [
-    "first_name",
-    "last_name",
-    "firm_name",
-    "position",
-])
-def test_apply_sorting_by_field(new_investor, app, sort_field):
+@pytest.mark.parametrize(
+    "sort_field",
+    [
+        "first_name",
+        "last_name",
+        "firm_name",
+        "position",
+    ],
+)
+def test_apply_sorting_by_field(populate_investor, app, sort_field):
     with app.app_context():
-        Investor.populate()
-        sorted_items_asc = Investor.get_pagination(sort_field=sort_field, descending=False)
-        assert len(sorted_items_asc.items) > 1
+        paginated_investors_1 = Investor.get_pagination(sort_field=sort_field, descending=False)
+        paginated_investors_2 = Investor.get_pagination(sort_field=sort_field, descending=True)
 
-        for i in range(len(sorted_items_asc.items) - 1):
-            current_value = getattr(sorted_items_asc.items[i], sort_field)
-            next_value = getattr(sorted_items_asc.items[i + 1], sort_field)
+        assert isinstance(paginated_investors_1, Pagination)
+        assert len(paginated_investors_1.items) > 1
+
+        for i in range(len(paginated_investors_1.items) - 1):
+            current_value = getattr(paginated_investors_1.items[i], sort_field)
+            next_value = getattr(paginated_investors_1.items[i + 1], sort_field)
             assert current_value <= next_value
 
-        sorted_items_desc = Investor.get_pagination(sort_field=sort_field, descending=True)
-        assert len(sorted_items_desc.items) > 1
+        assert isinstance(paginated_investors_2, Pagination)
+        assert len(paginated_investors_2.items) > 1
 
-        for i in range(len(sorted_items_desc.items) - 1):
-            current_value = getattr(sorted_items_desc.items[i], sort_field)
-            next_value = getattr(sorted_items_desc.items[i + 1], sort_field)
+        for i in range(len(paginated_investors_2.items) - 1):
+            current_value = getattr(paginated_investors_2.items[i], sort_field)
+            next_value = getattr(paginated_investors_2.items[i + 1], sort_field)
             assert current_value >= next_value

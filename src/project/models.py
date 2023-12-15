@@ -6,6 +6,7 @@ from uuid import uuid4
 
 import pycountry
 from flask_login import UserMixin
+from flask_sqlalchemy.pagination import Pagination
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, and_, desc, event
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.exc import NoResultFound
@@ -542,7 +543,7 @@ class Investor(db.Model):
         filter_field: str | None = None,
         rounds: list[Round] | None = None,
         industries: list[Industry] | None = None,
-    ):
+    ) -> Pagination | list[None]:
         class QueryBuilder:
             def __init__(self, base_query):
                 self.query = base_query

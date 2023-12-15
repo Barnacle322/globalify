@@ -50,6 +50,7 @@ def new_company(app):
 def test_user(new_user, app):
     with app.app_context():
         user = User.query.first()
+
         assert user
         assert user.email == "johndoe@example.com"
         assert check_password_hash(user.password_hash, "password")
@@ -61,6 +62,7 @@ def test_user(new_user, app):
 def test_user_info(new_user, app):
     with app.app_context():
         user_info = UserInfo.query.first()
+
         assert user_info
         assert user_info.first_name == "John"
         assert user_info.last_name == "Doe"
@@ -69,6 +71,7 @@ def test_user_info(new_user, app):
 def test_user_payment(new_user, app):
     with app.app_context():
         user_payment = UserPayment.query.first()
+
         assert user_payment
         assert user_payment.customer_id == "cus_123"
 
@@ -76,6 +79,7 @@ def test_user_payment(new_user, app):
 def test_company(new_company, app):
     with app.app_context():
         company = Company.query.first()
+
         assert company
         assert company.name == "Globalify"
         assert company.user_id == 1

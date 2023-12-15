@@ -5,7 +5,7 @@
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
     <section class="mx-auto max-w-7xl px-8 pb-16 pt-16 text-center sm:px-6 lg:px-8 lg:pt-24">
         <h1
-            class="mx-auto mb-10 max-w-sm text-center text-4xl font-bold tracking-tight text-slate-900 sm:max-w-lg sm:text-5xl lg:text-6xl"
+            class="move-up mx-auto mb-10 max-w-sm text-center text-4xl font-bold tracking-tight text-slate-900 sm:max-w-lg sm:text-5xl lg:text-6xl"
         >
             Globalify is
             <span
@@ -13,13 +13,14 @@
                 >Launching Soon</span
             >
         </h1>
-        <p class="mx-auto mb-10 max-w-2xl text-center text-lg text-slate-700">
+        <p class="move-up mx-auto mb-10 max-w-2xl text-center text-lg text-slate-700" style="animation-delay: 0.8s">
             Limited to just <b>100 Early Access spots!</b> Get ahead with our exclusive preview pack and discover
             leading investors, handpicked just for your startup in various industries.
         </p>
-        <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+        <div class="move-up flex flex-wrap items-center justify-center gap-x-6 gap-y-3" style="animation-delay: 1s">
             <a
-                class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 font-semibold text-slate-50 transition-colors ease-in-out hover:bg-slate-800 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
+                class="pulse inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 font-semibold text-slate-50 transition-colors ease-in-out hover:bg-slate-800 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
+                style="animation-delay: 2.5s"
                 href="/waitlist"
                 >Get early access now!</a
             >
@@ -67,9 +68,17 @@
                 </button>
             </form>
         </div>
-        <img class="mt-10 drop-shadow-lg" src="../static/elements/globalify_hero.png" alt="" />
+        <img
+            class="fade-in mt-10 drop-shadow-lg"
+            style="animation-delay: 1.2s"
+            src="../static/elements/globalify_hero.png"
+            alt=""
+        />
     </section>
-    <section class="flex-col items-center justify-center gap-2.5 px-8 py-24 sm:px-6 lg:px-8">
+    <section
+        class="fade-in flex-col items-center justify-center gap-2.5 px-8 py-24 sm:px-6 lg:px-8"
+        style="animation-delay: 1.2s"
+    >
         <div class="flex flex-col items-center justify-center">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 md:text-center lg:px-8">
                 <h2 class="text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
@@ -113,7 +122,12 @@
             </div>
         </div>
     </section>
-    <section id="faq" aria-labelledby="faq-title" class="bg-transparent pb-20 sm:py-32">
+    <section
+        id="faq"
+        aria-labelledby="faq-title"
+        class="fade-in bg-transparent pb-20 sm:py-32"
+        style="animation-delay: 1.2s"
+    >
         <div class="mx-auto max-w-7xl px-8 sm:px-6 lg:px-8">
             <div class="mx-auto lg:mx-0">
                 <h2 class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
@@ -208,7 +222,7 @@
             </ul>
         </div>
     </section>
-    <section class="mx-auto max-w-7xl px-8 pb-16 pt-16 sm:px-6 lg:px-8 lg:pt-24">
+    <section class="fade-in mx-auto max-w-7xl px-8 pb-16 pt-16 sm:px-6 lg:px-8 lg:pt-24" style="animation-delay: 1.2s">
         <div class="mx-auto lg:mx-0">
             <h2 class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
                 From the blog
@@ -226,8 +240,7 @@
         <div
             class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3"
         >
-            {% if posts %} 
-            {% for post in posts %}
+            {% if posts %} {% for post in posts %}
             <article class="flex max-w-xl flex-col items-start">
                 <img class="mb-5 aspect-[3/2] rounded-lg object-cover" src="{{ post.image }}" alt="" />
                 <div class="flex flex-col items-start justify-start">
@@ -250,8 +263,7 @@
                     </div>
                 </div>
             </article>
-            {% endfor %} 
-            {% endif %}
+            {% endfor %} {% endif %}
         </div>
     </section>
 </main>

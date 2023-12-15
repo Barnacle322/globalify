@@ -41,6 +41,26 @@
     animation: gradient 10s ease infinite;
 }
 
+.fade-in {
+    opacity: 0;
+    -webkit-animation: fade-in 0.8s ease-in-out forwards;
+    -moz-animation: fade-in 0.8s ease-in-out forwards;
+    animation: fade-in 0.8s ease-in-out forwards;
+}
+
+.move-up {
+    opacity: 0;
+    -webkit-animation: move-up 0.8s ease-in-out forwards;
+    -moz-animation: move-up 0.8s ease-in-out forwards;
+    animation: move-up 0.8s ease-in-out forwards;
+}
+
+.pulse {
+    -webkit-animation: pulse 0.5s ease-in-out;
+    -moz-animation: pulse 0.5s ease-in-out;
+    animation: pulse 0.5s ease-in-out;
+}
+
 @keyframes gradient {
     0% {
         background-position: 0% 50%;
@@ -50,5 +70,35 @@
     }
     100% {
         background-position: 0% 50%;
+    }
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes move-up {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
     }
 }

@@ -32,8 +32,8 @@ jobs:
 
     - name: Running Ruff linter
       run: |
-        ruff check --fix
+        poetry run ruff check --fix
 
     - name: Running Ruff formatter
       run: |
-        ruff format
+        poetry run ruff format

@@ -1159,16 +1159,14 @@ pyasn1 = ">=0.4.6,<0.6.0"
 
 [[package]]
 name = "pycountry"
-version = "22.3.5"
+version = "23.12.11"
 description = "ISO country, subdivision, language, currency and script definitions and their translations"
 optional = false
-python-versions = ">=3.6, <4"
+python-versions = ">=3.8"
 files = [
-    {file = "pycountry-22.3.5.tar.gz", hash = "sha256:b2163a246c585894d808f18783e19137cb70a0c18fb36748dc01fc6f109c1646"},
+    {file = "pycountry-23.12.11-py3-none-any.whl", hash = "sha256:2ff91cff4f40ff61086e773d61e72005fe95de4a57bfc765509db05695dc50ab"},
+    {file = "pycountry-23.12.11.tar.gz", hash = "sha256:00569d82eaefbc6a490a311bfa84a9c571cff9ddbf8b0a4f4e7b4f868b4ad925"},
 ]
-
-[package.dependencies]
-setuptools = "*"
 
 [[package]]
 name = "pycparser"
@@ -1620,3 +1618,4 @@ email = ["email-validator"]
 lock-version = "2.0"
 python-versions = "^3.11"
 content-hash = "17dd9cfa8b6b85668bad1d490aa5d449eb641711f1100337f51c5afe5f86d77f"
+

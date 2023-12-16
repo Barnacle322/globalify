@@ -64,7 +64,7 @@ function search() {
     let descending = document.getElementById("descending").checked;
     let filterValues = getCheckedValues("filter_field");
 
-    let paramsArray = getExistingParams(["q", "filter_field", "round", "industry", "sort_field", "descending"]);
+    let paramsArray = getExistingParams(["q", "filter_field", "round", "industry", "sort_field", "descending", "page"]);
 
     roundValues.forEach((value) => paramsArray.push(`round=${encodeURIComponent(value)}`));
     industryValues.forEach((value) => paramsArray.push(`industry=${encodeURIComponent(value)}`));

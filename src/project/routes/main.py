@@ -145,7 +145,7 @@ def dashboard():
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     # ?q=Julie
-    search_query = request.args.get("q", "")
+    search_string = request.args.get("q", "")
     # ?page=1
     page_num = request.args.get("page", 1, type=int)
     # ?filter_field=firm_name
@@ -169,7 +169,7 @@ def dashboard():
 
     investors = Investor.get_pagination(
         page=page_num,
-        query=search_query,
+        query=search_string,
         filter_field=filter_field,
         rounds=rounds,
         industries=industries,
@@ -182,13 +182,38 @@ def dashboard():
     # TODO
     # field_list = Investor.get_fields()
 
+    rounds_query_string = "&".join([f"round={round.name}" for round in rounds])
+    industries_query_string = "&".join([f"industry={industry.name}" for industry in industries])
+
+    combined_query = ""
+    if search_string:
+        combined_query += f"&q={search_string}&"
+    if filter_field:
+        combined_query += f"&filter_field={filter_field}&"
+    if sort_field:
+        combined_query += f"&sort_field={sort_field}&"
+    if descending:
+        combined_query += f"&descending={descending}&"
+    if rounds_query_string:
+        combined_query += f"{rounds_query_string}&"
+    if industries_query_string:
+        combined_query += f"{industries_query_string}&"
+
     if page_num > investors.pages and investors.pages > 0:  # type: ignore
-        return redirect(url_for("main.search", search=search_query, pagenum=1))
+        return render_template(
+            "dashboard_investor.html",
+            search=search_string,
+            investors=investors,
+            industry_list=industry_list,
+            round_list=round_list,
+            pagenum=1,
+        )
 
     return render_template(
         "dashboard_investor.html",
         pfp_base64=pfp_base64,
-        search_query=search_query,
+        search_query=search_string,
+        combined_query=combined_query,
         investors=investors,
         industry_list=industry_list,
         round_list=round_list,

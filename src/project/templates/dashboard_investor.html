@@ -1,7 +1,6 @@
 {% extends "layouts/layout_app.html" %} {% block title %}Investors{% endblock %} {% block head %} {{ super() }}
 <script src="../static/scripts/dashboard.js" defer></script>
 <script src="../static/scripts/search.js" defer></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 {% endblock %} {% block content %}
 <main class="mt-28 flex h-full w-full overflow-x-auto pb-16">
     <div class="mx-auto w-full max-w-[83rem] px-4">
@@ -38,49 +37,304 @@
                         Search
                     </button>
                 </div>
-                <div class="flex gap-3">
-                    <button
-                        class="flex items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
-                    >
-                        <svg
-                            data-darkreader-inline-stroke=""
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                            class="h-5 w-5"
+                <div class="flex flex-wrap gap-3">
+                    <div class="relative inline-block text-left">
+                        <div>
+                            <button
+                                type="button"
+                                class="flex items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
+                                id="round-options-menu"
+                                aria-haspopup="true"
+                                aria-expanded="true"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="h-5 w-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
+                                    />
+                                </svg>
+
+                                Rounds
+                            </button>
+                        </div>
+                        <div
+                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-y-scroll rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                            id="round-options"
+                            role="menu"
+                            aria-orientation="vertical"
+                            aria-labelledby="round-options-menu"
                         >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
-                            ></path>
-                        </svg>
-                        Filter
-                    </button>
-                    <button
-                        class="flex items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
-                    >
-                        <svg
-                            data-darkreader-inline-stroke=""
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                            class="h-5 w-5"
+                            <div class="py-1" role="none">
+                                {% for round in round_list %}
+                                <label
+                                    class="flex w-max cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="round"
+                                        value="{{ round.name }}"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    />
+                                    {{ round.name }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative inline-block text-left">
+                        <div>
+                            <button
+                                type="button"
+                                class="flex items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
+                                id="industry-options-menu"
+                                aria-haspopup="true"
+                                aria-expanded="true"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="h-5 w-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z"
+                                    />
+                                </svg>
+
+                                Industries
+                            </button>
+                        </div>
+
+                        <div
+                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-y-scroll rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                            id="industry-options"
+                            role="menu"
+                            aria-orientation="vertical"
+                            aria-labelledby="industry-options-menu"
                         >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
-                            ></path>
-                        </svg>
-                        Sort
-                    </button>
+                            <div class="py-1" role="none">
+                                {% for industry in industry_list %}
+                                <label
+                                    class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="industry"
+                                        value="{{ industry.name }}"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    />
+                                    {{ industry.name }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative inline-block text-left">
+                        <div>
+                            <button
+                                type="button"
+                                class="flex items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
+                                id="sorting-options-menu"
+                                aria-haspopup="true"
+                                aria-expanded="true"
+                            >
+                                <svg
+                                    data-darkreader-inline-stroke=""
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    aria-hidden="true"
+                                    class="h-5 w-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+                                    ></path>
+                                </svg>
+                                Sort By
+                            </button>
+                        </div>
+
+                        <div
+                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-y-scroll rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                            id="sorting-options"
+                            role="menu"
+                            aria-orientation="vertical"
+                            aria-labelledby="sorting-options-menu"
+                        >
+                            <div class="py-1" role="none">
+                                <label
+                                    class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="checkbox"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        id="descending"
+                                        name="descending"
+                                        value="1"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    />
+                                    Descending
+                                </label>
+                                <hr />
+                                <label
+                                    class="flex w-max cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="sort_field"
+                                        value="first_name"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    />
+                                    First Name
+                                </label>
+                                <label
+                                    class="flex w-max cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="sort_field"
+                                        value="last_name"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    />
+                                    Last Name
+                                </label>
+                                <label
+                                    class="flex w-max cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="sort_field"
+                                        value="firm_name"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    />
+                                    Firm Name
+                                </label>
+                                <label
+                                    class="flex w-max cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="sort_field"
+                                        value="position"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    />
+                                    Position
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative inline-block text-left">
+                        <div>
+                            <button
+                                type="button"
+                                class="flex items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
+                                id="filter-options-menu"
+                                aria-haspopup="true"
+                                aria-expanded="true"
+                            >
+                                <svg
+                                    data-darkreader-inline-stroke=""
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    aria-hidden="true"
+                                    class="h-5 w-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
+                                    ></path>
+                                </svg>
+                                Filter By
+                            </button>
+                        </div>
+
+                        <div
+                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-y-scroll rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                            id="filter-options"
+                            role="menu"
+                            aria-orientation="vertical"
+                            aria-labelledby="filter-options-menu"
+                        >
+                            <div class="py-1" role="list">
+                                <label
+                                    class="flex w-max cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="filter_field"
+                                        value="first_name"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    />
+                                    First Name
+                                </label>
+                                <label
+                                    class="flex w-max cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="filter_field"
+                                        value="last_name"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    />
+                                    Last Name
+                                </label>
+                                <label
+                                    class="flex w-max cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="filter_field"
+                                        value="firm_name"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    />
+                                    Firm Name
+                                </label>
+                                <label
+                                    class="flex w-max cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="filter_field"
+                                        value="position"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    />
+                                    Position
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="flex rounded-xl border-2 px-1 py-1 text-sm">
@@ -126,39 +380,6 @@
                     <span>Firms</span>
                 </a>
             </div>
-        </div>
-        <div class="flex flex-wrap justify-between gap-3 pb-3 pt-1">
-            <br>
-            <div class="flex flex-wrap gap-3">
-                {% for round in round_list %}
-                    <input type="checkbox" name="round" value="{{ round.name }}" class="filter-round-checkbox">{{ round.name }}<br>
-                {% endfor %}
-            </div>
-            <br>
-            <div class="flex flex-wrap gap-3">
-                <div  class="checkbox-dropdown">
-                    <label for="categoryDropdown">Select Category:</label>
-                    <div class="checkbox-options hidden">
-                        {% for industry in industry_list %}
-                        <div class="checkbox-option">
-                            <input type="checkbox" name="industry" value="{{ industry.name }}" class="filter-industry-checkbox">{{ industry.name }}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            <br>
-            <label>Sort by:</label>
-            <div class="flex flex-wrap gap-3">
-                    <input type="checkbox" name="sort_field" value="first_name" class="filter-field-checkbox">Name<br>
-                    <input type="checkbox" name="sort_field" value="firm_name" class="filter-field-checkbox">Firm name<br>
-                    <input type="checkbox" name="sort_field" value="position" class="filter-field-checkbox">Position<br>
-            </div>
-            <div class="flex flex-wrap gap-3">
-                <input type="checkbox" name="sort" value="" class="filter-sort-checkbox">A-Z<br>
-                <input type="checkbox" name="sort" value="1" class="filter-sort-checkbox">Z-A<br>
-            </div>
-            <br>
         </div>
 
         <table class="w-full divide-y divide-gray-200 border">

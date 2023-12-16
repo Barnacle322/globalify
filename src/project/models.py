@@ -7,7 +7,7 @@ from uuid import uuid4
 import pycountry
 from flask_login import UserMixin
 from flask_sqlalchemy.pagination import Pagination
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, and_, desc, event
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, desc, event, or_
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
@@ -551,7 +551,10 @@ class Investor(db.Model):
             def apply_search_filters(self, query_string, filter_field):
                 if query_string:
                     if filter_field and hasattr(Investor, filter_field):
+                        print(query_string)
                         filter_condition = getattr(Investor, filter_field).ilike(f"%{query_string}%")
+                        print("\n\n")
+                        print(self.query.filter(filter_condition))
                         self.query = self.query.filter(filter_condition)
 
                         return self
@@ -576,7 +579,7 @@ class Investor(db.Model):
             def filter_by_rounds(self, rounds):
                 if rounds:
                     round_filters = [Investor.rounds.any(Round.id == round_obj.id) for round_obj in rounds]
-                    self.query = self.query.filter(and_(*round_filters))
+                    self.query = self.query.filter(or_(*round_filters))
                 return self
 
             def filter_by_industries(self, industries):
@@ -584,7 +587,7 @@ class Investor(db.Model):
                     industry_filters = [
                         Investor.industries.any(Industry.id == industry_obj.id) for industry_obj in industries
                     ]
-                    self.query = self.query.filter(and_(*industry_filters))
+                    self.query = self.query.filter(or_(*industry_filters))
                 return self
 
             def build(self):

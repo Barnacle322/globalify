@@ -170,15 +170,17 @@ def dashboard():
     investors = Investor.get_pagination(
         page=page_num,
         query=search_query,
-        sort_field=sort_field,
-        descending=descending,
         filter_field=filter_field,
         rounds=rounds,
         industries=industries,
+        sort_field=sort_field,
+        descending=descending,
     )
 
     round_list = Round.query.all()
     industry_list = Industry.query.all()
+    # TODO
+    # field_list = Investor.get_fields()
 
     if page_num > investors.pages and investors.pages > 0:  # type: ignore
         return redirect(url_for("main.search", search=search_query, pagenum=1))

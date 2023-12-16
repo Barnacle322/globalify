@@ -5,7 +5,7 @@ from datetime import datetime
 import stripe
 from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from stripe.error import InvalidRequestError, SignatureVerificationError
+from stripe import InvalidRequestError, SignatureVerificationError
 
 from ..extensions import csrf, db
 from ..models import User, UserInfo, UserPayment, WaitlistCharge

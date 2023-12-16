@@ -399,7 +399,7 @@ class Round(db.Model):
             investment_round = Round.query.filter(Round.name == name).first()
             return investment_round
         except NoResultFound:
-            pass
+            return None
 
     @staticmethod
     def populate() -> None:
@@ -538,11 +538,11 @@ class Investor(db.Model):
         per_page: int = 10,
         error_out: bool = False,
         query: str = "",
-        sort_field: str | None = None,
-        descending: bool | None = None,
         filter_field: str | None = None,
         rounds: list[Round] | None = None,
         industries: list[Industry] | None = None,
+        sort_field: str | None = None,
+        descending: bool | None = None,
     ) -> Pagination | list[None]:
         class QueryBuilder:
             def __init__(self, base_query):
@@ -604,7 +604,8 @@ class Investor(db.Model):
             investors = query_builder.build().paginate(page=page, per_page=per_page, error_out=error_out)
 
             return investors
-        except NoResultFound:
+        # NOTE: Not sure what exception is thrown when the query return no results
+        except Exception:
             return []
 
     @staticmethod

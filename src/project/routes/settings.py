@@ -112,6 +112,10 @@ def change_password():
     new_password = request.form.get("new-password")
     confirm_password = request.form.get("confirm-password")
 
+    if not current_password or not new_password or not confirm_password:
+        status = Status(StatusType.ERROR, "Please fill out all fields.").get_status()
+        return redirect(url_for("main.settings", _external=False, **status))
+
     if not authenticated_user.verify_password(current_password):
         status = Status(StatusType.ERROR, "Incorrect password.").get_status()
         return redirect(url_for("main.settings", _external=False, **status))

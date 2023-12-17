@@ -179,8 +179,13 @@ def dashboard():
 
     round_list = Round.query.all()
     industry_list = Industry.query.all()
-    # TODO
-    # field_list = Investor.get_fields()
+    fields = {
+        "first_name": "First Name",
+        "last_name": "Last Name",
+        "firm_name": "Firm Name",
+        "position": "Position",
+        "about": "About",
+    }
 
     rounds_query_string = "&".join([f"round={round.name}" for round in rounds])
     industries_query_string = "&".join([f"industry={industry.name}" for industry in industries])
@@ -214,6 +219,7 @@ def dashboard():
         pfp_base64=pfp_base64,
         search_query=search_string,
         combined_query=combined_query,
+        fields=fields,
         investors=investors,
         industry_list=industry_list,
         round_list=round_list,

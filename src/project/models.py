@@ -362,8 +362,7 @@ class Industry(db.Model):
             for category, industries in industry_aggregate.items():
                 db.session.add_all(list(map(lambda x: Industry(name=x, category=category), industries)))
             db.session.commit()
-        except Exception as e:
-            print(e)
+        except Exception:
             db.session.rollback()
 
 
@@ -551,10 +550,7 @@ class Investor(db.Model):
             def apply_search_filters(self, query_string, filter_field):
                 if query_string:
                     if filter_field and hasattr(Investor, filter_field):
-                        print(query_string)
                         filter_condition = getattr(Investor, filter_field).ilike(f"%{query_string}%")
-                        print("\n\n")
-                        print(self.query.filter(filter_condition))
                         self.query = self.query.filter(filter_condition)
 
                         return self
@@ -654,8 +650,7 @@ class Investor(db.Model):
                 )
             db.session.add_all(investor_list)
             db.session.commit()
-        except Exception as e:
-            print(e)
+        except Exception:
             db.session.rollback()
 
 

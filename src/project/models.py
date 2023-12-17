@@ -643,6 +643,7 @@ class Investor(db.Model):
                     Investor(
                         first_name=f"{firstnames[i]}",
                         last_name=f"{lastnames[i]}",
+                        about=f"{firstnames[i]} is a {job_positions[i]} at {companies[i]}. Also lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip",
                         firm_name=f"{companies[i]}",
                         position=f"{job_positions[i]}",
                         website=f"{websites[i]}",

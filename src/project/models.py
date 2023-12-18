@@ -7,7 +7,7 @@ from uuid import uuid4
 import pycountry
 from flask_login import UserMixin
 from flask_sqlalchemy.pagination import Pagination
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, desc, event, or_
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, and_, desc, event, or_
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
@@ -506,8 +506,8 @@ class Investor(db.Model):
     phone_number: Mapped[str] = mapped_column(String, nullable=True)
     n_investments: Mapped[int] = mapped_column(Integer, nullable=True)
     n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
-    min_investment: Mapped[str] = mapped_column(String, nullable=True)
-    max_investment: Mapped[str] = mapped_column(String, nullable=True)
+    min_investment: Mapped[int] = mapped_column(Integer, nullable=True)
+    max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     location: Mapped[str] = mapped_column(String, nullable=True)
 
     rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
@@ -542,6 +542,8 @@ class Investor(db.Model):
         industries: list[Industry] | None = None,
         sort_field: str | None = None,
         descending: bool | None = None,
+        min_investment: int | None = None,
+        max_investment: int | None = None,
     ) -> Pagination | list[None]:
         class QueryBuilder:
             def __init__(self, base_query):
@@ -586,6 +588,19 @@ class Investor(db.Model):
                     self.query = self.query.filter(or_(*industry_filters))
                 return self
 
+            def filter_by_investment_range(self, min_investment, max_investment):
+                if min_investment is not None and max_investment is not None:
+                    investment_filters = and_(
+                        Investor.min_investment >= min_investment,
+                        Investor.max_investment <= max_investment
+                    )
+                    self.query = self.query.filter(investment_filters)
+                elif min_investment is not None:
+                    self.query = self.query.filter(Investor.min_investment >= min_investment)
+                elif max_investment is not None:
+                    self.query = self.query.filter(Investor.max_investment <= max_investment)
+                return self
+
             def build(self):
                 return self.query
 
@@ -596,6 +611,7 @@ class Investor(db.Model):
                 .apply_sorting(sort_field, descending)
                 .filter_by_rounds(rounds)
                 .filter_by_industries(industries)
+                .filter_by_investment_range(min_investment, max_investment)
             )
             investors = query_builder.build().paginate(page=page, per_page=per_page, error_out=error_out)
 
@@ -635,6 +651,8 @@ class Investor(db.Model):
                 rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
                 num_industries = random.randint(1, 6)
                 industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
+                min_investment = random.randrange(100000, 50000001, 100000)
+                max_investment = random.randrange(min_investment, 50000001, 100000)
                 investor_list.append(
                     Investor(
                         first_name=f"{firstnames[i]}",
@@ -646,6 +664,8 @@ class Investor(db.Model):
                         email=f"{str(i) + emails[i]}",
                         rounds=list(set(rounds)),
                         industries=list(set(industries)),
+                        min_investment=min_investment,
+                        max_investment=max_investment,
                     )
                 )
             db.session.add_all(investor_list)

@@ -1,7 +1,13 @@
 // When the page loads, check all checkboxes that are specified in the URL parameters
 window.onload = function () {
-    let paramsArray = ["filter_field", "round", "industry", "sort_field", "descending"];
-    paramsArray.forEach((param) => setCheckedValuesFromParams(param));
+    let paramsArray = ["filter_field", "round", "industry", "sort_field", "descending", "min_investment", "max_investment"];
+    paramsArray.forEach((param) => {
+        if (param === "min_investment" || param === "max_investment") {
+            setSliderValuesFromParams(param);
+        } else {
+            setCheckedValuesFromParams(param);
+        }
+    });
 };
 
 // When the Enter key is pressed in the search input, perform a search
@@ -17,6 +23,11 @@ function getCheckedValues(inputName) {
     let checkboxes = document.querySelectorAll(`input[name="${inputName}"]:checked`);
     let values = Array.from(checkboxes).map((checkbox) => checkbox.value);
     return values;
+}
+
+// Get the values of slider with a given id
+function getSliderValue(sliderId) {
+    return document.getElementById(sliderId).value;
 }
 
 // Get all URL parameters except for those specified
@@ -55,6 +66,15 @@ function setCheckedValuesFromParams(inputName) {
     });
 }
 
+function setSliderValuesFromParams(sliderId) {
+    let urlParams = new URLSearchParams(window.location.search);
+    let value = urlParams.get(sliderId);
+
+    if (value !== null) {
+        document.getElementById(sliderId).value = value;
+    }
+}
+
 // Perform a search based on the current form inputs
 function search() {
     let searchQuery = document.getElementById("search").value;
@@ -63,13 +83,17 @@ function search() {
     let sortValues = getCheckedValues("sort_field");
     let descending = document.getElementById("descending").checked;
     let filterValues = getCheckedValues("filter_field");
+    let minValue = getSliderValue("min_investment");
+    let maxValue = getSliderValue("max_investment");
 
-    let paramsArray = getExistingParams(["q", "filter_field", "round", "industry", "sort_field", "descending", "page"]);
+    let paramsArray = getExistingParams(["q", "filter_field", "round", "industry", "sort_field", "descending", "page", "min_investment", "max_investment"]);
 
     roundValues.forEach((value) => paramsArray.push(`round=${encodeURIComponent(value)}`));
     industryValues.forEach((value) => paramsArray.push(`industry=${encodeURIComponent(value)}`));
     sortValues.forEach((value) => paramsArray.push(`sort_field=${encodeURIComponent(value)}`));
     filterValues.forEach((value) => paramsArray.push(`filter_field=${encodeURIComponent(value)}`));
+    paramsArray.push(`min_investment=${encodeURIComponent(minValue)}`);
+    paramsArray.push(`max_investment=${encodeURIComponent(maxValue)}`);
 
     if (descending) {
         paramsArray.push("descending=1");

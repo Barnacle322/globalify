@@ -154,6 +154,9 @@ def dashboard():
     sort_field = request.args.get("sort_field", None)
     # ?descending= or ?descending=1
     descending = request.args.get("descending", type=bool)
+    # ?min_investment=100000
+    min_investment = request.args.get("min_investment", type=int)
+    max_investment = request.args.get("max_investment", type=int)
 
     # ?round=Seed&round=Series+A
     rounds = []
@@ -175,6 +178,8 @@ def dashboard():
         industries=industries,
         sort_field=sort_field,
         descending=descending,
+        min_investment=min_investment,
+        max_investment=max_investment,
     )
 
     round_list = Round.query.all()

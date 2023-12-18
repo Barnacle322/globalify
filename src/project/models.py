@@ -589,15 +589,14 @@ class Investor(db.Model):
                 return self
 
             def filter_by_investment_range(self, min_investment, max_investment):
-                if min_investment is not None and max_investment is not None:
+                if min_investment and max_investment:
                     investment_filters = and_(
-                        Investor.min_investment >= min_investment,
-                        Investor.max_investment <= max_investment
+                        Investor.min_investment >= min_investment, Investor.max_investment <= max_investment
                     )
                     self.query = self.query.filter(investment_filters)
-                elif min_investment is not None:
+                elif min_investment:
                     self.query = self.query.filter(Investor.min_investment >= min_investment)
-                elif max_investment is not None:
+                elif max_investment:
                     self.query = self.query.filter(Investor.max_investment <= max_investment)
                 return self
 

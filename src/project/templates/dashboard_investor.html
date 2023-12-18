@@ -324,13 +324,10 @@
                         >&nbsp;{% if investor.firm_name %} @ {{ investor.firm_name }} {% endif %}</span
                     >
                 </div>
-                <div>
-                    <span class="line-clamp-2 text-sm text-slate-500">${{ investor.min_investment }}</span>
-                    <span class="line-clamp-2 text-sm text-slate-500">${{ investor.max_investment }}</span>
-                </div>
+                <span class="text-sm text-slate-500">${{ investor.min_investment }} - ${{ investor.max_investment }}</span>
                 <div>
                     <span class="line-clamp-2 text-sm text-slate-500">{{ investor.about }}</span>
-                </div>
+                </div>  
                 <div class="flex gap-2">
                     <div class="flex flex-wrap gap-1">
                         {% for round in investor.rounds %}

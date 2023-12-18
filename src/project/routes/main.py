@@ -208,6 +208,10 @@ def dashboard():
         combined_query += f"{rounds_query_string}&"
     if industries_query_string:
         combined_query += f"{industries_query_string}&"
+    if min_investment:
+        combined_query += f"&min_investment={min_investment}"
+    if max_investment:
+        combined_query += f"&max_investment={max_investment}"
 
     if page_num > investors.pages and investors.pages > 0:  # type: ignore
         return render_template(

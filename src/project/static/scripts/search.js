@@ -1,6 +1,14 @@
 // When the page loads, check all checkboxes that are specified in the URL parameters
 window.onload = function () {
-    let paramsArray = ["filter_field", "round", "industry", "sort_field", "descending", "min_investment", "max_investment"];
+    let paramsArray = [
+        "filter_field",
+        "round",
+        "industry",
+        "sort_field",
+        "descending",
+        "min_investment",
+        "max_investment",
+    ];
     paramsArray.forEach((param) => {
         if (param === "min_investment" || param === "max_investment") {
             setSliderValuesFromParams(param);
@@ -86,12 +94,23 @@ function search() {
     let minValue = getSliderValue("min_investment");
     let maxValue = getSliderValue("max_investment");
 
-    let paramsArray = getExistingParams(["q", "filter_field", "round", "industry", "sort_field", "descending", "page", "min_investment", "max_investment"]);
+    let paramsArray = getExistingParams([
+        "q",
+        "filter_field",
+        "round",
+        "industry",
+        "sort_field",
+        "descending",
+        "page",
+        "min_investment",
+        "max_investment",
+    ]);
 
     roundValues.forEach((value) => paramsArray.push(`round=${encodeURIComponent(value)}`));
     industryValues.forEach((value) => paramsArray.push(`industry=${encodeURIComponent(value)}`));
     sortValues.forEach((value) => paramsArray.push(`sort_field=${encodeURIComponent(value)}`));
     filterValues.forEach((value) => paramsArray.push(`filter_field=${encodeURIComponent(value)}`));
+
     paramsArray.push(`min_investment=${encodeURIComponent(minValue)}`);
     paramsArray.push(`max_investment=${encodeURIComponent(maxValue)}`);
 

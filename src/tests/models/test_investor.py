@@ -188,9 +188,9 @@ def test_filter_by_rounds_with_and_operator(app, create_investors_with_rounds):
 
         assert round_2 and round_3
 
-        paginated_investors_1 = Investor.get_pagination(rounds=[round_2], use_and_rounds=True)
-        paginated_investors_2 = Investor.get_pagination(rounds=[round_3], use_and_rounds=True)
-        paginated_investors_3 = Investor.get_pagination(rounds=[round_2, round_3], use_and_rounds=True)
+        paginated_investors_1 = Investor.get_pagination(rounds=[round_2], rounds_exclusive=True)
+        paginated_investors_2 = Investor.get_pagination(rounds=[round_3], rounds_exclusive=True)
+        paginated_investors_3 = Investor.get_pagination(rounds=[round_2, round_3], rounds_exclusive=True)
 
         assert isinstance(paginated_investors_1, Pagination)
         assert len(paginated_investors_1.items) == 2
@@ -209,9 +209,9 @@ def test_filter_by_rounds_with_or_operator(app, create_investors_with_rounds):
 
         assert round_2 and round_3
 
-        paginated_investors_1 = Investor.get_pagination(rounds=[round_2], use_and_rounds=False)
-        paginated_investors_2 = Investor.get_pagination(rounds=[round_3], use_and_rounds=False)
-        paginated_investors_3 = Investor.get_pagination(rounds=[round_2, round_3], use_and_rounds=False)
+        paginated_investors_1 = Investor.get_pagination(rounds=[round_2], rounds_exclusive=False)
+        paginated_investors_2 = Investor.get_pagination(rounds=[round_3], rounds_exclusive=False)
+        paginated_investors_3 = Investor.get_pagination(rounds=[round_2, round_3], rounds_exclusive=False)
 
         assert isinstance(paginated_investors_1, Pagination)
         assert len(paginated_investors_1.items) == 2
@@ -230,9 +230,9 @@ def test_filter_by_industries_with_and_operator(app, create_investors_with_indus
 
         assert industry_2 and industry_3
 
-        paginated_investors_1 = Investor.get_pagination(industries=[industry_2], use_and_industries=True)
-        paginated_investors_2 = Investor.get_pagination(industries=[industry_3], use_and_industries=True)
-        paginated_investors_3 = Investor.get_pagination(industries=[industry_2, industry_3], use_and_industries=True)
+        paginated_investors_1 = Investor.get_pagination(industries=[industry_2], industries_exclusive=True)
+        paginated_investors_2 = Investor.get_pagination(industries=[industry_3], industries_exclusive=True)
+        paginated_investors_3 = Investor.get_pagination(industries=[industry_2, industry_3], industries_exclusive=True)
 
         assert isinstance(paginated_investors_1, Pagination)
         assert len(paginated_investors_1.items) == 2
@@ -251,9 +251,9 @@ def test_filter_by_industries_with_or_operator(app, create_investors_with_indust
 
         assert industry_2 and industry_3
 
-        paginated_investors_1 = Investor.get_pagination(industries=[industry_2], use_and_industries=False)
-        paginated_investors_2 = Investor.get_pagination(industries=[industry_3], use_and_industries=False)
-        paginated_investors_3 = Investor.get_pagination(industries=[industry_2, industry_3], use_and_industries=False)
+        paginated_investors_1 = Investor.get_pagination(industries=[industry_2], industries_exclusive=False)
+        paginated_investors_2 = Investor.get_pagination(industries=[industry_3], industries_exclusive=False)
+        paginated_investors_3 = Investor.get_pagination(industries=[industry_2, industry_3], industries_exclusive=False)
 
         assert isinstance(paginated_investors_1, Pagination)
         assert len(paginated_investors_1.items) == 2

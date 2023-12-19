@@ -539,13 +539,13 @@ class Investor(db.Model):
         query: str = "",
         filter_fields: list[str] | None = None,
         rounds: list[Round] | None = None,
+        rounds_exclusive: bool = False,
         industries: list[Industry] | None = None,
-        use_and_rounds: bool | None = None,
-        use_and_industries: bool | None = None,
-        sort_field: str | None = None,
-        descending: bool | None = None,
+        industries_exclusive: bool = False,
         min_investment: int | None = None,
         max_investment: int | None = None,
+        sort_field: str | None = None,
+        descending: bool = False,
     ) -> Pagination | list[None]:
         class QueryBuilder:
             def __init__(self, base_query):
@@ -561,14 +561,15 @@ class Investor(db.Model):
                         if filter_conditions:
                             self.query = self.query.filter(or_(*filter_conditions))
                     else:
-                        self.query = self.query.filter(or_(
+                        self.query = self.query.filter(
+                            or_(
                                 Investor.first_name.ilike(f"%{query_string}%"),
                                 Investor.last_name.ilike(f"%{query_string}%"),
                                 Investor.firm_name.ilike(f"%{query_string}%"),
                                 Investor.position.ilike(f"%{query_string}%"),
                                 Investor.about.ilike(f"%{query_string}%"),
+                            )
                         )
-                    )
 
                 return self
 
@@ -579,17 +580,19 @@ class Investor(db.Model):
                     )
                 return self
 
-            def filter_by_rounds(self, rounds, use_and_rounds):
+            def filter_by_rounds(self, rounds, rounds_exclusive):
                 if rounds:
                     round_filters = [Investor.rounds.any(Round.id == round_obj.id) for round_obj in rounds]
-                    condition = and_(*round_filters) if use_and_rounds else or_(*round_filters)
+                    condition = and_(*round_filters) if rounds_exclusive else or_(*round_filters)
                     self.query = self.query.filter(condition)
                 return self
 
-            def filter_by_industries(self, industries, use_and_industries):
+            def filter_by_industries(self, industries, industries_exclusive):
                 if industries:
-                    industry_filters = [Investor.industries.any(Industry.id == industry_obj.id) for industry_obj in industries]
-                    condition = and_(*industry_filters) if use_and_industries else or_(*industry_filters)
+                    industry_filters = [
+                        Investor.industries.any(Industry.id == industry_obj.id) for industry_obj in industries
+                    ]
+                    condition = and_(*industry_filters) if industries_exclusive else or_(*industry_filters)
                     self.query = self.query.filter(condition)
                 return self
 
@@ -613,12 +616,13 @@ class Investor(db.Model):
                 QueryBuilder(Investor.query)
                 .apply_search_filters(query, filter_fields)
                 .apply_sorting(sort_field, descending)
-                .filter_by_rounds(rounds, use_and_rounds)
-                .filter_by_industries(industries, use_and_industries)
+                .filter_by_rounds(rounds, rounds_exclusive)
+                .filter_by_industries(industries, industries_exclusive)
                 .filter_by_investment_range(min_investment, max_investment)
             )
             investors = query_builder.build().paginate(page=page, per_page=per_page, error_out=error_out)
-
+            if investors.pages < page:
+                investors = query_builder.build().paginate(page=investors.pages, per_page=per_page, error_out=error_out)
             return investors
         # NOTE: Not sure what exception is thrown when the query return no results
         except Exception:

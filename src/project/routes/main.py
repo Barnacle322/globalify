@@ -52,6 +52,18 @@ def check_verification(func):
     return decorated_function
 
 
+def construct_query_string(**kwargs):
+    query_string = ""
+    for key, value in kwargs.items():
+        if isinstance(value, list):
+            for item in value:
+                query_string += f"&{key}={item}"
+            continue
+        if value:
+            query_string += f"&{key}={value}"
+    return query_string
+
+
 @main.get("/")
 def index():
     posts = parse_medium_html()
@@ -147,20 +159,20 @@ def dashboard():
     # ?q=Julie
     search_string = request.args.get("q", "")
     # ?page=1
-    page_num = request.args.get("page", 1, type=int)
+    page = request.args.get("page", 1, type=int)
     # ?filter_field=firm_name
     filter_fields = request.args.getlist("filter_field")
     # ?sort_field=firm_name
     sort_field = request.args.get("sort_field", None)
     # ?descending= or ?descending=1
-    descending = request.args.get("descending", type=bool)
+    descending = request.args.get("descending", False, type=bool)
     # ?min_investment=100000
     min_investment = request.args.get("min_investment", type=int)
     max_investment = request.args.get("max_investment", type=int)
-    # ?use_and_for_rounds= or ?use_and_for_rounds=1
-    use_and_rounds = request.args.get("use_and_for_rounds", type=bool)
-    # ?use_and_for_industries= or ?use_and_for_industries=1
-    use_and_industries = request.args.get("use_and_for_industries", type=bool)
+    # ?rounds_exclusive= or ?rounds_exclusive=1
+    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
+    # ?industries_exclusive= or ?industries_exclusive=1
+    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
 
     # ?round=Seed&round=Series+A
     rounds = []
@@ -175,7 +187,7 @@ def dashboard():
             industries.append(industry_object)
 
     investors = Investor.get_pagination(
-        page=page_num,
+        page=page,
         query=search_string,
         filter_fields=filter_fields,
         rounds=rounds,
@@ -184,65 +196,37 @@ def dashboard():
         descending=descending,
         min_investment=min_investment,
         max_investment=max_investment,
-        use_and_rounds=use_and_rounds,
-        use_and_industries=use_and_industries,
+        rounds_exclusive=rounds_exclusive,
+        industries_exclusive=industries_exclusive,
     )
 
-    round_list = Round.query.all()
-    industry_list = Industry.query.all()
-    fields = {
-        "first_name": "First Name",
-        "last_name": "Last Name",
-        "firm_name": "Firm Name",
-        "position": "Position",
-        "about": "About",
-    }
-
-    rounds_query_string = "&".join([f"round={round.name}" for round in rounds])
-    industries_query_string = "&".join([f"industry={industry.name}" for industry in industries])
-    filters_query_string = "&".join([f"filter_field={filter_field}" for filter_field in filter_fields])
-
-    combined_query = ""
-    if search_string:
-        combined_query += f"&q={search_string}&"
-    if filters_query_string:
-        combined_query += f"{filters_query_string}&"
-    if sort_field:
-        combined_query += f"&sort_field={sort_field}&"
-    if descending:
-        combined_query += f"&descending={descending}&"
-    if use_and_rounds:
-        combined_query += f"&use_and_for_rounds={use_and_rounds}&"
-    if use_and_industries:
-        combined_query += f"&use_and_for_industries={use_and_industries}&"
-    if rounds_query_string:
-        combined_query += f"{rounds_query_string}&"
-    if industries_query_string:
-        combined_query += f"{industries_query_string}&"
-    if min_investment:
-        combined_query += f"&min_investment={min_investment}"
-    if max_investment:
-        combined_query += f"&max_investment={max_investment}"
-
-    if page_num > investors.pages and investors.pages > 0:  # type: ignore
-        return render_template(
-            "dashboard_investor.html",
-            search=search_string,
-            investors=investors,
-            industry_list=industry_list,
-            round_list=round_list,
-            pagenum=1,
-        )
+    combined_query = construct_query_string(
+        q=search_string,
+        filter_field=[str(filter_field) for filter_field in filter_fields],
+        sort_field=sort_field,
+        descending=descending,
+        rounds_exclusive=rounds_exclusive,
+        industries_exclusive=industries_exclusive,
+        round=[str(round.name) for round in rounds],
+        industry=[str(industry.name) for industry in industries],
+        min_investment=min_investment,
+        max_investment=max_investment,
+    )
 
     return render_template(
         "dashboard_investor.html",
         pfp_base64=pfp_base64,
-        search_query=search_string,
         combined_query=combined_query,
-        fields=fields,
+        fields={
+            "first_name": "First Name",
+            "last_name": "Last Name",
+            "firm_name": "Firm Name",
+            "position": "Position",
+            "about": "About",
+        },
         investors=investors,
-        industry_list=industry_list,
-        round_list=round_list,
+        industry_list=Industry.query.all(),
+        round_list=Round.query.all(),
     )
 
 

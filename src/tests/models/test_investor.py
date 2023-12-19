@@ -52,6 +52,38 @@ def new_investment_firm(app):
         db.session.commit()
 
 
+@pytest.fixture()
+def create_investors_with_rounds(app):
+    with app.app_context():
+        round_2 = Round.get_by_id(2)
+        round_3 = Round.get_by_id(3)
+
+        assert round_2 and round_3
+
+        investor_with_round_2 = Investor(first_name="Investor1", rounds=[round_2])
+        investor_with_round_3 = Investor(first_name="Investor2", rounds=[round_3])
+        investor_with_both_rounds = Investor(first_name="Investor3", rounds=[round_2, round_3])
+
+        db.session.add_all([investor_with_round_2, investor_with_round_3, investor_with_both_rounds])
+        db.session.commit()
+
+
+@pytest.fixture()
+def create_investors_with_industries(app):
+    with app.app_context():
+        industry_2 = Industry.get_by_id(2)
+        industry_3 = Industry.get_by_id(3)
+
+        assert industry_2 and industry_3
+
+        investor_with_industry_1 = Investor(first_name="Investor1", industries=[industry_2])
+        investor_with_industry_2 = Investor(first_name="Investor2", industries=[industry_3])
+        investor_with_both_industries = Investor(first_name="Investor3", industries=[industry_2, industry_3])
+
+        db.session.add_all([investor_with_industry_1, investor_with_industry_2, investor_with_both_industries])
+        db.session.commit()
+
+
 def test_investor(new_investor, app):
     with app.app_context():
         investor = Investor.query.first()
@@ -149,24 +181,16 @@ def test_search_without_filtering(new_investor, app):
         )
 
 
-def test_filter_by_rounds(app):
+def test_filter_by_rounds_with_and_operator(app, create_investors_with_rounds):
     with app.app_context():
         round_2 = Round.get_by_id(2)
         round_3 = Round.get_by_id(3)
 
         assert round_2 and round_3
 
-        investor_with_round_2 = Investor(first_name="Investor1", rounds=[round_2])
-        investor_with_round_3 = Investor(first_name="Investor2", rounds=[round_3])
-        investor_with_both_rounds = Investor(first_name="Investor3", rounds=[round_2, round_3])
-
-        db.session.add_all([investor_with_round_2, investor_with_round_3, investor_with_both_rounds])
-        db.session.commit()
-
-        paginated_investors_1 = Investor.get_pagination(rounds=[round_2])
-        paginated_investors_2 = Investor.get_pagination(rounds=[round_3])
-        paginated_investors_3 = Investor.get_pagination(rounds=[round_2, round_3])
-        print(paginated_investors_3)
+        paginated_investors_1 = Investor.get_pagination(rounds=[round_2], use_and_rounds=True)
+        paginated_investors_2 = Investor.get_pagination(rounds=[round_3], use_and_rounds=True)
+        paginated_investors_3 = Investor.get_pagination(rounds=[round_2, round_3], use_and_rounds=True)
 
         assert isinstance(paginated_investors_1, Pagination)
         assert len(paginated_investors_1.items) == 2
@@ -178,23 +202,37 @@ def test_filter_by_rounds(app):
         assert len(paginated_investors_3.items) == 1
 
 
-def test_filter_by_industries(app):
+def test_filter_by_rounds_with_or_operator(app, create_investors_with_rounds):
+    with app.app_context():
+        round_2 = Round.get_by_id(2)
+        round_3 = Round.get_by_id(3)
+
+        assert round_2 and round_3
+
+        paginated_investors_1 = Investor.get_pagination(rounds=[round_2], use_and_rounds=False)
+        paginated_investors_2 = Investor.get_pagination(rounds=[round_3], use_and_rounds=False)
+        paginated_investors_3 = Investor.get_pagination(rounds=[round_2, round_3], use_and_rounds=False)
+
+        assert isinstance(paginated_investors_1, Pagination)
+        assert len(paginated_investors_1.items) == 2
+
+        assert isinstance(paginated_investors_2, Pagination)
+        assert len(paginated_investors_2.items) == 2
+
+        assert isinstance(paginated_investors_3, Pagination)
+        assert len(paginated_investors_3.items) == 3
+
+
+def test_filter_by_industries_with_and_operator(app, create_investors_with_industries):
     with app.app_context():
         industry_2 = Industry.get_by_id(2)
         industry_3 = Industry.get_by_id(3)
 
         assert industry_2 and industry_3
 
-        investor_with_industry_1 = Investor(first_name="Investor1", industries=[industry_2])
-        investor_with_industry_2 = Investor(first_name="Investor2", industries=[industry_3])
-        investor_with_both_industries = Investor(first_name="Investor3", industries=[industry_2, industry_3])
-
-        db.session.add_all([investor_with_industry_1, investor_with_industry_2, investor_with_both_industries])
-        db.session.commit()
-
-        paginated_investors_1 = Investor.get_pagination(industries=[industry_2])
-        paginated_investors_2 = Investor.get_pagination(industries=[industry_3])
-        paginated_investors_3 = Investor.get_pagination(industries=[industry_2, industry_3])
+        paginated_investors_1 = Investor.get_pagination(industries=[industry_2], use_and_industries=True)
+        paginated_investors_2 = Investor.get_pagination(industries=[industry_3], use_and_industries=True)
+        paginated_investors_3 = Investor.get_pagination(industries=[industry_2, industry_3], use_and_industries=True)
 
         assert isinstance(paginated_investors_1, Pagination)
         assert len(paginated_investors_1.items) == 2
@@ -204,6 +242,27 @@ def test_filter_by_industries(app):
 
         assert isinstance(paginated_investors_3, Pagination)
         assert len(paginated_investors_3.items) == 1
+
+
+def test_filter_by_industries_with_or_operator(app, create_investors_with_industries):
+    with app.app_context():
+        industry_2 = Industry.get_by_id(2)
+        industry_3 = Industry.get_by_id(3)
+
+        assert industry_2 and industry_3
+
+        paginated_investors_1 = Investor.get_pagination(industries=[industry_2], use_and_industries=False)
+        paginated_investors_2 = Investor.get_pagination(industries=[industry_3], use_and_industries=False)
+        paginated_investors_3 = Investor.get_pagination(industries=[industry_2, industry_3], use_and_industries=False)
+
+        assert isinstance(paginated_investors_1, Pagination)
+        assert len(paginated_investors_1.items) == 2
+
+        assert isinstance(paginated_investors_2, Pagination)
+        assert len(paginated_investors_2.items) == 2
+
+        assert isinstance(paginated_investors_3, Pagination)
+        assert len(paginated_investors_3.items) == 3
 
 
 @pytest.mark.parametrize(
@@ -247,3 +306,40 @@ def test_sorting_by_nonexistent_field(populate_investor, app):
         assert isinstance(paginated_investors, Pagination)
         assert len(paginated_investors.items) > 0
         assert len(paginated_investors.items) == page_size
+
+
+# failed tests
+
+
+def test_filtering_wrong_query_name(new_investor, app):
+    with app.app_context():
+        filtered_items = Investor.get_pagination(query="NonExistentName", filter_fields=["first_name"])
+        assert isinstance(filtered_items, Pagination)
+        assert len(filtered_items.items) == 0
+
+
+def test_filtering_wrong_filter_field(new_investor, app):
+    with app.app_context():
+        filtered_items = Investor.get_pagination(query="Jane", filter_fields=["nonexistent_field"])
+
+        assert isinstance(filtered_items, Pagination)
+        assert len(filtered_items.items) == 1
+
+
+def test_filtering_invalid_query_and_field_combination(new_investor, app):
+    with app.app_context():
+        filtered_items = Investor.get_pagination(query="BerkshireHathaway", filter_fields=["position"])
+
+        assert isinstance(filtered_items, Pagination)
+        assert len(filtered_items.items) == 0
+
+
+def test_filtering_no_results_for_valid_query_and_field(new_investor, app):
+    """
+    need to fix this case in get_pagination, found bugs
+    """
+    with app.app_context():
+        filtered_items = Investor.get_pagination(query="NonExistentName", filter_fields=["nonexistent_field"])
+        print(filtered_items.items)
+        assert isinstance(filtered_items, Pagination)
+        assert len(filtered_items.items) == 0

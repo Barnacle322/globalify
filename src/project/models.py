@@ -537,9 +537,11 @@ class Investor(db.Model):
         per_page: int = 10,
         error_out: bool = False,
         query: str = "",
-        filter_field: str | None = None,
+        filter_fields: list[str] | None = None,
         rounds: list[Round] | None = None,
         industries: list[Industry] | None = None,
+        use_and_rounds: bool | None = None,
+        use_and_industries: bool | None = None,
         sort_field: str | None = None,
         descending: bool | None = None,
         min_investment: int | None = None,
@@ -549,43 +551,36 @@ class Investor(db.Model):
             def __init__(self, base_query):
                 self.query = base_query
 
-            def apply_search_filters(self, query_string, filter_field):
+            def apply_search_filters(self, query_string, filter_fields):
                 if query_string:
-                    if filter_field and hasattr(Investor, filter_field):
-                        filter_condition = getattr(Investor, filter_field).ilike(f"%{query_string}%")
-                        self.query = self.query.filter(filter_condition)
-
-                        return self
-
-                    search_filters = (
-                        Investor.first_name.ilike(f"%{query_string}%")
-                        | Investor.last_name.ilike(f"%{query_string}%")
-                        | Investor.firm_name.ilike(f"%{query_string}%")
-                        | Investor.position.ilike(f"%{query_string}%")
-                    )
-                    self.query = self.query.filter(search_filters)
-
+                    if query_string and filter_fields:
+                        filter_conditions = []
+                        for field in filter_fields:
+                            if hasattr(Investor, field):
+                                filter_conditions.append(getattr(Investor, field).ilike(f"%{query_string}%"))
+                        if filter_conditions:
+                            self.query = self.query.filter(or_(*filter_conditions))
                 return self
 
             def apply_sorting(self, sort_field, descending):
-                if sort_field:
+                if sort_field and hasattr(Investor, sort_field):
                     self.query = (
                         self.query.order_by(desc(sort_field)) if descending else self.query.order_by(sort_field)
                     )
                 return self
 
-            def filter_by_rounds(self, rounds):
+            def filter_by_rounds(self, rounds, use_and_rounds):
                 if rounds:
                     round_filters = [Investor.rounds.any(Round.id == round_obj.id) for round_obj in rounds]
-                    self.query = self.query.filter(or_(*round_filters))
+                    condition = and_(*round_filters) if use_and_rounds else or_(*round_filters)
+                    self.query = self.query.filter(condition)
                 return self
 
-            def filter_by_industries(self, industries):
+            def filter_by_industries(self, industries, use_and_industries):
                 if industries:
-                    industry_filters = [
-                        Investor.industries.any(Industry.id == industry_obj.id) for industry_obj in industries
-                    ]
-                    self.query = self.query.filter(or_(*industry_filters))
+                    industry_filters = [Investor.industries.any(Industry.id == industry_obj.id) for industry_obj in industries]
+                    condition = and_(*industry_filters) if use_and_industries else or_(*industry_filters)
+                    self.query = self.query.filter(condition)
                 return self
 
             def filter_by_investment_range(self, min_investment, max_investment):
@@ -606,10 +601,10 @@ class Investor(db.Model):
         try:
             query_builder = (
                 QueryBuilder(Investor.query)
-                .apply_search_filters(query, filter_field)
+                .apply_search_filters(query, filter_fields)
                 .apply_sorting(sort_field, descending)
-                .filter_by_rounds(rounds)
-                .filter_by_industries(industries)
+                .filter_by_rounds(rounds, use_and_rounds)
+                .filter_by_industries(industries, use_and_industries)
                 .filter_by_investment_range(min_investment, max_investment)
             )
             investors = query_builder.build().paginate(page=page, per_page=per_page, error_out=error_out)

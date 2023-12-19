@@ -8,6 +8,8 @@ window.onload = function () {
         "descending",
         "min_investment",
         "max_investment",
+        "use_and_for_rounds",
+        "use_and_for_industries",
     ];
     paramsArray.forEach((param) => {
         if (param === "min_investment" || param === "max_investment") {
@@ -93,10 +95,14 @@ function search() {
     let filterValues = getCheckedValues("filter_field");
     let minValue = getSliderValue("min_investment");
     let maxValue = getSliderValue("max_investment");
-
+    let andRounds = document.getElementById("use_and_for_rounds").checked;
+    let andIndustries = document.getElementById("use_and_for_industries").checked;
+    console.log(andRounds)
     let paramsArray = getExistingParams([
         "q",
         "filter_field",
+        "use_and_for_rounds",
+        "use_and_for_industries",
         "round",
         "industry",
         "sort_field",
@@ -113,6 +119,18 @@ function search() {
 
     paramsArray.push(`min_investment=${encodeURIComponent(minValue)}`);
     paramsArray.push(`max_investment=${encodeURIComponent(maxValue)}`);
+
+    if (andRounds) {
+        paramsArray.push("use_and_for_rounds=1");
+    } else {
+        paramsArray.push("use_and_for_rounds=");
+    }
+
+    if (andIndustries) {
+        paramsArray.push("use_and_for_industries=1");
+    } else {
+        paramsArray.push("use_and_for_industries=");
+    }
 
     if (descending) {
         paramsArray.push("descending=1");

@@ -165,6 +165,20 @@
                         aria-labelledby="round-options-menu"
                     >
                         <div class="py-1" role="none">
+                            <label
+                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                role="checkbox"
+                            >
+                                <input
+                                    type="checkbox"
+                                    id="use_and_for_rounds"
+                                    name="use_and_for_rounds"
+                                    value="1"
+                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                />
+                                Use and for rounds
+                            </label>
+                            <hr>
                             {% for round in round_list %}
                             <label
                                 class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -216,6 +230,20 @@
                         aria-labelledby="industry-options-menu"
                     >
                         <div class="py-1" role="none">
+                            <label
+                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                role="checkbox"
+                            >
+                                <input
+                                    type="checkbox"
+                                    id="use_and_for_industries"
+                                    name="use_and_for_industries"
+                                    value="1"
+                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                />
+                                Use and for industries
+                            </label>
+                            <hr>
                             {% for industry in industry_list %}
                             <label
                                 class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"

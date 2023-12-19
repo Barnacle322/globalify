@@ -149,7 +149,7 @@ def dashboard():
     # ?page=1
     page_num = request.args.get("page", 1, type=int)
     # ?filter_field=firm_name
-    filter_field = request.args.get("filter_field", None)
+    filter_fields = request.args.getlist("filter_field")
     # ?sort_field=firm_name
     sort_field = request.args.get("sort_field", None)
     # ?descending= or ?descending=1
@@ -157,6 +157,10 @@ def dashboard():
     # ?min_investment=100000
     min_investment = request.args.get("min_investment", type=int)
     max_investment = request.args.get("max_investment", type=int)
+    # ?use_and_for_rounds= or ?use_and_for_rounds=1
+    use_and_rounds = request.args.get("use_and_for_rounds", type=bool)
+    # ?use_and_for_industries= or ?use_and_for_industries=1
+    use_and_industries = request.args.get("use_and_for_industries", type=bool)
 
     # ?round=Seed&round=Series+A
     rounds = []
@@ -173,13 +177,15 @@ def dashboard():
     investors = Investor.get_pagination(
         page=page_num,
         query=search_string,
-        filter_field=filter_field,
+        filter_fields=filter_fields,
         rounds=rounds,
         industries=industries,
         sort_field=sort_field,
         descending=descending,
         min_investment=min_investment,
         max_investment=max_investment,
+        use_and_rounds=use_and_rounds,
+        use_and_industries=use_and_industries,
     )
 
     round_list = Round.query.all()
@@ -194,16 +200,21 @@ def dashboard():
 
     rounds_query_string = "&".join([f"round={round.name}" for round in rounds])
     industries_query_string = "&".join([f"industry={industry.name}" for industry in industries])
+    filters_query_string = "&".join([f"filter_field={filter_field}" for filter_field in filter_fields])
 
     combined_query = ""
     if search_string:
         combined_query += f"&q={search_string}&"
-    if filter_field:
-        combined_query += f"&filter_field={filter_field}&"
+    if filters_query_string:
+        combined_query += f"{filters_query_string}&"
     if sort_field:
         combined_query += f"&sort_field={sort_field}&"
     if descending:
         combined_query += f"&descending={descending}&"
+    if use_and_rounds:
+        combined_query += f"&use_and_for_rounds={use_and_rounds}&"
+    if use_and_industries:
+        combined_query += f"&use_and_for_industries={use_and_industries}&"
     if rounds_query_string:
         combined_query += f"{rounds_query_string}&"
     if industries_query_string:

@@ -560,6 +560,16 @@ class Investor(db.Model):
                                 filter_conditions.append(getattr(Investor, field).ilike(f"%{query_string}%"))
                         if filter_conditions:
                             self.query = self.query.filter(or_(*filter_conditions))
+                    else:
+                        self.query = self.query.filter(or_(
+                                Investor.first_name.ilike(f"%{query_string}%"),
+                                Investor.last_name.ilike(f"%{query_string}%"),
+                                Investor.firm_name.ilike(f"%{query_string}%"),
+                                Investor.position.ilike(f"%{query_string}%"),
+                                Investor.about.ilike(f"%{query_string}%"),
+                        )
+                    )
+
                 return self
 
             def apply_sorting(self, sort_field, descending):

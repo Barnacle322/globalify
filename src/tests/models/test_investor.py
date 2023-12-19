@@ -126,7 +126,7 @@ def test_pagination(populate_investor, app):
 )
 def test_filtering_by_field(new_investor, app, query_name, filter_field, expected_value):
     with app.app_context():
-        filtered_items = Investor.get_pagination(query=query_name, filter_field=filter_field)
+        filtered_items = Investor.get_pagination(query=query_name, filter_fields=filter_field)
 
         assert isinstance(filtered_items, Pagination)
         assert len(filtered_items.items) == 1
@@ -156,16 +156,17 @@ def test_filter_by_rounds(app):
 
         assert round_2 and round_3
 
-        investor_with_round_1 = Investor(first_name="Investor1", rounds=[round_2])
-        investor_with_round_2 = Investor(first_name="Investor2", rounds=[round_3])
+        investor_with_round_2 = Investor(first_name="Investor1", rounds=[round_2])
+        investor_with_round_3 = Investor(first_name="Investor2", rounds=[round_3])
         investor_with_both_rounds = Investor(first_name="Investor3", rounds=[round_2, round_3])
 
-        db.session.add_all([investor_with_round_1, investor_with_round_2, investor_with_both_rounds])
+        db.session.add_all([investor_with_round_2, investor_with_round_3, investor_with_both_rounds])
         db.session.commit()
 
         paginated_investors_1 = Investor.get_pagination(rounds=[round_2])
         paginated_investors_2 = Investor.get_pagination(rounds=[round_3])
         paginated_investors_3 = Investor.get_pagination(rounds=[round_2, round_3])
+        print(paginated_investors_3)
 
         assert isinstance(paginated_investors_1, Pagination)
         assert len(paginated_investors_1.items) == 2
@@ -234,3 +235,15 @@ def test_apply_sorting_by_field(populate_investor, app, sort_field):
             current_value = getattr(paginated_investors_2.items[i], sort_field)
             next_value = getattr(paginated_investors_2.items[i + 1], sort_field)
             assert current_value >= next_value
+
+
+def test_sorting_by_nonexistent_field(populate_investor, app):
+    with app.app_context():
+        page_size = 10
+        nonexistent_field = "nonexistent_field"
+
+        paginated_investors = Investor.get_pagination(sort_field=nonexistent_field)
+
+        assert isinstance(paginated_investors, Pagination)
+        assert len(paginated_investors.items) > 0
+        assert len(paginated_investors.items) == page_size

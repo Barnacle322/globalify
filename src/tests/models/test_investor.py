@@ -53,7 +53,7 @@ def new_investment_firm(app):
 
 
 @pytest.fixture()
-def create_investors_with_rounds(app):
+def new_investors_with_rounds(app):
     with app.app_context():
         round_2 = Round.get_by_id(2)
         round_3 = Round.get_by_id(3)
@@ -69,7 +69,7 @@ def create_investors_with_rounds(app):
 
 
 @pytest.fixture()
-def create_investors_with_industries(app):
+def new_investors_with_industries(app):
     with app.app_context():
         industry_2 = Industry.get_by_id(2)
         industry_3 = Industry.get_by_id(3)
@@ -181,7 +181,7 @@ def test_search_without_filtering(new_investor, app):
         )
 
 
-def test_filter_by_rounds_with_and_operator(app, create_investors_with_rounds):
+def test_filter_by_rounds_with_and_operator(app, new_investors_with_rounds):
     with app.app_context():
         round_2 = Round.get_by_id(2)
         round_3 = Round.get_by_id(3)
@@ -202,7 +202,7 @@ def test_filter_by_rounds_with_and_operator(app, create_investors_with_rounds):
         assert len(paginated_investors_3.items) == 1
 
 
-def test_filter_by_rounds_with_or_operator(app, create_investors_with_rounds):
+def test_filter_by_rounds_with_or_operator(app, new_investors_with_rounds):
     with app.app_context():
         round_2 = Round.get_by_id(2)
         round_3 = Round.get_by_id(3)
@@ -223,7 +223,7 @@ def test_filter_by_rounds_with_or_operator(app, create_investors_with_rounds):
         assert len(paginated_investors_3.items) == 3
 
 
-def test_filter_by_industries_with_and_operator(app, create_investors_with_industries):
+def test_filter_by_industries_with_and_operator(app, new_investors_with_industries):
     with app.app_context():
         industry_2 = Industry.get_by_id(2)
         industry_3 = Industry.get_by_id(3)
@@ -244,7 +244,7 @@ def test_filter_by_industries_with_and_operator(app, create_investors_with_indus
         assert len(paginated_investors_3.items) == 1
 
 
-def test_filter_by_industries_with_or_operator(app, create_investors_with_industries):
+def test_filter_by_industries_with_or_operator(app, new_investors_with_industries):
     with app.app_context():
         industry_2 = Industry.get_by_id(2)
         industry_3 = Industry.get_by_id(3)
@@ -308,22 +308,23 @@ def test_sorting_by_nonexistent_field(populate_investor, app):
         assert len(paginated_investors.items) == page_size
 
 
-# failed tests
+# failing tests
 
 
-def test_filtering_wrong_query_name(new_investor, app):
+def test_filtering_wrong_query_name(populate_investor, app):
     with app.app_context():
         filtered_items = Investor.get_pagination(query="NonExistentName", filter_fields=["first_name"])
         assert isinstance(filtered_items, Pagination)
         assert len(filtered_items.items) == 0
 
 
-def test_filtering_wrong_filter_field(new_investor, app):
+def test_filtering_wrong_filter_field(populate_investor, app):
     with app.app_context():
+        page_size = 10
         filtered_items = Investor.get_pagination(query="Jane", filter_fields=["nonexistent_field"])
 
         assert isinstance(filtered_items, Pagination)
-        assert len(filtered_items.items) == 1
+        assert len(filtered_items.items) == page_size
 
 
 def test_filtering_invalid_query_and_field_combination(new_investor, app):
@@ -334,12 +335,43 @@ def test_filtering_invalid_query_and_field_combination(new_investor, app):
         assert len(filtered_items.items) == 0
 
 
-# def test_filtering_no_results_for_valid_query_and_field(new_investor, app):
-#     """
-#     need to fix this case in get_pagination, found bugs
-#     """
-#     with app.app_context():
-#         filtered_items = Investor.get_pagination(query="NonExistentName", filter_fields=["nonexistent_field"])
-#         print(filtered_items.items)
-#         assert isinstance(filtered_items, Pagination)
-#         assert len(filtered_items.items) == 0
+def test_filtering_for_invalid_query_and_field(populate_investor, app):
+    with app.app_context():
+        page_size = 10
+        filtered_items = Investor.get_pagination(query="NonExistentName", filter_fields=["nonexistent_field"])
+
+        assert isinstance(filtered_items, Pagination)
+        assert len(filtered_items.items) == page_size
+
+
+def test_filter_by_empty_rounds_list(app, populate_investor):
+    with app.app_context():
+        page_size = 10
+        filtered_items = Investor.get_pagination(rounds=[], rounds_exclusive=True)
+        assert isinstance(filtered_items, Pagination)
+        assert len(filtered_items.items) == page_size
+
+
+def test_filter_by_nonexistent_round(app, populate_investor):
+    with app.app_context():
+        non_existing_round = Round(id=100, name="NonExistingRound")
+        filtered_items = Investor.get_pagination(rounds=[non_existing_round], rounds_exclusive=True)
+        assert isinstance(filtered_items, Pagination)
+        assert len(filtered_items.items) == 0
+
+
+
+def test_filter_by_empty_industries_list(app, populate_investor):
+    with app.app_context():
+        page_size = 10
+        filtered_items = Investor.get_pagination(industries=[], industries_exclusive=True)
+        assert isinstance(filtered_items, Pagination)
+        assert len(filtered_items.items) == page_size
+
+
+def test_filter_by_nonexistent_industry(app, populate_investor):
+    with app.app_context():
+        non_existing_industry = Industry(id=100, name="NonExistingIndustry")
+        filtered_items = Investor.get_pagination(industries=[non_existing_industry], industries_exclusive=True)
+        assert isinstance(filtered_items, Pagination)
+        assert len(filtered_items.items) == 0

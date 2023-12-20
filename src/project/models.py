@@ -552,26 +552,20 @@ class Investor(db.Model):
                 self.query = base_query
 
             def apply_search_filters(self, query_string, filter_fields):
-                if query_string:
-                    if query_string and filter_fields:
-                        filter_conditions = []
-                        for field in filter_fields:
-                            if hasattr(Investor, field):
-                                filter_conditions.append(getattr(Investor, field).ilike(f"%{query_string}%"))
-                        if filter_conditions:
-                            self.query = self.query.filter(or_(*filter_conditions))
-                    else:
-                        self.query = self.query.filter(
-                            or_(
-                                Investor.first_name.ilike(f"%{query_string}%"),
-                                Investor.last_name.ilike(f"%{query_string}%"),
-                                Investor.firm_name.ilike(f"%{query_string}%"),
-                                Investor.position.ilike(f"%{query_string}%"),
-                                Investor.about.ilike(f"%{query_string}%"),
-                            )
-                        )
+                if not query_string:
+                    return self
+
+                search_fields = ["first_name", "last_name", "firm_name", "position", "about"]
+                filter_conditions = [
+                    getattr(Investor, field).ilike(f"%{query_string}%") for field in (filter_fields or search_fields)
+                    if hasattr(Investor, field)
+                ]
+
+                if filter_conditions:
+                    self.query = self.query.filter(or_(*filter_conditions))
 
                 return self
+
 
             def apply_sorting(self, sort_field, descending):
                 if sort_field and hasattr(Investor, sort_field):

@@ -105,3 +105,42 @@ upperSlider.oninput = function () {
         upperSlider.value = parseInt(lowerSlider.value) + 1;
     }
 };
+
+document.addEventListener('DOMContentLoaded', function () {
+    function handleButton(buttonId, optionsId, checkboxName) {
+        var checkboxes = document.querySelectorAll(`#${optionsId} input[type="checkbox"]`);
+        var button = document.getElementById(buttonId);
+
+        function updateButtonBorderColor() {
+            var anyChecked = Array.from(checkboxes).some(function (cb) {
+                return cb.checked;
+            });
+
+            button.style.borderColor = anyChecked ? 'rgb(14 165 233 / var(--tw-bg-opacity))' : 'rgb(226 232 240 / var(--tw-border-opacity))';
+        }
+
+        checkboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                updateButtonBorderColor();
+                localStorage.setItem(`${checkboxName}CheckboxStates`, JSON.stringify(Array.from(checkboxes).map(cb => cb.checked)));
+            });
+        });
+
+        var savedCheckboxStates = localStorage.getItem(`${checkboxName}CheckboxStates`);
+        if (savedCheckboxStates) {
+            savedCheckboxStates = JSON.parse(savedCheckboxStates);
+            checkboxes.forEach(function (checkbox, index) {
+                checkbox.checked = savedCheckboxStates[index];
+            });
+            updateButtonBorderColor();
+        }
+    }
+
+    handleButton('filter-options-menu', 'filter-options', 'filter_field');
+
+    handleButton('round-options-menu', 'round-options', 'round');
+
+    handleButton('industry-options-menu', 'industry-options', 'industry');
+
+    handleButton('sorting-options-menu', 'sorting-options', 'sort_field');
+});

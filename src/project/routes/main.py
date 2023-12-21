@@ -186,6 +186,8 @@ def dashboard():
         if industry_object := Industry.get_by_name(industry_name):
             industries.append(industry_object)
 
+    industry_category_list = [category[0] for category in Industry.query.with_entities(Industry.category).distinct().all()]
+
     investors = Investor.get_pagination(
         page=page,
         query=search_string,
@@ -226,6 +228,7 @@ def dashboard():
         },
         investors=investors,
         industry_list=Industry.query.all(),
+        industry_category_list=industry_category_list,
         round_list=Round.query.all(),
     )
 

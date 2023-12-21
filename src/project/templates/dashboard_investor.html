@@ -245,19 +245,28 @@
                                 Only show investors with selected industries
                             </label>
                             <hr />
-                            {% for industry in industry_list %}
+                            {% for category in industry_category_list %}
                             <label
-                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="menuitem"
+                                class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                             >
-                                <input
-                                    type="checkbox"
-                                    name="industry"
-                                    value="{{ industry.name }}"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                {{ industry.name }}
+                                {{ category }}
                             </label>
+                                {% for industry in industry_list %}
+                                    {% if industry.category == category %}
+                                        <label
+                                            class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                            role="menuitem"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                name="industry"
+                                                value="{{ industry.name }}"
+                                                class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                            />
+                                            {{ industry.name }}
+                                        </label>
+                                    {% endif %}
+                                {% endfor %}
                             {% endfor %}
                         </div>
                     </div>

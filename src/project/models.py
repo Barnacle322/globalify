@@ -450,7 +450,7 @@ class Country(db.Model):
         try:
             country_list: list[Country] = []
             for country in pycountry.countries:
-                country_list.append(Country(name=country.name, code=country.alpha_2))
+                country_list.append(Country(name=country.name, code=country.alpha_2)) # type: ignore
             db.session.add_all(country_list)
             db.session.commit()
         except Exception:

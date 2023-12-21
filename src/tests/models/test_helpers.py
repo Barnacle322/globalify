@@ -8,7 +8,7 @@ def test_country_database(app):
     with app.app_context():
         country_list = []
         for country in pycountry.countries:
-            country_list.append((country.name, country.alpha_2))
+            country_list.append((country.name, country.alpha_2)) # type: ignore
 
         assert Country.query.count() == len(pycountry.countries)
 

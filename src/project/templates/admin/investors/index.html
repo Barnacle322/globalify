@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin panel</title>
+    <style>
+        /* Ваши стили для страницы */
+        /* ... */
+
+        /* Стили для таблицы */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Стили для ссылок на добавление и изменение инвесторов */
+        a.btn-admin {
+            display: inline-block;
+            padding: 6px 12px;
+            margin-right: 10px;
+            background-color: #007bff; /* Синий цвет кнопок */
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        a.btn-admin:hover {
+            background-color: #0056b3; /* Цвет при наведении */
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Site administration</h1>
+        <div>
+            <table>
+                <caption>
+                    <h1>Investors</h1>
+                </caption>
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                            <p>Investors</p>
+                        </th>
+                        <td>
+                            <a href="{{ url_for('admin.add_investor')}}" class="btn-admin">Add</a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin.get_all_investors')}}" class="btn-admin">Change</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

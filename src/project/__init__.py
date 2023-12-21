@@ -5,6 +5,7 @@ from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .extensions import csrf, db, login_manager, migrate, oauth
+from .routes.admin import admin
 from .routes.auth import auth
 from .routes.main import (
     bad_request,
@@ -26,6 +27,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
     app.secret_key = os.getenv("SECRET_KEY", "18c2ff95-83a1-4998-8bee-0c6a2170497c")
 
+    app.register_blueprint(admin, url_prefix="/admin")
     app.register_blueprint(auth)
     app.register_blueprint(main)
     app.register_blueprint(payment, url_prefix="/payment")

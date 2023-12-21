@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Investor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            width: 50%;
+            margin: auto;
+        }
+        label {
+            display: inline-block;
+            width: 150px;
+            margin-bottom: 10px;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        textarea {
+            width: calc(100% - 170px);
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        p {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        details {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+        summary {
+            cursor: pointer;
+        }
+        a.btn-main-menu {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        a.btn-main-menu:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add Investor</h1>
+    {% if error %}
+    <p>Error: {{ error }}</p>
+    {% endif %}
+    <form action="{{ url_for('admin.add_investor')}}"  method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <label for="first_name">First_name:</label>
+        <input type="text" id="first_name" name="first_name" required><br><br>
+
+        <label for="last_name">Last_name:</label>
+        <input type="text" id="last_name" name="last_name"><br><br>
+
+        <label for="firm_name">Firm_name:</label>
+        <input type="text" id="firm_name" name="firm_name"><br><br>
+
+        <label for="about">About:</label>
+        <textarea id="about" name="about" rows="4" cols="50"></textarea><br><br>
+
+        <label for="postion">Postion:</label>
+        <input type="text" id="position" name="position"><br><br>
+
+        <label for="website">Website:</label>
+        <input type="text" id="website" name="website"><br><br>
+        
+        <label for="linkedin">LinkedIn:</label>
+        <input type="text" id="linkedin" name="linkedin"><br><br>
+        
+        <label for="twitter">Twitter:</label>
+        <input type="text" id="twitter" name="twitter"><br><br>
+        
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email"><br><br>
+        
+        <label for="phone_number">Phone Number:</label>
+        <input type="text" id="phone_number" name="phone_number"><br><br>
+        
+        <label for="n_investments"># Investments:</label>
+        <input type="number" id="n_investments" name="n_investments" value="0"><br><br>
+        
+        <label for="n_exits"># Exits:</label>
+        <input type="number" id="n_exits" name="n_exits" value="0"><br><br>
+        
+        <label for="min_investment">Min Investment:</label>
+        <input type="number" id="min_investment" name="min_investment" value="0"><br><br>
+        
+        <label for="max_investment">Max Investment:</label>
+        <input type="number" id="max_investment" name="max_investment" value="0"><br><br>
+        
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location"><br><br>
+
+        <p>Select Rounds:</p>
+        {% for round in rounds %}
+        <input type="checkbox" id="round_{{ round.id }}" name="rounds" value="{{ round.id }}">
+        <label for="round_{{ round.id }}">{{ round.name }}</label><br>
+        {% endfor %}
+        <br>
+
+        <p>Select Industries:</p>
+        <details open>
+            {% for category, industries_list in industries.items() %}
+            <details>
+                <summary>{{ category }}</summary>
+                {% for industry in industries_list %}
+                <input type="checkbox" id="industry_{{ industry.id }}" name="industries" value="{{ industry.id }}">
+                <label for="industry_{{ industry.id }}">{{ industry.name }}</label><br>
+                {% endfor %}
+            </details>
+            {% endfor %}
+        </details>
+        <br>
+
+        <input type="submit" value="Add Investor">
+        <a class=btn-main-menu href="{{ url_for('admin.index') }}">Return to the main menu</a>
+    </form>
+</body>
+</html>

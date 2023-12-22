@@ -4,7 +4,7 @@
     "description": "",
     "main": "tailwind.config.js",
     "scripts": {
-        "css": "npx postcss -i ./src/project/static/src/input.css -o ./src/project/static/css/main.css --watch",
+        "css": "npx postcss ./src/project/static/src/input.css -o ./src/project/static/css/main.css --watch --verbose",
         "html": "npx prettier --write ./src/project/templates/**/*.html --plugin=prettier-plugin-tailwindcss"
     },
     "author": "",

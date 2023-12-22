@@ -1376,8 +1376,8 @@ select {
 .mt-8 {
   margin-top: 2rem;
 }
-.mr-12 {
-  margin-right: 3rem;
+.mt-12 {
+  margin-top: 3rem;
 }
 .line-clamp-2 {
   overflow: hidden;
@@ -1978,16 +1978,6 @@ select {
 .from-sky-600 {
   --tw-gradient-from: #0284c7 var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(2 132 199 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-.from-sky-900 {
-  --tw-gradient-from: #0c4a6e var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(12 74 110 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-.from-red-500 {
-  --tw-gradient-from: #ef4444 var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(239 68 68 / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 .via-purple-400 {

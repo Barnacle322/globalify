@@ -82,10 +82,10 @@
             </div>
             <div class="mt-3 flex flex-col gap-2">
                 <h2 class="text-lg font-medium">Filters</h2>
-                <div class="relative inline-block text-left">
+                <div class="group relative inline-block text-left">
                     <button
                         type="button"
-                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
+                        class="group-has-[:checked]:border-sky-500 flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
                         id="filter-options-menu"
                         aria-haspopup="true"
                         aria-expanded="true"
@@ -116,7 +116,7 @@
                         aria-orientation="vertical"
                         aria-labelledby="filter-options-menu"
                     >
-                        <div class="py-1" role="list">
+                        <div class="py-1 has-[:checked]:border-sky-500" role="list">
                             {% if fields %} {% for field, field_name in fields.items() %}
                             <label
                                 class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -134,10 +134,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="relative inline-block text-left">
+                <div class="group relative inline-block text-left">
                     <button
                         type="button"
-                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
+                        class="group-has-[:checked]:border-sky-500 flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
                         id="round-options-menu"
                         aria-haspopup="true"
                         aria-expanded="true"
@@ -198,10 +198,10 @@
                     </div>
                 </div>
 
-                <div class="relative inline-block text-left">
+                <div class="group relative inline-block text-left">
                     <button
                         type="button"
-                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
+                        class="group-has-[:checked]:border-sky-500 flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
                         id="industry-options-menu"
                         aria-haspopup="true"
                         aria-expanded="true"
@@ -245,29 +245,26 @@
                                 Only show investors with selected industries
                             </label>
                             <hr />
-                            {% for category in industry_category_list %}
+                            {% for category, industries in industry_list.items() %}
                             <label
                                 class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                             >
                                 {{ category }}
                             </label>
-                                {% for industry in industry_list %}
-                                    {% if industry.category == category %}
-                                        <label
-                                            class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                            role="menuitem"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                name="industry"
-                                                value="{{ industry.name }}"
-                                                class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                            />
-                                            {{ industry.name }}
-                                        </label>
-                                    {% endif %}
-                                {% endfor %}
-                            {% endfor %}
+                            {% for industry in industries %}
+                            <label
+                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                role="menuitem"
+                            >
+                                <input
+                                    type="checkbox"
+                                    name="industry"
+                                    value="{{ industry.name }}"
+                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                />
+                                {{ industry.name }}
+                            </label>
+                            {% endfor %} {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -297,34 +294,32 @@
             </div>
             <div class="mt-3 flex flex-col gap-2">
                 <h2 class="text-lg font-medium">Sorting</h2>
-                <div class="relative inline-block text-left">
-                    <div>
-                        <button
-                            type="button"
-                            class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
-                            id="sorting-options-menu"
-                            aria-haspopup="true"
-                            aria-expanded="true"
+                <div class="group relative inline-block text-left">
+                    <button
+                        type="button"
+                        class="group-has-[:checked]:border-sky-500 flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300"
+                        id="sorting-options-menu"
+                        aria-haspopup="true"
+                        aria-expanded="true"
+                    >
+                        <svg
+                            data-darkreader-inline-stroke=""
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                            class="h-5 w-5"
                         >
-                            <svg
-                                data-darkreader-inline-stroke=""
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                                aria-hidden="true"
-                                class="h-5 w-5"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
-                                ></path>
-                            </svg>
-                            Sort By
-                        </button>
-                    </div>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+                            ></path>
+                        </svg>
+                        Sort By
+                    </button>
 
                     <div
                         class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"

@@ -15,6 +15,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .extensions import db
 from .utils.fake_data import (
+    get_abouts,
     get_companies,
     get_emails,
     get_job_positions,
@@ -686,8 +687,8 @@ class InvestmentFirm(db.Model):
     n_investments: Mapped[int] = mapped_column(Integer, nullable=True)
     n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
     n_employees: Mapped[int] = mapped_column(Integer, nullable=True)
-    min_investment: Mapped[str] = mapped_column(String, nullable=True)
-    max_investment: Mapped[str] = mapped_column(String, nullable=True)
+    min_investment: Mapped[int] = mapped_column(Integer, nullable=True)
+    max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
 
     rounds: Mapped[list[Round]] = relationship(secondary=investment_firm_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investment_firm_industry)
@@ -712,17 +713,89 @@ class InvestmentFirm(db.Model):
         per_page: int = 10,
         error_out: bool = False,
         query: str = "",
-    ):
-        try:
-            if query == "":
-                firms = InvestmentFirm.query.paginate(page=page, per_page=per_page, error_out=error_out)
-            else:
-                firms = InvestmentFirm.query.filter(
-                    InvestmentFirm.name.icontains(query) | InvestmentFirm.about.icontains(query)
-                ).paginate(page=page, per_page=per_page, error_out=error_out)
+        filter_fields: list[str] | None = None,
+        rounds: list[Round] | None = None,
+        rounds_exclusive: bool = False,
+        industries: list[Industry] | None = None,
+        industries_exclusive: bool = False,
+        min_investment: int | None = None,
+        max_investment: int | None = None,
+        sort_field: str | None = None,
+        descending: bool = False,
+    ) -> Pagination | list[None]:
+        class QueryBuilder:
+            def __init__(self, base_query):
+                self.query = base_query
 
-            return firms
-        except NoResultFound:
+            def apply_search_filters(self, query_string, filter_fields):
+                if not query_string:
+                    return self
+
+                search_fields = ["name", "about"]
+                filter_conditions = [
+                    getattr(InvestmentFirm, field).ilike(f"%{query_string}%") for field in (filter_fields or search_fields)
+                    if hasattr(InvestmentFirm, field)
+                ]
+
+                if filter_conditions:
+                    self.query = self.query.filter(or_(*filter_conditions))
+
+                return self
+
+
+            def apply_sorting(self, sort_field, descending):
+                if sort_field and hasattr(InvestmentFirm, sort_field):
+                    self.query = (
+                        self.query.order_by(desc(sort_field)) if descending else self.query.order_by(sort_field)
+                    )
+                return self
+
+            def filter_by_rounds(self, rounds, rounds_exclusive):
+                if rounds:
+                    round_filters = [InvestmentFirm.rounds.any(Round.id == round_obj.id) for round_obj in rounds]
+                    condition = and_(*round_filters) if rounds_exclusive else or_(*round_filters)
+                    self.query = self.query.filter(condition)
+                return self
+
+            def filter_by_industries(self, industries, industries_exclusive):
+                if industries:
+                    industry_filters = [
+                        InvestmentFirm.industries.any(Industry.id == industry_obj.id) for industry_obj in industries
+                    ]
+                    condition = and_(*industry_filters) if industries_exclusive else or_(*industry_filters)
+                    self.query = self.query.filter(condition)
+                return self
+
+            def filter_by_investment_range(self, min_investment, max_investment):
+                if min_investment and max_investment:
+                    investment_filters = and_(
+                        InvestmentFirm.min_investment >= min_investment, InvestmentFirm.max_investment <= max_investment
+                    )
+                    self.query = self.query.filter(investment_filters)
+                elif min_investment:
+                    self.query = self.query.filter(InvestmentFirm.min_investment >= min_investment)
+                elif max_investment:
+                    self.query = self.query.filter(InvestmentFirm.max_investment <= max_investment)
+                return self
+
+            def build(self):
+                return self.query
+
+        try:
+            query_builder = (
+                QueryBuilder(InvestmentFirm.query)
+                .apply_search_filters(query, filter_fields)
+                .apply_sorting(sort_field, descending)
+                .filter_by_rounds(rounds, rounds_exclusive)
+                .filter_by_industries(industries, industries_exclusive)
+                .filter_by_investment_range(min_investment, max_investment)
+            )
+            investment_firms = query_builder.build().paginate(page=page, per_page=per_page, error_out=error_out)
+            if investment_firms.pages < page:
+                investment_firms = query_builder.build().paginate(page=investment_firms.pages, per_page=per_page, error_out=error_out)
+            return investment_firms
+        # NOTE: Not sure what exception is thrown when the query return no results
+        except Exception:
             return []
 
     @staticmethod
@@ -740,6 +813,38 @@ class InvestmentFirm(db.Model):
             return firm
         except NoResultFound:
             return None
+
+    @staticmethod
+    def populate():
+        try:
+            investment_firms_list = []
+            names = get_companies(50)
+            abouts = get_abouts(50)
+            websites = get_websites(50)
+            emails = get_emails(50)
+            for i in range(1, 50):
+                num_rounds = random.randint(1, 5)
+                rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
+                num_industries = random.randint(1, 6)
+                industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
+                min_investment = random.randrange(100000, 50000001, 100000)
+                max_investment = random.randrange(min_investment, 50000001, 100000)
+                investment_firms_list.append(
+                    InvestmentFirm(
+                        name=f"{names[i]}",
+                        about=f"{abouts[i]}",
+                        website=f"{websites[i]}",
+                        email=f"{str(i) + emails[i]}",
+                        rounds=list(set(rounds)),
+                        industries=list(set(industries)),
+                        min_investment=min_investment,
+                        max_investment=max_investment,
+                    )
+                )
+            db.session.add_all(investment_firms_list)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
 
 @event.listens_for(Country.__table__, "after_create")  # type: ignore

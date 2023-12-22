@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% block head %}
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            name="description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="twitter:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <meta name="view-transition" content="same-origin" />
+        <link rel="stylesheet" href="../../../static/css/main.css" />
+        <link rel="icon" type="image/png" href="../../../static/elements/icon.png" />
+        <title>{% block title %}{% endblock %} | Globalify</title>
+        {% endblock %}
+    </head>
+    <body class="h-full">
+        <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-center">
+            <div class="flex w-full max-w-7xl items-center gap-7 px-9">
+                <a href="/dashboard"><img class="h-[30px] w-[113px]" src="../../../static/elements/logo-black.png" /></a>
+                <div class="hidden gap-7 font-medium sm:flex">
+                    <a href="/dashboard">Dashboard</a>
+                </div>
+            </div>
+            <div class="pr-9">
+                <!-- <a href="/logout">Logout</a> -->
+                <div class="relative ml-3">
+                    <button
+                        type="button"
+                        class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-400 text-sm"
+                        id="user-menu-button"
+                        aria-expanded="false"
+                        aria-haspopup="true"
+                    >
+                        <span class="sr-only">Open user menu</span>
+                        {% if not pfp_base64 %}
+                        <img
+                            class="aspect-square h-6 w-6 rounded-full"
+                            src="../../../static/elements/default_pfp.svg"
+                            alt="Profile picture"
+                        />
+                        {% else %}
+                        <img
+                            class="aspect-square h-8 w-8 rounded-full"
+                            src="data:image/png;base64,{{ pfp_base64 }}"
+                            alt="Profile picture"
+                        />
+                        {% endif %}
+                    </button>
+                    <div
+                        class="pointer-events-none absolute right-0 z-10 mt-2 w-48 origin-top-right scale-95 transform rounded-md bg-white py-1 opacity-0 shadow-lg ring-1 ring-black ring-opacity-5 transition duration-100 ease-in-out focus:outline-none"
+                        id="user-menu"
+                        role="menu"
+                        aria-orientation="vertical"
+                        aria-labelledby="user-menu-button"
+                        tabindex="-1"
+                    >
+                        <a
+                            href="/profile"
+                            class="block px-4 py-2 text-sm text-gray-700 transition-colors duration-100 ease-in hover:bg-gray-100"
+                            role="menuitem"
+                            tabindex="-1"
+                            id="user-menu-item-0"
+                            >Profile</a
+                        >
+
+                        <a
+                            href="/settings"
+                            class="block px-4 py-2 text-sm text-gray-700 transition-colors duration-100 ease-in hover:bg-gray-100"
+                            role="menuitem"
+                            tabindex="-1"
+                            id="user-menu-item-1"
+                            >Settings</a
+                        >
+
+                        <a
+                            href="/logout"
+                            class="block px-4 py-2 text-sm text-gray-700 transition-colors duration-100 ease-in hover:bg-gray-100"
+                            role="menuitem"
+                            tabindex="-1"
+                            id="user-menu-item-2"
+                            >Logout</a
+                        >
+                    </div>
+                </div>
+            </div>
+        </nav>
+        {% block content %} {% endblock %}
+    </body>
+</html>

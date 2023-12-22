@@ -1,137 +1,75 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add Investor</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        form {
-            width: 50%;
-            margin: auto;
-        }
-        label {
-            display: inline-block;
-            width: 150px;
-            margin-bottom: 10px;
-        }
-        input[type="text"],
-        input[type="email"],
-        input[type="number"],
-        textarea {
-            width: calc(100% - 170px);
-            padding: 5px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            box-sizing: border-box;
-        }
-        input[type="submit"] {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-        p {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        details {
-            margin-left: 20px;
-            margin-bottom: 10px;
-        }
-        summary {
-            cursor: pointer;
-        }
-        a.btn-main-menu {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-
-        a.btn-main-menu:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
-    <h1>Add Investor</h1>
+{% extends "layouts/layout_admin.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }}
+<script src="../../../static/scripts/dashboard.js" defer></script>
+{% endblock %} {% block content %}
+<main class="mt-28 flex h-full flex-wrap justify-center gap-5 px-8 pb-16">
+    <section class="flex w-full max-w-[40rem] flex-col gap-3">
+    <div class="flex items-center justify-start gap-1 text-slate-700">
     {% if error %}
     <p>Error: {{ error }}</p>
     {% endif %}
     <form action="{{ url_for('admin.add_investor')}}"  method="POST">
+        <h1 class="text-5xl font-medium">Add Investor</h1>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <label for="first_name">First_name:</label>
-        <input type="text" id="first_name" name="first_name" required><br><br>
+        <label for="first_name">First name:</label>
+        <input type="text" id="first_name" name="first_name" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" required><br><br>
 
-        <label for="last_name">Last_name:</label>
-        <input type="text" id="last_name" name="last_name"><br><br>
+        <label for="last_name">Last name:</label>
+        <input type="text" id="last_name" name="last_name" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"><br><br>
 
-        <label for="firm_name">Firm_name:</label>
-        <input type="text" id="firm_name" name="firm_name"><br><br>
+        <label for="firm_name">Firm name:</label>
+        <input type="text" id="firm_name" name="firm_name" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"><br><br>
 
         <label for="about">About:</label>
-        <textarea id="about" name="about" rows="4" cols="50"></textarea><br><br>
+        <textarea id="about" name="about" rows="4" cols="50" class="w-full min-w-[190px] h-32 rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500 resize-y"></textarea><br><br>
 
         <label for="postion">Postion:</label>
-        <input type="text" id="position" name="position"><br><br>
+        <input type="text" id="position" name="position" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"><br><br>
 
         <label for="website">Website:</label>
-        <input type="text" id="website" name="website"><br><br>
+        <input type="text" id="website" name="website" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"><br><br>
         
         <label for="linkedin">LinkedIn:</label>
-        <input type="text" id="linkedin" name="linkedin"><br><br>
+        <input type="text" id="linkedin" name="linkedin" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"><br><br>
         
         <label for="twitter">Twitter:</label>
-        <input type="text" id="twitter" name="twitter"><br><br>
+        <input type="text" id="twitter" name="twitter" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"><br><br>
         
         <label for="email">Email:</label>
-        <input type="email" id="email" name="email"><br><br>
+        <input type="email" id="email" name="email" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"><br><br>
         
         <label for="phone_number">Phone Number:</label>
-        <input type="text" id="phone_number" name="phone_number"><br><br>
+        <input type="text" id="phone_number" name="phone_number" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"><br><br>
         
         <label for="n_investments"># Investments:</label>
-        <input type="number" id="n_investments" name="n_investments" value="0"><br><br>
+        <input type="number" id="n_investments" name="n_investments" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="0"><br><br>
         
         <label for="n_exits"># Exits:</label>
-        <input type="number" id="n_exits" name="n_exits" value="0"><br><br>
+        <input type="number" id="n_exits" name="n_exits" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="0"><br><br>
         
         <label for="min_investment">Min Investment:</label>
-        <input type="number" id="min_investment" name="min_investment" value="0"><br><br>
+        <input type="number" id="min_investment" name="min_investment" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="0"><br><br>
         
         <label for="max_investment">Max Investment:</label>
-        <input type="number" id="max_investment" name="max_investment" value="0"><br><br>
+        <input type="number" id="max_investment" name="max_investment" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="0"><br><br>
         
         <label for="location">Location:</label>
-        <input type="text" id="location" name="location"><br><br>
+        <input type="text" id="location" name="location" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"><br><br>
 
         <p>Select Rounds:</p>
         {% for round in rounds %}
-        <input type="checkbox" id="round_{{ round.id }}" name="rounds" value="{{ round.id }}">
+        <input type="checkbox" id="round_{{ round.id }}" name="rounds" class="mt-2 mr-2 rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500" value="{{ round.id }}">
         <label for="round_{{ round.id }}">{{ round.name }}</label><br>
         {% endfor %}
         <br>
 
         <p>Select Industries:</p>
         <details open>
+            <summary class="sr-only">Information</summary>
             {% for category, industries_list in industries.items() %}
-            <details>
+            <details class="mb-4">
                 <summary>{{ category }}</summary>
                 {% for industry in industries_list %}
-                <input type="checkbox" id="industry_{{ industry.id }}" name="industries" value="{{ industry.id }}">
+                <input type="checkbox" id="industry_{{ industry.id }}" name="industries" class="mt-2 mr-2 rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500" value="{{ industry.id }}">
                 <label for="industry_{{ industry.id }}">{{ industry.name }}</label><br>
                 {% endfor %}
             </details>
@@ -139,8 +77,10 @@
         </details>
         <br>
 
-        <input type="submit" value="Add Investor">
-        <a class=btn-main-menu href="{{ url_for('admin.index') }}">Return to the main menu</a>
+        <input type="submit" value="Add Investor" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:border-blue-300">
+        <a class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:border-gray-300" href="{{ url_for('admin.index') }}">Return to the main menu</a>
     </form>
-</body>
-</html>
+    </div>
+    </section>
+</main>
+{% endblock %}

@@ -7,7 +7,8 @@ admin = Blueprint("admin", __name__)
 
 @admin.get("/")
 def index():
-    return render_template("admin/investors/index.html")
+    investors = Investor.get_pagination()
+    return render_template("admin/investors/index.html", investors=investors)
 
 
 @admin.get("/investors/")
@@ -16,7 +17,7 @@ def get_all_investors():
     return render_template("admin/investors/investors.html", investors=investors)
 
 
-@admin.route("/investors/add", methods=["GET", "POST"])
+@admin.route("/investor/add", methods=["GET", "POST"])
 def add_investor():
     if request.method == "POST":
             data = request.form
@@ -53,7 +54,7 @@ def add_investor():
 
                 db.session.add(new_investor)
                 db.session.commit()
-                return redirect(url_for("admin.get_all_investors"))
+                return redirect(url_for("admin.index"))
             except Exception as e:
                 db.session.rollback()
                 return render_template("admin/investors/add_investor.html", error=str(e), **investor_data)
@@ -63,7 +64,7 @@ def add_investor():
     return render_template("admin/investors/add_investor.html", rounds=rounds, industries=industries)
 
 
-@admin.route("/investors/edit/<int:investor_id>", methods=["GET", "POST"])
+@admin.route("/investor/edit/<int:investor_id>", methods=["GET", "POST"])
 def edit_investor(investor_id):
     investor = Investor.query.get_or_404(investor_id)
 
@@ -109,18 +110,18 @@ def edit_investor(investor_id):
 
         db.session.commit()
 
-        return redirect(url_for("admin.get_all_investors"))
+        return redirect(url_for("admin.index"))
 
     rounds = Round.get_all()
     industries = Industry.get_all()
     return render_template("admin/investors/edit_investor.html", investor=investor, rounds=rounds, industries=industries)
 
 
-@admin.route("/investors/delete/<int:investor_id>", methods=["POST"])
+@admin.route("/investor/delete/<int:investor_id>", methods=["POST"])
 def delete_investor(investor_id):
     investor = Investor.query.get_or_404(investor_id)
 
     db.session.delete(investor)
     db.session.commit()
 
-    return redirect(url_for("admin.get_all_investors"))
+    return redirect(url_for("admin.index"))

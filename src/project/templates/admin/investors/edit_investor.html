@@ -1,5 +1,6 @@
 {% extends "layouts/layout_admin.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }}
 <script src="../../../static/scripts/dashboard.js" defer></script>
+<script src="../../../static/scripts/selectionColorToggle.js" defer></script>
 {% endblock %} {% block content %}
 <main class="mt-28 flex h-full flex-wrap justify-center gap-5 px-8 pb-16">
     <section class="flex w-full max-w-[40rem] flex-col gap-3">
@@ -9,76 +10,76 @@
             <h1 class="text-5xl font-medium">Edit {{ investor.full_name }}</h1><br><br>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-            <label for="first_name">First Name:</label>
-            <input type="text" id="first_name" name="first_name" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.first_name }}"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="first_name">First Name:</label>
+            <input type="text" id="first_name" name="first_name" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.first_name }}"><br><br>
 
-            <label for="last_name">Last Name:</label>
-            <input type="text" id="last_name" name="last_name" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.last_name }}"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="last_name">Last Name:</label>
+            <input type="text" id="last_name" name="last_name" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.last_name }}"><br><br>
 
-            <label for="firm_name">Firm Name:</label>
-            <input type="text" id="firm_name" name="firm_name" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.firm_name }}"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="firm_name">Firm Name:</label>
+            <input type="text" id="firm_name" name="firm_name" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.firm_name }}"><br><br>
 
-            <label for="about">About:</label><br>
-            <textarea id="about" name="about" rows="4" cols="50" class="w-full min-w-[190px] h-32 rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500 resize-y">{{ investor.about }}</textarea><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="about">About:</label>
+            <textarea id="about" name="about" rows="4" cols="50" class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2">{{ investor.about }}</textarea><br><br>
 
-            <label for="position">Position:</label>
-            <input type="text" id="position" name="position" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.position }}"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="position">Position:</label>
+            <input type="text" id="position" name="position" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.position }}"><br><br>
 
-            <label for="website">Website:</label>
-            <input type="text" id="website" name="website" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.website }}"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="website">Website:</label>
+            <input type="text" id="website" name="website" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.website }}"><br><br>
 
-            <label for="linkedin">LinkedIn:</label>
-            <input type="text" id="linkedin" name="linkedin" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.linkedin }}"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="linkedin">LinkedIn:</label>
+            <input type="text" id="linkedin" name="linkedin" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.linkedin }}"><br><br>
 
-            <label for="twitter">Twitter:</label>
-            <input type="text" id="twitter" name="twitter" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.twitter }}"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="twitter">Twitter:</label>
+            <input type="text" id="twitter" name="twitter" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.twitter }}"><br><br>
 
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.email }}"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="email">Email:</label>
+            <input type="email" id="email" name="email" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.email }}"><br><br>
 
-            <label for="phone_number">Phone Number:</label>
-            <input type="text" id="phone_number" name="phone_number" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.phone_number }}"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="phone_number">Phone Number:</label>
+            <input type="text" id="phone_number" name="phone_number" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.phone_number }}"><br><br>
 
-            <label for="n_investments"># Investments:</label>
-            <input type="number" id="n_investments" name="n_investments" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.n_investments }}"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="n_investments"># Investments:</label>
+            <input type="number" id="n_investments" name="n_investments" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.n_investments }}"><br><br>
 
-            <label for="n_exits"># Exits:</label>
-            <input type="number" id="n_exits" name="n_exits" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.n_exits }}" value="0"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="n_exits"># Exits:</label>
+            <input type="number" id="n_exits" name="n_exits" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.n_exits }}" value="0"><br><br>
 
-            <label for="min_investment">Min Investment:</label>
-            <input type="number" id="min_investment" name="min_investment" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.min_investment }}" value="0"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="min_investment">Min Investment:</label>
+            <input type="number" id="min_investment" name="min_investment" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.min_investment }}" value="0"><br><br>
 
-            <label for="max_investment">Max Investment:</label>
-            <input type="number" id="max_investment" name="max_investment" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.max_investment }}" value="0"><br><br>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="max_investment">Max Investment:</label>
+            <input type="number" id="max_investment" name="max_investment" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.max_investment }}" value="0"><br><br>
 
-            <label for="location">Location:</label>
-            <input type="text" id="location" name="location" class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500" value="{{ investor.location }}"><br><br>
-   
-        <label>Select Rounds:</label><br>
-        {% for round in rounds %}
-            <input type="checkbox" id="round_{{ round.id }}" name="rounds" class="mt-2 mr-2 rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500" value="{{ round.id }}"
-                   {% if round in investor.rounds %} checked {% endif %}>
-            <label for="round_{{ round.id }}">{{ round.name }}</label><br>
-        {% endfor %}
-        <br>
-
-        <p>Select Industries:</p>
-        <details open>
-            <summary class="sr-only">Information</summary>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="location">Location:</label>
+            <input type="text" id="location" name="location" class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2" value="{{ investor.location }}"><br><br>
+            
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="selected_industries">Select Industries:</label>
             {% for category, industries_list in industries.items() %}
-            <details class="mb-4">
-                <summary>{{ category }}</summary>
-                {% for industry in industries_list %}
-                <input type="checkbox" id="industry_{{ industry.id }}" name="industries" class="mt-2 mr-2 rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500" value="{{ industry.id }}"
-                    {% if industry in investor.industries %} checked {% endif %}>
-                <label for="industry_{{ industry.id }}">{{ industry.name }}</label><br>
-                {% endfor %}
-            </details>
+                <div class="flex flex-wrap gap-1 mb-1">
+                    {% for industry in industries_list %}
+                        <label class="inline-flex items-center justify-center rounded-xl border border-black p-2 leading-none text-black cursor-pointer transition-all hover:bg-sky-500 hover:text-white hover:border-sky-500 {% if industry in investor.industries %} bg-sky-500 text-white border-none {% endif %}">
+                            <input type="checkbox" name="selected_industries" value="{{ industry.id }}" class="hidden" {% if industry in investor.industries %} checked {% endif %}>
+                            {{ industry.name }}
+                        </label>
+                    {% endfor %}
+                </div>
             {% endfor %}
-        </details>
-        <input type="submit" value="Update" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:border-blue-300">
+            <br><br>
 
-        <a href="{{ url_for('admin.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:border-gray-300">Return to the main menu</a>
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="selected_rounds">Select Rounds:</label>
+            {% for round in rounds %}
+                <label class="inline-flex items-center justify-center rounded-xl border border-black p-2 leading-none text-black cursor-pointer transition-colors hover:bg-sky-500 hover:text-white {% if round in investor.rounds %} bg-sky-500 text-white border-none {% endif %}">
+                    <input type="checkbox" name="selected_rounds" value="{{ round.id }}" class="hidden" {% if round in investor.rounds %} checked {% endif %}>
+                    {{ round.name }}
+                </label>
+            {% endfor %}
+            <br><br>
+            
+            <button type="submit" class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white">Update</button><br>
+            <button type="submit" class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"><a href="{{ url_for('admin.index') }}">Return to the main menu</a></button>
+            
     </form>
     </div>
     </section>

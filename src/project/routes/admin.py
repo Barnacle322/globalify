@@ -1,6 +1,6 @@
 from flask import Blueprint, redirect, render_template, request, url_for
 
-from ..models import Industry, Investor, Round, db
+from ..models import Industry, InvestmentFirm, Investor, Round, db
 
 admin = Blueprint("admin", __name__)
 
@@ -19,6 +19,9 @@ def get_all_investors():
 
 @admin.route("/investor/add", methods=["GET", "POST"])
 def add_investor():
+    """
+    1) need to add validation for the fields
+    """
     if request.method == "POST":
             data = request.form
             investor_data = {
@@ -40,8 +43,9 @@ def add_investor():
             }
 
             try:
-                selected_round_ids = request.form.getlist("rounds")
-                selected_industry_ids = request.form.getlist("industries")
+                selected_round_ids = request.form.getlist("selected_rounds")
+                selected_industry_ids = request.form.getlist("selected_industries")
+
 
                 selected_rounds = [Round.get_by_id(int(round_id)) for round_id in selected_round_ids]
                 selected_industries = [Industry.get_by_id(int(industry_id)) for industry_id in selected_industry_ids]
@@ -66,6 +70,10 @@ def add_investor():
 
 @admin.route("/investor/edit/<int:investor_id>", methods=["GET", "POST"])
 def edit_investor(investor_id):
+    """
+    1) need to add validation for the fields
+    2) need to improve the code
+    """
     investor = Investor.query.get_or_404(investor_id)
 
     if request.method == "POST":
@@ -84,8 +92,9 @@ def edit_investor(investor_id):
         min_investment = int(request.form.get("min_investment", 0) or 0)
         max_investment = int(request.form.get("max_investment", 0) or 0)
         location = request.form.get("location")
-        selected_round_ids = request.form.getlist("rounds")
-        selected_industry_ids = request.form.getlist("industries")
+
+        selected_round_ids = request.form.getlist("selected_rounds")
+        selected_industry_ids = request.form.getlist("selected_industries")
 
         selected_rounds = [Round.get_by_id(int(round_id)) for round_id in selected_round_ids]
         selected_industries = [Industry.get_by_id(int(industry_id)) for industry_id in selected_industry_ids]
@@ -114,6 +123,7 @@ def edit_investor(investor_id):
 
     rounds = Round.get_all()
     industries = Industry.get_all()
+    print(industries)
     return render_template("admin/investors/edit_investor.html", investor=investor, rounds=rounds, industries=industries)
 
 
@@ -125,3 +135,9 @@ def delete_investor(investor_id):
     db.session.commit()
 
     return redirect(url_for("admin.index"))
+
+
+@admin.get("/investment-firms/")
+def get_all_investment_firms():
+    investment_firms = InvestmentFirm.get_all()
+    return render_template("admin/investment_firms/get_investment_firms.html", investment_firms=investment_firms)

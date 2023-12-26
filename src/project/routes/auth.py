@@ -204,21 +204,21 @@ def onboarding():
         user_info.bio = request.form.get("about")
         user_info.language = request.form.get("language")  # type: ignore
 
-        if linkedin and re.match(r"^https://(?:www\.)?linkedin\.com/in/(\w+)$", linkedin):
+        if linkedin and re.match(r"^https://(?:www\.)?linkedin\.com/in/([\w-]+)$", linkedin):
             user_info.linkedin = linkedin
         elif linkedin:
             user_info.linkedin = f"https://linkedin.com/in/{linkedin}"
         else:
             user_info.linkedin = None
 
-        if instagram and re.match(r"^https://(?:www\.)?instagram\.com/(\w+)$", instagram):
+        if instagram and re.match(r"^https://(?:www\.)?instagram\.com/([\w-]+)$", instagram):
             user_info.instagram = instagram
         elif instagram:
             user_info.instagram = f"https://instagram.com/{instagram}"
         else:
             user_info.instagram = None
 
-        if twitter and re.match(r"^https://(?:www\.)?twitter\.com/(\w+)$", twitter):
+        if twitter and re.match(r"^https://(?:www\.)?twitter\.com/([\w-]+)$", twitter):
             user_info.twitter = twitter
         elif twitter:
             user_info.twitter = f"https://twitter.com/{twitter}"

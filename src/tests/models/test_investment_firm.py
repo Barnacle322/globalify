@@ -38,7 +38,9 @@ def new_investment_firms_with_rounds(app):
         investment_firm_with_round_3 = InvestmentFirm(name="InvestmentFirm2", rounds=[round_3])
         investment_firm_with_both_rounds = InvestmentFirm(name="InvestmentFirm3", rounds=[round_2, round_3])
 
-        db.session.add_all([investment_firm_with_round_2, investment_firm_with_round_3, investment_firm_with_both_rounds])
+        db.session.add_all(
+            [investment_firm_with_round_2, investment_firm_with_round_3, investment_firm_with_both_rounds]
+        )
         db.session.commit()
 
 
@@ -52,9 +54,13 @@ def new_investment_firms_with_industries(app):
 
         investment_firm_with_industry_1 = InvestmentFirm(name="InvestmentFirm1", industries=[industry_2])
         investment_firm_with_industry_2 = InvestmentFirm(name="InvestmentFirm2", industries=[industry_3])
-        investment_firm_with_both_industries = InvestmentFirm(name="InvestmentFirm3", industries=[industry_2, industry_3])
+        investment_firm_with_both_industries = InvestmentFirm(
+            name="InvestmentFirm3", industries=[industry_2, industry_3]
+        )
 
-        db.session.add_all([investment_firm_with_industry_1, investment_firm_with_industry_2, investment_firm_with_both_industries])
+        db.session.add_all(
+            [investment_firm_with_industry_1, investment_firm_with_industry_2, investment_firm_with_both_industries]
+        )
         db.session.commit()
 
 
@@ -181,7 +187,9 @@ def test_filter_by_industries_with_and_operator(app, new_investment_firms_with_i
 
         paginated_investment_firms_1 = InvestmentFirm.get_pagination(industries=[industry_2], industries_exclusive=True)
         paginated_investment_firms_2 = InvestmentFirm.get_pagination(industries=[industry_3], industries_exclusive=True)
-        paginated_investment_firms_3 = InvestmentFirm.get_pagination(industries=[industry_2, industry_3], industries_exclusive=True)
+        paginated_investment_firms_3 = InvestmentFirm.get_pagination(
+            industries=[industry_2, industry_3], industries_exclusive=True
+        )
 
         assert isinstance(paginated_investment_firms_1, Pagination)
         assert len(paginated_investment_firms_1.items) == 2
@@ -200,9 +208,15 @@ def test_filter_by_industries_with_or_operator(app, new_investment_firms_with_in
 
         assert industry_2 and industry_3
 
-        paginated_investment_firms_1 = InvestmentFirm.get_pagination(industries=[industry_2], industries_exclusive=False)
-        paginated_investment_firms_2 = InvestmentFirm.get_pagination(industries=[industry_3], industries_exclusive=False)
-        paginated_investment_firms_3 = InvestmentFirm.get_pagination(industries=[industry_2, industry_3], industries_exclusive=False)
+        paginated_investment_firms_1 = InvestmentFirm.get_pagination(
+            industries=[industry_2], industries_exclusive=False
+        )
+        paginated_investment_firms_2 = InvestmentFirm.get_pagination(
+            industries=[industry_3], industries_exclusive=False
+        )
+        paginated_investment_firms_3 = InvestmentFirm.get_pagination(
+            industries=[industry_2, industry_3], industries_exclusive=False
+        )
 
         assert isinstance(paginated_investment_firms_1, Pagination)
         assert len(paginated_investment_firms_1.items) == 2
@@ -305,7 +319,6 @@ def test_filter_by_nonexistent_round(app, populate_investment_firm):
         filtered_items = InvestmentFirm.get_pagination(rounds=[non_existing_round], rounds_exclusive=True)
         assert isinstance(filtered_items, Pagination)
         assert len(filtered_items.items) == 0
-
 
 
 def test_filter_by_empty_industries_list(app, populate_investment_firm):

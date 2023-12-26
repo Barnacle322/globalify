@@ -322,7 +322,6 @@ def test_filter_by_nonexistent_round(app, populate_investor):
         assert len(filtered_items.items) == 0
 
 
-
 def test_filter_by_empty_industries_list(app, populate_investor):
     with app.app_context():
         page_size = 10

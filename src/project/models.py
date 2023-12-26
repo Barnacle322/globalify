@@ -451,7 +451,7 @@ class Country(db.Model):
         try:
             country_list: list[Country] = []
             for country in pycountry.countries:
-                country_list.append(Country(name=country.name, code=country.alpha_2)) # type: ignore
+                country_list.append(Country(name=country.name, code=country.alpha_2))  # type: ignore
             db.session.add_all(country_list)
             db.session.commit()
         except Exception:
@@ -558,7 +558,8 @@ class Investor(db.Model):
 
                 search_fields = ["first_name", "last_name", "firm_name", "position", "about"]
                 filter_conditions = [
-                    getattr(Investor, field).ilike(f"%{query_string}%") for field in (filter_fields or search_fields)
+                    getattr(Investor, field).ilike(f"%{query_string}%")
+                    for field in (filter_fields or search_fields)
                     if hasattr(Investor, field)
                 ]
 
@@ -566,7 +567,6 @@ class Investor(db.Model):
                     self.query = self.query.filter(or_(*filter_conditions))
 
                 return self
-
 
             def apply_sorting(self, sort_field, descending):
                 if sort_field and hasattr(Investor, sort_field):
@@ -660,7 +660,7 @@ class Investor(db.Model):
                     Investor(
                         first_name=f"{firstnames[i]}",
                         last_name=f"{lastnames[i]}",
-                        about=f"{firstnames[i]} is a {job_positions[i]} at {companies[i]}. Also lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip",
+                        about=f"{firstnames[i]} is a {job_positions[i]} at {companies[i]}. {get_abouts(1)[0]}",
                         firm_name=f"{companies[i]}",
                         position=f"{job_positions[i]}",
                         website=f"{websites[i]}",
@@ -733,7 +733,8 @@ class InvestmentFirm(db.Model):
 
                 search_fields = ["name", "about"]
                 filter_conditions = [
-                    getattr(InvestmentFirm, field).ilike(f"%{query_string}%") for field in (filter_fields or search_fields)
+                    getattr(InvestmentFirm, field).ilike(f"%{query_string}%")
+                    for field in (filter_fields or search_fields)
                     if hasattr(InvestmentFirm, field)
                 ]
 
@@ -741,7 +742,6 @@ class InvestmentFirm(db.Model):
                     self.query = self.query.filter(or_(*filter_conditions))
 
                 return self
-
 
             def apply_sorting(self, sort_field, descending):
                 if sort_field and hasattr(InvestmentFirm, sort_field):
@@ -792,7 +792,9 @@ class InvestmentFirm(db.Model):
             )
             investment_firms = query_builder.build().paginate(page=page, per_page=per_page, error_out=error_out)
             if investment_firms.pages < page:
-                investment_firms = query_builder.build().paginate(page=investment_firms.pages, per_page=per_page, error_out=error_out)
+                investment_firms = query_builder.build().paginate(
+                    page=investment_firms.pages, per_page=per_page, error_out=error_out
+                )
             return investment_firms
         # NOTE: Not sure what exception is thrown when the query return no results
         except Exception:

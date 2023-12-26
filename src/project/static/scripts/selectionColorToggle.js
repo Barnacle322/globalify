@@ -1,4 +1,3 @@
-const industryCheckboxes = document.querySelectorAll('input[name="selected_industries"]');
 const roundCheckboxes = document.querySelectorAll('input[name="selected_rounds"]');
 
 function handleCheckboxClick(event) {
@@ -13,10 +12,6 @@ function handleCheckboxClick(event) {
     label.classList.add('border', 'border-black', 'cursor-pointer', 'transition-all', 'hover:bg-sky-500', 'hover:text-white', 'hover:border-sky-500');
   }
 }
-
-industryCheckboxes.forEach((checkbox) => {
-  checkbox.addEventListener('click', handleCheckboxClick);
-});
 
 roundCheckboxes.forEach((checkbox) => {
   checkbox.addEventListener('click', handleCheckboxClick);

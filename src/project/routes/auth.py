@@ -181,10 +181,13 @@ def onboarding():
         return redirect(url_for("auth.company_form"))
 
     if request.method == "POST":
-        first_name, last_name, username = (
+        first_name, last_name, username, linkedin, instagram, twitter = (
             request.form.get("first-name"),
             request.form.get("last-name"),
             request.form.get("username"),
+            request.form.get("linkedin"),
+            request.form.get("instagram"),
+            request.form.get("twitter"),
         )
         if not first_name or not last_name or not username:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
@@ -200,9 +203,28 @@ def onboarding():
         user_info.username = username
         user_info.bio = request.form.get("about")
         user_info.language = request.form.get("language")  # type: ignore
-        user_info.linkedin = request.form.get("linkedin")
-        user_info.instagram = request.form.get("instagram")
-        user_info.twitter = request.form.get("twitter")
+
+        if linkedin and re.match(r"^https://(?:www\.)?linkedin\.com/in/(\w+)$", linkedin):
+            user_info.linkedin = linkedin
+        elif linkedin:
+            user_info.linkedin = f"https://linkedin.com/in/{linkedin}"
+        else:
+            user_info.linkedin = None
+
+        if instagram and re.match(r"^https://(?:www\.)?instagram\.com/(\w+)$", instagram):
+            user_info.instagram = instagram
+        elif instagram:
+            user_info.instagram = f"https://instagram.com/{instagram}"
+        else:
+            user_info.instagram = None
+
+        if twitter and re.match(r"^https://(?:www\.)?twitter\.com/(\w+)$", twitter):
+            user_info.twitter = twitter
+        elif twitter:
+            user_info.twitter = f"https://twitter.com/{twitter}"
+        else:
+            user_info.twitter = None
+
         user_info.is_complete = True
 
         # TODO: Add a UI warning for this

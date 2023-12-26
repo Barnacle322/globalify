@@ -108,7 +108,7 @@ class UserInfo(db.Model):
         return f"<UserInfo: {self.username} | {'Complete' if self.is_complete else 'Incomplete'}>"
 
     @property
-    def full_name(self):
+    def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
     def sanitize(self) -> dict[str, str]:
@@ -119,6 +119,7 @@ class UserInfo(db.Model):
             "last_name": self.last_name,
             "linkedin": self.linkedin,
             "instagram": self.instagram,
+            "twitter": self.twitter,
             "bio": self.bio,
             "pfp": self.pfp_uuid,
         }

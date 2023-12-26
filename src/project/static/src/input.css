@@ -102,3 +102,11 @@
         transform: scale(1.05);
     }
 }
+
+.input-field {
+    @apply h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2;
+}
+
+.input-label {
+    @apply block text-sm font-medium leading-6 text-gray-900;
+}

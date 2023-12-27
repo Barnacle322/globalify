@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import re
 from uuid import uuid4
 
 from flask_login import UserMixin
@@ -80,9 +81,9 @@ class UserInfo(db.Model):
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
     bio: Mapped[str | None] = mapped_column(String, nullable=True)
-    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
-    instagram: Mapped[str | None] = mapped_column(String, nullable=True)
-    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
+    linkedin_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    instagram_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    twitter_url: Mapped[str | None] = mapped_column(String, nullable=True)
     # Google storage blob id
     pfp_uuid: Mapped[str | None] = mapped_column(String, nullable=True)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
@@ -100,15 +101,57 @@ class UserInfo(db.Model):
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
+    @property
+    def linkedin(self):
+        return self.linkedin_url
+
+    @property
+    def instagram(self):
+        return self.instagram_url
+
+    @property
+    def twitter(self):
+        return self.twitter_url
+
+    @linkedin.setter
+    def linkedin(self, linkedin) -> None:
+        if not linkedin:
+            self.linkedin_url = None
+            return None
+        if re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
+            self.linkedin_url = linkedin
+        else:
+            raise ValueError("Invalid linkedin url.")
+
+    @instagram.setter
+    def instagram(self, instagram) -> None:
+        if not instagram:
+            self.instagram_url = None
+            return None
+        if re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
+            self.instagram_url = instagram
+        else:
+            raise ValueError("Invalid instagram url.")
+
+    @twitter.setter
+    def twitter(self, twitter) -> None:
+        if not twitter:
+            self.twitter_url = None
+            return None
+        if re.match(r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE):
+            self.twitter_url = twitter
+        else:
+            raise ValueError("Invalid twitter url.")
+
     def sanitize(self) -> dict[str, str]:
         user_info = {
             "user_id": self.user_id,
             "username": self.username,
             "first_name": self.first_name,
             "last_name": self.last_name,
-            "linkedin": self.linkedin,
-            "instagram": self.instagram,
-            "twitter": self.twitter,
+            "linkedin": self.linkedin_url,
+            "instagram": self.instagram_url,
+            "twitter": self.twitter_url,
             "bio": self.bio,
             "pfp": self.pfp_uuid,
         }

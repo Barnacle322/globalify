@@ -28,7 +28,7 @@ from ..utils.errors.auth_error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
-from ..utils.google_storage import prepare_picture, upload_blob
+from ..utils.google_storage import upload_pfp
 from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import OauthProvider, Status, StatusType
 
@@ -201,41 +201,31 @@ def onboarding():
         user_info.first_name = first_name
         user_info.last_name = last_name
         user_info.username = username
-        user_info.bio = request.form.get("about")
-        user_info.language = request.form.get("language")  # type: ignore
 
-        if linkedin and re.match(r"^https://(?:www\.)?linkedin\.com/in/([\w-]+)$", linkedin):
+        try:
             user_info.linkedin = linkedin
-        elif linkedin:
-            user_info.linkedin = f"https://linkedin.com/in/{linkedin}"
-        else:
-            user_info.linkedin = None
-
-        if instagram and re.match(r"^https://(?:www\.)?instagram\.com/([\w-]+)$", instagram):
             user_info.instagram = instagram
-        elif instagram:
-            user_info.instagram = f"https://instagram.com/{instagram}"
-        else:
-            user_info.instagram = None
-
-        if twitter and re.match(r"^https://(?:www\.)?twitter\.com/([\w-]+)$", twitter):
             user_info.twitter = twitter
-        elif twitter:
-            user_info.twitter = f"https://twitter.com/{twitter}"
-        else:
-            user_info.twitter = None
+        except Exception as e:
+            status = Status(StatusType.ERROR, e.args[0]).get_status()
+            return redirect(url_for("auth.onboarding", _external=False, **status))
+
+        user_info.bio = request.form.get("about")
+        user_info.language = request.form.get("language", "English")  # type: ignore
 
         user_info.is_complete = True
 
-        # TODO: Add a UI warning for this
-        if pfp := request.files["pfp"]:
-            try:
-                resized_pfp = prepare_picture(pfp)
+        # if pfp := request.files["pfp"]:
+        #     try:
+        #         resized_pfp = prepare_picture(pfp)
+        #         pfp_uuid = upload_blob(resized_pfp.read())
+        #         user_info.pfp_uuid = str(pfp_uuid)
+        #     except Exception as e:
+        #         status = Status(StatusType.ERROR, e.args[0]).get_status()
+        #         return redirect(url_for("auth.onboarding", _external=False, **status))
 
-                pfp_uuid = upload_blob(resized_pfp.read())
-                user_info.pfp_uuid = str(pfp_uuid)
-            except Exception as e:
-                print(f"An error occurred: {e}")
+        if pfp_uuid := upload_pfp(request.files["pfp"]):
+            user_info.pfp_uuid = pfp_uuid
 
         db.session.commit()
         return redirect(url_for("auth.company_form"))
@@ -285,13 +275,16 @@ def company_form():
             website=request.form.get("website"),
         )
 
-        if pfp := request.files["pfp"]:
-            try:
-                resized_pfp = prepare_picture(pfp)
-                pfp_uuid = upload_blob(resized_pfp.read())
-                company.pfp_uuid = str(pfp_uuid)
-            except Exception as e:
-                print(f"An error occurred: {e}")
+        # if pfp := request.files["pfp"]:
+        #     try:
+        #         resized_pfp = prepare_picture(pfp)
+        #         pfp_uuid = upload_blob(resized_pfp.read())
+        #         company.pfp_uuid = str(pfp_uuid)
+        #     except Exception as e:
+        #         print(f"An error occurred: {e}")
+
+        if pfp_uuid := upload_pfp(request.files["pfp"]):
+            company.pfp_uuid = pfp_uuid
 
         db.session.add(company)
         db.session.commit()

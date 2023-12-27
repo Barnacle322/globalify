@@ -358,3 +358,8 @@ class InvestmentFirm(db.Model):
 @event.listens_for(Investor.__table__, "after_create")  # type: ignore
 def populate_investor(*args, **kwargs):
     Investor.populate()
+
+
+@event.listens_for(InvestmentFirm.__table__, "after_create")  # type: ignore
+def populate_firms(*args, **kwargs):
+    InvestmentFirm.populate()

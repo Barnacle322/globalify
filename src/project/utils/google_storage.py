@@ -74,3 +74,19 @@ def load_pfp(pfp_uuid):
         print(e)
 
     return pfp_base64
+
+
+def upload_pfp(pfp):
+    if not pfp:
+        return False
+
+    if pfp:
+        try:
+            resized_pfp = prepare_picture(pfp)
+            pfp_uuid = upload_blob(resized_pfp.read())
+            return str(pfp_uuid)
+        except Exception as e:
+            # status = Status(StatusType.ERROR, e.args[0]).get_status()
+            # return redirect(url_for("auth.onboarding", _external=False, **status))
+            print(e)
+            return False

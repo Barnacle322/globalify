@@ -113,7 +113,7 @@ def test_pagination(populate_investment_firm, app):
 )
 def test_filtering_by_field(new_investment_firm, app, query_name, filter_field, expected_value):
     with app.app_context():
-        filtered_items = InvestmentFirm.get_pagination(query=query_name, filter_fields=filter_field)
+        filtered_items = InvestmentFirm.get_pagination(search_string=query_name, filter_fields=filter_field)
 
         assert isinstance(filtered_items, Pagination)
         assert len(filtered_items.items) == 1
@@ -124,7 +124,7 @@ def test_search_without_filtering(new_investment_firm, app):
     with app.app_context():
         query = "BlackRock"
 
-        paginated_investment_firms = InvestmentFirm.get_pagination(query=query)
+        paginated_investment_firms = InvestmentFirm.get_pagination(search_string=query)
 
         assert isinstance(paginated_investment_firms, Pagination)
         assert len(paginated_investment_firms.items) >= 1
@@ -274,7 +274,7 @@ def test_sorting_by_nonexistent_field(populate_investment_firm, app):
 
 def test_filtering_wrong_query_name(populate_investment_firm, app):
     with app.app_context():
-        filtered_items = InvestmentFirm.get_pagination(query="NonExistentName", filter_fields=["name"])
+        filtered_items = InvestmentFirm.get_pagination(search_string="NonExistentName", filter_fields=["name"])
         assert isinstance(filtered_items, Pagination)
         assert len(filtered_items.items) == 0
 
@@ -282,7 +282,7 @@ def test_filtering_wrong_query_name(populate_investment_firm, app):
 def test_filtering_wrong_filter_field(populate_investment_firm, app):
     with app.app_context():
         page_size = 10
-        filtered_items = InvestmentFirm.get_pagination(query="BlackRock", filter_fields=["nonexistent_field"])
+        filtered_items = InvestmentFirm.get_pagination(search_string="BlackRock", filter_fields=["nonexistent_field"])
 
         assert isinstance(filtered_items, Pagination)
         assert len(filtered_items.items) == page_size
@@ -290,7 +290,7 @@ def test_filtering_wrong_filter_field(populate_investment_firm, app):
 
 def test_filtering_invalid_query_and_field_combination(new_investment_firm, app):
     with app.app_context():
-        filtered_items = InvestmentFirm.get_pagination(query="BlackRock", filter_fields=["about"])
+        filtered_items = InvestmentFirm.get_pagination(search_string="BlackRock", filter_fields=["about"])
 
         assert isinstance(filtered_items, Pagination)
         assert len(filtered_items.items) == 0
@@ -299,7 +299,9 @@ def test_filtering_invalid_query_and_field_combination(new_investment_firm, app)
 def test_filtering_for_invalid_query_and_field(populate_investment_firm, app):
     with app.app_context():
         page_size = 10
-        filtered_items = InvestmentFirm.get_pagination(query="NonExistentName", filter_fields=["nonexistent_field"])
+        filtered_items = InvestmentFirm.get_pagination(
+            search_string="NonExistentName", filter_fields=["nonexistent_field"]
+        )
 
         assert isinstance(filtered_items, Pagination)
         assert len(filtered_items.items) == page_size

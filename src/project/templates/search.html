@@ -134,7 +134,7 @@
                                     {% if investors.has_prev %}
                                     <a
                                         class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
-                                        href="/search?page={{ investors.prev_num }}{{ '&q=' + search_query if search_query else ''}}"
+                                        href="/search?page={{ investors.prev_num }}{{ '&search=' + search_query if search_query else ''}}"
                                     >
                                         <span aria-hidden="true">«</span>
                                         <span class="sr-only">Previous</span>
@@ -143,14 +143,14 @@
                                     investors.page == page %}
                                     <a
                                         class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500 text-sm font-medium text-white hover:bg-sky-400"
-                                        href="/search?page={{ page }}{{ '&q=' + search_query if search_query else ''}}"
+                                        href="/search?page={{ page }}{{ '&search=' + search_query if search_query else ''}}"
                                         aria-current="page"
                                         >{{ page }}</a
                                     >
                                     {% else %}
                                     <a
                                         class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-medium text-gray-400 hover:text-sky-400"
-                                        href="/search?page={{ page }}{{ '&q=' + search_query if search_query else ''}}"
+                                        href="/search?page={{ page }}{{ '&search=' + search_query if search_query else ''}}"
                                         >{{ page }}</a
                                     >
                                     {% endif %} {% else %}

@@ -38,7 +38,7 @@ function setSliderValuesFromParams(sliderId) {
 
 function setSearchValueFromParams() {
     const urlParams = new URLSearchParams(window.location.search);
-    const value = urlParams.get("q");
+    const value = urlParams.get("search");
 
     if (value !== null) {
         document.getElementById("search").value = value;

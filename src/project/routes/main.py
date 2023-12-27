@@ -157,7 +157,7 @@ def dashboard():
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     # ?q=Julie
-    search_string = request.args.get("q", "")
+    search_string = request.args.get("search", "")
     # ?page=1
     page = request.args.get("page", 1, type=int)
     # ?filter_field=firm_name
@@ -188,7 +188,7 @@ def dashboard():
 
     investors = Investor.get_pagination(
         page=page,
-        query=search_string,
+        search_string=search_string,
         filter_fields=filter_fields,
         rounds=rounds,
         industries=industries,
@@ -201,13 +201,13 @@ def dashboard():
     )
 
     combined_query = construct_query_string(
-        q=search_string,
+        search=search_string,
         filter_field=[str(filter_field) for filter_field in filter_fields],
         sort_field=sort_field,
         descending=descending,
         rounds_exclusive=rounds_exclusive,
         industries_exclusive=industries_exclusive,
-        round=[str(round.name) for round in rounds],
+        round=[str(round_obj.name) for round_obj in rounds],
         industry=[str(industry.name) for industry in industries],
         min_investment=min_investment,
         max_investment=max_investment,
@@ -246,7 +246,7 @@ def investment_firms():
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     # ?q=Robinson-Sanders
-    search_string = request.args.get("q", "")
+    search_string = request.args.get("search", "")
     # ?page=1
     page = request.args.get("page", 1, type=int)
     # ?filter_field=name
@@ -277,7 +277,7 @@ def investment_firms():
 
     investment_firms = InvestmentFirm.get_pagination(
         page=page,
-        query=search_string,
+        search_string=search_string,
         filter_fields=filter_fields,
         rounds=rounds,
         industries=industries,
@@ -290,7 +290,7 @@ def investment_firms():
     )
 
     combined_query = construct_query_string(
-        q=search_string,
+        search=search_string,
         filter_field=[str(filter_field) for filter_field in filter_fields],
         sort_field=sort_field,
         descending=descending,

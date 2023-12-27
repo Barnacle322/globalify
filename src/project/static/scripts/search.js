@@ -17,7 +17,7 @@ function search() {
     const industriesExclusive = document.getElementById("industries_exclusive").checked;
 
     const paramsArray = getExistingParams([
-        "q",
+        "search",
         "filter_field",
         "rounds_exclusive",
         "industries_exclusive",
@@ -42,7 +42,7 @@ function search() {
     handleBooleans(industriesExclusive, "industries_exclusive", paramsArray);
     handleBooleans(descending, "descending", paramsArray);
 
-    if (searchQuery !== "") paramsArray.unshift(`q=${encodeURIComponent(searchQuery)}`);
+    if (searchQuery !== "") paramsArray.unshift(`search=${encodeURIComponent(searchQuery)}`);
 
     addParamsToUrl(paramsArray);
 }

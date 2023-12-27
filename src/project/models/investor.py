@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 
 from flask_sqlalchemy.pagination import Pagination
+from flask_sqlalchemy.query import Query
 from sqlalchemy import Column, ForeignKey, Integer, String, and_, desc, event, or_
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -21,7 +22,7 @@ from .helpers import Industry, Round
 
 
 class QueryBuilder:
-    def __init__(self, base_query, cls):
+    def __init__(self, base_query: Query, cls: type[Investor | InvestmentFirm]):
         self.query = base_query
         self.cls = cls
 

@@ -150,9 +150,10 @@ def post_download():
 @check_user_info_complete
 @check_verification
 def dashboard():
-    authenticated_user: User = current_user  # type: ignore
-    if authenticated_user.is_anonymous:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
@@ -239,9 +240,10 @@ def dashboard():
 @check_user_info_complete
 @check_verification
 def investment_firms():
-    authenticated_user: User = current_user  # type: ignore
-    if authenticated_user.is_anonymous:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 

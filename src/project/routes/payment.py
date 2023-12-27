@@ -217,9 +217,10 @@ def create_checkout_session():
     """
     DOCS: https://stripe.com/docs/payments/checkout/accept-a-payment
     """
-    authenticated_user: User = current_user  # type: ignore
-    if authenticated_user.is_anonymous:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     try:
         user_payment = handle_customer(authenticated_user)
@@ -262,9 +263,10 @@ def customer_portal():
     else:
         return_url = request.host_url
 
-    authenticated_user: User = current_user  # type: ignore
-    if authenticated_user.is_anonymous:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     try:
         user_payment = handle_customer(authenticated_user)
@@ -292,9 +294,10 @@ def subscription_update():
     DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
     """
     return_url = request.host_url + "settings/plan"
-    authenticated_user: User = current_user  # type: ignore
-    if authenticated_user.is_anonymous:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     try:
         user_payment = handle_customer(authenticated_user)
@@ -328,9 +331,10 @@ def subscription_cancel():
     DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
     """
     return_url = request.host_url + "settings/plan"
-    authenticated_user: User = current_user  # type: ignore
-    if authenticated_user.is_anonymous:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     try:
         user_payment = handle_customer(authenticated_user)

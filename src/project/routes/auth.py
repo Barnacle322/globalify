@@ -4,7 +4,6 @@ import re
 import requests
 from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
 from flask_login import (
-    AnonymousUserMixin,
     current_user,
     login_required,
     login_user,
@@ -169,9 +168,10 @@ def login():
 @auth.route("/onboarding", methods=["GET", "POST"])
 @login_required
 def onboarding():
-    authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info:
@@ -236,8 +236,7 @@ def onboarding():
 @auth.get("/username/<username>")
 @login_required
 def username(username: str):
-    authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
     is_taken = UserInfo.is_taken(username)
@@ -248,9 +247,10 @@ def username(username: str):
 @auth.route("/company-form", methods=["GET", "POST"])
 @login_required
 def company_form():
-    authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info:

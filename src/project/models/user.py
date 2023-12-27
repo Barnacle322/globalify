@@ -143,7 +143,7 @@ class UserInfo(db.Model):
         else:
             raise ValueError("Invalid twitter url.")
 
-    def sanitize(self) -> dict[str, str]:
+    def sanitize(self):
         user_info = {
             "user_id": self.user_id,
             "username": self.username,

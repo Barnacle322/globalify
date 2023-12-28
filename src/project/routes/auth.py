@@ -40,6 +40,16 @@ LINKEDIN_PERSONAL_INFO_URL = "https://api.linkedin.com/v2/me"
 
 @login_manager.user_loader
 def load_user(user_id: int) -> User | None:
+    """
+    Loads a user from the database based on the user ID.
+
+    Args:
+        user_id (int): The ID of the user.
+
+    Returns:
+        User | None: The user corresponding to the user ID, or None if not found.
+
+    """
     user = User.get_by_id(int(user_id))
     if user:
         return user
@@ -48,9 +58,22 @@ def load_user(user_id: int) -> User | None:
 
 def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
     """
-    - No User -> create and return new User
-    - User exists, but OAuth provider is different -> raise Exception
-    - User exists, OAuth provider is correct -> return User
+    Authenticates and retrieves a user based on the email and OAuth provider.
+
+    If the user does not exist, a new user is created and returned.
+    If the user exists but the OAuth provider is different, an exception is raised.
+    If the user exists and the OAuth provider is correct, the existing user is returned.
+
+    Args:
+        email (str): The email of the user.
+        oauth_provider (OauthProvider): The OAuth provider.
+
+    Returns:
+        User: The authenticated user.
+
+    Raises:
+        Exception: If the user exists but the OAuth provider is different.
+
     """
     user = User.get_by_email(email)
     if not user:
@@ -66,6 +89,17 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
 
 
 def api_call(url: str, access_token: str):
+    """
+    Makes an API call to the specified URL with the provided access token.
+
+    Args:
+        url (str): The URL to make the API call to.
+        access_token (str): The access token to authenticate the API call.
+
+    Returns:
+        dict: The response from the API call.
+
+    """
     response = requests.get(
         url,
         headers={"Authorization": f"Bearer {access_token}"},
@@ -76,6 +110,16 @@ def api_call(url: str, access_token: str):
 
 @auth.route("/register", methods=["GET", "POST"])
 def register():
+    """
+    Handles the registration process for new users.
+
+    If the request method is POST, it processes the registration form data and creates a new user.
+    If the request method is GET, it renders the registration page.
+
+    Returns:
+        str: The rendered HTML template for the registration page.
+
+    """
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -128,6 +172,16 @@ def register():
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    Handles the login process for users.
+
+    If the request method is POST, it processes the login form data and authenticates the user.
+    If the request method is GET, it renders the login page.
+
+    Returns:
+        str: The rendered HTML template for the login page.
+
+    """
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -168,6 +222,18 @@ def login():
 @auth.route("/onboarding", methods=["GET", "POST"])
 @login_required
 def onboarding():
+    """
+    Handles the onboarding process for authenticated users.
+
+    If the current user is anonymous, it redirects to the login page.
+    If user_info is not found for the authenticated user, it redirects to the login page.
+    If user_info.is_complete is True, it redirects to the company_form route.
+    If the request method is POST, it processes the onboarding form data and updates the user's information.
+
+    Returns:
+        str: The rendered HTML template for the onboarding page.
+
+    """
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -236,6 +302,17 @@ def onboarding():
 @auth.get("/username/<username>")
 @login_required
 def username(username: str):
+    """
+    Checks if a username is already taken.
+
+    Args:
+        username (str): The username to check.
+
+    Returns:
+        dict: A JSON response containing the "is_taken" status of the username.
+            - "is_taken" (bool): True if the username is already taken, False otherwise.
+
+    """
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -247,6 +324,18 @@ def username(username: str):
 @auth.route("/company-form", methods=["GET", "POST"])
 @login_required
 def company_form():
+    """
+    Handles the company form submission for authenticated users.
+
+    If the current user is anonymous, it redirects to the login page.
+    If user_info is not found for the authenticated user, it redirects to the login page.
+    If a company is already associated with the user, it redirects to the dashboard route.
+    If the request method is POST, it processes the company form data and creates a new company entry.
+
+    Returns:
+        str: The rendered HTML template for the company form page.
+
+    """
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -300,6 +389,13 @@ def company_form():
 
 @auth.route("/login-linkedin")
 def linkedin_login():
+    """
+    Redirects the user to the LinkedIn OAuth login page.
+
+    Returns:
+        str: The redirect response to the LinkedIn OAuth login page.
+
+    """
     return oauth.linkedin.authorize_redirect(  # type: ignore
         redirect_uri=url_for("auth.linkedin_callback", _external=True)
     )
@@ -307,6 +403,18 @@ def linkedin_login():
 
 @auth.route("/linkedin-oauth")
 def linkedin_callback():
+    """
+    Handles the callback from LinkedIn OAuth login.
+
+    Retrieves the access token from the authorization response.
+    Makes API calls to retrieve the user's email and personal info from LinkedIn.
+    Creates or updates the user and user info records in the database.
+    Logs in the user and redirects to the appropriate page.
+
+    Returns:
+        str: The redirect response to the appropriate page.
+
+    """
     # BUG: For some reason client_secret is not being passed during
     # app initialization. Hardcoding it for now.
     # NOTE: Making this the only OAuth provider doesn't fix the issue.
@@ -378,6 +486,13 @@ def linkedin_callback():
 
 @auth.route("/login-google")
 def google_login():
+    """
+    Redirects the user to the Google OAuth login page.
+
+    Returns:
+        str: The redirect response to the Google OAuth login page.
+
+    """
     return oauth.google.authorize_redirect(  # type: ignore
         redirect_uri=url_for("auth.google_callback", _external=True),
     )
@@ -385,6 +500,18 @@ def google_login():
 
 @auth.route("/google-oauth")
 def google_callback():
+    """
+    Handles the callback from Google OAuth login.
+
+    Retrieves the access token from the authorization response.
+    Makes API calls to retrieve the user's email and personal info from Google.
+    Creates or updates the user and user info records in the database.
+    Logs in the user and redirects to the appropriate page.
+
+    Returns:
+        str: The redirect response to the appropriate page.
+
+    """
     authorization = oauth.google.authorize_access_token()  # type: ignore
     if not authorization:
         status = Status(StatusType.ERROR, OAUTH_ACCESS_TOKEN).get_status()
@@ -438,5 +565,12 @@ def google_callback():
 @auth.route("/logout")
 @login_required
 def logout():
+    """
+    Logs out the currently logged-in user.
+
+    Returns:
+        str: The redirect response to the main index page.
+
+    """
     logout_user()
     return redirect(url_for("main.index"))

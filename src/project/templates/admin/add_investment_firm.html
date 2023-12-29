@@ -6,9 +6,6 @@ block head %} {{ super() }}
 <main class="mt-28 flex h-full flex-wrap justify-center gap-5 px-8 pb-16">
     <section class="flex w-full max-w-[40rem] flex-col gap-3">
         <div class="flex items-center justify-center gap-1 text-slate-700">
-            {% if error %}
-            <p>Error: {{ error }}</p>
-            {% endif %}
             <form action="/admin/investment_firm/add" method="POST">
                 <div class="flex items-start justify-start gap-1 text-slate-700">
                     <a

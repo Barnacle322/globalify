@@ -1,0 +1,39 @@
+{% extends "layouts/layout_admin.html" %} {% block title %}Investment Firms{% endblock %} {% block head %} {{ super() }}
+<script src="../../static/scripts/dashboard.js" defer></script>
+<script src="../../static/scripts/search.js" defer></script>
+<script src="../../static/scripts/query_setter.js" defer></script>
+{% endblock %} {% block content %}
+<main class="mt-24 flex h-full min-h-screen w-full overflow-x-auto pb-16">
+    <div class="mx-auto flex w-full max-w-[83rem] flex-col gap-3 px-4 sm:flex-row">
+        <div class="mt-3 flex flex-col gap-2">
+            <button
+                onclick="window.location.href='/admin/user/add'"
+                class="flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm transition-colors ease-in-out hover:border-slate-300"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-5 w-5"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <span>Add User</span>
+            </button>
+        </div>
+        <section class="flex w-full flex-col items-start justify-start gap-2 sm:w-3/4">
+            {% if users %} {% for user in users %}
+            <div class="flex w-full flex-col justify-between gap-2 rounded-lg border-2 p-4">
+                <div class="flex items-baseline justify-between">
+                    {{ user.email }}
+                    <span>Is Verified: {% if user.is_verified %} ✅ {% else %} ❌ {% endif %}</span>
+                    <span>Is Admin: {% if user.is_admin %} ✅ {% else %} ❌ {% endif %}</span>
+                </div>
+            </div>
+
+            {% endfor %} {% endif %} {% endblock %}
+        </section>
+    </div>
+</main>

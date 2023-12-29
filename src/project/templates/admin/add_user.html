@@ -1,0 +1,32 @@
+{% extends "layouts/layout_admin.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }}
+<script src="../../static/scripts/dashboard.js" defer></script>
+<script src="../../static/scripts/selectionColorToggle.js" defer></script>
+{% endblock %} {% block content %}
+<main class="mt-28 flex h-full flex-wrap justify-center gap-5 px-8 pb-16">
+    <section class="flex w-full max-w-[40rem] flex-col gap-3">
+        <div class="flex items-center justify-center gap-1 text-slate-700">
+            {% if error %}
+            <p>Error: {{ error }}</p>
+            {% endif %}
+            <form action="/admin/user/add" method="POST">
+                <a href="/admin/users">Back</a>
+                <h1 class="text-5xl font-medium">Add User</h1>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <label for="email" class="email">Email:</label>
+                <input type="email" id="email" name="email" class="h-12 rounded-xl border-2 border-stone-300 bg-transparent px-2 w-64" required /><br /><br />
+
+
+
+                <button
+                    type="submit"
+                    class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
+                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                    title="Enter a valid email address"
+                >
+                    Create</button
+                ><br />
+            </form>
+        </div>
+    </section>
+</main>
+{% endblock %}

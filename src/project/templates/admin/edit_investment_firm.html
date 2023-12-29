@@ -1,13 +1,17 @@
-{% extends "layouts/layout_admin.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }}
+{% extends "layouts/layout_admin.html" %}{% block title %}Globalify{% endblock %} {%
+block head %} {{ super() }}
 <script src="../../../static/scripts/dashboard.js" defer></script>
 {% endblock %} {% block content %}
 <main class="mt-28 flex h-full flex-wrap justify-center gap-5 px-8 pb-16">
     <section class="flex w-full max-w-[40rem] flex-col gap-3">
         <div class="flex items-center justify-center gap-1 text-slate-700">
-            <form method="POST" action="/admin/investor/edit/{{ investor.id }}">
+            <form
+                method="POST"
+                action="/admin/investment_firm/edit/{{ investment_firm.id }}"
+            >
                 <div class="flex items-start justify-start gap-1 text-slate-700">
                     <a
-                        href="/admin"
+                        href="/admin/investment_firms"
                         class="flex items-center border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:rounded-full hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
                     >
                         <svg
@@ -28,35 +32,17 @@
                         Back
                     </a>
                 </div>
-                <h1 class="text-5xl font-medium">Edit {{ investor.full_name }}</h1>
+                <h1 class="text-5xl font-medium">Edit {{ investment_firm.name }}</h1>
                 <br /><br />
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-                <label class="input-label" for="first_name">First Name:</label>
+                <label class="input-label" for="name">Name:</label>
                 <input
                     type="text"
-                    id="first_name"
-                    name="first_name"
+                    id="name"
+                    name="name"
                     class="input-field"
-                    value="{{ investor.first_name }}"
-                /><br /><br />
-
-                <label class="input-label" for="last_name">Last Name:</label>
-                <input
-                    type="text"
-                    id="last_name"
-                    name="last_name"
-                    class="input-field"
-                    value="{{ investor.last_name }}"
-                /><br /><br />
-
-                <label class="input-label" for="firm_name">Firm Name:</label>
-                <input
-                    type="text"
-                    id="firm_name"
-                    name="firm_name"
-                    class="input-field"
-                    value="{{ investor.firm_name }}"
+                    value="{{ investment_firm.name }}"
                 /><br /><br />
 
                 <label class="input-label" for="about">About:</label>
@@ -67,17 +53,8 @@
                     cols="50"
                     class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                 >
-{{ investor.about }}</textarea
+                {{ investment_firm.about }}</textarea
                 ><br /><br />
-
-                <label class="input-label" for="position">Position:</label>
-                <input
-                    type="text"
-                    id="position"
-                    name="position"
-                    class="input-field"
-                    value="{{ investor.position }}"
-                /><br /><br />
 
                 <label class="input-label" for="website">Website:</label>
                 <input
@@ -85,25 +62,7 @@
                     id="website"
                     name="website"
                     class="input-field"
-                    value="{{ investor.website }}"
-                /><br /><br />
-
-                <label class="input-label" for="linkedin">LinkedIn:</label>
-                <input
-                    type="text"
-                    id="linkedin"
-                    name="linkedin"
-                    class="input-field"
-                    value="{{ investor.linkedin }}"
-                /><br /><br />
-
-                <label class="input-label" for="twitter">Twitter:</label>
-                <input
-                    type="text"
-                    id="twitter"
-                    name="twitter"
-                    class="input-field"
-                    value="{{ investor.twitter }}"
+                    value="{{ investment_firm.website }}"
                 /><br /><br />
 
                 <label class="input-label" for="email">Email:</label>
@@ -112,7 +71,7 @@
                     id="email"
                     name="email"
                     class="input-field"
-                    value="{{ investor.email }}"
+                    value="{{ investment_firm.email }}"
                     pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                     title="Enter a valid email address"
                 /><br /><br />
@@ -123,7 +82,7 @@
                     id="phone_number"
                     name="phone_number"
                     class="input-field"
-                    value="{{ investor.phone_number }}"
+                    value="{{ investment_firm.phone_number }}"
                 /><br /><br />
 
                 <label class="input-label" for="n_investments"># Investments:</label>
@@ -132,7 +91,7 @@
                     id="n_investments"
                     name="n_investments"
                     class="input-field"
-                    value="{{ investor.n_investments }}"
+                    value="{{ investment_firm.n_investments }}"
                     min="0"
                 /><br /><br />
 
@@ -142,7 +101,17 @@
                     id="n_exits"
                     name="n_exits"
                     class="input-field"
-                    value="{{ investor.n_exits }}"
+                    value="{{ investment_firm.n_exits }}"
+                    min="0"
+                /><br /><br />
+
+                <label class="input-label" for="n_employees"># Employees:</label>
+                <input
+                    type="number"
+                    id="n_employees"
+                    name="n_employees"
+                    class="input-field"
+                    value="{{ investment_firm.n_employees }}"
                     min="0"
                 /><br /><br />
 
@@ -152,7 +121,7 @@
                     id="min_investment"
                     name="min_investment"
                     class="input-field"
-                    value="{{ investor.min_investment }}"
+                    value="{{ investment_firm.min_investment }}"
                     min="0"
                 /><br /><br />
 
@@ -162,17 +131,8 @@
                     id="max_investment"
                     name="max_investment"
                     class="input-field"
-                    value="{{ investor.max_investment }}"
+                    value="{{ investment_firm.max_investment }}"
                     min="0"
-                /><br /><br />
-
-                <label class="input-label" for="location">Location:</label>
-                <input
-                    type="text"
-                    id="location"
-                    name="location"
-                    class="input-field"
-                    value="{{ investor.location }}"
                 /><br /><br />
 
                 <label class="input-label" for="selected_rounds">Select Rounds:</label>
@@ -222,7 +182,7 @@
                                     if
                                     round
                                     in
-                                    investor.rounds
+                                    investment_firm.rounds
                                     %}
                                     checked
                                     {%
@@ -237,7 +197,7 @@
                 </div>
                 <br />
 
-                <label class="input-label" for="selected_industries">Select Industries:</label>
+                <label class="input-label" for="selected_rounds">Select Industries:</label>
                 <button
                     type="button"
                     class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
@@ -290,7 +250,7 @@
                                     if
                                     industry
                                     in
-                                    investor.industries
+                                    investment_firm.industries
                                     %}
                                     checked
                                     {%

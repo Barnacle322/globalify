@@ -31,3 +31,8 @@ def get_emails(amount: int):
 def get_websites(amount: int):
     websites = [fake.uri() for _ in range(amount)]
     return websites
+
+
+def get_abouts(amount: int):
+    abouts = [fake.paragraph(nb_sentences=5) for _ in range(amount)]
+    return abouts

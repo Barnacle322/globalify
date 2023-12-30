@@ -1,7 +1,5 @@
-{% extends "layouts/layout_admin.html" %}{% block title %}Globalify{% endblock %} {%
-block head %} {{ super() }}
+{% extends "layouts/layout_admin.html" %}{% block title %}Globalify{% endblock %} {% block head %} {{ super() }}
 <script src="../../static/scripts/dashboard.js" defer></script>
-<script src="../../static/scripts/selectionColorToggle.js" defer></script>
 {% endblock %} {% block content %}
 <main class="mt-28 flex h-full flex-wrap justify-center gap-5 px-8 pb-16">
     <section class="flex w-full max-w-[40rem] flex-col gap-3">
@@ -33,13 +31,32 @@ block head %} {{ super() }}
                 <h1 class="text-5xl font-medium">Add Investor</h1>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <label for="first_name" class="input-label">First name:</label>
-                <input type="text" id="first_name" name="first_name" class="input-field" required /><br /><br />
+                <input
+                    type="text"
+                    id="first_name"
+                    name="first_name"
+                    autocomplete="given-name"
+                    class="input-field"
+                    required
+                /><br /><br />
 
                 <label for="last_name" class="input-label">Last name:</label>
-                <input type="text" id="last_name" name="last_name" class="input-field" /><br /><br />
+                <input
+                    type="text"
+                    id="last_name"
+                    name="last_name"
+                    autocomplete="family-name"
+                    class="input-field"
+                /><br /><br />
 
                 <label for="firm_name" class="input-label">Firm name:</label>
-                <input type="text" id="firm_name" name="firm_name" class="input-field" /><br /><br />
+                <input
+                    type="text"
+                    id="firm_name"
+                    name="firm_name"
+                    autocomplete="organization"
+                    class="input-field"
+                /><br /><br />
 
                 <label for="about" class="input-label">About:</label>
                 <textarea
@@ -52,29 +69,63 @@ block head %} {{ super() }}
                 ><br /><br />
 
                 <label for="postion" class="input-label">Postion:</label>
-                <input type="text" id="position" name="position" class="input-field" /><br /><br />
+                <input
+                    type="text"
+                    id="position"
+                    name="position"
+                    autocomplete="position"
+                    class="input-field"
+                /><br /><br />
 
                 <label for="website" class="input-label">Website:</label>
-                <input type="text" id="website" name="website" class="input-field" /><br /><br />
+                <input
+                    type="text"
+                    id="website"
+                    name="website"
+                    autocomplete="personal-website"
+                    placeholder="https://example.com"
+                    class="input-field"
+                /><br /><br />
 
                 <label for="linkedin" class="input-label">LinkedIn:</label>
-                <input type="text" id="linkedin" name="linkedin" class="input-field" /><br /><br />
+                <input
+                    type="text"
+                    id="linkedin"
+                    name="linkedin"
+                    autocomplete="linkedin"
+                    placeholder="https://linkedin.com/in/username"
+                    class="input-field"
+                /><br /><br />
 
                 <label for="twitter" class="input-label">Twitter:</label>
-                <input type="text" id="twitter" name="twitter" class="input-field" /><br /><br />
+                <input
+                    type="text"
+                    id="twitter"
+                    name="twitter"
+                    autocomplete="twitter"
+                    placeholder="https://twitter.com/username"
+                    class="input-field"
+                /><br /><br />
 
                 <label for="email" class="input-label">Email:</label>
                 <input
                     type="email"
                     id="email"
                     name="email"
+                    autocomplete="email"
                     class="input-field"
                     pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                     title="Enter a valid email address"
                 /><br /><br />
 
                 <label for="phone_number" class="input-label">Phone Number:</label>
-                <input type="text" id="phone_number" name="phone_number" class="input-field" /><br /><br />
+                <input
+                    type="text"
+                    id="phone_number"
+                    name="phone_number"
+                    autocomplete="tel"
+                    class="input-field"
+                /><br /><br />
 
                 <label for="n_investments" class="input-label"># Investments:</label>
                 <input type="number" id="n_investments" name="n_investments" class="input-field" min="0" /><br /><br />
@@ -101,7 +152,13 @@ block head %} {{ super() }}
                 /><br /><br />
 
                 <label for="location" class="input-label">Location:</label>
-                <input type="text" id="location" name="location" class="input-field" /><br /><br />
+                <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    autocomplete="location"
+                    class="input-field"
+                /><br /><br />
 
                 <label class="input-label" for="selected_rounds">Select Rounds:</label>
                 <button

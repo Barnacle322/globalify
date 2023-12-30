@@ -1,14 +1,10 @@
-{% extends "layouts/layout_admin.html" %}{% block title %}Globalify{% endblock %} {%
-block head %} {{ super() }}
+{% extends "layouts/layout_admin.html" %}{% block title %}Globalify{% endblock %} {% block head %} {{ super() }}
 <script src="../../../static/scripts/dashboard.js" defer></script>
 {% endblock %} {% block content %}
 <main class="mt-28 flex h-full flex-wrap justify-center gap-5 px-8 pb-16">
     <section class="flex w-full max-w-[40rem] flex-col gap-3">
         <div class="flex items-center justify-center gap-1 text-slate-700">
-            <form
-                method="POST"
-                action="/admin/investment_firm/edit/{{ investment_firm.id }}"
-            >
+            <form method="POST" action="/admin/investment-firm/edit/{{ investment_firm.id }}">
                 <div class="flex items-start justify-start gap-1 text-slate-700">
                     <a
                         href="/admin/investment-firms"
@@ -41,6 +37,7 @@ block head %} {{ super() }}
                     type="text"
                     id="name"
                     name="name"
+                    autocomplete="name"
                     class="input-field"
                     value="{{ investment_firm.name }}"
                 /><br /><br />
@@ -61,6 +58,8 @@ block head %} {{ super() }}
                     type="text"
                     id="website"
                     name="website"
+                    autocomplete="personal-website"
+                    placeholder="https://example.com"
                     class="input-field"
                     value="{{ investment_firm.website }}"
                 /><br /><br />
@@ -70,6 +69,7 @@ block head %} {{ super() }}
                     type="email"
                     id="email"
                     name="email"
+                    autocomplete="email"
                     class="input-field"
                     value="{{ investment_firm.email }}"
                     pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
@@ -81,6 +81,7 @@ block head %} {{ super() }}
                     type="text"
                     id="phone_number"
                     name="phone_number"
+                    autocomplete="phone"
                     class="input-field"
                     value="{{ investment_firm.phone_number }}"
                 /><br /><br />

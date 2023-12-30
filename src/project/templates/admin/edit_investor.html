@@ -37,6 +37,7 @@
                     type="text"
                     id="first_name"
                     name="first_name"
+                    autocomplete="first_name-name"
                     class="input-field"
                     value="{{ investor.first_name }}"
                 /><br /><br />
@@ -46,6 +47,7 @@
                     type="text"
                     id="last_name"
                     name="last_name"
+                    autocomplete="last_name"
                     class="input-field"
                     value="{{ investor.last_name }}"
                 /><br /><br />
@@ -55,6 +57,7 @@
                     type="text"
                     id="firm_name"
                     name="firm_name"
+                    autocomplete="firm_name"
                     class="input-field"
                     value="{{ investor.firm_name }}"
                 /><br /><br />
@@ -67,7 +70,8 @@
                     cols="50"
                     class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                 >
-{{ investor.about }}</textarea
+                {{ investor.about }}
+                </textarea
                 ><br /><br />
 
                 <label class="input-label" for="position">Position:</label>
@@ -75,6 +79,7 @@
                     type="text"
                     id="position"
                     name="position"
+                    autocomplete="position"
                     class="input-field"
                     value="{{ investor.position }}"
                 /><br /><br />
@@ -84,6 +89,8 @@
                     type="text"
                     id="website"
                     name="website"
+                    autocomplete="website"
+                    placeholder="https://example.com"
                     class="input-field"
                     value="{{ investor.website }}"
                 /><br /><br />
@@ -93,6 +100,8 @@
                     type="text"
                     id="linkedin"
                     name="linkedin"
+                    autocomplete="linkedin"
+                    placeholder="https://linkedin.com/in/username"
                     class="input-field"
                     value="{{ investor.linkedin }}"
                 /><br /><br />
@@ -102,6 +111,8 @@
                     type="text"
                     id="twitter"
                     name="twitter"
+                    autocomplete="twitter"
+                    placeholder="https://twitter.com/username"
                     class="input-field"
                     value="{{ investor.twitter }}"
                 /><br /><br />
@@ -111,6 +122,7 @@
                     type="email"
                     id="email"
                     name="email"
+                    autocomplete="email"
                     class="input-field"
                     value="{{ investor.email }}"
                     pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
@@ -122,6 +134,7 @@
                     type="text"
                     id="phone_number"
                     name="phone_number"
+                    autocomplete="phone_number"
                     class="input-field"
                     value="{{ investor.phone_number }}"
                 /><br /><br />
@@ -171,6 +184,7 @@
                     type="text"
                     id="location"
                     name="location"
+                    autocomplete="location"
                     class="input-field"
                     value="{{ investor.location }}"
                 /><br /><br />

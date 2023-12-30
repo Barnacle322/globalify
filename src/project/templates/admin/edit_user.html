@@ -4,7 +4,7 @@
 <main class="mt-28 flex h-full flex-wrap justify-center gap-5 px-8 pb-16">
     <section class="flex w-full max-w-[40rem] flex-col gap-3">
         <div class="flex items-center justify-center gap-1 text-slate-700">
-            <form action="/admin/user/add" method="POST">
+            <form action="/admin/user/edit/{{ user.id }}" method="POST">
                 <div class="flex items-start justify-start gap-1 text-slate-700">
                     <a
                         href="/admin/users"
@@ -29,12 +29,10 @@
                     </a>
                 </div>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <h1 class="text-5xl font-medium">Add User</h1>
+                <h1 class="text-5xl font-medium">Edit User</h1>
                 <br />
                 <div class="flex justify-center">
-                    <span class="bg-white px-2 text-sm font-semibold uppercase tracking-wider text-gray-500"
-                        >User Info</span
-                    >
+                    <span class="bg-white px-2 text-sm font-semibold uppercase tracking-wider text-gray-500">User</span>
                 </div>
                 <label for="email" class="input-label">Email:</label>
                 <input
@@ -43,13 +41,21 @@
                     name="email"
                     autocomplete="email"
                     class="input-field"
+                    value="{{ user.email }}"
                     pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                     title="Enter a valid email address"
                     required
                 /><br /><br />
 
                 <label for="password" class="input-label">Password:</label>
-                <input type="password" id="password" name="password" class="input-field" required /><br /><br />
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="input-field"
+                    value="{{ user.password_hash }}"
+                    required
+                /><br /><br />
 
                 <label for="confirm_password" class="input-label">Confirm password:</label>
                 <input
@@ -57,6 +63,7 @@
                     id="confirm_password"
                     name="confirm_password"
                     class="input-field"
+                    value="{{ user.password_hash }}"
                     required
                 /><br /><br />
 
@@ -66,6 +73,7 @@
                     id="is_verified"
                     name="is_verified"
                     class="h-5 w-5 rounded border-gray-300 text-blue-500 focus:border-blue-400 focus:ring-blue-200"
+                    {% if user.is_verified %} checked {% endif %}
                 />
                 <br /><br />
 
@@ -75,6 +83,7 @@
                     id="is_admin"
                     name="is_admin"
                     class="h-5 w-5 rounded border-gray-300 text-blue-500 focus:border-blue-400 focus:ring-blue-200"
+                    {% if user.is_admin %} checked {% endif %}
                 />
                 <br /><br />
                 <div class="flex justify-center">
@@ -90,6 +99,7 @@
                     name="first_name"
                     autocomplete="first_name"
                     class="input-field"
+                    value="{{ user_info.first_name if user_info.first_name else ''}}"
                     required
                 /><br /><br />
 
@@ -100,6 +110,7 @@
                     name="last_name"
                     autocomplete="last_name"
                     class="input-field"
+                    value="{{ user_info.last_name if user_info.last_name else ''}}"
                     required
                 /><br /><br />
 
@@ -111,6 +122,7 @@
                     autocomplete="username"
                     pattern="[a-zA-Z0-9_]{3,20}"
                     class="input-field"
+                    value="{{ user_info.username if user_info.username else ''}}"
                     required
                 /><br /><br />
 
@@ -121,6 +133,7 @@
                     rows="4"
                     cols="50"
                     class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                    value="{{ user_info.bio if user_info.bio else ''}}"
                 ></textarea
                 ><br /><br />
 
@@ -131,17 +144,19 @@
                     name="linkedin"
                     autocomplete="linkedin"
                     class="input-field"
+                    value="{{ user_info.linkedin if user_info.linkedin else ''}}"
                     placeholder="https://linkedin.com/in/username"
                 /><br /><br />
 
                 <label for="instagram" class="input-label">Instagram:</label>
                 <input
                     type="text"
-                    id="website"
-                    name="website"
+                    id="instagram"
+                    name="instagram"
                     autocomplete="instagram"
-                    placeholder="https://instagram.com/username"
                     class="input-field"
+                    value="{{ user_info.instagram if user_info.instagram else ''}}"
+                    placeholder="https://instagram.com/username"
                 /><br /><br />
 
                 <label for="twitter" class="input-label">Twitter:</label>
@@ -150,8 +165,9 @@
                     id="twitter"
                     name="twitter"
                     autocomplete="twitter"
-                    placeholder="https://twitter.com/username"
                     class="input-field"
+                    value="{{ user_info.twitter if user_info.twitter else ''}}"
+                    placeholder="https://twitter.com/username"
                 /><br /><br />
 
                 <div class="col-span-full">
@@ -171,6 +187,7 @@
                         </svg>
                         <input
                             class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
+                            value="{{ user_info.pfp_uuid }}"
                             type="file"
                             id="pfp"
                             name="pfp"
@@ -186,6 +203,7 @@
                     id="is_complete"
                     name="is_complete"
                     class="h-5 w-5 rounded border-gray-300 text-blue-500 focus:border-blue-400 focus:ring-blue-200"
+                    {% if user_info.is_complete %} checked {% endif %}
                 />
                 <br /><br />
 
@@ -193,20 +211,27 @@
                     <label for="language" class="block text-sm font-medium leading-6 text-gray-900">Language*</label>
                     <div class="mt-2">
                         <select
-                            id="language"
-                            name="language"
-                            autocomplete="language"
-                            class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
-                            required
+                        id="language"
+                        name="language"
+                        autocomplete="language"
+                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                        required
                         >
-                            <option value="" disabled selected hidden>Select a language</option>
-                            {% if languages %} {% for language in languages %}
-                            <option>{{ language }}</option>
-                            {% endfor %} {% endif %}
-                        </select>
+                        <option value="" {% if not user_info.language %} selected {% endif %} disabled hidden>
+                            Select a language
+                        </option>
+                        {% if languages %}
+                            {% for language in languages %}
+                                <option value="{{ language }}" {% if user_info.language == language %} selected {% endif %}>
+                                    {{ language }}
+                                </option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
                     </div>
                 </div>
                 <br />
+
                 <div class="flex justify-center">
                     <span class="bg-white px-2 text-sm font-semibold uppercase tracking-wider text-gray-500"
                         >User Payment</span
@@ -216,16 +241,40 @@
                 <br />
 
                 <label for="customer_id" class="input-label">Customer ID:</label>
-                <input type="text" id="customer_id" name="customer_id" class="input-field" /><br /><br />
+                <input
+                    type="text"
+                    id="customer_id"
+                    name="customer_id"
+                    class="input-field"
+                    value="{{ user_payment.customer_id }}"
+                /><br /><br />
 
                 <label for="subscription_id" class="input-label">Subscription ID:</label>
-                <input type="text" id="subscription_id" name="subscription_id" class="input-field" /><br /><br />
+                <input
+                    type="text"
+                    id="subscription_id"
+                    name="subscription_id"
+                    class="input-field"
+                    value="{{ user_payment.subscription_id }}"
+                /><br /><br />
 
                 <label for="created" class="input-label">Created:</label>
-                <input type="date" id="created" name="created" class="input-field" /><br /><br />
+                <input
+                    type="date"
+                    id="created"
+                    name="created"
+                    class="input-field"
+                    value="{% if user_payment.created %}{{ user_payment.created.strftime('%Y-%m-%d') }}{% endif %}"
+                /><br /><br />
 
                 <label for="expires_at" class="input-label">Expires at:</label>
-                <input type="date" id="expires_at" name="expires_at" class="input-field" /><br /><br />
+                <input
+                    type="date"
+                    id="expires_at"
+                    name="expires_at"
+                    class="input-field"
+                    value="{% if user_payment.expires_at %}{{ user_payment.expires_at.strftime('%Y-%m-%d') }}{% endif %}"
+                /><br /><br />
 
                 <label for="is_active" class="input-label">Is Active:</label>
                 <input
@@ -233,13 +282,14 @@
                     id="is_active"
                     name="is_active"
                     class="h-5 w-5 rounded border-gray-300 text-blue-500 focus:border-blue-400 focus:ring-blue-200"
+                    {% if user.is_active %} checked {% endif %}
                 />
                 <br /><br />
                 <button
                     type="submit"
                     class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
                 >
-                    Create</button
+                    Update</button
                 ><br />
             </form>
         </div>

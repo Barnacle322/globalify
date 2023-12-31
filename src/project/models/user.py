@@ -150,10 +150,10 @@ class UserInfo(db.Model):
 class UserPayment(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False, unique=True)
-    customer_id: Mapped[str] = mapped_column(String, nullable=True)
-    subscription_id: Mapped[str] = mapped_column(String, nullable=True)
-    created: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
-    expires_at: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
+    customer_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    subscription_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    created: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
+    expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     tier: Mapped[Tier] = mapped_column(SQLEnum(Tier), nullable=False, default=Tier.FREE)
 
@@ -166,23 +166,25 @@ class UserPayment(db.Model):
         return f"<UserPayment: {self.customer_id} | {'Active' if self.is_active else 'Inactive'}>"
 
     @property
-    def created_epoch(self) -> DateTime | None:
+    def created_epoch(self) -> datetime.datetime | None:
         return self.created
 
     @property
-    def expires_at_epoch(self) -> DateTime | None:
+    def expires_at_epoch(self) -> datetime.datetime | None:
         return self.expires_at
 
     @created_epoch.setter
     def created_epoch(self, created_epoch: int) -> None:
-        self.created = datetime.datetime.utcfromtimestamp(created_epoch)  # type: ignore
+        self.created = datetime.datetime.utcfromtimestamp(created_epoch)
 
     @expires_at_epoch.setter
     def expires_at_epoch(self, expires_at_epoch: int) -> None:
-        self.expires_at = datetime.datetime.utcfromtimestamp(expires_at_epoch)  # type: ignore
+        self.expires_at = datetime.datetime.utcfromtimestamp(expires_at_epoch)
 
     def is_expired(self) -> bool:
-        return self.expires_at < datetime.datetime.utcnow()  # type: ignore
+        if not self.expires_at:
+            return True
+        return self.expires_at < datetime.datetime.utcnow()
 
     @staticmethod
     def get_by_customer_id(customer_id: str) -> UserPayment | None:

@@ -355,7 +355,7 @@
                         <form
                             action="/admin/investment-firm/delete/{{ investment_firm.id }}"
                             method="POST"
-                            onsubmit="return confirm('Are you sure you want to delete this investor?');"
+                            onsubmit="return confirm('Are you sure you want to delete this investment firm?');"
                         >
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                             <button

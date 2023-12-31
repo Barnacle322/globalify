@@ -2,8 +2,17 @@
 import os
 from collections.abc import Callable
 from concurrent import futures
+from enum import Enum
 
 from google.cloud import pubsub_v1
+
+
+class Events(Enum):
+    STRIPE_INVOICE_PAID = "stripe.invoice_paid"
+    STRIPE_INVOICE_UPCOMING = "stripe.invoice_upcoming"
+    STRIPE_TRIAL_WILL_END = "stripe.trial_will_end"
+    STRIPE_PAYMENT_FAILED = "stripe.payment_failed"
+
 
 credentials = {
     "type": os.environ.get("_PUBSUB_TYPE"),
@@ -21,7 +30,7 @@ credentials = {
 
 
 project_id = "globalify-email-service"
-topic_id = "test_topic"
+topic_id = "send-email"
 
 publisher = pubsub_v1.PublisherClient().from_service_account_info(credentials)
 topic_path = publisher.topic_path(project_id, topic_id)
@@ -42,15 +51,17 @@ def get_callback(
     return callback
 
 
-for i in range(10):
-    data = str(i)
-    # When you publish a message, the client returns a future.
-    publish_future = publisher.publish(topic_path, data.encode("utf-8"))
-    # Non-blocking. Publish failures are handled in the callback function.
-    publish_future.add_done_callback(get_callback(publish_future, data))
+def send_event(msg: str, **attributes) -> None:
+    publish_future = publisher.publish(topic_path, msg.encode("utf-8"), **attributes)
+    publish_future.add_done_callback(get_callback(publish_future, msg))
     publish_futures.append(publish_future)
+    futures.wait(publish_futures, return_when=futures.ALL_COMPLETED)
+    print(f"Published messages with error handler to {topic_path}.")
 
-# Wait for all the publish futures to resolve before exiting.
-futures.wait(publish_futures, return_when=futures.ALL_COMPLETED)
 
-print(f"Published messages with error handler to {topic_path}.")
+if __name__ == "__main__":
+    send_event(
+        "A user has signed up",
+        event=Events.STRIPE_INVOICE_UPCOMING.value,
+        email="username@email.com",
+    )

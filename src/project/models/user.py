@@ -131,6 +131,14 @@ class UserInfo(db.Model):
             return None
 
     @staticmethod
+    def get_all() -> list[UserInfo]:
+        try:
+            users: list[UserInfo] = UserInfo.query.all()
+            return users
+        except NoResultFound:
+            return []
+
+    @staticmethod
     def is_taken(username: str | None) -> bool:
         try:
             user_info = UserInfo.query.filter(UserInfo.username == username).first()

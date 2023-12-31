@@ -467,7 +467,7 @@ def add_investment_firm():
 @admin.route("/investment-firm/edit/<int:investment_firm_id>", methods=["GET", "POST"])
 def edit_investment_firm(investment_firm_id):
     """
-    Can’t figure out how I can send an error to the specified url
+    Can not figure out how I can send an error to the specified url
 
     Need to add validation for phone_number
     """
@@ -556,7 +556,7 @@ def get_all_users():
     """
     Need to make this page more beautiful
     """
-    users = User.get_all()
+    users = UserInfo.get_all()
 
     return render_template("admin/get_users.html", users=users)
 
@@ -657,7 +657,6 @@ def add_user():
 
         db.session.add(new_user_payment)
         db.session.commit()
-
         return redirect(url_for("admin.get_all_users"))
     return render_template("admin/add_user.html", languages=language_list, status_type=status_type, msg=msg)
 

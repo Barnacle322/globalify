@@ -4,11 +4,11 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
-from ..models import User, UserInfo, UserPayment
+from ..models import User, UserInfo, UserOauth, UserPayment, UserRegular
 from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
 from ..utils.google_storage import load_pfp
 from ..utils.info_lists import languages as language_list
-from ..utils.status_enum import OauthProvider, Status, StatusType, Tier
+from ..utils.status_enum import Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
@@ -117,6 +117,10 @@ def change_password():
     new_password = request.form.get("new-password")
     confirm_password = request.form.get("confirm-password")
 
+    if not isinstance(authenticated_user, UserRegular):
+        status = Status(StatusType.ERROR, "Cannot change password for oauth users.").get_status()
+        return redirect(url_for("main.settings", _external=False, **status))
+
     if not current_password or not new_password or not confirm_password:
         status = Status(StatusType.ERROR, "Please fill out all fields.").get_status()
         return redirect(url_for("main.settings", _external=False, **status))
@@ -175,9 +179,9 @@ def change_personal_info():  # noqa
             status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 
-        if not authenticated_user.oauth_provider == OauthProvider.REGULAR:
-            status = Status(StatusType.ERROR, "Cannot change email for oauth users.").get_status()
-            return redirect(url_for("settings.index", _external=False, **status))
+        if isinstance(authenticated_user, UserOauth):
+            status = Status(StatusType.ERROR, "Cannot change password for oauth users.").get_status()
+            return redirect(url_for("main.settings", _external=False, **status))
 
         authenticated_user.email = email
 
@@ -204,7 +208,6 @@ def change_personal_info():  # noqa
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Personal info successfully changed.").get_status()
-
     return redirect(url_for("settings.index", _external=False, **status))
 
 
@@ -226,7 +229,7 @@ def delete_account():
 
         return redirect(url_for("main.index", _external=False))
 
-    if authenticated_user.oauth_provider != OauthProvider.REGULAR:
+    if isinstance(authenticated_user, UserOauth):
         return render_template("settings/delete_oauth_account.html")
 
     return render_template("settings/delete_account.html")

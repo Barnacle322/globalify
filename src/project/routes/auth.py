@@ -11,9 +11,9 @@ from flask_login import (
 )
 
 from ..extensions import db, login_manager, oauth
-from ..models import Company, Country, Industry, Round, User, UserInfo, UserPayment
+from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
 from ..utils.errors.auth_error_messages import (
-    AUTH_EMAIL_NOT_FOUNDS,
+    AUTH_EMAIL_NOT_FOUND,
     AUTH_EMAIL_USED,
     AUTH_FIELDS_INCOMPLETE,
     AUTH_INCORRECT_PASSWORD,
@@ -50,13 +50,13 @@ def load_user(user_id: int) -> User | None:
         User | None: The user corresponding to the user ID, or None if not found.
 
     """
-    user = User.get_by_id(int(user_id))
+    user = User.get_by_id(id=int(user_id))
     if user:
         return user
     return None
 
 
-def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
+def oauth_user(email: str, oauth_provider: OauthProvider) -> UserOauth:
     """
     Authenticates and retrieves a user based on the email and OAuth provider.
 
@@ -77,12 +77,15 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
     """
     user = User.get_by_email(email)
     if not user:
-        user = User(email=email)
+        user = UserOauth(email=email)
         db.session.add(user)
         db.session.commit()
         return user
 
-    if user.oauth_provider != oauth_provider:
+    if not isinstance(user, UserOauth):
+        raise Exception(AUTH_EMAIL_USED)
+
+    if isinstance(user, UserOauth) and user.oauth_provider != oauth_provider:
         raise Exception(OAUTH_MISMATCHED_PROVIDER)
 
     return user
@@ -142,16 +145,16 @@ def register():
             status = Status(StatusType.ERROR, AUTH_MISMATCHED_PASSWORDS).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 
-        if (oauth := User.signed_with_oauth(email)) != OauthProvider.REGULAR:
-            status = Status(StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())).get_status()
+        user = User.get_by_email(email)
+        if user and isinstance(user, UserOauth):
+            status = Status(StatusType.WARNING, AUTH_OAUTH_USED).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 
-        user = User.get_by_email(email)
         if user:
             status = Status(StatusType.ERROR, AUTH_EMAIL_USED).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 
-        new_user = User(email=email, oauth_provider=OauthProvider.REGULAR)
+        new_user = UserRegular(email=email)
         new_user.password = password
         db.session.add(new_user)
         db.session.commit()
@@ -196,15 +199,15 @@ def login():
             return redirect(url_for("auth.login", _external=False, **status))
 
         user = User.get_by_email(email)
+        if user and isinstance(user, UserOauth):
+            status = Status(StatusType.WARNING, AUTH_OAUTH_USED).get_status()
+            return redirect(url_for("auth.register", _external=False, **status))
+
         if not user:
-            status = Status(StatusType.ERROR, AUTH_EMAIL_NOT_FOUNDS).get_status()
+            status = Status(StatusType.ERROR, AUTH_EMAIL_NOT_FOUND).get_status()
             return redirect(url_for("auth.login", _external=False, **status))
 
-        if (oauth := User.signed_with_oauth(email)) != OauthProvider.REGULAR:
-            status = Status(StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())).get_status()
-            return redirect(url_for("auth.login", _external=False, **status))
-
-        if not user.verify_password(password):
+        if isinstance(user, UserRegular) and not user.verify_password(password):
             status = Status(StatusType.ERROR, AUTH_INCORRECT_PASSWORD).get_status()
             return redirect(url_for("auth.login", _external=False, **status))
 

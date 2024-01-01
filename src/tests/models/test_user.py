@@ -2,17 +2,15 @@ import pytest
 from werkzeug.security import check_password_hash
 
 from ...project import db
-from ...project.models import Company, User, UserInfo, UserPayment
-from ...project.utils.status_enum import OauthProvider
+from ...project.models import Company, User, UserInfo, UserPayment, UserRegular
 
 
 @pytest.fixture()
 def new_user(app):
     with app.app_context():
-        user = User(
+        user = UserRegular(
             email="johndoe@example.com",
             password="password",
-            oauth_provider=OauthProvider.REGULAR,
         )
         db.session.add(user)
         db.session.commit()
@@ -53,7 +51,7 @@ def test_user(new_user, app):
         assert user
         assert user.email == "johndoe@example.com"
         assert check_password_hash(user.password_hash, "password")
-        assert user.oauth_provider == OauthProvider.REGULAR
+        assert isinstance(user, UserRegular)
         assert user.is_verified is False
         assert user.is_admin is False
 

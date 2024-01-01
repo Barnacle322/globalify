@@ -246,7 +246,7 @@
                     id="customer_id"
                     name="customer_id"
                     class="input-field"
-                    value="{{ user_payment.customer_id }}"
+                    value="{{ user_payment.customer_id if user_payment.customer_id else '' }}"
                 /><br /><br />
 
                 <label for="subscription_id" class="input-label">Subscription ID:</label>
@@ -255,7 +255,7 @@
                     id="subscription_id"
                     name="subscription_id"
                     class="input-field"
-                    value="{{ user_payment.subscription_id }}"
+                    value="{{ user_payment.subscription_id if user_payment.subscription_id else '' }}"
                 /><br /><br />
 
                 <label for="created" class="input-label">Created:</label>

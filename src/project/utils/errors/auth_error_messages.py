@@ -3,7 +3,7 @@ AUTH_EMAIL_USED = "Email is already in use."
 AUTH_EMAIL_NOT_FOUNDS = "User associated with this email does not exist."
 AUTH_MISMATCHED_PASSWORDS = "Passwords do not match."
 AUTH_INCORRECT_PASSWORD = "The password is incorrect"
-AUTH_OAUTH_USED = "Please sign in with {}."
+AUTH_OAUTH_USED = "Please sign in with your OAuth provider."
 AUTH_FIELDS_INCOMPLETE = "Please fill out all fields."
 AUTH_USERNAME_USED = "Username is already in use."
 

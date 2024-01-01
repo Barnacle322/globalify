@@ -4,7 +4,6 @@ import re
 import requests
 from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
 from flask_login import (
-    AnonymousUserMixin,
     current_user,
     login_required,
     login_user,
@@ -12,7 +11,7 @@ from flask_login import (
 )
 
 from ..extensions import db, login_manager, oauth
-from ..models import Company, Country, Industry, Round, User, UserInfo, UserPayment
+from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
 from ..utils.errors.auth_error_messages import (
     AUTH_EMAIL_NOT_FOUNDS,
     AUTH_EMAIL_USED,
@@ -41,13 +40,13 @@ LINKEDIN_PERSONAL_INFO_URL = "https://api.linkedin.com/v2/me"
 
 @login_manager.user_loader
 def load_user(user_id: int) -> User | None:
-    user = User.get_by_id(int(user_id))
+    user = User.get_by_id(id=int(user_id))
     if user:
         return user
     return None
 
 
-def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
+def oauth_user(email: str, oauth_provider: OauthProvider) -> UserOauth:
     """
     - No User -> create and return new User
     - User exists, but OAuth provider is different -> raise Exception
@@ -55,15 +54,18 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
     """
     user = User.get_by_email(email)
     if not user:
-        user = User(email=email)
+        user = UserOauth(email=email)
         db.session.add(user)
         db.session.commit()
         return user
 
-    if user.oauth_provider != oauth_provider:
+    if isinstance(user, UserRegular):
+        raise Exception(AUTH_EMAIL_USED)
+
+    if isinstance(user, UserOauth) and user.oauth_provider != oauth_provider:
         raise Exception(OAUTH_MISMATCHED_PROVIDER)
 
-    return user
+    return user  # type: ignore
 
 
 def api_call(url: str, access_token: str):
@@ -99,16 +101,16 @@ def register():
             status = Status(StatusType.ERROR, AUTH_MISMATCHED_PASSWORDS).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 
-        if (oauth := User.signed_with_oauth(email)) != OauthProvider.REGULAR:
-            status = Status(StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())).get_status()
+        user = User.get_by_email(email)
+        if user and isinstance(user, UserOauth):
+            status = Status(StatusType.WARNING, AUTH_OAUTH_USED).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 
-        user = User.get_by_email(email)
         if user:
             status = Status(StatusType.ERROR, AUTH_EMAIL_USED).get_status()
             return redirect(url_for("auth.register", _external=False, **status))
 
-        new_user = User(email=email, oauth_provider=OauthProvider.REGULAR)
+        new_user = UserRegular(email=email)
         new_user.password = password
         db.session.add(new_user)
         db.session.commit()
@@ -143,15 +145,15 @@ def login():
             return redirect(url_for("auth.login", _external=False, **status))
 
         user = User.get_by_email(email)
+        if user and isinstance(user, UserOauth):
+            status = Status(StatusType.WARNING, AUTH_OAUTH_USED).get_status()
+            return redirect(url_for("auth.register", _external=False, **status))
+
         if not user:
             status = Status(StatusType.ERROR, AUTH_EMAIL_NOT_FOUNDS).get_status()
             return redirect(url_for("auth.login", _external=False, **status))
 
-        if (oauth := User.signed_with_oauth(email)) != OauthProvider.REGULAR:
-            status = Status(StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())).get_status()
-            return redirect(url_for("auth.login", _external=False, **status))
-
-        if not user.verify_password(password):
+        if isinstance(user, UserRegular) and not user.verify_password(password):
             status = Status(StatusType.ERROR, AUTH_INCORRECT_PASSWORD).get_status()
             return redirect(url_for("auth.login", _external=False, **status))
 
@@ -169,9 +171,10 @@ def login():
 @auth.route("/onboarding", methods=["GET", "POST"])
 @login_required
 def onboarding():
-    authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info:
@@ -224,8 +227,7 @@ def onboarding():
 @auth.get("/username/<username>")
 @login_required
 def username(username: str):
-    authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
     is_taken = UserInfo.is_taken(username)
@@ -236,9 +238,10 @@ def username(username: str):
 @auth.route("/company-form", methods=["GET", "POST"])
 @login_required
 def company_form():
-    authenticated_user: User = current_user  # type: ignore
-    if isinstance(authenticated_user, AnonymousUserMixin):
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info:

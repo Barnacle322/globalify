@@ -20,9 +20,7 @@ from ..utils.status_enum import OauthProvider, Tier
 class User(UserMixin, db.Model):
     """
     Base class for a user in the application.
-
     This should not be used directly to instantiate a user. Instead, use one of the subclasses.
-
     Although, this can be used to query for users.
     """
 
@@ -116,8 +114,8 @@ class UserOauth(User):
         "polymorphic_identity": "user_oauth",
     }
 
-    @classmethod
-    def signed_with_oauth(cls, email: str) -> bool:
+    @staticmethod
+    def signed_with_oauth(email: str) -> bool:
         """
         Checks if a user is signed in with an OAuth provider.
 
@@ -129,7 +127,7 @@ class UserOauth(User):
 
         """
         try:
-            user = cls.query.filter(User.email == email).first()
+            user = UserOauth.query.filter(User.email == email).first()
             if not user:
                 return False
             return user.oauth_provider

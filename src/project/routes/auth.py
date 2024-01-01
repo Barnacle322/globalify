@@ -13,7 +13,7 @@ from flask_login import (
 from ..extensions import db, login_manager, oauth
 from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
 from ..utils.errors.auth_error_messages import (
-    AUTH_EMAIL_NOT_FOUNDS,
+    AUTH_EMAIL_NOT_FOUND,
     AUTH_EMAIL_USED,
     AUTH_FIELDS_INCOMPLETE,
     AUTH_INCORRECT_PASSWORD,
@@ -59,13 +59,13 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> UserOauth:
         db.session.commit()
         return user
 
-    if isinstance(user, UserRegular):
+    if not isinstance(user, UserOauth):
         raise Exception(AUTH_EMAIL_USED)
 
     if isinstance(user, UserOauth) and user.oauth_provider != oauth_provider:
         raise Exception(OAUTH_MISMATCHED_PROVIDER)
 
-    return user  # type: ignore
+    return user
 
 
 def api_call(url: str, access_token: str):
@@ -150,7 +150,7 @@ def login():
             return redirect(url_for("auth.register", _external=False, **status))
 
         if not user:
-            status = Status(StatusType.ERROR, AUTH_EMAIL_NOT_FOUNDS).get_status()
+            status = Status(StatusType.ERROR, AUTH_EMAIL_NOT_FOUND).get_status()
             return redirect(url_for("auth.login", _external=False, **status))
 
         if isinstance(user, UserRegular) and not user.verify_password(password):

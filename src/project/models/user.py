@@ -683,6 +683,14 @@ class Company(db.Model):
         return f"<Company {self.name}>"
 
     @staticmethod
+    def get_all() -> list[Company]:
+        try:
+            companies: list[Company] = Company.query.all()
+            return companies
+        except NoResultFound:
+            return []
+
+    @staticmethod
     def get_by_user_id(user_id: int) -> Company | None:
         """
         Retrieves a company by user ID.

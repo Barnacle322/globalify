@@ -146,7 +146,7 @@ def dashboard():
 
     search_query = request.args.get("q", "")
     page_num = request.args.get("page", 1, type=int)
-    investors = Investor.get_pagination(page=page_num, query=search_query)
+    investors = Investor.get_pagination(page=page_num, search_string=search_query)
 
     if page_num > investors.pages and investors.pages > 0:  # type: ignore
         return redirect(url_for("main.search", search=search_query, pagenum=1))
@@ -172,7 +172,7 @@ def investment_firms():
 
     search_query = request.args.get("q", "")
     page_num = request.args.get("page", 1, type=int)
-    investment_firms = InvestmentFirm.get_pagination(page=page_num, query=search_query)
+    investment_firms = InvestmentFirm.get_pagination(page=page_num, search_string=search_query)
 
     if page_num > investment_firms.pages and investment_firms.pages > 0:  # type: ignore
         return redirect(url_for("main.search", search=search_query, pagenum=1))

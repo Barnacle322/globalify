@@ -11,10 +11,9 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, backref, declared_attr, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from src.project.models.helpers import Country, Industry, Round
-
 from ..extensions import db
 from ..utils.status_enum import OauthProvider, Tier
+from .helpers import Country, Industry, Round
 
 
 class User(UserMixin, db.Model):

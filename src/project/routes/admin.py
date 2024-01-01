@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from ..extensions import db
-from ..models import Industry, InvestmentFirm, Investor, Round, User, UserInfo, UserPayment
+from ..models import Company, Country, Industry, InvestmentFirm, Investor, Round, User, UserInfo, UserPayment
 from ..utils.errors.auth_error_messages import (
     AUTH_EMAIL_USED,
     AUTH_FIELDS_INCOMPLETE,
@@ -587,7 +587,7 @@ def delete_investment_firm(investment_firm_id):
 # User
 
 
-@admin.route("/users")
+@admin.route("/users/")
 def get_all_users():
     """
     Need to make this page more beautiful
@@ -825,3 +825,100 @@ def delete_user(user_id):
     db.session.commit()
 
     return redirect(url_for("admin.get_all_users"))
+
+
+# Company
+
+@admin.route("/companies")
+def get_all_companies():
+    companies = Company.get_all()
+    return render_template("admin/get_companies.html", companies=companies)
+
+
+@admin.route("/company/add", methods=["GET", "POST"])
+def add_company():
+    users = User.get_all()
+    industries = Industry.get_all()
+    rounds = Round.get_all()
+    countries = Country.get_all()
+
+    if request.method == "POST":
+        company = Company(
+            user_id=request.form.get("user"),
+            name=request.form.get("company-name"),
+            number_of_employees=request.form.get("number_of_employees"),
+            description=request.form.get("description"),
+            country_id=request.form.get("country"),
+            preferred_round_id=request.form.get("round"),
+            industry_id=request.form.get("industry"),
+            website=request.form.get("website"),
+        )
+
+        if pfp := request.files["pfp"]:
+            try:
+                resized_pfp = prepare_picture(pfp)
+                pfp_uuid = upload_blob(resized_pfp.read())
+                company.pfp_uuid = str(pfp_uuid)
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+        db.session.add(company)
+        db.session.commit()
+        return redirect(url_for("admin.get_all_companies"))
+
+    return render_template(
+        "admin/add_company.html",
+        industries=industries,
+        rounds=rounds,
+        countries=countries,
+        users=users,
+    )
+
+
+@admin.route("/company/edit/<int:company_id>", methods=["GET", "POST"])
+def edit_company(company_id):
+    company = Company.get_by_id(company_id)
+    users = User.get_all()
+    industries = Industry.get_all()
+    rounds = Round.get_all()
+    countries = Country.get_all()
+    print(request.form.get("description"))
+    if request.method == "POST":
+        company.user_id=request.form.get("user")
+        company.name=request.form.get("company-name")
+        company.description=request.form.get("description")
+        company.number_of_employees=request.form.get("number_of_employees")
+        company.country_id=request.form.get("country")
+        company.preferred_round_id=request.form.get("round")
+        company.industry_id=request.form.get("industry")
+        company.website=request.form.get("website")
+
+        if pfp := request.files["pfp"]:
+            try:
+                resized_pfp = prepare_picture(pfp)
+                pfp_uuid = upload_blob(resized_pfp.read())
+                company.pfp_uuid = str(pfp_uuid)
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+        db.session.commit()
+        return redirect(url_for("admin.get_all_companies"))
+
+    return render_template(
+        "admin/edit_company.html",
+        industries=industries,
+        rounds=rounds,
+        countries=countries,
+        users=users,
+        company=company,
+    )
+
+
+@admin.route("/company/delete/<int:company_id>", methods=["POST"])
+def delete_company(company_id):
+    company = Company.get_by_id(company_id)
+
+    db.session.delete(company)
+    db.session.commit()
+
+    return redirect(url_for("admin.get_all_companies"))

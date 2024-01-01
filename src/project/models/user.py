@@ -8,7 +8,7 @@ from flask_login import UserMixin
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
+from sqlalchemy.orm import Mapped, backref, declared_attr, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from src.project.models.helpers import Country, Industry, Round
@@ -19,44 +19,140 @@ from ..utils.status_enum import OauthProvider, Tier
 
 class User(UserMixin, db.Model):
     """
-    Represents a user in the application.
+    Base class for a user in the application.
+    This should not be used directly to instantiate a user. Instead, use one of the subclasses.
+    Although, this can be used to query for users.
+    """
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    type = mapped_column(String(50))
+    email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    __mapper_args__ = {"polymorphic_identity": "user", "polymorphic_on": type}
+
+    @declared_attr
+    def user_info(cls):  # noqa: N805
+        return relationship("UserInfo", backref=backref(cls.__name__.lower(), cascade="all, delete"), lazy=True)
+
+    @declared_attr
+    def user_payment(cls):  # noqa: N805
+        return relationship("UserPayment", backref=backref(cls.__name__.lower(), cascade="all, delete"), lazy=True)
+
+    @declared_attr
+    def company(cls):  # noqa: N805
+        return relationship("Company", backref=backref(cls.__name__.lower(), cascade="all, delete"), lazy=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<User {self.email} | {self.type}>"
+
+    @classmethod
+    def get_by_id(cls, id: int) -> User | None:
+        """
+        Retrieves a user by their ID.
+
+        Args:
+            id (int): The ID of the user.
+
+        Returns:
+            User | None: The user with the specified ID, or None if not found.
+
+        """
+        try:
+            user = cls.query.filter(cls.id == id).first()
+            return user
+        except NoResultFound:
+            return None
+
+    @classmethod
+    def get_by_email(cls, email: str) -> User | None:
+        """
+        Retrieves a user by their email address.
+
+        Args:
+            email (str): The email address of the user.
+
+        Returns:
+            User | None: The user with the specified email address, or None if not found.
+
+        """
+        try:
+            user = cls.query.filter(cls.email == email).first()
+            return user
+        except NoResultFound:
+            return None
+
+    @classmethod
+    def get_all(cls):
+        try:
+            users = cls.query.all()
+            return users
+        except NoResultFound:
+            return None
+
+
+class UserOauth(User):
+    """
+    Implements a user in the application that uses OAuth for authentication.
 
     Attributes:
         id (int): The unique identifier for the user.
         email (str): The email address of the user.
-        password_hash (str | None): The hashed password of the user.
         oauth_provider (OauthProvider): The OAuth provider used by the user.
         is_verified (bool): Indicates if the user's email address is verified.
         is_admin (bool): Indicates if the user has administrative privileges.
 
     """
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider), nullable=True)
-    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    def __init__(self, **kwargs):
+    __mapper_args__ = {
+        "polymorphic_identity": "user_oauth",
+    }
+
+    @staticmethod
+    def signed_with_oauth(email: str) -> bool:
         """
-        Initializes a new instance of the User class.
+        Checks if a user is signed in with an OAuth provider.
 
         Args:
-            **kwargs: Additional keyword arguments.
-
-        """
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        """
-        String representation of the User object.
+            email (str): The email address of the user.
 
         Returns:
-            str: A string representation of the User object.
+            OauthProvider: The OAuth provider used by the user, or OauthProvider.REGULAR if not found.
 
         """
-        return f"<User {self.email}>"
+        try:
+            user = UserOauth.query.filter(User.email == email).first()
+            if not user:
+                return False
+            return user.oauth_provider
+        except NoResultFound:
+            return False
+
+
+class UserRegular(User):
+    """
+    Implements a user in the application that uses email and password for authentication.
+
+    Attributes:
+        id (int): The unique identifier for the user.
+        email (str): The email address of the user.
+        password_hash (str | None): The hashed password of the user.
+        is_verified (bool): Indicates if the user's email address is verified.
+        is_admin (bool): Indicates if the user has administrative privileges.
+
+    """
+
+    password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "user_regular",
+    }
 
     @property
     def password(self) -> None:
@@ -95,72 +191,6 @@ class User(UserMixin, db.Model):
             return False
         return check_password_hash(self.password_hash, password)
 
-    @staticmethod
-    def get_by_id(id: int) -> User | None:
-        """
-        Retrieves a user by their ID.
-
-        Args:
-            id (int): The ID of the user.
-
-        Returns:
-            User | None: The user with the specified ID, or None if not found.
-
-        """
-        try:
-            user = User.query.filter(User.id == id).first()
-            return user
-        except NoResultFound:
-            return None
-
-    @staticmethod
-    def get_by_email(email: str) -> User | None:
-        """
-        Retrieves a user by their email address.
-
-        Args:
-            email (str): The email address of the user.
-
-        Returns:
-            User | None: The user with the specified email address, or None if not found.
-
-        """
-        try:
-            user = User.query.filter(User.email == email).first()
-            return user
-        except NoResultFound:
-            return None
-
-    @staticmethod
-    def signed_with_oauth(email: str) -> OauthProvider:
-        """
-        Checks if a user is signed in with an OAuth provider.
-
-        Args:
-            email (str): The email address of the user.
-
-        Returns:
-            OauthProvider: The OAuth provider used by the user, or OauthProvider.REGULAR if not found.
-
-        """
-        try:
-            user = User.query.filter(User.email == email).first()
-            if not user:
-                return OauthProvider.REGULAR
-            return user.oauth_provider
-        except NoResultFound:
-            return OauthProvider.REGULAR
-
-    def uses_oauth(self) -> bool:
-        """
-        Checks if the user is using an OAuth provider for authentication.
-
-        Returns:
-            bool: True if the user is using an OAuth provider, False otherwise.
-
-        """
-        return self.oauth_provider != OauthProvider.REGULAR
-
 
 class UserInfo(db.Model):
     """
@@ -168,7 +198,6 @@ class UserInfo(db.Model):
 
     Attributes:
         id (int): The unique identifier for the user info.
-        user_id (int): The ID of the associated user.
         first_name (str | None): The first name of the user.
         last_name (str | None): The last name of the user.
         username (str | None): The username of the user.
@@ -191,12 +220,11 @@ class UserInfo(db.Model):
     linkedin_url: Mapped[str | None] = mapped_column(String, nullable=True)
     instagram_url: Mapped[str | None] = mapped_column(String, nullable=True)
     twitter_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    # Google storage blob id
     pfp_uuid: Mapped[str | None] = mapped_column(String, nullable=True)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     language: Mapped[str] = mapped_column(String, nullable=True, default="English")
 
-    user: Mapped[User] = relationship("User", backref=backref("user_info", cascade="all, delete"), lazy=True)
+    # user: Mapped[User] = relationship("User", backref=backref("user_info", cascade="all, delete"), lazy=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -302,19 +330,34 @@ class UserInfo(db.Model):
         return user_info
 
     @staticmethod
-    def get_by_user_id(id: int) -> UserInfo | None:
+    def get_by_user_id(user_id: int) -> UserInfo | None:
         """
         Retrieves a UserInfo object by user ID.
 
         Args:
-            id (int): The ID of the user.
+            user_id (int): The user ID.
 
         Returns:
             UserInfo | None: The UserInfo object corresponding to the user ID, or None if not found.
 
         """
         try:
-            user_info = UserInfo.query.filter(UserInfo.user_id == id).first()
+            user_info = UserInfo.query.filter(UserInfo.user_id == user_id).first()
+            return user_info
+        except NoResultFound:
+            return None
+
+    @staticmethod
+    def get_all() -> list[UserInfo] | None:
+        """
+        Retrieves all UserInfo objects.
+
+        Returns:
+            list[UserInfo]: A list of UserInfo objects.
+
+        """
+        try:
+            user_info = UserInfo.query.all()
             return user_info
         except NoResultFound:
             return None
@@ -344,11 +387,10 @@ class UserPayment(db.Model):
 
     Attributes:
         id (int): The payment ID.
-        user_id (int): The ID of the user associated with the payment.
         customer_id (str): The customer ID associated with the payment.
         subscription_id (str): The subscription ID associated with the payment.
-        created (DateTime | None): The date and time when the payment was created.
-        expires_at (DateTime | None): The date and time when the payment expires.
+        created (datetime.datetime | None): The date and time when the payment was created.
+        expires_at (datetime.datetime | None): The date and time when the payment expires.
         is_active (bool): Indicates whether the payment is active or not.
         tier (Tier): The subscription tier associated with the payment.
         user (User): The user associated with the payment.
@@ -359,12 +401,12 @@ class UserPayment(db.Model):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False, unique=True)
     customer_id: Mapped[str] = mapped_column(String, nullable=True)
     subscription_id: Mapped[str] = mapped_column(String, nullable=True)
-    created: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
-    expires_at: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
+    created: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
+    expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     tier: Mapped[Tier] = mapped_column(SQLEnum(Tier), nullable=False, default=Tier.FREE)
 
-    user: Mapped[User] = relationship("User", backref=backref("user_payment", cascade="all, delete"), lazy=True)
+    # user: Mapped[User] = relationship("User", backref=backref("user_payment", cascade="all, delete"), lazy=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -373,7 +415,7 @@ class UserPayment(db.Model):
         return f"<UserPayment: {self.customer_id} | {'Active' if self.is_active else 'Inactive'}>"
 
     @property
-    def created_epoch(self) -> DateTime | None:
+    def created_epoch(self) -> datetime.datetime | None:
         """
         Returns the created date and time in epoch format.
 
@@ -384,7 +426,7 @@ class UserPayment(db.Model):
         return self.created
 
     @property
-    def expires_at_epoch(self) -> DateTime | None:
+    def expires_at_epoch(self) -> datetime.datetime | None:
         """
         Returns the expiration date and time in epoch format.
 
@@ -406,7 +448,7 @@ class UserPayment(db.Model):
             None
 
         """
-        self.created = datetime.datetime.utcfromtimestamp(created_epoch)  # type: ignore
+        self.created = datetime.datetime.utcfromtimestamp(created_epoch)
 
     @expires_at_epoch.setter
     def expires_at_epoch(self, expires_at_epoch: int) -> None:
@@ -420,7 +462,7 @@ class UserPayment(db.Model):
             None
 
         """
-        self.expires_at = datetime.datetime.utcfromtimestamp(expires_at_epoch)  # type: ignore
+        self.expires_at = datetime.datetime.utcfromtimestamp(expires_at_epoch)
 
     def is_expired(self) -> bool:
         """
@@ -456,7 +498,7 @@ class UserPayment(db.Model):
         Retrieves a UserPayment object by user ID.
 
         Args:
-            user_id (int): The ID of the user.
+            user_id (int): The user ID.
 
         Returns:
             UserPayment | None: The UserPayment object corresponding to the user ID, or None if not found.
@@ -647,7 +689,6 @@ class Company(db.Model):
 
     Attributes:
         id (int): The company ID.
-        user_id (int): The ID of the user associated with the company.
         name (str): The name of the company.
         description (str): The description of the company.
         number_of_employees (int): The number of employees in the company.
@@ -665,13 +706,12 @@ class Company(db.Model):
     description: Mapped[str] = mapped_column(String, nullable=True)
     number_of_employees: Mapped[int] = mapped_column(Integer, nullable=True)
     website: Mapped[str] = mapped_column(String, nullable=True)
-    # Google storage blob id
     pfp_uuid: Mapped[str] = mapped_column(String, nullable=True)
     country_id: Mapped[int] = mapped_column(Integer, ForeignKey("country.id"), nullable=True)
     preferred_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
     industry_id: Mapped[int] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True)
 
-    user: Mapped[User] = relationship("User", backref=backref("company", cascade="all, delete"), lazy=True)
+    # user: Mapped[User] = relationship("User", backref=backref("company", cascade="all, delete"), lazy=True)
     country: Mapped[Country] = relationship()
     preferred_round: Mapped[Round] = relationship()
     industry: Mapped[Industry] = relationship()
@@ -691,24 +731,6 @@ class Company(db.Model):
             return []
 
     @staticmethod
-    def get_by_user_id(user_id: int) -> Company | None:
-        """
-        Retrieves a company by user ID.
-
-        Args:
-            user_id (int): The ID of the user.
-
-        Returns:
-            Company | None: The company corresponding to the user ID, or None if not found.
-
-        """
-        try:
-            company = Company.query.filter(Company.user_id == user_id).first()
-            return company
-        except NoResultFound:
-            return None
-
-    @staticmethod
     def get_by_id(id: int) -> Company | None:
         """
         Retrieves a company by ID.
@@ -723,5 +745,23 @@ class Company(db.Model):
         try:
             company = Company.query.filter(Company.id == id).first()
             return company
+        except NoResultFound:
+            return None
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> UserInfo | None:
+        """
+        Retrieves a UserInfo object by user ID.
+
+        Args:
+            user_id (int): The user ID.
+
+        Returns:
+            UserInfo | None: The UserInfo object corresponding to the user ID, or None if not found.
+
+        """
+        try:
+            user_info = Company.query.filter(UserInfo.user_id == user_id).first()
+            return user_info
         except NoResultFound:
             return None

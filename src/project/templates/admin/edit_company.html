@@ -1,0 +1,234 @@
+{% extends "layouts/layout_admin.html" %} {% block title %}Company{% endblock %} {% block head %} {{ super() }} {%
+    endblock %} {% block content %}
+    <main class="mt-28 flex flex-col items-center justify-center overflow-x-hidden p-6 sm:mt-36">
+        <form action="/admin/company/edit/{{ company.id }}" method="POST" enctype="multipart/form-data">
+            <div class="flex items-start justify-start gap-1 text-slate-700">
+                <a
+                    href="/admin/companies"
+                    class="flex items-center border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:rounded-full hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="h-6 w-6"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"
+                        />
+                    </svg>
+
+                    Back
+                </a>
+            </div>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="space-y-12">
+                <div class="border-b border-gray-900/10 pb-12">
+                    <h1 class="mb-4 text-3xl font-semibold leading-7 text-gray-900">Company profile</h1>
+                    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                        <div class="sm:col-span-full">
+                            <label for="user" class="input-label">Users*</label>
+                            <div class="mt-2">
+                                <select
+                                    id="user"
+                                    name="user"
+                                    autocomplete="user"
+                                    class="input-field"
+                                    required
+                                >
+                                    <option value="" {% if not company.user %} selected {% endif %} disabled hidden>
+                                        Select a use
+                                    </option>
+                                    {% if users %} 
+                                        {% for user in users %}
+                                            <option value="{{ user.id }}" {% if user.id == company.user.id %} selected {% endif %}>
+                                                {{ user.email }}
+                                            </option>
+                                        {% endfor %} 
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-span-full">
+                            <label for="company-name" class="input-label"
+                                >Company name*</label
+                            >
+                            <div class="mt-2">
+                                <input
+                                    type="text"
+                                    name="company-name"
+                                    id="company-name"
+                                    autocomplete="organization-title"
+                                    required
+                                    class="input-field"
+                                    value="{{ company.name if company.name else ''}}"
+                                />
+                            </div>
+                        </div>
+                        <div class="col-span-full">
+                            <label for="number_of_employees" class="input-label"
+                                >Number of employees</label
+                            >
+                            <div class="mt-2">
+                                <input
+                                    type="text"
+                                    name="number_of_employees"
+                                    id="number_of_employees"
+                                    autocomplete="number_of_employees"
+                                    required
+                                    class="input-field"
+                                    value="{{ company.number_of_employees }}"
+                                />
+                            </div>
+                        </div>
+                        <div class="col-span-full">
+                            <label for="description" class="input-label">Description</label>
+                            <div class="mt-2">
+                                <textarea
+                                    id="description"
+                                    name="description"
+                                    rows="3"
+                                    class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                                >{{ company.description if company.description else ''}}</textarea>
+                            </div>
+                            <p class="mt-3 text-sm leading-6 text-gray-600">
+                                Write a few sentences that describe your company.
+                            </p>
+                        </div>
+                        <div class="col-span-full">
+                            <label for="photo" class="input-label">Photo</label>
+                            <div class="mt-2 flex items-center gap-x-3">
+                                <svg
+                                    class="h-12 w-12 text-stone-300"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                                <input
+                                    class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
+                                    type="file"
+                                    id="pfp"
+                                    name="pfp"
+                                    value="{{ company.pfp_uuid if company.pfp_uuid else ''}}"
+                                    accept="image/png, image/jpeg"
+                                />
+                            </div>
+                        </div>
+                        <div class="sm:col-span-full">
+                            <label for="country" class="input-label">Country*</label>
+                            <div class="mt-2">
+                                <select
+                                    id="country"
+                                    name="country"
+                                    autocomplete="country-name"
+                                    class="input-field"
+                                    required
+                                >
+                                    <option value="" {% if not company.country %} selected {% endif %} disabled hidden>
+                                        Select a country
+                                    </option>
+                                    {% if countries %} 
+                                        {% for country in countries %}
+                                            <option value="{{ country.id }}" {% if company.country_id == country.id %} selected {% endif %}>
+                                                {{ country.name }}
+                                            </option>
+                                        {% endfor %} 
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="sm:col-span-full">
+                            <label for="round" class="input-label"
+                                >Preferred round*</label
+                            >
+                            <div class="mt-2">
+                                <select
+                                    id="round"
+                                    name="round"
+                                    class="input-field"
+                                    required
+                                >
+                                    <option value="" {% if not company.preferred_round %} selected {% endif %} disabled hidden>
+                                        Select a round
+                                    </option>
+                                    {% if rounds %} 
+                                        {% for round in rounds %}
+                                            <option value="{{ round.id }}" {% if company.preferred_round_id == round.id %} selected {% endif %}>
+                                                {{ round.name }}
+                                            </option>
+                                        {% endfor %} 
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="sm:col-span-full">
+                            <label for="industry" class="block text-sm font-medium leading-6 text-gray-900"
+                                >Industry*</label
+                            >
+                            <div class="mt-2">
+                                <select
+                                    id="industry"
+                                    name="industry"
+                                    class="input-field"
+                                    required
+                                >
+                                    <option value="" {% if not company.industry %} selected {% endif %} disabled hidden>Select industries</option>
+                                    {% for category, industry in industries.items() %}
+                                    <optgroup label="{{ category }}">
+                                        {% for ind in industry %}
+                                        <option value="{{ ind.id }}" {% if company.industry_id == ind.id %} selected {% endif %}>
+                                            {{ ind.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </optgroup>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-b border-gray-900/10 pb-12">
+                    <h2 class="text-base font-semibold leading-7 text-gray-900">Social media</h2>
+                    <p class="mt-1 text-sm leading-6 text-gray-600">Put the links to your social media accounts here.</p>
+                    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                        <div class="col-span-full">
+                            <label for="personal-website" class="input-label"
+                                >Website</label
+                            >
+                            <div class="mt-2">
+                                <input
+                                    type="url"
+                                    name="personal-website"
+                                    id="personal-website"
+                                    autocomplete="personal-website"
+                                    placeholder="https://example.com"
+                                    class="input-field"
+                                    value="{{ company.website if company.website else ''}}"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 flex items-center justify-end gap-x-6">
+                <button
+                    type="submit"
+                    class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
+                >
+                    Update
+                </button>
+            </div>
+        </form>
+    </main>
+    {% endblock %}
+    

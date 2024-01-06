@@ -471,7 +471,9 @@ class UserPayment(db.Model):
             bool: True if the payment has expired, False otherwise.
 
         """
-        return self.expires_at < datetime.datetime.utcnow()  # type: ignore
+        if self.expires_at:
+            return self.expires_at < datetime.datetime.utcnow()
+        return True
 
     @staticmethod
     def get_by_customer_id(customer_id: str) -> UserPayment | None:

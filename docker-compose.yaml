@@ -10,4 +10,4 @@ services:
       - .env
     volumes:
       - .:/app
-      - /app/.venv
+      # - /app/.venv

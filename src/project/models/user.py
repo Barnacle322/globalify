@@ -2,19 +2,18 @@ from __future__ import annotations
 
 import datetime
 import re
+from collections.abc import Sequence
 from uuid import uuid4
 
 from flask_login import UserMixin
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, backref, declared_attr, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from src.project.models.helpers import Country, Industry, Round
-
 from ..extensions import db
 from ..utils.status_enum import OauthProvider, Tier
+from .helpers import Country, Industry, Round
 
 
 class User(UserMixin, db.Model):
@@ -62,11 +61,7 @@ class User(UserMixin, db.Model):
             User | None: The user with the specified ID, or None if not found.
 
         """
-        try:
-            user = cls.query.filter(cls.id == id).first()
-            return user
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(cls).where(cls.id == id))
 
     @classmethod
     def get_by_email(cls, email: str) -> User | None:
@@ -80,19 +75,17 @@ class User(UserMixin, db.Model):
             User | None: The user with the specified email address, or None if not found.
 
         """
-        try:
-            user = cls.query.filter(cls.email == email).first()
-            return user
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(cls).where(cls.email == email))
 
     @classmethod
-    def get_all(cls):
-        try:
-            users = cls.query.all()
-            return users
-        except NoResultFound:
-            return None
+    def get_all(cls) -> Sequence[User]:
+        """
+        Retrieves all users.
+
+        Returns:
+            list[User]: A list of all users.
+        """
+        return db.session.scalars(db.select(cls)).all()
 
 
 class UserOauth(User):
@@ -114,26 +107,6 @@ class UserOauth(User):
         "polymorphic_identity": "user_oauth",
     }
 
-    @staticmethod
-    def signed_with_oauth(email: str) -> bool:
-        """
-        Checks if a user is signed in with an OAuth provider.
-
-        Args:
-            email (str): The email address of the user.
-
-        Returns:
-            OauthProvider: The OAuth provider used by the user, or OauthProvider.REGULAR if not found.
-
-        """
-        try:
-            user = UserOauth.query.filter(User.email == email).first()
-            if not user:
-                return False
-            return user.oauth_provider
-        except NoResultFound:
-            return False
-
 
 class UserRegular(User):
     """
@@ -142,13 +115,13 @@ class UserRegular(User):
     Attributes:
         id (int): The unique identifier for the user.
         email (str): The email address of the user.
-        password_hash (str | None): The hashed password of the user.
+        password_hash (str): The hashed password of the user.
         is_verified (bool): Indicates if the user's email address is verified.
         is_admin (bool): Indicates if the user has administrative privileges.
 
     """
 
-    password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
+    password_hash: Mapped[str] = mapped_column(String, nullable=True)
 
     __mapper_args__ = {
         "polymorphic_identity": "user_regular",
@@ -341,14 +314,10 @@ class UserInfo(db.Model):
             UserInfo | None: The UserInfo object corresponding to the user ID, or None if not found.
 
         """
-        try:
-            user_info = UserInfo.query.filter(UserInfo.user_id == user_id).first()
-            return user_info
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(UserInfo).where(UserInfo.user_id == user_id))
 
     @staticmethod
-    def get_all() -> list[UserInfo] | None:
+    def get_all() -> Sequence[UserInfo] | None:
         """
         Retrieves all UserInfo objects.
 
@@ -356,11 +325,7 @@ class UserInfo(db.Model):
             list[UserInfo]: A list of UserInfo objects.
 
         """
-        try:
-            user_info = UserInfo.query.all()
-            return user_info
-        except NoResultFound:
-            return None
+        return db.session.scalars(db.select(UserInfo)).all()
 
     @staticmethod
     def is_taken(username: str | None) -> bool:
@@ -374,11 +339,8 @@ class UserInfo(db.Model):
             bool: True if the username is taken, False otherwise.
 
         """
-        try:
-            user_info = UserInfo.query.filter(UserInfo.username == username).first()
-            return True if user_info else False
-        except NoResultFound:
-            return False
+        user_info = db.session.scalar(db.select(UserInfo).where(UserInfo.username == username))
+        return True if user_info else False
 
 
 class UserPayment(db.Model):
@@ -448,7 +410,7 @@ class UserPayment(db.Model):
             None
 
         """
-        self.created = datetime.datetime.utcfromtimestamp(created_epoch)
+        self.created = datetime.datetime.fromtimestamp(created_epoch, tz=datetime.UTC)
 
     @expires_at_epoch.setter
     def expires_at_epoch(self, expires_at_epoch: int) -> None:
@@ -462,7 +424,7 @@ class UserPayment(db.Model):
             None
 
         """
-        self.expires_at = datetime.datetime.utcfromtimestamp(expires_at_epoch)
+        self.expires_at = datetime.datetime.fromtimestamp(expires_at_epoch, tz=datetime.UTC)
 
     def is_expired(self) -> bool:
         """
@@ -472,7 +434,9 @@ class UserPayment(db.Model):
             bool: True if the payment has expired, False otherwise.
 
         """
-        return self.expires_at < datetime.datetime.utcnow()  # type: ignore
+        if not self.expires_at:
+            return True
+        return self.expires_at.replace(tzinfo=datetime.UTC) < datetime.datetime.now(tz=datetime.UTC)
 
     @staticmethod
     def get_by_customer_id(customer_id: str) -> UserPayment | None:
@@ -486,11 +450,7 @@ class UserPayment(db.Model):
             UserPayment | None: The UserPayment object corresponding to the customer ID, or None if not found.
 
         """
-        try:
-            user_payment = UserPayment.query.filter(UserPayment.customer_id == customer_id).first()
-            return user_payment
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(UserPayment).where(UserPayment.customer_id == customer_id))
 
     @staticmethod
     def get_by_user_id(user_id: int) -> UserPayment | None:
@@ -504,11 +464,7 @@ class UserPayment(db.Model):
             UserPayment | None: The UserPayment object corresponding to the user ID, or None if not found.
 
         """
-        try:
-            user_payment = UserPayment.query.filter(UserPayment.user_id == user_id).first()
-            return user_payment
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(UserPayment).where(UserPayment.user_id == user_id))
 
     def sanitize(self):
         """
@@ -521,7 +477,7 @@ class UserPayment(db.Model):
         subscription = {
             "created": self.created,
             "expires_at": self.expires_at.date(),  # type: ignore
-            "is_acrive": self.is_active,
+            "is_active": self.is_active,
             "tier": self.tier,
             "subscription_id": self.subscription_id,
         }
@@ -569,11 +525,7 @@ class WaitlistCharge(db.Model):
             WaitlistCharge | None: The waitlist charge corresponding to the ID, or None if not found.
 
         """
-        try:
-            waitlist_charge = WaitlistCharge.query.filter(WaitlistCharge.id == id).first()
-            return waitlist_charge
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.id == id))
 
     @staticmethod
     def get_by_customer_id(customer_id: str) -> WaitlistCharge | None:
@@ -587,11 +539,7 @@ class WaitlistCharge(db.Model):
             WaitlistCharge | None: The waitlist charge corresponding to the customer ID, or None if not found.
 
         """
-        try:
-            waitlist_charge = WaitlistCharge.query.filter(WaitlistCharge.stripe_customer_id == customer_id).first()
-            return waitlist_charge
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.stripe_customer_id == customer_id))
 
     @staticmethod
     def get_by_charge_id(charge_id: str) -> WaitlistCharge | None:
@@ -605,11 +553,7 @@ class WaitlistCharge(db.Model):
             WaitlistCharge | None: The waitlist charge corresponding to the charge ID, or None if not found.
 
         """
-        try:
-            waitlist_charge = WaitlistCharge.query.filter(WaitlistCharge.charge_id == charge_id).first()
-            return waitlist_charge
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.charge_id == charge_id))
 
     @staticmethod
     def get_by_customer_email(customer_email: str) -> WaitlistCharge | None:
@@ -623,11 +567,7 @@ class WaitlistCharge(db.Model):
             WaitlistCharge | None: The waitlist charge corresponding to the customer email, or None if not found.
 
         """
-        try:
-            waitlist_charge = WaitlistCharge.query.filter(WaitlistCharge.customer_email == customer_email).first()
-            return waitlist_charge
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.customer_email == customer_email))
 
     @staticmethod
     def get_by_random_key(random_key: str) -> WaitlistCharge | None:
@@ -641,11 +581,7 @@ class WaitlistCharge(db.Model):
             WaitlistCharge | None: The waitlist charge corresponding to the random key, or None if not found.
 
         """
-        try:
-            waitlist_charge = WaitlistCharge.query.filter(WaitlistCharge.random_key == random_key).first()
-            return waitlist_charge
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.random_key == random_key))
 
 
 class Waitlist(db.Model):
@@ -676,11 +612,7 @@ class Waitlist(db.Model):
             Waitlist | None: The waitlist entry corresponding to the email, or None if not found.
 
         """
-        try:
-            waitlist = Waitlist.query.filter(Waitlist.email == email).first()
-            return waitlist
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(Waitlist).where(Waitlist.email == email))
 
 
 class Company(db.Model):
@@ -742,14 +674,10 @@ class Company(db.Model):
             Company | None: The company corresponding to the ID, or None if not found.
 
         """
-        try:
-            company = Company.query.filter(Company.id == id).first()
-            return company
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(Company).where(Company.id == id))
 
     @staticmethod
-    def get_by_user_id(user_id: int) -> UserInfo | None:
+    def get_by_user_id(user_id: int) -> Company | None:
         """
         Retrieves a UserInfo object by user ID.
 
@@ -760,8 +688,4 @@ class Company(db.Model):
             UserInfo | None: The UserInfo object corresponding to the user ID, or None if not found.
 
         """
-        try:
-            user_info = Company.query.filter(UserInfo.user_id == user_id).first()
-            return user_info
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(Company).where(Company.user_id == user_id))

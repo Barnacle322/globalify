@@ -40,16 +40,6 @@ LINKEDIN_PERSONAL_INFO_URL = "https://api.linkedin.com/v2/me"
 
 @login_manager.user_loader
 def load_user(user_id: int) -> User | None:
-    """
-    Loads a user from the database based on the user ID.
-
-    Args:
-        user_id (int): The ID of the user.
-
-    Returns:
-        User | None: The user corresponding to the user ID, or None if not found.
-
-    """
     user = User.get_by_id(id=int(user_id))
     if user:
         return user
@@ -392,13 +382,6 @@ def company_form():
 
 @auth.route("/login-linkedin")
 def linkedin_login():
-    """
-    Redirects the user to the LinkedIn OAuth login page.
-
-    Returns:
-        str: The redirect response to the LinkedIn OAuth login page.
-
-    """
     return oauth.linkedin.authorize_redirect(  # type: ignore
         redirect_uri=url_for("auth.linkedin_callback", _external=True)
     )
@@ -489,13 +472,6 @@ def linkedin_callback():
 
 @auth.route("/login-google")
 def google_login():
-    """
-    Redirects the user to the Google OAuth login page.
-
-    Returns:
-        str: The redirect response to the Google OAuth login page.
-
-    """
     return oauth.google.authorize_redirect(  # type: ignore
         redirect_uri=url_for("auth.google_callback", _external=True),
     )
@@ -568,12 +544,5 @@ def google_callback():
 @auth.route("/logout")
 @login_required
 def logout():
-    """
-    Logs out the currently logged-in user.
-
-    Returns:
-        str: The redirect response to the main index page.
-
-    """
     logout_user()
     return redirect(url_for("main.index"))

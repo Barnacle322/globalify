@@ -139,13 +139,6 @@ class QueryBuilder:
         return self
 
     def build(self):
-        """
-        Returns the final built query.
-
-        Returns:
-            BaseQuery: The final built query.
-
-        """
         return self.query
 
 
@@ -185,7 +178,8 @@ investment_firm_industry = db.Table(
 
 
 class Investor(db.Model):
-    """Class representing an investor in the database.
+    """
+    Class representing an investor in the database.
 
     Attributes:
         id (int): The unique identifier for the investor (primary key).
@@ -237,22 +231,10 @@ class Investor(db.Model):
 
     @property
     def full_name(self) -> str:
-        """Full name of the investor.
-
-        Returns:
-            str: The full name of the investor.
-
-        """
         return f"{self.first_name} {self.last_name}"
 
     @staticmethod
     def get_all() -> list[Investor]:
-        """Get all investors.
-
-        Returns:
-            list[Investor]: A list of all investors.
-
-        """
         try:
             investors: list[Investor] = Investor.query.all()
             return investors
@@ -277,7 +259,8 @@ class Investor(db.Model):
         descending: bool = False,
         search_fields: tuple[str, ...] = ("first_name", "last_name", "firm_name", "position", "about"),
     ) -> Pagination | list[None]:
-        """Get a paginated list of investors based on the provided filters.
+        """
+        Get a paginated list of investors based on the provided filters.
 
         Args:
             page (int): The page number to retrieve (default: 1).
@@ -319,15 +302,6 @@ class Investor(db.Model):
 
     @staticmethod
     def get_by_id(id: int) -> Investor | None:
-        """Get an investor by their ID.
-
-        Args:
-            id (int): The ID of the investor.
-
-        Returns:
-            Investor | None: The investor with the specified ID, or None if not found.
-
-        """
         try:
             investor = Investor.query.filter(Investor.id == id).one()
             return investor
@@ -336,15 +310,6 @@ class Investor(db.Model):
 
     @staticmethod
     def get_by_email(email: str) -> Investor | None:
-        """Get an investor by their email.
-
-        Args:
-            email (str): The email of the investor.
-
-        Returns:
-            Investor | None: The investor with the specified email, or None if not found.
-
-        """
         try:
             investor = Investor.query.filter(Investor.email == email).first()
             return investor
@@ -353,7 +318,8 @@ class Investor(db.Model):
 
     @staticmethod
     def populate():
-        """Populate the database with dummy investor data.
+        """
+        Populate the database with dummy investor data.
 
         This method generates random data for 50 investors and adds them to the database.
 
@@ -395,7 +361,8 @@ class Investor(db.Model):
 
 
 class InvestmentFirm(db.Model):
-    """Represents an investment firm.
+    """
+    Represents an investment firm.
 
     Attributes:
         id (int): The ID of the investment firm.
@@ -430,26 +397,13 @@ class InvestmentFirm(db.Model):
     industries: Mapped[list[Industry]] = relationship(secondary=investment_firm_industry)
 
     def __init__(self, **kwargs):
-        """Initialize an InvestmentFirm object.
-
-        Args:
-            **kwargs: Additional keyword arguments to initialize the object.
-
-        """
         super().__init__(**kwargs)
 
     def __repr__(self):
-        """Return a string representation of the InvestmentFirm object."""
         return f"<InvestmentFirm {self.name}>"
 
     @staticmethod
     def get_all() -> list[InvestmentFirm]:
-        """Get all investment firms.
-
-        Returns:
-            list[InvestmentFirm]: A list of all investment firms.
-
-        """
         try:
             firms: list[InvestmentFirm] = InvestmentFirm.query.all()
             return firms
@@ -518,15 +472,6 @@ class InvestmentFirm(db.Model):
 
     @staticmethod
     def get_by_id(id: int) -> InvestmentFirm | None:
-        """Get an investment firm by its ID.
-
-        Args:
-            id (int): The ID of the investment firm.
-
-        Returns:
-            InvestmentFirm | None: The investment firm if found, otherwise None.
-
-        """
         try:
             firm = InvestmentFirm.query.filter(InvestmentFirm.id == id).one()
             return firm
@@ -535,15 +480,6 @@ class InvestmentFirm(db.Model):
 
     @staticmethod
     def get_by_email(email: str) -> InvestmentFirm | None:
-        """Get an investment firm by its email.
-
-        Args:
-            email (str): The email of the investment firm.
-
-        Returns:
-            InvestmentFirm | None: The investment firm if found, otherwise None.
-
-        """
         try:
             firm = InvestmentFirm.query.filter(InvestmentFirm.email == email).first()
             return firm

@@ -8,7 +8,7 @@
                 <div class="flex items-start justify-start gap-1 text-slate-700">
                     <a
                         href="/admin/investment-firms"
-                        class="flex items-center border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:rounded-full hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
+                        class="flex items-center border-sky-500 py-[7px] px-1 font-medium text-sky-500 transition-all hover:rounded-full hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -50,7 +50,7 @@
                     cols="50"
                     class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                 >
-                {{ investment_firm.about }}</textarea
+                {{ investment_firm.about if investment_firm.about else ''}}</textarea
                 ><br /><br />
 
                 <label class="input-label" for="website">Website:</label>
@@ -265,6 +265,14 @@
                     </div>
                 </div>
                 <br /><br />
+                {% if status_type %} {% if status_type == '3' %}
+                <div class="rounded-xl text-red-500">{{ msg }}</div>
+                {% endif %} {% if status_type == '2' %}
+                <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                {% endif %} {% if status_type == '1' %}
+                <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                {% endif %} {% endif %}
+                <br />
                 <button
                     type="submit"
                     class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"

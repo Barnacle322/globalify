@@ -4,11 +4,11 @@
 <main class="mt-28 flex h-full flex-wrap justify-center gap-5 px-8 pb-16">
     <section class="flex w-full max-w-[40rem] flex-col gap-3">
         <div class="flex items-center justify-center gap-1 text-slate-700">
-            <form action="/admin/user/add" method="POST">
+            <form action="/admin/user/add" method="POST" enctype="multipart/form-data">
                 <div class="flex items-start justify-start gap-1 text-slate-700">
                     <a
                         href="/admin/users"
-                        class="flex items-center border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:rounded-full hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
+                        class="flex items-center border-sky-500 py-[7px] px-1 font-medium text-sky-500 transition-all hover:rounded-full hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -235,6 +235,15 @@
                     class="h-5 w-5 rounded border-gray-300 text-blue-500 focus:border-blue-400 focus:ring-blue-200"
                 />
                 <br /><br />
+
+                {% if status_type %} {% if status_type == '3' %}
+                <div class="rounded-xl text-red-500">{{ msg }}</div>
+                {% endif %} {% if status_type == '2' %}
+                <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                {% endif %} {% if status_type == '1' %}
+                <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                {% endif %} {% endif %}
+                <br />
                 <button
                     type="submit"
                     class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"

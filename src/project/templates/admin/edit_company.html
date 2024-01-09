@@ -5,7 +5,7 @@
             <div class="flex items-start justify-start gap-1 text-slate-700">
                 <a
                     href="/admin/companies"
-                    class="flex items-center border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:rounded-full hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
+                    class="flex items-center border-sky-500 py-[7px] px-1 font-medium text-sky-500 transition-all hover:rounded-full hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -75,13 +75,14 @@
                             >
                             <div class="mt-2">
                                 <input
-                                    type="text"
+                                    type="number"
                                     name="number_of_employees"
                                     id="number_of_employees"
                                     autocomplete="number_of_employees"
                                     required
                                     class="input-field"
                                     value="{{ company.number_of_employees }}"
+                                    min="0"
                                 />
                             </div>
                         </div>
@@ -219,7 +220,17 @@
                         </div>
                     </div>
                 </div>
+    
             </div>
+
+            {% if status_type %} {% if status_type == '3' %}
+                <div class="rounded-xl text-red-500">{{ msg }}</div>
+                {% endif %} {% if status_type == '2' %}
+                <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                {% endif %} {% if status_type == '1' %}
+                <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                {% endif %} {% endif %}
+                <br />
             <div class="mt-6 flex items-center justify-end gap-x-6">
                 <button
                     type="submit"

@@ -33,15 +33,15 @@ class User(UserMixin, db.Model):
 
     @declared_attr
     def user_info(cls):  # noqa: N805
-        return relationship("UserInfo", backref=backref(cls.__name__.lower(), cascade="all, delete"), lazy=True)
+        return relationship("UserInfo", backref=backref(cls.__name__.lower()), cascade="all, delete", lazy=True)
 
     @declared_attr
     def user_payment(cls):  # noqa: N805
-        return relationship("UserPayment", backref=backref(cls.__name__.lower(), cascade="all, delete"), lazy=True)
+        return relationship("UserPayment", backref=backref(cls.__name__.lower()), cascade="all, delete", lazy=True)
 
     @declared_attr
     def company(cls):  # noqa: N805
-        return relationship("Company", backref=backref(cls.__name__.lower(), cascade="all, delete"), lazy=True)
+        return relationship("Company", backref=backref(cls.__name__.lower()), cascade="all, delete", lazy=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

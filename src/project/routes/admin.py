@@ -1,21 +1,57 @@
 import re
 from datetime import datetime
+from functools import wraps
 
-from flask import Blueprint, abort, redirect, render_template, request, url_for
+from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user
+
+from src.project.utils.google_storage import prepare_picture, upload_blob
 
 from ..extensions import db
-from ..models import Company, Country, Industry, InvestmentFirm, Investor, Round, User, UserInfo, UserPayment
+from ..models import (
+    Company,
+    Country,
+    Industry,
+    InvestmentFirm,
+    Investor,
+    Round,
+    User,
+    UserInfo,
+    UserPayment,
+    UserRegular,
+)
 from ..utils.errors.auth_error_messages import (
     AUTH_EMAIL_USED,
     AUTH_FIELDS_INCOMPLETE,
     AUTH_INVALID_EMAIL,
     AUTH_MISMATCHED_PASSWORDS,
-    AUTH_OAUTH_USED,
 )
 from ..utils.info_lists import languages as language_list
-from ..utils.status_enum import OauthProvider, Status, StatusType
+from ..utils.status_enum import Status, StatusType
 
 admin = Blueprint("admin", __name__)
+
+
+# decorator for admin only
+
+
+def is_admin(func):
+    """
+    Decorator that checks whether the current user is authenticated and is an admin.
+    If the current user is not an admin or not authenticated, it renders a '403 Forbidden' error page.
+
+    :param func: The view function to decorate.
+    :type func: function
+    """
+
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if current_user.is_authenticated and current_user.is_admin:
+            return func(*args, **kwargs)
+        else:
+            return render_template("errors/403.html"), 403
+
+    return decorated_view
 
 
 # Investors
@@ -34,6 +70,7 @@ def construct_query_string(**kwargs):
 
 
 @admin.get("/")
+@is_admin
 def index():
     # ?q=Julie
     search_string = request.args.get("search", "")
@@ -115,32 +152,64 @@ def index():
 # validations for fields
 
 
-def validate_field(value, field_name, error_message, redirect_url):
+def validate_field(
+    value,
+    field_name,
+    error_message,
+    redirect_url=None,
+    user_id=None,
+    investment_firm_id=None,
+    investor_id=None,
+    company_id=None,
+):
     if not value.strip():
         status = Status(StatusType.ERROR, error_message).get_status()
-        return redirect(url_for(redirect_url, _external=False, **status))
+        if redirect_url:
+            return redirect(
+                url_for(
+                    redirect_url,
+                    _external=False,
+                    user_id=user_id,
+                    investment_firm_id=investment_firm_id,
+                    investor_id=investor_id,
+                    company_id=company_id,
+                    **status,
+                )
+            )
+        return status
     if value != value.strip():
         status = Status(StatusType.ERROR, f"{field_name} cannot start or end with spaces.").get_status()
-        return redirect(url_for(redirect_url, _external=False, **status))
+        if redirect_url:
+            return redirect(
+                url_for(
+                    redirect_url,
+                    _external=False,
+                    user_id=user_id,
+                    investment_firm_id=investment_firm_id,
+                    investor_id=investor_id,
+                    company_id=company_id,
+                    **status,
+                )
+            )
+        return status
+    return None
 
 
 # investors
 @admin.get("/investors/")
+@is_admin
 def get_all_investors():
     investors = Investor.get_all()
     return render_template("admin/investors.html", investors=investors)
 
 
 @admin.route("/investor/add", methods=["GET", "POST"])
+@is_admin
 def add_investor():
     status_type, msg = None, None
-    """
-    Need to add validation for phone number
-
-    Can not figure out how I can send an error to the specified url
-
-    Need to add validation for phone_number
-    """
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
 
     if request.method == "POST":
         first_name = request.form.get("first_name")
@@ -172,8 +241,7 @@ def add_investor():
 
         selected_round_ids = request.form.getlist("selected_rounds")
         selected_industry_ids = request.form.getlist("selected_industries")
-        print(selected_round_ids)
-        print(selected_industry_ids)
+
         if not selected_round_ids or not selected_industry_ids:
             return redirect(
                 url_for(
@@ -225,24 +293,28 @@ def add_investor():
 
 
 @admin.route("/investor/edit/<int:investor_id>", methods=["GET", "POST"])
+@is_admin
 def edit_investor(investor_id):
-    """
-    Can’t figure out how I can send an error to the specified url
-
-    Need to add validation for phone_number
-    """
     status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     investor = Investor.query.get_or_404(investor_id)
 
     if request.method == "POST":
         first_name = request.form.get("first_name")
         last_name = request.form.get("last_name")
 
-        error = validate_field(first_name, "First name", "First name cannot be empty.", "admin.edit_investor")
+        error = validate_field(
+            first_name, "First name", "First name cannot be empty.", "admin.edit_investor", investor_id=investor_id
+        )
         if error:
             return error
 
-        error = validate_field(last_name, "Last name", "Last name cannot be empty.", "admin.edit_investor")
+        error = validate_field(
+            last_name, "Last name", "Last name cannot be empty.", "admin.edit_investor", investor_id=investor_id
+        )
         if error:
             return error
 
@@ -250,7 +322,10 @@ def edit_investor(investor_id):
         if email and not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
             return redirect(
                 url_for(
-                    "admin.edit_investor", _external=False, **Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
+                    "admin.edit_investor",
+                    _external=False,
+                    investor_id=investor_id,
+                    **Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status(),
                 )
             )
 
@@ -260,6 +335,7 @@ def edit_investor(investor_id):
                 url_for(
                     "admin.edit_investor",
                     _external=False,
+                    investor_id=investor_id,
                     **Status(StatusType.ERROR, "Email already exists.").get_status(),
                 )
             )
@@ -272,6 +348,7 @@ def edit_investor(investor_id):
                 url_for(
                     "admin.edit_investor",
                     _external=False,
+                    investor_id=investor_id,
                     **Status(StatusType.ERROR, "Please select rounds and industries.").get_status(),
                 )
             )
@@ -318,6 +395,7 @@ def edit_investor(investor_id):
 
 
 @admin.route("/investor/delete/<int:investor_id>", methods=["POST"])
+@is_admin
 def delete_investor(investor_id):
     investor = Investor.query.get_or_404(investor_id)
 
@@ -331,6 +409,7 @@ def delete_investor(investor_id):
 
 
 @admin.get("/investment-firms/")
+@is_admin
 def get_all_investment_firms():
     # ?q=Robinson-Sanders
     search_string = request.args.get("search", "")
@@ -407,13 +486,13 @@ def get_all_investment_firms():
 
 
 @admin.route("/investment-firm/add", methods=["GET", "POST"])
+@is_admin
 def add_investment_firm():
-    """
-    Can’t figure out how I can send an error to the specified url
-
-    Need to add validation for phone_number
-    """
     status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     if request.method == "POST":
         name = request.form.get("name")
 
@@ -485,29 +564,32 @@ def add_investment_firm():
 
 
 @admin.route("/investment-firm/edit/<int:investment_firm_id>", methods=["GET", "POST"])
+@is_admin
 def edit_investment_firm(investment_firm_id):
-    """
-    Can not figure out how I can send an error to the specified url
-
-    Need to add validation for phone_number
-    """
     status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     investment_firm = InvestmentFirm.get_by_id(investment_firm_id)
     if not investment_firm:
         abort(404)
 
     if request.method == "POST":
-        name = request.form.get("name")
-        error = validate_field(name, "Name", "Name cannot be empty.", "admin.edit_investment_firm")
+        name = request.form.get("name", "")
+        error = validate_field(
+            name, "Name", "Name cannot be empty.", "admin.edit_investment_firm", investment_firm_id=investment_firm_id
+        )
         if error:
             return error
 
-        email = request.form.get("email")
+        email = request.form.get("email", "")
         if email and not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
             return redirect(
                 url_for(
                     "admin.edit_investment_firm",
                     _external=False,
+                    investment_firm_id=investment_firm_id,
                     **Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status(),
                 )
             )
@@ -520,6 +602,7 @@ def edit_investment_firm(investment_firm_id):
                 url_for(
                     "admin.edit_investment_firm",
                     _external=False,
+                    investment_firm_id=investment_firm_id,
                     **Status(StatusType.ERROR, "Email already exists.").get_status(),
                 )
             )
@@ -532,6 +615,7 @@ def edit_investment_firm(investment_firm_id):
                 url_for(
                     "admin.edit_investment_firm",
                     _external=False,
+                    investment_firm_id=investment_firm_id,
                     **Status(StatusType.ERROR, "Please select rounds and industries.").get_status(),
                 )
             )
@@ -542,18 +626,18 @@ def edit_investment_firm(investment_firm_id):
         ]
 
         investment_firm.name = name
-        investment_firm.about = request.form.get("about")
-        investment_firm.website = request.form.get("website")
+        investment_firm.about = request.form.get("about", "")
+        investment_firm.website = request.form.get("website", "")
         investment_firm.email = email
-        investment_firm.phone_number = request.form.get("phone_number")
+        investment_firm.phone_number = request.form.get("phone_number", "")
         investment_firm.n_investments = int(request.form.get("n_investments", 0) or 0)
         investment_firm.n_exits = int(request.form.get("n_exits", 0) or 0)
         investment_firm.n_employees = int(request.form.get("n_employees", 0) or 0)
         investment_firm.min_investment = int(request.form.get("min_investment", 0) or 0)
         investment_firm.max_investment = int(request.form.get("max_investment", 0) or 0)
 
-        investment_firm.rounds = selected_rounds
-        investment_firm.industries = selected_industries
+        investment_firm.rounds = selected_rounds # type: ignore
+        investment_firm.industries = selected_industries # type: ignore
 
         db.session.commit()
 
@@ -573,6 +657,7 @@ def edit_investment_firm(investment_firm_id):
 
 
 @admin.route("/investment-firm/delete/<int:investment_firm_id>", methods=["POST"])
+@is_admin
 def delete_investment_firm(investment_firm_id):
     investment_firm = InvestmentFirm.get_by_id(investment_firm_id)
     if not investment_firm:
@@ -588,6 +673,7 @@ def delete_investment_firm(investment_firm_id):
 
 
 @admin.route("/users/")
+@is_admin
 def get_all_users():
     """
     Need to make this page more beautiful
@@ -598,17 +684,13 @@ def get_all_users():
 
 
 @admin.route("/user/add", methods=["GET", "POST"])
+@is_admin
 def add_user():
     status_type, msg = None, None
-    """
-    Need to add new error message for creating user, investor, investment firm
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
 
-    Can’t figure out how I can send an error to the specified url
-
-    Need to ask about image upload
-
-    Need to add style for date fields
-    """
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
@@ -620,9 +702,9 @@ def add_user():
 
         if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
             status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
-            return redirect(url_for("auth.add_user", _external=False, **status))
+            return redirect(url_for("admin.add_user", _external=False, **status))
 
-        user = User.get_by_email(email)
+        user = UserRegular.get_by_email(email)
         if user:
             status = Status(StatusType.ERROR, AUTH_EMAIL_USED).get_status()
             return redirect(url_for("admin.add_user", _external=False, **status))
@@ -631,20 +713,14 @@ def add_user():
             status = Status(StatusType.ERROR, AUTH_MISMATCHED_PASSWORDS).get_status()
             return redirect(url_for("admin.add_user", _external=False, **status))
 
-        if (oauth := User.signed_with_oauth(email)) != OauthProvider.REGULAR:
-            status = Status(StatusType.WARNING, AUTH_OAUTH_USED.format(oauth.value.capitalize())).get_status()
-            return redirect(url_for("admin.add_user", _external=False, **status))
-
-        new_user = User(
+        new_user = UserRegular(
             email=email,
-            oauth_provider=OauthProvider.REGULAR,
             is_verified=bool(request.form.get("is_verified")),
             is_admin=bool(request.form.get("is_admin")),
         )
         new_user.password = password
 
         db.session.add(new_user)
-        db.session.commit()
 
         first_name = request.form.get("first_name")
         if error := validate_field(first_name, "First name", "First name cannot be empty.", "admin.add_user"):
@@ -686,22 +762,20 @@ def add_user():
             is_active=bool(request.form.get("is_active")),
         )
 
-        db.session.add_all((new_user_payment, new_user_info))
+        db.session.add_all((new_user, new_user_payment, new_user_info))
         db.session.commit()
         return redirect(url_for("admin.get_all_users"))
     return render_template("admin/add_user.html", languages=language_list, status_type=status_type, msg=msg)
 
 
 @admin.route("/user/edit/<int:user_id>", methods=["GET", "POST"])
+@is_admin
 def edit_user(user_id):
-    """
-    Can’t figure out how I can send an error to the specified url
-
-    Need to ask about image upload
-
-    Need to add style for date fields
-    """
     status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     user = User.get_by_id(user_id)
     if not user:
         abort(404)
@@ -709,6 +783,7 @@ def edit_user(user_id):
     user_info = UserInfo.get_by_user_id(user_id)
     if not user_info:
         abort(404)
+
     user_payment = UserPayment.get_by_user_id(user_id)
     if not user_payment:
         abort(404)
@@ -716,59 +791,52 @@ def edit_user(user_id):
     if request.method == "POST":
         if not user:
             status = Status(StatusType.ERROR, "User does not exist.").get_status()
-            return redirect(url_for("admin.edit_user", _external=False, **status))
+            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
         if not user_info:
             status = Status(StatusType.ERROR, "User info does not exist.").get_status()
-            return redirect(url_for("admin.edit_user", _external=False, **status))
+            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
         if not user_payment:
             status = Status(StatusType.ERROR, "User payment does not exist.").get_status()
-            return redirect(url_for("admin.edit_user", _external=False, **status))
+            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
         email = request.form.get("email")
-        password = request.form.get("password")
-        confirm_password = request.form.get("confirm_password")
 
-        if not email or not password or not confirm_password:
+        if not email:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
-            return redirect(url_for("admin.edit_user", _external=False, **status))
+            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
         if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
             status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
-            return redirect(url_for("auth.edit_user", _external=False, **status))
+            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
-        if User.query.filter(User.email == email, User.id != user_id).first():
+        if UserRegular.query.filter(UserRegular.email == email, UserRegular.id != user_id).first():
             status = Status(StatusType.ERROR, AUTH_EMAIL_USED).get_status()
-            return redirect(url_for("admin.edit_user", _external=False, **status))
-
-        if password != confirm_password:
-            status = Status(StatusType.ERROR, AUTH_MISMATCHED_PASSWORDS).get_status()
-            return redirect(url_for("admin.edit_user", _external=False, **status))
+            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
         first_name = request.form.get("first_name")
-        if error := validate_field(first_name, "First name", "First name cannot be empty.", "admin.edit_user"):
+        if error := validate_field(first_name, "First name", "First name cannot be empty.", "admin.edit_user", user_id):
             return error
 
         last_name = request.form.get("last_name")
-        if error := validate_field(last_name, "Last name", "Last name cannot be empty.", "admin.edit_user"):
+        if error := validate_field(last_name, "Last name", "Last name cannot be empty.", "admin.edit_user", user_id):
             return error
 
         username = request.form.get("username")
-        if error := validate_field(username, "Username", "Username cannot be empty.", "admin.edit_user"):
+        if error := validate_field(username, "Username", "Username cannot be empty.", "admin.edit_user", user_id):
             return error
 
-        # if pfp := request.files["pfp"]:
-        #     try:
-        #         resized_pfp = prepare_picture(pfp)
+        if pfp := request.files["pfp"]:
+            try:
+                resized_pfp = prepare_picture(pfp)
 
-        #         pfp_uuid = upload_blob(resized_pfp.read())
-        #         user_info.pfp_uuid = str(pfp_uuid)
-        #     except Exception as e:
-        #         print(f"An error occurred: {e}")
+                pfp_uuid = upload_blob(resized_pfp.read())
+                user_info.pfp_uuid = str(pfp_uuid)
+            except Exception as e:
+                print(f"An error occurred: {e}")
 
         user.email = email
-        user.password = password
         user.is_verified = bool(request.form.get("is_verified"))
         user.is_admin = bool(request.form.get("is_admin"))
 
@@ -782,8 +850,8 @@ def edit_user(user_id):
         user_info.is_complete = bool(request.form.get("is_complete"))
         user_info.language = request.form.get("language", "English")
 
-        user_payment.customer_id = request.form.get("customer_id")
-        user_payment.subscription_id = request.form.get("subscription_id")
+        user_payment.customer_id = request.form.get("customer_id", "")
+        user_payment.subscription_id = request.form.get("subscription_id", "")
         user_payment.created = (
             datetime.strptime(created_str, "%Y-%m-%d") if (created_str := request.form.get("created")) else None
         )
@@ -809,48 +877,106 @@ def edit_user(user_id):
     )
 
 
+@admin.route("/user/edit/change-password/<int:user_id>", methods=["GET", "POST"])
+@is_admin
+def change_password(user_id):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    user = UserRegular.query.filter(UserRegular.id == user_id).first()
+
+    if not user:
+        abort(404)
+
+    if request.method == "POST":
+        password = request.form.get("password")
+        confirm_password = request.form.get("confirm_password")
+
+        if password != confirm_password:
+            status = Status(StatusType.ERROR, AUTH_MISMATCHED_PASSWORDS).get_status()
+            return redirect(url_for("admin.change_password", _external=False, **status))
+
+        db.session.commit()
+        return redirect(url_for("admin.get_all_users"))
+
+    return render_template(
+        "admin/change_password.html",
+        user=user,
+        status_type=status_type,
+        msg=msg,
+    )
+
+
 @admin.route("/user/delete/<int:user_id>", methods=["POST"])
+@is_admin
 def delete_user(user_id):
-    user = User.query.get_or_404(user_id)
+    user = UserRegular.query.get(user_id)
+    if user:
+        user_info = UserInfo.query.filter_by(user_id=user_id).first()
+        if user_info:
+            db.session.delete(user_info)
 
-    user_info = UserInfo.get_by_user_id(user_id)
-    if user_info:
-        db.session.delete(user_info)
+        user_payment = UserPayment.query.filter_by(user_id=user_id).first()
+        if user_payment:
+            db.session.delete(user_payment)
 
-    user_payment = UserPayment.get_by_user_id(user_id)
-    if user_payment:
-        db.session.delete(user_payment)
-
-    db.session.delete(user)
-    db.session.commit()
-
-    return redirect(url_for("admin.get_all_users"))
+        db.session.delete(user)
+        db.session.commit()
+        return redirect(url_for("admin.get_all_users"))
+    else:
+        abort(404)
 
 
 # Company
 
+
 @admin.route("/companies")
+@is_admin
 def get_all_companies():
     companies = Company.get_all()
     return render_template("admin/get_companies.html", companies=companies)
 
 
 @admin.route("/company/add", methods=["GET", "POST"])
+@is_admin
 def add_company():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     users = User.get_all()
     industries = Industry.get_all()
     rounds = Round.get_all()
     countries = Country.get_all()
 
     if request.method == "POST":
+        name = request.form.get("company-name")
+        if error := validate_field(name, "Company name", "Company name cannot be empty.", "admin.add_company"):
+            return error
+
+        preferred_round_id = request.form.get("round")
+        industry_id = request.form.get("industry")
+
+        if not preferred_round_id or not industry_id:
+            return redirect(
+                url_for(
+                    "admin.add_company",
+                    _external=False,
+                    **Status(StatusType.ERROR, "Please select rounds and industries.").get_status(),
+                )
+            )
+
         company = Company(
             user_id=request.form.get("user"),
-            name=request.form.get("company-name"),
+            name=name,
             number_of_employees=request.form.get("number_of_employees"),
             description=request.form.get("description"),
             country_id=request.form.get("country"),
-            preferred_round_id=request.form.get("round"),
-            industry_id=request.form.get("industry"),
+            preferred_round_id=preferred_round_id,
+            industry_id=industry_id,
             website=request.form.get("website"),
         )
 
@@ -872,26 +998,61 @@ def add_company():
         rounds=rounds,
         countries=countries,
         users=users,
+        status_type=status_type,
+        msg=msg,
     )
 
 
 @admin.route("/company/edit/<int:company_id>", methods=["GET", "POST"])
+@is_admin
 def edit_company(company_id):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     company = Company.get_by_id(company_id)
+    if not company:
+        abort(404)
+
     users = User.get_all()
     industries = Industry.get_all()
     rounds = Round.get_all()
     countries = Country.get_all()
-    print(request.form.get("description"))
+
     if request.method == "POST":
-        company.user_id=request.form.get("user")
-        company.name=request.form.get("company-name")
-        company.description=request.form.get("description")
-        company.number_of_employees=request.form.get("number_of_employees")
-        company.country_id=request.form.get("country")
-        company.preferred_round_id=request.form.get("round")
-        company.industry_id=request.form.get("industry")
-        company.website=request.form.get("website")
+        name = request.form.get("company-name", "")
+        if error := validate_field(
+            name, "Company name", "Company name cannot be empty.", "admin.edit_company", company_id=company_id
+        ):
+            return error
+
+        preferred_round_id = request.form.get("round")
+        industry_id = request.form.get("industry")
+
+        if not preferred_round_id or not industry_id:
+            return redirect(
+                url_for(
+                    "admin.edit_company",
+                    _external=False,
+                    company_id=company_id,
+                    **Status(StatusType.ERROR, "Please select rounds and industries.").get_status(),
+                )
+            )
+
+        user = request.form.get("user")
+        if not user:
+            status = Status(StatusType.ERROR, "User does not exist.").get_status()
+            return redirect(url_for("admin.edit_company", _external=False, company_id=company_id, **status))
+
+        company.user_id = user # type: ignore
+        company.name = name
+        company.description = request.form.get("description", "")
+        company.number_of_employees = int(request.form.get("number_of_employees", 0) or 0)
+        company.country_id = request.form.get("country") # type: ignore
+        company.preferred_round_id = preferred_round_id # type: ignore
+        company.industry_id = industry_id # type: ignore
+        company.website = request.form.get("website", "")
 
         if pfp := request.files["pfp"]:
             try:
@@ -911,12 +1072,18 @@ def edit_company(company_id):
         countries=countries,
         users=users,
         company=company,
+        status_type=status_type,
+        msg=msg,
     )
 
 
 @admin.route("/company/delete/<int:company_id>", methods=["POST"])
+@is_admin
 def delete_company(company_id):
     company = Company.get_by_id(company_id)
+
+    if not company:
+        abort(404)
 
     db.session.delete(company)
     db.session.commit()

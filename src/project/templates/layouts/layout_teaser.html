@@ -42,41 +42,54 @@
         {% endblock %}
     </head>
     <body class="w-full">
-        <nav
-            class="absolute left-0 top-0 flex h-24 w-full items-center justify-center text-slate-900 dark:bg-slate-800 dark:text-slate-50"
-        >
-            <div class="flex w-full max-w-7xl items-center gap-7 px-9">
+        <nav class="absolute left-0 top-0 h-24 w-full text-slate-900 flex justify-center items-center">
+            <div class="flex w-full items-center justify-between px-9 max-w-7xl rounded-xl shadow-2xl py-5 m-2">
                 <a href="/"><img class="h-[30px] w-[113px]" src="../static/elements/logo-black.png" /></a>
                 <ul class="hidden gap-7 font-medium sm:flex">
-                    <a class="transition-colors ease-in-out hover:text-slate-700" href="/about">About us</a>
-                    <a class="transition-colors ease-in-out hover:text-slate-700" href="https://blog.globalify.xyz"
-                        >Blog</a
-                    >
-                    <a class="transition-colors ease-in-out hover:text-slate-700" href="/pricing">Pricing</a>
-                    <a class="transition-colors ease-in-out hover:text-slate-700" href="/#faq">FAQ</a>
+                    <a href="/about">About us</a>
+                    <a href="https://blog.globalify.xyz">Blog</a>
+                    <a href="/pricing">Pricing</a>
+                    <a href="/#faq">FAQ</a>
                 </ul>
-            </div>
-            <a
-                href="/waitlist"
-                class="mr-9 hidden min-w-max rounded-xl bg-sky-500 px-3 py-2 text-center text-white transition-colors ease-in-out hover:bg-sky-400 sm:block"
-                >Early access</a
-            >
-            <button class="mr-9 block sm:hidden" onclick="openMenu()">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="h-7 w-7"
+                <a
+                    href="/waitlist"
+                    class="hidden min-w-max text-sm rounded-full bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400 sm:flex justify-center items-center gap-2"
                 >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                    />
-                </svg>
-            </button>
+                    <div class="rounded-full size-6 bg-white text-slate-900 flex justify-center items-center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-3"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                            />
+                        </svg>
+                    </div>
+                    Early access</a
+                >
+                <button class="block sm:hidden" onclick="openMenu()">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="h-7 w-7"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                        />
+                    </svg>
+                </button>
+            </div>
         </nav>
         <div id="menu" class="hidden sm:hidden" role="dialog" aria-modal="true">
             <div

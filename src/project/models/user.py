@@ -3,12 +3,14 @@ from __future__ import annotations
 import datetime
 import re
 from collections.abc import Sequence
+from sqlite3 import Connection as SQLite3Connection
 from uuid import uuid4
 
 from flask_login import UserMixin
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, backref, declared_attr, mapped_column, relationship
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..extensions import db
@@ -19,7 +21,8 @@ from .helpers import Country, Industry, Round
 class User(UserMixin, db.Model):
     """
     Base class for a user in the application.
-    This should not be used directly to instantiate a user. Instead, use one of the subclasses.
+    This should not be used directly to instantiate a user.
+    Instead, use one of the subclasses(`UserRegular` and `UserOauth`).
     Although, this can be used to query for users.
 
     Attributes:
@@ -48,23 +51,21 @@ class User(UserMixin, db.Model):
 
     __mapper_args__ = {"polymorphic_identity": "user", "polymorphic_on": type}
 
-    @declared_attr
-    def user_info(cls):  # noqa: N805
-        return relationship("UserInfo", backref=backref(cls.__name__.lower(), cascade="all, delete"), lazy=True)
-
-    @declared_attr
-    def user_payment(cls):  # noqa: N805
-        return relationship("UserPayment", backref=backref(cls.__name__.lower(), cascade="all, delete"), lazy=True)
-
-    @declared_attr
-    def company(cls):  # noqa: N805
-        return relationship("Company", backref=backref(cls.__name__.lower(), cascade="all, delete"), lazy=True)
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def __repr__(self):
         return f"<User {self.email} | {self.type}>"
+
+    @classmethod
+    def delete_by_id(cls, id: int) -> None:
+        """
+        Deletes the user and all associated data.
+        This includes the `UserInfo`, `UserPayment`, and `Company` objects.
+        """
+        if user := cls.get_by_id(id):
+            db.session.delete(user.id)
+            db.session.commit()
 
     @classmethod
     def get_by_id(cls, id: int) -> User | None:
@@ -156,7 +157,9 @@ class UserInfo(db.Model):
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False, unique=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
     first_name: Mapped[str | None] = mapped_column(String, nullable=True)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -168,7 +171,7 @@ class UserInfo(db.Model):
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     language: Mapped[str] = mapped_column(String, nullable=True, default="English")
 
-    # user: Mapped[User] = relationship("User", backref=backref("user_info", cascade="all, delete"), lazy=True)
+    user: Mapped[User] = relationship(User, backref=backref("user_info", passive_deletes=True))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -271,7 +274,9 @@ class UserPayment(db.Model):
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False, unique=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
     customer_id: Mapped[str] = mapped_column(String, nullable=True)
     subscription_id: Mapped[str] = mapped_column(String, nullable=True)
     created: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
@@ -279,7 +284,7 @@ class UserPayment(db.Model):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     tier: Mapped[Tier] = mapped_column(SQLEnum(Tier), nullable=False, default=Tier.FREE)
 
-    # user: Mapped[User] = relationship("User", backref=backref("user_payment", cascade="all, delete"), lazy=True)
+    user: Mapped[User] = relationship(User, backref=backref("user_payment", passive_deletes=True))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -453,7 +458,7 @@ class Company(db.Model):
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=True)
     number_of_employees: Mapped[int] = mapped_column(Integer, nullable=True)
@@ -463,7 +468,7 @@ class Company(db.Model):
     preferred_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
     industry_id: Mapped[int] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True)
 
-    # user: Mapped[User] = relationship("User", backref=backref("company", cascade="all, delete"), lazy=True)
+    user: Mapped[User] = relationship(User, backref=backref("company", passive_deletes=True), lazy=True)
     country: Mapped[Country] = relationship()
     preferred_round: Mapped[Round] = relationship()
     industry: Mapped[Industry] = relationship()
@@ -481,3 +486,11 @@ class Company(db.Model):
     @staticmethod
     def get_by_user_id(user_id: int) -> Company | None:
         return db.session.scalar(db.select(Company).where(Company.user_id == user_id))
+
+
+@event.listens_for(Engine, "connect")
+def _set_sqlite_pragma(dbapi_connection, connection_record):
+    if isinstance(dbapi_connection, SQLite3Connection):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON;")
+        cursor.close()

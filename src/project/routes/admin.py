@@ -702,6 +702,7 @@ def add_user():
         new_user.password = password
 
         db.session.add(new_user)
+        db.session.commit()
 
         first_name = request.form.get("first_name", "").strip()
         if error := validate_field(first_name, "First name", "First name cannot be empty.", "admin.add_user"):
@@ -861,23 +862,11 @@ def edit_user(user_id):
 @is_admin
 def delete_user(user_id):
     user = User.get_by_id(user_id)
-    if user:
-        user_info = UserInfo.get_by_user_id(user_id)
-        if user_info:
-            db.session.delete(user_info)
-            db.session.commit()
-
-        user_payment = UserPayment.get_by_user_id(user_id)
-        print(user_payment)
-        if user_payment:
-            db.session.delete(user_payment)
-            db.session.commit()
-
-        # db.session.delete(user)
-        db.session.commit()
-        return redirect(url_for("admin.get_all_users"))
-    else:
+    if not user:
         abort(404)
+
+    user.delete_by_id(user_id)
+    return redirect(url_for("admin.get_all_users"))
 
 
 # Company

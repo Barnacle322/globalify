@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 from functools import wraps
 
-from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user
 
 from src.project.utils.google_storage import prepare_picture, upload_blob
@@ -154,7 +154,6 @@ def index():
 
 def validate_field(
     value,
-    field_name,
     error_message,
     redirect_url=None,
     user_id=None,
@@ -164,21 +163,6 @@ def validate_field(
 ):
     if not value.strip():
         status = Status(StatusType.ERROR, error_message).get_status()
-        if redirect_url:
-            return redirect(
-                url_for(
-                    redirect_url,
-                    _external=False,
-                    user_id=user_id,
-                    investment_firm_id=investment_firm_id,
-                    investor_id=investor_id,
-                    company_id=company_id,
-                    **status,
-                )
-            )
-        return status
-    if value != value.strip():
-        status = Status(StatusType.ERROR, f"{field_name} cannot start or end with spaces.").get_status()
         if redirect_url:
             return redirect(
                 url_for(
@@ -212,8 +196,8 @@ def add_investor():
         msg = query.get("msg")
 
     if request.method == "POST":
-        first_name = request.form.get("first_name")
-        last_name = request.form.get("last_name")
+        first_name = request.form.get("first_name", "").strip()
+        last_name = request.form.get("last_name", "").strip()
 
         if error := validate_field(first_name, "First name", "First name cannot be empty.", "admin.add_investor"):
             return error
@@ -262,15 +246,15 @@ def add_investor():
         new_investor = Investor(
             first_name=first_name,
             last_name=last_name,
-            firm_name=request.form.get("firm_name"),
-            about=request.form.get("about"),
-            position=request.form.get("position"),
+            firm_name=request.form.get("firm_name", "").strip(),
+            about=request.form.get("about", "").strip(),
+            position=request.form.get("position", "").strip(),
             website=request.form.get("website"),
             linkedin=request.form.get("linkedin"),
             twitter=request.form.get("twitter"),
             email=email,
             phone_number=request.form.get("phone_number"),
-            location=request.form.get("location"),
+            location=request.form.get("location", "").strip(),
             n_investments=n_investments,
             n_exits=n_exits,
             min_investment=min_investment,
@@ -303,8 +287,8 @@ def edit_investor(investor_id):
     investor = Investor.query.get_or_404(investor_id)
 
     if request.method == "POST":
-        first_name = request.form.get("first_name")
-        last_name = request.form.get("last_name")
+        first_name = request.form.get("first_name", "").strip()
+        last_name = request.form.get("last_name", "").strip()
 
         error = validate_field(
             first_name, "First name", "First name cannot be empty.", "admin.edit_investor", investor_id=investor_id
@@ -360,9 +344,9 @@ def edit_investor(investor_id):
 
         investor.first_name = first_name
         investor.last_name = last_name
-        investor.firm_name = request.form.get("firm_name")
-        investor.about = request.form.get("about")
-        investor.position = request.form.get("position")
+        investor.firm_name = request.form.get("firm_name", "").strip()
+        investor.about = request.form.get("about", "").strip()
+        investor.position = request.form.get("position", "").strip()
         investor.website = request.form.get("website")
         investor.linkedin = request.form.get("linkedin")
         investor.twitter = request.form.get("twitter")
@@ -372,7 +356,7 @@ def edit_investor(investor_id):
         investor.n_exits = int(request.form.get("n_exits", 0) or 0)
         investor.min_investment = int(request.form.get("min_investment", 0) or 0)
         investor.max_investment = int(request.form.get("max_investment", 0) or 0)
-        investor.location = request.form.get("location")
+        investor.location = request.form.get("location", "").strip()
 
         investor.rounds = selected_rounds
         investor.industries = selected_industries
@@ -494,7 +478,7 @@ def add_investment_firm():
         msg = query.get("msg")
 
     if request.method == "POST":
-        name = request.form.get("name")
+        name = request.form.get("name", "").strip()
 
         error = validate_field(name, "Name", "Name cannot be empty.", "admin.add_investment_firm")
         if error:
@@ -537,7 +521,7 @@ def add_investment_firm():
 
         new_investor = InvestmentFirm(
             name=name,
-            about=request.form.get("about"),
+            about=request.form.get("about", "").strip(),
             website=request.form.get("website"),
             email=email,
             phone_number=request.form.get("phone_number"),
@@ -576,7 +560,7 @@ def edit_investment_firm(investment_firm_id):
         abort(404)
 
     if request.method == "POST":
-        name = request.form.get("name", "")
+        name = request.form.get("name", "").strip()
         error = validate_field(
             name, "Name", "Name cannot be empty.", "admin.edit_investment_firm", investment_firm_id=investment_firm_id
         )
@@ -626,7 +610,7 @@ def edit_investment_firm(investment_firm_id):
         ]
 
         investment_firm.name = name
-        investment_firm.about = request.form.get("about", "")
+        investment_firm.about = request.form.get("about", "").strip()
         investment_firm.website = request.form.get("website", "")
         investment_firm.email = email
         investment_firm.phone_number = request.form.get("phone_number", "")
@@ -636,8 +620,8 @@ def edit_investment_firm(investment_firm_id):
         investment_firm.min_investment = int(request.form.get("min_investment", 0) or 0)
         investment_firm.max_investment = int(request.form.get("max_investment", 0) or 0)
 
-        investment_firm.rounds = selected_rounds # type: ignore
-        investment_firm.industries = selected_industries # type: ignore
+        investment_firm.rounds = selected_rounds  # type: ignore
+        investment_firm.industries = selected_industries  # type: ignore
 
         db.session.commit()
 
@@ -719,15 +703,15 @@ def add_user():
 
         db.session.add(new_user)
 
-        first_name = request.form.get("first_name")
+        first_name = request.form.get("first_name", "").strip()
         if error := validate_field(first_name, "First name", "First name cannot be empty.", "admin.add_user"):
             return error
 
-        last_name = request.form.get("last_name")
+        last_name = request.form.get("last_name", "").strip()
         if error := validate_field(last_name, "Last name", "Last name cannot be empty.", "admin.add_user"):
             return error
 
-        username = request.form.get("username")
+        username = request.form.get("username", "").strip()
         if error := validate_field(username, "Username", "Username cannot be empty.", "admin.add_user"):
             return error
 
@@ -736,7 +720,7 @@ def add_user():
             first_name=first_name,
             last_name=last_name,
             username=username,
-            bio=request.form.get("bio"),
+            bio=request.form.get("bio", "").strip(),
             linkedin=request.form.get("linkedin"),
             instagram=request.form.get("instagram"),
             twitter=request.form.get("twitter"),
@@ -812,15 +796,15 @@ def edit_user(user_id):
             status = Status(StatusType.ERROR, AUTH_EMAIL_USED).get_status()
             return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
-        first_name = request.form.get("first_name")
+        first_name = request.form.get("first_name", "").strip()
         if error := validate_field(first_name, "First name", "First name cannot be empty.", "admin.edit_user", user_id):
             return error
 
-        last_name = request.form.get("last_name")
+        last_name = request.form.get("last_name", "").strip()
         if error := validate_field(last_name, "Last name", "Last name cannot be empty.", "admin.edit_user", user_id):
             return error
 
-        username = request.form.get("username")
+        username = request.form.get("username", "").strip()
         if error := validate_field(username, "Username", "Username cannot be empty.", "admin.edit_user", user_id):
             return error
 
@@ -840,13 +824,12 @@ def edit_user(user_id):
         user_info.first_name = first_name
         user_info.last_name = last_name
         user_info.username = username
-        user_info.bio = request.form.get("bio")
+        user_info.bio = request.form.get("bio", "").strip()
         user_info.linkedin = request.form.get("linkedin")
         user_info.instagram = request.form.get("instagram")
         user_info.twitter = request.form.get("twitter")
         user_info.is_complete = bool(request.form.get("is_complete"))
         user_info.language = request.form.get("language", "English")
-
         user_payment.customer_id = request.form.get("customer_id", "")
         user_payment.subscription_id = request.form.get("subscription_id", "")
         user_payment.created = (
@@ -874,52 +857,23 @@ def edit_user(user_id):
     )
 
 
-@admin.route("/user/edit/change-password/<int:user_id>", methods=["GET", "POST"])
-@is_admin
-def change_password(user_id):
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-
-    user = UserRegular.query.filter(UserRegular.id == user_id).first()
-
-    if not user:
-        abort(404)
-
-    if request.method == "POST":
-        password = request.form.get("password")
-        confirm_password = request.form.get("confirm_password")
-
-        if password != confirm_password:
-            status = Status(StatusType.ERROR, AUTH_MISMATCHED_PASSWORDS).get_status()
-            return redirect(url_for("admin.change_password", _external=False, **status))
-
-        db.session.commit()
-        return redirect(url_for("admin.get_all_users"))
-
-    return render_template(
-        "admin/change_password.html",
-        user=user,
-        status_type=status_type,
-        msg=msg,
-    )
-
-
 @admin.route("/user/delete/<int:user_id>", methods=["POST"])
 @is_admin
 def delete_user(user_id):
-    user = UserRegular.query.get(user_id)
+    user = User.get_by_id(user_id)
     if user:
-        user_info = UserInfo.query.filter_by(user_id=user_id).first()
+        user_info = UserInfo.get_by_user_id(user_id)
         if user_info:
             db.session.delete(user_info)
+            db.session.commit()
 
-        user_payment = UserPayment.query.filter_by(user_id=user_id).first()
+        user_payment = UserPayment.get_by_user_id(user_id)
+        print(user_payment)
         if user_payment:
             db.session.delete(user_payment)
+            db.session.commit()
 
-        db.session.delete(user)
+        # db.session.delete(user)
         db.session.commit()
         return redirect(url_for("admin.get_all_users"))
     else:
@@ -950,7 +904,7 @@ def add_company():
     countries = Country.get_all()
 
     if request.method == "POST":
-        name = request.form.get("company-name")
+        name = request.form.get("company-name", "").strip()
         if error := validate_field(name, "Company name", "Company name cannot be empty.", "admin.add_company"):
             return error
 
@@ -1018,7 +972,7 @@ def edit_company(company_id):
     countries = Country.get_all()
 
     if request.method == "POST":
-        name = request.form.get("company-name", "")
+        name = request.form.get("company-name", "").strip()
         if error := validate_field(
             name, "Company name", "Company name cannot be empty.", "admin.edit_company", company_id=company_id
         ):
@@ -1042,13 +996,13 @@ def edit_company(company_id):
             status = Status(StatusType.ERROR, "User does not exist.").get_status()
             return redirect(url_for("admin.edit_company", _external=False, company_id=company_id, **status))
 
-        company.user_id = user # type: ignore
+        company.user_id = user  # type: ignore
         company.name = name
         company.description = request.form.get("description", "")
         company.number_of_employees = int(request.form.get("number_of_employees", 0) or 0)
-        company.country_id = request.form.get("country") # type: ignore
-        company.preferred_round_id = preferred_round_id # type: ignore
-        company.industry_id = industry_id # type: ignore
+        company.country_id = request.form.get("country")  # type: ignore
+        company.preferred_round_id = preferred_round_id  # type: ignore
+        company.industry_id = industry_id  # type: ignore
         company.website = request.form.get("website", "")
 
         if pfp := request.files["pfp"]:

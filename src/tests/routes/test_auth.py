@@ -1,19 +1,13 @@
-from urllib.parse import quote_plus
-
 import pytest
 
+from src.project.routes.auth import oauth_user
 from src.project.utils.status_enum import OauthProvider
 
 from ...project import db
 from ...project.models import User, UserInfo, UserOauth, UserPayment, UserRegular
 from ...project.utils.errors.auth_error_messages import (
-    AUTH_EMAIL_NOT_FOUND,
     AUTH_EMAIL_USED,
-    AUTH_FIELDS_INCOMPLETE,
-    AUTH_INCORRECT_PASSWORD,
-    AUTH_INVALID_EMAIL,
-    AUTH_MISMATCHED_PASSWORDS,
-    AUTH_OAUTH_USED,
+    OAUTH_MISMATCHED_PROVIDER,
 )
 
 
@@ -38,6 +32,7 @@ def new_user(app):
         )
         db.session.add_all([user_info, user_payment])
         db.session.commit()
+        return user
 
 
 @pytest.fixture()
@@ -46,6 +41,7 @@ def new_user_oauth(app):
         user = UserOauth(email="janedoe@example.com", oauth_provider=OauthProvider.GOOGLE)
         db.session.add(user)
         db.session.commit()
+        return user
 
 
 def test_login_page(client):
@@ -62,27 +58,33 @@ def test_login(client, new_user):
 
 
 def test_login_post_method_with_empty_fields(client):
-    response = client.post("/login", data={"email": "", "password": ""})
-    assert response.status_code == 302
-    assert quote_plus(AUTH_FIELDS_INCOMPLETE) in response.location
+    response = client.post("/login", data={"email": "", "password": ""}, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Please fill out all fields." in response.data
 
 
 def test_login_post_method_with_used_oauth(client, new_user_oauth):
-    response = client.post("/login", data={"email": "janedoe@example.com", "password": "password"})
-    assert response.status_code == 302
-    assert quote_plus(AUTH_OAUTH_USED) in response.location
+    response = client.post(
+        "/login", data={"email": "janedoe@example.com", "password": "password"}, follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert b"Please sign in with your OAuth provider." in response.data
 
 
 def test_login_post_method_with_invalid_email(client):
-    response = client.post("/login", data={"email": "nonexisting@email.com", "password": "password"})
-    assert response.status_code == 302
-    assert quote_plus(AUTH_EMAIL_NOT_FOUND) in response.location
+    response = client.post(
+        "/login", data={"email": "nonexisting@email.com", "password": "password"}, follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert b"User associated with this email does not exist." in response.data
 
 
 def test_login_post_method_with_invalid_password(client, new_user):
-    response = client.post("/login", data={"email": "johndoe@example.com", "password": "incorrect_password"})
-    assert response.status_code == 302
-    assert quote_plus(AUTH_INCORRECT_PASSWORD) in response.location
+    response = client.post(
+        "/login", data={"email": "johndoe@example.com", "password": "incorrect_password"}, follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert b"The password is incorrect" in response.data
 
 
 def test_register_page(client):
@@ -105,39 +107,189 @@ def test_register(client, app):
 
 
 def test_register_post_method_with_empty_fields(client):
-    response = client.post("/register", data={"email": "", "password": "", "confirm_password": ""})
-    assert response.status_code == 302
-    assert quote_plus(AUTH_FIELDS_INCOMPLETE) in response.location
+    response = client.post(
+        "/register", data={"email": "", "password": "", "confirm_password": ""}, follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert b"Please fill out all fields." in response.data
 
 
 def test_register_post_method_with_invalid_email(client):
     response = client.post(
-        "/register", data={"email": "invalid_email", "password": "password123", "confirm_password": "password123"}
+        "/register",
+        data={"email": "invalid_email", "password": "password123", "confirm_password": "password123"},
+        follow_redirects=True,
     )
-    assert response.status_code == 302
-    assert quote_plus(AUTH_INVALID_EMAIL) in response.location
+    assert response.status_code == 200
+    assert b"Please enter a valid email." in response.data
 
 
 def test_register_post_method_with_mismatched_passwords(client):
     response = client.post(
-        "/register", data={"email": "janedoe@example.com", "password": "password123", "confirm_password": "password321"}
+        "/register",
+        data={"email": "janedoe@example.com", "password": "password123", "confirm_password": "password321"},
+        follow_redirects=True,
     )
-    assert response.status_code == 302
-    assert quote_plus(AUTH_MISMATCHED_PASSWORDS) in response.location
+    assert response.status_code == 200
+    assert b"Passwords do not match." in response.data
 
 
 def test_register_post_method_with_existing_oauth_user(client, new_user_oauth):
     response = client.post(
         "/register",
         data={"email": "janedoe@example.com", "password": "password123", "confirm_password": "password123"},
+        follow_redirects=True,
     )
-    assert response.status_code == 302
-    assert quote_plus(AUTH_OAUTH_USED) in response.location
+    assert response.status_code == 200
+    assert b"Please sign in with your OAuth provider." in response.data
 
 
 def test_register_post_method_with_existing_user(client, new_user):
     response = client.post(
-        "/register", data={"email": "johndoe@example.com", "password": "password", "confirm_password": "password"}
+        "/register",
+        data={"email": "johndoe@example.com", "password": "password", "confirm_password": "password"},
+        follow_redirects=True,
     )
-    assert response.status_code == 302
-    assert quote_plus(AUTH_EMAIL_USED) in response.location
+    assert response.status_code == 200
+    assert b"Email is already in use." in response.data
+
+
+def test_oauth_user_with_new_email(app):
+    with app.app_context():
+        user = oauth_user(email="testoauth@example.com", oauth_provider=OauthProvider.GOOGLE)
+        assert user
+        assert user.email == "testoauth@example.com"
+        assert isinstance(user, UserOauth)
+
+
+def test_oauth_user_with_existing_email_different_provider(app, new_user_oauth):
+    with app.app_context():
+        with pytest.raises(Exception) as e:
+            oauth_user(email="janedoe@example.com", oauth_provider=OauthProvider.LINKEDIN)
+        assert str(e.value) == OAUTH_MISMATCHED_PROVIDER
+
+
+def test_oauth_user_with_existing_email_non_oauth_user(app, new_user):
+    with app.app_context():
+        with pytest.raises(Exception) as e:
+            oauth_user(email="johndoe@example.com", oauth_provider=OauthProvider.GOOGLE)
+        assert str(e.value) == AUTH_EMAIL_USED
+
+
+def test_onboarding_anonymous_get(client):
+    response = client.get("/onboarding", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Welcome back!" in response.data
+    assert b"Sign in" in response.data
+
+
+@pytest.fixture()
+def authenticated_client(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    with client as c:
+        with c.session_transaction() as sess:
+            sess["user_id"] = 1
+            sess["_fresh"] = True
+
+    yield client
+
+
+def test_onboarding_authenticated_user(authenticated_client):
+    response = authenticated_client.get("/onboarding", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Profile" in response.data
+    assert b"This information will be displayed publicly so be careful what you share." in response.data
+
+
+def test_onboarding_post_valid_data(authenticated_client, app):
+    """Stays on the same page eventhough the data is valid"""
+    response = authenticated_client.post(
+        "/onboarding",
+        data=dict(
+            first_name="John",
+            last_name="Doe",
+            username="johndoe123",
+            bio="Hello, I'm John Doe.",
+            language="English",
+            linkedin="https://linkedin.com/in/johndoe",
+            instagram="https://instagram.com/johndoe",
+            twitter="https://twitter.com/johndoe",
+        ),
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"Company profile" in response.data
+    print(response.text)
+    with app.app_context():
+        user_info = UserInfo.get_by_user_id(1)
+        assert user_info.is_complete  # type: ignore
+
+
+def test_onboarding_post_invalid_data(authenticated_client):
+    data = {
+        "first_name": "",
+        "last_name": "",
+        "username": "",
+        "language": "",
+        "linkedin": "invalid_linkedin",
+        "instagram": "invalid_instagram",
+        "twitter": "invalid_twitter",
+    }
+    response = authenticated_client.post("/onboarding", data=data, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Profile" in response.data
+
+
+def test_logout_endpoint(authenticated_client):
+    response = authenticated_client.get("/logout", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"About Us" in response.data
+    assert b"Blog" in response.data
+
+
+def test_username_anonymous_get(client):
+    response = client.get("/username/johndoe", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Welcome back!" in response.data
+    assert b"Sign in" in response.data
+
+
+def test_username_authenticated_get(authenticated_client):
+    response = authenticated_client.get("/username/johndoe", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"is_taken" in response.data
+
+
+def test_company_form_anonymous_get(client):
+    response = client.get("/company-form", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Welcome back!" in response.data
+    assert b"Sign in" in response.data
+
+
+def test_company_form_authenticated_get(authenticated_client):
+    response = authenticated_client.get("/company-form", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Company profile" in response.data
+    assert b"This information will be displayed publicly so be careful what you share." in response.data
+
+
+def test_company_form_authenticated_post(authenticated_client):
+    """Bad request 400 eventhough all fields are valid"""
+    response = authenticated_client.post(
+        "/company-form",
+        data=dict(
+            name="Test Company",
+            description="Test description",
+            country_id=1,
+            preferred_round_id=1,
+            industry_id=1,
+            website="https://www.example.com",
+        ),
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"Dashboard" in response.data
+    assert b"Investors" in response.data
+    assert b"Firms" in response.data

@@ -343,7 +343,7 @@
             {% if investment_firms %} {% for investment_firm in investment_firms %}
             <div class="flex w-full flex-col justify-between gap-2 rounded-lg border-2 p-4">
                 <div class="flex items-baseline justify-between">
-                    <a href="/investment_firm/{{ investment_firm.id }}" class="text-lg underline"
+                    <a href="/admin/investment-firm/edit/{{ investment_firm.id }}" class="text-lg underline"
                         >{{ investment_firm.name }}</a
                     >
                     <div class="flex gap-2">

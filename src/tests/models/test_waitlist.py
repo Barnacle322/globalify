@@ -31,7 +31,15 @@ def new_waitlist(app):
 
 def test_waitlist_charge(new_waitlist_charge, app):
     with app.app_context():
-        waitlist_charge = WaitlistCharge.query.first()
+        waitlist_charge = WaitlistCharge.get_by_id(1)
+        assert waitlist_charge
+        waitlist_charge = WaitlistCharge.get_by_customer_id("stripe_id")
+        assert waitlist_charge
+        waitlist_charge = WaitlistCharge.get_by_charge_id("charge_id")
+        assert waitlist_charge
+        waitlist_charge = WaitlistCharge.get_by_random_key("12345")
+        assert waitlist_charge
+        waitlist_charge = WaitlistCharge.get_by_customer_email("cus@example.com")
         assert waitlist_charge
         assert waitlist_charge.stripe_customer_id == "stripe_id"
         assert waitlist_charge.charge_id == "charge_id"
@@ -43,6 +51,6 @@ def test_waitlist_charge(new_waitlist_charge, app):
 
 def test_waitlist(new_waitlist, app):
     with app.app_context():
-        waitlist = Waitlist.query.first()
+        waitlist = Waitlist.get_by_email("cus@example.com")
         assert waitlist
         assert waitlist.email == "cus@example.com"

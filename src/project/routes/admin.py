@@ -675,9 +675,6 @@ def delete_investment_firm(investment_firm_id):
 @admin.route("/users/")
 @is_admin
 def get_all_users():
-    """
-    Need to make this page more beautiful
-    """
     user_list = UserInfo.get_all()
 
     return render_template("admin/get_users.html", users=user_list)

@@ -24,6 +24,23 @@ class User(UserMixin, db.Model):
     This should not be used directly to instantiate a user.
     Instead, use one of the subclasses(`UserRegular` and `UserOauth`).
     Although, this can be used to query for users.
+
+    Attributes:
+        id (Mapped[int]): Unique identifier for the user, serves as the primary key.
+        type (Mapped[str]): String indicating the type of the user, used for polymorphic identity.
+        email (Mapped[str]): The email address of the user, must be unique and is non-nullable.
+        is_verified (Mapped[bool]): Boolean flag indicating if the user's email is verified.
+        is_admin (Mapped[bool]): Boolean flag indicating if the user has admin privileges.
+
+    __mapper_args__:
+        Configures the inheritance scheme, setting 'user' as the polymorphic identity and 'type' as the polymorphic discriminator column.
+
+    Relationships:
+        user_info (relationship): Defines a one-to-one or one-to-many relationship with the UserInfo model.
+        user_payment (relationship): Defines a one-to-one or one-to-many relationship with the UserPayment model.
+        company (relationship): Defines a one-to-one or one-to-many relationship with the Company model.
+
+    The declared_attr decorator is used to create the relationships dynamically based on the class name, with cascading delete.
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -52,54 +69,28 @@ class User(UserMixin, db.Model):
 
     @classmethod
     def get_by_id(cls, id: int) -> User | None:
-        """
-        Retrieves a user by their ID.
-
-        Args:
-            id (int): The ID of the user.
-
-        Returns:
-            User | None: The user with the specified ID, or None if not found.
-
-        """
         return db.session.scalar(db.select(cls).where(cls.id == id))
 
     @classmethod
     def get_by_email(cls, email: str) -> User | None:
-        """
-        Retrieves a user by their email address.
-
-        Args:
-            email (str): The email address of the user.
-
-        Returns:
-            User | None: The user with the specified email address, or None if not found.
-
-        """
         return db.session.scalar(db.select(cls).where(cls.email == email))
 
     @classmethod
     def get_all(cls) -> Sequence[User]:
-        """
-        Retrieves all users.
-
-        Returns:
-            list[User]: A list of all users.
-        """
         return db.session.scalars(db.select(cls)).all()
 
 
 class UserOauth(User):
     """
-    Implements a user in the application that uses OAuth for authentication.
+    Subclass of User that adds OAuth provider authentication support.
+
+    This class extends the User model to include functionality for users who authenticate via an OAuth provider.
 
     Attributes:
-        id (int): The unique identifier for the user.
-        email (str): The email address of the user.
-        oauth_provider (OauthProvider): The OAuth provider used by the user.
-        is_verified (bool): Indicates if the user's email address is verified.
-        is_admin (bool): Indicates if the user has administrative privileges.
+        oauth_provider (Mapped[OauthProvider]): Enum field representing the OAuth provider used for authentication, can be nullable.
 
+    __mapper_args__:
+        Configures the inheritance scheme, setting 'user_oauth' as the polymorphic identity for this subclass.
     """
 
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider), nullable=True)
@@ -111,15 +102,19 @@ class UserOauth(User):
 
 class UserRegular(User):
     """
-    Implements a user in the application that uses email and password for authentication.
+    Subclass of User designed for regular users who authenticate with a password.
+
+    This class adds password-based authentication mechanisms to the User model, including methods to set and verify passwords.
 
     Attributes:
-        id (int): The unique identifier for the user.
-        email (str): The email address of the user.
-        password_hash (str): The hashed password of the user.
-        is_verified (bool): Indicates if the user's email address is verified.
-        is_admin (bool): Indicates if the user has administrative privileges.
+        password_hash (Mapped[str]): Stores the hash of the user's password, can be nullable.
 
+    __mapper_args__:
+        Configures the inheritance scheme, setting 'user_regular' as the polymorphic identity for this subclass.
+
+    Methods:
+        password: Write-only property to set the user's password. The actual password should never be readable.
+        verify_password: Verifies a provided password against the stored password hash.
     """
 
     password_hash: Mapped[str] = mapped_column(String, nullable=True)
@@ -130,37 +125,13 @@ class UserRegular(User):
 
     @property
     def password(self) -> None:
-        """
-        The password property.
-
-        Raises:
-            AttributeError: If an attempt is made to read the password.
-
-        """
         raise AttributeError("Password is not a readable attribute.")
 
     @password.setter
     def password(self, password: str) -> None:
-        """
-        Sets the password for the user.
-
-        Args:
-            password (str): The password to set.
-
-        """
         self.password_hash = generate_password_hash(password, "scrypt")
 
     def verify_password(self, password: str) -> bool:
-        """
-        Verifies if the provided password matches the user's password.
-
-        Args:
-            password (str): The password to verify.
-
-        Returns:
-            bool: True if the passwords match, False otherwise.
-
-        """
         if not self.password_hash:
             return False
         return check_password_hash(self.password_hash, password)
@@ -226,16 +197,6 @@ class UserInfo(db.Model):
 
     @linkedin.setter
     def linkedin(self, linkedin) -> None:
-        """
-        Sets the LinkedIn profile URL for the user.
-
-        Args:
-            linkedin (str): The LinkedIn profile URL to set.
-
-        Raises:
-            ValueError: If the provided LinkedIn URL is invalid.
-
-        """
         if not linkedin:
             self.linkedin_url = None
             return None
@@ -246,16 +207,6 @@ class UserInfo(db.Model):
 
     @instagram.setter
     def instagram(self, instagram) -> None:
-        """
-        Sets the Instagram profile URL for the user.
-
-        Args:
-            instagram (str): The Instagram profile URL to set.
-
-        Raises:
-            ValueError: If the provided Instagram URL is invalid.
-
-        """
         if not instagram:
             self.instagram_url = None
             return None
@@ -266,16 +217,6 @@ class UserInfo(db.Model):
 
     @twitter.setter
     def twitter(self, twitter) -> None:
-        """
-        Sets the Twitter profile URL for the user.
-
-        Args:
-            twitter (str): The Twitter profile URL to set.
-
-        Raises:
-            ValueError: If the provided Twitter URL is invalid.
-
-        """
         if not twitter:
             self.twitter_url = None
             return None
@@ -286,8 +227,6 @@ class UserInfo(db.Model):
 
     def sanitize(self):
         """
-        Returns a dictionary representation of the UserInfo object.
-
         Returns:
             dict[str, str]: A dictionary representing the UserInfo object.
 
@@ -307,41 +246,14 @@ class UserInfo(db.Model):
 
     @staticmethod
     def get_by_user_id(user_id: int) -> UserInfo | None:
-        """
-        Retrieves a UserInfo object by user ID.
-
-        Args:
-            user_id (int): The user ID.
-
-        Returns:
-            UserInfo | None: The UserInfo object corresponding to the user ID, or None if not found.
-
-        """
         return db.session.scalar(db.select(UserInfo).where(UserInfo.user_id == user_id))
 
     @staticmethod
     def get_all() -> Sequence[UserInfo] | None:
-        """
-        Retrieves all UserInfo objects.
-
-        Returns:
-            list[UserInfo]: A list of UserInfo objects.
-
-        """
         return db.session.scalars(db.select(UserInfo)).all()
 
     @staticmethod
     def is_taken(username: str | None) -> bool:
-        """
-        Checks if a username is taken by another user.
-
-        Args:
-            username (str | None): The username to check.
-
-        Returns:
-            bool: True if the username is taken, False otherwise.
-
-        """
         user_info = db.session.scalar(db.select(UserInfo).where(UserInfo.username == username))
         return True if user_info else False
 
@@ -358,7 +270,6 @@ class UserPayment(db.Model):
         expires_at (datetime.datetime | None): The date and time when the payment expires.
         is_active (bool): Indicates whether the payment is active or not.
         tier (Tier): The subscription tier associated with the payment.
-        user (User): The user associated with the payment.
 
     """
 
@@ -384,8 +295,6 @@ class UserPayment(db.Model):
     @property
     def created_epoch(self) -> datetime.datetime | None:
         """
-        Returns the created date and time in epoch format.
-
         Returns:
             DateTime | None: The created date and time in epoch format.
 
@@ -395,8 +304,6 @@ class UserPayment(db.Model):
     @property
     def expires_at_epoch(self) -> datetime.datetime | None:
         """
-        Returns the expiration date and time in epoch format.
-
         Returns:
             DateTime | None: The expiration date and time in epoch format.
 
@@ -445,36 +352,14 @@ class UserPayment(db.Model):
 
     @staticmethod
     def get_by_customer_id(customer_id: str) -> UserPayment | None:
-        """
-        Retrieves a UserPayment object by customer ID.
-
-        Args:
-            customer_id (str): The customer ID.
-
-        Returns:
-            UserPayment | None: The UserPayment object corresponding to the customer ID, or None if not found.
-
-        """
         return db.session.scalar(db.select(UserPayment).where(UserPayment.customer_id == customer_id))
 
     @staticmethod
     def get_by_user_id(user_id: int) -> UserPayment | None:
-        """
-        Retrieves a UserPayment object by user ID.
-
-        Args:
-            user_id (int): The user ID.
-
-        Returns:
-            UserPayment | None: The UserPayment object corresponding to the user ID, or None if not found.
-
-        """
         return db.session.scalar(db.select(UserPayment).where(UserPayment.user_id == user_id))
 
     def sanitize(self):
         """
-        Returns a sanitized dictionary representation of the UserPayment object.
-
         Returns:
             dict: A dictionary representing the sanitized UserPayment object.
 
@@ -520,85 +405,26 @@ class WaitlistCharge(db.Model):
 
     @staticmethod
     def get_by_id(id: int) -> WaitlistCharge | None:
-        """
-        Retrieves a waitlist charge by ID.
-
-        Args:
-            id (int): The ID of the waitlist charge.
-
-        Returns:
-            WaitlistCharge | None: The waitlist charge corresponding to the ID, or None if not found.
-
-        """
         return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.id == id))
 
     @staticmethod
     def get_by_customer_id(customer_id: str) -> WaitlistCharge | None:
-        """
-        Retrieves a waitlist charge by customer ID.
-
-        Args:
-            customer_id (str): The customer ID.
-
-        Returns:
-            WaitlistCharge | None: The waitlist charge corresponding to the customer ID, or None if not found.
-
-        """
         return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.stripe_customer_id == customer_id))
 
     @staticmethod
     def get_by_charge_id(charge_id: str) -> WaitlistCharge | None:
-        """
-        Retrieves a waitlist charge by charge ID.
-
-        Args:
-            charge_id (str): The charge ID.
-
-        Returns:
-            WaitlistCharge | None: The waitlist charge corresponding to the charge ID, or None if not found.
-
-        """
         return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.charge_id == charge_id))
 
     @staticmethod
     def get_by_customer_email(customer_email: str) -> WaitlistCharge | None:
-        """
-        Retrieves a waitlist charge by customer email.
-
-        Args:
-            customer_email (str): The email of the customer.
-
-        Returns:
-            WaitlistCharge | None: The waitlist charge corresponding to the customer email, or None if not found.
-
-        """
         return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.customer_email == customer_email))
 
     @staticmethod
     def get_by_random_key(random_key: str) -> WaitlistCharge | None:
-        """
-        Retrieves a waitlist charge by random key.
-
-        Args:
-            random_key (str): The random key.
-
-        Returns:
-            WaitlistCharge | None: The waitlist charge corresponding to the random key, or None if not found.
-
-        """
         return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.random_key == random_key))
 
 
 class Waitlist(db.Model):
-    """
-    Represents a waitlist entry.
-
-    Attributes:
-        id (int): The waitlist entry ID.
-        email (str): The email associated with the waitlist entry.
-
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
@@ -607,34 +433,28 @@ class Waitlist(db.Model):
 
     @staticmethod
     def get_by_email(email: str):
-        """
-        Retrieves a waitlist entry by email.
-
-        Args:
-            email (str): The email associated with the waitlist entry.
-
-        Returns:
-            Waitlist | None: The waitlist entry corresponding to the email, or None if not found.
-
-        """
         return db.session.scalar(db.select(Waitlist).where(Waitlist.email == email))
 
 
 class Company(db.Model):
     """
-    Represents a company.
+    SQLAlchemy model representing a company.
 
     Attributes:
-        id (int): The company ID.
-        name (str): The name of the company.
-        description (str): The description of the company.
-        number_of_employees (int): The number of employees in the company.
-        website (str): The website of the company.
-        pfp_uuid (str): The Google storage blob ID.
-        country_id (int): The ID of the country associated with the company.
-        preferred_round_id (int): The ID of the preferred round associated with the company.
-        industry_id (int): The ID of the industry associated with the company.
+        id (Mapped[int]): The primary key for the company record.
+        user_id (Mapped[int]): A foreign key that may reference a user associated with the company, nullable.
+        name (Mapped[str]): The name of the company, not nullable.
+        description (Mapped[str]): A brief description of the company, nullable.
+        number_of_employees (Mapped[int]): The number of employees at the company, nullable.
+        website (Mapped[str]): The company's website URL, nullable.
+        pfp_uuid (Mapped[str]): A unique identifier for the company's profile picture, nullable.
+        country_id (Mapped[int]): A foreign key that references the country the company is located in, nullable.
+        preferred_round_id (Mapped[int]): A foreign key that references the company's preferred funding round, nullable.
+        industry_id (Mapped[int]): A foreign key that references the industry the company operates in, nullable.
 
+        country (Mapped[Country]): Relationship to the Country model.
+        preferred_round (Mapped[Round]): Relationship to the Round model.
+        industry (Mapped[Industry]): Relationship to the Industry model.
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -661,30 +481,10 @@ class Company(db.Model):
 
     @staticmethod
     def get_by_id(id: int) -> Company | None:
-        """
-        Retrieves a company by ID.
-
-        Args:
-            id (int): The ID of the company.
-
-        Returns:
-            Company | None: The company corresponding to the ID, or None if not found.
-
-        """
         return db.session.scalar(db.select(Company).where(Company.id == id))
 
     @staticmethod
     def get_by_user_id(user_id: int) -> Company | None:
-        """
-        Retrieves a UserInfo object by user ID.
-
-        Args:
-            user_id (int): The user ID.
-
-        Returns:
-            UserInfo | None: The UserInfo object corresponding to the user ID, or None if not found.
-
-        """
         return db.session.scalar(db.select(Company).where(Company.user_id == user_id))
 
 

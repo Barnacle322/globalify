@@ -4,7 +4,7 @@ from datetime import timedelta
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import csrf, db, login_manager, migrate, oauth
+from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
 from .routes.auth import auth
 from .routes.main import (
     bad_request,
@@ -26,6 +26,16 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
     app.secret_key = os.getenv("SECRET_KEY", "18c2ff95-83a1-4998-8bee-0c6a2170497c")
 
+    if app.config["DEBUG"]:
+        # app.config["DEBUG_TB_PROFILER_ENABLED"] = True
+        app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
+        app.config["SQLALCHEMY_RECORD_QUERIES"] = True
+        app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+        toolbar.init_app(app)
+    else:
+        # Reverse proxy support
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
     app.register_blueprint(auth)
     app.register_blueprint(main)
     app.register_blueprint(payment, url_prefix="/payment")
@@ -37,9 +47,6 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(500, internal_server_error)
     app.register_error_handler(503, service_unavailable)
-
-    # Reverse proxy support
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     db.init_app(app)
     migrate.init_app(app, db)

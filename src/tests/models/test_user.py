@@ -201,7 +201,7 @@ def test_user_payment_expired(new_user, app):
         assert user_payment.is_expired() is True
 
 
-def test_company(new_company, app):
+def test_company(new_user, new_company, app):
     with app.app_context():
         company = Company.get_by_id(1)
         assert company

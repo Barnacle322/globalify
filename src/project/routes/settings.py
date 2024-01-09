@@ -21,9 +21,10 @@ settings = Blueprint("settings", __name__)
 @check_user_info_complete
 @check_verification
 def index():
-    authenticated_user: User = current_user  # type: ignore
-    if not authenticated_user.is_authenticated:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
@@ -40,9 +41,10 @@ def index():
 @check_user_info_complete
 @check_verification
 def security():
-    authenticated_user: User = current_user  # type: ignore
-    if not authenticated_user.is_authenticated:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
@@ -58,9 +60,10 @@ def security():
 @check_user_info_complete
 @check_verification
 def plan():
-    authenticated_user: User = current_user  # type: ignore
-    if not authenticated_user.is_authenticated:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
@@ -82,9 +85,10 @@ def plan():
 @check_user_info_complete
 @check_verification
 def billing():
-    authenticated_user: User = current_user  # type: ignore
-    if not authenticated_user.is_authenticated:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
@@ -104,9 +108,10 @@ def billing():
 @check_verification
 @fresh_login_required
 def change_password():
-    authenticated_user = current_user  # type: ignore
-    if not authenticated_user.is_authenticated:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     current_password = request.form.get("current-password")
     new_password = request.form.get("new-password")
@@ -141,9 +146,10 @@ def change_password():
 @check_verification
 @fresh_login_required
 def change_personal_info():  # noqa
-    authenticated_user: User = current_user  # type: ignore
-    if not authenticated_user.is_authenticated:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     first_name = request.form.get("first-name")
     last_name = request.form.get("last-name")
@@ -211,9 +217,10 @@ def change_personal_info():  # noqa
 @check_verification
 @fresh_login_required
 def delete_account():
-    authenticated_user: User = current_user  # type: ignore
-    if not authenticated_user.is_authenticated:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     if request.method == "POST":
         db.session.delete(authenticated_user)

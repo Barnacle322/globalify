@@ -1,4 +1,8 @@
-from src.project.models.user import WaitlistCharge
+import pytest
+
+from src.project.models.helpers import Industry, Round
+from src.project.models.investor import InvestmentFirm, Investor
+from src.project.models.user import UserInfo, UserRegular, WaitlistCharge
 
 from ...project import db
 
@@ -197,3 +201,255 @@ def test_download_post_success(client, app):
         updated_waitlist_charge = WaitlistCharge.get_by_random_key("12345")
         assert updated_waitlist_charge
         assert updated_waitlist_charge.downloaded
+
+
+@pytest.fixture()
+def new_user(app):
+    with app.app_context():
+        user = UserRegular(
+            email="johndoe@example.com",
+            password="password",
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        user_info = UserInfo(
+            first_name="John",
+            last_name="Doe",
+            username="johndoe",
+            is_complete=True,
+            user=user,
+        )
+        db.session.add_all(
+            [
+                user_info,
+            ]
+        )
+        db.session.commit()
+        return user
+
+
+@pytest.fixture()
+def investor(app):
+    with app.app_context():
+        investor = Investor(
+            first_name="Julie",
+            last_name="Doe",
+            about="Julie is a founder and CEO at Qwerty LLC. She is a great investor.",
+            firm_name="Qwerty LLC",
+            position="CEO",
+            rounds=[Round.get_by_id(1), Round.get_by_id(2)],
+            industries=[Industry.get_by_id(1), Industry.get_by_id(2)],
+            min_investment=1_000_000,
+            max_investment=15_000_000,
+        )
+        db.session.add(investor)
+        db.session.commit()
+
+
+@pytest.fixture()
+def populate_investor(app):
+    with app.app_context():
+        Investor.populate()
+
+
+@pytest.fixture()
+def investment_firm(app):
+    with app.app_context():
+        investment_firm = InvestmentFirm(
+            name="Qwerty LLC",
+            about="Qwerty LLC is a great investment firm.",
+            website="https://qwerty.com",
+            email="qwerty@example.com",
+            rounds=[Round.get_by_id(1), Round.get_by_id(2)],
+            industries=[Industry.get_by_id(1), Industry.get_by_id(2)],
+            min_investment=10_000_000,
+            max_investment=50_000_000,
+        )
+        db.session.add(investment_firm)
+        db.session.commit()
+
+
+@pytest.fixture()
+def populate_investment_firm(app):
+    with app.app_context():
+        InvestmentFirm.populate()
+
+
+def test_dashboard_anonymous_get(client):
+    response = client.get("/dashboard", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Welcome back!" in response.data
+    assert b"Sign in" in response.data
+
+
+def test_dashboard_authenticated_get(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard")
+    assert response.status_code == 200
+    assert b"Investors" in response.data
+    assert b"Firms" in response.data
+    assert b"Only show investors with selected rounds" in response.data
+    assert b"Only show investors with selected industries" in response.data
+
+
+def test_dashboard_query_search(client, new_user, investor):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard?search=Julie")
+    assert response.status_code == 200
+    assert b"Julie" in response.data
+    assert b"Qwerty LLC" in response.data
+    assert b"Julie is a founder and CEO at Qwerty LLC. She is a great investor." in response.data
+
+
+def test_dashboard_query_page(client, new_user, populate_investor):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard?page=2")
+    assert response.status_code == 200
+    assert b'current="page"\n                        >2</a' in response.data
+
+
+def test_dashboard_query_industry(client, new_user, populate_investor):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard?industry=AI")
+    assert response.status_code == 200
+    assert b"AI" in response.data
+
+
+def test_dashboard_query_round(client, new_user, populate_investor):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard?round=Seed")
+    assert response.status_code == 200
+    assert b"Seed" in response.data
+
+
+def test_dashboard_query_industry_and_round(client, new_user, populate_investor):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard?industry=AI&round=Seed")
+    assert response.status_code == 200
+    assert b"AI" in response.data
+    assert b"Seed" in response.data
+
+
+def test_dashboard_firms_anonymous_get(client):
+    response = client.get("/dashboard/investment-firms", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Welcome back!" in response.data
+    assert b"Sign in" in response.data
+
+
+def test_dashboard_firms_authenticated_get(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard/investment-firms")
+    assert response.status_code == 200
+    assert b"Investors" in response.data
+    assert b"Firms" in response.data
+    assert b"Only show firms with selected rounds" in response.data
+    assert b"Only show firms with selected industries" in response.data
+
+
+def test_dashboard_firms_query_search(client, new_user, investment_firm):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard/investment-firms?search=Qwerty")
+    assert response.status_code == 200
+    assert b"Qwerty LLC" in response.data
+    assert b"Qwerty LLC is a great investment firm." in response.data
+
+
+def test_dashboard_firms_query_page(client, new_user, populate_investment_firm):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard/investment-firms?page=2")
+    assert response.status_code == 200
+    assert b'current="page"\n                        >2</a' in response.data
+
+
+def test_dashboard_firms_query_industry(client, new_user, populate_investment_firm):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard/investment-firms?industry=AI")
+    assert response.status_code == 200
+    assert b"AI" in response.data
+
+
+def test_dashboard_firms_query_round(client, new_user, populate_investment_firm):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard/investment-firms?round=Seed")
+    assert response.status_code == 200
+    assert b"Seed" in response.data
+
+
+def test_dashboard_firms_query_industry_and_round(client, new_user, populate_investment_firm):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard/investment-firms?industry=AI&round=Seed")
+    assert response.status_code == 200
+    assert b"AI" in response.data
+    assert b"Seed" in response.data
+
+
+def test_error_handler_404(client):
+    response = client.get("/non-existing-page", follow_redirects=True)
+    assert response.status_code == 404
+    assert b"Page not found" in response.data
+
+
+def test_investor_get(client, new_user, investor):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/investor/1", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Julie" in response.data
+    assert b"Qwerty LLC" in response.data
+    assert b"Julie is a founder and CEO at Qwerty LLC. She is a great investor." in response.data
+    assert b"Industries" in response.data
+    assert b"Rounds" in response.data
+
+
+def test_investor_not_found(client, new_user, investor):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/investor/99999999", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Investors" in response.data
+    assert b"Firms" in response.data
+    assert b"Only show investors with selected rounds" in response.data
+    assert b"Only show investors with selected industries" in response.data
+
+
+"""Firm page is in progress"""
+# def test_firm_get(client, new_user, investment_firm):
+#     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+#     response = client.get("/investment-firm/1", follow_redirects=True)
+#     assert response.status_code == 200
+#     assert b"Qwerty LLC" in response.data
+#     assert b"Qwerty LLC is a great investment firm." in response.data
+#     assert b"Industries" in response.data
+#     assert b"Rounds" in response.data
+
+"""Firm page is in progress"""
+# def test_firm_not_found(client, new_user, investment_firm):
+#     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+#     response = client.get("/investment-firm/99999999", follow_redirects=True)
+#     assert response.status_code == 200
+#     assert b"Investors" in response.data
+#     assert b"Firms" in response.data
+#     assert b"Only show firms with selected rounds" in response.data
+#     assert b"Only show firms with selected industries" in response.data
+
+
+def test_pricing(client):
+    response = client.get("/pricing")
+    assert response.status_code == 200
+    assert b"Simple pricing for everyone." in response.data
+    assert b"Perfect for small start-ups that are still ideating." in response.data
+    assert b"Works best for start-ups in their pre-seed and seed rounds." in response.data
+
+
+def test_terms_of_service(client):
+    response = client.get("/terms-of-service")
+    assert response.status_code == 200
+    assert b"Terms of Service" in response.data
+
+
+def test_privacy_policy(client):
+    response = client.get("/privacy-policy")
+    assert response.status_code == 200
+    assert b"Privacy Policy" in response.data
+    assert b"SUMMARY OF KEY POINTS" in response.data
+    assert b"Personal information you disclose to us" in response.data

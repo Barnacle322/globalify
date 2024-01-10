@@ -183,28 +183,18 @@ def test_onboarding_anonymous_get(client):
     assert b"Sign in" in response.data
 
 
-@pytest.fixture()
-def authenticated_client(client, new_user):
+def test_onboarding_authenticated_user(client, new_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-
-    with client as c:
-        with c.session_transaction() as sess:
-            sess["user_id"] = 1
-            sess["_fresh"] = True
-
-    yield client
-
-
-def test_onboarding_authenticated_user(authenticated_client):
-    response = authenticated_client.get("/onboarding", follow_redirects=True)
+    response = client.get("/onboarding", follow_redirects=True)
     assert response.status_code == 200
     assert b"Profile" in response.data
     assert b"This information will be displayed publicly so be careful what you share." in response.data
 
 
-def test_onboarding_post_valid_data(authenticated_client, app):
+def test_onboarding_post_valid_data(client, new_user, app):
     """Stays on the same page eventhough the data is valid"""
-    response = authenticated_client.post(
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.post(
         "/onboarding",
         data=dict(
             first_name="John",
@@ -226,7 +216,8 @@ def test_onboarding_post_valid_data(authenticated_client, app):
         assert user_info.is_complete  # type: ignore
 
 
-def test_onboarding_post_invalid_data(authenticated_client):
+def test_onboarding_post_invalid_data(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     data = {
         "first_name": "",
         "last_name": "",
@@ -236,13 +227,14 @@ def test_onboarding_post_invalid_data(authenticated_client):
         "instagram": "invalid_instagram",
         "twitter": "invalid_twitter",
     }
-    response = authenticated_client.post("/onboarding", data=data, follow_redirects=True)
+    response = client.post("/onboarding", data=data, follow_redirects=True)
     assert response.status_code == 200
     assert b"Profile" in response.data
 
 
-def test_logout_endpoint(authenticated_client):
-    response = authenticated_client.get("/logout", follow_redirects=True)
+def test_logout_endpoint(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/logout", follow_redirects=True)
     assert response.status_code == 200
     assert b"About Us" in response.data
     assert b"Blog" in response.data
@@ -255,8 +247,9 @@ def test_username_anonymous_get(client):
     assert b"Sign in" in response.data
 
 
-def test_username_authenticated_get(authenticated_client):
-    response = authenticated_client.get("/username/johndoe", follow_redirects=True)
+def test_username_authenticated_get(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/username/johndoe", follow_redirects=True)
     assert response.status_code == 200
     assert b"is_taken" in response.data
 
@@ -268,16 +261,18 @@ def test_company_form_anonymous_get(client):
     assert b"Sign in" in response.data
 
 
-def test_company_form_authenticated_get(authenticated_client):
-    response = authenticated_client.get("/company-form", follow_redirects=True)
+def test_company_form_authenticated_get(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/company-form", follow_redirects=True)
     assert response.status_code == 200
     assert b"Company profile" in response.data
     assert b"This information will be displayed publicly so be careful what you share." in response.data
 
 
-def test_company_form_authenticated_post(authenticated_client):
+def test_company_form_authenticated_post(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     """Bad request 400 eventhough all fields are valid"""
-    response = authenticated_client.post(
+    response = client.post(
         "/company-form",
         data=dict(
             name="Test Company",

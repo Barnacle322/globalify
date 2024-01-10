@@ -1,9 +1,10 @@
 const menus = [
     { menu: "user-menu", button: "user-menu-button" },
     { menu: "industry-options", button: "industry-options-menu" },
-    { menu: "round-options", button: "round-options-menu" },
     { menu: "sorting-options", button: "sorting-options-menu" },
-    { menu: "filter-options", button: "filter-options-menu" },  
+    { menu: "filter-options", button: "filter-options-menu" },
+    { menu: "round-options", button: "round-options-menu" },
+
 ];
 
 const showClasses = ["transform", "opacity-100", "scale-100"];

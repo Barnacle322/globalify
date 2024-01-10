@@ -237,10 +237,10 @@ def add_investor():
                 )
             )
 
-        n_investments = int(request.form.get("n_investments", 0) or 0)
-        n_exits = int(request.form.get("n_exits", 0) or 0)
-        min_investment = int(request.form.get("min_investment", 0) or 0)
-        max_investment = int(request.form.get("max_investment", 0) or 0)
+        n_investments = request.form.get("n_investments", 0, type=int)
+        n_exits = request.form.get("n_exits", 0, type=int)
+        min_investment = request.form.get("min_investment", 0, type=int)
+        max_investment = request.form.get("max_investment", 0, type=int)
 
         selected_rounds = [Round.get_by_id(int(rid)) for rid in selected_round_ids if rid.isdigit()]
         selected_industries = [Industry.get_by_id(int(iid)) for iid in selected_industry_ids if iid.isdigit()]
@@ -286,7 +286,9 @@ def edit_investor(investor_id):
         status_type = query.get("type")
         msg = query.get("msg")
 
-    investor = Investor.query.get_or_404(investor_id)
+    investor = Investor.get_by_id(investor_id)
+    if not investor:
+        abort(404)
 
     if request.method == "POST":
         first_name = request.form.get("first_name", "").strip()
@@ -304,7 +306,7 @@ def edit_investor(investor_id):
         if error:
             return error
 
-        email = request.form.get("email")
+        email = request.form.get("email", "")
         if email and not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
             status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
             return redirect(
@@ -352,19 +354,19 @@ def edit_investor(investor_id):
         investor.firm_name = request.form.get("firm_name", "").strip()
         investor.about = request.form.get("about", "").strip()
         investor.position = request.form.get("position", "").strip()
-        investor.website = request.form.get("website")
-        investor.linkedin = request.form.get("linkedin")
-        investor.twitter = request.form.get("twitter")
+        investor.website = request.form.get("website", "")
+        investor.linkedin = request.form.get("linkedin", "")
+        investor.twitter = request.form.get("twitter", "")
         investor.email = email
-        investor.phone_number = request.form.get("phone_number")
-        investor.n_investments = int(request.form.get("n_investments", 0) or 0)
-        investor.n_exits = int(request.form.get("n_exits", 0) or 0)
-        investor.min_investment = int(request.form.get("min_investment", 0) or 0)
-        investor.max_investment = int(request.form.get("max_investment", 0) or 0)
+        investor.phone_number = request.form.get("phone_number", "")
+        investor.n_investments = request.form.get("n_investments", 0, type=int)
+        investor.n_exits = request.form.get("n_exits", 0, type=int)
+        investor.min_investment = request.form.get("min_investment", 0, type=int)
+        investor.max_investment = request.form.get("max_investment", 0, type=int)
         investor.location = request.form.get("location", "").strip()
 
-        investor.rounds = selected_rounds
-        investor.industries = selected_industries
+        investor.rounds = selected_rounds # type: ignore
+        investor.industries = selected_industries # type: ignore
 
         db.session.commit()
 
@@ -386,7 +388,9 @@ def edit_investor(investor_id):
 @admin.route("/investor/delete/<int:investor_id>", methods=["POST"])
 @is_admin
 def delete_investor(investor_id):
-    investor = Investor.query.get_or_404(investor_id)
+    investor = Investor.get_by_id(investor_id)
+    if not investor:
+        abort(404)
 
     db.session.delete(investor)
     db.session.commit()
@@ -489,7 +493,7 @@ def add_investment_firm():
         if error:
             return error
 
-        email = request.form.get("email")
+        email = request.form.get("email", "")
         if email and not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
             status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
             return redirect(
@@ -500,7 +504,7 @@ def add_investment_firm():
                 )
             )
 
-        existing_investor = InvestmentFirm.get_by_email(email=email)  # type: ignore
+        existing_investor = InvestmentFirm.get_by_email(email=email)
         if existing_investor:
             status = Status(StatusType.ERROR, "Email already exists.").get_status()
             return redirect(
@@ -533,11 +537,11 @@ def add_investment_firm():
             website=request.form.get("website"),
             email=email,
             phone_number=request.form.get("phone_number"),
-            n_investments=int(request.form.get("n_investments", 0) or 0),
-            n_exits=int(request.form.get("n_exits", 0) or 0),
-            n_employees=int(request.form.get("n_employees", 0) or 0),
-            min_investment=int(request.form.get("min_investment", 0) or 0),
-            max_investment=int(request.form.get("max_investment", 0) or 0),
+            n_investments=request.form.get("n_investments", 0, type=int),
+            n_exits=request.form.get("n_exits", 0, type=int),
+            n_employees=request.form.get("n_employees", 0, type=int),
+            min_investment=request.form.get("min_investment", 0, type=int),
+            max_investment=request.form.get("max_investment", 0, type=int),
             rounds=selected_rounds,
             industries=selected_industries,
         )
@@ -625,14 +629,14 @@ def edit_investment_firm(investment_firm_id):
         investment_firm.website = request.form.get("website", "")
         investment_firm.email = email
         investment_firm.phone_number = request.form.get("phone_number", "")
-        investment_firm.n_investments = int(request.form.get("n_investments", 0) or 0)
-        investment_firm.n_exits = int(request.form.get("n_exits", 0) or 0)
-        investment_firm.n_employees = int(request.form.get("n_employees", 0) or 0)
-        investment_firm.min_investment = int(request.form.get("min_investment", 0) or 0)
-        investment_firm.max_investment = int(request.form.get("max_investment", 0) or 0)
+        investment_firm.n_investments = request.form.get("n_investments", 0, type=int)
+        investment_firm.n_exits = request.form.get("n_exits", 0, type=int)
+        investment_firm.n_employees = request.form.get("n_employees", 0, type=int)
+        investment_firm.min_investment = request.form.get("min_investment", 0, type=int)
+        investment_firm.max_investment = request.form.get("max_investment", 0, type=int)
 
-        investment_firm.rounds = selected_rounds  # type: ignore
-        investment_firm.industries = selected_industries  # type: ignore
+        investment_firm.rounds = selected_rounds # type: ignore
+        investment_firm.industries = selected_industries # type: ignore
 
         db.session.commit()
 
@@ -707,8 +711,8 @@ def add_user():
 
         new_user = UserRegular(
             email=email,
-            is_verified=bool(request.form.get("is_verified")),
-            is_admin=bool(request.form.get("is_admin")),
+            is_verified=request.form.get("is_verified", False, type=bool),
+            is_admin=request.form.get("is_admin", False, type=bool),
         )
         new_user.password = password
 
@@ -736,7 +740,7 @@ def add_user():
             linkedin=request.form.get("linkedin"),
             instagram=request.form.get("instagram"),
             twitter=request.form.get("twitter"),
-            is_complete=bool(request.form.get("is_complete")),
+            is_complete=request.form.get("is_complete", False, type=bool),
             language=request.form.get("language"),
         )
 
@@ -752,7 +756,7 @@ def add_user():
                 if (expires_at_str := request.form.get("expires_at"))
                 else None
             ),
-            is_active=bool(request.form.get("is_active")),
+            is_active=request.form.get("is_active", False, type=bool),
         )
 
         db.session.add_all((new_user, new_user_payment, new_user_info))
@@ -770,15 +774,10 @@ def edit_user(user_id):
         msg = query.get("msg")
 
     user = User.get_by_id(user_id)
-    if not user:
-        abort(404)
-
     user_info = UserInfo.get_by_user_id(user_id)
-    if not user_info:
-        abort(404)
-
     user_payment = UserPayment.get_by_user_id(user_id)
-    if not user_payment:
+
+    if not all([user, user_info, user_payment]):
         abort(404)
 
     if request.method == "POST":
@@ -830,8 +829,8 @@ def edit_user(user_id):
                 print(f"An error occurred: {e}")
 
         user.email = email
-        user.is_verified = bool(request.form.get("is_verified"))
-        user.is_admin = bool(request.form.get("is_admin"))
+        user.is_verified = request.form.get("is_verified", False, type=bool)
+        user.is_admin = request.form.get("is_admin", False, type=bool)
 
         user_info.first_name = first_name
         user_info.last_name = last_name
@@ -840,7 +839,7 @@ def edit_user(user_id):
         user_info.linkedin = request.form.get("linkedin")
         user_info.instagram = request.form.get("instagram")
         user_info.twitter = request.form.get("twitter")
-        user_info.is_complete = bool(request.form.get("is_complete"))
+        user_info.is_complete = request.form.get("is_complete", False, type=bool)
         user_info.language = request.form.get("language", "English")
         user_payment.customer_id = request.form.get("customer_id", "")
         user_payment.subscription_id = request.form.get("subscription_id", "")
@@ -852,7 +851,7 @@ def edit_user(user_id):
             if (expires_at_str := request.form.get("expires_at"))
             else None
         )
-        user_payment.is_active = bool(request.form.get("is_active"))
+        user_payment.is_active = request.form.get("is_active", False, type=bool)
 
         db.session.commit()
 
@@ -980,7 +979,11 @@ def edit_company(company_id):
             return error
 
         preferred_round_id = request.form.get("round", type=int)
-        industry_id = request.form.get("industry")
+        industry_id = request.form.get("industry", type=int)
+
+        if not industry_id:
+            status = Status(StatusType.ERROR, "Industry ID is required.").get_status()
+            return redirect(url_for("admin.edit_company", _external=False, company_id=company_id, **status))
 
         if not preferred_round_id or not industry_id:
             status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
@@ -1003,15 +1006,10 @@ def edit_company(company_id):
             status = Status(StatusType.ERROR, "Country ID is required.").get_status()
             return redirect(url_for("admin.edit_company", _external=False, company_id=company_id, **status))
 
-        industry_id = request.form.get("industry", type=int)
-        if not industry_id:
-            status = Status(StatusType.ERROR, "Industry ID is required.").get_status()
-            return redirect(url_for("admin.edit_company", _external=False, company_id=company_id, **status))
-
         company.user_id = user
         company.name = name
         company.description = request.form.get("description", "")
-        company.number_of_employees = int(request.form.get("number_of_employees", 0) or 0)
+        company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
         company.country_id = country_id
         company.preferred_round_id = preferred_round_id
         company.industry_id = industry_id

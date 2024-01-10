@@ -398,3 +398,4 @@ pyrightconfig.json
 start.ps1
 start_prod.ps1
 .old_venv
+.idea

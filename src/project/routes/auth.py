@@ -27,7 +27,7 @@ from ..utils.errors.auth_error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
-from ..utils.google_storage import prepare_picture, upload_blob
+from ..utils.google_storage import upload_pfp
 from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import OauthProvider, Status, StatusType
 
@@ -48,9 +48,22 @@ def load_user(user_id: int) -> User | None:
 
 def oauth_user(email: str, oauth_provider: OauthProvider) -> UserOauth:
     """
-    - No User -> create and return new User
-    - User exists, but OAuth provider is different -> raise Exception
-    - User exists, OAuth provider is correct -> return User
+    Authenticates and retrieves a user based on the email and OAuth provider.
+
+    If the user does not exist, a new user is created and returned.
+    If the user exists but the OAuth provider is different, an exception is raised.
+    If the user exists and the OAuth provider is correct, the existing user is returned.
+
+    Args:
+        email (str): The email of the user.
+        oauth_provider (OauthProvider): The OAuth provider.
+
+    Returns:
+        User: The authenticated user.
+
+    Raises:
+        Exception: If the user exists but the OAuth provider is different.
+
     """
     user = User.get_by_email(email)
     if not user:
@@ -78,6 +91,7 @@ def api_call(url: str, access_token: str):
 
     Returns:
         dict: The JSON response from the API call.
+
     """
     response = requests.get(
         url,
@@ -89,6 +103,16 @@ def api_call(url: str, access_token: str):
 
 @auth.route("/register", methods=["GET", "POST"])
 def register():
+    """
+    Handles the registration process for new users.
+
+    If the request method is POST, it processes the registration form data and creates a new user.
+    If the request method is GET, it renders the registration page.
+
+    Returns:
+        str: The rendered HTML template for the registration page.
+
+    """
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -141,6 +165,16 @@ def register():
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    Handles the login process for users.
+
+    If the request method is POST, it processes the login form data and authenticates the user.
+    If the request method is GET, it renders the login page.
+
+    Returns:
+        str: The rendered HTML template for the login page.
+
+    """
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -181,6 +215,18 @@ def login():
 @auth.route("/onboarding", methods=["GET", "POST"])
 @login_required
 def onboarding():
+    """
+    Handles the onboarding process for authenticated users.
+
+    If the current user is anonymous, it redirects to the login page.
+    If user_info is not found for the authenticated user, it redirects to the login page.
+    If user_info.is_complete is True, it redirects to the company_form route.
+    If the request method is POST, it processes the onboarding form data and updates the user's information.
+
+    Returns:
+        str: The rendered HTML template for the onboarding page.
+
+    """
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -194,10 +240,13 @@ def onboarding():
         return redirect(url_for("auth.company_form"))
 
     if request.method == "POST":
-        first_name, last_name, username = (
+        first_name, last_name, username, linkedin, instagram, twitter = (
             request.form.get("first-name"),
             request.form.get("last-name"),
             request.form.get("username"),
+            request.form.get("linkedin"),
+            request.form.get("instagram"),
+            request.form.get("twitter"),
         )
         if not first_name or not last_name or not username:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
@@ -211,22 +260,31 @@ def onboarding():
         user_info.first_name = first_name
         user_info.last_name = last_name
         user_info.username = username
+
+        try:
+            user_info.linkedin = linkedin
+            user_info.instagram = instagram
+            user_info.twitter = twitter
+        except Exception as e:
+            status = Status(StatusType.ERROR, e.args[0]).get_status()
+            return redirect(url_for("auth.onboarding", _external=False, **status))
+
         user_info.bio = request.form.get("about")
-        user_info.language = request.form.get("language")  # type: ignore
-        user_info.linkedin = request.form.get("linkedin")
-        user_info.instagram = request.form.get("instagram")
-        user_info.twitter = request.form.get("twitter")
+        user_info.language = request.form.get("language", "English")  # type: ignore
+
         user_info.is_complete = True
 
-        # TODO: Add a UI warning for this
-        if pfp := request.files["pfp"]:
-            try:
-                resized_pfp = prepare_picture(pfp)
+        # if pfp := request.files["pfp"]:
+        #     try:
+        #         resized_pfp = prepare_picture(pfp)
+        #         pfp_uuid = upload_blob(resized_pfp.read())
+        #         user_info.pfp_uuid = str(pfp_uuid)
+        #     except Exception as e:
+        #         status = Status(StatusType.ERROR, e.args[0]).get_status()
+        #         return redirect(url_for("auth.onboarding", _external=False, **status))
 
-                pfp_uuid = upload_blob(resized_pfp.read())
-                user_info.pfp_uuid = str(pfp_uuid)
-            except Exception as e:
-                print(f"An error occurred: {e}")
+        if pfp_uuid := upload_pfp(request.files["pfp"]):
+            user_info.pfp_uuid = pfp_uuid
 
         db.session.commit()
         return redirect(url_for("auth.company_form"))
@@ -237,6 +295,17 @@ def onboarding():
 @auth.get("/username/<username>")
 @login_required
 def username(username: str):
+    """
+    Checks if a username is already taken.
+
+    Args:
+        username (str): The username to check.
+
+    Returns:
+        dict: A JSON response containing the "is_taken" status of the username.
+            - "is_taken" (bool): True if the username is already taken, False otherwise.
+
+    """
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -248,6 +317,18 @@ def username(username: str):
 @auth.route("/company-form", methods=["GET", "POST"])
 @login_required
 def company_form():
+    """
+    Handles the company form submission for authenticated users.
+
+    If the current user is anonymous, it redirects to the login page.
+    If user_info is not found for the authenticated user, it redirects to the login page.
+    If a company is already associated with the user, it redirects to the dashboard route.
+    If the request method is POST, it processes the company form data and creates a new company entry.
+
+    Returns:
+        str: The rendered HTML template for the company form page.
+
+    """
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -276,13 +357,16 @@ def company_form():
             website=request.form.get("website"),
         )
 
-        if pfp := request.files["pfp"]:
-            try:
-                resized_pfp = prepare_picture(pfp)
-                pfp_uuid = upload_blob(resized_pfp.read())
-                company.pfp_uuid = str(pfp_uuid)
-            except Exception as e:
-                print(f"An error occurred: {e}")
+        # if pfp := request.files["pfp"]:
+        #     try:
+        #         resized_pfp = prepare_picture(pfp)
+        #         pfp_uuid = upload_blob(resized_pfp.read())
+        #         company.pfp_uuid = str(pfp_uuid)
+        #     except Exception as e:
+        #         print(f"An error occurred: {e}")
+
+        if pfp_uuid := upload_pfp(request.files["pfp"]):
+            company.pfp_uuid = pfp_uuid
 
         db.session.add(company)
         db.session.commit()
@@ -305,6 +389,18 @@ def linkedin_login():
 
 @auth.route("/linkedin-oauth")
 def linkedin_callback():
+    """
+    Handles the callback from LinkedIn OAuth login.
+
+    Retrieves the access token from the authorization response.
+    Makes API calls to retrieve the user's email and personal info from LinkedIn.
+    Creates or updates the user and user info records in the database.
+    Logs in the user and redirects to the appropriate page.
+
+    Returns:
+        str: The redirect response to the appropriate page.
+
+    """
     # BUG: For some reason client_secret is not being passed during
     # app initialization. Hardcoding it for now.
     # NOTE: Making this the only OAuth provider doesn't fix the issue.
@@ -383,6 +479,18 @@ def google_login():
 
 @auth.route("/google-oauth")
 def google_callback():
+    """
+    Handles the callback from Google OAuth login.
+
+    Retrieves the access token from the authorization response.
+    Makes API calls to retrieve the user's email and personal info from Google.
+    Creates or updates the user and user info records in the database.
+    Logs in the user and redirects to the appropriate page.
+
+    Returns:
+        str: The redirect response to the appropriate page.
+
+    """
     authorization = oauth.google.authorize_access_token()  # type: ignore
     if not authorization:
         status = Status(StatusType.ERROR, OAUTH_ACCESS_TOKEN).get_status()

@@ -5,7 +5,7 @@ from functools import wraps
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user
 
-from src.project.utils.google_storage import prepare_picture, upload_blob
+from src.project.utils.google_storage import prepare_picture, upload_blob, upload_pfp
 
 from ..extensions import db
 from ..models import (
@@ -18,13 +18,11 @@ from ..models import (
     User,
     UserInfo,
     UserPayment,
-    UserRegular,
 )
 from ..utils.errors.auth_error_messages import (
     AUTH_EMAIL_USED,
     AUTH_FIELDS_INCOMPLETE,
     AUTH_INVALID_EMAIL,
-    AUTH_MISMATCHED_PASSWORDS,
 )
 from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import Status, StatusType
@@ -32,18 +30,7 @@ from ..utils.status_enum import Status, StatusType
 admin = Blueprint("admin", __name__)
 
 
-# decorator for admin only
-
-
 def is_admin(func):
-    """
-    Decorator that checks whether the current user is authenticated and is an admin.
-    If the current user is not an admin or not authenticated, it renders a '403 Forbidden' error page.
-
-    :param func: The view function to decorate.
-    :type func: function
-    """
-
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if current_user.is_authenticated and current_user.is_admin:
@@ -52,9 +39,6 @@ def is_admin(func):
             return render_template("errors/403.html"), 403
 
     return decorated_view
-
-
-# Investors
 
 
 def construct_query_string(**kwargs):
@@ -149,9 +133,6 @@ def index():
     )
 
 
-# validations for fields
-
-
 def validate_field(
     value,
     error_message,
@@ -179,7 +160,6 @@ def validate_field(
     return None
 
 
-# investors
 @admin.get("/investors/")
 @is_admin
 def get_all_investors():
@@ -344,11 +324,6 @@ def edit_investor(investor_id):
                 )
             )
 
-        selected_rounds = [Round.get_by_id(int(round_id)) for round_id in selected_round_ids if round_id.isdigit()]
-        selected_industries = [
-            Industry.get_by_id(int(industry_id)) for industry_id in selected_industry_ids if industry_id.isdigit()
-        ]
-
         investor.first_name = first_name
         investor.last_name = last_name
         investor.firm_name = request.form.get("firm_name", "").strip()
@@ -364,9 +339,8 @@ def edit_investor(investor_id):
         investor.min_investment = request.form.get("min_investment", 0, type=int)
         investor.max_investment = request.form.get("max_investment", 0, type=int)
         investor.location = request.form.get("location", "").strip()
-
-        investor.rounds = selected_rounds # type: ignore
-        investor.industries = selected_industries # type: ignore
+        investor.rounds = list(Round.get_by_id_list(selected_round_ids))
+        investor.industries = list(Industry.get_by_id_list(selected_industry_ids))
 
         db.session.commit()
 
@@ -396,9 +370,6 @@ def delete_investor(investor_id):
     db.session.commit()
 
     return redirect(url_for("admin.index"))
-
-
-# Investment Firms
 
 
 @admin.get("/investment-firms/")
@@ -635,8 +606,8 @@ def edit_investment_firm(investment_firm_id):
         investment_firm.min_investment = request.form.get("min_investment", 0, type=int)
         investment_firm.max_investment = request.form.get("max_investment", 0, type=int)
 
-        investment_firm.rounds = selected_rounds # type: ignore
-        investment_firm.industries = selected_industries # type: ignore
+        investment_firm.rounds = selected_rounds  # type: ignore
+        investment_firm.industries = selected_industries  # type: ignore
 
         db.session.commit()
 
@@ -668,101 +639,11 @@ def delete_investment_firm(investment_firm_id):
     return redirect(url_for("admin.get_all_investment_firms"))
 
 
-# User
-
-
 @admin.route("/users/")
 @is_admin
 def get_all_users():
     user_list = UserInfo.get_all()
-
     return render_template("admin/get_users.html", users=user_list)
-
-
-@admin.route("/user/add", methods=["GET", "POST"])
-@is_admin
-def add_user():
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-
-    if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
-        confirm_password = request.form.get("confirm_password")
-
-        if not email or not password or not confirm_password:
-            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
-            return redirect(url_for("admin.add_user", _external=False, **status))
-
-        if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
-            status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
-            return redirect(url_for("admin.add_user", _external=False, **status))
-
-        user = UserRegular.get_by_email(email)
-        if user:
-            status = Status(StatusType.ERROR, AUTH_EMAIL_USED).get_status()
-            return redirect(url_for("admin.add_user", _external=False, **status))
-
-        if password != confirm_password:
-            status = Status(StatusType.ERROR, AUTH_MISMATCHED_PASSWORDS).get_status()
-            return redirect(url_for("admin.add_user", _external=False, **status))
-
-        new_user = UserRegular(
-            email=email,
-            is_verified=request.form.get("is_verified", False, type=bool),
-            is_admin=request.form.get("is_admin", False, type=bool),
-        )
-        new_user.password = password
-
-        db.session.add(new_user)
-        db.session.commit()
-
-        first_name = request.form.get("first_name", "").strip()
-        if error := validate_field(first_name, "First name", "First name cannot be empty.", "admin.add_user"):
-            return error
-
-        last_name = request.form.get("last_name", "").strip()
-        if error := validate_field(last_name, "Last name", "Last name cannot be empty.", "admin.add_user"):
-            return error
-
-        username = request.form.get("username", "").strip()
-        if error := validate_field(username, "Username", "Username cannot be empty.", "admin.add_user"):
-            return error
-
-        new_user_info = UserInfo(
-            user_id=new_user.id,
-            first_name=first_name,
-            last_name=last_name,
-            username=username,
-            bio=request.form.get("bio", "").strip(),
-            linkedin=request.form.get("linkedin"),
-            instagram=request.form.get("instagram"),
-            twitter=request.form.get("twitter"),
-            is_complete=request.form.get("is_complete", False, type=bool),
-            language=request.form.get("language"),
-        )
-
-        new_user_payment = UserPayment(
-            user_id=new_user.id,
-            customer_id=request.form.get("customer_id"),
-            subscription_id=request.form.get("subscription_id"),
-            created=datetime.strptime(created_str, "%Y-%m-%d")
-            if (created_str := request.form.get("created"))
-            else None,
-            expires_at=(
-                datetime.strptime(expires_at_str, "%Y-%m-%d")
-                if (expires_at_str := request.form.get("expires_at"))
-                else None
-            ),
-            is_active=request.form.get("is_active", False, type=bool),
-        )
-
-        db.session.add_all((new_user, new_user_payment, new_user_info))
-        db.session.commit()
-        return redirect(url_for("admin.get_all_users"))
-    return render_template("admin/add_user.html", languages=language_list, status_type=status_type, msg=msg)
 
 
 @admin.route("/user/edit/<int:user_id>", methods=["GET", "POST"])
@@ -774,28 +655,26 @@ def edit_user(user_id):
         msg = query.get("msg")
 
     user = User.get_by_id(user_id)
-    user_info = UserInfo.get_by_user_id(user_id)
-    user_payment = UserPayment.get_by_user_id(user_id)
+    if not user:
+        status = Status(StatusType.ERROR, "User does not exist.").get_status()
+        return redirect(url_for("admin.get_all_users", _external=False, user_id=user_id, **status))
 
-    if not all([user, user_info, user_payment]):
-        abort(404)
+    user_info = UserInfo.get_by_user_id(user_id)
+    if not user_info:
+        status = Status(StatusType.ERROR, "User info does not exist.").get_status()
+        return redirect(url_for("admin.get_all_users", _external=False, user_id=user_id, **status))
+
+    user_payment = UserPayment.get_by_user_id(user_id)
+    if not user_payment:
+        status = Status(StatusType.ERROR, "User payment does not exist.").get_status()
+        return redirect(url_for("admin.get_all_users", _external=False, user_id=user_id, **status))
 
     if request.method == "POST":
-        if not user:
-            status = Status(StatusType.ERROR, "User does not exist.").get_status()
-            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
-
-        if not user_info:
-            status = Status(StatusType.ERROR, "User info does not exist.").get_status()
-            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
-
-        if not user_payment:
-            status = Status(StatusType.ERROR, "User payment does not exist.").get_status()
-            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
-
         email = request.form.get("email")
-
-        if not email:
+        first_name = request.form.get("first_name", "").strip()
+        last_name = request.form.get("last_name", "").strip()
+        username = request.form.get("username", "").strip()
+        if not email or not first_name or not last_name or not username:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
             return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
@@ -803,54 +682,48 @@ def edit_user(user_id):
             status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
             return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
-        if UserRegular.query.filter(UserRegular.email == email, UserRegular.id != user_id).first():
+        if (existing_user := User.get_by_email(email)) and existing_user.id != user_id:
             status = Status(StatusType.ERROR, AUTH_EMAIL_USED).get_status()
             return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
-        first_name = request.form.get("first_name", "").strip()
-        if error := validate_field(first_name, "First name", "First name cannot be empty.", "admin.edit_user", user_id):
-            return error
+        if UserInfo.is_taken(username) and user_info.username != username:
+            status = Status(StatusType.ERROR, "Username already exists.").get_status()
+            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
-        last_name = request.form.get("last_name", "").strip()
-        if error := validate_field(last_name, "Last name", "Last name cannot be empty.", "admin.edit_user", user_id):
-            return error
+        if pfp_uuid := upload_pfp(request.files["pfp"]):
+            user_info.pfp_uuid = pfp_uuid
 
-        username = request.form.get("username", "").strip()
-        if error := validate_field(username, "Username", "Username cannot be empty.", "admin.edit_user", user_id):
-            return error
-
-        if pfp := request.files["pfp"]:
-            try:
-                resized_pfp = prepare_picture(pfp)
-
-                pfp_uuid = upload_blob(resized_pfp.read())
-                user_info.pfp_uuid = str(pfp_uuid)
-            except Exception as e:
-                print(f"An error occurred: {e}")
+        try:
+            user_info.linkedin = request.form.get("linkedin")
+            user_info.instagram = request.form.get("instagram")
+            user_info.twitter = request.form.get("twitter")
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
         user.email = email
-        user.is_verified = request.form.get("is_verified", False, type=bool)
-        user.is_admin = request.form.get("is_admin", False, type=bool)
-
         user_info.first_name = first_name
         user_info.last_name = last_name
         user_info.username = username
         user_info.bio = request.form.get("bio", "").strip()
-        user_info.linkedin = request.form.get("linkedin")
-        user_info.instagram = request.form.get("instagram")
-        user_info.twitter = request.form.get("twitter")
-        user_info.is_complete = request.form.get("is_complete", False, type=bool)
         user_info.language = request.form.get("language", "English")
         user_payment.customer_id = request.form.get("customer_id", "")
         user_payment.subscription_id = request.form.get("subscription_id", "")
+
         user_payment.created = (
-            datetime.strptime(created_str, "%Y-%m-%d") if (created_str := request.form.get("created")) else None
+            datetime.strptime(created_str, "%Y-%m-%dT%H:%M:%S")
+            if (created_str := request.form.get("created"))
+            else None
         )
         user_payment.expires_at = (
-            datetime.strptime(expires_at_str, "%Y-%m-%d")
+            datetime.strptime(expires_at_str, "%Y-%m-%dT%H:%M:%S")
             if (expires_at_str := request.form.get("expires_at"))
             else None
         )
+
+        user_info.is_complete = request.form.get("is_complete", False, type=bool)
+        user.is_verified = request.form.get("is_verified", False, type=bool)
+        user.is_admin = request.form.get("is_admin", False, type=bool)
         user_payment.is_active = request.form.get("is_active", False, type=bool)
 
         db.session.commit()
@@ -877,9 +750,6 @@ def delete_user(user_id):
 
     user.delete_by_id(user_id)
     return redirect(url_for("admin.get_all_users"))
-
-
-# Company
 
 
 @admin.route("/companies")

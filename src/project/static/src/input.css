@@ -104,7 +104,7 @@
 }
 
 .input-field {
-    @apply h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2;
+    @apply mt-2 h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2;
 }
 
 .input-label {

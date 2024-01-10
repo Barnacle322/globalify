@@ -5,7 +5,7 @@
     "main": "tailwind.config.js",
     "scripts": {
         "css": "npx postcss ./src/project/static/src/input.css -o ./src/project/static/css/main.css --watch --verbose",
-        "html": "npx prettier --write ./src/project/templates/**/*.html --plugin=prettier-plugin-tailwindcss"
+        "html": "npx prettier --write ./src/project/templates/**/*.html"
     },
     "author": "",
     "license": "ISC",

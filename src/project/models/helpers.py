@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import pycountry
 from sqlalchemy import Integer, String, event
 from sqlalchemy.exc import NoResultFound
@@ -58,6 +60,14 @@ class Industry(db.Model):
             return None
 
     @staticmethod
+    def get_by_id_list(id_list) -> Sequence[Industry]:
+        if len(id_list) == 0:
+            return []
+        valid_id_list = list(filter(lambda x: isinstance(x, int), id_list))
+        industries = db.session.scalars(db.select(Industry.id.in_(valid_id_list))).all()
+        return industries
+
+    @staticmethod
     def get_by_name(name: str) -> Industry | None:
         try:
             industry = Industry.query.filter(Industry.name == name).first()
@@ -107,6 +117,14 @@ class Round(db.Model):
             return investment_round
         except NoResultFound:
             return None
+
+    @staticmethod
+    def get_by_id_list(id_list) -> Sequence[Round]:
+        if len(id_list) == 0:
+            return []
+        valid_id_list = list(filter(lambda x: isinstance(x, int), id_list))
+        investment_rounds = db.session.scalars(db.select(Round.id.in_(valid_id_list))).all()
+        return investment_rounds
 
     @staticmethod
     def get_by_name(name: str) -> Round | None:

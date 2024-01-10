@@ -1,4 +1,4 @@
-{% extends "layouts/layout_admin.html" %} {% block title %}Investment Firms{% endblock %} {% block head %} {{ super() }}
+{% extends "layouts/layout_admin.html" %} {% block title %}Users{% endblock %} {% block head %} {{ super() }}
 <script src="../../static/scripts/dashboard.js" defer></script>
 <script src="../../static/scripts/search.js" defer></script>
 <script src="../../static/scripts/query_setter.js" defer></script>
@@ -37,55 +37,6 @@
                     Search
                 </button>
             </div>
-            <div class="mt-3 flex flex-col gap-2">
-                <button
-                    onclick="window.location.href='/admin/user/add'"
-                    class="flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm transition-colors ease-in-out hover:border-slate-300"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="h-5 w-5"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    <span>Add User</span>
-                </button>
-                <h2 class="text-lg font-medium">Filters</h2>
-                <div class="group relative inline-block text-left">
-                    <button
-                        type="button"
-                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
-                        id="filter-options-menu"
-                        aria-haspopup="true"
-                        aria-expanded="true"
-                    >
-                        <svg
-                            data-darkreader-inline-stroke=""
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                            class="h-5 w-5"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
-                            ></path>
-                        </svg>
-                        Filter By
-                    </button>
-                </div>
-            </div>
-            <a href="/admin/investment-firms" class="mt-3 w-full rounded-lg bg-sky-500 py-3 text-center text-white">
-                Reset
-            </a>
         </section>
 
         <section class="flex w-full flex-col items-start justify-start gap-2 sm:w-3/4">
@@ -114,8 +65,6 @@
                         </form>
                     </div>
                 </div>
-
-                
             </div>
             {% endfor %} {% endif %}
         </section>

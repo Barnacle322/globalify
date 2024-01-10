@@ -480,12 +480,8 @@ class Company(db.Model):
         return f"<Company {self.name}>"
 
     @staticmethod
-    def get_all() -> list[Company]:
-        try:
-            companies: list[Company] = Company.query.all()
-            return companies
-        except NoResultFound:
-            return []
+    def get_all() -> Sequence[Company]:
+        return db.session.scalars(db.select(Company)).all()
 
     @staticmethod
     def get_by_id(id: int) -> Company | None:

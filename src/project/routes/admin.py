@@ -215,11 +215,12 @@ def add_investor():
 
         existing_investor = Investor.get_by_email(email=email)  # type: ignore
         if existing_investor:
+            status = Status(StatusType.ERROR, AUTH_EMAIL_USED).get_status()
             return redirect(
                 url_for(
                     "admin.add_investor",
                     _external=False,
-                    **Status(StatusType.ERROR, AUTH_EMAIL_USED).get_status(),
+                    **status,
                 )
             )
 
@@ -227,11 +228,12 @@ def add_investor():
         selected_industry_ids = request.form.getlist("selected_industries")
 
         if not selected_round_ids or not selected_industry_ids:
+            status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
             return redirect(
                 url_for(
                     "admin.add_investor",
                     _external=False,
-                    **Status(StatusType.ERROR, "Please select rounds and industries.").get_status(),
+                    **status,
                 )
             )
 
@@ -304,23 +306,25 @@ def edit_investor(investor_id):
 
         email = request.form.get("email")
         if email and not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
+            status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
             return redirect(
                 url_for(
                     "admin.edit_investor",
                     _external=False,
                     investor_id=investor_id,
-                    **Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status(),
+                    **status,
                 )
             )
 
         existing_investor = Investor.query.filter(Investor.email == email, Investor.id != investor_id).first()
         if existing_investor:
+            status = Status(StatusType.ERROR, "Email already exists.").get_status()
             return redirect(
                 url_for(
                     "admin.edit_investor",
                     _external=False,
                     investor_id=investor_id,
-                    **Status(StatusType.ERROR, "Email already exists.").get_status(),
+                    **status,
                 )
             )
 
@@ -328,12 +332,13 @@ def edit_investor(investor_id):
         selected_industry_ids = request.form.getlist("selected_industries")
 
         if not selected_round_ids or not selected_industry_ids:
+            status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
             return redirect(
                 url_for(
                     "admin.edit_investor",
                     _external=False,
                     investor_id=investor_id,
-                    **Status(StatusType.ERROR, "Please select rounds and industries.").get_status(),
+                    **status,
                 )
             )
 
@@ -486,21 +491,23 @@ def add_investment_firm():
 
         email = request.form.get("email")
         if email and not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
+            status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
             return redirect(
                 url_for(
                     "admin.add_investment_firm",
                     _external=False,
-                    **Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status(),
+                    **status,
                 )
             )
 
         existing_investor = InvestmentFirm.get_by_email(email=email)  # type: ignore
         if existing_investor:
+            status = Status(StatusType.ERROR, "Email already exists.").get_status()
             return redirect(
                 url_for(
                     "admin.add_investment_firm",
                     _external=False,
-                    **Status(StatusType.ERROR, "Email already exists.").get_status(),
+                    **status,
                 )
             )
 
@@ -508,11 +515,12 @@ def add_investment_firm():
         selected_industry_ids = request.form.getlist("selected_industries")
 
         if not selected_round_ids or not selected_industry_ids:
+            status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
             return redirect(
                 url_for(
                     "admin.add_investment_firm",
                     _external=False,
-                    **Status(StatusType.ERROR, "Please select rounds and industries.").get_status(),
+                    **status,
                 )
             )
 
@@ -569,12 +577,13 @@ def edit_investment_firm(investment_firm_id):
 
         email = request.form.get("email", "")
         if email and not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
+            status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
             return redirect(
                 url_for(
                     "admin.edit_investment_firm",
                     _external=False,
                     investment_firm_id=investment_firm_id,
-                    **Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status(),
+                    **status,
                 )
             )
 
@@ -582,12 +591,13 @@ def edit_investment_firm(investment_firm_id):
             InvestmentFirm.email == email, InvestmentFirm.id != investment_firm_id
         ).first()
         if existing_investor:
+            status = Status(StatusType.ERROR, "Email already exists.").get_status()
             return redirect(
                 url_for(
                     "admin.edit_investment_firm",
                     _external=False,
                     investment_firm_id=investment_firm_id,
-                    **Status(StatusType.ERROR, "Email already exists.").get_status(),
+                    **status,
                 )
             )
 
@@ -595,12 +605,13 @@ def edit_investment_firm(investment_firm_id):
         selected_industry_ids = request.form.getlist("selected_industries")
 
         if not selected_round_ids or not selected_industry_ids:
+            status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
             return redirect(
                 url_for(
                     "admin.edit_investment_firm",
                     _external=False,
                     investment_firm_id=investment_firm_id,
-                    **Status(StatusType.ERROR, "Please select rounds and industries.").get_status(),
+                    **status,
                 )
             )
 
@@ -901,11 +912,12 @@ def add_company():
         industry_id = request.form.get("industry")
 
         if not preferred_round_id or not industry_id:
+            status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
             return redirect(
                 url_for(
                     "admin.add_company",
                     _external=False,
-                    **Status(StatusType.ERROR, "Please select rounds and industries.").get_status(),
+                    **status,
                 )
             )
 
@@ -967,31 +979,42 @@ def edit_company(company_id):
         ):
             return error
 
-        preferred_round_id = request.form.get("round")
+        preferred_round_id = request.form.get("round", type=int)
         industry_id = request.form.get("industry")
 
         if not preferred_round_id or not industry_id:
+            status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
             return redirect(
                 url_for(
                     "admin.edit_company",
                     _external=False,
                     company_id=company_id,
-                    **Status(StatusType.ERROR, "Please select rounds and industries.").get_status(),
+                    **status,
                 )
             )
 
-        user = request.form.get("user")
+        user = request.form.get("user", type=int)
         if not user:
             status = Status(StatusType.ERROR, "User does not exist.").get_status()
             return redirect(url_for("admin.edit_company", _external=False, company_id=company_id, **status))
 
-        company.user_id = user  # type: ignore
+        country_id = request.form.get("country", type=int)
+        if not country_id:
+            status = Status(StatusType.ERROR, "Country ID is required.").get_status()
+            return redirect(url_for("admin.edit_company", _external=False, company_id=company_id, **status))
+
+        industry_id = request.form.get("industry", type=int)
+        if not industry_id:
+            status = Status(StatusType.ERROR, "Industry ID is required.").get_status()
+            return redirect(url_for("admin.edit_company", _external=False, company_id=company_id, **status))
+
+        company.user_id = user
         company.name = name
         company.description = request.form.get("description", "")
         company.number_of_employees = int(request.form.get("number_of_employees", 0) or 0)
-        company.country_id = request.form.get("country")  # type: ignore
-        company.preferred_round_id = preferred_round_id  # type: ignore
-        company.industry_id = industry_id  # type: ignore
+        company.country_id = country_id
+        company.preferred_round_id = preferred_round_id
+        company.industry_id = industry_id
         company.website = request.form.get("website", "")
 
         if pfp := request.files["pfp"]:

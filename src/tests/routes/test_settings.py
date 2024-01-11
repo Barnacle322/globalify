@@ -1,8 +1,7 @@
 import pytest
-from flask import url_for
 
 from src.project.models.user import User
-from src.project.utils.status_enum import OauthProvider, Status, StatusType
+from src.project.utils.status_enum import OauthProvider
 
 from ...project import db
 from ...project.models import UserInfo, UserOauth, UserPayment, UserRegular
@@ -107,14 +106,18 @@ def test_settings_billing_anonymous_get(client):
 def test_settings_change_personal_info(client, new_user, app):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
-    response = client.post("/settings/personal-info", data={
-        "first-name": "NewFirstName",
-        "last-name": "NewLastName",
-        "email": "newemail@example.com",
-        "username": "newusername",
-        "bio": "New bio",
-        "language": "en",
-    }, follow_redirects=True)
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "first-name": "NewFirstName",
+            "last-name": "NewLastName",
+            "email": "newemail@example.com",
+            "username": "newusername",
+            "bio": "New bio",
+            "language": "en",
+        },
+        follow_redirects=True,
+    )
 
     assert response.status_code == 200
 

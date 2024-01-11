@@ -1,9 +1,8 @@
 import flask_login
 import pytest
-from flask import url_for
 
 from src.project.models.user import User
-from src.project.utils.status_enum import OauthProvider, Status, StatusType
+from src.project.utils.status_enum import OauthProvider
 
 from ...project import db
 from ...project.models import UserInfo, UserOauth, UserPayment, UserRegular
@@ -146,7 +145,7 @@ def test_settings_change_personal_info(client, new_user, app):
         "email": "newemail@example.com",
         "username": "newusername",
         "bio": "New bio",
-        "language": "English",
+        "language": "en",
     }, follow_redirects=True)
 
     assert response.status_code == 200

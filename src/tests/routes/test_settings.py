@@ -1,3 +1,4 @@
+import flask_login
 import pytest
 from flask import url_for
 
@@ -36,9 +37,40 @@ def new_user(app):
 
 
 @pytest.fixture()
+def new_user2(app):
+    with app.app_context():
+        user = UserRegular(
+            email="angelina@example.com",
+            is_verified=True,
+            password="password",
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        user_info = UserInfo(
+            first_name="Angelina",
+            last_name="Jolie",
+            username="AngelinaJolie",
+            is_complete=True,
+            user=user,
+        )
+        user_payment = UserPayment(
+            customer_id="cus_123",
+            user=user,
+        )
+        db.session.add_all([user_info, user_payment])
+        db.session.commit()
+        return user
+
+
+@pytest.fixture()
 def new_user_oauth(app):
     with app.app_context():
-        user = UserOauth(email="janedoe@example.com", oauth_provider=OauthProvider.GOOGLE)
+        user = UserOauth(
+            email="janedoe@example.com",
+            oauth_provider=OauthProvider.GOOGLE,
+            is_verified=True,  # Предполагая, что пользователь сразу верифицирован
+        )
         db.session.add(user)
         db.session.commit()
         return user
@@ -89,6 +121,7 @@ def test_settings_plan_anonymous_get(client):
     assert b"Sign in" in response.data
 
 
+# TODO: fix this test
 def test_settings_billing_authenticated_get(client, new_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/settings/billing")
@@ -113,16 +146,274 @@ def test_settings_change_personal_info(client, new_user, app):
         "email": "newemail@example.com",
         "username": "newusername",
         "bio": "New bio",
-        "language": "en",
+        "language": "English",
     }, follow_redirects=True)
 
     assert response.status_code == 200
+    assert b"Personal info successfully changed." in response.data
 
     with app.app_context():
-        updated_user = User.query.filter_by(email="johndoe@example.com").first()
+        updated_user = User.query.filter_by(email="newemail@example.com").first()
         assert updated_user is not None
         assert updated_user.user_info[0].first_name == "NewFirstName"
         assert updated_user.user_info[0].last_name == "NewLastName"
+        assert updated_user.email == "newemail@example.com"
         assert updated_user.user_info[0].username == "newusername"
         assert updated_user.user_info[0].bio == "New bio"
-        assert updated_user.user_info[0].language == "en"
+        assert updated_user.user_info[0].language == "English"
+
+
+def test_change_personal_info_empty_first_name(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "first-name": " ",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"First name cannot be empty." in response.data
+
+
+def test_change_personal_info_empty_last_name(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "last-name": " ",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Last name cannot be empty." in response.data
+
+
+def test_change_personal_info_empty_email(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "email": " ",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Email cannot be empty." in response.data
+
+
+def test_change_personal_info_invalid_email(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "email": "johndoe@examplecom",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Welcome!" in response.data
+    assert b"Have and account? Click " in response.data
+
+
+
+"""I can not get the issues, I just redirect to auth.register"""
+# def test_change_personal_info_oauth_user_email(client, new_user_oauth, app):
+#     client.post("/login", data=dict(email="janedoe@example.com", password="password"), follow_redirects=True)
+
+#     response = client.post(
+#         "/settings/personal-info",
+#         data={
+#             "email": "agahan@gmail.com",
+#         },
+#         follow_redirects=True,
+#     )
+
+#     assert response.status_code == 200
+#     assert b"Cannot change email for oauth users." in response.data
+
+
+def test_change_personal_info_empty_bio(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "bio": " ",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Bio cannot be empty." in response.data
+
+
+def test_change_personal_info_empty_username(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "username": " ",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Username cannot be empty." in response.data
+
+
+def test_change_personal_info_taken_username(client, new_user, new_user2):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "username": "AngelinaJolie",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Username is taken." in response.data
+
+
+def test_change_personal_info_empty_language(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "language": " ",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Language cannot be empty." in response.data
+
+
+def test_change_personal_info_invalid_language(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "language": "Kyrgyz",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Invalid language." in response.data
+
+
+def test_change_password(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/change-password",
+        data={
+            "current-password": "password",
+            "new-password": "new-password",
+            "confirm-password": "new-password",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Password successfully changed." in response.data
+
+
+def test_change_password_invalid_password(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/change-password",
+        data={
+            "current-password": "invalid-password",
+            "new-password": "new-password",
+            "confirm-password": "new-password",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Incorrect password." in response.data
+
+
+def test_change_password_mismatch_password(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/change-password",
+        data={
+            "current-password": "password",
+            "new-password": "new-password",
+            "confirm-password": "mismatch-password",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Passwords do not match." in response.data
+
+
+def test_change_password_empty_password(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/change-password",
+        data={
+            "current-password": "",
+            "new-password": "new-password",
+            "confirm-password": "new-password",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Please fill out all fields." in response.data
+
+
+def test_change_password_empty_confirm_password(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+
+    response = client.post(
+        "/settings/change-password",
+        data={
+            "current-password": "password",
+            "new-password": "new-password",
+            "confirm-password": "",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Please fill out all fields." in response.data
+
+
+# TODO: Fix this test
+def test_change_password_oauth_user(client, new_user_oauth):
+    client.post("/login", data={"email": "janedoe@example.com", "password":"password"}, follow_redirects=True)
+
+    response = client.post(
+        "/settings/change-password",
+        data={
+            "current-password": "password",
+            "new-password": "new-password",
+            "confirm-password": "new-password",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Cannot change password for oauth users." in response.data

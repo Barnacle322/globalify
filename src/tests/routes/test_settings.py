@@ -68,7 +68,7 @@ def new_user_oauth(app):
         user = UserOauth(
             email="janedoe@example.com",
             oauth_provider=OauthProvider.GOOGLE,
-            is_verified=True,  # Предполагая, что пользователь сразу верифицирован
+            is_verified=True,
         )
         db.session.add(user)
         db.session.commit()
@@ -224,20 +224,20 @@ def test_change_personal_info_invalid_email(client, new_user):
 
 
 
-"""I can not get the issues, I just redirect to auth.register"""
-# def test_change_personal_info_oauth_user_email(client, new_user_oauth, app):
-#     client.post("/login", data=dict(email="janedoe@example.com", password="password"), follow_redirects=True)
+# TODO: fix this test
+def test_change_personal_info_oauth_user_email(client, new_user_oauth):
+    client.post("/login", data=dict(email="janedoe@example.com", password="password"), follow_redirects=True)
 
-#     response = client.post(
-#         "/settings/personal-info",
-#         data={
-#             "email": "agahan@gmail.com",
-#         },
-#         follow_redirects=True,
-#     )
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "email": "agahan@gmail.com",
+        },
+        follow_redirects=True,
+    )
 
-#     assert response.status_code == 200
-#     assert b"Cannot change email for oauth users." in response.data
+    assert response.status_code == 200
+    assert b"Cannot change email for oauth users." in response.data
 
 
 def test_change_personal_info_empty_bio(client, new_user):

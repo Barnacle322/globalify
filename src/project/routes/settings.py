@@ -155,6 +155,7 @@ def change_personal_info():  # noqa
     last_name = request.form.get("last-name")
     email = request.form.get("email")
     username = request.form.get("username")
+    bio = request.form.get("bio")
     language = request.form.get("language")
 
     user_info = authenticated_user.user_info[0]  # type: ignore
@@ -165,7 +166,7 @@ def change_personal_info():  # noqa
         user_info.first_name = first_name.strip()
 
     if last_name and last_name.strip() != user_info.last_name:
-        if last_name != " ":
+        if last_name == " ":
             status = Status(StatusType.ERROR, "Last name cannot be empty.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.last_name = last_name.strip()
@@ -184,6 +185,12 @@ def change_personal_info():  # noqa
             return redirect(url_for("main.settings", _external=False, **status))
 
         authenticated_user.email = email
+
+    if bio and bio.strip() != user_info.bio:
+        if bio == " ":
+            status = Status(StatusType.ERROR, "Bio cannot be empty.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
+        user_info.bio = bio.strip()
 
     if username and username.strip() != user_info.username:
         if username == " ":

@@ -21,6 +21,10 @@ settings = Blueprint("settings", __name__)
 @check_user_info_complete
 @check_verification
 def index():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -33,6 +37,8 @@ def index():
         user=authenticated_user,
         pfp_base64=pfp_base64,
         languages=language_list,
+        status_type=status_type,
+        msg=msg,
     )
 
 
@@ -41,6 +47,10 @@ def index():
 @check_user_info_complete
 @check_verification
 def security():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -52,6 +62,8 @@ def security():
         "settings/security.html",
         user=authenticated_user,
         pfp_base64=pfp_base64,
+        status_type=status_type,
+        msg=msg,
     )
 
 
@@ -102,7 +114,7 @@ def billing():
     )
 
 
-@settings.post("/change-password")
+@settings.route("/change-password", methods=["POST"])
 @login_required
 @check_user_info_complete
 @check_verification
@@ -119,25 +131,25 @@ def change_password():
 
     if not isinstance(authenticated_user, UserRegular):
         status = Status(StatusType.ERROR, "Cannot change password for oauth users.").get_status()
-        return redirect(url_for("main.settings", _external=False, **status))
+        return redirect(url_for("settings.security", _external=False, **status))
 
     if not current_password or not new_password or not confirm_password:
         status = Status(StatusType.ERROR, "Please fill out all fields.").get_status()
-        return redirect(url_for("main.settings", _external=False, **status))
+        return redirect(url_for("settings.security", _external=False, **status))
 
     if not authenticated_user.verify_password(current_password):
         status = Status(StatusType.ERROR, "Incorrect password.").get_status()
-        return redirect(url_for("main.settings", _external=False, **status))
+        return redirect(url_for("settings.security", _external=False, **status))
 
     if new_password != confirm_password:
         status = Status(StatusType.ERROR, "Passwords do not match.").get_status()
-        return redirect(url_for("main.settings", _external=False, **status))
+        return redirect(url_for("settings.security", _external=False, **status))
 
     authenticated_user.password = new_password
     db.session.commit()
     status = Status(StatusType.SUCCESS, "Password successfully changed.").get_status()
 
-    return redirect(url_for("main.settings", _external=False, **status))
+    return redirect(url_for("settings.security", _external=False, **status))
 
 
 @settings.post("/personal-info")
@@ -181,8 +193,8 @@ def change_personal_info():  # noqa
             return redirect(url_for("auth.register", _external=False, **status))
 
         if isinstance(authenticated_user, UserOauth):
-            status = Status(StatusType.ERROR, "Cannot change password for oauth users.").get_status()
-            return redirect(url_for("main.settings", _external=False, **status))
+            status = Status(StatusType.ERROR, "Cannot change email for oauth users.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
 
         authenticated_user.email = email
 

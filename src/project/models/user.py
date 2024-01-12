@@ -64,7 +64,7 @@ class User(UserMixin, db.Model):
         This includes the `UserInfo`, `UserPayment`, and `Company` objects.
         """
         if user := cls.get_by_id(id):
-            db.session.delete(user.id)
+            db.session.delete(user)
             db.session.commit()
 
     @classmethod

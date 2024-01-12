@@ -1,4 +1,3 @@
-import flask_login
 import pytest
 
 from src.project.models.user import User
@@ -139,14 +138,18 @@ def test_settings_billing_anonymous_get(client):
 def test_settings_change_personal_info(client, new_user, app):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
-    response = client.post("/settings/personal-info", data={
-        "first-name": "NewFirstName",
-        "last-name": "NewLastName",
-        "email": "newemail@example.com",
-        "username": "newusername",
-        "bio": "New bio",
-        "language": "en",
-    }, follow_redirects=True)
+    response = client.post(
+        "/settings/personal-info",
+        data={
+            "first-name": "NewFirstName",
+            "last-name": "NewLastName",
+            "email": "newemail@example.com",
+            "username": "newusername",
+            "bio": "New bio",
+            "language": "en",
+        },
+        follow_redirects=True,
+    )
 
     assert response.status_code == 200
     assert b"Personal info successfully changed." in response.data
@@ -221,7 +224,6 @@ def test_change_personal_info_invalid_email(client, new_user):
     assert response.status_code == 200
     assert b"Welcome!" in response.data
     assert b"Have and account? Click " in response.data
-
 
 
 # TODO: fix this test
@@ -402,7 +404,7 @@ def test_change_password_empty_confirm_password(client, new_user):
 
 # TODO: Fix this test
 def test_change_password_oauth_user(client, new_user_oauth):
-    client.post("/login", data={"email": "janedoe@example.com", "password":"password"}, follow_redirects=True)
+    client.post("/login", data={"email": "janedoe@example.com", "password": "password"}, follow_redirects=True)
 
     response = client.post(
         "/settings/change-password",

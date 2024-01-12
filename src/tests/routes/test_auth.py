@@ -1,3 +1,5 @@
+from io import BytesIO
+
 import pytest
 
 from src.project.routes.auth import oauth_user
@@ -192,25 +194,20 @@ def test_onboarding_authenticated_user(client, new_user):
 
 
 def test_onboarding_post_valid_data(client, new_user, app):
-    """Stays on the same page eventhough the data is valid"""
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.post(
         "/onboarding",
-        data=dict(
-            first_name="John",
-            last_name="Doe",
-            username="johndoe123",
-            bio="Hello, I'm John Doe.",
-            language="English",
-            linkedin="https://linkedin.com/in/johndoe",
-            instagram="https://instagram.com/johndoe",
-            twitter="https://twitter.com/johndoe",
-        ),
+        data={
+            "first_name": "John",
+            "last_name": "Doe",
+            "username": "johndoe",
+            "language": "English",
+            "pfp": (BytesIO(b"my test file contents"), "test.jpg"),
+        },
         follow_redirects=True,
     )
     assert response.status_code == 200
     assert b"Company profile" in response.data
-    print(response.text)
     with app.app_context():
         user_info = UserInfo.get_by_user_id(1)
         assert user_info.is_complete  # type: ignore
@@ -269,21 +266,48 @@ def test_company_form_authenticated_get(client, new_user):
     assert b"This information will be displayed publicly so be careful what you share." in response.data
 
 
-def test_company_form_authenticated_post(client, new_user):
+@pytest.fixture()
+def user_with_complete_user_info(app):
+    with app.app_context():
+        user = UserRegular(
+            email="johndoe@example.com",
+            password="password",
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        user_info = UserInfo(
+            first_name="John",
+            last_name="Doe",
+            username="johndoe",
+            is_complete=True,
+            user=user,
+        )
+        db.session.add_all(
+            [
+                user_info,
+            ]
+        )
+        db.session.commit()
+        return user
+
+
+def test_company_form_authenticated_post(client, user_with_complete_user_info, app):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    """Bad request 400 eventhough all fields are valid"""
     response = client.post(
         "/company-form",
-        data=dict(
-            name="Test Company",
-            description="Test description",
-            country_id=1,
-            preferred_round_id=1,
-            industry_id=1,
-            website="https://www.example.com",
-        ),
+        data={
+            "company_name": "Test Company",
+            "about": "Test description",
+            "country": 1,
+            "round": 1,
+            "industry": 1,
+            "website": "https://www.example.com",
+            "pfp": (BytesIO(b"my test file contents"), "test.jpg"),
+        },
         follow_redirects=True,
     )
+    print(response.text)
     assert response.status_code == 200
     assert b"Dashboard" in response.data
     assert b"Investors" in response.data

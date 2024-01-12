@@ -241,17 +241,17 @@ def onboarding():
 
     if request.method == "POST":
         first_name, last_name, username, linkedin, instagram, twitter = (
-            request.form.get("first-name"),
-            request.form.get("last-name"),
+            request.form.get("first_name"),
+            request.form.get("last_name"),
             request.form.get("username"),
             request.form.get("linkedin"),
             request.form.get("instagram"),
             request.form.get("twitter"),
         )
+
         if not first_name or not last_name or not username:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
             return redirect(url_for("auth.onboarding", _external=False, **status))
-
         is_taken = UserInfo.is_taken(username)
         if is_taken:
             status = Status(StatusType.ERROR, AUTH_USERNAME_USED).get_status()
@@ -349,7 +349,7 @@ def company_form():
     if request.method == "POST":
         company = Company(
             user_id=authenticated_user.id,
-            name=request.form.get("company-name"),
+            name=request.form.get("company_name"),
             description=request.form.get("about"),
             country_id=request.form.get("country"),
             preferred_round_id=request.form.get("round"),
@@ -370,6 +370,7 @@ def company_form():
 
         db.session.add(company)
         db.session.commit()
+
         return redirect(url_for("main.dashboard"))
 
     return render_template(

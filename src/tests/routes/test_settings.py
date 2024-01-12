@@ -1,9 +1,13 @@
+from unittest.mock import MagicMock
+
 import pytest
+from flask import url_for
 
 from src.project.models.user import User
 from src.project.utils.status_enum import OauthProvider
 
 from ...project import db
+from ...project.extensions import oauth
 from ...project.models import UserInfo, UserOauth, UserPayment, UserRegular
 
 
@@ -64,12 +68,17 @@ def new_user2(app):
 @pytest.fixture()
 def new_user_oauth(app):
     with app.app_context():
-        user = UserOauth(
-            email="janedoe@example.com",
-            oauth_provider=OauthProvider.GOOGLE,
-            is_verified=True,
-        )
+        user = UserOauth(email="janedoe@example.com", oauth_provider=OauthProvider.GOOGLE, is_verified=True)
         db.session.add(user)
+        db.session.commit()
+        user_info = UserInfo(
+            first_name="Jane",
+            last_name="Doe",
+            username="janedoe",
+            is_complete=True,
+            user=user,
+        )
+        db.session.add(user_info)
         db.session.commit()
         return user
 
@@ -418,3 +427,19 @@ def test_change_password_oauth_user(client, new_user_oauth):
 
     assert response.status_code == 200
     assert b"Cannot change password for oauth users." in response.data
+
+
+def test_google_callback(app, client, monkeypatch, new_user_oauth):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "janedoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Search" in response.data

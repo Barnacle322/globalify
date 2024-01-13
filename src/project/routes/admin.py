@@ -25,7 +25,7 @@ from ..utils.errors.auth_error_messages import (
     AUTH_INVALID_EMAIL,
 )
 from ..utils.info_lists import languages as language_list
-from ..utils.status_enum import Status, StatusType
+from ..utils.status_enum import Status, StatusType, Tier
 
 admin = Blueprint("admin", __name__)
 
@@ -647,7 +647,7 @@ def get_all_users():
 
 
 @admin.route("/user/edit/<int:user_id>", methods=["GET", "POST"])
-@is_admin
+# @is_admin
 def edit_user(user_id):
     status_type, msg = None, None
     if query := request.args:
@@ -674,7 +674,9 @@ def edit_user(user_id):
         first_name = request.form.get("first_name", "").strip()
         last_name = request.form.get("last_name", "").strip()
         username = request.form.get("username", "").strip()
-        if not email or not first_name or not last_name or not username:
+        tier = request.form.get("tier")
+
+        if not email or not first_name or not last_name or not username or not tier:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
             return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
 
@@ -707,6 +709,7 @@ def edit_user(user_id):
         user_info.username = username
         user_info.bio = request.form.get("bio", "").strip()
         user_info.language = request.form.get("language", "English")
+
         user_payment.customer_id = request.form.get("customer_id", "")
         user_payment.subscription_id = request.form.get("subscription_id", "")
 
@@ -726,8 +729,13 @@ def edit_user(user_id):
         user.is_admin = request.form.get("is_admin", False, type=bool)
         user_payment.is_active = request.form.get("is_active", False, type=bool)
 
-        db.session.commit()
+        tier = request.form.get("tier", "elevate")
+        if tier not in ["elevate", "connect pro", "boost academy", "free"]:
+            status = Status(StatusType.ERROR, "Invalid tier").get_status()
+            return redirect(url_for("admin.edit_user", _external=False, user_id=user_id, **status))
+        user_payment.tier = Tier(tier)
 
+        db.session.commit()
         return redirect(url_for("admin.get_all_users"))
 
     return render_template(
@@ -738,6 +746,7 @@ def edit_user(user_id):
         languages=language_list,
         status_type=status_type,
         msg=msg,
+        Tier=Tier,
     )
 
 

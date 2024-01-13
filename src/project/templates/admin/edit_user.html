@@ -217,6 +217,18 @@
                 />
             </div>
 
+            <div>
+                <label for="tier" class="input-label">Tier</label>
+                <select id="tier" name="tier" class="input-field" required>
+                    {% for tier in Tier %}
+                        <option value="{{ tier.value }}" {% if user_payment.tier == tier %}selected{% endif %}>
+                            {{ tier.value }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+
             <div class="flex justify-between gap-4">
                 <div>
                     <label for="is_complete" class="input-label">Is Complete</label>

@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-import stripe
 from flask import url_for
 
 from src.project.models.user import User

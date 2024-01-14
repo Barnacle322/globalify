@@ -1,6 +1,7 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
+import stripe
 from flask import url_for
 
 from src.project.models.user import User
@@ -131,13 +132,27 @@ def test_settings_plan_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-# TODO: fix this test
-# def test_settings_billing_authenticated_get(client, new_user):
-#     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-#     response = client.get("/settings/billing")
-#     assert response.status_code == 200
-#     assert b"Manage billing" in response.data
-#     assert b"Manage your billing details with Stripe." in response.data
+def test_settings_billing_authenticated_get(client, new_user):
+    with patch("stripe.Invoice.list") as mock_invoice_list:
+        mock_invoice_list.return_value = [
+            {
+                "id": "invoice_123",
+                "created": 1642370100,
+                "amount_due": 1000,
+                "amount_paid": 500,
+                "currency": "usd",
+                "status": "paid",
+                "hosted_invoice_url": "https://example.com/invoice/123",
+            }
+        ]
+
+        client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+        response = client.get("/settings/billing", follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Manage billing" in response.data
+    assert b"Manage your billing details with" in response.data
+    assert b"See your invoice history here." in response.data
 
 
 def test_settings_billing_anonymous_get(client):

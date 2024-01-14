@@ -647,7 +647,7 @@ def get_all_users():
 
 
 @admin.route("/user/edit/<int:user_id>", methods=["GET", "POST"])
-# @is_admin
+@is_admin
 def edit_user(user_id):
     status_type, msg = None, None
     if query := request.args:
@@ -714,14 +714,19 @@ def edit_user(user_id):
         user_payment.subscription_id = request.form.get("subscription_id", "")
 
         user_payment.created = (
-            datetime.strptime(created_str, "%Y-%m-%dT%H:%M:%S")
-            if (created_str := request.form.get("created"))
-            else None
+        datetime.strptime(created_str + ":00", "%Y-%m-%dT%H:%M:%S")
+        if (created_str := request.form.get("created")) and len(created_str) == 16
+        else datetime.strptime(created_str, "%Y-%m-%dT%H:%M:%S")
+        if created_str
+        else None
         )
+
         user_payment.expires_at = (
-            datetime.strptime(expires_at_str, "%Y-%m-%dT%H:%M:%S")
-            if (expires_at_str := request.form.get("expires_at"))
-            else None
+        datetime.strptime(expires_at + ":00", "%Y-%m-%dT%H:%M:%S")
+        if (expires_at := request.form.get("expires_at")) and len(expires_at) == 16
+        else datetime.strptime(expires_at, "%Y-%m-%dT%H:%M:%S")
+        if expires_at
+        else None
         )
 
         user_info.is_complete = request.form.get("is_complete", False, type=bool)

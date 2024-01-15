@@ -424,7 +424,6 @@ def linkedin_callback():
     if not email:
         status = Status(StatusType.ERROR, OAUTH_NO_EMAIL).get_status()
         return redirect(url_for("auth.login", _external=False, **status))
-
     user_info_response = api_call(
         url=LINKEDIN_PERSONAL_INFO_URL,
         access_token=access_token,

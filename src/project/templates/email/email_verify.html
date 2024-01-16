@@ -32,7 +32,7 @@
                 }
             </style>
         <![endif]-->
-        <title>Trial expires soon</title>
+        <title>Email Verification</title>
         <style>
             .hover-important-text-decoration-underline:hover {
                 text-decoration: underline !important;
@@ -120,7 +120,7 @@
                             <div class="sm-my-8" style="margin-top: 48px; margin-bottom: 48px; text-align: center">
                                 <a href="https://globalify.xyz">
                                     <img
-                                        src="https://globalify.xyz/static/elements/logo-black.png"
+                                        src="http://globalify.xyz/static/elements/logo-black.png"
                                         width="200"
                                         alt="Globalify"
                                         style="max-width: 100%; vertical-align: middle; line-height: 1; border: 0"
@@ -141,7 +141,7 @@
                                         "
                                     >
                                         <img
-                                            src="https://globalify.xyz/static/elements/email/waitlist.png"
+                                            src="http://localhost:5000/static/elements/email/verify-email.jpeg"
                                             width="250"
                                             alt="Agreement illustration"
                                             style="
@@ -176,66 +176,61 @@
                                                 color: #000;
                                             "
                                         >
-                                            Thank you for signing up for the Early Access!
+                                        Thank you for joining Globalify!
                                         </h1>
                                         <p style="margin: 0; line-height: 24px">
                                             <br />
-                                            Right now, we are currently busy adding the final touches to our beta search
-                                            engine and will notify you as soon as it's ready to launch.
+                                            Hello there!
                                         </p>
                                         <p style="margin: 0; line-height: 24px">
                                             <br />
-                                            While you wait, we have a cool gift for you! We've compiled a list of
-                                            investors perfectly matched to your startup from our search engine.
-                                        </p>
-                                        <p style="margin: 0; line-height: 24px">
-                                            <br />
-                                            <span style="font-weight: 600"
-                                                >Remember: You can download this file
-                                                <span style="font-weight: 700">only once</span>, so be sure to save in a
-                                                safe place.</span
-                                            >
+                                            
+                                            To complete your registration and start using our service, please verify your email address.
+
+                                            Click the following link to confirm:
+                                        
+                                            <div role="separator" style="line-height: 24px">&zwj;</div>
+                                            <div style="text-align: center">
+                                                <a
+                                                    href="http://localhost:5000/verify-email/{{ uuid }}"
+                                                    style="
+                                                        display: inline-block;
+                                                        border-radius: 12px;
+                                                        background-color: #0ea5e9;
+                                                        padding: 16px 24px;
+                                                        font-size: 16px;
+                                                        font-weight: 600;
+                                                        line-height: 1;
+                                                        color: #f8fafc;
+                                                        text-decoration: none;
+                                                    "
+                                                >
+                                                    <!--[if mso]>
+                                                        <i
+                                                            style="
+                                                                mso-font-width: -100%;
+                                                                letter-spacing: 32px;
+                                                                mso-text-aise: 30px;
+                                                            "
+                                                            hidden
+                                                            >&nbsp;</i
+                                                        >
+                                                    <![endif]-->
+                                                    <span style="mso-text-raise: 16px"> Verify </span>
+                                                    <!--[if mso]>
+                                                        <i style="mso-font-width: -100%; letter-spacing: 32px" hidden
+                                                            >&nbsp;</i
+                                                        >
+                                                    <![endif]-->
+                                                </a>
+                                            </div>
                                         </p>
 
                                         <p style="margin: 0; line-height: 24px">
                                             <br />
                                             Again, thanks a million for your support. We can't wait to show you more.
                                         </p>
-                                        <div role="separator" style="line-height: 24px">&zwj;</div>
-                                        <div style="text-align: center">
-                                            <a
-                                                href="http://localhost:5000/verify-email/{{ uuid }}"
-                                                style="
-                                                    display: inline-block;
-                                                    border-radius: 12px;
-                                                    background-color: #0ea5e9;
-                                                    padding: 16px 24px;
-                                                    font-size: 16px;
-                                                    font-weight: 600;
-                                                    line-height: 1;
-                                                    color: #f8fafc;
-                                                    text-decoration: none;
-                                                "
-                                            >
-                                                <!--[if mso]>
-                                                    <i
-                                                        style="
-                                                            mso-font-width: -100%;
-                                                            letter-spacing: 32px;
-                                                            mso-text-aise: 30px;
-                                                        "
-                                                        hidden
-                                                        >&nbsp;</i
-                                                    >
-                                                <![endif]-->
-                                                <span style="mso-text-raise: 16px"> Download the list </span>
-                                                <!--[if mso]>
-                                                    <i style="mso-font-width: -100%; letter-spacing: 32px" hidden
-                                                        >&nbsp;</i
-                                                    >
-                                                <![endif]-->
-                                            </a>
-                                        </div>
+                                        
                                         <div
                                             role="separator"
                                             style="

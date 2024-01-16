@@ -45,8 +45,8 @@ def check_verification(func):
             return redirect(url_for("auth.login"))
         # TODO
         elif not current_user.is_verified:  # type: ignore
-            # return redirect(url_for("auth.verify"))
-            pass
+            return render_template("verify_email.html", user_id=current_user.id)
+            # pass
         return func(*args, **kwargs)
 
     return decorated_function

@@ -2,13 +2,16 @@ import os
 import re
 
 import requests
-from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, jsonify, redirect, render_template, request, url_for
 from flask_login import (
     current_user,
     login_required,
     login_user,
     logout_user,
 )
+
+from src.project.models.user import EmailVerification
+from src.project.utils.sendgrid_email import send_email
 
 from ..extensions import db, login_manager, oauth
 from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
@@ -146,8 +149,17 @@ def register():
 
         new_user = UserRegular(email=email)
         new_user.password = password
+
         db.session.add(new_user)
         db.session.commit()
+
+        verification_token = new_user.create_verification_token(new_user.id)
+        html_content = render_template("email/email_verify.html", uuid=verification_token)
+        send_email(
+            recepients=email,
+            subject="You have signed up for the Early Access!",
+            html_content=html_content,
+        )
 
         current_app.logger.info(f"User created {new_user}")
 
@@ -162,6 +174,70 @@ def register():
 
     return render_template("auth/register.html", status_type=status_type, msg=msg)
 
+
+@auth.route("/resend-verification/<user_id>")
+def resend_verification_email(user_id):
+    try:
+        user = User.get_by_id(user_id)
+        if user:
+            email = user.email
+            if not user.is_verified:
+                verification = EmailVerification.query.filter_by(user_id=user_id, is_expired=False).first()
+                print(verification)
+                if verification:
+                    status = Status(StatusType.WARNING, AUTH_OAUTH_USED).get_status()
+                    return redirect(url_for("auth.register", _external=False, **status))
+                else:
+                    new_verification = user.create_verification_token(user_id)
+                    db.session.add(new_verification)
+                    db.session.commit()
+
+                    html_content = render_template("email/email_verify.html", uuid=new_verification)
+                    print("HERE============")
+                    send_email(
+                        recepients="imamidinov.agahan09@gmail.com",
+                        subject="You have signed up for the Early Access!",
+                        html_content=html_content,
+                        )
+            else:
+                status = Status(StatusType.WARNING, AUTH_OAUTH_USED).get_status()
+                return redirect(url_for("auth.login", _external=False, **status))
+        else:
+            abort(404)
+    except Exception as e:
+        user = User.get_by_id(user_id)
+        print(user)
+        email = user.email
+        print(email)
+        print(f"Error: {e}")
+
+    return render_template("verification_success.html")
+
+
+@auth.route("/verify-email/<token>")
+def verify_email(token):
+    try:
+        verification = db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
+
+        if verification:
+            if not verification.is_expired:
+                user = User.get_by_id(verification.user_id)
+                if user:
+                    user.is_verified = True
+                    db.session.delete(verification)
+                    db.session.commit()
+                else:
+                    abort(404)
+            else:
+                return render_template("verification_expired.html", user_id=verification.user_id)
+        else:
+            # Неверный токен
+            print("Invalid token")
+
+    except Exception as e:
+        # Обработка ошибок базы данных
+        print(f"Database error: {e}")
+    return render_template("verification_success.html")
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():

@@ -79,6 +79,29 @@ class User(UserMixin, db.Model):
     def get_all(cls) -> Sequence[User]:
         return db.session.scalars(db.select(cls)).all()
 
+    def create_verification_token(self, user_id) -> str:
+        """
+        Create a verification token and store it in the EmailVerification table.
+        """
+        verification = EmailVerification(user_id=user_id)
+        db.session.add(verification)
+        db.session.commit()
+        return verification.token
+
+    def verify_email(self, token: str) -> bool:
+        """
+        Verify the email using the provided token.
+        """
+        verification = db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
+
+        if verification and not verification.is_expired():
+            self.is_verified = True
+            db.session.delete(verification)
+            db.session.commit()
+            return True
+
+        return False
+
 
 class UserOauth(User):
     """
@@ -373,6 +396,43 @@ class UserPayment(db.Model):
         }
         return subscription
 
+
+class EmailVerification(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    token: Mapped[str] = mapped_column(String, nullable=False, default=str(uuid4()))
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @property
+    def is_expired(self) -> bool:
+        """
+        Check if the verification token has expired.
+        """
+        expiration_time = self.created_at + datetime.timedelta(minutes=1)
+        print(datetime.datetime.utcnow())
+        return datetime.datetime.utcnow() > expiration_time
+
+    @staticmethod
+    def get_by_id(id: int) -> EmailVerification | None:
+        return db.session.scalar(db.select(EmailVerification).where(EmailVerification.id == id))
+
+    @staticmethod
+    def get_by_token(token: str) -> EmailVerification | None:
+        return db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
+
+    @staticmethod
+    def get_active_verification(user_id: int) -> EmailVerification | None:
+        """
+        Get the active verification token for a user, if any.
+        """
+        return db.session.scalar(
+            db.select(EmailVerification)
+            .where(EmailVerification.user_id == user_id, EmailVerification.is_expired() is False)
+            .order_by(EmailVerification.created_at.desc())
+        )
 
 class WaitlistCharge(db.Model):
     """

@@ -157,7 +157,7 @@ def register():
         html_content = render_template("email/email_verify.html", uuid=verification_token)
         send_email(
             recepients=email,
-            subject="You have signed up for the Early Access!",
+            subject="Confirm Your Email Address!",
             html_content=html_content,
         )
 
@@ -177,66 +177,51 @@ def register():
 
 @auth.route("/resend-verification/<user_id>")
 def resend_verification_email(user_id):
-    try:
-        user = User.get_by_id(user_id)
-        if user:
-            email = user.email
-            if not user.is_verified:
-                verification = EmailVerification.query.filter_by(user_id=user_id, is_expired=False).first()
-                print(verification)
-                if verification:
-                    status = Status(StatusType.WARNING, AUTH_OAUTH_USED).get_status()
-                    return redirect(url_for("auth.register", _external=False, **status))
-                else:
-                    new_verification = user.create_verification_token(user_id)
-                    db.session.add(new_verification)
-                    db.session.commit()
-
-                    html_content = render_template("email/email_verify.html", uuid=new_verification)
-                    print("HERE============")
-                    send_email(
-                        recepients="imamidinov.agahan09@gmail.com",
-                        subject="You have signed up for the Early Access!",
-                        html_content=html_content,
-                        )
-            else:
+    user = User.get_by_id(user_id)
+    if user:
+        if not user.is_verified:
+            verification = EmailVerification.query.filter_by(user_id=user_id, is_expired=False).first()
+            if verification:
                 status = Status(StatusType.WARNING, AUTH_OAUTH_USED).get_status()
-                return redirect(url_for("auth.login", _external=False, **status))
-        else:
-            abort(404)
-    except Exception as e:
-        user = User.get_by_id(user_id)
-        print(user)
-        email = user.email
-        print(email)
-        print(f"Error: {e}")
+                return redirect(url_for("auth.register", _external=False, **status))
+            else:
+                new_verification = user.create_verification_token(user_id)
 
-    return render_template("verification_success.html")
+                html_content = render_template("email/email_verify.html", uuid=new_verification)
+                send_email(
+                    recepients=user.email,
+                    subject="Confirm Your Email Address!",
+                    html_content=html_content,
+                    )
+        else:
+            status = Status(StatusType.WARNING, AUTH_OAUTH_USED).get_status()
+            return redirect(url_for("auth.login", _external=False, **status))
+    else:
+        abort(404)
+    return redirect(url_for("main.index"))
 
 
 @auth.route("/verify-email/<token>")
 def verify_email(token):
-    try:
-        verification = db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
+    verification = EmailVerification.get_by_token(token)
 
-        if verification:
-            if not verification.is_expired:
-                user = User.get_by_id(verification.user_id)
-                if user:
+    if verification:
+        if not verification.is_expired:
+            user = User.get_by_id(verification.user_id)
+            if user:
+                if not user.is_verified:
                     user.is_verified = True
                     db.session.delete(verification)
                     db.session.commit()
                 else:
-                    abort(404)
+                    return render_template("already_verified.html")
             else:
-                return render_template("verification_expired.html", user_id=verification.user_id)
+                abort(404)
         else:
-            # Неверный токен
-            print("Invalid token")
+            return render_template("verification_expired.html", user_id=verification.user_id)
+    else:
+        return render_template("invalid_token.html")
 
-    except Exception as e:
-        # Обработка ошибок базы данных
-        print(f"Database error: {e}")
     return render_template("verification_success.html")
 
 @auth.route("/login", methods=["GET", "POST"])

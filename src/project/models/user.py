@@ -385,7 +385,7 @@ class WaitlistCharge(db.Model):
         customer_email (str): The email of the customer associated with the charge.
         customer_name (str): The name of the customer associated with the charge.
         random_key (str): The randomly generated key.
-        downloaded (bool): Indicates whether the charge has been downloaded.
+        downloaded (bool): Indicates whether the product database has been downloaded.
 
     """
 

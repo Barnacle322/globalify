@@ -66,8 +66,11 @@ def construct_query_string(**kwargs):
 
 @main.get("/")
 def index():
+    notification =  None
+    if query := request.args:
+        notification = query.get("notification")
     posts = parse_medium_html()
-    return render_template("coming_soon.html", posts=posts)
+    return render_template("coming_soon.html", posts=posts, notification=notification)
 
 
 @main.get("/waitlist")

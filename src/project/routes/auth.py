@@ -114,7 +114,6 @@ def register():
 
     Returns:
         str: The rendered HTML template for the registration page.
-
     """
     status_type, msg = None, None
     if query := request.args:
@@ -153,14 +152,6 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        verification_token = new_user.create_verification_token(new_user.id)
-        html_content = render_template("email/email_verify.html", uuid=verification_token)
-        send_email(
-            recepients=email,
-            subject="Confirm Your Email Address!",
-            html_content=html_content,
-        )
-
         current_app.logger.info(f"User created {new_user}")
 
         new_user_info = UserInfo(user_id=new_user.id)
@@ -175,54 +166,85 @@ def register():
     return render_template("auth/register.html", status_type=status_type, msg=msg)
 
 
-@auth.route("/resend-verification/<user_id>")
-def resend_verification_email(user_id):
-    user = User.get_by_id(user_id)
-    if user:
-        if not user.is_verified:
-            verification = EmailVerification.query.filter_by(user_id=user_id, is_expired=False).first()
-            if verification:
-                status = Status(StatusType.WARNING, AUTH_OAUTH_USED).get_status()
-                return redirect(url_for("auth.register", _external=False, **status))
-            else:
-                new_verification = user.create_verification_token(user_id)
-
-                html_content = render_template("email/email_verify.html", uuid=new_verification)
-                send_email(
-                    recepients=user.email,
-                    subject="Confirm Your Email Address!",
-                    html_content=html_content,
-                    )
-        else:
-            status = Status(StatusType.WARNING, AUTH_OAUTH_USED).get_status()
-            return redirect(url_for("auth.login", _external=False, **status))
-    else:
-        abort(404)
-    return redirect(url_for("main.index"))
-
-
 @auth.route("/verify-email/<token>")
 def verify_email(token):
-    verification = EmailVerification.get_by_token(token)
+    """
+    Handles the email verification process using the provided token.
 
-    if verification:
-        if not verification.is_expired:
-            user = User.get_by_id(verification.user_id)
-            if user:
-                if not user.is_verified:
-                    user.is_verified = True
-                    db.session.delete(verification)
-                    db.session.commit()
-                else:
-                    return render_template("already_verified.html")
-            else:
-                abort(404)
-        else:
-            return render_template("verification_expired.html", user_id=verification.user_id)
-    else:
-        return render_template("invalid_token.html")
+    If the token is not found, renders a template with an error message.
+    If the token is expired, renders a template indicating that the verification has expired.
+    If the user does not exist, aborts the request with a 404 error.
+    If the user is already verified, renders a template indicating that the user is already verified.
+
+    Args:
+        token (str): The verification token received by the user.
+
+    Returns:
+        str: The rendered HTML template based on the verification status.
+    """
+    email_verification = EmailVerification.get_by_token(token)
+
+    if not email_verification:
+        return render_template("errors/email_verification/invalid_token.html")
+
+    if email_verification.is_expired:
+        return render_template("errors/email_verification/verification_expired.html", user_id=email_verification.user_id)
+
+    user = User.get_by_id(email_verification.user_id)
+
+    if not user:
+        abort(404)
+
+    if user.is_verified:
+        return render_template("errors/email_verification/already_verified.html")
+
+    user.is_verified = True
+    db.session.delete(email_verification)
+    db.session.commit()
 
     return render_template("verification_success.html")
+
+
+@auth.route("/resend-verification/<user_id>")
+def resend_verification_email(user_id):
+    """
+    Resends the email verification for a user with the given user ID.
+
+    If the user is found:
+       a. Checks if the user is not already verified.
+       b. Deletes any existing EmailVerification records for the user from the database.
+       c. Creates a new EmailVerification record for the user.
+       d. Sends an email containing a verification link to the user.
+    If the user is already verified, renders a template indicating that the user is already verified.
+    If the user is not found, aborts the request with a 404 error.
+
+    Args:
+        user_id (str): The user ID for which to resend the email verification.
+
+    Returns:
+        str: Redirects the user to the main index page with a notification.
+    """
+    user = User.get_by_id(user_id)
+    notification = "Email sent successfully! Check your inbox to verify your email address."
+    if user:
+        if not user.is_verified:
+            EmailVerification.query.filter_by(user_id=user_id).delete()
+            db.session.commit()
+
+            new_verification = user.create_verification_token(user_id)
+
+            html_content = render_template("email/email_verify.html", uuid=new_verification)
+            send_email(
+                recepients=user.email,
+                subject="Confirm Your Email Address!",
+                html_content=html_content,
+            )
+        else:
+            return render_template("errors/email_verification/already_verified.html")
+    else:
+        abort(404)
+    return redirect(url_for("main.index", notification=notification))
+
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
@@ -429,9 +451,18 @@ def company_form():
         if pfp_uuid := upload_pfp(request.files["pfp"]):
             company.pfp_uuid = pfp_uuid
 
+        verification_token = authenticated_user.create_verification_token(authenticated_user.id)
+        html_content = render_template("email/email_verify.html", uuid=verification_token)
+        send_email(
+            recepients=authenticated_user.email,
+            subject="Confirm Your Email Address!",
+            html_content=html_content,
+        )
+        notification = "Email sent successfully! Check your inbox to verify your email address."
+
         db.session.add(company)
         db.session.commit()
-        return redirect(url_for("main.dashboard"))
+        return redirect(url_for("main.index", notification=notification))
 
     return render_template(
         "auth/company_form.html",

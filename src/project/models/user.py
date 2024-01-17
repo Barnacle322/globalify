@@ -82,25 +82,17 @@ class User(UserMixin, db.Model):
     def create_verification_token(self, user_id) -> str:
         """
         Create a verification token and store it in the EmailVerification table.
+
+        Args:
+            user_id (int): The ID of the user for whom the verification token is being created.
+
+        Returns:
+            str: The generated verification token.
         """
         verification = EmailVerification(user_id=user_id)
         db.session.add(verification)
         db.session.commit()
         return verification.token
-
-    def verify_email(self, token: str) -> bool:
-        """
-        Verify the email using the provided token.
-        """
-        verification = db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
-
-        if verification and not verification.is_expired():
-            self.is_verified = True
-            db.session.delete(verification)
-            db.session.commit()
-            return True
-
-        return False
 
 
 class UserOauth(User):
@@ -398,6 +390,15 @@ class UserPayment(db.Model):
 
 
 class EmailVerification(db.Model):
+    """
+    Represents email verification information.
+
+    Attributes:
+        id (int): The verification ID.
+        user_id (int): The ID of the user associated with the verification.
+        token (str): The unique token generated for email verification.
+        created_at (datetime.datetime): The date and time when the verification was created.
+    """
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     token: Mapped[str] = mapped_column(String, nullable=False, default=str(uuid4()))
@@ -409,30 +410,27 @@ class EmailVerification(db.Model):
     @property
     def is_expired(self) -> bool:
         """
-        Check if the verification token has expired.
+        Checks if the email verification has expired.
+
+        Returns:
+            bool: True if the verification has expired, False otherwise.
         """
-        expiration_time = self.created_at + datetime.timedelta(minutes=1)
-        print(datetime.datetime.utcnow())
+        expiration_time = self.created_at + datetime.timedelta(minutes=15)
         return datetime.datetime.utcnow() > expiration_time
 
     @staticmethod
-    def get_by_id(id: int) -> EmailVerification | None:
-        return db.session.scalar(db.select(EmailVerification).where(EmailVerification.id == id))
-
-    @staticmethod
     def get_by_token(token: str) -> EmailVerification | None:
+        """
+        Retrieves an email verification record by token.
+
+        Args:
+            token (str): The verification token.
+
+        Returns:
+            EmailVerification | None: The email verification record or None if not found.
+        """
         return db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
 
-    @staticmethod
-    def get_active_verification(user_id: int) -> EmailVerification | None:
-        """
-        Get the active verification token for a user, if any.
-        """
-        return db.session.scalar(
-            db.select(EmailVerification)
-            .where(EmailVerification.user_id == user_id, EmailVerification.is_expired() is False)
-            .order_by(EmailVerification.created_at.desc())
-        )
 
 class WaitlistCharge(db.Model):
     """

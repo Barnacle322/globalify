@@ -1,20 +1,20 @@
 {% extends "layouts/layout.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock
-    %} {% block content %}
-    <main class="relative mt-24 flex w-full flex-col items-center justify-center gap-8 overflow-x-hidden px-4 pb-52 dark:bg-slate-900 dark:text-slate-50">
-        <h1 class="mt-24 text-center text-5xl font-bold md:mt-48 md:text-8xl">Email Verified ✅</h1>
-        <p class="max-w-xl text-center text-xl">Congratulations! Your email has been successfully verified. Thank you for confirming your email address. Feel free to close this window!</p>
-        <div class="flex justify-center gap-x-6 overflow-visible">
-            <a href="/login" id="login-link" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-50 hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300 dark:text-slate-900 dark:hover:bg-slate-200">
-                Close the window
-            </a>
-        </div>
-    </main>
-
-    <script>
-        document.getElementById('login-link').addEventListener('click', function (event) {
-            event.preventDefault();
-            window.close();
-        });
-    </script>
+%} {% block content %}
+<main
+    class="relative mt-24 flex w-full flex-col items-center justify-center gap-8 overflow-x-hidden px-4 pb-52 dark:bg-slate-900 dark:text-slate-50"
+>
+    <h1 class="mt-24 text-center text-5xl font-bold md:mt-48 md:text-8xl">Email Verified ✅</h1>
+    <p class="max-w-xl text-center text-xl">
+        Congratulations! Your email has been successfully verified. Thank you for confirming your email address. Feel
+        free to close this window!
+    </p>
+    <div class="flex justify-center gap-x-6 overflow-visible">
+        <a
+            href="/dashboard"
+            class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-lg font-semibold text-slate-50 hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300 dark:text-slate-900 dark:hover:bg-slate-200"
+        >
+            Go to dashboard page
+        </a>
+    </div>
+</main>
 {% endblock %}
-    

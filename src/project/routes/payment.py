@@ -7,8 +7,6 @@ from flask import Blueprint, current_app, jsonify, redirect, render_template, re
 from flask_login import current_user, login_required
 from stripe import InvalidRequestError, SignatureVerificationError
 
-from src.project.utils.google_pubsub import send_event
-
 from ..extensions import csrf, db
 from ..models import User, UserInfo, UserPayment, WaitlistCharge
 from ..utils.errors.auth_error_messages import (
@@ -16,6 +14,7 @@ from ..utils.errors.auth_error_messages import (
     PAYMENT_EMAIL_USED,
     PAYMENT_NOT_FOUND,
 )
+from ..utils.google_pubsub import send_event
 from ..utils.status_enum import Events, Status, StatusType, Tier
 from .main import check_user_info_complete
 

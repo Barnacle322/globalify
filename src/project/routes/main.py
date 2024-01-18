@@ -43,10 +43,8 @@ def check_verification(func):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
-        # TODO
         elif not current_user.is_verified:  # type: ignore
             return render_template("verify_email.html", user_id=current_user.id)
-            # pass
         return func(*args, **kwargs)
 
     return decorated_function
@@ -66,11 +64,8 @@ def construct_query_string(**kwargs):
 
 @main.get("/")
 def index():
-    notification =  None
-    if query := request.args:
-        notification = query.get("notification")
     posts = parse_medium_html()
-    return render_template("coming_soon.html", posts=posts, notification=notification)
+    return render_template("coming_soon.html", posts=posts)
 
 
 @main.get("/waitlist")

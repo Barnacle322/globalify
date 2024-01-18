@@ -222,10 +222,9 @@ def resend_verification_email(user_id):
         user_id (str): The user ID for which to resend the email verification.
 
     Returns:
-        str: Redirects the user to the main index page with a notification.
+        str: Redirects the user to the dashboard page.
     """
     user = User.get_by_id(user_id)
-    notification = "Email sent successfully! Check your inbox to verify your email address."
     if user:
         if not user.is_verified:
             EmailVerification.query.filter_by(user_id=user_id).delete()
@@ -243,7 +242,7 @@ def resend_verification_email(user_id):
             return render_template("errors/email_verification/already_verified.html")
     else:
         abort(404)
-    return redirect(url_for("main.index", notification=notification))
+    return redirect(url_for("main.dashboard"))
 
 
 @auth.route("/login", methods=["GET", "POST"])
@@ -458,11 +457,10 @@ def company_form():
             subject="Confirm Your Email Address!",
             html_content=html_content,
         )
-        notification = "Email sent successfully! Check your inbox to verify your email address."
 
         db.session.add(company)
         db.session.commit()
-        return redirect(url_for("main.index", notification=notification))
+        return redirect(url_for("main.dashboard"))
 
     return render_template(
         "auth/company_form.html",

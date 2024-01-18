@@ -7,6 +7,8 @@ from flask import Blueprint, current_app, jsonify, redirect, render_template, re
 from flask_login import current_user, login_required
 from stripe import InvalidRequestError, SignatureVerificationError
 
+from src.project.utils.google_pubsub import send_event
+
 from ..extensions import csrf, db
 from ..models import User, UserInfo, UserPayment, WaitlistCharge
 from ..utils.errors.auth_error_messages import (
@@ -14,8 +16,7 @@ from ..utils.errors.auth_error_messages import (
     PAYMENT_EMAIL_USED,
     PAYMENT_NOT_FOUND,
 )
-from ..utils.sendgrid_email import send_email
-from ..utils.status_enum import Status, StatusType, Tier
+from ..utils.status_enum import Events, Status, StatusType, Tier
 from .main import check_user_info_complete
 
 payment = Blueprint("payment", __name__)
@@ -437,12 +438,10 @@ def invoice_upcoming(data_object):
     stripe_customer_id = data_object.get("customer")
     customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
 
-    html_content = render_template("email/invoice_upcoming.html")
-
-    send_email(
-        recepients=customer_email,
-        subject="Your subscription will be soon renewed",
-        html_content=html_content,
+    send_event(
+        "A user's subscription will be renewed",
+        event_type=Events.STRIPE_INVOICE_UPCOMING.value,
+        email=customer_email,
     )
 
 
@@ -450,12 +449,10 @@ def trial_will_end(data_object):
     stripe_customer_id = data_object.get("customer")
     customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
 
-    html_content = render_template("email/subscription_expires.html")
-
-    send_email(
-        recepients=customer_email,
-        subject="Your trial ends soon!",
-        html_content=html_content,
+    send_event(
+        "A user's trial will end soon",
+        event_type=Events.STRIPE_TRIAL_WILL_END.value,
+        email=customer_email,
     )
 
 
@@ -464,12 +461,12 @@ def payment_failed(data_object):
     customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
 
     attempt_count = data_object.get("attempt_count")
-    html_content = render_template("email/payment_failed.html", attempt_count=attempt_count)
 
-    send_email(
-        recepients=customer_email,
-        subject="Subscription could not be renewed",
-        html_content=html_content,
+    send_event(
+        "A user's subscription could not be renewed",
+        event_type=Events.STRIPE_PAYMENT_FAILED.value,
+        email=customer_email,
+        attempt_count=attempt_count,
     )
 
 
@@ -495,12 +492,11 @@ def new_waitlist(data_object):
     db.session.add(new_waitlist_charge)
     db.session.commit()
 
-    html_content = render_template("email/payment_succeeded.html", uuid=new_waitlist_charge.random_key)
-
-    send_email(
-        recepients=customer_email,
-        subject="You have signed up for the Early Access!",
-        html_content=html_content,
+    send_event(
+        "A user has signed up for early access",
+        event_type=Events.STRIPE_PAYMENT_SUCCEDED.value,
+        email=customer_email,
+        random_key=new_waitlist_charge.random_key,
     )
 
 

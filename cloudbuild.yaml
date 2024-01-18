@@ -39,7 +39,18 @@ steps:
         _STRIPE_PUBLISHABLE_KEY=${_STRIPE_PUBLISHABLE_KEY},
         _STRIPE_SECRET_KEY=${_STRIPE_SECRET_KEY},
         _STRIPE_WEBHOOK_SECRET=${_STRIPE_WEBHOOK_SECRET},
-        _SENDGRID_API_KEY=${_SENDGRID_API_KEY}
+        _SENDGRID_API_KEY=${_SENDGRID_API_KEY},
+        _PUBSUB_TYPE=${_PUBSUB_TYPE},
+        _PUBSUB_PROJECT_ID=${_PUBSUB_PROJECT_ID},
+        _PUBSUB_PRIVATE_KEY_ID=${_PUBSUB_PRIVATE_KEY_ID},
+        _PUBSUB_PRIVATE_KEY=${_PUBSUB_PRIVATE_KEY},
+        _PUBSUB_CLIENT_EMAIL=${_PUBSUB_CLIENT_EMAIL},
+        _PUBSUB_CLIENT_ID=${_PUBSUB_CLIENT_ID},
+        _PUBSUB_AUTH_URI=${_PUBSUB_AUTH_URI},
+        _PUBSUB_TOKEN_URI=${_PUBSUB_TOKEN_URI},
+        _PUBSUB_AUTH_PROVIDER_X509_CERT_URL=${_PUBSUB_AUTH_PROVIDER_X509_CERT_URL},
+        _PUBSUB_CLIENT_X509_CERT_URL=${_PUBSUB_CLIENT_X509_CERT_URL},
+        _PUBSUB_UNIVERSE_DOMAIN=${_PUBSUB_UNIVERSE_DOMAIN},
     id: Deploy
     entrypoint: gcloud
 images:
@@ -48,11 +59,11 @@ images:
 options:
   substitutionOption: ALLOW_LOOSE
 substitutions:
+  _SERVICE_NAME: globalifyxyz
+  _DEPLOY_REGION: europe-north1
   _AR_HOSTNAME: europe-north1-docker.pkg.dev
   _TRIGGER_ID: f78bc905-44d2-4d17-a8fd-de1e488491a2
   _PLATFORM: managed
-  _SERVICE_NAME: globalifyxyz
-  _DEPLOY_REGION: europe-north1
 tags:
   - gcp-cloud-build-deploy-cloud-run
   - gcp-cloud-build-deploy-cloud-run-managed

@@ -1,5 +1,7 @@
-{% extends "layouts/layout_clean.html" %} {% block title %}Onboarding{% endblock %} {% block head %} {{ super() }} {%
-endblock %} {% block content %}
+{% extends "layouts/layout_clean.html" %} {% block additional_scripts%}
+<script src="../static/scripts/onboarding.js" defer></script>
+{% endblock %} {% block title %}Onboarding{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
+%}
 <main class="mt-24 flex flex-col items-center justify-center overflow-x-hidden p-6">
     <form action="/onboarding" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -145,11 +147,11 @@ endblock %} {% block content %}
                         <label for="linkedin" class="block text-sm font-medium leading-6 text-gray-900">Linkedin</label>
                         <div class="mt-2">
                             <input
-                                type="url"
                                 name="linkedin"
                                 id="linkedin"
                                 autocomplete="linkedin"
                                 placeholder="https://linkedin.com/in/username"
+                                pattern="^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$"
                                 class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                             />
                         </div>
@@ -160,11 +162,11 @@ endblock %} {% block content %}
                         >
                         <div class="mt-2">
                             <input
-                                type="url"
                                 name="instagram"
                                 id="instagram"
                                 autocomplete="instagram"
                                 placeholder="https://instagram.com/username"
+                                pattern="^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$"
                                 class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                             />
                         </div>
@@ -173,11 +175,11 @@ endblock %} {% block content %}
                         <label for="twitter" class="block text-sm font-medium leading-6 text-gray-900">Twitter/𝕏</label>
                         <div class="mt-2">
                             <input
-                                type="url"
                                 name="twitter"
                                 id="twitter"
                                 autocomplete="twitter"
                                 placeholder="https://twitter.com/username"
+                                pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
                                 class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                             />
                         </div>

@@ -153,7 +153,7 @@
                             </div>
                         </div>
                         <div class="col-span-full">
-                            {% if user.uses_oauth() %}
+                            {% if user.type == "user_oauth" %}
                             <label for="email" class="block text-sm font-medium leading-6">Email address</label>
                             <div class="mt-2">
                                 <input

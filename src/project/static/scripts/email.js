@@ -29,7 +29,7 @@ function apiCall(map) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken
+            "X-CSRFToken": csrfToken,
         },
         body: JSON.stringify(Object.fromEntries(map)),
     })

@@ -17,7 +17,7 @@ from flask import (
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import InvestmentFirm, Investor, User, Waitlist, WaitlistCharge
+from ..models import Industry, InvestmentFirm, Investor, Round, User, Waitlist, WaitlistCharge
 from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
 from ..utils.google_storage import load_pfp
 from ..utils.parse_medium import parse_medium_html
@@ -50,6 +50,18 @@ def check_verification(func):
         return func(*args, **kwargs)
 
     return decorated_function
+
+
+def construct_query_string(**kwargs):
+    query_string = ""
+    for key, value in kwargs.items():
+        if isinstance(value, list):
+            for item in value:
+                query_string += f"&{key}={item}"
+            continue
+        if value:
+            query_string += f"&{key}={value}"
+    return query_string
 
 
 @main.get("/")
@@ -138,24 +150,88 @@ def post_download():
 @check_user_info_complete
 @check_verification
 def dashboard():
-    authenticated_user: User = current_user  # type: ignore
-    if authenticated_user.is_anonymous:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
-    search_query = request.args.get("q", "")
-    page_num = request.args.get("page", 1, type=int)
-    investors = Investor.get_pagination(page=page_num, search_string=search_query)
+    # ?q=Julie
+    search_string = request.args.get("search", "")
+    # ?page=1
+    page = request.args.get("page", 1, type=int)
+    # ?filter_field=firm_name
+    filter_fields = request.args.getlist("filter_field")
+    # ?sort_field=firm_name
+    sort_field = request.args.get("sort_field", None)
+    # ?descending= or ?descending=1
+    descending = request.args.get("descending", False, type=bool)
+    # ?min_investment=100000
+    min_investment = request.args.get("min_investment", type=int)
+    max_investment = request.args.get("max_investment", type=int)
+    # ?rounds_exclusive= or ?rounds_exclusive=1
+    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
+    # ?industries_exclusive= or ?industries_exclusive=1
+    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
 
-    if page_num > investors.pages and investors.pages > 0:  # type: ignore
-        return redirect(url_for("main.search", search=search_query, pagenum=1))
+    # ?round=Seed&round=Series+A
+    rounds = []
+    for round_name in request.args.getlist("round"):
+        if round_object := Round.get_by_name(round_name):
+            rounds.append(round_object)
+
+    # ?industry=Healthcare&industry=FinTech
+    industries = []
+    for industry_name in request.args.getlist("industry"):
+        if industry_object := Industry.get_by_name(industry_name):
+            industries.append(industry_object)
+
+    investors = Investor.get_pagination(
+        page=page,
+        search_string=search_string,
+        filter_fields=filter_fields,
+        rounds=rounds,
+        industries=industries,
+        sort_field=sort_field,
+        descending=descending,
+        min_investment=min_investment,
+        max_investment=max_investment,
+        rounds_exclusive=rounds_exclusive,
+        industries_exclusive=industries_exclusive,
+    )
+
+    combined_query = construct_query_string(
+        search=search_string,
+        filter_field=[str(filter_field) for filter_field in filter_fields],
+        sort_field=sort_field,
+        descending=descending,
+        rounds_exclusive=rounds_exclusive,
+        industries_exclusive=industries_exclusive,
+        round=[str(round_obj.name) for round_obj in rounds],
+        industry=[str(industry.name) for industry in industries],
+        min_investment=min_investment,
+        max_investment=max_investment,
+    )
 
     return render_template(
         "dashboard_investor.html",
         pfp_base64=pfp_base64,
-        search_query=search_query,
+        combined_query=combined_query,
+        fields={
+            "first_name": "First Name",
+            "last_name": "Last Name",
+            "firm_name": "Firm Name",
+            "position": "Position",
+            "about": "About",
+            "n_investments": "Current Investments",
+            "n_exits": "Successful Exits",
+            "min_investment": "Minimum Investment",
+            "max_investment": "Maximum Investment",
+        },
         investors=investors,
+        industry_list=Industry.get_all(),
+        round_list=Round.get_all(),
     )
 
 
@@ -164,24 +240,85 @@ def dashboard():
 @check_user_info_complete
 @check_verification
 def investment_firms():
-    authenticated_user: User = current_user  # type: ignore
-    if authenticated_user.is_anonymous:
+    if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
-    search_query = request.args.get("q", "")
-    page_num = request.args.get("page", 1, type=int)
-    investment_firms = InvestmentFirm.get_pagination(page=page_num, search_string=search_query)
+    # ?q=Robinson-Sanders
+    search_string = request.args.get("search", "")
+    # ?page=1
+    page = request.args.get("page", 1, type=int)
+    # ?filter_field=name
+    filter_fields = request.args.getlist("filter_field")
+    # ?sort_field=name
+    sort_field = request.args.get("sort_field", None)
+    # ?descending= or ?descending=1
+    descending = request.args.get("descending", False, type=bool)
+    # ?min_investment=100000
+    min_investment = request.args.get("min_investment", type=int)
+    max_investment = request.args.get("max_investment", type=int)
+    # ?rounds_exclusive= or ?rounds_exclusive=1
+    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
+    # ?industries_exclusive= or ?industries_exclusive=1
+    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
 
-    if page_num > investment_firms.pages and investment_firms.pages > 0:  # type: ignore
-        return redirect(url_for("main.search", search=search_query, pagenum=1))
+    # ?round=Seed&round=Series+A
+    rounds = []
+    for round_name in request.args.getlist("round"):
+        if round_object := Round.get_by_name(round_name):
+            rounds.append(round_object)
+
+    # ?industry=Healthcare&industry=FinTech
+    industries = []
+    for industry_name in request.args.getlist("industry"):
+        if industry_object := Industry.get_by_name(industry_name):
+            industries.append(industry_object)
+
+    investment_firms = InvestmentFirm.get_pagination(
+        page=page,
+        search_string=search_string,
+        filter_fields=filter_fields,
+        rounds=rounds,
+        industries=industries,
+        sort_field=sort_field,
+        descending=descending,
+        min_investment=min_investment,
+        max_investment=max_investment,
+        rounds_exclusive=rounds_exclusive,
+        industries_exclusive=industries_exclusive,
+    )
+
+    combined_query = construct_query_string(
+        search=search_string,
+        filter_field=[str(filter_field) for filter_field in filter_fields],
+        sort_field=sort_field,
+        descending=descending,
+        rounds_exclusive=rounds_exclusive,
+        industries_exclusive=industries_exclusive,
+        round=[str(round.name) for round in rounds],
+        industry=[str(industry.name) for industry in industries],
+        min_investment=min_investment,
+        max_investment=max_investment,
+    )
 
     return render_template(
         "dashboard_firm.html",
         pfp_base64=pfp_base64,
-        search_query=search_query,
+        combined_query=combined_query,
+        fields={
+            "name": "Name",
+            "about": "About",
+            "n_investments": "Current Investments",
+            "n_exits": "Successful Exits",
+            "min_investment": "Minimum Investment",
+            "max_investment": "Maximum Investment",
+        },
         investment_firms=investment_firms,
+        industry_list=Industry.get_all(),
+        round_list=Round.get_all(),
     )
 
 

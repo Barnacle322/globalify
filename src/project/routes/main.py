@@ -24,6 +24,7 @@ from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
 from ..utils.google_storage import load_pfp
 from ..utils.parse_medium import parse_medium_html
 from ..utils.status_enum import Status, StatusType
+from ..utils.suggestion import pass_score
 
 main = Blueprint("main", __name__)
 
@@ -256,7 +257,7 @@ def get_suggestions():
     scored_investors = [(investor, investor.calculate_score(company)) for investor in investors]
 
     suggested_investors = sorted(
-        (investor for investor in scored_investors if investor[1] >= 0.6),
+        (investor for investor in scored_investors if investor[1] >= pass_score),
         key=lambda investor: investor[1],
         reverse=True,
     )

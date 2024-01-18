@@ -1,5 +1,7 @@
 weights = {"bias": 0.3, "industry": 0.35, "round": 0.15, "location": 0.1, "exits": 0.1}
 
+pass_score = 0.6
+
 
 def check_weights(weights):
     total_weight = sum(weights.values())

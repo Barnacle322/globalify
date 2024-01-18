@@ -374,17 +374,13 @@ class Investor(db.Model):
         try:
             bias_score = (self.bias / 100) if self.bias else 0
 
-            if len(self.industries) > 1 and company.industry in self.industries:
-                industry_score = 0.75
-            elif company.industry in self.industries:
-                industry_score = 1
+            if company.industry in self.industries:
+                industry_score = 1 / len(self.industries)
             else:
                 industry_score = 0
 
-            if len(self.rounds) > 1 and company.preferred_round in self.industries:
-                round_score = 0.75
-            elif company.preferred_round in self.rounds:
-                round_score = 1
+            if company.preferred_round in self.rounds:
+                round_score = 1 / len(self.rounds)
             else:
                 round_score = 0
 

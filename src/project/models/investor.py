@@ -12,12 +12,14 @@ from ..extensions import db
 from ..utils.fake_data import (
     get_abouts,
     get_companies,
+    get_countrys,
     get_emails,
     get_job_positions,
     get_last_names,
     get_names,
     get_websites,
 )
+from ..utils.suggestion import weights
 from .helpers import Industry, Round
 
 
@@ -219,6 +221,7 @@ class Investor(db.Model):
     min_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     location: Mapped[str] = mapped_column(String, nullable=True)
+    bias: Mapped[int] = mapped_column(Integer, nullable=True)
 
     rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investor_industry)
@@ -258,6 +261,7 @@ class Investor(db.Model):
         sort_field: str | None = None,
         descending: bool = False,
         search_fields: tuple[str, ...] = ("first_name", "last_name", "firm_name", "position", "about"),
+        # company: Company | None = None,
     ) -> Pagination | list[None]:
         """
         Get a paginated list of investors based on the provided filters.
@@ -295,7 +299,6 @@ class Investor(db.Model):
             investors = combined_query.paginate(page=page, per_page=per_page, error_out=error_out)
             if investors.pages < page:
                 investors = combined_query.paginate(page=investors.pages, per_page=per_page, error_out=error_out)
-
             return investors
         except Exception:
             return []
@@ -317,7 +320,7 @@ class Investor(db.Model):
             return None
 
     @staticmethod
-    def populate():
+    def populate() -> None:
         """
         Populate the database with dummy investor data.
 
@@ -326,19 +329,23 @@ class Investor(db.Model):
         """
         try:
             investor_list = []
-            firstnames = get_names(50)
-            lastnames = get_last_names(50)
-            emails = get_emails(50)
-            websites = get_websites(50)
-            job_positions = get_job_positions(50)
-            companies = get_companies(50)
-            for i in range(1, 50):
+            firstnames = get_names(500)
+            lastnames = get_last_names(500)
+            emails = get_emails(500)
+            websites = get_websites(500)
+            job_positions = get_job_positions(500)
+            companies = get_companies(500)
+            location = get_countrys(500)
+            for i in range(1, 500):
                 num_rounds = random.randint(1, 5)
                 rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
                 num_industries = random.randint(1, 6)
                 industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
                 min_investment = random.randrange(100000, 50000001, 100000)
                 max_investment = random.randrange(min_investment, 50000001, 100000)
+                n_investments = random.randint(100, 200)
+                n_exits = random.randint(0, 100)
+                bias = random.randint(0, 100)
                 investor_list.append(
                     Investor(
                         first_name=f"{firstnames[i]}",
@@ -352,12 +359,62 @@ class Investor(db.Model):
                         industries=list(set(industries)),
                         min_investment=min_investment,
                         max_investment=max_investment,
+                        location=location[i],
+                        n_investments=n_investments,
+                        n_exits=n_exits,
+                        bias=bias,
                     )
                 )
             db.session.add_all(investor_list)
             db.session.commit()
         except Exception:
             db.session.rollback()
+
+    def calculate_score(self, company):
+        try:
+            bias_score = (self.bias / 100) if self.bias else 0
+
+            if len(self.industries) > 1 and company.industry in self.industries:
+                industry_score = 0.75
+            elif company.industry in self.industries:
+                industry_score = 1
+            else:
+                industry_score = 0
+
+            if len(self.rounds) > 1 and company.preferred_round in self.industries:
+                round_score = 0.75
+            elif company.preferred_round in self.rounds:
+                round_score = 1
+            else:
+                round_score = 0
+
+            # if len(self.location) > 1 and company.country in self.location:
+            #     location_score = 0.75
+            # elif company.country in self.location:
+            #     location_score = 1
+            # else:
+            #     location_score = 0
+
+            location_score = 1 if company.country == self.location else 0
+
+            if self.n_investments > 0:
+                successful_exits = 1 if (self.n_exits / self.n_investments) >= 0.5 else 0
+            else:
+                successful_exits = 0
+
+            total_score = (
+                weights["industry"] * industry_score
+                + weights["round"] * round_score
+                + weights["location"] * location_score
+                + weights["bias"] * bias_score
+                + weights["exits"] * successful_exits
+            )
+
+        except (AttributeError, TypeError, ZeroDivisionError) as e:
+            print(f"An error occurred while calculating the score: {e}")
+            total_score = 0
+
+        return total_score
 
 
 class InvestmentFirm(db.Model):

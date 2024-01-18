@@ -36,3 +36,8 @@ def get_websites(amount: int):
 def get_abouts(amount: int):
     abouts = [fake.paragraph(nb_sentences=5) for _ in range(amount)]
     return abouts
+
+
+def get_countrys(amount: int):
+    countries = [fake.country() for _ in range(amount)]
+    return countries

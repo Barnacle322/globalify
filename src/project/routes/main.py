@@ -16,6 +16,8 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
+from src.project.models.user import Company
+
 from ..extensions import db
 from ..models import Industry, InvestmentFirm, Investor, Round, User, Waitlist, WaitlistCharge
 from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
@@ -232,6 +234,39 @@ def dashboard():
         investors=investors,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
+    )
+
+
+@main.route("/dashboard/suggestions")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_suggestions():
+    if current_user.is_anonymous:
+        return redirect(url_for("auth.login"))
+
+    company = Company.get_by_user_id(current_user.id)
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
+
+    investors = Investor.get_all()
+
+    scored_investors = [(investor, investor.calculate_score(company)) for investor in investors]
+
+    suggested_investors = sorted(
+        (investor for investor in scored_investors if investor[1] >= 0.6),
+        key=lambda investor: investor[1],
+        reverse=True,
+    )
+
+    sorted_investors = [investor[0] for investor in suggested_investors]
+
+    return render_template(
+        "suggestions.html",
+        pfp_base64=pfp_base64,
+        investors=sorted_investors,
     )
 
 

@@ -33,22 +33,6 @@ jobs:
             - name: Install dependencies
               run: poetry install --with dev
 
-            - name: Create Check Run
-              id: create_check
-              uses: octokit/request-action@v2.x
-              with:
-                  route: POST /repos/{owner}/{repo}/check-runs
-                  mediaType: '{"previews": ["antiope"]}'
-                  check_run: >
-                      {
-                          "name": "Ruff",
-                          "head_sha": "${{ github.event.pull_request.head.sha }}",
-                          "status": "in_progress",
-                          "started_at": "${{ github.event.pull_request.created_at }}"
-                      }
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
             - name: Running Ruff linter
               run: |
                   poetry run ruff check --fix || echo "Ruff check made changes" > ruff-status
@@ -64,14 +48,3 @@ jobs:
                   git config --global user.name "GitHub Action"
                   git commit -am "Apply ruff fixes" || exit 0
                   git push
-
-            - name: Update Check Run
-              uses: octokit/request-action@v2.x
-              with:
-                  route: PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}
-                  mediaType: '{"previews": ["antiope"]}'
-                  check_run_id: ${{ steps.create_check.outputs.data.id }}
-                  conclusion: ${{ steps.run-ruff.outcome == 'failure' && 'failure' || 'success' }}
-                  completed_at: ${{ github.event.pull_request.updated_at }}
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

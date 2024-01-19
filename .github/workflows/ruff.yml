@@ -3,9 +3,12 @@ name: Ruff
 on:
     pull_request_review:
         types: [submitted]
+    issue_comment:
+        types: [created]
 
 jobs:
     run-ruff:
+        if: (github.event_name == 'pull_request_review' || (github.event_name == 'issue_comment' && github.event.comment.body == '/ruff')) && github.event.issue.pull_request
         runs-on: ubuntu-latest
         strategy:
             matrix:

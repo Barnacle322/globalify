@@ -3,9 +3,12 @@ name: Python testing
 on:
     pull_request_review:
         types: [submitted]
+    issue_comment:
+        types: [created]
 
 jobs:
     run-tests:
+        if: (github.event_name == 'pull_request_review' || (github.event_name == 'issue_comment' && github.event.comment.body == '/tests')) && github.event.issue.pull_request
         environment: python-testing
         strategy:
             fail-fast: false

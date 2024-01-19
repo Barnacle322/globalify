@@ -97,8 +97,15 @@
                 <div>
                     <h2 class="font-medium leading-7">Change password</h2>
                     <p class="mt-1 leading-6 text-slate-700">Update your password associated with your account.</p>
+                    {% if status_type %} {% if status_type == '3' %}
+                    <div class="rounded-xl text-red-500">{{ msg }}</div>
+                    {% endif %} {% if status_type == '2' %}
+                    <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                    {% endif %} {% if status_type == '1' %}
+                    <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                    {% endif %} {% endif %}
                 </div>
-                <form class="md:col-span-2" action="/change-password">
+                <form class="md:col-span-2" action="/settings/change-password" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
                         <div class="col-span-full">
@@ -108,7 +115,7 @@
                             <div class="mt-2">
                                 <input
                                     id="current-password"
-                                    name="current_password"
+                                    name="current-password"
                                     type="password"
                                     autocomplete="current-password"
                                     class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
@@ -120,7 +127,7 @@
                             <div class="mt-2">
                                 <input
                                     id="new-password"
-                                    name="new_password"
+                                    name="new-password"
                                     type="password"
                                     autocomplete="new-password"
                                     class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
@@ -134,7 +141,7 @@
                             <div class="mt-2">
                                 <input
                                     id="confirm-password"
-                                    name="confirm_password"
+                                    name="confirm-password"
                                     type="password"
                                     autocomplete="new-password"
                                     class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"

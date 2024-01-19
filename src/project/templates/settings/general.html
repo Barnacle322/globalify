@@ -97,6 +97,13 @@
                 <div>
                     <h2 class="font-medium leading-7">Personal Information</h2>
                     <p class="mt-1 leading-6 text-slate-700">Use a permanent address where you can receive mail.</p>
+                    {% if status_type %} {% if status_type == '3' %}
+                    <div class="rounded-xl text-red-500">{{ msg }}</div>
+                    {% endif %} {% if status_type == '2' %}
+                    <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                    {% endif %} {% if status_type == '1' %}
+                    <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                    {% endif %} {% endif %}
                 </div>
                 <form class="md:col-span-2" action="/settings/personal-info" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -199,6 +206,20 @@
                                     required
                                     value="{{ user.user_info[0].username }}"
                                 />
+                            </div>
+                        </div>
+                        <div class="col-span-full">
+                            <label for="bio" class="block text-sm font-medium leading-6">Bio</label>
+                            <div class="mt-2">
+                                <textarea
+                                    id="bio"
+                                    name="bio"
+                                    rows="4"
+                                    cols="50"
+                                    class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                                >
+{{ user.user_info[0].bio if user.user_info[0].bio else '' }}</textarea
+                                >
                             </div>
                         </div>
                         <div class="col-span-full">

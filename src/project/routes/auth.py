@@ -83,14 +83,14 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> UserOauth:
 
 def api_call(url: str, access_token: str):
     """
-    Makes an API call to the specified URL with the provided access token.
+    Performs an API call to the specified URL using the provided access token.
 
     Args:
         url (str): The URL to make the API call to.
         access_token (str): The access token to authenticate the API call.
 
     Returns:
-        dict: The response from the API call.
+        dict: The JSON response from the API call.
 
     """
     response = requests.get(
@@ -241,17 +241,17 @@ def onboarding():
 
     if request.method == "POST":
         first_name, last_name, username, linkedin, instagram, twitter = (
-            request.form.get("first-name"),
-            request.form.get("last-name"),
+            request.form.get("first_name"),
+            request.form.get("last_name"),
             request.form.get("username"),
             request.form.get("linkedin"),
             request.form.get("instagram"),
             request.form.get("twitter"),
         )
+
         if not first_name or not last_name or not username:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
             return redirect(url_for("auth.onboarding", _external=False, **status))
-
         is_taken = UserInfo.is_taken(username)
         if is_taken:
             status = Status(StatusType.ERROR, AUTH_USERNAME_USED).get_status()
@@ -349,7 +349,7 @@ def company_form():
     if request.method == "POST":
         company = Company(
             user_id=authenticated_user.id,
-            name=request.form.get("company-name"),
+            name=request.form.get("company_name"),
             description=request.form.get("about"),
             country_id=request.form.get("country"),
             preferred_round_id=request.form.get("round"),
@@ -370,6 +370,7 @@ def company_form():
 
         db.session.add(company)
         db.session.commit()
+
         return redirect(url_for("main.dashboard"))
 
     return render_template(
@@ -423,7 +424,6 @@ def linkedin_callback():
     if not email:
         status = Status(StatusType.ERROR, OAUTH_NO_EMAIL).get_status()
         return redirect(url_for("auth.login", _external=False, **status))
-
     user_info_response = api_call(
         url=LINKEDIN_PERSONAL_INFO_URL,
         access_token=access_token,

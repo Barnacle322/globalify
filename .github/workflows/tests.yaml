@@ -38,22 +38,6 @@ jobs:
             - name: Install dependencies
               run: poetry install
 
-            - name: Create Check Run
-              id: create_check
-              uses: octokit/request-action@v2.x
-              with:
-                  route: POST /repos/{owner}/{repo}/check-runs
-                  mediaType: '{"previews": ["antiope"]}'
-                  check_run: >
-                      {
-                        "name": "Test",
-                        "head_sha": "${{ github.event.pull_request.head.sha }}",
-                        "status": "in_progress",
-                        "started_at": "${{ github.event.pull_request.created_at }}"
-                      }
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
             - name: Run tests
               env:
                   _PUBSUB_TYPE: ${{ secrets._PUBSUB_TYPE }}
@@ -68,14 +52,3 @@ jobs:
                   _PUBSUB_CLIENT_X509_CERT_URL: ${{ secrets._PUBSUB_CLIENT_X509_CERT_URL }}
                   _PUBSUB_UNIVERSE_DOMAIN: ${{ secrets._PUBSUB_UNIVERSE_DOMAIN }}
               run: poetry run pytest -vvs -W ignore::DeprecationWarning || echo "Tests failed" > test-status
-
-            - name: Update Check Run
-              uses: octokit/request-action@v2.x
-              with:
-                  route: PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}
-                  mediaType: '{"previews": ["antiope"]}'
-                  check_run_id: ${{ steps.create_check.outputs.data.id }}
-                  conclusion: ${{ steps.run-tests.outcome == 'failure' && 'failure' || 'success' }}
-                  completed_at: ${{ github.event.pull_request.updated_at }}
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

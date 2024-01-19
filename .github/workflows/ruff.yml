@@ -23,7 +23,6 @@ jobs:
                         owner: context.repo.owner,
                         repo: context.repo.repo,
                         body: 'Ruff check has started.',
-                        reply_to: context.event.comment.id
                       })
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,7 +72,6 @@ jobs:
                         owner: context.repo.owner,
                         repo: context.repo.repo,
                         body: 'Ruff check made changes. Please review them.',
-                        reply_to: context.event.comment.id
                       })
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

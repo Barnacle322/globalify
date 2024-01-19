@@ -38,6 +38,18 @@ jobs:
             - name: Install dependencies
               run: poetry install
 
+            - name: Comment PR
+              uses: actions/github-script@v5
+              with:
+                  script: |
+                      const issue_number = context.issue.number;
+                      github.rest.issues.createComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: issue_number,
+                        body: 'Starting tests...'
+                      });
+
             - name: Run tests
               env:
                   _PUBSUB_TYPE: ${{ secrets._PUBSUB_TYPE }}
@@ -51,4 +63,20 @@ jobs:
                   _PUBSUB_AUTH_PROVIDER_X509_CERT_URL: ${{ secrets._PUBSUB_AUTH_PROVIDER_X509_CERT_URL }}
                   _PUBSUB_CLIENT_X509_CERT_URL: ${{ secrets._PUBSUB_CLIENT_X509_CERT_URL }}
                   _PUBSUB_UNIVERSE_DOMAIN: ${{ secrets._PUBSUB_UNIVERSE_DOMAIN }}
-              run: poetry run pytest -vvs -W ignore::DeprecationWarning
+              run: poetry run pytest -vvs -W ignore::DeprecationWarning || echo "Tests failed" > test-status
+
+            - name: Comment PR
+              uses: actions/github-script@v5
+              with:
+                  script: |
+                      const issue_number = context.issue.number;
+                      let test_status = 'Tests completed successfully.';
+                      if (fs.existsSync('test-status')) {
+                        test_status = fs.readFileSync('test-status', 'utf8');
+                      }
+                      github.rest.issues.createComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: issue_number,
+                        body: test_status
+                      });

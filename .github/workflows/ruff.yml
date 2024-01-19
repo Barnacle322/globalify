@@ -68,7 +68,7 @@ jobs:
                   route: PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}
                   mediaType: '{"previews": ["antiope"]}'
                   check_run_id: ${{ steps.create_check.outputs.data.id }}
-                  conclusion: ${{ if eq('Ruff check made changes', 'Ruff check made changes') }}failure${{ else }}success${{ end }}
+                  conclusion: ${{ steps.run-ruff.outcome == 'failure' && 'failure' || 'success' }}
                   completed_at: ${{ github.event.pull_request.updated_at }}
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

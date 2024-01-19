@@ -72,7 +72,7 @@ jobs:
                   route: PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}
                   mediaType: '{"previews": ["antiope"]}'
                   check_run_id: ${{ steps.create_check.outputs.data.id }}
-                  conclusion: ${{ if eq('Tests failed', 'Tests failed') }}failure${{ else }}success${{ end }}
+                  conclusion: ${{ steps.run-tests.outcome == 'failure' && 'failure' || 'success' }}
                   completed_at: ${{ github.event.pull_request.updated_at }}
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

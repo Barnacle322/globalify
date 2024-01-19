@@ -1,4 +1,4 @@
-name: CI
+name: Python testing
 
 on:
     pull_request_review:
@@ -6,6 +6,7 @@ on:
 
 jobs:
     run-tests:
+        environment: python-testing
         strategy:
             fail-fast: false
             matrix:
@@ -35,4 +36,16 @@ jobs:
               run: poetry install
 
             - name: Run tests
+              env:
+                  _PUBSUB_TYPE: ${{ secrets._PUBSUB_TYPE }}
+                  _PUBSUB_PROJECT_ID: ${{ secrets._PUBSUB_PROJECT_ID }}
+                  _PUBSUB_PRIVATE_KEY_ID: ${{ secrets._PUBSUB_PRIVATE_KEY_ID }}
+                  _PUBSUB_PRIVATE_KEY: ${{ secrets._PUBSUB_PRIVATE_KEY }}
+                  _PUBSUB_CLIENT_EMAIL: ${{ secrets._PUBSUB_CLIENT_EMAIL }}
+                  _PUBSUB_CLIENT_ID: ${{ secrets._PUBSUB_CLIENT_ID }}
+                  _PUBSUB_AUTH_URI: ${{ secrets._PUBSUB_AUTH_URI }}
+                  _PUBSUB_TOKEN_URI: ${{ secrets._PUBSUB_TOKEN_URI }}
+                  _PUBSUB_AUTH_PROVIDER_X509_CERT_URL: ${{ secrets._PUBSUB_AUTH_PROVIDER_X509_CERT_URL }}
+                  _PUBSUB_CLIENT_X509_CERT_URL: ${{ secrets._PUBSUB_CLIENT_X509_CERT_URL }}
+                  _PUBSUB_UNIVERSE_DOMAIN: ${{ secrets._PUBSUB_UNIVERSE_DOMAIN }}
               run: poetry run pytest -vvs -W ignore::DeprecationWarning

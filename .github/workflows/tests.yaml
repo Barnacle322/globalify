@@ -44,10 +44,13 @@ jobs:
               with:
                   route: POST /repos/{owner}/{repo}/check-runs
                   mediaType: '{"previews": ["antiope"]}'
-                  name: Test
-                  head_sha: ${{ github.event.pull_request.head.sha }}
-                  status: in_progress
-                  started_at: ${{ github.event.pull_request.created_at }}
+                  check_run: >
+                      {
+                        "name": "Test",
+                        "head_sha": "${{ github.event.pull_request.head.sha }}",
+                        "status": "in_progress",
+                        "started_at": "${{ github.event.pull_request.created_at }}"
+                      }
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

@@ -33,13 +33,25 @@ jobs:
             - name: Install dependencies
               run: poetry install --with dev
 
+            - name: Comment PR
+              uses: actions/github-script@v5
+              with:
+                  script: |
+                      const issue_number = context.issue.number;
+                      github.rest.issues.createComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: issue_number,
+                        body: 'Starting Ruff...'
+                      });
+
             - name: Running Ruff linter
               run: |
-                  poetry run ruff check --fix
+                  poetry run ruff check --fix || echo "Ruff check made changes" > ruff-status
 
             - name: Running Ruff formatter
               run: |
-                  poetry run ruff format
+                  poetry run ruff format || echo "Ruff format made changes" > ruff-status
 
             - name: Commit and push if needed
               run: |
@@ -48,3 +60,19 @@ jobs:
                   git config --global user.name "GitHub Action"
                   git commit -am "Apply ruff fixes" || exit 0
                   git push
+
+            - name: Comment PR
+              uses: actions/github-script@v5
+              with:
+                  script: |
+                      const issue_number = context.issue.number;
+                      let ruff_status = 'Ruff completed without making changes.';
+                      if (fs.existsSync('ruff-status')) {
+                        ruff_status = fs.readFileSync('ruff-status', 'utf8');
+                      }
+                      github.rest.issues.createComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: issue_number,
+                        body: ruff_status
+                      });

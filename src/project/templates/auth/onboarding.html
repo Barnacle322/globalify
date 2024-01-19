@@ -14,14 +14,14 @@
                 </p>
                 <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     <div class="sm:col-span-3">
-                        <label for="first-name" class="block text-sm font-medium leading-6 text-gray-900"
+                        <label for="first_name" class="block text-sm font-medium leading-6 text-gray-900"
                             >First name*</label
                         >
                         <div class="mt-2">
                             <input
                                 type="text"
-                                name="first-name"
-                                id="first-name"
+                                name="first_name"
+                                id="first_name"
                                 autocomplete="given-name"
                                 value="{{ user_info.first_name if user_info.first_name else ''}}"
                                 required
@@ -30,14 +30,14 @@
                         </div>
                     </div>
                     <div class="sm:col-span-3">
-                        <label for="last-name" class="block text-sm font-medium leading-6 text-gray-900"
+                        <label for="last_name" class="block text-sm font-medium leading-6 text-gray-900"
                             >Last name*</label
                         >
                         <div class="mt-2">
                             <input
                                 type="text"
-                                name="last-name"
-                                id="last-name"
+                                name="last_name"
+                                id="last_name"
                                 autocomplete="family-name"
                                 value="{{ user_info.last_name if user_info.last_name else ''}}"
                                 required

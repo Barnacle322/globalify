@@ -812,7 +812,7 @@ def add_company():
             country_id=request.form.get("country"),
             preferred_round_id=preferred_round_id,
             industry_id=industry_id,
-            website=request.form.get("website"),
+            website=request.form.get("website", ""),
         )
 
         if pfp := request.files["pfp"]:

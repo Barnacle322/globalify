@@ -33,3 +33,11 @@ class Tier(Enum):
     ELEVATE = "elevate"
     CONNECT = "connect pro"
     BOOST = "boost academy"
+
+
+class Events(Enum):
+    STRIPE_INVOICE_PAID = "stripe.invoice_paid"
+    STRIPE_INVOICE_UPCOMING = "stripe.invoice_upcoming"
+    STRIPE_TRIAL_WILL_END = "stripe.trial_will_end"
+    STRIPE_PAYMENT_FAILED = "stripe.payment_failed"
+    STRIPE_PAYMENT_SUCCEDED = "stripe.payment_succeeded"

@@ -1,0 +1,240 @@
+{% extends "layouts/layout_app.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }}
+<script src="../../static/scripts/dashboard.js" defer></script>
+{% endblock %} {% block content %}
+<main class="mt-28 flex h-full flex-wrap justify-center gap-5 px-8 pb-16">
+    <section class="flex w-full flex-col items-center justify-center gap-3">
+        <form
+            class="flex flex-col gap-4"
+            action="/profile/"
+            method="POST"
+            enctype="multipart/form-data"
+        >
+            <h1 class="text-5xl font-medium">Edit User</h1>
+            {% if status_type %} {% if status_type == '3' %}
+            <div class="rounded-xl text-red-500">{{ msg }}</div>
+            {% endif %} {% if status_type == '2' %}
+            <div class="rounded-xl text-orange-400">{{ msg }}</div>
+            {% endif %} {% if status_type == '1' %}
+            <div class="rounded-xl text-lime-500">{{ msg }}</div>
+            {% endif %} {% endif %}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div>
+                <label for="email" class="input-label">Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    autocomplete="email"
+                    class="input-field"
+                    value="{{ user.email }}"
+                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                    title="Enter a valid email address"
+                    required
+                />
+            </div>
+
+            <div>
+                <label for="first_name" class="input-label">First Name</label>
+                <input
+                    type="text"
+                    id="first_name"
+                    name="first_name"
+                    autocomplete="first_name"
+                    class="input-field"
+                    value="{{ user_info.first_name if user_info.first_name else ''}}"
+                    required
+                />
+            </div>
+
+            <div>
+                <label for="last_name" class="input-label">Last Name</label>
+                <input
+                    type="text"
+                    id="last_name"
+                    name="last_name"
+                    autocomplete="last_name"
+                    class="input-field"
+                    value="{{ user_info.last_name if user_info.last_name else ''}}"
+                    required
+                />
+            </div>
+
+            <div>
+                <label for="username" class="input-label">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    autocomplete="username"
+                    pattern="[a-zA-Z0-9_]{3,20}"
+                    class="input-field"
+                    value="{{ user_info.username if user_info.username else ''}}"
+                    required
+                />
+            </div>
+
+            <div>
+                <label for="bio" class="input-label">Bio:</label>
+                <textarea
+                    id="bio"
+                    name="bio"
+                    rows="4"
+                    cols="50"
+                    class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                >
+{{ user_info.bio if user_info.bio else '' }}</textarea
+                >
+            </div>
+
+            <div>
+                <label for="linkedin" class="input-label">LinkedIn</label>
+                <input
+                    type="text"
+                    id="linkedin"
+                    name="linkedin"
+                    autocomplete="linkedin"
+                    class="input-field"
+                    value="{{ user_info.linkedin if user_info.linkedin else ''}}"
+                    placeholder="https://linkedin.com/in/username"
+                />
+            </div>
+
+            <div>
+                <label for="instagram" class="input-label">Instagram</label>
+                <input
+                    type="text"
+                    id="instagram"
+                    name="instagram"
+                    autocomplete="instagram"
+                    class="input-field"
+                    value="{{ user_info.instagram if user_info.instagram else ''}}"
+                    placeholder="https://instagram.com/username"
+                />
+            </div>
+
+            <div>
+                <label for="twitter" class="input-label">Twitter</label>
+                <input
+                    type="text"
+                    id="twitter"
+                    name="twitter"
+                    autocomplete="twitter"
+                    class="input-field"
+                    value="{{ user_info.twitter if user_info.twitter else ''}}"
+                    placeholder="https://twitter.com/username"
+                />
+            </div>
+
+            <div class="col-span-full">
+                <label for="photo" class="input-label">Photo</label>
+                <div class="mt-2 flex items-center gap-x-3">
+                    <svg class="h-12 w-12 text-stone-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path
+                            fill-rule="evenodd"
+                            d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                    <input
+                        class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
+                        value="{{ user_info.pfp_uuid }}"
+                        type="file"
+                        id="pfp"
+                        name="pfp"
+                        accept="image/png, image/jpeg"
+                    />
+                </div>
+            </div>
+
+            <div class="">
+                <label for="language" class="block text-sm font-medium leading-6 text-gray-900">Language*</label>
+                <div class="mt-2">
+                    <select
+                        id="language"
+                        name="language"
+                        autocomplete="language"
+                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                        required
+                    >
+                        {% if not user_info.language %}
+                        <option value="" selected disabled hidden>Select a language</option>
+                        {% else %}
+                        <option value="" disabled hidden>Select a language</option>
+                        {% endif %} {% if languages %} {% for language in languages %} {% if user_info.language ==
+                        language %}
+                        <option value="{{ language }}" selected>{{ language }}</option>
+                        {% else %}
+                        <option value="{{ language }}">{{ language }}</option>
+                        {% endif %} {% endfor %} {% endif %}
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="customer_id" class="input-label">Customer ID</label>
+                <input
+                    type="text"
+                    id="customer_id"
+                    name="customer_id"
+                    class="input-field"
+                    value="{{ user_payment.customer_id if user_payment.customer_id else '' }}"
+                />
+            </div>
+
+            <div>
+                <label for="subscription_id" class="input-label">Subscription ID</label>
+                <input
+                    type="text"
+                    id="subscription_id"
+                    name="subscription_id"
+                    class="input-field"
+                    value="{{ user_payment.subscription_id if user_payment.subscription_id else '' }}"
+                />
+            </div>
+
+            <div>
+                <label for="created" class="input-label">Created</label>
+                <input
+                    type="datetime-local"
+                    step="1"
+                    id="created"
+                    name="created"
+                    class="input-field"
+                    value="{% if user_payment.created %}{{ user_payment.created.strftime('%Y-%m-%dT%H:%M:%S') }}{% endif %}"
+                />
+            </div>
+
+            <div>
+                <label for="expires_at" class="input-label">Expires at</label>
+                <input
+                    type="datetime-local"
+                    step="1"
+                    id="expires_at"
+                    name="expires_at"
+                    class="input-field"
+                    value="{% if user_payment.expires_at %}{{ user_payment.expires_at.strftime('%Y-%m-%dT%H:%M:%S') }}{% endif %}"
+                />
+            </div>
+
+            <div>
+                <label for="tier" class="input-label">Tier</label>
+                <select id="tier" name="tier" class="input-field" required>
+                    {% for tier in Tier %}
+                        <option value="{{ tier.value }}" {% if user_payment.tier == tier %}selected{% endif %}>
+                            {{ tier.value }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button
+                type="submit"
+                class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
+            >
+                Save
+            </button>
+        </form>
+    </section>
+</main>
+{% endblock %}

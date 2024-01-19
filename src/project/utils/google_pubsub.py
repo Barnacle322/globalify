@@ -18,11 +18,10 @@ credentials = {
     "universe_domain": os.environ.get("_PUBSUB_UNIVERSE_DOMAIN"),
 }
 
-
 project_id = "globalify-email-service"
 topic_id = "send-email"
 
-publisher = pubsub_v1.PublisherClient().from_service_account_info(credentials)
+publisher = pubsub_v1.PublisherClient.from_service_account_info(credentials)
 topic_path = publisher.topic_path(project_id, topic_id)
 publish_futures = []
 

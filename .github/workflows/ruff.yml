@@ -1,39 +1,47 @@
 name: Ruff
 
 on:
-  pull_request_review:
-    types: [submitted]
+    pull_request_review:
+        types: [submitted]
 
 jobs:
-  run-ruff:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.12"]
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    run-ruff:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ["3.12"]
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install poetry
-      uses: abatilo/actions-poetry@v2
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v3
+              with:
+                  python-version: ${{ matrix.python-version }}
+            - name: Install poetry
+              uses: abatilo/actions-poetry@v2
 
-    - name: Define a cache for the virtual environment based on the dependencies lock file
-      uses: actions/cache@v3
-      with:
-          path: ./.venv
-          key: venv-${{ hashFiles('poetry.lock') }}
+            - name: Define a cache for the virtual environment based on the dependencies lock file
+              uses: actions/cache@v3
+              with:
+                  path: ./.venv
+                  key: venv-${{ hashFiles('poetry.lock') }}
 
-    - name: Install dependencies
-      run: poetry install --with dev
+            - name: Install dependencies
+              run: poetry install --with dev
 
-    - name: Running Ruff linter
-      run: |
-        poetry run ruff check --fix
+            - name: Running Ruff linter
+              run: |
+                  poetry run ruff check --fix
 
-    - name: Running Ruff formatter
-      run: |
-        poetry run ruff format
+            - name: Running Ruff formatter
+              run: |
+                  poetry run ruff format
+
+            - name: Commit and push if needed
+              run: |
+                  git diff
+                  git config --global user.email "actions@github.com"
+                  git config --global user.name "GitHub Action"
+                  git commit -am "Apply ruff fixes" || exit 0
+                  git push

@@ -84,7 +84,7 @@ def waitlist_email():
 
     if not email:
         status = Status(StatusType.ERROR, "Please enter an email.").get_status()
-        return jsonify()
+        return jsonify(**status)
 
     if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
         status = Status(StatusType.ERROR, "Please enter a valid email.").get_status()

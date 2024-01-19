@@ -64,7 +64,7 @@ class User(UserMixin, db.Model):
         This includes the `UserInfo`, `UserPayment`, and `Company` objects.
         """
         if user := cls.get_by_id(id):
-            db.session.delete(user.id)
+            db.session.delete(user)
             db.session.commit()
 
     @classmethod
@@ -443,7 +443,7 @@ class WaitlistCharge(db.Model):
         customer_email (str): The email of the customer associated with the charge.
         customer_name (str): The name of the customer associated with the charge.
         random_key (str): The randomly generated key.
-        downloaded (bool): Indicates whether the charge has been downloaded.
+        downloaded (bool): Indicates whether the product database has been downloaded.
 
     """
 

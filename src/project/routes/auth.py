@@ -355,6 +355,7 @@ def company_form():
             preferred_round_id=request.form.get("round"),
             industry_id=request.form.get("industry"),
             website=request.form.get("website"),
+            coordinates=countries[int(request.form.get("country")) - 1],  # type: ignore
         )
 
         # if pfp := request.files["pfp"]:

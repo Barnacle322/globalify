@@ -20,6 +20,9 @@
                 <span class="text-sm text-slate-500"
                     >Succesful exits: {{ (investor.n_exits / investor.n_investments * 100)|round|int }}%</span
                 >
+                <span class="text-sm text-slate-500"
+                    >Country: {{ investor.location }}</span
+                >
                 <div>
                     <span class="line-clamp-2 text-sm text-slate-500">{{ investor.about }}</span>
                 </div>

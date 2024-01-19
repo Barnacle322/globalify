@@ -1,6 +1,10 @@
-weights = {"bias": 0.3, "industry": 0.35, "round": 0.15, "location": 0.1, "exits": 0.1}
+from geopy import Nominatim
+
+weights = {"bias": 0, "industry": 0, "round": 0, "location": 1, "exits": 0}
 
 pass_score = 0.4
+
+geolocator = Nominatim(user_agent="src")
 
 
 def check_weights(weights):
@@ -13,3 +17,15 @@ def check_weights(weights):
 
 
 check_weights(weights)
+
+
+def geocode_location(location):
+    try:
+        geocoded_location = geolocator.geocode(location)
+        if geocoded_location:
+            return f"{geocoded_location.latitude},{geocoded_location.longitude}"  # type: ignore
+        else:
+            return None
+    except Exception as e:
+        print(f"Geocoding error: {e}")
+        return None

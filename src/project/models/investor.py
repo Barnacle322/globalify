@@ -4,7 +4,8 @@ import random
 
 from flask_sqlalchemy.pagination import Pagination
 from flask_sqlalchemy.query import Query
-from sqlalchemy import Column, ForeignKey, Integer, String, and_, desc, event, or_
+from geopy.distance import geodesic
+from sqlalchemy import Column, ForeignKey, Integer, String, and_, desc, or_
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,7 +20,7 @@ from ..utils.fake_data import (
     get_names,
     get_websites,
 )
-from ..utils.suggestion import weights
+from ..utils.suggestion import geocode_location, weights
 from .helpers import Industry, Round
 
 
@@ -221,6 +222,7 @@ class Investor(db.Model):
     min_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     location: Mapped[str] = mapped_column(String, nullable=True)
+    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
     bias: Mapped[int] = mapped_column(Integer, nullable=True)
 
     rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
@@ -235,6 +237,14 @@ class Investor(db.Model):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
+
+    @property
+    def coordinates(self):
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, coordinates: str) -> None:
+        self._coordinates = geocode_location(coordinates)  # type: ignore
 
     @staticmethod
     def get_all() -> list[Investor]:
@@ -329,14 +339,14 @@ class Investor(db.Model):
         """
         try:
             investor_list = []
-            firstnames = get_names(500)
-            lastnames = get_last_names(500)
-            emails = get_emails(500)
-            websites = get_websites(500)
-            job_positions = get_job_positions(500)
-            companies = get_companies(500)
-            location = get_countrys(500)
-            for i in range(1, 500):
+            firstnames = get_names(300)
+            lastnames = get_last_names(300)
+            emails = get_emails(300)
+            websites = get_websites(300)
+            job_positions = get_job_positions(300)
+            companies = get_companies(300)
+            location = get_countrys(300)
+            for i in range(1, 300):
                 num_rounds = random.randint(1, 5)
                 rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
                 num_industries = random.randint(1, 6)
@@ -360,6 +370,7 @@ class Investor(db.Model):
                         min_investment=min_investment,
                         max_investment=max_investment,
                         location=location[i],
+                        coordinates=location[i],
                         n_investments=n_investments,
                         n_exits=n_exits,
                         bias=bias,
@@ -379,19 +390,26 @@ class Investor(db.Model):
             else:
                 industry_score = 0
 
+            if company.coordinates and self.coordinates:
+                distance = float(geodesic(company.coordinates, self.coordinates).kilometers)
+                location_score = 1 - (distance / 20000) if (distance / 20000) < 1 else 0
+                # if distance < 1000:
+                #     location_score = 1
+                # elif distance < 5000:
+                #     location_score = 0.75
+                # elif distance < 10000:
+                #     location_score = 0.5
+                # elif distance < 15000:
+                #     location_score = 0.25
+                # else:
+                #     location_score = 0
+            else:
+                location_score = 0
+
             if company.preferred_round in self.rounds:
                 round_score = 1 / len(self.rounds)
             else:
                 round_score = 0
-
-            # if len(self.location) > 1 and company.country in self.location:
-            #     location_score = 0.75
-            # elif company.country in self.location:
-            #     location_score = 1
-            # else:
-            #     location_score = 0
-
-            location_score = 1 if company.country == self.location else 0
 
             if self.n_investments > 0:
                 successful_exits = 1 if (self.n_exits / self.n_investments) >= 0.5 else 0
@@ -401,8 +419,8 @@ class Investor(db.Model):
             total_score = (
                 weights["industry"] * industry_score
                 + weights["round"] * round_score
-                + weights["location"] * location_score
                 + weights["bias"] * bias_score
+                + weights["location"] * location_score
                 + weights["exits"] * successful_exits
             )
 
@@ -577,27 +595,27 @@ class InvestmentFirm(db.Model):
             db.session.rollback()
 
 
-@event.listens_for(Investor.__table__, "after_create")  # type: ignore
-def populate_investor(*args, **kwargs):
-    """
-    Event listener function that populates the investor table with random data after it is created.
+# @event.listens_for(Investor.__table__, "after_create")  # type: ignore
+# def populate_investor(*args, **kwargs):
+#     """
+#     Event listener function that populates the investor table with random data after it is created.
 
-    Args:
-        *args: Variable length argument list.
-        **kwargs: Arbitrary keyword arguments.
+#     Args:
+#         *args: Variable length argument list.
+#         **kwargs: Arbitrary keyword arguments.
 
-    """
-    Investor.populate()
+#     """
+#     Investor.populate()
 
 
-@event.listens_for(InvestmentFirm.__table__, "after_create")  # type: ignore
-def populate_firms(*args, **kwargs):
-    """
-    Event listener function that populates the investment firms table with random data after it is created.
+# @event.listens_for(InvestmentFirm.__table__, "after_create")  # type: ignore
+# def populate_firms(*args, **kwargs):
+#     """
+#     Event listener function that populates the investment firms table with random data after it is created.
 
-    Args:
-        *args: Variable length argument list.
-        **kwargs: Arbitrary keyword arguments.
+#     Args:
+#         *args: Variable length argument list.
+#         **kwargs: Arbitrary keyword arguments.
 
-    """
-    InvestmentFirm.populate()
+#     """
+#     InvestmentFirm.populate()

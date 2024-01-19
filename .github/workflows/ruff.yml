@@ -3,14 +3,30 @@ name: Ruff
 on:
     pull_request_review:
         types: [submitted]
+    issue_comment:
+        types: [created]
 
 jobs:
     run-ruff:
+        if: (github.event_name == 'pull_request_review' || (github.event_name == 'issue_comment' && github.event.comment.body == '/ruff')) && github.event.issue.pull_request
         runs-on: ubuntu-latest
         strategy:
             matrix:
                 python-version: ["3.12"]
         steps:
+            - name: Post comment that workflow has started
+              uses: actions/github-script@v6
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: 'Ruff check has started.',
+                      })
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Checkout code
               uses: actions/checkout@v3
 
@@ -32,11 +48,11 @@ jobs:
 
             - name: Running Ruff linter
               run: |
-                  poetry run ruff check --fix
+                  poetry run ruff check --fix || echo "Ruff check made changes" > ruff-status
 
             - name: Running Ruff formatter
               run: |
-                  poetry run ruff format
+                  poetry run ruff format || echo "Ruff format made changes" > ruff-status
 
             - name: Commit and push if needed
               run: |
@@ -45,3 +61,30 @@ jobs:
                   git config --global user.name "GitHub Action"
                   git commit -am "Apply ruff fixes" || exit 0
                   git push
+
+            - name: Post comment if Ruff made changes
+              uses: actions/github-script@v6
+              if: steps.run-ruff.outcome == 'failure'
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: 'Ruff check made changes. Please review them.',
+                      })
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Post comment if Ruff didn't make changes
+              uses: actions/github-script@v6
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: 'Ruff check workflow ended.',
+                      })
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

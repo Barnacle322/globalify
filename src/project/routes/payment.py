@@ -24,6 +24,19 @@ stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
 
 
 def get_invoices(authenticated_user: User):
+    """
+    Retrieves the invoices associated with an authenticated user.
+
+    Args:
+        authenticated_user (User): The authenticated user object.
+
+    Returns:
+        list: A list of dictionaries representing the invoices.
+
+    Raises:
+        Exception: If the user's onboarding is incomplete.
+
+    """
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info or not user_info.is_complete:
         raise Exception(ONBOARDING_INCOMPLETE)
@@ -50,6 +63,20 @@ def get_invoices(authenticated_user: User):
 
 
 def handle_customer(authenticated_user: User) -> UserPayment:
+    """
+    Handle the customer by creating or updating their payment information.
+
+    Args:
+        authenticated_user (User): The authenticated user.
+
+    Returns:
+        UserPayment: The user's payment information.
+
+    Raises:
+        Exception: If the user's onboarding is incomplete.
+        Exception: If the email is already associated with multiple customers.
+
+    """
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info or not user_info.is_complete:
         raise Exception(ONBOARDING_INCOMPLETE)
@@ -97,10 +124,29 @@ def create_checkout(
     customer_id: str, tier: str = "elevate", trial_period_days: int = 0, success_url: str = "", cancel_url: str = ""
 ) -> stripe.checkout.Session:
     """
-    Elevate: elevate
-    Connect Pro: connect
-    Boost Academy: boost
-    Waitlist: teaser
+    Create a Stripe checkout session for a customer subscription.
+
+    This function initializes a Stripe checkout session with different
+    configurations based on the specified tier and trial period. It can also
+    handle custom success and cancellation URLs.
+
+    Args:
+        customer_id (str): The Stripe Customer ID to create a session for.
+        tier (str, optional): The subscription tier. Defaults to 'elevate'.
+        trial_period_days (int, optional): The trial period in days. Defaults to 0.
+        success_url (str, optional): URL to redirect to on successful payment.
+        cancel_url (str, optional): URL to redirect to on checkout cancellation.
+
+    Returns:
+        stripe.checkout.Session: The Stripe Checkout Session object.
+
+    Note:
+        The tier can be one of the following with their respective meanings:
+        - 'elevate': Elevate tier
+        - 'connect': Connect Pro tier
+        - 'boost': Boost Academy tier
+        - 'teaser': Waitlist tier
+        The 'elevate' tier has a default trial period of 14 days.
     """
     elevate_trial_period_days = 14
     success_url = (
@@ -178,6 +224,17 @@ def has_subscriptions(customer_id: str) -> bool:
 
 @payment.post("/waitlist")
 def waitlist():
+    """
+    Creates a new entry in the waitlist.
+
+    Returns:
+        The response object containing the redirect URL for the created checkout session.
+
+    Raises:
+        PAYMENT_EMAIL_USED: If there is more than one customer with the same email.
+        Any exception raised during the creation of the checkout session.
+
+    """
     email = request.form.get("email", "")
     first_name = request.form.get("first-name", "")
     last_name = request.form.get("last-name", "")
@@ -216,6 +273,17 @@ def waitlist():
 def create_checkout_session():
     """
     DOCS: https://stripe.com/docs/payments/checkout/accept-a-payment
+
+    Creates a new checkout session for a logged-in and verified user.
+
+    Returns:
+        A redirect to the Stripe checkout session URL on success, or a
+        redirect to the payment index page with an error status on failure.
+
+    Raises:
+        Exception: If any error occurs while handling the customer or creating
+        the checkout session.
+
     """
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
@@ -257,6 +325,16 @@ def create_checkout_session():
 def customer_portal():
     """
     DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
+
+    Redirects an authenticated and verified user to the Stripe Customer Portal.
+
+    Returns:
+        A redirect to the Stripe Customer Portal session URL on success, or a
+        redirect to the payment index page with an error status on failure.
+
+    Raises:
+        Exception: If any error occurs while handling the customer or creating
+        the portal session.
     """
     if request.form.get("return_url"):
         return_url = request.host_url + str(request.form.get("return_url"))
@@ -292,6 +370,16 @@ def customer_portal():
 def subscription_update():
     """
     DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
+
+    Creates a session for an authenticated user to update their subscription.
+
+    Returns:
+        A redirect to the Stripe Customer Portal with subscription update flow,
+        or a redirect to the payment index page with an error status on failure.
+
+    Raises:
+        Exception: If an error occurs while handling the customer or creating the
+        portal session.
     """
     return_url = request.host_url + "settings/plan"
     if current_user.is_anonymous:
@@ -329,6 +417,18 @@ def subscription_update():
 def subscription_cancel():
     """
     DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
+
+    Creates a session for an authenticated user to cancel their subscription.
+
+    Returns:
+        A redirect to the Stripe Customer Portal with subscription cancel flow,
+        or a redirect to the settings plan page with an error status on failure.
+
+    Raises:
+        InvalidRequestError: If the subscription is already pending cancellation.
+        Exception: If an error occurs while handling the customer or creating the
+        portal session.
+
     """
     return_url = request.host_url + "settings/plan"
     if current_user.is_anonymous:
@@ -391,6 +491,17 @@ def cancel():
 
 
 def invoice_paid(data_object):
+    """
+    Updates the user's payment information and subscription details based on the given Stripe data.
+
+    Parameters:
+    - data_object: A dictionary containing the Stripe data.
+
+    Returns:
+    - None if the charge is not for a subscription.
+    - JSON response with success status and error message if user payment retrieval fails.
+
+    """
     # Check for the charge to be a subscription
     if data_object.get("billing_reason") != "subscription_create":
         return
@@ -508,6 +619,17 @@ def new_waitlist(data_object):
 def webhook_received():
     """
     DOCS: https://stripe.com/docs/webhooks
+
+    Receives and processes webhook events from Stripe.
+
+    This endpoint is called by Stripe when various events occur,
+    such as payment successes or failures. It verifies the webhook
+    signature, parses the event, and then delegates to the appropriate
+    handler function based on the event type.
+
+    Returns:
+        Response: A JSON response indicating the success or failure of processing the webhook.
+
     """
     webhook_secret = os.getenv("_STRIPE_WEBHOOK_SECRET")
     request_data = json.loads(request.data)

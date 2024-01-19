@@ -450,6 +450,8 @@ def company_form():
         if pfp_uuid := upload_pfp(request.files["pfp"]):
             company.pfp_uuid = pfp_uuid
 
+        db.session.add(company)
+        db.session.commit()
         verification_token = authenticated_user.create_verification_token(authenticated_user.id)
         html_content = render_template("email/email_verify.html", uuid=verification_token)
         send_email(
@@ -457,9 +459,6 @@ def company_form():
             subject="Confirm Your Email Address!",
             html_content=html_content,
         )
-
-        db.session.add(company)
-        db.session.commit()
 
         return redirect(url_for("main.dashboard"))
 

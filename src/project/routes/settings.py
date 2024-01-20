@@ -242,12 +242,12 @@ def delete_account():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     if request.method == "POST":
-        logout_user()
         # NOTE: Decorators hold db session open
         # so we need to close it here to properly delete the user objects
         db.session.close()
         db.session.delete(authenticated_user)
         db.session.commit()
+        logout_user()
 
         return redirect(url_for("main.index", _external=False))
 

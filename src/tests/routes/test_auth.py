@@ -4,18 +4,17 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import url_for
 
+from src.project import db
+from src.project.extensions import oauth
+from src.project.models import User, UserInfo, UserOauth, UserPayment, UserRegular
 from src.project.routes.auth import oauth_user
-from src.project.utils.status_enum import OauthProvider
-
-from ...project import db
-from ...project.extensions import oauth
-from ...project.models import User, UserInfo, UserOauth, UserPayment, UserRegular
-from ...project.utils.errors.auth_error_messages import (
+from src.project.utils.errors.auth_error_messages import (
     AUTH_EMAIL_USED,
     OAUTH_MISMATCHED_PROVIDER,
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
+from src.project.utils.status_enum import OauthProvider
 
 
 @pytest.fixture()
@@ -388,7 +387,6 @@ def test_company_form_authenticated_post(client, user_with_complete_user_info, a
         },
         follow_redirects=True,
     )
-    print(response.text)
     assert response.status_code == 200
     assert b"Dashboard" in response.data
     assert b"Investors" in response.data
@@ -451,7 +449,6 @@ def test_linkedin_callback_authorization_failure(client, app):
             response = client.get(url_for("auth.linkedin_callback"), follow_redirects=True)
 
             assert response.status_code == 200
-            print(response.request)
             assert OAUTH_NO_EMAIL in response.text
 
 

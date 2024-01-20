@@ -1,10 +1,9 @@
 import pytest
 
+from src.project import db
 from src.project.models.helpers import Industry, Round
 from src.project.models.investor import InvestmentFirm, Investor
 from src.project.models.user import UserInfo, UserRegular, WaitlistCharge
-
-from ...project import db
 
 
 def test_index(client):

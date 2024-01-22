@@ -14,4 +14,4 @@ RUN rm -rf /root/.cache/pip/*
 
 ENV PORT 8080
 
-CMD exec poetry run granian --interface wsgi --port :$PORT --workers 1 --threads 8 project:application
+CMD exec poetry run granian --interface wsgi --port $PORT --workers 1 --threads 8 project:application

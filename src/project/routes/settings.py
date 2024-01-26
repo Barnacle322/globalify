@@ -1,12 +1,15 @@
 import re
 
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
+
+from src.project.models.helpers import Country, Industry, Round
+from src.project.models.user import Company
 
 from ..extensions import db
 from ..models import User, UserInfo, UserOauth, UserPayment, UserRegular
 from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
-from ..utils.google_storage import load_pfp
+from ..utils.google_storage import load_pfp, prepare_picture, upload_blob
 from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
@@ -255,3 +258,83 @@ def delete_account():
         return render_template("settings/delete_oauth_account.html")
 
     return render_template("settings/delete_account.html")
+
+
+@settings.route("/company", methods=["GET", "POST"])
+def company():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    if current_user.is_anonymous:
+        return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    company = Company.get_by_user_id(authenticated_user.id)
+    if not company:
+        abort(404)
+
+    industries = Industry.get_all()
+    rounds = Round.get_all()
+    countries = Country.get_all()
+
+    if request.method == "POST":
+        company_name = request.form.get("company-name", "")
+        if company_name and company_name.strip() != company.name:
+            if company_name == " ":
+                status = Status(StatusType.ERROR, "Company name cannot be empty.").get_status()
+                return redirect(url_for("settings.company", _external=False, **status))
+            company.name = company_name.strip()
+
+        preferred_round_id = request.form.get("round", type=int)
+        industry_id = request.form.get("industry", type=int)
+        print(preferred_round_id)
+
+        if not industry_id:
+            status = Status(StatusType.ERROR, "Industry ID is required.").get_status()
+            return redirect(url_for("settings.company", _external=False, **status))
+
+        if not preferred_round_id or not industry_id:
+            status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
+            return redirect(
+                url_for(
+                    "settings.company",
+                    _external=False,
+                    **status,
+                )
+            )
+
+        country_id = request.form.get("country", type=int)
+        if not country_id:
+            status = Status(StatusType.ERROR, "Country ID is required.").get_status()
+            return redirect(url_for("settings.company", _external=False, **status))
+
+        company.description = request.form.get("description", "").strip()
+        company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
+        company.country_id = country_id
+        company.preferred_round_id = preferred_round_id
+        company.industry_id = industry_id
+        company.website = request.form.get("website", "")
+
+        if pfp := request.files["pfp"]:
+            try:
+                resized_pfp = prepare_picture(pfp)
+                pfp_uuid = upload_blob(resized_pfp.read())
+                company.pfp_uuid = str(pfp_uuid)
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+        db.session.commit()
+        return redirect(url_for("settings.company"))
+
+    return render_template(
+        "settings/company.html",
+        industries=industries,
+        rounds=rounds,
+        countries=countries,
+        company=company,
+        status_type=status_type,
+        msg=msg,
+    )

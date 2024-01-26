@@ -1,0 +1,349 @@
+{% extends "layouts/layout_app.html" %} {% block title %}Company{% endblock %} {% block head %} {{ super() }}
+<script src="../static/scripts/dashboard.js" defer></script>
+{% endblock %} {% block content %}
+<div class="mx-auto block max-w-7xl pt-24 lg:flex lg:gap-x-16 lg:px-8">
+    <aside class="flex overflow-x-auto py-4 lg:block lg:w-64 lg:flex-none lg:py-20">
+        <nav class="flex-none px-4 sm:px-6 xl:px-0">
+            <ul class="flex gap-x-3 gap-y-1 whitespace-nowrap lg:flex-col">
+                <li>
+                    <a href="/settings/general" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            class="h-6 w-6 shrink-0"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
+                            ></path>
+                        </svg>
+                        General
+                    </a>
+                </li>
+                <li>
+                    <a href="/settings/security" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            class="h-6 w-6 shrink-0"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M7.864 4.243A7.5 7.5 0 0119.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 004.5 10.5a7.464 7.464 0 01-1.15 3.993m1.989 3.559A11.209 11.209 0 008.25 10.5a3.75 3.75 0 117.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 01-3.6 9.75m6.633-4.596a18.666 18.666 0 01-2.485 5.33"
+                            ></path>
+                        </svg>
+                        Security
+                    </a>
+                </li>
+                <li>
+                    <a href="/settings/plan" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            class="h-6 w-6 shrink-0"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
+                            ></path>
+                        </svg>
+                        Plan
+                    </a>
+                </li>
+                <li>
+                    <a href="/settings/billing" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            class="h-6 w-6 shrink-0"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"
+                            ></path>
+                        </svg>
+                        Billing
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="/settings/company"
+                        class="flex gap-x-3 rounded-md bg-slate-100 py-2 pl-2 pr-3 font-medium leading-6 text-sky-500"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="w-6 h-6"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"
+                            />
+                        </svg>
+
+                        Company
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    <main class="flex-auto px-4 sm:px-6 lg:px-0 lg:py-4">
+        <div class="acc acx">
+            <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+                <div>
+                    <h2 class="font-medium leading-7">Company Information</h2>
+                    <p class="mt-1 leading-6 text-slate-700">Update your company information here.</p>
+                    {% if status_type %} {% if status_type == '3' %}
+                    <div class="rounded-xl text-red-500">{{ msg }}</div>
+                    {% endif %} {% if status_type == '2' %}
+                    <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                    {% endif %} {% if status_type == '1' %}
+                    <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                    {% endif %} {% endif %}
+                </div>
+                <form class="md:col-span-2" action="/settings/company" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <div class="space-y-12">
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                            <div class="col-span-full">
+                                <label for="company-name" class="input-label">Company name</label>
+                                <div class="mt-2">
+                                    <input
+                                        type="text"
+                                        name="company-name"
+                                        id="company-name"
+                                        autocomplete="organization-title"
+                                        required
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                        value="{{ company.name if company.name else ''}}"
+                                    />
+                                </div>
+                            </div>
+                            <div class="col-span-full">
+                                <label for="number_of_employees" class="input-label">Number of employees</label>
+                                <div class="mt-2">
+                                    <input
+                                        type="number"
+                                        name="number_of_employees"
+                                        id="number_of_employees"
+                                        autocomplete="number_of_employees"
+                                        required
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                        value="{{ company.number_of_employees }}"
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
+                            <div class="col-span-full">
+                                <label for="description" class="input-label">Description</label>
+                                <div class="mt-2">
+                                    <textarea
+                                        id="description"
+                                        name="description"
+                                        rows="3"
+                                        class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                                    >
+{{ company.description if company.description else ''}}</textarea
+                                    >
+                                </div>
+                            </div>
+                            <div class="col-span-full">
+                                <label for="photo" class="input-label">Photo</label>
+                                <div class="mt-2 flex items-center gap-x-3">
+                                    <svg
+                                        class="h-12 w-12 text-stone-300"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                                            clip-rule="evenodd"
+                                        />
+                                    </svg>
+                                    <input
+                                        class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
+                                        type="file"
+                                        id="pfp"
+                                        name="pfp"
+                                        value="{{ company.pfp_uuid if company.pfp_uuid else ''}}"
+                                        accept="image/png, image/jpeg"
+                                    />
+                                </div>
+                            </div>
+                            <div class="sm:col-span-full">
+                                <label for="country" class="input-label">Country*</label>
+                                <div class="mt-2">
+                                    <select
+                                    id="country"
+                                    name="country"
+                                    autocomplete="country-name"
+                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                    required
+                                >
+                                    <option value="" {% if not company.country %} selected {% endif %} disabled hidden>
+                                        Select a country
+                                    </option>
+                                    {% if countries %} 
+                                        {% for country in countries %}
+                                            <option value="{{ country.id }}" {% if company.country_id == country.id %} selected {% endif %}>
+                                                {{ country.name }}
+                                            </option>
+                                        {% endfor %} 
+                                    {% endif %}
+                                </select>
+                                </div>
+                            </div>
+                            <div class="sm:col-span-full">
+                                <label for="round" class="input-label">Preferred round*</label>
+                                <div class="mt-2">
+                                    <select
+                                        id="round"
+                                        name="round"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                        required
+                                    >
+                                        <option
+                                            value=""
+                                            {%
+                                            if
+                                            not
+                                            company.preferred_round
+                                            %}
+                                            selected
+                                            {%
+                                            endif
+                                            %}
+                                            disabled
+                                            hidden
+                                        >
+                                            Select a round
+                                        </option>
+                                        {% if rounds %} {% for round in rounds %}
+                                        <option
+                                            value="{{ round.id }}"
+                                            {%
+                                            if
+                                            company.preferred_round_id==round.id
+                                            %}
+                                            selected
+                                            {%
+                                            endif
+                                            %}
+                                        >
+                                            {{ round.name }}
+                                        </option>
+                                        {% endfor %} {% endif %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="sm:col-span-full">
+                                <label for="industry" class="block text-sm font-medium leading-6 text-gray-900"
+                                    >Industry*</label
+                                >
+                                <div class="mt-2">
+                                    <select
+                                        id="industry"
+                                        name="industry"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                        required
+                                    >
+                                        <option
+                                            value=""
+                                            {%
+                                            if
+                                            not
+                                            company.industry
+                                            %}
+                                            selected
+                                            {%
+                                            endif
+                                            %}
+                                            disabled
+                                            hidden
+                                        >
+                                            Select industries
+                                        </option>
+                                        {% for category, industry in industries.items() %}
+                                        <optgroup label="{{ category }}">
+                                            {% for ind in industry %}
+                                            <option
+                                                value="{{ ind.id }}"
+                                                {%
+                                                if
+                                                company.industry_id==ind.id
+                                                %}
+                                                selected
+                                                {%
+                                                endif
+                                                %}
+                                            >
+                                                {{ ind.name }}
+                                            </option>
+                                            {% endfor %}
+                                        </optgroup>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-span-full">
+                            <label for="website" class="input-label">Website</label>
+                            <div class="mt-2">
+                                <input
+                                    type="url"
+                                    name="website"
+                                    id="website"
+                                    autocomplete="website"
+                                    required
+                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                    value="{{ company.website if company.website else ''}}"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex gap-5">
+                            <button
+                                type="submit"
+                                class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
+                            >
+                                Save
+                            </button>
+                            <a
+                                class="flex items-center justify-center text-slate-700 underline"
+                                href="/settings/company"
+                                >Cancel</a
+                            >
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

@@ -668,6 +668,8 @@ class Investor(db.Model):
                     max_investment=max_investment,
                     rounds=list(set(round_list)),
                     notable_investments=notable_investment_list,
+                    bias=random.randint(0, 100),
+                    coordinates=row[4],
                 )
                 db.session.add(investor)
                 print("Added investor:", investor)

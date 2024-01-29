@@ -41,3 +41,8 @@ def get_abouts(amount: int):
 def get_countrys(amount: int):
     countries = [fake.country() for _ in range(amount)]
     return countries
+
+
+def get_locations(amount: int):
+    locations = [fake.city() for _ in range(amount)]
+    return locations

@@ -1,6 +1,6 @@
+import datetime
 import json
 import os
-from datetime import datetime
 
 import stripe
 from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
@@ -50,7 +50,7 @@ def get_invoices(authenticated_user: User):
     for stripe_invoice in stripe_invoices:
         invoice = {
             "id": stripe_invoice.get("id"),
-            "created": datetime.utcfromtimestamp(stripe_invoice.get("created", 0)).date(),
+            "created": datetime.datetime.fromtimestamp(stripe_invoice.get("created", 0), tz=datetime.UTC).date(),
             "amount_due": stripe_invoice.get("amount_due"),
             "amount_paid": stripe_invoice.get("amount_paid"),
             "currency": stripe_invoice.get("currency"),

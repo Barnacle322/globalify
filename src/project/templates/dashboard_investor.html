@@ -373,9 +373,9 @@
                         >&nbsp;{% if investor.firm_name %} @ {{ investor.firm_name }} {% endif %}</span
                     >
                 </div>
-                <span class="text-sm text-slate-500"
-                    >${{ investor.min_investment }} - ${{ investor.max_investment }}</span
-                >
+                {% if investor.min_max_investment %}
+                <span class="text-sm text-slate-500">${{ investor.min_max_investment }}</span>
+                {% endif %}
                 <div>
                     <span class="line-clamp-2 text-sm text-slate-500">{{ investor.about }}</span>
                 </div>

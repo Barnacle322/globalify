@@ -25,6 +25,7 @@ faker = "^22.0.0"
 feedparser = "^6.0.10"
 google-cloud-pubsub = "^2.19.0"
 flask-debugtoolbar = "^0.14.1"
+thefuzz = "^0.22.1"
 
 
 [tool.poetry.group.dev.dependencies]

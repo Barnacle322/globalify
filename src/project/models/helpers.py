@@ -16,6 +16,10 @@ class Industry(db.Model):
     Attributes:
         id (int): The industry ID.
         name (str): The name of the industry.
+
+        class NotableInvestment(db.Model):
+
+
         category (str): The category of the industry.
 
     """
@@ -31,7 +35,7 @@ class Industry(db.Model):
         return f"<Industry {self.name}>"
 
     @staticmethod
-    def get_all():
+    def get_all() -> dict[str, list[Industry]] | None:
         """
         Retrieves all industries.
 
@@ -48,6 +52,14 @@ class Industry(db.Model):
             return industry_dict
         except NoResultFound:
             return {}
+
+    @staticmethod
+    def get_industry_list():
+        try:
+            industries: list[Industry] = Industry.query.all()
+            return industries
+        except NoResultFound:
+            return []
 
     @staticmethod
     def get_by_id(id: int) -> Industry | None:

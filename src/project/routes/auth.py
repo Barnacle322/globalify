@@ -27,7 +27,7 @@ from ..utils.errors.auth_error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
-from ..utils.google_storage import upload_pfp
+from ..utils.google_storage import upload_picture
 from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import OauthProvider, Status, StatusType
 
@@ -279,17 +279,9 @@ def onboarding():
 
         user_info.is_complete = True
 
-        # if pfp := request.files["pfp"]:
-        #     try:
-        #         resized_pfp = prepare_picture(pfp)
-        #         pfp_uuid = upload_blob(resized_pfp.read())
-        #         user_info.pfp_uuid = str(pfp_uuid)
-        #     except Exception as e:
-        #         status = Status(StatusType.ERROR, e.args[0]).get_status()
-        #         return redirect(url_for("auth.onboarding", _external=False, **status))
-
-        if pfp_uuid := upload_pfp(request.files["pfp"]):
-            user_info.pfp_uuid = pfp_uuid
+        if picture := request.files["pfp"]:
+            picture_url = upload_picture(picture)
+            user_info.picture_url = picture_url
 
         db.session.commit()
         return redirect(url_for("auth.company_form"))
@@ -362,16 +354,9 @@ def company_form():
             website=request.form.get("website"),
         )
 
-        # if pfp := request.files["pfp"]:
-        #     try:
-        #         resized_pfp = prepare_picture(pfp)
-        #         pfp_uuid = upload_blob(resized_pfp.read())
-        #         company.pfp_uuid = str(pfp_uuid)
-        #     except Exception as e:
-        #         print(f"An error occurred: {e}")
-
-        if pfp_uuid := upload_pfp(request.files["pfp"]):
-            company.pfp_uuid = pfp_uuid
+        if picture := request.files["pfp"]:
+            picture_url = upload_picture(picture)
+            company.picture_url = picture_url
 
         db.session.add(company)
         db.session.commit()

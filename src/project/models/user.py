@@ -150,7 +150,7 @@ class UserInfo(db.Model):
         linkedin_url (str | None): The LinkedIn profile URL of the user.
         instagram_url (str | None): The Instagram profile URL of the user.
         twitter_url (str | None): The Twitter profile URL of the user.
-        pfp_uuid (str | None): The Google storage blob ID for the user's profile picture.
+        picture_url (str | None): The Google storage blob ID for the user's profile picture.
         is_complete (bool): Indicates if the user's profile is complete.
         language (str): The language preference of the user.
 
@@ -167,7 +167,7 @@ class UserInfo(db.Model):
     linkedin_url: Mapped[str | None] = mapped_column(String, nullable=True)
     instagram_url: Mapped[str | None] = mapped_column(String, nullable=True)
     twitter_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    pfp_uuid: Mapped[str | None] = mapped_column(String, nullable=True)
+    picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     language: Mapped[str] = mapped_column(String, nullable=True, default="English")
 
@@ -240,7 +240,7 @@ class UserInfo(db.Model):
             "instagram": self.instagram_url,
             "twitter": self.twitter_url,
             "bio": self.bio,
-            "pfp": self.pfp_uuid,
+            "pfp": self.picture_url,
         }
         return user_info
 
@@ -447,7 +447,7 @@ class Company(db.Model):
         description (Mapped[str]): A brief description of the company, nullable.
         number_of_employees (Mapped[int]): The number of employees at the company, nullable.
         website (Mapped[str]): The company's website URL, nullable.
-        pfp_uuid (Mapped[str]): A unique identifier for the company's profile picture, nullable.
+        picture_url (Mapped[str]): A unique identifier for the company's profile picture, nullable.
         country_id (Mapped[int]): A foreign key that references the country the company is located in, nullable.
         preferred_round_id (Mapped[int]): A foreign key that references the company's preferred funding round, nullable.
         industry_id (Mapped[int]): A foreign key that references the industry the company operates in, nullable.
@@ -463,7 +463,7 @@ class Company(db.Model):
     description: Mapped[str] = mapped_column(String, nullable=True)
     number_of_employees: Mapped[int] = mapped_column(Integer, nullable=True)
     website: Mapped[str] = mapped_column(String, nullable=True)
-    pfp_uuid: Mapped[str] = mapped_column(String, nullable=True)
+    picture_url: Mapped[str] = mapped_column(String, nullable=True)
     country_id: Mapped[int] = mapped_column(Integer, ForeignKey("country.id"), nullable=True)
     preferred_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
     industry_id: Mapped[int] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True)

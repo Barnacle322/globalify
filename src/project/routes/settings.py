@@ -54,6 +54,7 @@ def security():
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
+
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -290,7 +291,6 @@ def company():
 
         preferred_round_id = request.form.get("round", type=int)
         industry_id = request.form.get("industry", type=int)
-        print(preferred_round_id)
 
         if not industry_id:
             status = Status(StatusType.ERROR, "Industry ID is required.").get_status()
@@ -327,7 +327,15 @@ def company():
                 print(f"An error occurred: {e}")
 
         db.session.commit()
-        return redirect(url_for("settings.company"))
+
+        status = Status(StatusType.SUCCESS, "Company successfully changed.").get_status()
+        return redirect(
+            url_for(
+                "settings.company",
+                _external=False,
+                **status,
+            )
+        )
 
     return render_template(
         "settings/company.html",

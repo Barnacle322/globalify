@@ -337,4 +337,5 @@ def company():
         company=company,
         status_type=status_type,
         msg=msg,
+        user=authenticated_user,
     )

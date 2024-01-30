@@ -11,25 +11,12 @@ from .main import check_user_info_complete, check_verification
 profile = Blueprint("profile", __name__)
 
 
-@profile.route("/me", methods=["GET"])
-def profile_me():
-
+@profile.route("/user/<int:user_id>/", methods=["GET"])
+def user_profile(user_id):
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    user = User.get_by_id(authenticated_user.id)
-    user_info = UserInfo.get_by_user_id(authenticated_user.id)
-
-    if user:
-        return render_template("profile/user_profile.html", user=user, user_info=user_info)
-    else:
-        abort(404)
-
-
-@profile.route("/<int:user_id>/", methods=["GET"])
-def user_profile(user_id):
 
     user = User.get_by_id(user_id)
     if not user:
@@ -40,6 +27,26 @@ def user_profile(user_id):
         abort(404)
 
     if user:
-        return render_template("profile/user_profile.html", user=user, user_info=user_info)
+        return render_template(
+            "profile/user_profile.html", user=user, user_info=user_info, authenticated_user=authenticated_user
+        )
     else:
         abort(404)
+
+
+@profile.route("/company/<int:user_id>/", methods=["GET", "POST"])
+def company(user_id):
+    if current_user.is_anonymous:
+        return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    company = Company.get_by_user_id(user_id)
+    if not company:
+        abort(404)
+
+    return render_template(
+        "profile/company_profile.html",
+        company=company,
+        user=authenticated_user,
+    )

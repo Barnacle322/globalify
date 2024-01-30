@@ -1,11 +1,5 @@
 {% extends "layouts/layout_app.html" %} {% block title %} User Profile {% endblock %} {% block head %} {{ super() }}
-<script src="../static/scripts/dashboard.js" defer></script>
-<link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-    integrity="sha384-cQ3tziIqEXMgU8gKoOqF8op1GqqfXeJGDtrPwHLKvhP1iG/BDA8fm98SGWlvXU8N"
-    crossorigin="anonymous"
-/>
+<script src="/static/scripts/dashboard.js" defer></script>
 {% endblock %} {% block content %}
 <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
     <div class="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
@@ -27,11 +21,16 @@
             <div class="grid gap-0.5 text-lg">
                 <div class="font-medium">{{ user_info.first_name }} {{ user_info.last_name }}</div>
                 <div class="text-gray-500 dark:text-gray-400">@{{ user_info.username }}</div>
+                <div class="grid gap-1">
+                    <a href="/profile/company/{{ user.id }}" class="underline">{{ user.company[0].name }}</a>
+                </div>
+                {% if user.id == authenticated_user.id %}
                 <div>
-                    <button class="mt-[8px] text-gray-500 bg-gray-200 rounded-xl px-3">
-                        <a href="/settings">Edit</a>
+                    <button class="mt-[8px] text-white bg-sky-500 rounded-xl px-3">
+                        <a href="/settings/general">Edit</a>
                     </button>
                 </div>
+                {% endif %}
             </div>
         </div>
         <p class="mt-4 text-gray-500 dark:text-gray-400">{{ user_info.bio }}</p>
@@ -40,10 +39,20 @@
                 <h3 class="text-sm font-medium">Email</h3>
                 <p>{{ user.email }}</p>
             </div>
-            {% if user_info.linkedin_url %}
+            {% if user_info.website %}
+            <div class="grid gap-1">
+                <h3 class="text-sm font-medium">Website</h3>
+                <p><a href="{{ user_info.website }}" class="underline">{{ user_info.website }}</a></p>
+            </div>
+            {% else %}
+            <div class="grid gap-1">
+                <h3 class="text-sm font-medium">Website</h3>
+                <p>No Website</p>
+            </div>
+            {% endif %} {% if user_info.linkedin_url %}
             <div class="grid gap-1">
                 <h3 class="text-sm font-medium">LinkedIn</h3>
-                <p>{{ user_info.linkedin_url }}</p>
+                <p><a href="{{ user_info.linkedin_url }}" class="underline">{{ user_info.linkedin_url }}</a></p>
             </div>
             {% else %}
             <div class="grid gap-1">
@@ -53,7 +62,7 @@
             {% endif %} {% if user_info.instagram_url %}
             <div class="grid gap-1">
                 <h3 class="text-sm font-medium">Instagram</h3>
-                <p>{{ user_info.instagram_url }}</p>
+                <p><a href="{{ user_info.instagram_url }}" class="underline">{{ user_info.instagram_url }}</a></p>
             </div>
             {% else %}
             <div class="grid gap-1">
@@ -63,7 +72,7 @@
             {% endif %} {% if user_info.twitter_url %}
             <div class="grid gap-1">
                 <h3 class="text-sm font-medium">Twitter</h3>
-                <p>@{{ user_info.twitter_url }}</p>
+                <p><a href="{{ user_info.twitter_url }}" class="underline">@{{ user_info.twitter_url }}</a></p>
             </div>
             {% else %}
             <div class="grid gap-1">

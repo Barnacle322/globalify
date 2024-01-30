@@ -232,6 +232,7 @@ def dashboard():
         investors=investors,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
+        user=authenticated_user,
     )
 
 
@@ -319,6 +320,7 @@ def investment_firms():
         investment_firms=investment_firms,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
+        user=authenticated_user,
     )
 
 
@@ -331,7 +333,7 @@ def investor(investor_id):
     if not investor:
         return redirect(url_for("main.dashboard"))
 
-    return render_template("investor.html", investor=investor)
+    return render_template("investor.html", investor=investor, user=current_user)
 
 
 @main.route("/investment-firm/<int:firm_id>")
@@ -343,7 +345,7 @@ def investment_firm(firm_id):
     if not investment_firm:
         return redirect(url_for("main.dashboard"))
 
-    return render_template("investment_firm.html", investment_firm=investment_firm)
+    return render_template("investment_firm.html", investment_firm=investment_firm, user=current_user)
 
 
 @main.route("/pricing")

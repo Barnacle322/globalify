@@ -19,7 +19,7 @@ from flask_login import current_user, login_required
 from src.project.models.user import Company
 
 from ..extensions import db
-from ..models import Industry, InvestmentFirm, Investor, Round, Waitlist, WaitlistCharge
+from ..models import Industry, InvestmentFirm, Investor, Round, User, Waitlist, WaitlistCharge
 from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
 from ..utils.status_enum import Status, StatusType
@@ -160,6 +160,8 @@ def dashboard():
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
     # ?q=Julie
     search_string = request.args.get("search", "")
     # ?page=1
@@ -234,9 +236,9 @@ def dashboard():
         investors=investors,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
-        user=authenticated_user,
         status_type=status_type,
         msg=msg,
+        user=authenticated_user,
     )
 
 
@@ -252,8 +254,6 @@ def get_suggestions():
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
-
     investors = Investor.get_all()
 
     scored_investors = [(investor, investor.calculate_score(company)) for investor in investors]
@@ -268,8 +268,8 @@ def get_suggestions():
 
     return render_template(
         "suggestions.html",
-        pfp_base64=pfp_base64,
         investors=sorted_investors,
+        user=authenticated_user,
     )
 
 
@@ -280,6 +280,8 @@ def get_suggestions():
 def investment_firms():
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     # ?q=Robinson-Sanders
     search_string = request.args.get("search", "")

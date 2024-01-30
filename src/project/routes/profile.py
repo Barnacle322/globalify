@@ -1,12 +1,9 @@
-from flask import Blueprint, abort, redirect, render_template, request, url_for
-from flask_login import current_user, fresh_login_required, login_required, logout_user
+from flask import Blueprint, abort, redirect, render_template, url_for
+from flask_login import current_user
 
 from src.project.models.user import Company
 
 from ..models import User, UserInfo
-from ..utils.google_storage import load_pfp, prepare_picture, upload_blob, upload_pfp
-from ..utils.info_lists import languages as language_list
-from .main import check_user_info_complete, check_verification
 
 profile = Blueprint("profile", __name__)
 

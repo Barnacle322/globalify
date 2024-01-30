@@ -286,7 +286,13 @@ def onboarding():
         db.session.commit()
         return redirect(url_for("auth.company_form"))
 
-    return render_template("auth/onboarding.html", languages=language_list, user_info=user_info.sanitize(), status_type=status_type, msg=msg)
+    return render_template(
+        "auth/onboarding.html",
+        languages=language_list,
+        user_info=user_info.sanitize(),
+        status_type=status_type,
+        msg=msg,
+    )
 
 
 @auth.get("/username/<username>")
@@ -344,15 +350,16 @@ def company_form():
     countries = Country.get_all()
 
     if request.method == "POST":
+        country_id = request.form.get("country", type=int)
         company = Company(
             user_id=authenticated_user.id,
             name=request.form.get("company_name"),
             description=request.form.get("about"),
-            country_id=request.form.get("country"),
+            country_id=country_id,
             preferred_round_id=request.form.get("round"),
             industry_id=request.form.get("industry"),
             website=request.form.get("website"),
-            coordinates=countries[int(request.form.get("country")) - 1].name,  # type: ignore
+            coordinates=Country.get_by_id(country_id).name,  # type: ignore
         )
 
         if picture := request.files["pfp"]:

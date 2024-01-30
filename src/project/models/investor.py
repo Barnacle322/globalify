@@ -585,7 +585,6 @@ class Investor(db.Model):
                     industries=list(set(industries)),
                     min_investment=min_investment,
                     max_investment=random.randrange(min_investment, 50000001, 100000),
-                    bias=random.randint(0, 100),
                     notable_investments=list(set(notable_investments)),
                 )
             )
@@ -668,7 +667,6 @@ class Investor(db.Model):
                     max_investment=max_investment,
                     rounds=list(set(round_list)),
                     notable_investments=notable_investment_list,
-                    bias=random.randint(0, 100),
                     coordinates=row[4],
                 )
                 db.session.add(investor)
@@ -677,35 +675,32 @@ class Investor(db.Model):
 
     def calculate_score(self, company):
         try:
-            bias_score = (self.bias / 100) if self.bias else 0
+            if self.bias:
+                bias_score = (self.bias / 100) if self.bias else 0
+            else:
+                bias_score = 0
 
-            if company.industry in self.industries:
-                industry_score = 1 / len(self.industries)
+            if company.industry in self.industries and len(self.industries) == 1:
+                industry_score = 1
+            elif company.industry in self.industries:
+                industry_score = 0.8
             else:
                 industry_score = 0
+
+            if company.preferred_round in self.rounds and len(self.rounds) == 1:
+                round_score = 1
+            elif company.preferred_round in self.rounds:
+                round_score = 0.8
+            else:
+                round_score = 0
 
             if company.coordinates and self.coordinates:
                 distance = float(geodesic(company.coordinates, self.coordinates).kilometers)
                 location_score = 1 - (distance / 20000) if (distance / 20000) < 1 else 0
-                # if distance < 1000:
-                #     location_score = 1
-                # elif distance < 5000:
-                #     location_score = 0.75
-                # elif distance < 10000:
-                #     location_score = 0.5
-                # elif distance < 15000:
-                #     location_score = 0.25
-                # else:
-                #     location_score = 0
             else:
                 location_score = 0
 
-            if company.preferred_round in self.rounds:
-                round_score = 1 / len(self.rounds)
-            else:
-                round_score = 0
-
-            if self.n_investments > 0:
+            if self.n_investments:
                 successful_exits = 1 if (self.n_exits / self.n_investments) >= 0.5 else 0
             else:
                 successful_exits = 0

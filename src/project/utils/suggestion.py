@@ -1,10 +1,13 @@
-from geopy import Nominatim
+import os
 
-weights = {"bias": 0, "industry": 0, "round": 0, "location": 1, "exits": 0}
+import googlemaps
 
-pass_score = 0.4
+google_maps_secret = os.getenv("_GOOGLE_MAPS_API_KEY")
+gmaps = googlemaps.Client(key=google_maps_secret)
 
-geolocator = Nominatim(user_agent="src")
+weights = {"bias": 0.3, "industry": 0.25, "round": 0.1, "location": 0.25, "exits": 0.1}
+
+pass_score = 0.3
 
 
 def check_weights(weights):
@@ -21,9 +24,9 @@ check_weights(weights)
 
 def geocode_location(location):
     try:
-        geocoded_location = geolocator.geocode(location)
+        geocoded_location = gmaps.geocode(location)  # type: ignore
         if geocoded_location:
-            return f"{geocoded_location.latitude},{geocoded_location.longitude}"  # type: ignore
+            return f"{geocoded_location[0].get('geometry').get('location').get('lat')},{geocoded_location[0].get('geometry').get('location').get('lng')}"
         else:
             return None
     except Exception as e:

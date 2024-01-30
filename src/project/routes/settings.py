@@ -9,7 +9,6 @@ from src.project.models.user import Company
 from ..extensions import db
 from ..models import User, UserInfo, UserOauth, UserPayment, UserRegular
 from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
-from ..utils.google_storage import load_pfp, prepare_picture, upload_blob
 from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
@@ -306,14 +305,6 @@ def company():
         company.preferred_round_id = preferred_round_id
         company.industry_id = industry_id
         company.website = request.form.get("website", "")
-
-        if pfp := request.files["pfp"]:
-            try:
-                resized_pfp = prepare_picture(pfp)
-                pfp_uuid = upload_blob(resized_pfp.read())
-                company.pfp_uuid = str(pfp_uuid)
-            except Exception as e:
-                print(f"An error occurred: {e}")
 
         db.session.commit()
 

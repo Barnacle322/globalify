@@ -261,6 +261,10 @@
         {% endif %} {% endif %}
         <div class="acc acx">
             <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+                <div>
+                    <h2 class="font-medium leading-7">Change password</h2>
+                    <p class="mt-1 leading-6 text-slate-700">Update your password associated with your account.</p>
+                </div>
                 <form class="md:col-span-2" action="/settings/change-password" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">

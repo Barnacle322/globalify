@@ -55,11 +55,8 @@ def security():
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
     return render_template(
         "settings/security.html",
-        user=authenticated_user,
         status_type=status_type,
         msg=msg,
     )
@@ -82,7 +79,6 @@ def plan():
 
     return render_template(
         "settings/plan.html",
-        user=authenticated_user,
         subscription=subscription,
     )
 
@@ -305,7 +301,7 @@ def company():
         company.preferred_round_id = preferred_round_id
         company.industry_id = industry_id
         company.website = request.form.get("website", "")
-
+        company.coordinates = Country.get_by_id(country_id).name  # type: ignore
         db.session.commit()
 
         status = Status(StatusType.SUCCESS, "Company successfully changed.").get_status()
@@ -325,5 +321,4 @@ def company():
         company=company,
         status_type=status_type,
         msg=msg,
-        user=authenticated_user,
     )

@@ -160,8 +160,6 @@ def dashboard():
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
     # ?q=Julie
     search_string = request.args.get("search", "")
     # ?page=1
@@ -238,7 +236,6 @@ def dashboard():
         round_list=Round.get_all(),
         status_type=status_type,
         msg=msg,
-        user=authenticated_user,
     )
 
 
@@ -251,8 +248,6 @@ def get_suggestions():
         return redirect(url_for("auth.login"))
 
     company = Company.get_by_user_id(current_user.id)
-
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     investors = Investor.get_all()
 
@@ -269,7 +264,6 @@ def get_suggestions():
     return render_template(
         "suggestions.html",
         investors=sorted_investors,
-        user=authenticated_user,
     )
 
 
@@ -280,8 +274,6 @@ def get_suggestions():
 def investment_firms():
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
-
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     # ?q=Robinson-Sanders
     search_string = request.args.get("search", "")
@@ -354,7 +346,6 @@ def investment_firms():
         investment_firms=investment_firms,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
-        user=authenticated_user,
     )
 
 

@@ -150,6 +150,11 @@ def post_download():
 @check_user_info_complete
 @check_verification
 def dashboard():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -233,6 +238,8 @@ def dashboard():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         user=authenticated_user,
+        status_type=status_type,
+        msg=msg,
     )
 
 

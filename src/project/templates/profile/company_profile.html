@@ -12,6 +12,10 @@
 {% block content %}
 <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
     <div class="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
+        <div class="flex justify-start mb-6">
+            <a href="/profile/user/{{ user.id }}" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">User Profile</a>
+            <a href="/profile/company/{{ user.id }}" class="flex gap-x-3 rounded-lg bg-slate-100 py-2 pl-2 pr-3 font-medium leading-6 text-sky-500">Company Profile</a>
+        </div>
         <div class="flex items-center gap-3">
             {% if company.pfp_uuid %}
             <div class="relative w-32 h-32 overflow-hidden rounded-full">
@@ -48,7 +52,7 @@
             {% if company.website %}
             <div class="grid gap-1">
                 <h3 class="text-sm font-medium">Website</h3>
-                <p>{{ company.website }}</p>
+                <a href="{{ company.website }}" class="underline">{{ company.website }}</a>
             </div>
             {% else %}
             <div class="grid gap-1">

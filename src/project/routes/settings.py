@@ -28,6 +28,7 @@ def index():
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
+
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 

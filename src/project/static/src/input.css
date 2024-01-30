@@ -104,10 +104,10 @@
 }
 
 @keyframes fadeOutRight {
-    0% { opacity: 1; transform: translateX(0); }
-    100% { opacity: 0; transform: translateX(100%); }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(150%); }
 }
 
 .fade-out-right {
-    animation: fadeOutRight 1s ease-out;
+    animation: fadeOutRight 1s ease-in-out forwards;
 }

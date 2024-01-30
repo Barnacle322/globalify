@@ -227,6 +227,11 @@ def onboarding():
         str: The rendered HTML template for the onboarding page.
 
     """
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -289,7 +294,7 @@ def onboarding():
         db.session.commit()
         return redirect(url_for("auth.company_form"))
 
-    return render_template("auth/onboarding.html", languages=language_list, user_info=user_info.sanitize())
+    return render_template("auth/onboarding.html", languages=language_list, user_info=user_info.sanitize(), status_type=status_type, msg=msg)
 
 
 @auth.get("/username/<username>")
@@ -371,7 +376,9 @@ def company_form():
         db.session.add(company)
         db.session.commit()
 
-        return redirect(url_for("main.dashboard"))
+        status = Status(StatusType.SUCCESS, "You successfully completed your registration.").get_status()
+
+        return redirect(url_for("main.dashboard", _external=False, **status))
 
     return render_template(
         "auth/company_form.html",

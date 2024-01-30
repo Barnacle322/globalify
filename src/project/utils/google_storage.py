@@ -2,30 +2,59 @@ import base64
 import io
 from uuid import UUID, uuid4
 
+from flask import current_app
 from google.cloud import storage
 from PIL import Image
+
+HD_WIDTH = 1280
+HD_HEIGHT = 720
+BUCKET_NAME = "globalify_profile_pictures"
+
+
+def delete_blob_from_url(blob_url: str, bucket_name: str = BUCKET_NAME) -> None:
+    # Extract the blob name from the URL
+    if f"https://storage.googleapis.com/{bucket_name}/" in blob_url:
+        blob_name = blob_url.replace(f"https://storage.googleapis.com/{bucket_name}/", "")
+    else:
+        raise ValueError("Invalid blob URL")
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    blob.delete()
 
 
 def upload_blob(
     content: bytes,
+    destination_blob_name: UUID | None = None,
     old_blob_id: str | None = None,
-    bucket_name: str = "globalify_profile_pictures",
-    destination_blob_name: UUID = uuid4(),  # noqa: B008
-) -> UUID:
+    bucket_name: str = BUCKET_NAME,
+) -> str:
+    if not destination_blob_name:
+        destination_blob_name = uuid4()
+
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
-    if old_blob_id:
-        blob = bucket.blob(old_blob_id)
-        blob.delete()
 
     blob = bucket.blob(str(destination_blob_name))
 
-    blob.upload_from_file(io.BytesIO(content))
+    # Set the content type of the blob
+    blob.content_type = "image/jpeg"
 
-    return destination_blob_name
+    try:
+        blob.upload_from_file(io.BytesIO(content), content_type="image/jpeg")
+    except Exception as e:
+        current_app.logger.error(e)
+        raise
+
+    if old_blob_id:
+        old_blob = bucket.blob(old_blob_id)
+        old_blob.delete()
+
+    return blob.public_url
 
 
-def download_blob_into_memory(blob_name: UUID, bucket_name: str = "globalify_profile_pictures") -> bytes:
+def download_blob_into_memory(blob_name: UUID, bucket_name: str = BUCKET_NAME) -> bytes:
     storage_client = storage.Client()
 
     bucket = storage_client.bucket(bucket_name)
@@ -36,7 +65,7 @@ def download_blob_into_memory(blob_name: UUID, bucket_name: str = "globalify_pro
     return contents
 
 
-def prepare_picture(image):
+def scale_to_hd(image: io.IOBase) -> io.BytesIO:
     input_image = Image.open(io.BytesIO(image.read()))
 
     # Convert RGBA images to RGB mode
@@ -46,47 +75,53 @@ def prepare_picture(image):
         input_image = background.convert("RGB")
 
     width, height = input_image.size
-    size = min(width, height)
-    left = (width - size) // 2
-    top = (height - size) // 2
-    right = left + size
-    bottom = top + size
 
-    square_image = input_image.crop((left, top, right, bottom))
-    square_image.thumbnail((100, 100))
+    # Only scale if the image is larger than HD
+    if width > HD_WIDTH or height > HD_HEIGHT:
+        # Calculate the aspect ratio
+        aspect_ratio = width / height
 
-    resized_pfp = io.BytesIO()
-    square_image.save(resized_pfp, format="JPEG")
-    resized_pfp.seek(0)
+        # Calculate new dimensions
+        if aspect_ratio > 1:
+            new_width = HD_WIDTH
+            new_height = int(new_width / aspect_ratio)
+        else:
+            new_height = HD_HEIGHT
+            new_width = int(new_height * aspect_ratio)
 
-    return resized_pfp
+        # Resize the image
+        input_image = input_image.resize((new_width, new_height))
+
+    # Save the image to a BytesIO object
+    output_image = io.BytesIO()
+    input_image.save(output_image, format="JPEG")
+    output_image.seek(0)
+
+    return output_image
 
 
-def load_pfp(pfp_uuid):
-    if not pfp_uuid:
+def load_picture(picture_uuid):
+    if not picture_uuid:
         return False
 
     try:
-        pfp = download_blob_into_memory(pfp_uuid)
-        pfp_base64 = base64.b64encode(pfp).decode("utf-8")
+        picture = download_blob_into_memory(picture_uuid)
+        picture_base64 = base64.b64encode(picture).decode("utf-8")
     except Exception as e:
-        pfp_base64 = False
-        print(e)
+        current_app.logger.error(e)
+        raise
 
-    return pfp_base64
+    return picture_base64
 
 
-def upload_pfp(pfp):
-    if not pfp:
-        return False
+def upload_picture(picture, bucket_name: str = BUCKET_NAME):
+    if not picture or picture == "" or picture == "None":
+        raise ValueError("No picture provided")
 
-    if pfp:
-        try:
-            resized_pfp = prepare_picture(pfp)
-            pfp_uuid = upload_blob(resized_pfp.read())
-            return str(pfp_uuid)
-        except Exception as e:
-            # status = Status(StatusType.ERROR, e.args[0]).get_status()
-            # return redirect(url_for("auth.onboarding", _external=False, **status))
-            print(e)
-            return False
+    try:
+        resized_picture = scale_to_hd(picture)
+        picture_url = upload_blob(resized_picture.read(), bucket_name=bucket_name)
+        return picture_url
+    except Exception as e:
+        current_app.logger.error(e)
+        raise

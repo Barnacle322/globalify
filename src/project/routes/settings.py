@@ -6,7 +6,6 @@ from flask_login import current_user, fresh_login_required, login_required, logo
 from ..extensions import db
 from ..models import User, UserInfo, UserOauth, UserPayment, UserRegular
 from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
-from ..utils.google_storage import load_pfp
 from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
@@ -30,12 +29,9 @@ def index():
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
-
     return render_template(
         "settings/general.html",
         user=authenticated_user,
-        pfp_base64=pfp_base64,
         languages=language_list,
         status_type=status_type,
         msg=msg,
@@ -56,12 +52,9 @@ def security():
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
-
     return render_template(
         "settings/security.html",
         user=authenticated_user,
-        pfp_base64=pfp_base64,
         status_type=status_type,
         msg=msg,
     )
@@ -77,8 +70,6 @@ def plan():
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
-
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
     subscription = {"tier": Tier.FREE}
     if user_payment and user_payment.customer_id and user_payment.subscription_id:
@@ -87,7 +78,6 @@ def plan():
     return render_template(
         "settings/plan.html",
         user=authenticated_user,
-        pfp_base64=pfp_base64,
         subscription=subscription,
     )
 
@@ -102,14 +92,11 @@ def billing():
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
-
     invoices = get_invoices(authenticated_user)
 
     return render_template(
         "settings/billing.html",
         user=authenticated_user,
-        pfp_base64=pfp_base64,
         invoices=invoices,
     )
 

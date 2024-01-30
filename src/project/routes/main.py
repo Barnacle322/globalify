@@ -17,9 +17,8 @@ from flask import (
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Industry, InvestmentFirm, Investor, Round, User, Waitlist, WaitlistCharge
+from ..models import Industry, InvestmentFirm, Investor, Round, Waitlist, WaitlistCharge
 from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
-from ..utils.google_storage import load_pfp
 from ..utils.parse_medium import parse_medium_html
 from ..utils.status_enum import Status, StatusType
 
@@ -153,10 +152,6 @@ def dashboard():
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
-
     # ?q=Julie
     search_string = request.args.get("search", "")
     # ?page=1
@@ -216,7 +211,6 @@ def dashboard():
 
     return render_template(
         "dashboard_investor.html",
-        pfp_base64=pfp_base64,
         combined_query=combined_query,
         fields={
             "first_name": "First Name",
@@ -242,10 +236,6 @@ def dashboard():
 def investment_firms():
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
-
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     # ?q=Robinson-Sanders
     search_string = request.args.get("search", "")
@@ -306,7 +296,6 @@ def investment_firms():
 
     return render_template(
         "dashboard_firm.html",
-        pfp_base64=pfp_base64,
         combined_query=combined_query,
         fields={
             "name": "Name",

@@ -1,5 +1,6 @@
 {% extends "layouts/layout_app.html" %} {% block title %}Settings{% endblock %} {% block head %} {{ super() }}
 <script src="../static/scripts/dashboard.js" defer></script>
+<script src="../static/scripts/notification.js" defer></script>
 {% endblock %} {% block content %}
 <div class="mx-auto block max-w-7xl pt-24 lg:flex lg:gap-x-16 lg:px-8">
     <aside class="flex overflow-x-auto py-4 lg:block lg:w-64 lg:flex-none lg:py-20">
@@ -88,38 +89,196 @@
                         Billing
                     </a>
                 </li>
+                <li>
+                    <a href="/settings/company" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="h-6 w-6"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"
+                            />
+                        </svg>
+
+                        Company
+                    </a>
+                </li>
             </ul>
         </nav>
     </aside>
     <main class="flex-auto px-4 sm:px-6 lg:px-0 lg:py-4">
+        {% if status_type %} {% if status_type == '3' %}
+        <div
+            id="bottom-right-message"
+            class="fixed bottom-4 right-4 flex items-center rounded-md border border-gray-300 bg-white p-4 shadow-md"
+            role="alert"
+        >
+            <div
+                class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-500 dark:bg-red-800 dark:text-red-200"
+            >
+                <svg
+                    class="h-5 w-5"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                >
+                    <path
+                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"
+                    />
+                </svg>
+                <span class="sr-only">Error icon</span>
+            </div>
+            <div class="ms-3 text-sm font-normal">{{ msg }}</div>
+            <button
+                type="button"
+                class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-white"
+                data-dismiss-target="#toast-danger"
+                aria-label="Close"
+            >
+                <span class="sr-only">Close</span>
+                <svg
+                    class="h-3 w-3"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                >
+                    <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    />
+                </svg>
+            </button>
+        </div>
+
+        {% endif %} {% if status_type == '2' %}
+
+        <div
+            id="bottom-right-message"
+            class="fixed bottom-4 right-4 flex items-center rounded-md border border-gray-300 bg-white p-4 shadow-md"
+            role="alert"
+        >
+            <div
+                class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-500 dark:bg-orange-700 dark:text-orange-200"
+            >
+                <svg
+                    class="h-5 w-5"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                >
+                    <path
+                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"
+                    />
+                </svg>
+                <span class="sr-only">Warning icon</span>
+            </div>
+            <div class="ms-3 text-sm font-normal">{{ msg }}</div>
+            <button
+                type="button"
+                class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-white"
+                data-dismiss-target="#toast-warning"
+                aria-label="Close"
+            >
+                <span class="sr-only">Close</span>
+                <svg
+                    class="h-3 w-3"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                >
+                    <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    />
+                </svg>
+            </button>
+        </div>
+
+        {% endif %} {% if status_type == '1' %}
+        <div
+            id="bottom-right-message"
+            class="fixed bottom-4 right-4 flex items-center rounded-md border border-gray-300 bg-white p-4 shadow-md"
+            role="alert"
+        >
+            <div
+                class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-500 dark:bg-green-800 dark:text-green-200"
+            >
+                <svg
+                    class="h-5 w-5"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                >
+                    <path
+                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"
+                    />
+                </svg>
+                <span class="sr-only">Check icon</span>
+            </div>
+            <div class="ms-3 text-sm font-normal">{{ msg }}</div>
+            <button
+                type="button"
+                class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-white"
+                data-dismiss-target="#toast-success"
+                aria-label="Close"
+            >
+                <span class="sr-only">Close</span>
+                <svg
+                    class="h-3 w-3"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                >
+                    <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    />
+                </svg>
+            </button>
+        </div>
+        {% endif %} {% endif %}
         <div class="acc acx">
             <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
                 <div>
                     <h2 class="font-medium leading-7">Personal Information</h2>
                     <p class="mt-1 leading-6 text-slate-700">Use a permanent address where you can receive mail.</p>
-                    {% if status_type %} {% if status_type == '3' %}
-                    <div class="rounded-xl text-red-500">{{ msg }}</div>
-                    {% endif %} {% if status_type == '2' %}
-                    <div class="rounded-xl text-orange-400">{{ msg }}</div>
-                    {% endif %} {% if status_type == '1' %}
-                    <div class="rounded-xl text-lime-500">{{ msg }}</div>
-                    {% endif %} {% endif %}
                 </div>
                 <form class="md:col-span-2" action="/settings/personal-info" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
                         <div class="col-span-full flex items-center gap-x-8">
-                            {% if not pfp_base64 %}
+                            {% if not user.user_info[0].picture_url %}
                             <img
+                                class="aspect-square h-6 w-6 rounded-full"
                                 src="../static/elements/default_pfp.svg"
                                 alt="Profile picture"
-                                class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
                             />
                             {% else %}
                             <img
-                                src="data:image/png;base64,{{ pfp_base64 }}"
+                                class="aspect-square h-8 w-8 rounded-full"
+                                src="{{ user.user_info[0].picture_url }}"
                                 alt="Profile picture"
-                                class="h-16 w-16 flex-none rounded-xl object-cover"
                             />
                             {% endif %}
                             <div>

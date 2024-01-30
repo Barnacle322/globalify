@@ -1,4 +1,4 @@
-{% extends "layouts/layout_app.html" %} {% block title %}User Profile{% endblock %} {% block head %} {{ super() }}
+{% extends "layouts/layout_app.html" %} {% block title %} User Profile {% endblock %} {% block head %} {{ super() }}
 <script src="../static/scripts/dashboard.js" defer></script>
 <link
     rel="stylesheet"
@@ -7,43 +7,75 @@
     crossorigin="anonymous"
 />
 {% endblock %} {% block content %}
-<div class="container mx-auto mt-24 p-8 bg-white shadow-lg rounded-lg">
-    <h1 class="text-3xl font-semibold mb-4">User Profile</h1>
+<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div class="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
+        <div class="flex items-center gap-3">
+            {% if user_info.pfp_uuid %}
+            <div class="relative w-32 h-32 overflow-hidden rounded-full">
+                <img
+                    src="{{ user_info.pfp_uuid }}"
+                    alt="Profile Photo"
+                    class="object-cover w-full h-full rounded-full"
+                />
+            </div>
+            {% else %}
+            <div class="rounded-full w-32 h-32 bg-gray-300 flex items-center justify-center text-gray-600">
+                No Photo
+            </div>
+            {% endif %}
 
-    {% if user_info.pfp_uuid %}
-    <img src="{{ user_info.pfp_uuid }}" alt="Profile Photo" class="rounded-full w-24 h-24 mr-4" />
-    {% else %}
-    <div class="rounded-full w-24 h-24 bg-gray-300 flex items-center justify-center text-gray-600">No Photo</div>
-    {% endif %}
-
-    <ul class="list-disc pl-4">
-        <li><strong>Email:</strong> {{ user.email }}</li>
-        <li><strong>Type:</strong> {{ user.type }}</li>
-        <li><strong>Is Verified:</strong> {{ user.is_verified }}</li>
-        <li><strong>Is Admin:</strong> {{ user.is_admin }}</li>
-        <li><strong>Username:</strong> {{ user_info.username }}</li>
-        <li><strong>First Name:</strong> {{ user_info.first_name }}</li>
-        <li><strong>Last Name:</strong> {{ user_info.last_name }}</li>
-
-        {% if user_info.linkedin_url %}
-        <li>
-            <strong>LinkedIn:</strong>
-            <a href="{{ user_info.linkedin_url }}" target="_blank">{{ user_info.linkedin_url }}</a>
-        </li>
-        {% endif %} {% if user_info.instagram_url %}
-        <li>
-            <strong>Instagram:</strong>
-            <a href="{{ user_info.instagram_url }}" target="_blank">{{ user_info.instagram_url }}</a>
-        </li>
-        {% endif %} {% if user_info.twitter_url %}
-        <li>
-            <strong>Twitter:</strong>
-            <a href="{{ user_info.twitter_url }}" target="_blank">{{ user_info.twitter_url }}</a>
-        </li>
-        {% endif %}
-    </ul>
-    <div class="bg-gray-100 p-4 rounded-md">
-        {{ user_info.bio }}
+            <div class="grid gap-0.5 text-lg">
+                <div class="font-medium">{{ user_info.first_name }} {{ user_info.last_name }}</div>
+                <div class="text-gray-500 dark:text-gray-400">@{{ user_info.username }}</div>
+                <div>
+                    <button class="mt-[8px] text-gray-500 bg-gray-200 rounded-xl px-3">
+                        <a href="/settings">Edit</a>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <p class="mt-4 text-gray-500 dark:text-gray-400">{{ user_info.bio }}</p>
+        <div class="mt-4 grid gap-4">
+            <div class="grid gap-1">
+                <h3 class="text-sm font-medium">Email</h3>
+                <p>{{ user.email }}</p>
+            </div>
+            {% if user_info.linkedin_url %}
+            <div class="grid gap-1">
+                <h3 class="text-sm font-medium">LinkedIn</h3>
+                <p>{{ user_info.linkedin_url }}</p>
+            </div>
+            {% else %}
+            <div class="grid gap-1">
+                <h3 class="text-sm font-medium">LinkedIn</h3>
+                <p>No Linkedin Profile</p>
+            </div>
+            {% endif %} {% if user_info.instagram_url %}
+            <div class="grid gap-1">
+                <h3 class="text-sm font-medium">Instagram</h3>
+                <p>{{ user_info.instagram_url }}</p>
+            </div>
+            {% else %}
+            <div class="grid gap-1">
+                <h3 class="text-sm font-medium">Instagram</h3>
+                <p>No Instagram Profile</p>
+            </div>
+            {% endif %} {% if user_info.twitter_url %}
+            <div class="grid gap-1">
+                <h3 class="text-sm font-medium">Twitter</h3>
+                <p>@{{ user_info.twitter_url }}</p>
+            </div>
+            {% else %}
+            <div class="grid gap-1">
+                <h3 class="text-sm font-medium">Twitter</h3>
+                <p>No Twitter Profile</p>
+            </div>
+            {% endif %}
+            <div class="grid gap-1">
+                <h3 class="text-sm font-medium">Language</h3>
+                <p>{{ user_info.language }}</p>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import random
+from itertools import islice
 
 from flask_sqlalchemy.pagination import Pagination
 from flask_sqlalchemy.query import Query
@@ -597,7 +598,7 @@ class Investor(db.Model):
     def populate_demo(file_name="investor.csv"):
         with open(file_name, newline="") as file:
             reader = csv.reader(file, delimiter=";")
-            for row in reader:
+            for row in islice(reader, 84, None):
                 check_size_string = row[8]
                 range_set = set()
                 for range_ in check_size_string.split(","):
@@ -650,7 +651,6 @@ class Investor(db.Model):
                     else:
                         ni = NotableInvestment(name=notable_investment)
                         db.session.add(ni)
-                        db.session.commit()
                         notable_investment_list.append(ni)
 
                 investor = Investor(
@@ -671,7 +671,7 @@ class Investor(db.Model):
                 )
                 db.session.add(investor)
                 print("Added investor:", investor)
-                db.session.commit()
+        db.session.commit()
 
     def calculate_score(self, company):
         try:

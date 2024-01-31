@@ -316,7 +316,6 @@
                                         name="number_of_employees"
                                         id="number_of_employees"
                                         autocomplete="number_of_employees"
-                                        required
                                         class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                         value="{{ company.number_of_employees }}"
                                         min="0"
@@ -387,7 +386,7 @@
                                     >
                                         {% for category, industry in industries.items() %}
                                         <optgroup label="{{ category }}">
-                                            {% for ind in industry %} {% if company.industry_id=="ind.id" %}
+                                            {% for ind in industry %} {% if company.industry_id==ind.id %}
                                             <option value="{{ ind.id }}" selected>{{ ind.name }}</option>
                                             {% else %}
                                             <option value="{{ ind.id }}">{{ ind.name }}</option>
@@ -397,19 +396,18 @@
                                     </select>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-span-full">
-                            <label for="website" class="input-label">Website</label>
-                            <div class="mt-2">
-                                <input
-                                    type="url"
-                                    name="website"
-                                    id="website"
-                                    autocomplete="website"
-                                    required
-                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                    value="{{ company.website if company.website else ''}}"
-                                />
+                            <div class="col-span-full">
+                                <label for="website" class="input-label">Website</label>
+                                <div class="mt-2">
+                                    <input
+                                        type="url"
+                                        name="website"
+                                        id="website"
+                                        autocomplete="website"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                        value="{{ company.website if company.website else ''}}"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -433,4 +431,3 @@
     </main>
 </div>
 {% endblock %}
-

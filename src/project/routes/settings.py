@@ -275,6 +275,7 @@ def company():
 
         preferred_round_id = request.form.get("round", type=int)
         industry_id = request.form.get("industry", type=int)
+        print(industry_id)
 
         if not industry_id:
             status = Status(StatusType.ERROR, "Industry ID is required.").get_status()

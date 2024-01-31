@@ -355,10 +355,11 @@
                 </div>
                 {% if investor.min_max_investment %}
                 <span class="text-sm text-slate-500">${{ investor.min_max_investment }}</span>
-                {% endif %}
+                {% endif %} {% if investor.location %}
                 <div>
                     <span class="line-clamp-2 text-sm text-slate-500">Location: {{ investor.location }}</span>
                 </div>
+                {% endif %}
                 <div class="flex gap-2">
                     <div class="flex flex-wrap gap-1">
                         {% for round in investor.rounds %}

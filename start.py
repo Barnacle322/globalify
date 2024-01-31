@@ -8,4 +8,3 @@ else:
     raise FileNotFoundError("There's no .env file in the root directory")
 
 os.system("flask run")
-

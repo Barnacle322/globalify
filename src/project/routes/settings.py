@@ -3,13 +3,9 @@ import re
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
-from src.project.models.helpers import Country, Industry, Round
-from src.project.models.user import Company
-
 from ..extensions import db
-from ..models import User, UserInfo, UserOauth, UserPayment, UserRegular
+from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
 from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
-from ..utils.google_storage import load_pfp, prepare_picture, upload_blob
 from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
@@ -56,11 +52,8 @@ def security():
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
     return render_template(
         "settings/security.html",
-        user=authenticated_user,
         status_type=status_type,
         msg=msg,
     )
@@ -83,7 +76,6 @@ def plan():
 
     return render_template(
         "settings/plan.html",
-        user=authenticated_user,
         subscription=subscription,
     )
 
@@ -280,6 +272,7 @@ def company():
 
         preferred_round_id = request.form.get("round", type=int)
         industry_id = request.form.get("industry", type=int)
+        print(industry_id)
 
         if not industry_id:
             status = Status(StatusType.ERROR, "Industry ID is required.").get_status()
@@ -306,15 +299,7 @@ def company():
         company.preferred_round_id = preferred_round_id
         company.industry_id = industry_id
         company.website = request.form.get("website", "")
-
-        if pfp := request.files["pfp"]:
-            try:
-                resized_pfp = prepare_picture(pfp)
-                pfp_uuid = upload_blob(resized_pfp.read())
-                company.pfp_uuid = str(pfp_uuid)
-            except Exception as e:
-                print(f"An error occurred: {e}")
-
+        company.coordinates = Country.get_by_id(country_id).name  # type: ignore
         db.session.commit()
 
         status = Status(StatusType.SUCCESS, "Company successfully changed.").get_status()
@@ -334,5 +319,4 @@ def company():
         company=company,
         status_type=status_type,
         msg=msg,
-        user=authenticated_user,
     )

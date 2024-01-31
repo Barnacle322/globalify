@@ -265,7 +265,6 @@ def onboarding():
         user_info.first_name = first_name
         user_info.last_name = last_name
         user_info.username = username
-
         try:
             user_info.linkedin = linkedin
             user_info.instagram = instagram
@@ -276,17 +275,21 @@ def onboarding():
 
         user_info.bio = request.form.get("about")
         user_info.language = request.form.get("language", "English")  # type: ignore
-
         user_info.is_complete = True
 
-        if picture := request.files["pfp"]:
+        if picture := request.files.get("pfp"):
             picture_url = upload_picture(picture)
             user_info.picture_url = picture_url
 
         db.session.commit()
         return redirect(url_for("auth.company_form"))
-
-    return render_template("auth/onboarding.html", languages=language_list, user_info=user_info.sanitize(), status_type=status_type, msg=msg)
+    return render_template(
+        "auth/onboarding.html",
+        languages=language_list,
+        user_info=user_info.sanitize(),
+        status_type=status_type,
+        msg=msg,
+    )
 
 
 @auth.get("/username/<username>")
@@ -344,17 +347,19 @@ def company_form():
     countries = Country.get_all()
 
     if request.method == "POST":
+        country_id = request.form.get("country", type=int)
         company = Company(
             user_id=authenticated_user.id,
             name=request.form.get("company_name"),
             description=request.form.get("about"),
-            country_id=request.form.get("country"),
+            country_id=country_id,
             preferred_round_id=request.form.get("round"),
             industry_id=request.form.get("industry"),
             website=request.form.get("website"),
+            coordinates=Country.get_by_id(country_id).name,  # type: ignore
         )
 
-        if picture := request.files["pfp"]:
+        if picture := request.files.get("pfp"):
             picture_url = upload_picture(picture)
             company.picture_url = picture_url
 

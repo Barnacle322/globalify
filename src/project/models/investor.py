@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import csv
 import random
+from itertools import islice
 
 from flask_sqlalchemy.pagination import Pagination
 from flask_sqlalchemy.query import Query
+from geopy.distance import geodesic
 from sqlalchemy import Column, ForeignKey, Integer, String, and_, desc, or_
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -14,13 +16,14 @@ from ..extensions import db
 from ..utils.fake_data import (
     get_abouts,
     get_companies,
+    get_countrys,
     get_emails,
     get_job_positions,
     get_last_names,
-    get_locations,
     get_names,
     get_websites,
 )
+from ..utils.suggestion import geocode_location, weights
 from .helpers import Industry, Round
 
 
@@ -422,6 +425,8 @@ class Investor(db.Model):
     min_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     location: Mapped[str] = mapped_column(String, nullable=True)
+    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
+    bias: Mapped[int] = mapped_column(Integer, nullable=True)
 
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
@@ -436,6 +441,14 @@ class Investor(db.Model):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
+
+    @property
+    def coordinates(self):
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, coordinates: str) -> None:
+        self._coordinates = geocode_location(coordinates)  # type: ignore
 
     @property
     def min_max_investment(self):
@@ -468,6 +481,7 @@ class Investor(db.Model):
         sort_field: str | None = None,
         descending: bool = False,
         search_fields: tuple[str, ...] = ("first_name", "last_name", "firm_name", "position", "about"),
+        # company: Company | None = None,
     ) -> Pagination | list[None]:
         """
         Get a paginated list of investors based on the provided filters.
@@ -505,7 +519,6 @@ class Investor(db.Model):
             investors = combined_query.paginate(page=page, per_page=per_page, error_out=error_out)
             if investors.pages < page:
                 investors = combined_query.paginate(page=investors.pages, per_page=per_page, error_out=error_out)
-
             return investors
         except Exception:
             return []
@@ -527,7 +540,7 @@ class Investor(db.Model):
             return None
 
     @staticmethod
-    def populate():
+    def populate() -> None:
         """
         Populate the database with dummy investor data.
 
@@ -541,19 +554,18 @@ class Investor(db.Model):
         emails = get_emails(50)
         websites = get_websites(50)
         job_positions = get_job_positions(50)
-        locations = get_locations(50)
+        locations = get_countrys(50)
         companies = get_companies(50)
         for i in range(1, 50):
             num_rounds = random.randint(1, 5)
             rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
+            num_industries = random.randint(1, 6)
+            industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
             notable_investments = [
                 NotableInvestment.get_by_id(random.randint(1, len(NotableInvestment.get_all())))
                 for _ in range(random.randint(1, 10))
             ]
-            num_industries = random.randint(1, 6)
-            industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
             min_investment = random.randrange(100000, 50000001, 100000)
-            max_investment = random.randrange(min_investment, 50000001, 100000)
             investor_list.append(
                 Investor(
                     first_name=f"{firstnames[i]}",
@@ -566,13 +578,14 @@ class Investor(db.Model):
                     twitter=f"https://twitter.com/{firstnames[i]}{lastnames[i]}",
                     email=f"{str(i) + emails[i]}",
                     phone_number=f"+1{random.randrange(1000000000, 9999999999)}",
-                    n_investments=random.randint(1, 100),
+                    n_investments=random.randint(100, 200),
                     n_exits=random.randint(1, 100),
-                    location=f"{locations[i]}",
+                    location=locations[i],
+                    coordinates=locations[i],
                     rounds=list(set(rounds)),
                     industries=list(set(industries)),
                     min_investment=min_investment,
-                    max_investment=max_investment,
+                    max_investment=random.randrange(min_investment, 50000001, 100000),
                     notable_investments=list(set(notable_investments)),
                 )
             )
@@ -585,7 +598,7 @@ class Investor(db.Model):
     def populate_demo(file_name="investor.csv"):
         with open(file_name, newline="") as file:
             reader = csv.reader(file, delimiter=";")
-            for row in reader:
+            for row in islice(reader, 84, None):
                 check_size_string = row[8]
                 range_set = set()
                 for range_ in check_size_string.split(","):
@@ -638,7 +651,6 @@ class Investor(db.Model):
                     else:
                         ni = NotableInvestment(name=notable_investment)
                         db.session.add(ni)
-                        db.session.commit()
                         notable_investment_list.append(ni)
 
                 investor = Investor(
@@ -655,10 +667,57 @@ class Investor(db.Model):
                     max_investment=max_investment,
                     rounds=list(set(round_list)),
                     notable_investments=notable_investment_list,
+                    coordinates=row[4],
                 )
                 db.session.add(investor)
                 print("Added investor:", investor)
-                db.session.commit()
+        db.session.commit()
+
+    def calculate_score(self, company):
+        try:
+            if self.bias:
+                bias_score = (self.bias / 100) if self.bias else 0
+            else:
+                bias_score = 0
+
+            if company.industry in self.industries and len(self.industries) == 1:
+                industry_score = 1
+            elif company.industry in self.industries:
+                industry_score = 0.8
+            else:
+                industry_score = 0
+
+            if company.preferred_round in self.rounds and len(self.rounds) == 1:
+                round_score = 1
+            elif company.preferred_round in self.rounds:
+                round_score = 0.8
+            else:
+                round_score = 0
+
+            if company.coordinates and self.coordinates:
+                distance = float(geodesic(company.coordinates, self.coordinates).kilometers)
+                location_score = 1 - (distance / 20000) if (distance / 20000) < 1 else 0
+            else:
+                location_score = 0
+
+            if self.n_investments:
+                successful_exits = 1 if (self.n_exits / self.n_investments) >= 0.5 else 0
+            else:
+                successful_exits = 0
+
+            total_score = (
+                weights["industry"] * industry_score
+                + weights["round"] * round_score
+                + weights["bias"] * bias_score
+                + weights["location"] * location_score
+                + weights["exits"] * successful_exits
+            )
+
+        except (AttributeError, TypeError, ZeroDivisionError) as e:
+            print(f"An error occurred while calculating the score: {e}")
+            total_score = 0
+
+        return total_score
 
 
 class InvestmentFirm(db.Model):
@@ -825,27 +884,27 @@ class InvestmentFirm(db.Model):
             db.session.rollback()
 
 
-# @event.listens_for(Investor.__table__, "after_create")  # type: ignore
-# def populate_investor(*args, **kwargs):
-#     """
-#     Event listener function that populates the investor table with random data after it is created.
+# # @event.listens_for(Investor.__table__, "after_create")  # type: ignore
+# # def populate_investor(*args, **kwargs):
+# #     """
+# #     Event listener function that populates the investor table with random data after it is created.
 
-#     Args:
-#         *args: Variable length argument list.
-#         **kwargs: Arbitrary keyword arguments.
+# #     Args:
+# #         *args: Variable length argument list.
+# #         **kwargs: Arbitrary keyword arguments.
 
-#     """
-#     Investor.populate()
+# #     """
+# #     Investor.populate()
 
 
-# @event.listens_for(InvestmentFirm.__table__, "after_create")  # type: ignore
-# def populate_firms(*args, **kwargs):
-#     """
-#     Event listener function that populates the investment firms table with random data after it is created.
+# # @event.listens_for(InvestmentFirm.__table__, "after_create")  # type: ignore
+# # def populate_firms(*args, **kwargs):
+# #     """
+# #     Event listener function that populates the investment firms table with random data after it is created.
 
-#     Args:
-#         *args: Variable length argument list.
-#         **kwargs: Arbitrary keyword arguments.
+# #     Args:
+# #         *args: Variable length argument list.
+# #         **kwargs: Arbitrary keyword arguments.
 
-#     """
-#     InvestmentFirm.populate()
+# #     """
+# #     InvestmentFirm.populate()

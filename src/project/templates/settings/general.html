@@ -267,16 +267,16 @@
                 <form class="md:col-span-2" action="/settings/personal-info" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
-                        <div class="col-span-full flex items-center gap-x-8">
+                        <div class="col-span-full flex items-start gap-x-8">
                             {% if not user.user_info[0].picture_url %}
                             <img
-                                class="aspect-square h-6 w-6 rounded-full"
-                                src="../static/elements/default_pfp.svg"
+                                class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
+                                src="/static/elements/default_pfp.svg"
                                 alt="Profile picture"
                             />
                             {% else %}
                             <img
-                                class="aspect-square h-8 w-8 rounded-full"
+                                class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
                                 src="{{ user.user_info[0].picture_url }}"
                                 alt="Profile picture"
                             />

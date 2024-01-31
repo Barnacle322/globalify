@@ -15,6 +15,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..extensions import db
 from ..utils.status_enum import OauthProvider, Tier
+from ..utils.suggestion import geocode_location
 from .helpers import Country, Industry, Round
 
 
@@ -470,6 +471,7 @@ class Company(db.Model):
 
     user: Mapped[User] = relationship(User, backref=backref("company", passive_deletes=True), lazy=True)
     country: Mapped[Country] = relationship()
+    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
     preferred_round: Mapped[Round] = relationship()
     industry: Mapped[Industry] = relationship()
 
@@ -478,6 +480,14 @@ class Company(db.Model):
 
     def __repr__(self):
         return f"<Company {self.name}>"
+
+    @property
+    def coordinates(self):
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, coordinates: str) -> None:
+        self._coordinates = geocode_location(coordinates)  # type: ignore
 
     @staticmethod
     def get_by_id(id: int) -> Company | None:

@@ -2,7 +2,7 @@ import pytest
 from flask_sqlalchemy.pagination import Pagination
 
 from ...project import db
-from ...project.models import Industry, Investor, Round
+from ...project.models import Industry, Investor, NotableInvestment, Round
 
 
 @pytest.fixture()
@@ -92,7 +92,13 @@ def populate_investor(app):
         Investor.populate()
 
 
-def test_pagination(populate_investor, app):
+@pytest.fixture()
+def populate_notable_investment(app):
+    with app.app_context():
+        NotableInvestment.populate()
+
+
+def test_pagination(populate_notable_investment, populate_investor, app):
     with app.app_context():
         page_size = 10
         page_number = 1
@@ -236,7 +242,7 @@ def test_filter_by_industries_with_or_operator(app, new_investors_with_industrie
         "position",
     ],
 )
-def test_apply_sorting_by_field(populate_investor, app, sort_field):
+def test_apply_sorting_by_field(populate_notable_investment, populate_investor, app, sort_field):
     with app.app_context():
         paginated_investors_1 = Investor.get_pagination(sort_field=sort_field, descending=False)
         paginated_investors_2 = Investor.get_pagination(sort_field=sort_field, descending=True)
@@ -258,7 +264,7 @@ def test_apply_sorting_by_field(populate_investor, app, sort_field):
             assert current_value >= next_value
 
 
-def test_sorting_by_nonexistent_field(populate_investor, app):
+def test_sorting_by_nonexistent_field(populate_notable_investment, populate_investor, app):
     with app.app_context():
         page_size = 10
         nonexistent_field = "nonexistent_field"
@@ -273,14 +279,14 @@ def test_sorting_by_nonexistent_field(populate_investor, app):
 # failing tests
 
 
-def test_filtering_wrong_query_name(populate_investor, app):
+def test_filtering_wrong_query_name(populate_notable_investment, populate_investor, app):
     with app.app_context():
         filtered_items = Investor.get_pagination(search_string="NonExistentName", filter_fields=["first_name"])
         assert isinstance(filtered_items, Pagination)
         assert len(filtered_items.items) == 0
 
 
-def test_filtering_wrong_filter_field(populate_investor, app):
+def test_filtering_wrong_filter_field(populate_notable_investment, populate_investor, app):
     with app.app_context():
         page_size = 10
         filtered_items = Investor.get_pagination(search_string="Jane", filter_fields=["nonexistent_field"])
@@ -297,7 +303,7 @@ def test_filtering_invalid_query_and_field_combination(new_investor, app):
         assert len(filtered_items.items) == 0
 
 
-def test_filtering_for_invalid_query_and_field(populate_investor, app):
+def test_filtering_for_invalid_query_and_field(populate_notable_investment, populate_investor, app):
     with app.app_context():
         page_size = 10
         filtered_items = Investor.get_pagination(search_string="NonExistentName", filter_fields=["nonexistent_field"])
@@ -306,7 +312,7 @@ def test_filtering_for_invalid_query_and_field(populate_investor, app):
         assert len(filtered_items.items) == page_size
 
 
-def test_filter_by_empty_rounds_list(app, populate_investor):
+def test_filter_by_empty_rounds_list(app, populate_notable_investment, populate_investor):
     with app.app_context():
         page_size = 10
         filtered_items = Investor.get_pagination(rounds=[], rounds_exclusive=True)
@@ -314,7 +320,7 @@ def test_filter_by_empty_rounds_list(app, populate_investor):
         assert len(filtered_items.items) == page_size
 
 
-def test_filter_by_nonexistent_round(app, populate_investor):
+def test_filter_by_nonexistent_round(app, populate_notable_investment, populate_investor):
     with app.app_context():
         non_existing_round = Round(id=100, name="NonExistingRound")
         filtered_items = Investor.get_pagination(rounds=[non_existing_round], rounds_exclusive=True)
@@ -322,7 +328,7 @@ def test_filter_by_nonexistent_round(app, populate_investor):
         assert len(filtered_items.items) == 0
 
 
-def test_filter_by_empty_industries_list(app, populate_investor):
+def test_filter_by_empty_industries_list(app, populate_notable_investment, populate_investor):
     with app.app_context():
         page_size = 10
         filtered_items = Investor.get_pagination(industries=[], industries_exclusive=True)
@@ -330,7 +336,7 @@ def test_filter_by_empty_industries_list(app, populate_investor):
         assert len(filtered_items.items) == page_size
 
 
-def test_filter_by_nonexistent_industry(app, populate_investor):
+def test_filter_by_nonexistent_industry(app, populate_notable_investment, populate_investor):
     with app.app_context():
         non_existing_industry = Industry(id=100, name="NonExistingIndustry")
         filtered_items = Investor.get_pagination(industries=[non_existing_industry], industries_exclusive=True)

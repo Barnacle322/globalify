@@ -1,10 +1,8 @@
 import pytest
 from flask_sqlalchemy.pagination import Pagination
 
-from src.project.models.investor import NotableInvestment
-
 from ...project import db
-from ...project.models import Industry, Investor, Round
+from ...project.models import Industry, Investor, NotableInvestment, Round
 
 
 @pytest.fixture()

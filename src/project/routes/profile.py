@@ -1,9 +1,7 @@
 from flask import Blueprint, abort, redirect, render_template, url_for
 from flask_login import current_user
 
-from src.project.models.user import Company
-
-from ..models import User, UserInfo
+from ..models import Company, User, UserInfo
 
 profile = Blueprint("profile", __name__)
 

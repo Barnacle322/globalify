@@ -3,11 +3,8 @@ import re
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
-from src.project.models.helpers import Country, Industry, Round
-from src.project.models.user import Company
-
 from ..extensions import db
-from ..models import User, UserInfo, UserOauth, UserPayment, UserRegular
+from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
 from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
 from ..utils.info_lists import languages as language_list
 from ..utils.status_enum import Status, StatusType, Tier

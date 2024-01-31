@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import random
+from collections.abc import Sequence
 from itertools import islice
 
 from flask_sqlalchemy.pagination import Pagination
@@ -9,7 +10,7 @@ from flask_sqlalchemy.query import Query
 from geopy.distance import geodesic
 from sqlalchemy import Column, ForeignKey, Integer, String, and_, desc, or_
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
 from thefuzz import fuzz
 
 from ..extensions import db
@@ -456,10 +457,20 @@ class Investor(db.Model):
             return None
         return f"{self.min_investment:,} - {self.max_investment:,}"
 
+    # @staticmethod
+    # def get_all() -> list[Investor]:
+    #     try:
+    #         investors: list[Investor] = Investor.query.all()
+    #         return investors
+    #     except NoResultFound:
+    #         return []
+
     @staticmethod
-    def get_all() -> list[Investor]:
+    def get_all() -> Sequence[Investor]:
         try:
-            investors: list[Investor] = Investor.query.all()
+            investors = (
+                db.session.query(Investor).options(joinedload(Investor.rounds), joinedload(Investor.industries)).all()
+            )
             return investors
         except NoResultFound:
             return []

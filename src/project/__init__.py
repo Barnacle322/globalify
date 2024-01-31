@@ -32,6 +32,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
         app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
         app.config["SQLALCHEMY_RECORD_QUERIES"] = True
         app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+        # app.config["DEBUG_TB_PROFILER_ENABLED"] = True
         toolbar.init_app(app)
     else:
         # Reverse proxy support

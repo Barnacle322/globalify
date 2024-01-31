@@ -457,14 +457,6 @@ class Investor(db.Model):
             return None
         return f"{self.min_investment:,} - {self.max_investment:,}"
 
-    # @staticmethod
-    # def get_all() -> list[Investor]:
-    #     try:
-    #         investors: list[Investor] = Investor.query.all()
-    #         return investors
-    #     except NoResultFound:
-    #         return []
-
     @staticmethod
     def get_all() -> Sequence[Investor]:
         try:
@@ -519,7 +511,7 @@ class Investor(db.Model):
         """
         try:
             combined_query = (
-                QueryBuilder(Investor.query, cls)
+                QueryBuilder(Investor.query.options(joinedload(Investor.rounds), joinedload(Investor.industries)), cls)
                 .apply_search_filters(search_string, filter_fields, search_fields)
                 .apply_sorting(sort_field, descending)
                 .filter_by_rounds(rounds, rounds_exclusive)
@@ -774,9 +766,13 @@ class InvestmentFirm(db.Model):
         return f"<InvestmentFirm {self.name}>"
 
     @staticmethod
-    def get_all() -> list[InvestmentFirm]:
+    def get_all() -> Sequence[InvestmentFirm]:
         try:
-            firms: list[InvestmentFirm] = InvestmentFirm.query.all()
+            firms = (
+                db.session.query(InvestmentFirm)
+                .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
+                .all()
+            )
             return firms
         except NoResultFound:
             return []
@@ -823,7 +819,9 @@ class InvestmentFirm(db.Model):
         """
         try:
             combined_query = (
-                QueryBuilder(InvestmentFirm.query, cls)
+                QueryBuilder(
+                    InvestmentFirm.query.options(joinedload(Investor.rounds), joinedload(Investor.industries)), cls
+                )
                 .apply_search_filters(search_string, filter_fields, search_fields)
                 .apply_sorting(sort_field, descending)
                 .filter_by_rounds(rounds, rounds_exclusive)
@@ -893,29 +891,3 @@ class InvestmentFirm(db.Model):
             db.session.commit()
         except Exception:
             db.session.rollback()
-
-
-# # @event.listens_for(Investor.__table__, "after_create")  # type: ignore
-# # def populate_investor(*args, **kwargs):
-# #     """
-# #     Event listener function that populates the investor table with random data after it is created.
-
-# #     Args:
-# #         *args: Variable length argument list.
-# #         **kwargs: Arbitrary keyword arguments.
-
-# #     """
-# #     Investor.populate()
-
-
-# # @event.listens_for(InvestmentFirm.__table__, "after_create")  # type: ignore
-# # def populate_firms(*args, **kwargs):
-# #     """
-# #     Event listener function that populates the investment firms table with random data after it is created.
-
-# #     Args:
-# #         *args: Variable length argument list.
-# #         **kwargs: Arbitrary keyword arguments.
-
-# #     """
-# #     InvestmentFirm.populate()

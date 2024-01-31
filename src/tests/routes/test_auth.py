@@ -1,5 +1,3 @@
-from io import BytesIO
-import tempfile
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -207,7 +205,6 @@ def test_onboarding_post_valid_data(client, new_user, app):
             "last_name": "Doe",
             "username": "johndoe",
             "language": "English",
-            "picture_url": (BytesIO(b"my test file contents"), "test.jpg"),
         },
         follow_redirects=True,
     )
@@ -225,7 +222,6 @@ def test_onboarding_post_invalid_url_data(client, new_user):
         "last_name": "Doe",
         "username": "johndoe",
         "language": "English",
-        "pfp": (BytesIO(b"my test file contents"), "test.jpg"),
         "linkedin": "invalid_linkedin",
         "instagram": "invalid_instagram",
         "twitter": "invalid_twitter",
@@ -283,7 +279,6 @@ def test_onboarding_incomplete(client, new_user):
             "last_name": "",
             "username": "",
             "language": "English",
-            "pfp": (BytesIO(b"my test file contents"), "test.jpg"),
         },
         follow_redirects=True,
     )
@@ -300,7 +295,6 @@ def test_nickname_taken(client, user_with_nickname, user_without_nickname, app):
             "last_name": "new",
             "username": "takenusername",
             "language": "English",
-            "pfp": (BytesIO(b"my test file contents"), "test.jpg"),
         },
         follow_redirects=True,
     )
@@ -373,16 +367,13 @@ def user_with_complete_user_info(app):
         return user
 
 
-
-
-
 def test_company_form_authenticated_post(client, user_with_complete_user_info, app):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
         "/company-form",
         data={
-            "company-name": "Test Company",
+            "company_name": "Test Company",
             "description": "Test description",
             "country": 1,
             "round": 1,

@@ -265,7 +265,6 @@ def onboarding():
         user_info.first_name = first_name
         user_info.last_name = last_name
         user_info.username = username
-
         try:
             user_info.linkedin = linkedin
             user_info.instagram = instagram
@@ -276,16 +275,14 @@ def onboarding():
 
         user_info.bio = request.form.get("about")
         user_info.language = request.form.get("language", "English")  # type: ignore
-
         user_info.is_complete = True
 
-        if picture := request.files["pfp"]:
+        if picture := request.files.get("pfp"):
             picture_url = upload_picture(picture)
             user_info.picture_url = picture_url
 
         db.session.commit()
         return redirect(url_for("auth.company_form"))
-
     return render_template(
         "auth/onboarding.html",
         languages=language_list,
@@ -362,7 +359,7 @@ def company_form():
             coordinates=Country.get_by_id(country_id).name,  # type: ignore
         )
 
-        if picture := request.files["pfp"]:
+        if picture := request.files.get("pfp"):
             picture_url = upload_picture(picture)
             company.picture_url = picture_url
 

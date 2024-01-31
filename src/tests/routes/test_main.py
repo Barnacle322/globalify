@@ -301,7 +301,7 @@ def test_dashboard_authenticated_get(client, new_user):
 def test_dashboard_query_search(client, new_user, investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard?search=Julie")
-    print(response.data)
+
     assert response.status_code == 200
     assert b"Julie" in response.data
     assert b"Doe" in response.data

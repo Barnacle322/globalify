@@ -24,7 +24,7 @@ from ..utils.fake_data import (
     get_names,
     get_websites,
 )
-from ..utils.suggestion import geocode_location, weights
+from ..utils.suggestion import geocode_location
 from .helpers import Industry, Round
 
 
@@ -676,51 +676,110 @@ class Investor(db.Model):
                 print("Added investor:", investor)
         db.session.commit()
 
-    def calculate_score(self, company):
+    # def calculate_score(self, company):
+    #     try:
+    #         if self.bias:
+    #             bias_score = (self.bias / 100) if self.bias else 0
+    #         else:
+    #             bias_score = 0
+
+    #         if company.industry in self.industries and len(self.industries) == 1:
+    #             industry_score = 1
+    #         elif company.industry in self.industries:
+    #             industry_score = 0.8
+    #         else:
+    #             industry_score = 0
+
+    #         if company.preferred_round in self.rounds and len(self.rounds) == 1:
+    #             round_score = 1
+    #         elif company.preferred_round in self.rounds:
+    #             round_score = 0.8
+    #         else:
+    #             round_score = 0
+
+    #         if company.coordinates and self.coordinates:
+    #             distance = float(geodesic(company.coordinates, self.coordinates).kilometers)
+    #             location_score = 1 - (distance / 20000) if (distance / 20000) < 1 else 0
+    #         else:
+    #             location_score = 0
+
+    #         if self.n_investments:
+    #             successful_exits = 1 if (self.n_exits / self.n_investments) >= 0.5 else 0
+    #         else:
+    #             successful_exits = 0
+
+    #         total_score = (
+    #             weights["industry"] * industry_score
+    #             + weights["round"] * round_score
+    #             + weights["bias"] * bias_score
+    #             + weights["location"] * location_score
+    #             + weights["exits"] * successful_exits
+    #         )
+
+    #     except (AttributeError, TypeError, ZeroDivisionError) as e:
+    #         print(f"An error occurred while calculating the score: {e}")
+    #         total_score = 0
+
+    #     return total_score
+
+    def calculate_bias_score(self):
         try:
-            if self.bias:
-                bias_score = (self.bias / 100) if self.bias else 0
-            else:
-                bias_score = 0
+            bias_score = (self.bias / 100) if self.bias else 0
+        except (AttributeError, TypeError, ZeroDivisionError) as e:
+            print(f"An error occurred while calculating the score: {e}")
+            bias_score = 0
+        return bias_score
 
-            if company.industry in self.industries and len(self.industries) == 1:
-                industry_score = 1
-            elif company.industry in self.industries:
-                industry_score = 0.8
-            else:
-                industry_score = 0
-
-            if company.preferred_round in self.rounds and len(self.rounds) == 1:
-                round_score = 1
-            elif company.preferred_round in self.rounds:
-                round_score = 0.8
-            else:
-                round_score = 0
-
+    def calculate_location_score(self, company):
+        try:
             if company.coordinates and self.coordinates:
                 distance = float(geodesic(company.coordinates, self.coordinates).kilometers)
                 location_score = 1 - (distance / 20000) if (distance / 20000) < 1 else 0
             else:
                 location_score = 0
+        except (AttributeError, TypeError, ZeroDivisionError) as e:
+            print(f"An error occurred while calculating the score: {e}")
+            location_score = 0
+        return location_score
 
+    def calculate_exits_score(self):
+        try:
             if self.n_investments:
                 successful_exits = 1 if (self.n_exits / self.n_investments) >= 0.5 else 0
             else:
                 successful_exits = 0
-
-            total_score = (
-                weights["industry"] * industry_score
-                + weights["round"] * round_score
-                + weights["bias"] * bias_score
-                + weights["location"] * location_score
-                + weights["exits"] * successful_exits
-            )
-
         except (AttributeError, TypeError, ZeroDivisionError) as e:
             print(f"An error occurred while calculating the score: {e}")
-            total_score = 0
+            successful_exits = 0
+        return successful_exits
 
-        return total_score
+    def calculate_industry_score(self, company):
+        if company.industry in self.industries and len(self.industries) == 1:
+            industry_score = 1
+        elif company.industry in self.industries:
+            industry_score = 0.8
+        else:
+            industry_score = 0
+        return industry_score
+
+    def calculate_round_score(self, company):
+        if company.preferred_round in self.rounds and len(self.rounds) == 1:
+            round_score = 1
+        elif company.preferred_round in self.rounds:
+            round_score = 0.8
+        else:
+            round_score = 0
+        return round_score
+
+    def calculate_completeness_score(self):
+        attributes_dict = vars(self)
+        completeness_score = 1
+        for value in attributes_dict.values():
+            if not value:
+                completeness_score -= 0.1
+        if completeness_score < 0:
+            completeness_score = 0
+        return completeness_score
 
 
 class InvestmentFirm(db.Model):

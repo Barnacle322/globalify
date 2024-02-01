@@ -21,7 +21,7 @@ from ..models import Company, Industry, InvestmentFirm, Investor, Round, Waitlis
 from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
 from ..utils.status_enum import Status, StatusType
-from ..utils.suggestion import pass_score
+from ..utils.suggestion import pass_score, weights
 
 main = Blueprint("main", __name__)
 
@@ -249,7 +249,25 @@ def get_suggestions():
 
     investors = Investor.get_all()
 
-    scored_investors = [(investor, investor.calculate_score(company)) for investor in investors]
+    scored_investors = []
+
+    for investor in investors:
+        bias_score = investor.calculate_bias_score()
+        location_score = investor.calculate_location_score(company)
+        exits_score = investor.calculate_exits_score()
+        industry_score = investor.calculate_industry_score(company)
+        round_score = investor.calculate_round_score(company)
+        completeness_score = investor.calculate_completeness_score()
+
+        total_score = (
+            weights["bias"] * bias_score
+            + weights["location"] * location_score
+            + weights["exits"] * exits_score
+            + weights["industry"] * industry_score
+            + weights["round"] * round_score
+            + weights["completeness"] * completeness_score
+        )
+        scored_investors.append((investor, total_score))
 
     suggested_investors = sorted(
         (investor for investor in scored_investors if investor[1] >= pass_score),

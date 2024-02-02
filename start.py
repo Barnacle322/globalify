@@ -7,4 +7,5 @@ if os.path.exists(".env"):
 else:
     raise FileNotFoundError("There's no .env file in the root directory")
 
-os.system("flask run")
+os.system("pytest src/tests/routes/test_settings.py::test_change_company_empty_country")
+# os.system("flask run")

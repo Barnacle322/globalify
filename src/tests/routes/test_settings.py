@@ -6,7 +6,7 @@ from flask import url_for
 from src.project import db
 from src.project.extensions import oauth
 from src.project.models import UserInfo, UserOauth, UserPayment, UserRegular
-from src.project.models.user import User
+from src.project.models.user import Company, User
 from src.project.utils.status_enum import OauthProvider
 
 
@@ -78,6 +78,40 @@ def new_user_oauth(app):
             user=user,
         )
         db.session.add(user_info)
+        db.session.commit()
+        return user
+
+
+@pytest.fixture()
+def new_user_with_company(app):
+    with app.app_context():
+        user = UserRegular(
+            email="margarita@example.com",
+            is_verified=True,
+            password="password",
+        )
+        db.session.add(user)
+        db.session.commit()
+        user_info = UserInfo(
+            first_name="John",
+            last_name="Doe",
+            username="johndoe",
+            is_complete=True,
+            user=user,
+        )
+        db.session.add(user_info)
+        db.session.commit()
+        company = Company(
+            name="Test Company",
+            description="Test description",
+            number_of_employees=10,
+            website="https://www.example.com",
+            country_id=1,
+            preferred_round_id=1,
+            industry_id=1,
+            user=user,
+        )
+        db.session.add(company)
         db.session.commit()
         return user
 
@@ -498,3 +532,106 @@ def test_delete_account(client, new_user, app):
         assert b"100 Early Access spots!" in response.data
 
         assert User.get_by_email("johndoe@example.com") is None
+
+
+def test_settings_company_anonymous_get(client):
+    response = client.get("/settings/company", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Welcome back!" in response.data
+    assert b"Sign in" in response.data
+    assert b"Oops! Looks like you aren&#39;t logged in" in response.data
+
+
+def test_settings_company_authenticated_get(client, new_user_with_company):
+    client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+    response = client.get("/settings/company")
+    assert response.status_code == 200
+    assert b"Company Information" in response.data
+    assert b"Update your company information here." in response.data
+
+
+def test_settings_company_authenticated_without_company_get(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/settings/company")
+    assert response.status_code == 404
+
+
+def test_change_company_empty_name(client, new_user_with_company, app):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+        response = client.post(
+            url_for("settings.change_company_info"),
+            data={
+                "company-name": " ",
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Company name cannot be empty." in response.data
+
+
+def test_change_company_empty_industry_and_round(client, new_user_with_company, app):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+        response = client.post(
+            url_for("settings.change_company_info"),
+            data={
+                "industry": None,
+                "round": None,
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Please select rounds and industries." in response.data
+
+
+def test_change_company_empty_country(client, new_user_with_company, app):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+        response = client.post(
+            url_for("settings.change_company_info"),
+            data={
+                "industry": 1,
+                "round": 1,
+                "country": None,
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Country ID is required." in response.data
+
+
+def test_change_company_valid_data(client, new_user_with_company, app):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+        response = client.post(
+            url_for("settings.change_company_info"),
+            data={
+                "company-name": "Globalify",
+                "description": "Very good company",
+                "number-of-employees": "100",
+                "industry": 2,
+                "round": 2,
+                "country": 3,
+                "website": "https://www.globalify.com",
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Company successfully changed." in response.data

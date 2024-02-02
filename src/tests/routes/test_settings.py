@@ -624,7 +624,7 @@ def test_change_company_valid_data(client, new_user_with_company, app):
             data={
                 "company-name": "Globalify",
                 "description": "Very good company",
-                "number-of-employees": "100",
+                "number_of_employees": 100,
                 "industry": 2,
                 "round": 2,
                 "country": 3,
@@ -635,3 +635,15 @@ def test_change_company_valid_data(client, new_user_with_company, app):
 
         assert response.status_code == 200
         assert b"Company successfully changed." in response.data
+
+        company = Company.get_by_user_id(1)
+
+        assert company
+
+        assert company.name == "Globalify"
+        assert company.description == "Very good company"
+        assert company.number_of_employees == 100
+        assert company.website == "https://www.globalify.com"
+        assert company.country_id == 3
+        assert company.preferred_round_id == 2
+        assert company.industry_id == 2

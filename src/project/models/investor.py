@@ -696,9 +696,15 @@ class Investor(db.Model):
                 for industry in industries:
                     if "—" in industry:
                         industry = industry.split(" — ")[1]
-                    if "(" in industry:
-                        industry = industry.split("(")[1]
-                    industry = industry.replace(")", "").strip()
+                    industry = (
+                        industry.replace(")", "")
+                        .replace("(", "")
+                        .replace(" Commerce", " ")
+                        .replace("Smart Tech", " ")
+                        .replace("Money Tech", "")
+                        .replace("Health Tech", "")
+                        .strip()
+                    )
                     for i in Industry.get_industry_list():
                         if i and fuzz.ratio(industry, i.name) > 80:
                             industry = i

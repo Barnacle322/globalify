@@ -44,6 +44,12 @@ technology_innovation = [
     "Security",
     "Semiconductors",
     "Web3",
+    "Robotics/Drones/Autonomous Systems",
+    "AI/ML",
+    "Smart City",
+    "5G & Telecommunications",
+    "Web3 & Blockchain",
+    "Cloud",
 ]
 
 business_commerce = [
@@ -62,6 +68,10 @@ business_commerce = [
     "Payments",
     "Retail",
     "SMB Software",
+    "Retail Tech",
+    "MarketingTech",
+    "B2C",
+    "Enterprise Software",
 ]
 
 healthcare_wellness = [
@@ -73,17 +83,53 @@ healthcare_wellness = [
     "Medical Devices",
     "Pharmaceuticals",
     "Wellness & Fitness",
+    "Health & Medical Devices",
+    "Mental Health",
+    "Health IT",
+    "Beauty & wellness",
+    "Beauty",
+    "Biotech & Genetech",
+    "MedTech & Healthcare",
 ]
 
-agriculture_food = ["AgTech", "Food & Agriculture", "Food and Beverage"]
+agriculture_food = [
+    "AgTech",
+    "Food & Agriculture",
+    "Food and Beverage",
+    "Agritech",
+    "Foodtech",
+    "Food & Ag",
+]
 
 education_learning = ["EdTech", "Education"]
 
 real_estate_property = ["ConstructionTech", "Proptech", "Real Estate"]
 
-entertainment_media = ["Entertainment", "Game Development", "Gaming/eSports", "Media", "Messaging", "Sports"]
+entertainment_media = [
+    "Entertainment",
+    "Game Development",
+    "Gaming/eSports",
+    "Media",
+    "Messaging",
+    "Sports",
+    "Travel",
+    "Entertainment & Sports",
+    "Media & Advertising",
+    "Media/Content",
+    "Gaming",
+    "Social Media",
+    "Adtech",
+]
 
-industry_manufacturing = ["Chemicals", "Industrial", "Manufacturing", "Material Science"]
+industry_manufacturing = [
+    "Chemicals",
+    "Industrial",
+    "Manufacturing",
+    "Material Science",
+    "Hard Tech & Manufacturing",
+    "Renewable Energy",
+    "Sustainability & Energy",
+]
 
 hr_work = [
     "Future of Work",
@@ -101,6 +147,10 @@ hr_work = [
     "Supply Chain",
     "Transportation",
     "TransportationTech",
+    "Legaltech",
+    "Transport",
+    "Supply Chain & Logistics",
+    "Future of Work & Productivity",
 ]
 
 other_sectors = [
@@ -118,6 +168,12 @@ other_sectors = [
     "Social Commerce",
     "Social Networks",
     "Space",
+    "InsureTech",
+    "Analytics",
+    "CleanTech",
+    "Aerospace",
+    "Industry Agnostic",
+    "New Materials & Packaging",
 ]
 
 aggregate = {

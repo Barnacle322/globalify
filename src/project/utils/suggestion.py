@@ -7,8 +7,6 @@ gmaps = googlemaps.Client(key=google_maps_secret)
 
 weights = {"bias": 0.3, "industry": 0.25, "round": 0.07, "location": 0.25, "exits": 0.07, "completeness": 0.06}
 
-pass_score = 0.51
-
 
 def check_weights(weights):
     total_weight = sum(weights.values())

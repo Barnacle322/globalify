@@ -21,7 +21,7 @@ from ..models import Company, Industry, InvestmentFirm, Investor, Round, Waitlis
 from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
 from ..utils.status_enum import Status, StatusType
-from ..utils.suggestion import pass_score, weights
+from ..utils.suggestion import weights
 
 main = Blueprint("main", __name__)
 
@@ -270,12 +270,12 @@ def get_suggestions():
         scored_investors.append((investor, total_score))
 
     suggested_investors = sorted(
-        (investor for investor in scored_investors if investor[1] >= pass_score),
+        (investor for investor in scored_investors),
         key=lambda investor: investor[1],
         reverse=True,
     )
 
-    sorted_investors = [investor[0] for investor in suggested_investors]
+    sorted_investors = [investor[0] for investor in suggested_investors][:15]
 
     return render_template(
         "suggestions.html",

@@ -676,51 +676,99 @@ class Investor(db.Model):
                 print("Added investor:", investor)
         db.session.commit()
 
-    # def calculate_score(self, company):
-    #     try:
-    #         if self.bias:
-    #             bias_score = (self.bias / 100) if self.bias else 0
-    #         else:
-    #             bias_score = 0
-
-    #         if company.industry in self.industries and len(self.industries) == 1:
-    #             industry_score = 1
-    #         elif company.industry in self.industries:
-    #             industry_score = 0.8
-    #         else:
-    #             industry_score = 0
-
-    #         if company.preferred_round in self.rounds and len(self.rounds) == 1:
-    #             round_score = 1
-    #         elif company.preferred_round in self.rounds:
-    #             round_score = 0.8
-    #         else:
-    #             round_score = 0
-
-    #         if company.coordinates and self.coordinates:
-    #             distance = float(geodesic(company.coordinates, self.coordinates).kilometers)
-    #             location_score = 1 - (distance / 20000) if (distance / 20000) < 1 else 0
-    #         else:
-    #             location_score = 0
-
-    #         if self.n_investments:
-    #             successful_exits = 1 if (self.n_exits / self.n_investments) >= 0.5 else 0
-    #         else:
-    #             successful_exits = 0
-
-    #         total_score = (
-    #             weights["industry"] * industry_score
-    #             + weights["round"] * round_score
-    #             + weights["bias"] * bias_score
-    #             + weights["location"] * location_score
-    #             + weights["exits"] * successful_exits
-    #         )
-
-    #     except (AttributeError, TypeError, ZeroDivisionError) as e:
-    #         print(f"An error occurred while calculating the score: {e}")
-    #         total_score = 0
-
-    #     return total_score
+    @staticmethod
+    def populate_blockchain(file_name="globalify - blockchain.csv"):
+        with open(file_name, newline="") as file:
+            reader = csv.reader(file, delimiter=";")
+            for row in islice(reader, 1, None):
+                first_name = row[0].split(" ")[0]
+                if len(row[0].split(" ")) == 1:
+                    last_name = None
+                else:
+                    last_name = row[0].split(" ")[1]
+                firm_name = row[1]
+                firm_name = firm_name.replace('"', "")
+                email = row[4]
+                if email == "":
+                    email = None
+                industries = row[7].split(",")
+                industry_list = []
+                for industry in industries:
+                    if "—" in industry:
+                        industry = industry.split(" — ")[1]
+                    if "(" in industry:
+                        industry = industry.split("(")[1]
+                    industry = industry.replace(")", "").strip()
+                    for i in Industry.get_industry_list():
+                        if i and fuzz.ratio(industry, i.name) > 80:
+                            industry = i
+                            industry_list.append(industry)
+                            break
+                round_list = []
+                for round_ in row[14].split(","):
+                    for r in Round.get_all():
+                        if round_ == "Series B+":
+                            round_list.append(Round.get_by_name("Series B"))
+                            round_list.append(Round.get_by_name("Series C"))
+                            break
+                        if r and fuzz.ratio(round_.lower(), r.name.lower()) > 90:
+                            round_ = r
+                            round_list.append(round_)
+                            break
+                notable_investment_list = []
+                for notable_investment in row[15].split(","):
+                    existing = NotableInvestment.get_by_name(notable_investment)
+                    if existing:
+                        notable_investment_list.append(existing)
+                    else:
+                        ni = NotableInvestment(name=notable_investment)
+                        db.session.add(ni)
+                        notable_investment_list.append(ni)
+                check_size_string = row[13]
+                range_set = set()
+                for range_ in check_size_string.split(","):
+                    sanitized_range = (
+                        range_.replace("$", "")
+                        .replace(",", " ")
+                        .replace(" ", "")
+                        .replace("K", "000")
+                        .replace("M", "000000")
+                        .replace("B", "000000000")
+                        .replace("+", "")
+                    )
+                    if "-" in sanitized_range:
+                        min_investment, max_investment = sanitized_range.split("-")
+                        range_set.add(int(min_investment))
+                        range_set.add(int(max_investment))
+                    else:
+                        if sanitized_range in ["", " "]:
+                            continue
+                        range_set.add(int(sanitized_range))
+                min_investment, max_investment = None, None
+                if len(range_set) > 1:
+                    min_investment, max_investment = min(range_set), max(range_set)
+                elif len(range_set) == 1:
+                    min_investment = range_set.pop()
+                investor = Investor(
+                    first_name=first_name,
+                    last_name=last_name,
+                    firm_name=row[1],
+                    position=row[2],
+                    about=row[22],
+                    email=email,
+                    location=row[6],
+                    industries=list(set(industry_list)),
+                    linkedin=row[9],
+                    twitter=row[11],
+                    min_investment=min_investment,
+                    max_investment=max_investment,
+                    rounds=list(set(round_list)),
+                    notable_investments=notable_investment_list,
+                    coordinates=row[6],
+                )
+                db.session.add(investor)
+                print("Added investor:", investor)
+        db.session.commit()
 
     def calculate_bias_score(self):
         try:
@@ -734,7 +782,7 @@ class Investor(db.Model):
         try:
             if company.coordinates and self.coordinates:
                 distance = float(geodesic(company.coordinates, self.coordinates).kilometers)
-                location_score = 1 - (distance / 20000) if (distance / 20000) < 1 else 0
+                location_score = 1 - (distance / 20038)
             else:
                 location_score = 0
         except (AttributeError, TypeError, ZeroDivisionError) as e:

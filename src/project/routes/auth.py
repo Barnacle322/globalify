@@ -279,8 +279,12 @@ def onboarding():
         user_info.is_complete = True
 
         if picture := request.files.get("pfp"):
-            picture_url = upload_picture(picture)
-            user_info.picture_url = picture_url
+            try:
+                picture_url = upload_picture(picture)
+                user_info.picture_url = picture_url
+            except Exception as e:
+                status = Status(StatusType.ERROR, f"Error uploading picture: {str(e)}").get_status()
+                return redirect(url_for("auth.onboarding", _external=False, **status))
 
         db.session.commit()
         return redirect(url_for("auth.company_form"))
@@ -330,6 +334,11 @@ def company_form():
         str: The rendered HTML template for the company form page.
 
     """
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
@@ -361,8 +370,12 @@ def company_form():
         )
 
         if picture := request.files.get("pfp"):
-            picture_url = upload_picture(picture)
-            company.picture_url = picture_url
+            try:
+                picture_url = upload_picture(picture)
+                user_info.picture_url = picture_url
+            except Exception as e:
+                status = Status(StatusType.ERROR, f"Error uploading picture: {str(e)}").get_status()
+                return redirect(url_for("auth.company_form", _external=False, **status))
 
         db.session.add(company)
         db.session.commit()
@@ -376,6 +389,8 @@ def company_form():
         industries=industries,
         rounds=rounds,
         countries=countries,
+        status_type=status_type,
+        msg=msg,
     )
 
 

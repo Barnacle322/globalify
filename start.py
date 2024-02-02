@@ -7,5 +7,4 @@ if os.path.exists(".env"):
 else:
     raise FileNotFoundError("There's no .env file in the root directory")
 
-os.system("pytest")
-# os.system("flask run")
+os.system("flask run")

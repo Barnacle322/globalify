@@ -84,7 +84,9 @@ class QueryBuilder:
 
         """
         if sort_field and hasattr(self.cls, sort_field):
-            self.query = self.query.order_by(desc(sort_field)) if descending else self.query.order_by(sort_field)
+            alias = self.cls
+            column = getattr(alias, sort_field)
+            self.query = self.query.order_by(desc(column)) if descending else self.query.order_by(column)
         return self
 
     def filter_by_rounds(self, rounds: list[Round] | None, rounds_exclusive: bool):
@@ -820,7 +822,7 @@ class InvestmentFirm(db.Model):
         try:
             combined_query = (
                 QueryBuilder(
-                    InvestmentFirm.query.options(joinedload(Investor.rounds), joinedload(Investor.industries)), cls
+                    InvestmentFirm.query.options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries)), cls
                 )
                 .apply_search_filters(search_string, filter_fields, search_fields)
                 .apply_sorting(sort_field, descending)

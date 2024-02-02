@@ -265,12 +265,13 @@ def onboarding():
         user_info.first_name = first_name
         user_info.last_name = last_name
         user_info.username = username
+
         try:
-            user_info.linkedin = linkedin
-            user_info.instagram = instagram
-            user_info.twitter = twitter
-        except Exception as e:
-            status = Status(StatusType.ERROR, e.args[0]).get_status()
+            user_info.linkedin_url = linkedin
+            user_info.instagram_url = instagram
+            user_info.twitter_url = twitter
+        except ValueError as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
             return redirect(url_for("auth.onboarding", _external=False, **status))
 
         user_info.bio = request.form.get("about")

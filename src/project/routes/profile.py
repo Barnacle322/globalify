@@ -1,5 +1,5 @@
 from flask import Blueprint, abort, redirect, render_template, url_for
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 from ..models import Company, User, UserInfo
 
@@ -7,6 +7,7 @@ profile = Blueprint("profile", __name__)
 
 
 @profile.route("/user/<int:user_id>/", methods=["GET"])
+@login_required
 def user_profile(user_id):
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
@@ -30,6 +31,7 @@ def user_profile(user_id):
 
 
 @profile.route("/company/<int:user_id>/", methods=["GET", "POST"])
+@login_required
 def company(user_id):
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))

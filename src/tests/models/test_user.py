@@ -5,7 +5,7 @@ from freezegun import freeze_time
 
 from ...project import db
 from ...project.models import Company, User, UserInfo, UserOauth, UserPayment, UserRegular
-from ...project.utils.status_enum import OauthProvider, Tier
+from ...project.utils.enums import OauthProvider, Tier
 
 
 @pytest.fixture()
@@ -152,7 +152,7 @@ def test_user_info(new_user, app):
         assert user_info.twitter == "https://twitter.com/johndoe"
         assert user_info.instagram == "https://instagram.com/johndoe"
         assert user_info.bio == "I'm a cool person"
-        assert user_info.pfp_uuid is None
+        assert user_info.picture_url is None
 
         assert UserInfo.is_taken("johndoe")
         assert not UserInfo.is_taken("janedoe")

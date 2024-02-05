@@ -70,7 +70,7 @@ endblock %} {% block content %}
                             <select
                                 id="country"
                                 name="country"
-                                autocomplete="country_name"
+                                autocomplete="country"
                                 class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                                 required
                             >
@@ -128,15 +128,13 @@ endblock %} {% block content %}
                 <p class="mt-1 text-sm leading-6 text-gray-600">Put the links to your social media accounts here.</p>
                 <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     <div class="col-span-full">
-                        <label for="personal-website" class="block text-sm font-medium leading-6 text-gray-900"
-                            >Website</label
-                        >
+                        <label for="website" class="block text-sm font-medium leading-6 text-gray-900">Website</label>
                         <div class="mt-2">
                             <input
                                 type="url"
-                                name="personal-website"
-                                id="personal-website"
-                                autocomplete="personal-website"
+                                name="website"
+                                id="website"
+                                autocomplete="website"
                                 placeholder="https://example.com"
                                 class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                             />

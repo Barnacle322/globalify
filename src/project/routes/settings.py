@@ -1,14 +1,13 @@
 import re
 
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
-from ..models import User, UserInfo, UserOauth, UserPayment, UserRegular
-from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
-from ..utils.google_storage import load_pfp
+from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
+from ..utils.enums import Status, StatusType, Tier
+from ..utils.errors.error_messages import AUTH_INVALID_EMAIL
 from ..utils.info_lists import languages as language_list
-from ..utils.status_enum import Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
@@ -25,17 +24,12 @@ def index():
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     return render_template(
         "settings/general.html",
         user=authenticated_user,
-        pfp_base64=pfp_base64,
         languages=language_list,
         status_type=status_type,
         msg=msg,
@@ -51,17 +45,9 @@ def security():
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     return render_template(
         "settings/security.html",
-        user=authenticated_user,
-        pfp_base64=pfp_base64,
         status_type=status_type,
         msg=msg,
     )
@@ -72,12 +58,7 @@ def security():
 @check_user_info_complete
 @check_verification
 def plan():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
     subscription = {"tier": Tier.FREE}
@@ -86,8 +67,6 @@ def plan():
 
     return render_template(
         "settings/plan.html",
-        user=authenticated_user,
-        pfp_base64=pfp_base64,
         subscription=subscription,
     )
 
@@ -97,19 +76,13 @@ def plan():
 @check_user_info_complete
 @check_verification
 def billing():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
 
     invoices = get_invoices(authenticated_user)
 
     return render_template(
         "settings/billing.html",
         user=authenticated_user,
-        pfp_base64=pfp_base64,
         invoices=invoices,
     )
 
@@ -120,9 +93,6 @@ def billing():
 @check_verification
 @fresh_login_required
 def change_password():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     current_password = request.form.get("current-password")
@@ -158,9 +128,6 @@ def change_password():
 @check_verification
 @fresh_login_required
 def change_personal_info():  # noqa
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     first_name = request.form.get("first-name")
@@ -236,18 +203,20 @@ def change_personal_info():  # noqa
 @check_verification
 @fresh_login_required
 def delete_account():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     if request.method == "POST":
-        logout_user()
         # NOTE: Decorators hold db session open
         # so we need to close it here to properly delete the user objects
         db.session.close()
+        db.session.begin()
+
+        # Access the user_info attribute to add it to the session
+        _ = authenticated_user.user_info  # type: ignore
+
         db.session.delete(authenticated_user)
         db.session.commit()
+        logout_user()
 
         return redirect(url_for("main.index", _external=False))
 
@@ -255,3 +224,80 @@ def delete_account():
         return render_template("settings/delete_oauth_account.html")
 
     return render_template("settings/delete_account.html")
+
+
+@settings.route("/company", methods=["GET", "POST"])
+def company():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    company = Company.get_by_user_id(authenticated_user.id)
+    if not company:
+        abort(404)
+
+    industries = Industry.get_all()
+    rounds = Round.get_all()
+    countries = Country.get_all()
+
+    if request.method == "POST":
+        company_name = request.form.get("company-name", "")
+        if company_name and company_name.strip() != company.name:
+            if company_name == " ":
+                status = Status(StatusType.ERROR, "Company name cannot be empty.").get_status()
+                return redirect(url_for("settings.company", _external=False, **status))
+            company.name = company_name.strip()
+
+        preferred_round_id = request.form.get("round", type=int)
+        industry_id = request.form.get("industry", type=int)
+        print(industry_id)
+
+        if not industry_id:
+            status = Status(StatusType.ERROR, "Industry ID is required.").get_status()
+            return redirect(url_for("settings.company", _external=False, **status))
+
+        if not preferred_round_id or not industry_id:
+            status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
+            return redirect(
+                url_for(
+                    "settings.company",
+                    _external=False,
+                    **status,
+                )
+            )
+
+        country_id = request.form.get("country", type=int)
+        if not country_id:
+            status = Status(StatusType.ERROR, "Country ID is required.").get_status()
+            return redirect(url_for("settings.company", _external=False, **status))
+
+        company.description = request.form.get("description", "").strip()
+        company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
+        company.country_id = country_id
+        company.preferred_round_id = preferred_round_id
+        company.industry_id = industry_id
+        company.website = request.form.get("website", "")
+        company.coordinates = Country.get_by_id(country_id).name  # type: ignore
+        db.session.commit()
+
+        status = Status(StatusType.SUCCESS, "Company successfully changed.").get_status()
+        return redirect(
+            url_for(
+                "settings.company",
+                _external=False,
+                **status,
+            )
+        )
+
+    return render_template(
+        "settings/company.html",
+        industries=industries,
+        rounds=rounds,
+        countries=countries,
+        company=company,
+        status_type=status_type,
+        msg=msg,
+    )

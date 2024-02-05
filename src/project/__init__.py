@@ -18,6 +18,7 @@ from .routes.main import (
     unauthorized,
 )
 from .routes.payment import payment
+from .routes.profile import profile
 from .routes.settings import settings
 
 
@@ -33,6 +34,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
         app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
         app.config["SQLALCHEMY_RECORD_QUERIES"] = True
         app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+        # app.config["DEBUG_TB_PROFILER_ENABLED"] = True
         toolbar.init_app(app)
     else:
         # Reverse proxy support
@@ -43,6 +45,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.register_blueprint(main)
     app.register_blueprint(payment, url_prefix="/payment")
     app.register_blueprint(settings, url_prefix="/settings")
+    app.register_blueprint(profile, url_prefix="/profile")
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

@@ -51,6 +51,7 @@ steps:
         _PUBSUB_AUTH_PROVIDER_X509_CERT_URL=${_PUBSUB_AUTH_PROVIDER_X509_CERT_URL},
         _PUBSUB_CLIENT_X509_CERT_URL=${_PUBSUB_CLIENT_X509_CERT_URL},
         _PUBSUB_UNIVERSE_DOMAIN=${_PUBSUB_UNIVERSE_DOMAIN},
+        _GOOGLE_MAPS_API_KEY=${_GOOGLE_MAPS_API_KEY}
     id: Deploy
     entrypoint: gcloud
 images:
@@ -59,11 +60,11 @@ images:
 options:
   substitutionOption: ALLOW_LOOSE
 substitutions:
+  _TRIGGER_ID: f78bc905-44d2-4d17-a8fd-de1e488491a2
+  _PLATFORM: managed
   _SERVICE_NAME: globalifyxyz
   _DEPLOY_REGION: europe-north1
   _AR_HOSTNAME: europe-north1-docker.pkg.dev
-  _TRIGGER_ID: f78bc905-44d2-4d17-a8fd-de1e488491a2
-  _PLATFORM: managed
 tags:
   - gcp-cloud-build-deploy-cloud-run
   - gcp-cloud-build-deploy-cloud-run-managed

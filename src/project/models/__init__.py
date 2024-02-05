@@ -1,6 +1,15 @@
 from .helpers import Country, Industry, Round
-from .investor import InvestmentFirm, Investor
-from .user import Company, User, UserInfo, UserOauth, UserPayment, UserRegular, Waitlist, WaitlistCharge
+from .investor import InvestmentFirm, Investor, NotableInvestment
+from .user import (
+    Company,
+    User,
+    UserInfo,
+    UserOauth,
+    UserPayment,
+    UserRegular,
+    Waitlist,
+    WaitlistCharge,
+)
 
 __all__ = [
     "Country",
@@ -16,4 +25,5 @@ __all__ = [
     "UserPayment",
     "Waitlist",
     "WaitlistCharge",
+    "NotableInvestment",
 ]

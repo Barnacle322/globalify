@@ -1,10 +1,9 @@
 import pytest
 
+from src.project import db
 from src.project.models.helpers import Industry, Round
-from src.project.models.investor import InvestmentFirm, Investor
+from src.project.models.investor import InvestmentFirm, Investor, NotableInvestment
 from src.project.models.user import UserInfo, UserRegular, WaitlistCharge
-
-from ...project import db
 
 
 def test_index(client):
@@ -254,6 +253,12 @@ def populate_investor(app):
 
 
 @pytest.fixture()
+def populate_notable_investment(app):
+    with app.app_context():
+        NotableInvestment.populate()
+
+
+@pytest.fixture()
 def investment_firm(app):
     with app.app_context():
         investment_firm = InvestmentFirm(
@@ -296,34 +301,35 @@ def test_dashboard_authenticated_get(client, new_user):
 def test_dashboard_query_search(client, new_user, investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard?search=Julie")
+
     assert response.status_code == 200
     assert b"Julie" in response.data
+    assert b"Doe" in response.data
     assert b"Qwerty LLC" in response.data
-    assert b"Julie is a founder and CEO at Qwerty LLC. She is a great investor." in response.data
 
 
-def test_dashboard_query_page(client, new_user, populate_investor):
+def test_dashboard_query_page(client, new_user, populate_notable_investment, populate_investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard?page=2")
     assert response.status_code == 200
     assert b'current="page"\n                        >2</a' in response.data
 
 
-def test_dashboard_query_industry(client, new_user, populate_investor):
+def test_dashboard_query_industry(client, new_user, populate_notable_investment, populate_investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard?industry=AI")
     assert response.status_code == 200
     assert b"AI" in response.data
 
 
-def test_dashboard_query_round(client, new_user, populate_investor):
+def test_dashboard_query_round(client, new_user, populate_notable_investment, populate_investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard?round=Seed")
     assert response.status_code == 200
     assert b"Seed" in response.data
 
 
-def test_dashboard_query_industry_and_round(client, new_user, populate_investor):
+def test_dashboard_query_industry_and_round(client, new_user, populate_notable_investment, populate_investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard?industry=AI&round=Seed")
     assert response.status_code == 200

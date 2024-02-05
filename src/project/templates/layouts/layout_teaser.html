@@ -33,24 +33,54 @@
         <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
 
         <meta name="view-transition" content="same-origin" />
-        <link rel="stylesheet" href="../static/css/main.css" />
-        <link rel="icon" type="image/png" href="../static/elements/icon.png" />
-        <script src="../static/scripts/menu.js" defer></script>
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+        <script src="/static/scripts/menu.js" defer></script>
         {% block additional_scripts %}{% endblock %}
 
         <title>{% block title %}{% endblock %} | Globalify</title>
         {% endblock %}
     </head>
     <body class="w-full">
-        <nav
-            class="absolute left-0 top-0 flex h-24 w-full items-center justify-center text-slate-900 dark:bg-slate-800 dark:text-slate-50"
-        >
-            <div class="flex w-full max-w-7xl items-center gap-7 px-9">
-                <a href="/"><img class="h-[30px] w-[113px]" src="../static/elements/logo-black.png" /></a>
+        <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-center text-slate-900">
+            <div class="m-2 flex w-full max-w-7xl items-center justify-between rounded-xl px-9 py-5 shadow-2xl">
+                <a href="/"><img class="h-[30px] w-[113px]" src="/static/elements/logo-black.png" /></a>
                 <ul class="hidden gap-7 font-medium sm:flex">
-                    <a class="transition-colors ease-in-out hover:text-slate-700" href="/about">About us</a>
-                    <a class="transition-colors ease-in-out hover:text-slate-700" href="https://blog.globalify.xyz"
-                        >Blog</a
+                    <a href="/about">About us</a>
+                    <a href="https://blog.globalify.xyz">Blog</a>
+                    <a href="/pricing">Pricing</a>
+                    <a href="/#faq">FAQ</a>
+                </ul>
+                <a
+                    href="/waitlist"
+                    class="hidden min-w-max items-center justify-center gap-2 rounded-full bg-sky-500 px-3 py-2 text-sm text-white transition-colors ease-in-out hover:bg-sky-400 sm:flex"
+                >
+                    <div class="flex size-6 items-center justify-center rounded-full bg-white text-slate-900">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-3"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                            />
+                        </svg>
+                    </div>
+                    Early access</a
+                >
+                <button class="block sm:hidden" onclick="openMenu()">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="h-7 w-7"
                     >
                     <a class="transition-colors ease-in-out hover:text-slate-700" href="/pricing">Pricing</a>
                     <a class="transition-colors ease-in-out hover:text-slate-700" href="/#faq">FAQ</a>
@@ -85,7 +115,7 @@
                 <div class="flex items-center justify-between">
                     <a href="#" class="-m-1.5 p-1.5">
                         <span class="sr-only">Globalify</span>
-                        <img class="h-8 w-auto" src="../static/elements/logo-black.png" alt="" />
+                        <img class="h-8 w-auto" src="/static/elements/logo-black.png" alt="" />
                     </a>
                     <button type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700" onclick="closeMenu()">
                         <span class="sr-only">Close menu</span>

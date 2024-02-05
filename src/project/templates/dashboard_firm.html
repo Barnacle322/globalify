@@ -1,7 +1,7 @@
 {% extends "layouts/layout_app.html" %} {% block title %}Investment Firms{% endblock %} {% block head %} {{ super() }}
-<script src="../static/scripts/dashboard.js" defer></script>
-<script src="../static/scripts/search.js" defer></script>
-<script src="../static/scripts/query_setter.js" defer></script>
+<script src="/static/scripts/dashboard.js" defer></script>
+<script src="/static/scripts/search.js" defer></script>
+<script src="/static/scripts/query_setter.js" defer></script>
 {% endblock %} {% block content %}
 <main class="mt-24 flex h-full min-h-screen w-full overflow-x-auto pb-16">
     <div class="mx-auto flex w-full max-w-[83rem] flex-col gap-3 px-4 sm:flex-row">
@@ -38,10 +38,7 @@
                 </button>
             </div>
             <div class="flex items-center justify-center rounded-xl border-2 p-1 text-sm">
-                <a
-                    href="/dashboard"
-                    class="flex w-full items-center justify-center gap-1 p-3"
-                >
+                <a href="/dashboard" class="flex w-full items-center justify-center gap-1 p-3">
                     <svg
                         data-darkreader-inline-stroke=""
                         fill="none"
@@ -60,7 +57,10 @@
                     </svg>
                     <span>Investors</span>
                 </a>
-                <a href="/dashboard/investment-firms" class="flex w-full items-center justify-center gap-1 rounded-lg bg-sky-500 p-3 text-white">
+                <a
+                    href="/dashboard/investment-firms"
+                    class="flex w-full items-center justify-center gap-1 rounded-lg bg-sky-500 p-3 text-white"
+                >
                     <svg
                         data-darkreader-inline-stroke=""
                         fill="none"
@@ -361,14 +361,18 @@
                     </div>
                 </div>
             </div>
-            <a href="/dashboard/investment-firms" class="mt-3 w-full rounded-lg bg-sky-500 py-3 text-center text-white"> Reset </a>
+            <a href="/dashboard/investment-firms" class="mt-3 w-full rounded-lg bg-sky-500 py-3 text-center text-white">
+                Reset
+            </a>
         </section>
 
         <section class="flex w-full flex-col items-start justify-start gap-2 sm:w-3/4">
             {% if investment_firms %} {% for investment_firm in investment_firms %}
             <div class="flex w-full flex-col justify-between gap-2 rounded-lg border-2 p-4">
                 <div class="flex items-baseline justify-start">
-                    <a href="/investment_firm/{{ investment_firm.id }}" class="text-lg underline">{{ investment_firm.name }}</a>
+                    <a href="/investment_firm/{{ investment_firm.id }}" class="text-lg underline"
+                        >{{ investment_firm.name }}</a
+                    >
                 </div>
                 <span class="text-sm text-slate-500"
                     >${{ investment_firm.min_investment }} - ${{ investment_firm.max_investment }}</span
@@ -407,7 +411,8 @@
                         <span aria-hidden="true">«</span>
                         <span class="sr-only">Previous</span>
                     </a>
-                    {% endif %} {% for page in investment_firms.iter_pages() %} {% if page %} {% if investment_firms.page == page %}
+                    {% endif %} {% for page in investment_firms.iter_pages() %} {% if page %} {% if
+                    investment_firms.page == page %}
                     <a
                         class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500 text-sm font-medium text-white hover:bg-sky-400"
                         href="/dashboard/investment-firms?page={{ page }}{{ combined_query if combined_query else ''}}"

@@ -2581,27 +2581,27 @@ select {
 
 @font-face {
     font-family: "League Spartan";
-    src: url("/elements/fonts/LeagueSpartan.ttf");
+    src: url("../elements/fonts/LeagueSpartan.ttf");
 }
 
 @font-face {
     font-family: "Muoto-Light";
-    src: url("/elements/fonts/Muoto-Light.woff");
+    src: url("../elements/fonts/Muoto-Light.woff");
 }
 
 @font-face {
     font-family: "Muoto-Regular";
-    src: url("/elements/fonts/Muoto-Regular.woff");
+    src: url("../elements/fonts/Muoto-Regular.woff");
 }
 
 @font-face {
     font-family: "Sohne";
-    src: url("/elements/fonts/Sohne.woff2");
+    src: url("../elements/fonts/Sohne.woff2");
 }
 
 @font-face {
     font-family: "Lexend";
-    src: url("/elements/fonts/Lexend.ttf");
+    src: url("../elements/fonts/Lexend.ttf");
 }
 
 .background-animate {
@@ -2666,8 +2666,12 @@ select {
 }
 
 @keyframes fadeOutRight {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(150%); }
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(150%);
+    }
 }
 
 .fade-out-right {

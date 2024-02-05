@@ -209,6 +209,11 @@ def delete_account():
         # NOTE: Decorators hold db session open
         # so we need to close it here to properly delete the user objects
         db.session.close()
+        db.session.begin()
+
+        # Access the user_info attribute to add it to the session
+        _ = authenticated_user.user_info  # type: ignore
+
         db.session.delete(authenticated_user)
         db.session.commit()
         logout_user()

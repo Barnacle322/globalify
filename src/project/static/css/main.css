@@ -1634,9 +1634,6 @@ select {
 .max-w-2xl {
   max-width: 42rem;
 }
-.max-w-3xl {
-  max-width: 48rem;
-}
 .max-w-4xl {
   max-width: 56rem;
 }
@@ -1808,12 +1805,6 @@ select {
 }
 .gap-8 {
   gap: 2rem;
-}
-.gap-\[30px\] {
-  gap: 30px;
-}
-.gap-\[51px\] {
-  gap: 51px;
 }
 .gap-x-12 {
   -moz-column-gap: 3rem;
@@ -2675,8 +2666,12 @@ select {
 }
 
 @keyframes fadeOutRight {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(150%); }
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(150%);
+    }
 }
 
 .fade-out-right {
@@ -2980,11 +2975,6 @@ select {
 
 .file\:ease-in-out::file-selector-button {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.hover\:-translate-y-3:hover {
-  --tw-translate-y: -0.75rem;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
 .hover\:scale-105:hover {
@@ -3563,10 +3553,6 @@ select {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .xl\:flex-row {
-    flex-direction: row;
-  }
-
   .xl\:gap-8 {
     gap: 2rem;
   }
@@ -3639,11 +3625,6 @@ select {
 :is(:where(.dark) .dark\:text-red-200) {
   --tw-text-opacity: 1;
   color: rgb(254 202 202 / var(--tw-text-opacity));
-}
-
-:is(:where(.dark) .dark\:text-slate-400) {
-  --tw-text-opacity: 1;
-  color: rgb(148 163 184 / var(--tw-text-opacity));
 }
 
 :is(:where(.dark) .dark\:text-slate-50) {

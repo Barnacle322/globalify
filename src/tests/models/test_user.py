@@ -5,7 +5,7 @@ from freezegun import freeze_time
 
 from ...project import db
 from ...project.models import Company, User, UserInfo, UserOauth, UserPayment, UserRegular
-from ...project.utils.status_enum import OauthProvider, Tier
+from ...project.utils.enums import OauthProvider, Tier
 
 
 @pytest.fixture()

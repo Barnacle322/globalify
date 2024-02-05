@@ -7,13 +7,13 @@ from src.project import db
 from src.project.extensions import oauth
 from src.project.models import User, UserInfo, UserOauth, UserPayment, UserRegular
 from src.project.routes.auth import oauth_user
-from src.project.utils.errors.auth_error_messages import (
+from src.project.utils.enums import OauthProvider
+from src.project.utils.errors.error_messages import (
     AUTH_EMAIL_USED,
     OAUTH_MISMATCHED_PROVIDER,
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
-from src.project.utils.status_enum import OauthProvider
 
 
 @pytest.fixture()

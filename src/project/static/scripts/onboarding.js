@@ -8,7 +8,6 @@ usernameInput.addEventListener("blur", async (event) => {
     }
     const response = await fetch(`/username/${username}`);
     const result = await response.json();
-    console.log(result)
 
     if (result.is_taken) {
         const message = document.createElement("div");

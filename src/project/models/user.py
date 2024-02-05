@@ -14,7 +14,7 @@ from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..extensions import db
-from ..utils.status_enum import OauthProvider, Tier
+from ..utils.enums import OauthProvider, Tier
 from ..utils.suggestion import geocode_location
 from .helpers import Country, Industry, Round
 
@@ -90,8 +90,6 @@ class UserOauth(User):
     Attributes:
         oauth_provider (Mapped[OauthProvider]): Enum field representing the OAuth provider used for authentication, can be nullable.
 
-    __mapper_args__:
-        Configures the inheritance scheme, setting 'user_oauth' as the polymorphic identity for this subclass.
     """
 
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider), nullable=True)
@@ -109,9 +107,6 @@ class UserRegular(User):
 
     Attributes:
         password_hash (Mapped[str]): Stores the hash of the user's password, can be nullable.
-
-    __mapper_args__:
-        Configures the inheritance scheme, setting 'user_regular' as the polymorphic identity for this subclass.
 
     Methods:
         password: Write-only property to set the user's password. The actual password should never be readable.
@@ -246,12 +241,12 @@ class UserInfo(db.Model):
         return user_info
 
     @staticmethod
-    def get_by_user_id(user_id: int) -> UserInfo | None:
-        return db.session.scalar(db.select(UserInfo).where(UserInfo.user_id == user_id))
-
-    @staticmethod
     def get_all() -> Sequence[UserInfo] | None:
         return db.session.scalars(db.select(UserInfo)).all()
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> UserInfo | None:
+        return db.session.scalar(db.select(UserInfo).where(UserInfo.user_id == user_id))
 
     @staticmethod
     def is_taken(username: str | None) -> bool:
@@ -319,9 +314,6 @@ class UserPayment(db.Model):
         Args:
             created_epoch (int): The epoch value representing the created date and time.
 
-        Returns:
-            None
-
         """
         self.created = datetime.datetime.fromtimestamp(created_epoch, tz=datetime.UTC)
 
@@ -332,9 +324,6 @@ class UserPayment(db.Model):
 
         Args:
             expires_at_epoch (int): The epoch value representing the expiration date and time.
-
-        Returns:
-            None
 
         """
         self.expires_at = datetime.datetime.fromtimestamp(expires_at_epoch, tz=datetime.UTC)
@@ -360,11 +349,6 @@ class UserPayment(db.Model):
         return db.session.scalar(db.select(UserPayment).where(UserPayment.user_id == user_id))
 
     def sanitize(self):
-        """
-        Returns:
-            dict: A dictionary representing the sanitized UserPayment object.
-
-        """
         subscription = {
             "created": self.created,
             "expires_at": self.expires_at.date(),  # type: ignore

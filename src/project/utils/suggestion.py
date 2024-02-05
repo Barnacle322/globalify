@@ -17,7 +17,7 @@ def check_weights(weights):
         print(e)
 
 
-check_weights(weights)
+# check_weights(weights)
 
 
 def geocode_location(location):

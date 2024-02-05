@@ -9,13 +9,13 @@ from stripe import InvalidRequestError, SignatureVerificationError
 
 from ..extensions import csrf, db
 from ..models import User, UserInfo, UserPayment, WaitlistCharge
-from ..utils.errors.auth_error_messages import (
+from ..utils.enums import Events, Status, StatusType, Tier
+from ..utils.errors.error_messages import (
     ONBOARDING_INCOMPLETE,
     PAYMENT_EMAIL_USED,
     PAYMENT_NOT_FOUND,
 )
 from ..utils.google_pubsub import send_event
-from ..utils.status_enum import Events, Status, StatusType, Tier
 from .main import check_user_info_complete
 
 payment = Blueprint("payment", __name__)

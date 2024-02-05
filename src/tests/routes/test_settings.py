@@ -7,7 +7,7 @@ from src.project import db
 from src.project.extensions import oauth
 from src.project.models import UserInfo, UserOauth, UserPayment, UserRegular
 from src.project.models.user import User
-from src.project.utils.status_enum import OauthProvider
+from src.project.utils.enums import OauthProvider
 
 
 @pytest.fixture()

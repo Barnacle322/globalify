@@ -5,9 +5,9 @@ from flask_login import current_user, fresh_login_required, login_required, logo
 
 from ..extensions import db
 from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
-from ..utils.errors.auth_error_messages import AUTH_INVALID_EMAIL
+from ..utils.enums import Status, StatusType, Tier
+from ..utils.errors.error_messages import AUTH_INVALID_EMAIL
 from ..utils.info_lists import languages as language_list
-from ..utils.status_enum import Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
@@ -24,9 +24,6 @@ def index():
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
-
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
@@ -49,9 +46,6 @@ def security():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     return render_template(
         "settings/security.html",
         status_type=status_type,
@@ -64,9 +58,6 @@ def security():
 @check_user_info_complete
 @check_verification
 def plan():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
@@ -85,9 +76,6 @@ def plan():
 @check_user_info_complete
 @check_verification
 def billing():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     invoices = get_invoices(authenticated_user)
@@ -105,9 +93,6 @@ def billing():
 @check_verification
 @fresh_login_required
 def change_password():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     current_password = request.form.get("current-password")
@@ -143,9 +128,6 @@ def change_password():
 @check_verification
 @fresh_login_required
 def change_personal_info():  # noqa
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     first_name = request.form.get("first-name")
@@ -221,9 +203,6 @@ def change_personal_info():  # noqa
 @check_verification
 @fresh_login_required
 def delete_account():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     if request.method == "POST":
@@ -248,9 +227,6 @@ def company():
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
-
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 

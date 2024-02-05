@@ -33,15 +33,15 @@
         <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
 
         <meta name="view-transition" content="same-origin" />
-        <link rel="stylesheet" href="../static/css/main.css" />
-        <link rel="icon" type="image/png" href="../static/elements/icon.png" />
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
         <title>{% block title %}{% endblock %} | Globalify</title>
         {% endblock %}
     </head>
     <body>
         <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-center">
             <div class="flex w-full max-w-7xl items-center gap-7 px-9">
-                <a href="/"><img class="h-[30px] w-[113px]" src="../static/elements/logo-black.png" /></a>
+                <a href="/"><img class="h-[30px] w-[113px]" src="/static/elements/logo-black.png" /></a>
                 <div class="hidden gap-7 font-medium sm:flex">
                     <a href="/dashboard">Dashboard</a>
                     <a href="https://blog.globalify.xyz">Blog</a>
@@ -63,7 +63,7 @@
                         {% if not user.user_info[0].picture_url %}
                         <img
                             class="aspect-square h-6 w-6 rounded-full"
-                            src="../static/elements/default_pfp.svg"
+                            src="/static/elements/default_pfp.svg"
                             alt="Profile picture"
                         />
                         {% else %}

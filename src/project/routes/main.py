@@ -18,9 +18,9 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import Company, Industry, InvestmentFirm, Investor, Round, Waitlist, WaitlistCharge
-from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
+from ..utils.enums import Status, StatusType
+from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
-from ..utils.status_enum import Status, StatusType
 from ..utils.suggestion import pass_score
 
 main = Blueprint("main", __name__)
@@ -155,9 +155,6 @@ def dashboard():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     # ?q=Julie
     search_string = request.args.get("search", "")
     # ?page=1
@@ -242,9 +239,6 @@ def dashboard():
 @check_user_info_complete
 @check_verification
 def get_suggestions():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     company = Company.get_by_user_id(current_user.id)
 
     investors = Investor.get_all()
@@ -270,9 +264,6 @@ def get_suggestions():
 @check_user_info_complete
 @check_verification
 def investment_firms():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     # ?q=Robinson-Sanders
     search_string = request.args.get("search", "")
     # ?page=1

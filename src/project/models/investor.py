@@ -6,11 +6,10 @@ from collections.abc import Sequence
 from itertools import islice
 
 from flask_sqlalchemy.pagination import Pagination
-from flask_sqlalchemy.query import Query
 from geopy.distance import geodesic
 from sqlalchemy import Column, ForeignKey, Integer, String, and_, desc, or_
-from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
+from sqlalchemy.sql import Select
 from thefuzz import fuzz
 
 from ..extensions import db
@@ -35,13 +34,13 @@ class QueryBuilder:
     This class allows you to dynamically apply search filters, sorting, and various other filters to a base query.
 
     Attributes:
-        query (Query): The current query being built.
+        base_query (Select): The base query being built.
         cls (type[Investor | InvestmentFirm]): The class type for which the query is built.
 
     """
 
-    def __init__(self, base_query: Query, cls: type[Investor | InvestmentFirm]):
-        self.query = base_query
+    def __init__(self, base_query: Select, cls: type[Investor | InvestmentFirm]):
+        self.base_query = base_query
         self.cls = cls
 
     def apply_search_filters(self, query_string: str, filter_fields: list[str] | None, search_fields: tuple[str, ...]):
@@ -67,7 +66,7 @@ class QueryBuilder:
         ]
 
         if filter_conditions:
-            self.query = self.query.filter(or_(*filter_conditions))
+            self.base_query = self.base_query.where(or_(*filter_conditions))
 
         return self
 
@@ -86,7 +85,10 @@ class QueryBuilder:
         if sort_field and hasattr(self.cls, sort_field):
             alias = self.cls
             column = getattr(alias, sort_field)
-            self.query = self.query.order_by(desc(column)) if descending else self.query.order_by(column)
+            self.base_query = (
+                self.base_query.order_by(desc(column)) if descending else self.base_query.order_by(column)
+            )
+
         return self
 
     def filter_by_rounds(self, rounds: list[Round] | None, rounds_exclusive: bool):
@@ -104,7 +106,7 @@ class QueryBuilder:
         if rounds:
             round_filters = [self.cls.rounds.any(Round.id == round_obj.id) for round_obj in rounds]
             condition = and_(*round_filters) if rounds_exclusive else or_(*round_filters)
-            self.query = self.query.filter(condition)
+            self.base_query = self.base_query.where(condition)
         return self
 
     def filter_by_industries(self, industries: list[Industry] | None, industries_exclusive: bool):
@@ -122,7 +124,7 @@ class QueryBuilder:
         if industries:
             industry_filters = [self.cls.industries.any(Industry.id == industry_obj.id) for industry_obj in industries]
             condition = and_(*industry_filters) if industries_exclusive else or_(*industry_filters)
-            self.query = self.query.filter(condition)
+            self.base_query = self.base_query.where(condition)
         return self
 
     def filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
@@ -137,19 +139,19 @@ class QueryBuilder:
             QueryBuilder: The QueryBuilder instance with the applied investment range filter.
 
         """
-        if min_investment and max_investment:
+        if min_investment is not None and max_investment is not None:
             investment_filters = and_(
                 self.cls.min_investment >= min_investment, self.cls.max_investment <= max_investment
             )
-            self.query = self.query.filter(investment_filters)
-        elif min_investment:
-            self.query = self.query.filter(self.cls.min_investment >= min_investment)
-        elif max_investment:
-            self.query = self.query.filter(self.cls.max_investment <= max_investment)
+            self.base_query = self.base_query.where(investment_filters)
+        elif min_investment is not None:
+            self.base_query = self.base_query.where(self.cls.min_investment >= min_investment)
+        elif max_investment is not None:
+            self.base_query = self.base_query.where(self.cls.max_investment <= max_investment)
         return self
 
     def build(self):
-        return self.query
+        return self.base_query
 
 
 class NotableInvestment(db.Model):
@@ -163,28 +165,16 @@ class NotableInvestment(db.Model):
         return f"<NotableInvestment {self.name}>"
 
     @staticmethod
-    def get_all() -> list[NotableInvestment]:
-        try:
-            notable_investments: list[NotableInvestment] = NotableInvestment.query.all()
-            return notable_investments
-        except NoResultFound:
-            return []
+    def get_all() -> Sequence[NotableInvestment]:
+        return db.session.scalars(db.select(NotableInvestment)).all()
 
     @staticmethod
     def get_by_id(id: int) -> NotableInvestment | None:
-        try:
-            notable_investment = NotableInvestment.query.filter(NotableInvestment.id == id).first()
-            return notable_investment
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.id == id))
 
     @staticmethod
     def get_by_name(name: str) -> NotableInvestment | None:
-        try:
-            notable_investment = NotableInvestment.query.filter(NotableInvestment.name == name).first()
-            return notable_investment
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.name == name))
 
     @staticmethod
     def populate() -> None:
@@ -461,13 +451,9 @@ class Investor(db.Model):
 
     @staticmethod
     def get_all() -> Sequence[Investor]:
-        try:
-            investors = (
-                db.session.query(Investor).options(joinedload(Investor.rounds), joinedload(Investor.industries)).all()
-            )
-            return investors
-        except NoResultFound:
-            return []
+        return db.session.scalars(
+            db.select(Investor).options(selectinload(Investor.rounds), selectinload(Investor.industries))
+        ).all()
 
     @classmethod
     def get_pagination(
@@ -513,7 +499,9 @@ class Investor(db.Model):
         """
         try:
             combined_query = (
-                QueryBuilder(Investor.query.options(joinedload(Investor.rounds), joinedload(Investor.industries)), cls)
+                QueryBuilder(
+                    db.select(Investor).options(selectinload(Investor.rounds), selectinload(Investor.industries)), cls
+                )
                 .apply_search_filters(search_string, filter_fields, search_fields)
                 .apply_sorting(sort_field, descending)
                 .filter_by_rounds(rounds, rounds_exclusive)
@@ -521,38 +509,23 @@ class Investor(db.Model):
                 .filter_by_investment_range(min_investment, max_investment)
                 .build()
             )
-            investors = combined_query.paginate(page=page, per_page=per_page, error_out=error_out)
+            investors = db.paginate(combined_query, page=page, per_page=per_page, error_out=error_out)
             if investors.pages < page:
-                investors = combined_query.paginate(page=investors.pages, per_page=per_page, error_out=error_out)
+                investors = db.paginate(combined_query, page=investors.pages, per_page=per_page, error_out=error_out)
             return investors
         except Exception:
             return []
 
     @staticmethod
     def get_by_id(id: int) -> Investor | None:
-        try:
-            investor = Investor.query.filter(Investor.id == id).one()
-            return investor
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(Investor).where(Investor.id == id))
 
     @staticmethod
     def get_by_email(email: str) -> Investor | None:
-        try:
-            investor = Investor.query.filter(Investor.email == email).first()
-            return investor
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(Investor).where(Investor.email == email))
 
     @staticmethod
     def populate() -> None:
-        """
-        Populate the database with dummy investor data.
-
-        This method generates random data for 50 investors and adds them to the database.
-
-        """
-        # try:
         investor_list = []
         firstnames = get_names(50)
         lastnames = get_last_names(50)
@@ -596,8 +569,6 @@ class Investor(db.Model):
             )
         db.session.add_all(investor_list)
         db.session.commit()
-        # except Exception:
-        #     db.session.rollback()
 
     @staticmethod
     def populate_demo(file_name="investor.csv"):
@@ -769,15 +740,11 @@ class InvestmentFirm(db.Model):
 
     @staticmethod
     def get_all() -> Sequence[InvestmentFirm]:
-        try:
-            firms = (
-                db.session.query(InvestmentFirm)
-                .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
-                .all()
+        return db.session.scalars(
+            db.select(InvestmentFirm).options(
+                selectinload(InvestmentFirm.rounds), selectinload(InvestmentFirm.industries)
             )
-            return firms
-        except NoResultFound:
-            return []
+        ).all()
 
     @classmethod
     def get_pagination(
@@ -821,9 +788,7 @@ class InvestmentFirm(db.Model):
         """
         try:
             combined_query = (
-                QueryBuilder(
-                    InvestmentFirm.query.options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries)), cls
-                )
+                QueryBuilder(db.select(InvestmentFirm).options(selectinload(InvestmentFirm.rounds), selectinload(InvestmentFirm.industries)), cls)
                 .apply_search_filters(search_string, filter_fields, search_fields)
                 .apply_sorting(sort_field, descending)
                 .filter_by_rounds(rounds, rounds_exclusive)
@@ -831,10 +796,10 @@ class InvestmentFirm(db.Model):
                 .filter_by_investment_range(min_investment, max_investment)
                 .build()
             )
-            investment_firms = combined_query.paginate(page=page, per_page=per_page, error_out=error_out)
+            investment_firms = db.paginate(combined_query, page=page, per_page=per_page, error_out=error_out)
             if investment_firms.pages < page:
-                investment_firms = combined_query.paginate(
-                    page=investment_firms.pages, per_page=per_page, error_out=error_out
+                investment_firms = db.paginate(
+                    combined_query, page=investment_firms.pages, per_page=per_page, error_out=error_out
                 )
 
             return investment_firms
@@ -843,27 +808,14 @@ class InvestmentFirm(db.Model):
 
     @staticmethod
     def get_by_id(id: int) -> InvestmentFirm | None:
-        try:
-            firm = InvestmentFirm.query.filter(InvestmentFirm.id == id).one()
-            return firm
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.id == id))
 
     @staticmethod
     def get_by_email(email: str) -> InvestmentFirm | None:
-        try:
-            firm = InvestmentFirm.query.filter(InvestmentFirm.email == email).first()
-            return firm
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.email == email))
 
     @staticmethod
     def populate():
-        """Populate the database with dummy investment firm data.
-
-        This method generates random data for 50 investment firms and adds them to the database.
-
-        """
         try:
             investment_firms_list = []
             names = get_companies(50)

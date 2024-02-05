@@ -1,5 +1,5 @@
-{% extends "layouts/layout_auth.html" %} {% block title %}Register{% endblock %} {% block head %} {{ super() }}
-{% endblock %} {% block content %}
+{% extends "layouts/layout_auth.html" %} {% block title %}Register{% endblock %} {% block head %} {{ super() }} {%
+endblock %} {% block content %}
 <main class="flex h-full w-full flex-row text-slate-900 sm:items-center">
     <div class="inline-flex w-full justify-center px-9 md:w-1/2 md:justify-start md:px-16">
         <form action="/register" method="POST" class="flex w-80 flex-col gap-7 font-medium">
@@ -64,14 +64,14 @@
                         href="/login-linkedin"
                         class="flex w-full items-center justify-center gap-1 rounded-xl bg-white transition-colors ease-in-out hover:bg-slate-100"
                     >
-                        <img class="w-4" src="../static/elements/linkedin.svg" alt="" />
+                        <img class="w-4" src="/static/elements/linkedin.svg" alt="" />
                         <div class="text-black">LinkedIn</div>
                     </a>
                     <a
                         href="/login-google"
                         class="flex w-full items-center justify-center gap-1 rounded-xl bg-white transition-colors ease-in-out hover:bg-slate-100"
                     >
-                        <img src="../static/elements/google.svg" alt="" />
+                        <img src="/static/elements/google.svg" alt="" />
                         <div class="text-black">Google</div>
                     </a>
                 </div>
@@ -84,8 +84,7 @@
         </form>
     </div>
     <div class="hidden h-full w-1/2 overflow-hidden rounded-tl-3xl bg-white md:block">
-        <img class="h-full w-full object-cover" src="../static/elements/login_stock.png" alt="" />
+        <img class="h-full w-full object-cover" src="/static/elements/login_stock.png" alt="" />
     </div>
 </main>
 {% endblock %}
-

@@ -9,9 +9,6 @@ profile = Blueprint("profile", __name__)
 @profile.route("/user/<int:user_id>/", methods=["GET"])
 @login_required
 def user_profile(user_id):
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     user = User.get_by_id(user_id)
@@ -33,9 +30,6 @@ def user_profile(user_id):
 @profile.route("/company/<int:user_id>/", methods=["GET", "POST"])
 @login_required
 def company(user_id):
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     company = Company.get_by_user_id(user_id)

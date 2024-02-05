@@ -104,8 +104,12 @@
 }
 
 @keyframes fadeOutRight {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(150%); }
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(150%);
+    }
 }
 
 .fade-out-right {

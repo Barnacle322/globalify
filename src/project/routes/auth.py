@@ -12,7 +12,8 @@ from flask_login import (
 
 from ..extensions import db, login_manager, oauth
 from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
-from ..utils.errors.auth_error_messages import (
+from ..utils.enums import OauthProvider, Status, StatusType
+from ..utils.errors.error_messages import (
     AUTH_EMAIL_NOT_FOUND,
     AUTH_EMAIL_USED,
     AUTH_FIELDS_INCOMPLETE,
@@ -29,7 +30,6 @@ from ..utils.errors.auth_error_messages import (
 )
 from ..utils.google_storage import upload_picture
 from ..utils.info_lists import languages as language_list
-from ..utils.status_enum import OauthProvider, Status, StatusType
 
 auth = Blueprint("auth", __name__)
 
@@ -232,9 +232,6 @@ def onboarding():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
@@ -311,8 +308,6 @@ def username(username: str):
             - "is_taken" (bool): True if the username is already taken, False otherwise.
 
     """
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
 
     is_taken = UserInfo.is_taken(username)
 
@@ -338,9 +333,6 @@ def company_form():
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
-
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 

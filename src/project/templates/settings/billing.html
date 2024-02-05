@@ -1,5 +1,5 @@
 {% extends "layouts/layout_app.html" %} {% block title %}Settings{% endblock %} {% block head %} {{ super() }}
-<script src="../static/scripts/dashboard.js" defer></script>
+<script src="/static/scripts/dashboard.js" defer></script>
 {% endblock %} {% block content %}
 <div class="mx-auto block max-w-7xl pt-24 lg:flex lg:gap-x-16 lg:px-8">
     <aside class="flex overflow-x-auto py-4 lg:block lg:w-64 lg:flex-none lg:py-20">
@@ -121,7 +121,7 @@
                         Manage your billing details with
                         <a href="https://stripe.com" target="_blank" class="underline">Stripe</a>.
                     </p>
-                    <img src="../static/elements/stripe_logo.svg" alt="Stripe logo" class="mt-8 w-36" />
+                    <img src="/static/elements/stripe_logo.svg" alt="Stripe logo" class="mt-8 w-36" />
                 </div>
                 <form class="md:col-span-2" action="/payment/create-portal-session" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />

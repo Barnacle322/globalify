@@ -397,7 +397,6 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python,flask,node
 
 .vscode
-start.ps1
 start_prod.ps1
 .old_venv
 .idea

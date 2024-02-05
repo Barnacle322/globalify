@@ -1,14 +1,15 @@
-{% extends "layouts/layout_app.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }}
-<script src="../static/scripts/dashboard.js" defer></script>
+{% extends "layouts/layout_app.html" %} {% block title %} {{ investor.full_name }} {% endblock %} {% block head %}
+{{super() }}
+<script src="/static/scripts/dashboard.js" defer></script>
 {% endblock %} {% block content %}
-<main class="mt-28 flex h-full flex-wrap justify-center gap-5 px-8 pb-16">
-    <section class="flex w-full max-w-[40rem] flex-col gap-3">
+<main class="mx-auto mb-40 mt-28 flex h-full flex-wrap justify-center gap-5 pb-16">
+    <section class="flex max-w-[40rem] flex-col gap-3 px-8">
         <div class="flex flex-wrap items-baseline justify-start gap-3">
             <h1 class="text-5xl font-medium">{{ investor.full_name }}</h1>
-            <span class="max-w-xs text-slate-700">{{ investor.position }} at {{ investor.firm_name }}</span>
+            <span class="max-w-xs text-slate-700"><b>{{ investor.position }}</b> @ {{ investor.firm_name }}</span>
         </div>
         {% if investor.about %}
-        <p class="max-w-xs">{{ investor.about }}</p>
+        <p class="">{{ investor.about }}</p>
         {% endif %}
         <div class="flex items-center justify-start gap-1 text-slate-700">
             <svg
@@ -31,7 +32,8 @@
             <span>{{ investor.location }}</span>
         </div>
     </section>
-    <section class="flex w-full max-w-[40rem] flex-col items-start justify-start gap-3">
+    <section class="flex max-w-[40rem] flex-col items-start justify-start gap-3 px-8">
+        <h2 class="text-4xl font-medium">General Info</h2>
         <div class="flex flex-col gap-1">
             <h2 class="font-medium">Industries</h2>
             <div class="flex flex-wrap gap-1">
@@ -52,6 +54,77 @@
                 {% endfor %}
             </div>
         </div>
+        <h2 class="mt-4 text-4xl font-medium">Contacts</h2>
+        {% if investor.website %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Website</h2>
+            <div class="flex flex-wrap gap-1">
+                <a href="{{ investor.website }}" class="underline"> {{ investor.website }} </a>
+            </div>
+        </div>
+        {% endif %} {% if investor.linkedin %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Linkedin</h2>
+            <div class="flex flex-wrap gap-1">
+                <a href="{{ investor.linkedin }}" class="underline"> {{ investor.linkedin }} </a>
+            </div>
+        </div>
+        {% endif %} {% if investor.twitter %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Twitter</h2>
+            <div class="flex flex-wrap gap-1">
+                <a href="{{ investor.twitter }}" class="underline"> {{ investor.twitter }} </a>
+            </div>
+        </div>
+        {% endif %} {% if investor.phone_number %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Phone Number</h2>
+            <div class="flex flex-wrap gap-1">
+                <a href="tel:{{ investor.phone_number }}" class="underline"> {{ investor.phone_number }} </a>
+            </div>
+        </div>
+        {% endif %}
+        <h2 class="mt-4 text-4xl font-medium">Investments</h2>
+        {% if investor.notable_investments %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Notable Investments</h2>
+            <div class="flex flex-wrap gap-1">
+                {% for investment in investor.notable_investments %}
+                <span class="inline-flex items-center justify-center rounded-xl bg-sky-500 p-2 leading-none text-white">
+                    {{ investment.name }}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %} {% if investor.investment_stage %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Investment Range</h2>
+            <div class="flex flex-wrap gap-1">
+                <span>${{ investor.min_max_investment }}</span>
+            </div>
+        </div>
+        {% endif %} {% if investor.n_investments and investor.n_exits %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Number of investments/exits</h2>
+            <div class="flex flex-wrap gap-1">
+                <span>{{ investor.n_investments }}/{{ investor.n_exits }}</span>
+            </div>
+        </div>
+        {% elif investor.n_investments %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Number of investments</h2>
+            <div class="flex flex-wrap gap-1">
+                <span>{{ investor.n_investments }}</span>
+            </div>
+        </div>
+        {% elif investor.n_exits %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Number of exits</h2>
+            <div class="flex flex-wrap gap-1">
+                <span>{{ investor.n_exits }}</span>
+            </div>
+        </div>
+        {% endif %}
     </section>
 </main>
 {% endblock %}

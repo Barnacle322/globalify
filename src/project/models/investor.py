@@ -1,23 +1,29 @@
 from __future__ import annotations
 
+import csv
 import random
+from collections.abc import Sequence
+from itertools import islice
 
 from flask_sqlalchemy.pagination import Pagination
-from flask_sqlalchemy.query import Query
-from sqlalchemy import Column, ForeignKey, Integer, String, and_, desc, event, or_
-from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from geopy.distance import geodesic
+from sqlalchemy import Column, ForeignKey, Integer, String, and_, desc, or_
+from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
+from sqlalchemy.sql import Select
+from thefuzz import fuzz
 
 from ..extensions import db
 from ..utils.fake_data import (
     get_abouts,
     get_companies,
+    get_countrys,
     get_emails,
     get_job_positions,
     get_last_names,
     get_names,
     get_websites,
 )
+from ..utils.suggestion import geocode_location, weights
 from .helpers import Industry, Round
 
 
@@ -28,13 +34,13 @@ class QueryBuilder:
     This class allows you to dynamically apply search filters, sorting, and various other filters to a base query.
 
     Attributes:
-        query (Query): The current query being built.
+        base_query (Select): The base query being built.
         cls (type[Investor | InvestmentFirm]): The class type for which the query is built.
 
     """
 
-    def __init__(self, base_query: Query, cls: type[Investor | InvestmentFirm]):
-        self.query = base_query
+    def __init__(self, base_query: Select, cls: type[Investor | InvestmentFirm]):
+        self.base_query = base_query
         self.cls = cls
 
     def apply_search_filters(self, query_string: str, filter_fields: list[str] | None, search_fields: tuple[str, ...]):
@@ -52,6 +58,7 @@ class QueryBuilder:
         """
         if not query_string:
             return self
+
         filter_conditions = [
             getattr(self.cls, field).ilike(f"%{query_string}%")
             for field in (filter_fields or search_fields)
@@ -59,7 +66,7 @@ class QueryBuilder:
         ]
 
         if filter_conditions:
-            self.query = self.query.filter(or_(*filter_conditions))
+            self.base_query = self.base_query.where(or_(*filter_conditions))
 
         return self
 
@@ -76,7 +83,9 @@ class QueryBuilder:
 
         """
         if sort_field and hasattr(self.cls, sort_field):
-            self.query = self.query.order_by(desc(sort_field)) if descending else self.query.order_by(sort_field)
+            self.base_query = (
+                self.base_query.order_by(desc(sort_field)) if descending else self.base_query.order_by(sort_field)
+            )
         return self
 
     def filter_by_rounds(self, rounds: list[Round] | None, rounds_exclusive: bool):
@@ -94,7 +103,7 @@ class QueryBuilder:
         if rounds:
             round_filters = [self.cls.rounds.any(Round.id == round_obj.id) for round_obj in rounds]
             condition = and_(*round_filters) if rounds_exclusive else or_(*round_filters)
-            self.query = self.query.filter(condition)
+            self.base_query = self.base_query.where(condition)
         return self
 
     def filter_by_industries(self, industries: list[Industry] | None, industries_exclusive: bool):
@@ -112,7 +121,7 @@ class QueryBuilder:
         if industries:
             industry_filters = [self.cls.industries.any(Industry.id == industry_obj.id) for industry_obj in industries]
             condition = and_(*industry_filters) if industries_exclusive else or_(*industry_filters)
-            self.query = self.query.filter(condition)
+            self.base_query = self.base_query.where(condition)
         return self
 
     def filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
@@ -127,19 +136,200 @@ class QueryBuilder:
             QueryBuilder: The QueryBuilder instance with the applied investment range filter.
 
         """
-        if min_investment and max_investment:
+        if min_investment is not None and max_investment is not None:
             investment_filters = and_(
                 self.cls.min_investment >= min_investment, self.cls.max_investment <= max_investment
             )
-            self.query = self.query.filter(investment_filters)
-        elif min_investment:
-            self.query = self.query.filter(self.cls.min_investment >= min_investment)
-        elif max_investment:
-            self.query = self.query.filter(self.cls.max_investment <= max_investment)
+            self.base_query = self.base_query.where(investment_filters)
+        elif min_investment is not None:
+            self.base_query = self.base_query.where(self.cls.min_investment >= min_investment)
+        elif max_investment is not None:
+            self.base_query = self.base_query.where(self.cls.max_investment <= max_investment)
         return self
 
     def build(self):
-        return self.query
+        return self.base_query
+
+
+class NotableInvestment(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<NotableInvestment {self.name}>"
+
+    @staticmethod
+    def get_all() -> Sequence[NotableInvestment]:
+        return db.session.scalars(db.select(NotableInvestment)).all()
+
+    @staticmethod
+    def get_by_id(id: int) -> NotableInvestment | None:
+        return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.id == id))
+
+    @staticmethod
+    def get_by_name(name: str) -> NotableInvestment | None:
+        return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.name == name))
+
+    @staticmethod
+    def populate() -> None:
+        """
+        Populates the notable investments.
+
+        This method adds a list of predefined notable investment names to the database session
+        and commits the changes.
+
+        Raises:
+            Exception: If an exception occurs during the population process, the changes are rolled back.
+
+        """
+        try:
+            notable_investment_list = list(
+                set(
+                    [
+                        "Uber",
+                        "Airbnb",
+                        "Robinhood",
+                        "Stripe",
+                        "Coinbase",
+                        "DoorDash",
+                        "Twitch",
+                        "Reddit",
+                        "TikTok",
+                        "Snapchat",
+                        "Spotify",
+                        "Lyft",
+                        "Zoom",
+                        "Pinterest",
+                        "Dropbox",
+                        "Slack",
+                        "Tinder",
+                        "Instagram",
+                        "Facebook",
+                        "Twitter",
+                        "LinkedIn",
+                        "YouTube",
+                        "Google",
+                        "PayPal",
+                        "Tesla",
+                        "SpaceX",
+                        "Amazon",
+                        "Netflix",
+                        "Apple",
+                        "Microsoft",
+                        "Intel",
+                        "Cisco",
+                        "Oracle",
+                        "IBM",
+                        "HP",
+                        "Dell",
+                        "eBay",
+                        "Yahoo",
+                        "AOL",
+                        "Compaq",
+                        "Netscape",
+                        "Sun Microsystems",
+                        "3Com",
+                        "Adobe",
+                        "AMD",
+                        "Xerox",
+                        "Sony",
+                        "Nintendo",
+                        "Sega",
+                        "Panasonic",
+                        "Samsung",
+                        "LG",
+                        "Nokia",
+                        "Motorola",
+                        "Siemens",
+                        "Philips",
+                        "Vodafone",
+                        "Ericsson",
+                        "Alcatel",
+                        "Sanyo",
+                        "Sharp",
+                        "NEC",
+                        "Palm",
+                        "BlackBerry",
+                        "HTC",
+                        "Qualcomm",
+                        "Verizon",
+                        "AT&T",
+                        "Vodafone",
+                        "T-Mobile",
+                        "Sprint",
+                        "Orange",
+                        "Bell",
+                        "Telus",
+                        "Rogers",
+                        "Comcast",
+                        "Time Warner",
+                        "Cox",
+                        "Charter",
+                        "CenturyLink",
+                        "Viacom",
+                        "CBS",
+                        "Disney",
+                        "News Corp",
+                        "Vivendi",
+                        "Bertelsmann",
+                        "Time Warner",
+                        "Sony",
+                        "Liberty Media",
+                        "Vodafone",
+                        "Televisa",
+                        "BCE",
+                        "Dish",
+                        "DirecTV",
+                        "Sky",
+                        "Telecom Italia",
+                        "Telefónica",
+                        "NTT",
+                        "KDDI",
+                        "Softbank",
+                        "SK Telecom",
+                        "KT",
+                        "LG Uplus",
+                        "China Mobile",
+                        "China Unicom",
+                        "China Telecom",
+                        "VimpelCom",
+                        "MTS",
+                        "Megafon",
+                        "Telecom Argentina",
+                        "Telecom Egypt",
+                        "Etisalat",
+                        "Ooredoo",
+                        "STC",
+                        "MTN",
+                        "TeliaSonera",
+                        "Telenor",
+                        "Telstra",
+                        "SingTel",
+                        "Telkom Indonesia",
+                        "Axiata",
+                        "Turkcell",
+                        "Mobily",
+                        "Mobinil",
+                        "Zain",
+                        "Omantel",
+                        "Qtel",
+                        "Batelco",
+                        "Vivacom",
+                        "TDC",
+                        "Telenor",
+                        "Tele2",
+                        "DNA",
+                        "Elisa",
+                    ]
+                )
+            )
+            db.session.add_all(list(map(lambda x: NotableInvestment(name=x), notable_investment_list)))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
 
 investor_round = db.Table(
@@ -152,6 +342,12 @@ investor_industry = db.Table(
     "investor_industry",
     Column("investor_id", Integer, ForeignKey("investor.id"), primary_key=True),
     Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+)
+
+investor_notable_investment = db.Table(
+    "investor_notable_investment",
+    Column("investor_id", Integer, ForeignKey("investor.id"), primary_key=True),
+    Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
 )
 
 investment_firm_round = db.Table(
@@ -219,7 +415,10 @@ class Investor(db.Model):
     min_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     location: Mapped[str] = mapped_column(String, nullable=True)
+    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
+    bias: Mapped[int] = mapped_column(Integer, nullable=True)
 
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investor_industry)
 
@@ -233,13 +432,25 @@ class Investor(db.Model):
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
+    @property
+    def coordinates(self):
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, coordinates: str) -> None:
+        self._coordinates = geocode_location(coordinates)  # type: ignore
+
+    @property
+    def min_max_investment(self):
+        if self.min_investment is None or self.max_investment is None:
+            return None
+        return f"{self.min_investment:,} - {self.max_investment:,}"
+
     @staticmethod
-    def get_all() -> list[Investor]:
-        try:
-            investors: list[Investor] = Investor.query.all()
-            return investors
-        except NoResultFound:
-            return []
+    def get_all() -> Sequence[Investor]:
+        return db.session.scalars(
+            db.select(Investor).options(selectinload(Investor.rounds), selectinload(Investor.industries))
+        ).all()
 
     @classmethod
     def get_pagination(
@@ -258,6 +469,7 @@ class Investor(db.Model):
         sort_field: str | None = None,
         descending: bool = False,
         search_fields: tuple[str, ...] = ("first_name", "last_name", "firm_name", "position", "about"),
+        # company: Company | None = None,
     ) -> Pagination | list[None]:
         """
         Get a paginated list of investors based on the provided filters.
@@ -284,7 +496,9 @@ class Investor(db.Model):
         """
         try:
             combined_query = (
-                QueryBuilder(Investor.query, cls)
+                QueryBuilder(
+                    db.select(Investor).options(selectinload(Investor.rounds), selectinload(Investor.industries)), cls
+                )
                 .apply_search_filters(search_string, filter_fields, search_fields)
                 .apply_sorting(sort_field, descending)
                 .filter_by_rounds(rounds, rounds_exclusive)
@@ -292,72 +506,191 @@ class Investor(db.Model):
                 .filter_by_investment_range(min_investment, max_investment)
                 .build()
             )
-            investors = combined_query.paginate(page=page, per_page=per_page, error_out=error_out)
+            investors = db.paginate(combined_query, page=page, per_page=per_page, error_out=error_out)
             if investors.pages < page:
-                investors = combined_query.paginate(page=investors.pages, per_page=per_page, error_out=error_out)
-
+                investors = db.paginate(combined_query, page=investors.pages, per_page=per_page, error_out=error_out)
             return investors
         except Exception:
             return []
 
     @staticmethod
     def get_by_id(id: int) -> Investor | None:
-        try:
-            investor = Investor.query.filter(Investor.id == id).one()
-            return investor
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(Investor).where(Investor.id == id))
 
     @staticmethod
     def get_by_email(email: str) -> Investor | None:
-        try:
-            investor = Investor.query.filter(Investor.email == email).first()
-            return investor
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(Investor).where(Investor.email == email))
 
     @staticmethod
-    def populate():
-        """
-        Populate the database with dummy investor data.
-
-        This method generates random data for 50 investors and adds them to the database.
-
-        """
-        try:
-            investor_list = []
-            firstnames = get_names(50)
-            lastnames = get_last_names(50)
-            emails = get_emails(50)
-            websites = get_websites(50)
-            job_positions = get_job_positions(50)
-            companies = get_companies(50)
-            for i in range(1, 50):
-                num_rounds = random.randint(1, 5)
-                rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
-                num_industries = random.randint(1, 6)
-                industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
-                min_investment = random.randrange(100000, 50000001, 100000)
-                max_investment = random.randrange(min_investment, 50000001, 100000)
-                investor_list.append(
-                    Investor(
-                        first_name=f"{firstnames[i]}",
-                        last_name=f"{lastnames[i]}",
-                        about=f"{firstnames[i]} is a {job_positions[i]} at {companies[i]}. {get_abouts(1)[0]}",
-                        firm_name=f"{companies[i]}",
-                        position=f"{job_positions[i]}",
-                        website=f"{websites[i]}",
-                        email=f"{str(i) + emails[i]}",
-                        rounds=list(set(rounds)),
-                        industries=list(set(industries)),
-                        min_investment=min_investment,
-                        max_investment=max_investment,
-                    )
+    def populate() -> None:
+        investor_list = []
+        firstnames = get_names(50)
+        lastnames = get_last_names(50)
+        emails = get_emails(50)
+        websites = get_websites(50)
+        job_positions = get_job_positions(50)
+        locations = get_countrys(50)
+        companies = get_companies(50)
+        for i in range(1, 50):
+            num_rounds = random.randint(1, 5)
+            rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
+            num_industries = random.randint(1, 6)
+            industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
+            notable_investments = [
+                NotableInvestment.get_by_id(random.randint(1, len(NotableInvestment.get_all())))
+                for _ in range(random.randint(1, 10))
+            ]
+            min_investment = random.randrange(100000, 50000001, 100000)
+            investor_list.append(
+                Investor(
+                    first_name=f"{firstnames[i]}",
+                    last_name=f"{lastnames[i]}",
+                    about=f"{firstnames[i]} is a {job_positions[i]} at {companies[i]}. {get_abouts(1)[0]}",
+                    firm_name=f"{companies[i]}",
+                    position=f"{job_positions[i]}",
+                    website=f"{websites[i]}",
+                    linkedin=f"https://www.linkedin.com/in/{firstnames[i]}-{lastnames[i]}",
+                    twitter=f"https://twitter.com/{firstnames[i]}{lastnames[i]}",
+                    email=f"{str(i) + emails[i]}",
+                    phone_number=f"+1{random.randrange(1000000000, 9999999999)}",
+                    n_investments=random.randint(100, 200),
+                    n_exits=random.randint(1, 100),
+                    location=locations[i],
+                    coordinates=locations[i],
+                    rounds=list(set(rounds)),
+                    industries=list(set(industries)),
+                    min_investment=min_investment,
+                    max_investment=random.randrange(min_investment, 50000001, 100000),
+                    notable_investments=list(set(notable_investments)),
                 )
-            db.session.add_all(investor_list)
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
+            )
+        db.session.add_all(investor_list)
+        db.session.commit()
+
+    @staticmethod
+    def populate_demo(file_name="investor.csv"):
+        with open(file_name, newline="") as file:
+            reader = csv.reader(file, delimiter=";")
+            for row in islice(reader, 84, None):
+                check_size_string = row[8]
+                range_set = set()
+                for range_ in check_size_string.split(","):
+                    sanitized_range = (
+                        range_.replace("$", "")
+                        .replace(",", " ")
+                        .replace(" ", "")
+                        .replace("K", "000")
+                        .replace("M", "000000")
+                        .replace("B", "000000000")
+                        .replace("+", "")
+                    )
+                    if "-" in sanitized_range:
+                        min_investment, max_investment = sanitized_range.split("-")
+                        range_set.add(int(min_investment))
+                        range_set.add(int(max_investment))
+                    else:
+                        if sanitized_range in ["", " "]:
+                            continue
+                        range_set.add(int(sanitized_range))
+                min_investment, max_investment = None, None
+                if len(range_set) > 1:
+                    min_investment, max_investment = min(range_set), max(range_set)
+                    # print(min_investment, max_investment)
+
+                industry_list = []
+                for industry in row[5].split(","):
+                    for i in Industry.get_industry_list():
+                        if i and fuzz.ratio(industry, i.name) > 80:
+                            industry = i
+                            industry_list.append(industry)
+                            break
+
+                round_list = []
+                for round_ in row[9].split(","):
+                    for r in Round.get_all():
+                        if round_ == "Series B+":
+                            round_list.append(Round.get_by_name("Series B"))
+                            round_list.append(Round.get_by_name("Series C"))
+                            break
+                        if r and fuzz.ratio(round_.lower(), r.name.lower()) > 90:
+                            round_ = r
+                            round_list.append(round_)
+                            break
+                notable_investment_list = []
+                for notable_investment in row[10].split(","):
+                    existing = NotableInvestment.get_by_name(notable_investment)
+                    if existing:
+                        notable_investment_list.append(existing)
+                    else:
+                        ni = NotableInvestment(name=notable_investment)
+                        db.session.add(ni)
+                        notable_investment_list.append(ni)
+
+                investor = Investor(
+                    first_name=row[0].split(" ")[0],
+                    last_name=row[0].split(" ")[1],
+                    firm_name=row[1],
+                    position=row[2],
+                    email=row[3],
+                    location=row[4],
+                    industries=list(set(industry_list)),
+                    linkedin=row[6],
+                    twitter=row[7],
+                    min_investment=min_investment,
+                    max_investment=max_investment,
+                    rounds=list(set(round_list)),
+                    notable_investments=notable_investment_list,
+                    coordinates=row[4],
+                )
+                db.session.add(investor)
+                print("Added investor:", investor)
+        db.session.commit()
+
+    def calculate_score(self, company):
+        try:
+            if self.bias:
+                bias_score = (self.bias / 100) if self.bias else 0
+            else:
+                bias_score = 0
+
+            if company.industry in self.industries and len(self.industries) == 1:
+                industry_score = 1
+            elif company.industry in self.industries:
+                industry_score = 0.8
+            else:
+                industry_score = 0
+
+            if company.preferred_round in self.rounds and len(self.rounds) == 1:
+                round_score = 1
+            elif company.preferred_round in self.rounds:
+                round_score = 0.8
+            else:
+                round_score = 0
+
+            if company.coordinates and self.coordinates:
+                distance = float(geodesic(company.coordinates, self.coordinates).kilometers)
+                location_score = 1 - (distance / 20000) if (distance / 20000) < 1 else 0
+            else:
+                location_score = 0
+
+            if self.n_investments:
+                successful_exits = 1 if (self.n_exits / self.n_investments) >= 0.5 else 0
+            else:
+                successful_exits = 0
+
+            total_score = (
+                weights["industry"] * industry_score
+                + weights["round"] * round_score
+                + weights["bias"] * bias_score
+                + weights["location"] * location_score
+                + weights["exits"] * successful_exits
+            )
+
+        except (AttributeError, TypeError, ZeroDivisionError) as e:
+            print(f"An error occurred while calculating the score: {e}")
+            total_score = 0
+
+        return total_score
 
 
 class InvestmentFirm(db.Model):
@@ -403,12 +736,12 @@ class InvestmentFirm(db.Model):
         return f"<InvestmentFirm {self.name}>"
 
     @staticmethod
-    def get_all() -> list[InvestmentFirm]:
-        try:
-            firms: list[InvestmentFirm] = InvestmentFirm.query.all()
-            return firms
-        except NoResultFound:
-            return []
+    def get_all() -> Sequence[InvestmentFirm]:
+        return db.session.scalars(
+            db.select(InvestmentFirm).options(
+                selectinload(InvestmentFirm.rounds), selectinload(InvestmentFirm.industries)
+            )
+        ).all()
 
     @classmethod
     def get_pagination(
@@ -452,7 +785,12 @@ class InvestmentFirm(db.Model):
         """
         try:
             combined_query = (
-                QueryBuilder(InvestmentFirm.query, cls)
+                QueryBuilder(
+                    db.select(InvestmentFirm).options(
+                        selectinload(InvestmentFirm.rounds), selectinload(InvestmentFirm.industries)
+                    ),
+                    cls,
+                )
                 .apply_search_filters(search_string, filter_fields, search_fields)
                 .apply_sorting(sort_field, descending)
                 .filter_by_rounds(rounds, rounds_exclusive)
@@ -460,10 +798,10 @@ class InvestmentFirm(db.Model):
                 .filter_by_investment_range(min_investment, max_investment)
                 .build()
             )
-            investment_firms = combined_query.paginate(page=page, per_page=per_page, error_out=error_out)
+            investment_firms = db.paginate(combined_query, page=page, per_page=per_page, error_out=error_out)
             if investment_firms.pages < page:
-                investment_firms = combined_query.paginate(
-                    page=investment_firms.pages, per_page=per_page, error_out=error_out
+                investment_firms = db.paginate(
+                    combined_query, page=investment_firms.pages, per_page=per_page, error_out=error_out
                 )
 
             return investment_firms
@@ -472,27 +810,14 @@ class InvestmentFirm(db.Model):
 
     @staticmethod
     def get_by_id(id: int) -> InvestmentFirm | None:
-        try:
-            firm = InvestmentFirm.query.filter(InvestmentFirm.id == id).one()
-            return firm
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.id == id))
 
     @staticmethod
     def get_by_email(email: str) -> InvestmentFirm | None:
-        try:
-            firm = InvestmentFirm.query.filter(InvestmentFirm.email == email).first()
-            return firm
-        except NoResultFound:
-            return None
+        return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.email == email))
 
     @staticmethod
     def populate():
-        """Populate the database with dummy investment firm data.
-
-        This method generates random data for 50 investment firms and adds them to the database.
-
-        """
         try:
             investment_firms_list = []
             names = get_companies(50)
@@ -522,29 +847,3 @@ class InvestmentFirm(db.Model):
             db.session.commit()
         except Exception:
             db.session.rollback()
-
-
-@event.listens_for(Investor.__table__, "after_create")  # type: ignore
-def populate_investor(*args, **kwargs):
-    """
-    Event listener function that populates the investor table with random data after it is created.
-
-    Args:
-        *args: Variable length argument list.
-        **kwargs: Arbitrary keyword arguments.
-
-    """
-    Investor.populate()
-
-
-@event.listens_for(InvestmentFirm.__table__, "after_create")  # type: ignore
-def populate_firms(*args, **kwargs):
-    """
-    Event listener function that populates the investment firms table with random data after it is created.
-
-    Args:
-        *args: Variable length argument list.
-        **kwargs: Arbitrary keyword arguments.
-
-    """
-    InvestmentFirm.populate()

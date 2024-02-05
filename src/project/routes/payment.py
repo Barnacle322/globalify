@@ -1,6 +1,6 @@
+import datetime
 import json
 import os
-from datetime import datetime
 
 import stripe
 from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
@@ -9,13 +9,13 @@ from stripe import InvalidRequestError, SignatureVerificationError
 
 from ..extensions import csrf, db
 from ..models import User, UserInfo, UserPayment, WaitlistCharge
-from ..utils.errors.auth_error_messages import (
+from ..utils.enums import Events, Status, StatusType, Tier
+from ..utils.errors.error_messages import (
     ONBOARDING_INCOMPLETE,
     PAYMENT_EMAIL_USED,
     PAYMENT_NOT_FOUND,
 )
 from ..utils.google_pubsub import send_event
-from ..utils.status_enum import Events, Status, StatusType, Tier
 from .main import check_user_info_complete
 
 payment = Blueprint("payment", __name__)
@@ -50,7 +50,7 @@ def get_invoices(authenticated_user: User):
     for stripe_invoice in stripe_invoices:
         invoice = {
             "id": stripe_invoice.get("id"),
-            "created": datetime.utcfromtimestamp(stripe_invoice.get("created", 0)).date(),
+            "created": datetime.datetime.fromtimestamp(stripe_invoice.get("created", 0), tz=datetime.UTC).date(),
             "amount_due": stripe_invoice.get("amount_due"),
             "amount_paid": stripe_invoice.get("amount_paid"),
             "currency": stripe_invoice.get("currency"),

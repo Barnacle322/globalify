@@ -1,0 +1,77 @@
+{% extends "layouts/layout_app.html" %} {% block title %} Company Profile {% endblock %} {% block head %} {{ super() }}
+<script src="/static/scripts/dashboard.js" defer></script>
+{% endblock %} {% block content %}
+<main class="flex min-h-screen w-full items-start justify-center bg-neutral-100 pt-24">
+    <div class="mx-9 flex max-w-4xl flex-col lg:mx-auto lg:w-full">
+        <div class="flex w-full">
+            <a href="/profile/user/{{ user.id }}" class="flex rounded-md p-3 font-medium leading-6">User Profile</a>
+            <a
+                href="/profile/company/{{ user.id }}"
+                class="flex rounded-t-lg bg-white p-3 font-medium leading-6 text-sky-500 shadow-xl"
+                >Company Profile</a
+            >
+        </div>
+        <div class="w-full rounded-b-lg rounded-r-lg bg-white p-6 shadow-xl">
+            <div class="flex items-center gap-3">
+                {% if company.pfp_uuid %}
+                <div class="relative h-32 w-32 overflow-hidden rounded-full">
+                    <img
+                        src="{{ company.pfp_uuid }}"
+                        alt="Company Logo"
+                        class="h-full w-full rounded-full object-cover"
+                    />
+                </div>
+                {% else %}
+                <div class="flex h-32 w-32 items-center justify-center rounded-full bg-gray-300 text-gray-600">
+                    No Logo
+                </div>
+                {% endif %}
+
+                <div class="grid gap-0.5 text-lg">
+                    <div class="font-medium">{{ company.name }}</div>
+                    <div class="text-gray-500 dark:text-gray-400">{{ company.description }}</div>
+                    {% if company.user_id == user.id %}
+                    <div>
+                        <button class="mt-[8px] rounded-xl bg-sky-500 px-3 text-white">
+                            <a href="/settings/company">Edit</a>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <p class="mt-4 text-gray-500 dark:text-gray-400">{{ company.description }}</p>
+            <div class="mt-4 grid gap-4">
+                <div class="grid gap-1">
+                    <h3 class="text-sm font-medium">Number of Employees</h3>
+                    <p>{{ company.number_of_employees }}</p>
+                </div>
+                {% if company.website %}
+                <div class="grid gap-1">
+                    <h3 class="text-sm font-medium">Website</h3>
+                    <a href="{{ company.website }}" class="underline">{{ company.website }}</a>
+                </div>
+                {% else %}
+                <div class="grid gap-1">
+                    <h3 class="text-sm font-medium">Website</h3>
+                    <p>No website</p>
+                </div>
+                {% endif %}
+                <div class="grid gap-1">
+                    <h3 class="text-sm font-medium">Country</h3>
+                    <p>{{ company.country.name }}</p>
+                </div>
+                <div class="grid gap-1">
+                    <h3 class="text-sm font-medium">Preferred Round</h3>
+                    <p>{{ company.preferred_round.name }}</p>
+                </div>
+                <div class="grid gap-1">
+                    <h3 class="text-sm font-medium">Industry</h3>
+                    <p>{{ company.industry.name }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+{% endblock %}

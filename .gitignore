@@ -1,6 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,flask,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,flask,node
 
+investor.csv
+
 ### Flask ###
 instance/*
 !instance/.gitignore
@@ -395,7 +397,6 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python,flask,node
 
 .vscode
-start.ps1
 start_prod.ps1
 .old_venv
 .idea

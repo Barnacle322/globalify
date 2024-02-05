@@ -1,18 +1,18 @@
 import datetime
 from io import BytesIO
+
 from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import url_for
 from src.project.models.user import EmailVerification
 
+from src.project import db
+from src.project.extensions import oauth
+from src.project.models import User, UserInfo, UserOauth, UserPayment, UserRegular
 from src.project.routes.auth import oauth_user
-from src.project.utils.status_enum import OauthProvider
-
-from ...project import db
-from ...project.extensions import oauth
-from ...project.models import User, UserInfo, UserOauth, UserPayment, UserRegular
-from ...project.utils.errors.auth_error_messages import (
+from src.project.utils.enums import OauthProvider
+from src.project.utils.errors.error_messages import (
     AUTH_EMAIL_USED,
     OAUTH_MISMATCHED_PROVIDER,
     OAUTH_NO_EMAIL,
@@ -218,7 +218,6 @@ def test_onboarding_post_valid_data(client, new_user, app):
             "last_name": "Doe",
             "username": "johndoe",
             "language": "English",
-            "pfp": (BytesIO(b"my test file contents"), "test.jpg"),
         },
         follow_redirects=True,
     )
@@ -236,7 +235,6 @@ def test_onboarding_post_invalid_url_data(client, new_user):
         "last_name": "Doe",
         "username": "johndoe",
         "language": "English",
-        "pfp": (BytesIO(b"my test file contents"), "test.jpg"),
         "linkedin": "invalid_linkedin",
         "instagram": "invalid_instagram",
         "twitter": "invalid_twitter",
@@ -294,7 +292,6 @@ def test_onboarding_incomplete(client, new_user):
             "last_name": "",
             "username": "",
             "language": "English",
-            "pfp": (BytesIO(b"my test file contents"), "test.jpg"),
         },
         follow_redirects=True,
     )
@@ -311,7 +308,6 @@ def test_nickname_taken(client, user_with_nickname, user_without_nickname, app):
             "last_name": "new",
             "username": "takenusername",
             "language": "English",
-            "pfp": (BytesIO(b"my test file contents"), "test.jpg"),
         },
         follow_redirects=True,
     )
@@ -402,7 +398,6 @@ def test_company_form_authenticated_post(client, app, user_with_complete_user_in
                 "round": "1",
                 "industry": "1",
                 "website": "http://testcompany.com",
-                "pfp": (BytesIO(b"some_image_data"), "test_image.jpg"),
             },
             follow_redirects=True,
         )
@@ -557,7 +552,6 @@ def test_linkedin_callback_authorization_failure(client, app):
             response = client.get(url_for("auth.linkedin_callback"), follow_redirects=True)
 
             assert response.status_code == 200
-            print(response.request)
             assert OAUTH_NO_EMAIL in response.text
 
 

@@ -14,7 +14,8 @@ from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..extensions import db
-from ..utils.status_enum import OauthProvider, Tier
+from ..utils.enums import OauthProvider, Tier
+from ..utils.suggestion import geocode_location
 from .helpers import Country, Industry, Round
 
 
@@ -104,8 +105,6 @@ class UserOauth(User):
     Attributes:
         oauth_provider (Mapped[OauthProvider]): Enum field representing the OAuth provider used for authentication, can be nullable.
 
-    __mapper_args__:
-        Configures the inheritance scheme, setting 'user_oauth' as the polymorphic identity for this subclass.
     """
 
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider), nullable=True)
@@ -123,9 +122,6 @@ class UserRegular(User):
 
     Attributes:
         password_hash (Mapped[str]): Stores the hash of the user's password, can be nullable.
-
-    __mapper_args__:
-        Configures the inheritance scheme, setting 'user_regular' as the polymorphic identity for this subclass.
 
     Methods:
         password: Write-only property to set the user's password. The actual password should never be readable.
@@ -165,7 +161,7 @@ class UserInfo(db.Model):
         linkedin_url (str | None): The LinkedIn profile URL of the user.
         instagram_url (str | None): The Instagram profile URL of the user.
         twitter_url (str | None): The Twitter profile URL of the user.
-        pfp_uuid (str | None): The Google storage blob ID for the user's profile picture.
+        picture_url (str | None): The Google storage blob ID for the user's profile picture.
         is_complete (bool): Indicates if the user's profile is complete.
         language (str): The language preference of the user.
 
@@ -182,7 +178,7 @@ class UserInfo(db.Model):
     linkedin_url: Mapped[str | None] = mapped_column(String, nullable=True)
     instagram_url: Mapped[str | None] = mapped_column(String, nullable=True)
     twitter_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    pfp_uuid: Mapped[str | None] = mapped_column(String, nullable=True)
+    picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     language: Mapped[str] = mapped_column(String, nullable=True, default="English")
 
@@ -255,17 +251,17 @@ class UserInfo(db.Model):
             "instagram": self.instagram_url,
             "twitter": self.twitter_url,
             "bio": self.bio,
-            "pfp": self.pfp_uuid,
+            "pfp": self.picture_url,
         }
         return user_info
 
     @staticmethod
-    def get_by_user_id(user_id: int) -> UserInfo | None:
-        return db.session.scalar(db.select(UserInfo).where(UserInfo.user_id == user_id))
-
-    @staticmethod
     def get_all() -> Sequence[UserInfo] | None:
         return db.session.scalars(db.select(UserInfo)).all()
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> UserInfo | None:
+        return db.session.scalar(db.select(UserInfo).where(UserInfo.user_id == user_id))
 
     @staticmethod
     def is_taken(username: str | None) -> bool:
@@ -333,9 +329,6 @@ class UserPayment(db.Model):
         Args:
             created_epoch (int): The epoch value representing the created date and time.
 
-        Returns:
-            None
-
         """
         self.created = datetime.datetime.fromtimestamp(created_epoch, tz=datetime.UTC)
 
@@ -346,9 +339,6 @@ class UserPayment(db.Model):
 
         Args:
             expires_at_epoch (int): The epoch value representing the expiration date and time.
-
-        Returns:
-            None
 
         """
         self.expires_at = datetime.datetime.fromtimestamp(expires_at_epoch, tz=datetime.UTC)
@@ -374,11 +364,6 @@ class UserPayment(db.Model):
         return db.session.scalar(db.select(UserPayment).where(UserPayment.user_id == user_id))
 
     def sanitize(self):
-        """
-        Returns:
-            dict: A dictionary representing the sanitized UserPayment object.
-
-        """
         subscription = {
             "created": self.created,
             "expires_at": self.expires_at.date(),  # type: ignore
@@ -505,7 +490,7 @@ class Company(db.Model):
         description (Mapped[str]): A brief description of the company, nullable.
         number_of_employees (Mapped[int]): The number of employees at the company, nullable.
         website (Mapped[str]): The company's website URL, nullable.
-        pfp_uuid (Mapped[str]): A unique identifier for the company's profile picture, nullable.
+        picture_url (Mapped[str]): A unique identifier for the company's profile picture, nullable.
         country_id (Mapped[int]): A foreign key that references the country the company is located in, nullable.
         preferred_round_id (Mapped[int]): A foreign key that references the company's preferred funding round, nullable.
         industry_id (Mapped[int]): A foreign key that references the industry the company operates in, nullable.
@@ -521,13 +506,14 @@ class Company(db.Model):
     description: Mapped[str] = mapped_column(String, nullable=True)
     number_of_employees: Mapped[int] = mapped_column(Integer, nullable=True)
     website: Mapped[str] = mapped_column(String, nullable=True)
-    pfp_uuid: Mapped[str] = mapped_column(String, nullable=True)
+    picture_url: Mapped[str] = mapped_column(String, nullable=True)
     country_id: Mapped[int] = mapped_column(Integer, ForeignKey("country.id"), nullable=True)
     preferred_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
     industry_id: Mapped[int] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True)
 
     user: Mapped[User] = relationship(User, backref=backref("company", passive_deletes=True), lazy=True)
     country: Mapped[Country] = relationship()
+    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
     preferred_round: Mapped[Round] = relationship()
     industry: Mapped[Industry] = relationship()
 
@@ -536,6 +522,14 @@ class Company(db.Model):
 
     def __repr__(self):
         return f"<Company {self.name}>"
+
+    @property
+    def coordinates(self):
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, coordinates: str) -> None:
+        self._coordinates = geocode_location(coordinates)  # type: ignore
 
     @staticmethod
     def get_by_id(id: int) -> Company | None:

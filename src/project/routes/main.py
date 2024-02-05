@@ -17,11 +17,11 @@ from flask import (
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Industry, InvestmentFirm, Investor, Round, User, Waitlist, WaitlistCharge
-from ..utils.errors.auth_error_messages import NOT_AUTHORIZED
-from ..utils.google_storage import load_pfp
+from ..models import Company, Industry, InvestmentFirm, Investor, Round, Waitlist, WaitlistCharge
+from ..utils.enums import Status, StatusType
+from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
-from ..utils.status_enum import Status, StatusType
+from ..utils.suggestion import pass_score
 
 main = Blueprint("main", __name__)
 
@@ -148,12 +148,10 @@ def post_download():
 @check_user_info_complete
 @check_verification
 def dashboard():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
 
     # ?q=Julie
     search_string = request.args.get("search", "")
@@ -214,7 +212,6 @@ def dashboard():
 
     return render_template(
         "dashboard_investor.html",
-        pfp_base64=pfp_base64,
         combined_query=combined_query,
         fields={
             "first_name": "First Name",
@@ -230,6 +227,33 @@ def dashboard():
         investors=investors,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
+        status_type=status_type,
+        msg=msg,
+    )
+
+
+@main.route("/dashboard/suggestions")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_suggestions():
+    company = Company.get_by_user_id(current_user.id)
+
+    investors = Investor.get_all()
+
+    scored_investors = [(investor, investor.calculate_score(company)) for investor in investors]
+
+    suggested_investors = sorted(
+        (investor for investor in scored_investors if investor[1] >= pass_score),
+        key=lambda investor: investor[1],
+        reverse=True,
+    )
+
+    sorted_investors = [investor[0] for investor in suggested_investors]
+
+    return render_template(
+        "suggestions.html",
+        investors=sorted_investors,
     )
 
 
@@ -238,13 +262,6 @@ def dashboard():
 @check_user_info_complete
 @check_verification
 def investment_firms():
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
-
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    pfp_base64 = load_pfp(authenticated_user.user_info[0].pfp_uuid)  # type: ignore
-
     # ?q=Robinson-Sanders
     search_string = request.args.get("search", "")
     # ?page=1
@@ -304,7 +321,6 @@ def investment_firms():
 
     return render_template(
         "dashboard_firm.html",
-        pfp_base64=pfp_base64,
         combined_query=combined_query,
         fields={
             "name": "Name",
@@ -329,7 +345,7 @@ def investor(investor_id):
     if not investor:
         return redirect(url_for("main.dashboard"))
 
-    return render_template("investor.html", investor=investor)
+    return render_template("investor.html", investor=investor, user=current_user)
 
 
 @main.route("/investment-firm/<int:firm_id>")
@@ -341,7 +357,7 @@ def investment_firm(firm_id):
     if not investment_firm:
         return redirect(url_for("main.dashboard"))
 
-    return render_template("investment_firm.html", investment_firm=investment_firm)
+    return render_template("investment_firm.html", investment_firm=investment_firm, user=current_user)
 
 
 @main.route("/pricing")

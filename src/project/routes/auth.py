@@ -15,7 +15,8 @@ from src.project.utils.sendgrid_email import send_email
 
 from ..extensions import db, login_manager, oauth
 from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
-from ..utils.errors.auth_error_messages import (
+from ..utils.enums import OauthProvider, Status, StatusType
+from ..utils.errors.error_messages import (
     AUTH_EMAIL_NOT_FOUND,
     AUTH_EMAIL_USED,
     AUTH_FIELDS_INCOMPLETE,
@@ -30,9 +31,8 @@ from ..utils.errors.auth_error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
-from ..utils.google_storage import upload_pfp
+from ..utils.google_storage import upload_picture
 from ..utils.info_lists import languages as language_list
-from ..utils.status_enum import OauthProvider, Status, StatusType
 
 auth = Blueprint("auth", __name__)
 
@@ -309,8 +309,10 @@ def onboarding():
         str: The rendered HTML template for the onboarding page.
 
     """
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
@@ -342,7 +344,6 @@ def onboarding():
         user_info.first_name = first_name
         user_info.last_name = last_name
         user_info.username = username
-
         try:
             user_info.linkedin = linkedin
             user_info.instagram = instagram
@@ -353,25 +354,21 @@ def onboarding():
 
         user_info.bio = request.form.get("about")
         user_info.language = request.form.get("language", "English")  # type: ignore
-
         user_info.is_complete = True
 
-        # if pfp := request.files["pfp"]:
-        #     try:
-        #         resized_pfp = prepare_picture(pfp)
-        #         pfp_uuid = upload_blob(resized_pfp.read())
-        #         user_info.pfp_uuid = str(pfp_uuid)
-        #     except Exception as e:
-        #         status = Status(StatusType.ERROR, e.args[0]).get_status()
-        #         return redirect(url_for("auth.onboarding", _external=False, **status))
-
-        if pfp_uuid := upload_pfp(request.files["pfp"]):
-            user_info.pfp_uuid = pfp_uuid
+        if picture := request.files.get("pfp"):
+            picture_url = upload_picture(picture)
+            user_info.picture_url = picture_url
 
         db.session.commit()
         return redirect(url_for("auth.company_form"))
-
-    return render_template("auth/onboarding.html", languages=language_list, user_info=user_info.sanitize())
+    return render_template(
+        "auth/onboarding.html",
+        languages=language_list,
+        user_info=user_info.sanitize(),
+        status_type=status_type,
+        msg=msg,
+    )
 
 
 @auth.get("/username/<username>")
@@ -388,8 +385,6 @@ def username(username: str):
             - "is_taken" (bool): True if the username is already taken, False otherwise.
 
     """
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
 
     is_taken = UserInfo.is_taken(username)
 
@@ -411,8 +406,6 @@ def company_form():
         str: The rendered HTML template for the company form page.
 
     """
-    if current_user.is_anonymous:
-        return redirect(url_for("auth.login"))
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
@@ -429,26 +422,21 @@ def company_form():
     countries = Country.get_all()
 
     if request.method == "POST":
+        country_id = request.form.get("country", type=int)
         company = Company(
             user_id=authenticated_user.id,
             name=request.form.get("company_name"),
             description=request.form.get("about"),
-            country_id=request.form.get("country"),
+            country_id=country_id,
             preferred_round_id=request.form.get("round"),
             industry_id=request.form.get("industry"),
             website=request.form.get("website"),
+            coordinates=Country.get_by_id(country_id).name,  # type: ignore
         )
 
-        # if pfp := request.files["pfp"]:
-        #     try:
-        #         resized_pfp = prepare_picture(pfp)
-        #         pfp_uuid = upload_blob(resized_pfp.read())
-        #         company.pfp_uuid = str(pfp_uuid)
-        #     except Exception as e:
-        #         print(f"An error occurred: {e}")
-
-        if pfp_uuid := upload_pfp(request.files["pfp"]):
-            company.pfp_uuid = pfp_uuid
+        if picture := request.files.get("pfp"):
+            picture_url = upload_picture(picture)
+            company.picture_url = picture_url
 
         db.session.add(company)
         db.session.commit()
@@ -460,7 +448,9 @@ def company_form():
             html_content=html_content,
         )
 
-        return redirect(url_for("main.dashboard"))
+        status = Status(StatusType.SUCCESS, "You successfully completed your registration.").get_status()
+
+        return redirect(url_for("main.dashboard", _external=False, **status))
 
     return render_template(
         "auth/company_form.html",

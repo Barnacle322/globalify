@@ -3,12 +3,9 @@ name: Python testing
 on:
     pull_request_review:
         types: [submitted]
-    issue_comment:
-        types: [created]
 
 jobs:
     run-tests:
-        if: (github.event_name == 'pull_request_review' || (github.event_name == 'issue_comment' && github.event.comment.body == '/tests')) && github.event.issue.pull_request
         environment: python-testing
         strategy:
             fail-fast: false
@@ -18,19 +15,6 @@ jobs:
         runs-on: ${{ matrix.os }}
 
         steps:
-            - name: Post comment that workflow has started
-              uses: actions/github-script@v6
-              with:
-                  script: |
-                      github.rest.issues.createComment({
-                        issue_number: context.issue.number,
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        body: 'Python tests have started.',
-                      })
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
             - name: Checkout code
               uses: actions/checkout@v3
 
@@ -65,30 +49,3 @@ jobs:
                   _PUBSUB_CLIENT_X509_CERT_URL: ${{ secrets._PUBSUB_CLIENT_X509_CERT_URL }}
                   _PUBSUB_UNIVERSE_DOMAIN: ${{ secrets._PUBSUB_UNIVERSE_DOMAIN }}
               run: poetry run pytest -vvs -W ignore::DeprecationWarning || echo "Tests failed" > test-status
-
-            - name: Post comment if tests failed
-              uses: actions/github-script@v6
-              if: steps.run-tests.outcome == 'failure'
-              with:
-                  script: |
-                      github.rest.issues.createComment({
-                        issue_number: context.issue.number,
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        body: 'Python tests failed. Please review them.',
-                      })
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Post comment if tests passed
-              uses: actions/github-script@v6
-              with:
-                  script: |
-                      github.rest.issues.createComment({
-                          issue_number: context.issue.number,
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          body: 'Python tests workflow has ended.',
-                      })
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -384,24 +384,42 @@ class EmailVerification(db.Model):
         token (str): The unique token generated for email verification.
         created_at (datetime.datetime): The date and time when the verification was created.
     """
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
-    token: Mapped[str] = mapped_column(String, nullable=False, default=str(uuid4()))
+    token: Mapped[str] = mapped_column(String, nullable=False, default=lambda: str(uuid4()))
+    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    is_expired: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    @property
-    def is_expired(self) -> bool:
+    def update_is_expired(self):
         """
-        Checks if the email verification has expired.
+        Update the is_expired field of the email_verification object
+        based on the current time.
 
-        Returns:
-            bool: True if the verification has expired, False otherwise.
+        Args:
+            email_verification (EmailVerification): The email_verification object to update.
         """
-        expiration_time = self.created_at + datetime.timedelta(minutes=15)
-        return datetime.datetime.utcnow() > expiration_time
+        if not self.is_expired:
+            expiration_time = self.created_at + datetime.timedelta(minutes=5)
+
+            if datetime.datetime.utcnow() > expiration_time:
+                self.is_expired = True
+                db.session.commit()
+
+    @classmethod
+    def set_expired_for_user(cls, user_id):
+        """
+        Set is_expired=True for all EmailVerification records associated with the given user_id.
+
+        Args:
+            user_id (int): The ID of the user for whom to set EmailVerification records as expired.
+        """
+        cls.query.filter_by(user_id=user_id).update({cls.is_expired: True})
+        db.session.commit()
 
     @staticmethod
     def get_by_token(token: str) -> EmailVerification | None:

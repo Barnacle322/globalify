@@ -1,5 +1,4 @@
 import datetime
-from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -57,6 +56,18 @@ def verified_user(app):
     with app.app_context():
         user = UserRegular(email="johndoe@example.com", password="password", is_verified=True)
         db.session.add(user)
+        db.session.commit()
+
+        user_info = UserInfo(
+            first_name="John",
+            last_name="Doe",
+            user=user,
+        )
+        user_payment = UserPayment(
+            customer_id="cus_123",
+            user=user,
+        )
+        db.session.add_all([user_info, user_payment])
         db.session.commit()
         return user
 
@@ -441,24 +452,27 @@ def test_verify_email_already_verified(client, app, verified_user):
 
 def test_verify_email_already_used(client, app, verified_user):
     with app.app_context():
+        client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
         verified_verification = EmailVerification(user_id=1)
         verified_verification.is_used = True
         db.session.add(verified_verification)
         db.session.commit()
 
         response = client.get(f"/verify-email/?uuid={verified_verification.token}")
-
+        print("Agahan", response.data)
         assert b"Already Used" in response.data
         assert b"Oops! It seems this code has already been used." in response.data
         assert response.status_code == 200
 
 
 def test_resend_verification_email_user_not_found(client, user_with_complete_user_info):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/resend-verification/999")
     assert response.status_code == 404
 
 
 def test_resend_verification_email_already_verified(client, verified_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/resend-verification/1")
     assert b"Already Verified" in response.data
     assert b"Great news! Your account is already verified." in response.data
@@ -470,6 +484,7 @@ def test_resend_verification_email_success(client, user_with_complete_user_info,
     app.config["APPLICATION_ROOT"] = ""
     app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
+        client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
         user = UserRegular.get_by_id(1)
         assert user is not None
 

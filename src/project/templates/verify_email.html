@@ -3,7 +3,7 @@
 <main
     class="relative mt-24 flex w-full flex-col items-center justify-center gap-8 overflow-x-hidden px-4 pb-52 dark:bg-slate-900 dark:text-slate-50"
 >
-    <h1 class="mt-24 text-center text-5xl font-bold md:mt-48 md:text-8xl">Email Verification Required ✉️</h1>
+    <h1 class="mt-24 text-center text-5xl font-bold md:mt-48 md:text-6xl">Email Verification Required ✉️</h1>
     <p class="max-w-xl text-center text-xl">
         Welcome! Before you can access your account, please verify your email address by clicking the link in the
         verification email we sent you.
@@ -39,17 +39,4 @@
         </div>
     </form>
 </main>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var form = document.querySelector("form");
-
-        form.addEventListener("submit", function (event) {
-            var uuidValue = document.getElementById("uuid").value;
-
-            var newAction = "/verify-email/" + uuidValue;
-
-            form.setAttribute("action", newAction);
-        });
-    });
-</script>
 {% endblock %}

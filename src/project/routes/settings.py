@@ -227,6 +227,9 @@ def delete_account():
 
 
 @settings.route("/company", methods=["GET", "POST"])
+@login_required
+@check_user_info_complete
+@check_verification
 def company():
     status_type, msg = None, None
     if query := request.args:

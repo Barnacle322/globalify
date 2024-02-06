@@ -166,8 +166,8 @@ def register():
     return render_template("auth/register.html", status_type=status_type, msg=msg)
 
 
-@auth.route("/verify-email/<token>")
-def verify_email(token):
+@auth.route("/verify-email/")
+def verify_email():
     """
     Handles the email verification process using the provided token.
 
@@ -182,13 +182,15 @@ def verify_email(token):
     Returns:
         str: The rendered HTML template based on the verification status.
     """
+    token = request.args.get("uuid", "")
+
     email_verification = EmailVerification.get_by_token(token)
 
     if not email_verification:
         return render_template("errors/email_verification/invalid_token.html")
 
-    if email_verification.is_expired:
-        return render_template("errors/email_verification/verification_expired.html", user_id=email_verification.user_id)
+    if email_verification.is_used:
+        return render_template("errors/email_verification/already_used.html")
 
     user = User.get_by_id(email_verification.user_id)
 
@@ -198,14 +200,22 @@ def verify_email(token):
     if user.is_verified:
         return render_template("errors/email_verification/already_verified.html")
 
+    email_verification.update_is_expired()
+
+    if email_verification.is_expired:
+        return render_template(
+            "errors/email_verification/verification_expired.html", user_id=email_verification.user_id
+        )
+
     user.is_verified = True
-    db.session.delete(email_verification)
+    email_verification.is_used = True
     db.session.commit()
 
     return render_template("verification_success.html")
 
 
 @auth.route("/resend-verification/<user_id>")
+@login_required
 def resend_verification_email(user_id):
     """
     Resends the email verification for a user with the given user ID.
@@ -227,8 +237,7 @@ def resend_verification_email(user_id):
     user = User.get_by_id(user_id)
     if user:
         if not user.is_verified:
-            EmailVerification.query.filter_by(user_id=user_id).delete()
-            db.session.commit()
+            EmailVerification.set_expired_for_user(user_id)
 
             new_verification = user.create_verification_token(user_id)
 

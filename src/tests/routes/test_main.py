@@ -203,7 +203,34 @@ def test_download_post_success(client, app):
 
 
 @pytest.fixture()
-def new_user(app):
+def verified_user(app):
+    with app.app_context():
+        user = UserRegular(
+            email="johndoe@example.com",
+            password="password",
+            is_verified=True,
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        user_info = UserInfo(
+            first_name="John",
+            last_name="Doe",
+            username="johndoe",
+            is_complete=True,
+            user=user,
+        )
+        db.session.add_all(
+            [
+                user_info,
+            ]
+        )
+        db.session.commit()
+        return user
+
+
+@pytest.fixture()
+def unverified_user(app):
     with app.app_context():
         user = UserRegular(
             email="johndoe@example.com",
@@ -288,7 +315,19 @@ def test_dashboard_anonymous_get(client):
     assert b"Sign in" in response.data
 
 
-def test_dashboard_authenticated_get(client, new_user):
+def test_dashboard_authenticated_unverified_get(client, unverified_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard")
+    assert response.status_code == 200
+    assert b"Email Verification Required" in response.data
+    assert (
+        b"If the link in the message is not working, you can manually enter the code you received in the message."
+        in response.data
+    )
+    assert b"Resend Verification Email" in response.data
+
+
+def test_dashboard_authenticated_get(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard")
     assert response.status_code == 200
@@ -298,7 +337,7 @@ def test_dashboard_authenticated_get(client, new_user):
     assert b"Only show investors with selected industries" in response.data
 
 
-def test_dashboard_query_search(client, new_user, investor):
+def test_dashboard_query_search(client, verified_user, investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard?search=Julie")
 
@@ -308,28 +347,28 @@ def test_dashboard_query_search(client, new_user, investor):
     assert b"Qwerty LLC" in response.data
 
 
-def test_dashboard_query_page(client, new_user, populate_notable_investment, populate_investor):
+def test_dashboard_query_page(client, verified_user, populate_notable_investment, populate_investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard?page=2")
     assert response.status_code == 200
     assert b'current="page"\n                        >2</a' in response.data
 
 
-def test_dashboard_query_industry(client, new_user, populate_notable_investment, populate_investor):
+def test_dashboard_query_industry(client, verified_user, populate_notable_investment, populate_investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard?industry=AI")
     assert response.status_code == 200
     assert b"AI" in response.data
 
 
-def test_dashboard_query_round(client, new_user, populate_notable_investment, populate_investor):
+def test_dashboard_query_round(client, verified_user, populate_notable_investment, populate_investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard?round=Seed")
     assert response.status_code == 200
     assert b"Seed" in response.data
 
 
-def test_dashboard_query_industry_and_round(client, new_user, populate_notable_investment, populate_investor):
+def test_dashboard_query_industry_and_round(client, verified_user, populate_notable_investment, populate_investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard?industry=AI&round=Seed")
     assert response.status_code == 200
@@ -344,7 +383,7 @@ def test_dashboard_firms_anonymous_get(client):
     assert b"Sign in" in response.data
 
 
-def test_dashboard_firms_authenticated_get(client, new_user):
+def test_dashboard_firms_authenticated_get(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard/investment-firms")
     assert response.status_code == 200
@@ -354,7 +393,19 @@ def test_dashboard_firms_authenticated_get(client, new_user):
     assert b"Only show firms with selected industries" in response.data
 
 
-def test_dashboard_firms_query_search(client, new_user, investment_firm):
+def test_dashboard_firms_authenticated_unverified_get(client, unverified_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/dashboard/investment-firms")
+    assert response.status_code == 200
+    assert b"Email Verification Required" in response.data
+    assert (
+        b"If the link in the message is not working, you can manually enter the code you received in the message."
+        in response.data
+    )
+    assert b"Resend Verification Email" in response.data
+
+
+def test_dashboard_firms_query_search(client, verified_user, investment_firm):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard/investment-firms?search=Qwerty")
     assert response.status_code == 200
@@ -362,28 +413,28 @@ def test_dashboard_firms_query_search(client, new_user, investment_firm):
     assert b"Qwerty LLC is a great investment firm." in response.data
 
 
-def test_dashboard_firms_query_page(client, new_user, populate_investment_firm):
+def test_dashboard_firms_query_page(client, verified_user, populate_investment_firm):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard/investment-firms?page=2")
     assert response.status_code == 200
     assert b'current="page"\n                        >2</a' in response.data
 
 
-def test_dashboard_firms_query_industry(client, new_user, populate_investment_firm):
+def test_dashboard_firms_query_industry(client, verified_user, populate_investment_firm):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard/investment-firms?industry=AI")
     assert response.status_code == 200
     assert b"AI" in response.data
 
 
-def test_dashboard_firms_query_round(client, new_user, populate_investment_firm):
+def test_dashboard_firms_query_round(client, verified_user, populate_investment_firm):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard/investment-firms?round=Seed")
     assert response.status_code == 200
     assert b"Seed" in response.data
 
 
-def test_dashboard_firms_query_industry_and_round(client, new_user, populate_investment_firm):
+def test_dashboard_firms_query_industry_and_round(client, verified_user, populate_investment_firm):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/dashboard/investment-firms?industry=AI&round=Seed")
     assert response.status_code == 200
@@ -397,7 +448,7 @@ def test_error_handler_404(client):
     assert b"Page not found" in response.data
 
 
-def test_investor_get(client, new_user, investor):
+def test_investor_get(client, verified_user, investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/investor/1", follow_redirects=True)
     assert response.status_code == 200
@@ -408,7 +459,7 @@ def test_investor_get(client, new_user, investor):
     assert b"Rounds" in response.data
 
 
-def test_investor_not_found(client, new_user, investor):
+def test_investor_not_found(client, verified_user, investor):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/investor/99999999", follow_redirects=True)
     assert response.status_code == 200

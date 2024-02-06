@@ -11,7 +11,7 @@ from src.project.utils.enums import OauthProvider
 
 
 @pytest.fixture()
-def new_user(app):
+def verified_user(app):
     with app.app_context():
         user = UserRegular(
             email="johndoe@example.com",
@@ -38,7 +38,33 @@ def new_user(app):
 
 
 @pytest.fixture()
-def new_user2(app):
+def unverified_user(app):
+    with app.app_context():
+        user = UserRegular(
+            email="johndoe@example.com",
+            password="password",
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        user_info = UserInfo(
+            first_name="John",
+            last_name="Doe",
+            username="johndoe",
+            is_complete=True,
+            user=user,
+        )
+        user_payment = UserPayment(
+            customer_id="cus_123",
+            user=user,
+        )
+        db.session.add_all([user_info, user_payment])
+        db.session.commit()
+        return user
+
+
+@pytest.fixture()
+def username_taken_user(app):
     with app.app_context():
         user = UserRegular(
             email="angelina@example.com",
@@ -90,7 +116,19 @@ def test_settings_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_authenticated_get(client, new_user):
+def test_settings_authenticated_unverified_get(client, unverified_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/settings/general")
+    assert response.status_code == 200
+    assert b"Email Verification Required" in response.data
+    assert (
+        b"If the link in the message is not working, you can manually enter the code you received in the message."
+        in response.data
+    )
+    assert b"Resend Verification Email" in response.data
+
+
+def test_settings_authenticated_get(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/settings/general")
     assert response.status_code == 200
@@ -98,7 +136,19 @@ def test_settings_authenticated_get(client, new_user):
     assert b"Use a permanent address where you can receive mail." in response.data
 
 
-def test_settings_security_authenticated_get(client, new_user):
+def test_settings_security_authenticated_unverified_get(client, unverified_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/settings/security")
+    assert response.status_code == 200
+    assert b"Email Verification Required" in response.data
+    assert (
+        b"If the link in the message is not working, you can manually enter the code you received in the message."
+        in response.data
+    )
+    assert b"Resend Verification Email" in response.data
+
+
+def test_settings_security_authenticated_get(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/settings/security")
     assert response.status_code == 200
@@ -114,7 +164,19 @@ def test_settings_security_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_plan_authenticated_get(client, new_user):
+def test_settings_plan_authenticated_unverified_get(client, unverified_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/settings/plan")
+    assert response.status_code == 200
+    assert b"Email Verification Required" in response.data
+    assert (
+        b"If the link in the message is not working, you can manually enter the code you received in the message."
+        in response.data
+    )
+    assert b"Resend Verification Email" in response.data
+
+
+def test_settings_plan_authenticated_get(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/settings/plan")
     assert response.status_code == 200
@@ -130,7 +192,33 @@ def test_settings_plan_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_billing_authenticated_get(client, new_user):
+def test_settings_billing_authenticated_unverified_get(client, unverified_user):
+    with patch("stripe.Invoice.list") as mock_invoice_list:
+        mock_invoice_list.return_value = [
+            {
+                "id": "invoice_123",
+                "created": 1642370100,
+                "amount_due": 1000,
+                "amount_paid": 500,
+                "currency": "usd",
+                "status": "paid",
+                "hosted_invoice_url": "https://example.com/invoice/123",
+            }
+        ]
+
+        client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+        response = client.get("/settings/billing", follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Email Verification Required" in response.data
+    assert (
+        b"If the link in the message is not working, you can manually enter the code you received in the message."
+        in response.data
+    )
+    assert b"Resend Verification Email" in response.data
+
+
+def test_settings_billing_authenticated_get(client, verified_user):
     with patch("stripe.Invoice.list") as mock_invoice_list:
         mock_invoice_list.return_value = [
             {
@@ -161,7 +249,7 @@ def test_settings_billing_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_change_personal_info(client, new_user, app):
+def test_settings_change_personal_info(client, verified_user, app):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -191,7 +279,7 @@ def test_settings_change_personal_info(client, new_user, app):
         assert updated_user.user_info[0].language == "English"
 
 
-def test_change_personal_info_empty_first_name(client, new_user):
+def test_change_personal_info_empty_first_name(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -206,7 +294,7 @@ def test_change_personal_info_empty_first_name(client, new_user):
     assert b"First name cannot be empty." in response.data
 
 
-def test_change_personal_info_empty_last_name(client, new_user):
+def test_change_personal_info_empty_last_name(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -221,7 +309,7 @@ def test_change_personal_info_empty_last_name(client, new_user):
     assert b"Last name cannot be empty." in response.data
 
 
-def test_change_personal_info_empty_email(client, new_user):
+def test_change_personal_info_empty_email(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -236,7 +324,7 @@ def test_change_personal_info_empty_email(client, new_user):
     assert b"Email cannot be empty." in response.data
 
 
-def test_change_personal_info_invalid_email(client, new_user):
+def test_change_personal_info_invalid_email(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -279,7 +367,7 @@ def test_change_personal_info_oauth_user_email(client, new_user_oauth, app, monk
         assert b"Cannot change email for oauth users." in settings_response.data
 
 
-def test_change_personal_info_empty_bio(client, new_user):
+def test_change_personal_info_empty_bio(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -294,7 +382,7 @@ def test_change_personal_info_empty_bio(client, new_user):
     assert b"Bio cannot be empty." in response.data
 
 
-def test_change_personal_info_empty_username(client, new_user):
+def test_change_personal_info_empty_username(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -309,7 +397,7 @@ def test_change_personal_info_empty_username(client, new_user):
     assert b"Username cannot be empty." in response.data
 
 
-def test_change_personal_info_taken_username(client, new_user, new_user2):
+def test_change_personal_info_taken_username(client, verified_user, username_taken_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -324,7 +412,7 @@ def test_change_personal_info_taken_username(client, new_user, new_user2):
     assert b"Username is taken." in response.data
 
 
-def test_change_personal_info_empty_language(client, new_user):
+def test_change_personal_info_empty_language(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -339,7 +427,7 @@ def test_change_personal_info_empty_language(client, new_user):
     assert b"Language cannot be empty." in response.data
 
 
-def test_change_personal_info_invalid_language(client, new_user):
+def test_change_personal_info_invalid_language(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -354,7 +442,7 @@ def test_change_personal_info_invalid_language(client, new_user):
     assert b"Invalid language." in response.data
 
 
-def test_change_password(client, new_user):
+def test_change_password(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -371,7 +459,7 @@ def test_change_password(client, new_user):
     assert b"Password successfully changed." in response.data
 
 
-def test_change_password_invalid_password(client, new_user):
+def test_change_password_invalid_password(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -388,7 +476,7 @@ def test_change_password_invalid_password(client, new_user):
     assert b"Incorrect password." in response.data
 
 
-def test_change_password_mismatch_password(client, new_user):
+def test_change_password_mismatch_password(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -405,7 +493,7 @@ def test_change_password_mismatch_password(client, new_user):
     assert b"Passwords do not match." in response.data
 
 
-def test_change_password_empty_password(client, new_user):
+def test_change_password_empty_password(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -422,7 +510,7 @@ def test_change_password_empty_password(client, new_user):
     assert b"Please fill out all fields." in response.data
 
 
-def test_change_password_empty_confirm_password(client, new_user):
+def test_change_password_empty_confirm_password(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -484,7 +572,7 @@ def test_google_callback(app, client, monkeypatch, new_user_oauth):
         assert b"Search" in response.data
 
 
-def test_delete_account(client, new_user, app):
+def test_delete_account(client, verified_user, app):
     with app.test_request_context():
         client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 

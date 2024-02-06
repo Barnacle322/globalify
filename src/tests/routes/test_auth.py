@@ -1,15 +1,14 @@
 import datetime
 from io import BytesIO
-
 from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import url_for
-from src.project.models.user import EmailVerification
 
 from src.project import db
 from src.project.extensions import oauth
 from src.project.models import User, UserInfo, UserOauth, UserPayment, UserRegular
+from src.project.models.user import EmailVerification
 from src.project.routes.auth import oauth_user
 from src.project.utils.enums import OauthProvider
 from src.project.utils.errors.error_messages import (
@@ -408,7 +407,7 @@ def test_company_form_authenticated_post(client, app, user_with_complete_user_in
 
 
 def test_verify_email_invalid_token(client):
-    response = client.get("/verify-email/invalid_token")
+    response = client.get("/verify-email/?uuid=invalid_token")
     print(response.data)
     assert b"Invalid Verification Token" in response.data
     assert response.status_code == 200
@@ -422,7 +421,7 @@ def test_verify_email_expired_token(client, app, user_with_complete_user_info):
         db.session.add(expired_verification)
         db.session.commit()
 
-        response = client.get(f"/verify-email/{expired_verification.token}")
+        response = client.get(f"/verify-email/?uuid={expired_verification.token}")
         assert b"Verification Token Expired" in response.data
         assert response.status_code == 200
 
@@ -433,10 +432,24 @@ def test_verify_email_already_verified(client, app, verified_user):
         db.session.add(verified_verification)
         db.session.commit()
 
-        response = client.get(f"/verify-email/{verified_verification.token}")
+        response = client.get(f"/verify-email/?uuid={verified_verification.token}")
 
         assert b"Already Verified" in response.data
         assert b"Great news! Your account is already verified." in response.data
+        assert response.status_code == 200
+
+
+def test_verify_email_already_used(client, app, verified_user):
+    with app.app_context():
+        verified_verification = EmailVerification(user_id=1)
+        verified_verification.is_used = True
+        db.session.add(verified_verification)
+        db.session.commit()
+
+        response = client.get(f"/verify-email/?uuid={verified_verification.token}")
+
+        assert b"Already Used" in response.data
+        assert b"Oops! It seems this code has already been used." in response.data
         assert response.status_code == 200
 
 
@@ -470,8 +483,9 @@ def test_resend_verification_email_success(client, user_with_complete_user_info,
         assert response.status_code == 302
         assert response.location == "/dashboard/investors"
 
-        deleted_verification = EmailVerification.get_by_token(verification_token)
-        assert deleted_verification is None
+        updated_verification = EmailVerification.get_by_token(verification_token)
+        assert updated_verification is not None
+        assert updated_verification.is_expired
 
         updated_user = UserRegular.get_by_id(1)
         assert updated_user is not None
@@ -484,7 +498,7 @@ def test_verify_email_success(client, app, user_with_complete_user_info):
         db.session.add(valid_verification)
         db.session.commit()
 
-        response = client.get(f"/verify-email/{valid_verification.token}")
+        response = client.get(f"/verify-email/?uuid={valid_verification.token}")
         assert b"Email Verified" in response.data
         assert response.status_code == 200
 
@@ -492,8 +506,9 @@ def test_verify_email_success(client, app, user_with_complete_user_info):
         assert updated_user is not None
         assert updated_user.is_verified is True
 
-        deleted_verification = EmailVerification.get_by_token(valid_verification.token)
-        assert deleted_verification is None
+        updated_verification = EmailVerification.get_by_token(valid_verification.token)
+        assert updated_verification is not None
+        assert updated_verification.is_used
 
 
 @pytest.fixture()

@@ -6,10 +6,6 @@ endblock %} {% block content %}
         <div class="space-y-12">
             <div class="border-b border-gray-900/10 pb-12">
                 <h1 class="mb-4 text-3xl font-semibold leading-7 text-gray-900">Company profile</h1>
-                <h2 class="text-xl font-medium leading-7 text-gray-900">Basic information</h2>
-                <p class="mt-1 text-sm leading-6 text-gray-600">
-                    This information will be displayed publicly so be careful what you share.
-                </p>
                 {% if status_type %} {% if status_type == '3' %}
                 <div class="rounded-xl text-red-500">{{ msg }}</div>
                 {% endif %} {% if status_type == '2' %}
@@ -17,6 +13,11 @@ endblock %} {% block content %}
                 {% endif %} {% if status_type == '1' %}
                 <div class="rounded-xl text-lime-500">{{ msg }}</div>
                 {% endif %} {% endif %}
+                <h2 class="text-xl font-medium leading-7 text-gray-900">Basic information</h2>
+                <p class="mt-1 text-sm leading-6 text-gray-600">
+                    This information will be displayed publicly so be careful what you share.
+                </p>
+
                 <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     <div class="col-span-full">
                         <label for="company_name" class="block text-sm font-medium leading-6 text-gray-900"
@@ -161,3 +162,4 @@ endblock %} {% block content %}
     </form>
 </main>
 {% endblock %}
+

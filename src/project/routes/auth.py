@@ -279,8 +279,11 @@ def onboarding():
             try:
                 picture_url = upload_picture(picture)
                 user_info.picture_url = picture_url
-            except Exception as e:
-                status = Status(StatusType.ERROR, f"Error uploading picture: {str(e)}").get_status()
+            except Exception:
+                status = Status(
+                    StatusType.ERROR,
+                    "Failed to upload the picture. Please ensure the file format is supported and try again.",
+                ).get_status()
                 return redirect(url_for("auth.onboarding", _external=False, **status))
 
         db.session.commit()
@@ -365,8 +368,11 @@ def company_form():
             try:
                 picture_url = upload_picture(picture)
                 user_info.picture_url = picture_url
-            except Exception as e:
-                status = Status(StatusType.ERROR, f"Error uploading picture: {str(e)}").get_status()
+            except Exception:
+                status = Status(
+                    StatusType.ERROR,
+                    "Failed to upload the picture. Please ensure the file format is supported and try again.",
+                ).get_status()
                 return redirect(url_for("auth.company_form", _external=False, **status))
 
         db.session.add(company)

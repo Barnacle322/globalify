@@ -184,7 +184,9 @@ class UserInfo(db.Model):
         if not linkedin:
             return None
         if not re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
-            raise ValueError("Invalid linkedin url.")
+            raise ValueError(
+                "Invalid LinkedIn URL format. Ensure it follows the pattern: https://www.linkedin.com/in/username."
+            )
         return linkedin
 
     @validates("instagram_url")
@@ -192,7 +194,9 @@ class UserInfo(db.Model):
         if not instagram:
             return None
         if not re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
-            raise ValueError("Invalid instagram url.")
+            raise ValueError(
+                "Invalid Instagram URL format. Ensure it follows the pattern: https://www.instagram.com/username."
+            )
         return instagram
 
     @validates("twitter_url")
@@ -202,7 +206,7 @@ class UserInfo(db.Model):
         if not re.match(
             r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE
         ):
-            raise ValueError("Invalid twitter url.")
+            raise ValueError("Invalid Twitter URL format. Ensure it follows the pattern: https://twitter.com/username.")
         return twitter
 
     def sanitize(self):

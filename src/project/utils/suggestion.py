@@ -24,7 +24,12 @@ def geocode_location(location):
     try:
         geocoded_location = gmaps.geocode(location)  # type: ignore
         if geocoded_location:
-            return f"{geocoded_location[0].get('geometry').get('location').get('lat')},{geocoded_location[0].get('geometry').get('location').get('lng')}"
+            coordinates = f"{geocoded_location[0].get('geometry').get('location').get('lat')},{geocoded_location[0].get('geometry').get('location').get('lng')}"
+            for item in geocoded_location[0].get("address_components"):
+                if item.get("types")[0] == "country":
+                    country_name = item.get("long_name")
+                    break
+            return {"coordinates": coordinates, "country_name": country_name}  # type: ignore
         else:
             return None
     except Exception as e:

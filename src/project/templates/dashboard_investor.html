@@ -274,6 +274,56 @@
                         </div>
                     </div>
                 </div>
+                <div class="group relative inline-block text-left">
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
+                        id="country-options-menu"
+                        aria-haspopup="true"
+                        aria-expanded="true"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="h-5 w-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z"
+                            />
+                        </svg>
+                        Countries
+                    </button>
+
+                    <div
+                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                        id="country-options"
+                        role="menu"
+                        aria-orientation="vertical"
+                        aria-labelledby="country-options-menu"
+                    >
+                        <div class="py-1" role="none">
+                            {% for country in country_list %}
+                            <label
+                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                role="menuitem"
+                            >
+                                <input
+                                    type="checkbox"
+                                    name="country"
+                                    value="{{ country.name }}"
+                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                />
+                                {{ country.name }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
                 <div class="relative inline-block text-left">
                     <input
                         type="range"

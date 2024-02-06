@@ -147,6 +147,13 @@ class QueryBuilder:
             self.base_query = self.base_query.where(self.cls.max_investment <= max_investment)
         return self
 
+    def filter_by_countries(self, countries: list[str] | None):
+        if countries:
+            location_filters = [self.cls._country.ilike(country_obj.name) for country_obj in countries]  # type: ignore
+            condition = or_(*location_filters)
+            self.base_query = self.base_query.where(condition)
+        return self
+
     def build(self):
         return self.base_query
 
@@ -416,6 +423,7 @@ class Investor(db.Model):
     max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     location: Mapped[str] = mapped_column(String, nullable=True)
     _coordinates: Mapped[str] = mapped_column(String, nullable=True)
+    _country: Mapped[str] = mapped_column(String, nullable=True)
     bias: Mapped[int] = mapped_column(Integer, nullable=True)
 
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_notable_investment)
@@ -438,7 +446,15 @@ class Investor(db.Model):
 
     @coordinates.setter
     def coordinates(self, coordinates: str) -> None:
-        self._coordinates = geocode_location(coordinates)  # type: ignore
+        geo_data = geocode_location(coordinates)
+        if geo_data is not None:
+            print(geo_data)
+            self._coordinates = geo_data["coordinates"]  # type: ignore
+            self._country = geo_data["country_name"]  # type: ignore
+
+    @property
+    def country(self):
+        return self._country
 
     @property
     def min_max_investment(self):
@@ -464,6 +480,7 @@ class Investor(db.Model):
         rounds_exclusive: bool = False,
         industries: list[Industry] | None = None,
         industries_exclusive: bool = False,
+        countries: list[str] | None = None,
         min_investment: int | None = None,
         max_investment: int | None = None,
         sort_field: str | None = None,
@@ -504,6 +521,7 @@ class Investor(db.Model):
                 .filter_by_rounds(rounds, rounds_exclusive)
                 .filter_by_industries(industries, industries_exclusive)
                 .filter_by_investment_range(min_investment, max_investment)
+                .filter_by_countries(countries)
                 .build()
             )
             investors = db.paginate(combined_query, page=page, per_page=per_page, error_out=error_out)
@@ -633,6 +651,7 @@ class Investor(db.Model):
                     position=row[2],
                     email=row[3],
                     location=row[4],
+                    coordinates=row[4],
                     industries=list(set(industry_list)),
                     linkedin=row[6],
                     twitter=row[7],
@@ -640,7 +659,6 @@ class Investor(db.Model):
                     max_investment=max_investment,
                     rounds=list(set(round_list)),
                     notable_investments=notable_investment_list,
-                    coordinates=row[4],
                 )
                 db.session.add(investor)
                 print("Added investor:", investor)
@@ -733,6 +751,7 @@ class Investor(db.Model):
                     about=row[22],
                     email=email,
                     location=row[6],
+                    coordinates=row[6],
                     industries=list(set(industry_list)),
                     linkedin=row[9],
                     twitter=row[11],
@@ -740,7 +759,6 @@ class Investor(db.Model):
                     max_investment=max_investment,
                     rounds=list(set(round_list)),
                     notable_investments=notable_investment_list,
-                    coordinates=row[6],
                 )
                 db.session.add(investor)
                 print("Added investor:", investor)
@@ -838,6 +856,8 @@ class InvestmentFirm(db.Model):
     n_employees: Mapped[int] = mapped_column(Integer, nullable=True)
     min_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
+    location: Mapped[str] = mapped_column(String, nullable=True)
+    _country: Mapped[str] = mapped_column(String, nullable=True)
 
     rounds: Mapped[list[Round]] = relationship(secondary=investment_firm_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investment_firm_industry)

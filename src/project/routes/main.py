@@ -16,13 +16,14 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
+from src.project.models.helpers import Country
+
 from ..extensions import db
 from ..models import Company, Industry, InvestmentFirm, Investor, Round, Waitlist, WaitlistCharge
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import weights
-
 
 main = Blueprint("main", __name__)
 
@@ -174,6 +175,11 @@ def dashboard():
     # ?industries_exclusive= or ?industries_exclusive=1
     industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
 
+    countries = []
+    for country_name in request.args.getlist("country"):
+        if country_object := Country.get_by_name(country_name):
+            countries.append(country_object)
+
     # ?round=Seed&round=Series+A
     rounds = []
     for round_name in request.args.getlist("round"):
@@ -198,6 +204,7 @@ def dashboard():
         max_investment=max_investment,
         rounds_exclusive=rounds_exclusive,
         industries_exclusive=industries_exclusive,
+        countries=countries,
     )
 
     combined_query = construct_query_string(
@@ -211,6 +218,7 @@ def dashboard():
         industry=[str(industry.name) for industry in industries],
         min_investment=min_investment,
         max_investment=max_investment,
+        countries=[str(country.name) for country in countries],
     )
 
     return render_template(
@@ -230,6 +238,7 @@ def dashboard():
         investors=investors,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
+        country_list=Country.get_all(),
         status_type=status_type,
         msg=msg,
     )

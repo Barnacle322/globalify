@@ -4,6 +4,7 @@ const menus = [
     { menu: "sorting-options", button: "sorting-options-menu" },
     { menu: "filter-options", button: "filter-options-menu" },
     { menu: "round-options", button: "round-options-menu" },
+    { menu: "country-options", button: "country-options-menu" },
 ];
 
 const showClasses = ["transform", "opacity-100", "scale-100"];

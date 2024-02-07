@@ -5,10 +5,10 @@ import googlemaps
 google_maps_secret = os.getenv("_GOOGLE_MAPS_API_KEY")
 gmaps = googlemaps.Client(key=google_maps_secret)
 
-weights = {"bias": 0.3, "industry": 0.25, "round": 0.07, "location": 0.25, "exits": 0.07, "completeness": 0.06}
+WEIGHTS = {"bias": 0.3, "industry": 0.25, "round": 0.07, "location": 0.25, "exits": 0.07, "completeness": 0.06}
 
 
-def check_weights(weights):
+def check_weights(weights: dict[str, float]) -> None:
     total_weight = sum(weights.values())
     try:
         if total_weight != 1.0:
@@ -17,10 +17,7 @@ def check_weights(weights):
         print(e)
 
 
-# check_weights(weights)
-
-
-def geocode_location(location):
+def geocode_location(location: str) -> dict[str, str] | None:
     try:
         geocoded_location = gmaps.geocode(location)  # type: ignore
         if geocoded_location:

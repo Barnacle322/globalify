@@ -23,7 +23,7 @@ from ..models import Company, Industry, InvestmentFirm, Investor, Round, Waitlis
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
-from ..utils.suggestion import weights
+from ..utils.suggestion import WEIGHTS
 
 main = Blueprint("main", __name__)
 
@@ -265,12 +265,12 @@ def get_suggestions():
         completeness_score = investor.calculate_completeness_score()
 
         total_score = (
-            weights["bias"] * bias_score
-            + weights["location"] * location_score
-            + weights["exits"] * exits_score
-            + weights["industry"] * industry_score
-            + weights["round"] * round_score
-            + weights["completeness"] * completeness_score
+            WEIGHTS["bias"] * bias_score
+            + WEIGHTS["location"] * location_score
+            + WEIGHTS["exits"] * exits_score
+            + WEIGHTS["industry"] * industry_score
+            + WEIGHTS["round"] * round_score
+            + WEIGHTS["completeness"] * completeness_score
         )
         scored_investors.append((investor, total_score))
 

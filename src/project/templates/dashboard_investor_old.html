@@ -3,28 +3,22 @@
 <script src="/static/scripts/search.js" defer></script>
 <script src="/static/scripts/query_setter.js" defer></script>
 {% endblock %} {% block content %}
-<main
-    class="mx-auto mt-24 flex h-full min-h-screen w-full max-w-7xl flex-col items-start justify-center overflow-x-visible"
->
-    <section class="flex flex-col gap-10 px-4 justify-evenly lg:w-1/2 mt-12 mx-auto">
-        <div class="flex flex-col gap-4">
-            <h1 class="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">Find Ideal Investor</h1>
-            <p class="max-w-[600px] text-gray-500 md:text-xl dark:text-gray-400">
-                Use our advanced search to find investors that match your criteria.
-            </p>
+<main class="mt-24 flex h-full min-h-screen w-full overflow-x-auto pb-16 pt-2">
+    <div class="mx-auto flex w-full max-w-[83rem] flex-col gap-3 px-4 sm:flex-row">
+        <section class="flex flex-col gap-2">
             <div class="relative flex gap-2">
                 <label for="search" class="sr-only">Search</label>
                 <input
                     type="text"
                     name="q"
                     id="search"
-                    class="w-full min-w-[190px] rounded-xl border border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+                    class="w-full min-w-[190px] rounded-xl border-2 border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"
                     placeholder="Search"
                     value=""
                 />
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                     <svg
-                        class="size-4 text-gray-400"
+                        class="h-3.5 w-3.5 text-gray-400"
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
                         height="16"
@@ -36,14 +30,71 @@
                         />
                     </svg>
                 </div>
+                <a
+                    href="/dashboard/suggestions"
+                    class="flex items-center justify-center text-nowrap rounded-xl bg-sky-500 px-2 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
+                >
+                    🔎✨
+                </a>
+                <button
+                    class="rounded-xl bg-sky-500 px-2 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
+                    onclick="search()"
+                >
+                    Search
+                </button>
             </div>
-            <div class="mt-3 flex w-full sm:w-fit flex-col sm:flex-row flex-wrap items-start justify-start gap-2">
-                <div class="group relative w-full sm:w-fit">
+            <div class="flex items-center justify-center rounded-xl border-2 p-1 text-sm">
+                <a
+                    href="/dashboard"
+                    class="flex w-full items-center justify-center gap-1 rounded-lg bg-sky-500 p-3 text-white"
+                >
+                    <svg
+                        data-darkreader-inline-stroke=""
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                        class="h-5 w-5"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z"
+                        ></path>
+                    </svg>
+                    <span>Investors</span>
+                </a>
+                <a href="/dashboard/investment-firms" class="flex w-full items-center justify-center gap-1 p-3">
+                    <svg
+                        data-darkreader-inline-stroke=""
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                        class="h-5 w-5"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z"
+                        ></path>
+                    </svg>
+                    <span>Firms</span>
+                </a>
+            </div>
+            <div class="mt-3 flex flex-col gap-2">
+                <h2 class="text-lg font-medium">Filters</h2>
+                <div class="group relative inline-block text-left">
                     <button
                         type="button"
-                        class="flex w-full items-center justify-center gap-1 rounded-lg border px-5 py-3 text-sm transition-colors ease-in-out hover:bg-gray-50 group-has-[:checked]:border-sky-500"
+                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
                         id="filter-options-menu"
                         aria-haspopup="true"
+                        aria-expanded="true"
                     >
                         <svg
                             data-darkreader-inline-stroke=""
@@ -65,7 +116,7 @@
                     </button>
 
                     <div
-                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                         id="filter-options"
                         role="menu"
                         aria-orientation="vertical"
@@ -89,11 +140,10 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="group relative w-full sm:w-fit">
+                <div class="group relative inline-block text-left">
                     <button
                         type="button"
-                        class="flex w-full items-center justify-center gap-1 rounded-lg border px-5 py-3 text-sm transition-colors ease-in-out hover:bg-gray-50 group-has-[:checked]:border-sky-500"
+                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
                         id="round-options-menu"
                         aria-haspopup="true"
                         aria-expanded="true"
@@ -115,7 +165,7 @@
                         Rounds
                     </button>
                     <div
-                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                         id="round-options"
                         role="menu"
                         aria-orientation="vertical"
@@ -154,10 +204,10 @@
                     </div>
                 </div>
 
-                <div class="group relative w-full sm:w-fit">
+                <div class="group relative inline-block text-left">
                     <button
                         type="button"
-                        class="flex w-full items-center justify-center gap-1 rounded-lg border px-5 py-3 text-sm transition-colors ease-in-out hover:bg-gray-50 group-has-[:checked]:border-sky-500"
+                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
                         id="industry-options-menu"
                         aria-haspopup="true"
                         aria-expanded="true"
@@ -180,7 +230,7 @@
                     </button>
 
                     <div
-                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                         id="industry-options"
                         role="menu"
                         aria-orientation="vertical"
@@ -224,56 +274,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="group relative inline-block text-left">
-                    <button
-                        type="button"
-                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
-                        id="country-options-menu"
-                        aria-haspopup="true"
-                        aria-expanded="true"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="h-5 w-5"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z"
-                            />
-                        </svg>
-                        Countries
-                    </button>
-
-                    <div
-                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
-                        id="country-options"
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="country-options-menu"
-                    >
-                        <div class="py-1" role="none">
-                            {% for country in country_list %}
-                            <label
-                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="menuitem"
-                            >
-                                <input
-                                    type="checkbox"
-                                    name="country"
-                                    value="{{ country.name }}"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                {{ country.name }}
-                            </label>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
                 <div class="relative inline-block text-left">
                     <input
                         type="range"
@@ -303,7 +303,7 @@
                 <div class="group relative inline-block text-left">
                     <button
                         type="button"
-                        class="flex w-full items-center justify-center gap-1 rounded-lg border px-5 py-3 text-sm transition-colors ease-in-out hover:bg-gray-50 group-has-[:checked]:border-sky-500"
+                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
                         id="sorting-options-menu"
                         aria-haspopup="true"
                         aria-expanded="true"
@@ -328,7 +328,7 @@
                     </button>
 
                     <div
-                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                         id="sorting-options"
                         role="menu"
                         aria-orientation="vertical"
@@ -366,191 +366,90 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <a href="/dashboard" class="mt-3 w-full rounded-lg bg-sky-500 py-3 text-center text-white"> Reset </a>
+        </section>
 
-                <div class="relative w-full sm:w-fit hidden">
-                    <h3>Investment Range</h3>
-                    <input
-                        type="range"
-                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
-                        id="min_investment"
-                        min="0"
-                        max="100"
-                        value="0"
-                    />
-                    <input
-                        type="range"
-                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
-                        id="max_investment"
-                        min="0"
-                        max="100"
-                        value="100"
-                    />
-                    <div class="flex justify-between">
-                        <span>$0&nbsp;&nbsp;</span>
-                        <span>$25M</span>
-                        <span>$50М</span>
-                    </div>
-                </div>
-            </div>
-            <div class="flex items-center justify-center rounded-xl mt-5 w-full gap-5">
-                <button
-                    class="text-nowrap rounded-lg bg-black px-2 py-3 font-medium text-white transition-colors hover:bg-neutral-800 ease-in-out text-sm w-fit"
-                    onclick="search()"
-                >
-                    Search
-                </button>
-                <div class="items-start justify-center w-fit">
-                    <div class="relative group w-full">
-                        <div
-                            class="w-full absolute -inset-0.5 bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%] rounded-lg blur opacity-60 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-border"
-                        ></div>
-                        <a
-                            href="/dashboard/suggestions"
-                            class="relative px-7 py-4 bg-black rounded-lg leading-none flex justify-center items-center text-white text-sm w-full"
-                        >
-                            Pick For Me ✨
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <section class="container px-4 py-12 sm:mt-10">
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {% for investor in investors %}
-            <article class="flex flex-col rounded-lg border p-6 shadow-sm">
-                <div class="flex flex-row items-center gap-2">
-                    <a href="/investor/{{ investor.id }}" class="text-xl font-bold leading-none">
-                        {{ investor.full_name }}
-                        <span class="text-base font-normal text-gray-500">@ {{ investor.firm_name }}</span>
-                    </a>
-                </div>
-
-                <div class="mt-2 flex flex-col gap-2">
-                    <p class="text-gray-500">{{ investor.location }}</p>
-                    <p class="flex flex-wrap gap-1">
-                        {% for round in investor.rounds %}
-                        <a class="text-nowrap rounded-lg bg-black px-2 py-1 text-sm text-white">{{ round.name }}</a>
-                        {% endfor %}
-                    </p>
-                    <p class="flex flex-wrap gap-1">
-                        {% for industry in investor.industries %}
-                        <a class="text-nowrap rounded-lg bg-black px-2 py-1 text-sm text-white">{{ industry.name }}</a>
-                        {% endfor %}
-                    </p>
-                </div>
-            </article>
-            {% endfor %}
-        </div>
-        <nav class="mt-10 flex w-full items-center justify-center gap-2">
-            {% if investors.has_prev %}
-            <a
-                class="inline-flex items-center justify-center rounded border px-3 py-2 text-black"
-                href="/dashboard?page={{ investors.prev_num }}{{ combined_query if combined_query else ''}}"
+        <section class="flex w-full flex-col items-start justify-start gap-2 sm:w-3/4">
+            {% if investors %} {% for investor in investors %}
+            <div
+                class="flex w-full flex-col justify-between gap-2 rounded-xl p-4 shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px]"
             >
-                Previous
-            </a>
-            {% endif %} {% for page in investors.iter_pages() %} {% if page %} {% if investors.page == page %}
-            <a
-                class="inline-flex size-11 items-center justify-center rounded-lg border bg-black text-sm font-medium text-white transition-opacity duration-200 ease-in-out hover:opacity-90"
-                href="/dashboard?page={{ page }}{{ combined_query if combined_query else ''}}"
-                >{{ page }}</a
-            >
-            {% else %}
-            <a
-                class="inline-flex size-11 items-center justify-center rounded-lg border text-sm font-medium"
-                href="/dashboard?page={{ page }}{{ combined_query if combined_query else ''}}"
-                >{{ page }}</a
-            >
-            {% endif %} {% else %}
-            <div class="inline-flex size-11 items-center justify-center">...</div>
-            {% endif %} {% endfor %} {% if investors.has_next %}
-            <a
-                class="inline-flex items-center justify-center rounded border px-3 py-2 text-black"
-                href="/dashboard?page={{ investors.next_num }}{{ combined_query if combined_query else ''}}"
-            >
-                Next
-            </a>
-            {% endif %}
-        </nav>
-    </section>
-    <!-- <section class="flex w-full flex-col items-start justify-start gap-2 mx-auto">
-        {% if investors %} {% for investor in investors %}
-        <div class="flex w-full flex-col justify-between gap-2 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] p-4">
-            <div class="flex items-baseline justify-start">
-                <a href="/investor/{{ investor.id }}" class="text-lg underline">{{ investor.full_name }}</a>
-                <span class="text-sm text-slate-500"
-                    >&nbsp;{% if investor.firm_name %} @ {{ investor.firm_name }} {% endif %}</span
-                >
-            </div>
-            {% if investor.min_max_investment %}
-            <span class="text-sm text-slate-500">${{ investor.min_max_investment }}</span>
-            {% endif %} {% if investor.location %}
-            <div>
-                <span class="line-clamp-2 text-sm text-slate-500">Location: {{ investor.location }}</span>
-            </div>
-            {% endif %} {% if investor.about %}
-            <div>
-                <span class="line-clamp-2 text-sm text-slate-500">Location: {{ investor.location }}</span>
-            </div>
-            {% endif %}
-            <div class="flex gap-2">
-                <div class="flex flex-wrap gap-1">
-                    {% for round in investor.rounds %}
-                    <a
-                        href="/dashboard?round={{ round.name }}"
-                        class="inline-flex w-max items-center justify-center rounded-full bg-sky-500 p-2 text-sm leading-none text-white"
+                <div class="flex items-baseline justify-start">
+                    <a href="/investor/{{ investor.id }}" class="text-lg underline">{{ investor.full_name }}</a>
+                    <span class="text-sm text-slate-500"
+                        >&nbsp;{% if investor.firm_name %} @ {{ investor.firm_name }} {% endif %}</span
                     >
-                        {{ round.name }}
-                    </a>
-                    {% endfor %} {% for industry in investor.industries %}
-                    <a
-                        href="/dashboard?industry={{ industry.name }}"
-                        class="inline-flex w-max items-center justify-center rounded-full bg-sky-500 p-2 text-sm leading-none text-white"
-                    >
-                        {{ industry.name}}
-                    </a>
-                    {% endfor %}
                 </div>
-            </div>
-        </div>
-        {% endfor %} {% endif %}
-        <div class="px-4 py-1">
-            <nav class="flex items-center">
-                {% if investors.has_prev %}
-                <a
-                    class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
-                    href="/dashboard?page={{ investors.prev_num }}{{ combined_query if combined_query else ''}}"
-                >
-                    <span aria-hidden="true">«</span>
-                    <span class="sr-only">Previous</span>
-                </a>
-                {% endif %} {% for page in investors.iter_pages() %} {% if page %} {% if investors.page == page %}
-                <a
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500 text-sm font-medium text-white hover:bg-sky-400"
-                    href="/dashboard?page={{ page }}{{ combined_query if combined_query else ''}}"
-                    aria-current="page"
-                    >{{ page }}</a
-                >
-                {% else %}
-                <a
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-medium text-gray-400 hover:text-sky-400"
-                    href="/dashboard?page={{ page }}{{ combined_query if combined_query else ''}}"
-                    >{{ page }}</a
-                >
-                {% endif %} {% else %}
-                <div class="text-gray-400">...</div>
-                {% endif %} {% endfor %} {% if investors.has_next %}
-                <a
-                    class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
-                    href="/dashboard?page={{ investors.next_num }}{{ combined_query if combined_query else ''}}"
-                >
-                    <span class="sr-only">Next</span>
-                    <span aria-hidden="true">»</span>
-                </a>
+                {% if investor.min_max_investment %}
+                <span class="text-sm text-slate-500">${{ investor.min_max_investment }}</span>
+                {% endif %} {% if investor.location %}
+                <div>
+                    <span class="line-clamp-2 text-sm text-slate-500">Location: {{ investor.location }}</span>
+                </div>
+                {% endif %} {% if investor.about %}
+                <div>
+                    <span class="line-clamp-2 text-sm text-slate-500">Location: {{ investor.location }}</span>
+                </div>
                 {% endif %}
-            </nav>
-        </div>
-    </section> -->
+                <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-1">
+                        {% for round in investor.rounds %}
+                        <a
+                            href="/dashboard?round={{ round.name }}"
+                            class="inline-flex w-max items-center justify-center rounded-full bg-sky-500 p-2 text-sm leading-none text-white"
+                        >
+                            {{ round.name }}
+                        </a>
+                        {% endfor %} {% for industry in investor.industries %}
+                        <a
+                            href="/dashboard?industry={{ industry.name }}"
+                            class="inline-flex w-max items-center justify-center rounded-full bg-sky-500 p-2 text-sm leading-none text-white"
+                        >
+                            {{ industry.name}}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %} {% endif %}
+            <div class="px-4 py-1">
+                <nav class="flex items-center">
+                    {% if investors.has_prev %}
+                    <a
+                        class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
+                        href="/dashboard?page={{ investors.prev_num }}{{ combined_query if combined_query else ''}}"
+                    >
+                        <span aria-hidden="true">«</span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    {% endif %} {% for page in investors.iter_pages() %} {% if page %} {% if investors.page == page %}
+                    <a
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500 text-sm font-medium text-white hover:bg-sky-400"
+                        href="/dashboard?page={{ page }}{{ combined_query if combined_query else ''}}"
+                        aria-current="page"
+                        >{{ page }}</a
+                    >
+                    {% else %}
+                    <a
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-medium text-gray-400 hover:text-sky-400"
+                        href="/dashboard?page={{ page }}{{ combined_query if combined_query else ''}}"
+                        >{{ page }}</a
+                    >
+                    {% endif %} {% else %}
+                    <div class="text-gray-400">...</div>
+                    {% endif %} {% endfor %} {% if investors.has_next %}
+                    <a
+                        class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
+                        href="/dashboard?page={{ investors.next_num }}{{ combined_query if combined_query else ''}}"
+                    >
+                        <span class="sr-only">Next</span>
+                        <span aria-hidden="true">»</span>
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+        </section>
+    </div>
 </main>
 {% endblock %}

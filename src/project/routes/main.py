@@ -187,6 +187,7 @@ def dashboard():
 
     investors = Investor.get_pagination(
         page=page,
+        per_page=12,
         search_string=search_string,
         filter_fields=filter_fields,
         rounds=rounds,

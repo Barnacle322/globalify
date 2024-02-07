@@ -1,7 +1,5 @@
 {% extends "layouts/layout_app.html" %} {% block title %} {{ investor.full_name }} {% endblock %} {% block head %}
-{{super() }}
-<script src="/static/scripts/dashboard.js" defer></script>
-{% endblock %} {% block content %}
+{{super() }} {% endblock %} {% block content %}
 <main class="mx-auto mb-40 mt-28 flex h-full flex-wrap justify-center gap-5 pb-16">
     <section class="flex max-w-[40rem] flex-col gap-3 px-8">
         <div class="flex flex-wrap items-baseline justify-start gap-3">
@@ -59,21 +57,21 @@
         <div class="flex flex-col gap-1">
             <h2 class="font-medium">Website</h2>
             <div class="flex flex-wrap gap-1">
-                <a href="{{ investor.website }}" class="underline"> {{ investor.website }} </a>
+                <a href="{{ investor.website }}" class="underline" target="_blank"> {{ investor.website }} </a>
             </div>
         </div>
         {% endif %} {% if investor.linkedin %}
         <div class="flex flex-col gap-1">
             <h2 class="font-medium">Linkedin</h2>
             <div class="flex flex-wrap gap-1">
-                <a href="{{ investor.linkedin }}" class="underline"> {{ investor.linkedin }} </a>
+                <a href="{{ investor.linkedin }}" class="underline"target="_blank"> {{ investor.linkedin }} </a>
             </div>
         </div>
         {% endif %} {% if investor.twitter %}
         <div class="flex flex-col gap-1">
             <h2 class="font-medium">Twitter</h2>
             <div class="flex flex-wrap gap-1">
-                <a href="{{ investor.twitter }}" class="underline"> {{ investor.twitter }} </a>
+                <a href="{{ investor.twitter }}" class="underline"target="_blank"> {{ investor.twitter }} </a>
             </div>
         </div>
         {% endif %} {% if investor.phone_number %}

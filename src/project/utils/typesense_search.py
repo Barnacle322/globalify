@@ -1,8 +1,8 @@
 import os
 
-import typesense
+from typesense.client import Client
 
-client = typesense.Client(
+client = Client(
     {
         "nodes": [
             {
@@ -30,22 +30,19 @@ def populate_schema(
 ) -> None:
     if schema_name and file_path:
         with open(file_path, encoding="utf-8") as jsonl_file:
-            client.collections[schema_name].documents.import_(  # type: ignore
-                jsonl_file.read().encode("utf-8")
-            )
+            client.collections[schema_name].documents.import_(jsonl_file.read().encode("utf-8"), {"action": "upsert"})
     else:
         raise ValueError("Schema name and file path are required")
 
 
 def delete_schema(schema_name: str) -> None:
     if schema_name:
-        client.collections[schema_name].delete()  # type: ignore
+        client.collections[schema_name].delete()
     else:
         raise ValueError("Schema name is required")
 
 
-def create_local():
-    delete_schema("investors")
+def setup():
     investor_schema = {
         "name": "investors",
         "fields": [
@@ -68,11 +65,6 @@ def create_local():
             {"name": "notable_investments", "type": "string[]", "optional": True},
         ],
     }
-
-    create_schema(investor_schema)
-    populate_schema("investors", file_path="./investor_index.jsonl")
-
-    delete_schema("cities")
     city_schema = {
         "name": "cities",
         "fields": [
@@ -85,8 +77,30 @@ def create_local():
             {"name": "longitude", "type": "float", "facet": True},
         ],
     }
+
+    try:
+        delete_schema("investors")
+    except Exception as e:
+        print(f"Error deleting investors schema: {e}")
+    create_schema(investor_schema)
+    populate_schema("investors", file_path="./investor_index.jsonl")
+
+    try:
+        delete_schema("cities")
+    except Exception as e:
+        print(f"Error deleting cities schema: {e}")
     create_schema(city_schema)
     populate_schema("cities", file_path="./cities_index.jsonl")
+
+
+def update_schema(schema_name: str, file_path: str) -> None:
+    if schema_name and file_path:
+        with open(file_path, encoding="utf-8") as jsonl_file:
+            smth = client.collections[schema_name]
+            if smth:
+                smth.documents.import_(jsonl_file.read().encode("utf-8"), params={"action": "upsert"})
+    else:
+        raise ValueError("Schema name and file path are required")
 
 
 def search(collection: str, q: str, query_by: str, sort_by: str | None = None, per_page: int = 10, page: int = 1):
@@ -106,7 +120,7 @@ def search(collection: str, q: str, query_by: str, sort_by: str | None = None, p
             "page": page,
         }
 
-    results = client.collections[collection].documents.search(search_parameters)  # type: ignore
+    results = client.collections[collection].documents.search(search_parameters)
     return results
 
 

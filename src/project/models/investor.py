@@ -24,10 +24,8 @@ from ..utils.fake_data import (
     get_names,
     get_websites,
 )
-
-from ..utils.search import search
 from ..utils.suggestion import geocode_location
-
+from ..utils.typesense_search import search
 from .helpers import Industry, Round
 
 

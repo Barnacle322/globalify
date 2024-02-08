@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import random
 from collections.abc import Sequence
 from itertools import islice
@@ -23,7 +24,10 @@ from ..utils.fake_data import (
     get_names,
     get_websites,
 )
+
+from ..utils.search import search
 from ..utils.suggestion import geocode_location
+
 from .helpers import Industry, Round
 
 
@@ -473,6 +477,36 @@ class Investor(db.Model):
         )
 
     @classmethod
+    def get_search(
+        cls,
+        query_string: str,
+        query_by: str = "name, firm_name, about, position, location, rounds, industries, notable_investments",
+        per_page: int = 10,
+        page: int = 1,
+    ):
+        try:
+            results = search(
+                collection="investors",
+                q=query_string,
+                query_by=query_by,
+                per_page=per_page,
+                page=page,
+            )
+        except Exception as e:
+            print(e)
+            results = {}
+
+        found = results.get("found", 0)
+        pages = found // per_page
+        if found % per_page > 0:
+            pages += 1
+
+        hits = results.get("hits", [])
+        id_list = [hit.get("document", {}).get("db_id", 0) for hit in hits]
+
+        return Investor.get_by_id_list(id_list)
+
+    @classmethod
     def get_pagination(
         cls,
         page: int = 1,
@@ -539,6 +573,18 @@ class Investor(db.Model):
     @staticmethod
     def get_by_id(id: int) -> Investor | None:
         return db.session.scalar(db.select(Investor).where(Investor.id == id))
+
+    @staticmethod
+    def get_by_id_list(ids: list[int]) -> Sequence[Investor] | None:
+        return (
+            db.session.scalars(
+                db.select(Investor)
+                .options(joinedload(Investor.rounds), joinedload(Investor.industries))
+                .where(Investor.id.in_(ids))
+            )
+            .unique()
+            .all()
+        )
 
     @staticmethod
     def get_by_email(email: str) -> Investor | None:
@@ -838,6 +884,33 @@ class Investor(db.Model):
         if completeness_score < 0:
             completeness_score = 0
         return completeness_score
+
+    @staticmethod
+    def index():
+        investors = Investor.get_all()
+
+        with open("investor_index.jsonl", "w") as file:
+            for investor in investors:
+                investor_json = {}
+                investor_json["db_id"] = investor.id
+                investor_json["name"] = investor.full_name
+                investor_json["firm_name"] = investor.firm_name
+                investor_json["about"] = investor.about
+                investor_json["position"] = investor.position
+                investor_json["n_investments"] = investor.n_investments
+                investor_json["n_exits"] = investor.n_exits
+                investor_json["min_investment"] = investor.min_investment
+                investor_json["max_investment"] = investor.max_investment
+                investor_json["location"] = investor.location
+                investor_json["rounds"] = [round_.name for round_ in investor.rounds]
+                investor_json["industries"] = [industry.name for industry in investor.industries]
+                investor_json["notable_investments"] = [
+                    notable_investment.name for notable_investment in investor.notable_investments
+                ]
+
+                file.write(json.dumps(investor_json) + "\n")
+
+        return investors
 
 
 class InvestmentFirm(db.Model):

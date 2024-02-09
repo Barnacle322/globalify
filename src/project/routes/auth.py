@@ -278,7 +278,7 @@ def onboarding():
         return redirect(url_for("auth.login"))
 
     if user_info.is_complete:
-        return redirect(url_for("auth.company_form"))
+        return redirect(url_for("main.search"))
 
     if request.method == "POST":
         request_key = str(uuid.uuid4())
@@ -387,50 +387,3 @@ def logout():
     """
     logout_user()
     return redirect(url_for("main.index"))
-
-
-@auth.route("/company/add", methods=["GET", "POST"])
-def add_company():
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-
-    users = User.get_all()
-    industries = Industry.get_all()
-    rounds = Round.get_all()
-    countries = Country.get_all()
-
-    if request.method == "POST":
-        name = request.form.get("company-name", "").strip()
-
-        preferred_round_id = request.form.get("round")
-        print(preferred_round_id)
-        industry_id = request.form.get("industry")
-        print(industry_id)
-        print(request.form.get("country"))
-
-        company = Company(
-            user_id=request.form.get("user"),
-            name=name,
-            number_of_employees=request.form.get("number_of_employees"),
-            description=request.form.get("description"),
-            country_id=request.form.get("country"),
-            preferred_round_id=preferred_round_id,
-            industry_id=industry_id,
-            website=request.form.get("website", ""),
-        )
-
-        db.session.add(company)
-        db.session.commit()
-        return redirect(url_for("main.search"))
-
-    return render_template(
-        "auth/add_company.html",
-        industries=industries,
-        rounds=rounds,
-        countries=countries,
-        users=users,
-        status_type=status_type,
-        msg=msg,
-    )

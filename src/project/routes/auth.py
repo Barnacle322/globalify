@@ -1,13 +1,16 @@
 import os
+import uuid
 
 import requests
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from flask_login import (
     current_user,
     login_required,
     login_user,
     logout_user,
 )
+
+from src.project.models.helpers import Country, Industry, Round
 
 from ..extensions import db, login_manager, oauth
 from ..models import Company, User, UserInfo, UserPayment
@@ -278,12 +281,19 @@ def onboarding():
         return redirect(url_for("auth.company_form"))
 
     if request.method == "POST":
+        request_key = str(uuid.uuid4())
+
+        if session.get("last_request_key") == request_key:
+            return redirect(url_for("main.settings"))
+
         first_name, last_name, username, company_name = (
             request.form.get("first_name"),
             request.form.get("last_name"),
             request.form.get("username"),
             request.form.get("company_name"),
         )
+
+        session["last_request_key"] = request_key
 
         if not first_name or not last_name or not username or not company_name:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
@@ -377,3 +387,50 @@ def logout():
     """
     logout_user()
     return redirect(url_for("main.index"))
+
+
+@auth.route("/company/add", methods=["GET", "POST"])
+def add_company():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    users = User.get_all()
+    industries = Industry.get_all()
+    rounds = Round.get_all()
+    countries = Country.get_all()
+
+    if request.method == "POST":
+        name = request.form.get("company-name", "").strip()
+
+        preferred_round_id = request.form.get("round")
+        print(preferred_round_id)
+        industry_id = request.form.get("industry")
+        print(industry_id)
+        print(request.form.get("country"))
+
+        company = Company(
+            user_id=request.form.get("user"),
+            name=name,
+            number_of_employees=request.form.get("number_of_employees"),
+            description=request.form.get("description"),
+            country_id=request.form.get("country"),
+            preferred_round_id=preferred_round_id,
+            industry_id=industry_id,
+            website=request.form.get("website", ""),
+        )
+
+        db.session.add(company)
+        db.session.commit()
+        return redirect(url_for("main.search"))
+
+    return render_template(
+        "auth/add_company.html",
+        industries=industries,
+        rounds=rounds,
+        countries=countries,
+        users=users,
+        status_type=status_type,
+        msg=msg,
+    )

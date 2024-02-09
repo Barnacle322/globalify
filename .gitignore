@@ -3,6 +3,7 @@
 
 investor.csv
 globalify - blockchain.csv
+investor_index.jsonl
 
 ### Flask ###
 instance/*

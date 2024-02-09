@@ -24,8 +24,6 @@ from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import WEIGHTS
-from ..utils.suggestion import pass_score
-
 
 main = Blueprint("main", __name__)
 
@@ -150,7 +148,7 @@ def post_download():
     )
 
 
-@main.route("/dashboard/suggestions")
+@main.route("/suggestions")
 @login_required
 @check_user_info_complete
 @check_verification

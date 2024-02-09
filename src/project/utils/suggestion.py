@@ -23,9 +23,11 @@ def check_weights(weights: dict[str, float]) -> None:
 def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str] | None:
     try:
         search_lookup = search("cities", q=location, query_by="city, city_ascii, country, admin_name")
-        if search_lookup and int(search_lookup.get("found")) > 0:
+        if not location:
+            return {"coordinates": "", "country_name": ""}
+        if search_lookup and int(search_lookup.get("found")) > 0:  # type: ignore
             results = search_lookup.get("hits")
-            first_result = results[0].get("document")
+            first_result = results[0].get("document")  # type: ignore
             coordinates = f"{first_result.get('latitude')},{first_result.get('longitude')}"
             country_name = first_result.get("country")
             return {"coordinates": coordinates, "country_name": country_name}

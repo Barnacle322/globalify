@@ -6,20 +6,145 @@ client = Client(
     {
         "nodes": [
             {
-                "host": os.getenv("_TYPESENSE_HOST", "localhost"),
+                "host": os.getenv("_TYPESENSE_HOST", "127.0.0.1"),
                 "port": os.getenv("_TYPESENSE_PORT", "8108"),
                 "protocol": "http",
             }
         ],
         "api_key": os.getenv("_TYPESENSE_API_KEY", "xyz"),
-        "connection_timeout_seconds": 2,
+        "connection_timeout_seconds": 2000,
     }
 )
 
 
+class SearchBuilder:
+    def __init__(self):
+        self.parameters = {}
+
+    def with_query(self, query: str):
+        """
+        Sets the query parameter.
+
+        Args:
+            query (str): The search query.
+        """
+        self.parameters["q"] = query
+        return self
+
+    def with_query_by(self, fields: list[str], weights: list[int] | None = None):
+        """
+        Sets the query_by and query_by_weights parameters.
+
+        Args:
+            fields (list[str]): The fields to query by.
+            weights (list[int] | None): The weights for the fields.
+
+        Raises:
+            ValueError: If fields and weights have different lengths.
+        """
+        if weights is not None and len(fields) != len(weights):
+            raise ValueError("fields and weights must have the same length")
+        self.parameters["query_by"] = ",".join(fields)
+        if weights is not None:
+            self.parameters["query_by_weights"] = ",".join(str(weight) for weight in weights)
+        return self
+
+    def with_filter(self, filter: str):
+        """
+        Sets the filter_by parameter.
+
+        Args:
+            filter (str): The filter conditions.
+        """
+        self.parameters["filter_by"] = filter
+        return self
+
+    def with_sort(self, sorts: list[tuple[str, str]]):
+        """
+        Sets the sort_by parameter.
+
+        Args:
+            sorts (List[Tuple[str, str]]): The fields to sort by and their directions.
+
+        Returns:
+            SearchBuilder: The builder instance.
+
+        Raises:
+            ValueError: If more than 3 fields are provided.
+        """
+        if len(sorts) > 3:
+            raise ValueError("Only up to 3 fields can be specified for sorting")
+        self.parameters["sort_by"] = ",".join(f"{field}:{direction}" for field, direction in sorts)
+        return self
+
+    def with_pinned_hits(self, hits: list[tuple[str, int]]):
+        """
+        Sets the pinned_hits parameter.
+
+        Args:
+            hits (list[tuple[str, int]]): The records to pin and their positions.
+
+        Returns:
+            SearchBuilder: The builder instance.
+        """
+        self.parameters["pinned_hits"] = ",".join(f"{record_id}:{position}" for record_id, position in hits)
+        return self
+
+    def with_hidden_hits(self, hits: list[str]):
+        """
+        Sets the hidden_hits parameter.
+
+        Args:
+            hits (list[str]): The records to hide.
+
+        Returns:
+            SearchBuilder: The builder instance.
+        """
+        self.parameters["hidden_hits"] = ",".join(hits)
+        return self
+
+    def with_group_by(self, fields: list[str]):
+        """
+        Sets the group_by parameter.
+
+        Args:
+            fields (list[str]): The fields to group by.
+
+        Returns:
+            SearchBuilder: The builder instance.
+        """
+        self.parameters["group_by"] = ",".join(fields)
+        return self
+
+    def with_page(self, page: int):
+        """
+        Sets the page parameter.
+
+        Args:
+            page (int): The page number.
+        """
+        self.parameters["page"] = page
+        return self
+
+    def with_per_page(self, per_page: int):
+        """
+        Sets the per_page parameter.
+
+        Args:
+            per_page (int): The number of results per page.
+        """
+        self.parameters["per_page"] = per_page
+        return self
+
+    def build(self) -> dict:
+        return self.parameters
+
+
 def create_schema(schema: dict) -> None:
     if schema:
+        print(f"Creating {schema['name']} schema")
         client.collections.create(schema)
+        print(f"Created {schema['name']} schema")
     else:
         raise ValueError("Schema is required")
 
@@ -30,14 +155,18 @@ def populate_schema(
 ) -> None:
     if schema_name and file_path:
         with open(file_path, encoding="utf-8") as jsonl_file:
+            print(f"Populating {schema_name} schema")
             client.collections[schema_name].documents.import_(jsonl_file.read().encode("utf-8"), {"action": "upsert"})
+            print(f"Populated {schema_name} schema")
     else:
         raise ValueError("Schema name and file path are required")
 
 
 def delete_schema(schema_name: str) -> None:
     if schema_name:
+        print(f"Deleting {schema_name} schema")
         client.collections[schema_name].delete()
+        print(f"Deleted {schema_name} schema")
     else:
         raise ValueError("Schema name is required")
 
@@ -63,8 +192,33 @@ def setup():
             {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
             {"name": "industries", "type": "string[]", "facet": True, "optional": True},
             {"name": "notable_investments", "type": "string[]", "optional": True},
+            {
+                "name": "embedding",
+                "type": "float[]",
+                "embed": {
+                    "from": [
+                        "name",
+                        "firm_name",
+                        "about",
+                        "position",
+                        "location",
+                        "rounds",
+                        "industries",
+                        "notable_investments",
+                    ],
+                    "model_config": {"model_name": "ts/all-MiniLM-L12-v2"},
+                },
+            },
         ],
     }
+
+    try:
+        delete_schema("investors")
+    except Exception as e:
+        print(f"Error deleting investors schema: {e}")
+    create_schema(investor_schema)
+    populate_schema("investors", file_path="./investor_index.jsonl")
+
     city_schema = {
         "name": "cities",
         "fields": [
@@ -77,13 +231,6 @@ def setup():
             {"name": "longitude", "type": "float", "facet": True},
         ],
     }
-
-    try:
-        delete_schema("investors")
-    except Exception as e:
-        print(f"Error deleting investors schema: {e}")
-    create_schema(investor_schema)
-    populate_schema("investors", file_path="./investor_index.jsonl")
 
     try:
         delete_schema("cities")
@@ -110,6 +257,7 @@ def search(collection: str, q: str, query_by: str, sort_by: str | None = None, p
             "query_by": query_by,
             "per_page": per_page,
             "page": page,
+            "include_fields": "name, firm_name, about, position, location, rounds, industries, notable_investments, db_id",
         }
     else:
         search_parameters = {
@@ -125,15 +273,15 @@ def search(collection: str, q: str, query_by: str, sort_by: str | None = None, p
 
 
 # if __name__ == "__main__":
-# searchh = search(
-#     collection="investors",
-#     q="Pre-seed web3",
-#     query_by="name, firm_name, about, position, location, rounds, industries, notable_investments",
-#     per_page=250,
-#     page=1,
-# )
-# print(len(searchh))
-# print(searchh)
+#     searchh = search(
+#         collection="investors",
+#         q="from america",
+#         query_by="name, firm_name, about, position, location, rounds, industries, notable_investments",
+#         per_page=10,
+#         page=1,
+#     )
+#     print(len(searchh))
+#     print(searchh)
 
 # if __name__ == "__main__":
 #     searchh = search(
@@ -146,18 +294,6 @@ def search(collection: str, q: str, query_by: str, sort_by: str | None = None, p
 
 #     print(len(searchh))
 #     print(searchh)
-
-#     for result in searchh["hits"]:
-#         print(
-#             result.get("document").get("city"),
-#             result.get("document").get("admin_name"),
-#             result.get("document").get("country"),
-#             result.get("document").get("population"),
-#             result.get("document").get("latitude"),
-#             result.get("document").get("longitude"),
-#             sep=" | ",
-#         )
-
 
 # def create_index(file_name: str):
 #     # CSV reader
@@ -180,4 +316,4 @@ def search(collection: str, q: str, query_by: str, sort_by: str | None = None, p
 
 
 # if __name__ == "__main__":
-#     create_local()
+#     setup()

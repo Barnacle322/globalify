@@ -16,8 +16,6 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
-from src.project.models.helpers import Country
-
 from ..extensions import db
 from ..models import Company, InvestmentFirm, Investor, Waitlist, WaitlistCharge
 from ..utils.enums import Status, StatusType
@@ -69,7 +67,7 @@ def construct_query_string(**kwargs):
 @main.get("/")
 def index():
     # TODO: Turned off for better performance
-    # posts = parse_medium_html()
+    posts = parse_medium_html()
     posts = []
     return render_template("coming_soon.html", posts=posts)
 
@@ -191,6 +189,40 @@ def get_suggestions():
     )
 
 
+def generate_pagination(current_page: int, total_pages: int, around_count: int = 4) -> dict:
+    """
+    Generate a pagination dictionary.
+
+    Args:
+        current_page (int): The current page number.
+        total_pages (int): The total number of pages.
+        around_count (int, optional): The number of pages to show around the current page. Defaults to 4.
+
+    Returns:
+        dict: A dictionary with keys 'current_page', 'prev', 'next', and 'pages'.
+    """
+    pages = list(range(1, min(3, total_pages + 1)))
+    around_start = max(1, current_page - around_count)
+    if around_start > 3:
+        pages.append(None)  # type: ignore
+    elif around_start <= 3:
+        around_start = 3
+    pages.extend(range(around_start, min(current_page + around_count + 1, total_pages + 1)))
+    around_end = current_page + around_count
+    if around_end < total_pages - 2:
+        pages.append(None)  # type: ignore
+    elif around_end >= total_pages - 2:
+        around_end = total_pages - 3
+    pages.extend(range(max(around_end + 1, total_pages - 1), total_pages + 1))
+
+    return {
+        "current_page": current_page,
+        "prev": max(1, current_page - 1),
+        "next": min(current_page + 1, total_pages),
+        "pages": pages,
+    }
+
+
 @main.route("/search", methods=["GET", "POST"])
 @login_required
 @check_user_info_complete
@@ -208,9 +240,15 @@ def search():
     page = request.args.get("page", 1, type=int)
     if request.method == "POST":
         search_string = request.form.get("search", "")
-        investors = Investor.get_search(query_string=search_string, page=page, per_page=250)
+        result = Investor.get_search(query_string=search_string, page=1)
+        investors = result.get("investors")
+        page = int(result.get("page", 1))
+        pages = int(result.get("pages", 1))
+        pagination = generate_pagination(page, pages)
 
-        return render_template("search.html", investors=investors, query=search_string)
+        return render_template(
+            "search.html", investors=investors, query=search_string, pagination=pagination, status=status
+        )
     return render_template("search.html", investors=[], status=status)
 
 

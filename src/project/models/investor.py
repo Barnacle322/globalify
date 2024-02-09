@@ -478,8 +478,8 @@ class Investor(db.Model):
     def get_search(
         cls,
         query_string: str,
-        query_by: str = "name, firm_name, about, position, location, rounds, industries, notable_investments",
-        per_page: int = 10,
+        query_by: str = "location, rounds, industries, embedding, notable_investments, name, firm_name, position",
+        per_page: int = 12,
         page: int = 1,
     ):
         try:
@@ -490,19 +490,38 @@ class Investor(db.Model):
                 per_page=per_page,
                 page=page,
             )
+            print("Results:", results)
         except Exception as e:
             print(e)
             results = {}
 
         found = results.get("found", 0)
+        page = results.get("page", 1)
         pages = found // per_page
         if found % per_page > 0:
             pages += 1
 
         hits = results.get("hits", [])
-        id_list = [hit.get("document", {}).get("db_id", 0) for hit in hits]
-
-        return Investor.get_by_id_list(id_list)
+        investor_list = []
+        for hit in hits:
+            investor_list.append(
+                {
+                    "id": hit.get("document", {}).get("db_id", 0),
+                    "name": hit.get("document", {}).get("name", ""),
+                    "firm_name": hit.get("document", {}).get("firm_name", ""),
+                    "about": hit.get("document", {}).get("about", ""),
+                    "position": hit.get("document", {}).get("position", ""),
+                    "n_investments": hit.get("document", {}).get("n_investments", 0),
+                    "n_exits": hit.get("document", {}).get("n_exits", 0),
+                    "min_investment": hit.get("document", {}).get("min_investment", 0),
+                    "max_investment": hit.get("document", {}).get("max_investment", 0),
+                    "location": hit.get("document", {}).get("location", ""),
+                    "rounds": hit.get("document", {}).get("rounds", []),
+                    "industries": hit.get("document", {}).get("industries", []),
+                    "notable_investments": hit.get("document", {}).get("notable_investments", []),
+                }
+            )
+        return {"investors": investor_list, "found": found, "pages": pages, "page": page}
 
     @classmethod
     def get_pagination(

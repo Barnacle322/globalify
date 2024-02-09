@@ -4,30 +4,25 @@ import googlemaps
 
 from .typesense_search import search
 
-google_maps_secret = os.getenv("_GOOGLE_MAPS_API_KEY")
-gmaps = googlemaps.Client(key=google_maps_secret)
+gmaps = googlemaps.Client(key=os.getenv("_GOOGLE_MAPS_API_KEY"))
 
 
 WEIGHTS = {"bias": 0.3, "industry": 0.25, "round": 0.07, "location": 0.25, "exits": 0.07, "completeness": 0.06}
 
 
 def check_weights(weights: dict[str, float]) -> None:
-    total_weight = sum(weights.values())
-    try:
-        if total_weight != 1.0:
-            raise ValueError("!!! The weights must sum to 1.0 !!!")
-    except ValueError as e:
-        print(e)
+    if sum(weights.values()) != 1.0:
+        print("!!! The weights must sum to 1.0 !!!")
 
 
 def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str] | None:
+    if not location:
+        return {"coordinates": "", "country_name": ""}
     try:
         search_lookup = search("cities", q=location, query_by="city, city_ascii, country, admin_name")
-        if not location:
-            return {"coordinates": "", "country_name": ""}
-        if search_lookup and int(search_lookup.get("found")) > 0:  # type: ignore
-            results = search_lookup.get("hits")
-            first_result = results[0].get("document")  # type: ignore
+        if search_lookup and int(search_lookup.get("found", "0")) > 0:
+            results = search_lookup.get("hits", [])
+            first_result = results[0].get("document")
             coordinates = f"{first_result.get('latitude')},{first_result.get('longitude')}"
             country_name = first_result.get("country")
             return {"coordinates": coordinates, "country_name": country_name}

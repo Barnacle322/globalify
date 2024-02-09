@@ -1,26 +1,3 @@
-languages = [
-    "English",
-    "Mandarin",
-    "Hindi",
-    "Spanish",
-    "French",
-    "Arabic",
-    "Bengali",
-    "Russian",
-    "Portuguese",
-    "Urdu",
-    "Indonesian",
-    "German",
-    "Japanese",
-    "Marathi",
-    "Telugu",
-    "Turkish",
-    "Tamil",
-    "Yue Chinese",
-    "Vietnamese",
-    "Other",
-]
-
 technology_innovation = [
     "AI",
     "API",

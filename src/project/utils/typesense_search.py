@@ -149,15 +149,38 @@ def create_schema(schema: dict) -> None:
         raise ValueError("Schema is required")
 
 
-def populate_schema(
+def populate_schema_from_file(
     schema_name: str,
     file_path: str = "./investor_index.jsonl",
 ) -> None:
     if schema_name and file_path:
         with open(file_path, encoding="utf-8") as jsonl_file:
             print(f"Populating {schema_name} schema")
-            client.collections[schema_name].documents.import_(jsonl_file.read().encode("utf-8"), {"action": "upsert"})
+            client.collections[schema_name].documents.import_(
+                jsonl_file.read().encode("utf-8"),
+                {
+                    "action": "upsert",
+                    "filter_by": "db_id",
+                },
+            )
+            print(client.collections[schema_name].documents.export({"include_fields": "id, db_id"}))
             print(f"Populated {schema_name} schema")
+    else:
+        raise ValueError("Schema name and file path are required")
+
+
+def populate_schema(schema_name: str, data: list[dict]):
+    if schema_name and data:
+        print(f"Populating {schema_name} schema")
+        client.collections[schema_name].documents.import_(
+            data,
+            {
+                "action": "upsert",
+                "filter_by": "db_id",
+            },
+        )
+        print(f"Populated {schema_name} schema")
+        return client.collections[schema_name].documents.export({"include_fields": "id, db_id"})
     else:
         raise ValueError("Schema name and file path are required")
 
@@ -206,10 +229,14 @@ def setup():
                         "industries",
                         "notable_investments",
                     ],
-                    "model_config": {"model_name": "ts/all-MiniLM-L12-v2"},
+                    "model_config": {
+                        "model_name": "google/embedding-gecko-001",
+                        "api_key": "AIzaSyCPSc9cr5jomv89ZuISfY9sMIB0uFQLY04",
+                    },
                 },
             },
         ],
+        "primary_key": "db_id",
     }
 
     try:
@@ -217,27 +244,27 @@ def setup():
     except Exception as e:
         print(f"Error deleting investors schema: {e}")
     create_schema(investor_schema)
-    populate_schema("investors", file_path="./investor_index.jsonl")
+    # populate_schema_from_file("investors", file_path="./investor_index.jsonl")
 
-    city_schema = {
-        "name": "cities",
-        "fields": [
-            {"name": "city", "type": "string"},
-            {"name": "city_ascii", "type": "string"},
-            {"name": "country", "type": "string", "facet": True},
-            {"name": "admin_name", "type": "string", "facet": True},
-            {"name": "population", "type": "int32", "facet": True},
-            {"name": "latitude", "type": "float", "facet": True},
-            {"name": "longitude", "type": "float", "facet": True},
-        ],
-    }
+    # city_schema = {
+    #     "name": "cities",
+    #     "fields": [
+    #         {"name": "city", "type": "string"},
+    #         {"name": "city_ascii", "type": "string"},
+    #         {"name": "country", "type": "string", "facet": True},
+    #         {"name": "admin_name", "type": "string", "facet": True},
+    #         {"name": "population", "type": "int32", "facet": True},
+    #         {"name": "latitude", "type": "float", "facet": True},
+    #         {"name": "longitude", "type": "float", "facet": True},
+    #     ],
+    # }
 
-    try:
-        delete_schema("cities")
-    except Exception as e:
-        print(f"Error deleting cities schema: {e}")
-    create_schema(city_schema)
-    populate_schema("cities", file_path="./cities_index.jsonl")
+    # try:
+    #     delete_schema("cities")
+    # except Exception as e:
+    #     print(f"Error deleting cities schema: {e}")
+    # create_schema(city_schema)
+    # populate_schema_from_file("cities", file_path="./cities_index.jsonl")
 
 
 def update_schema(schema_name: str, file_path: str) -> None:
@@ -257,7 +284,7 @@ def search(collection: str, q: str, query_by: str, sort_by: str | None = None, p
             "query_by": query_by,
             "per_page": per_page,
             "page": page,
-            "include_fields": "name, firm_name, about, position, location, rounds, industries, notable_investments, db_id",
+            "prefix": False,
         }
     else:
         search_parameters = {
@@ -266,6 +293,7 @@ def search(collection: str, q: str, query_by: str, sort_by: str | None = None, p
             "sort_by": sort_by,
             "per_page": per_page,
             "page": page,
+            "prefix": False,
         }
 
     results = client.collections[collection].documents.search(search_parameters)

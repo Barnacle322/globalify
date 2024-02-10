@@ -189,7 +189,7 @@ def get_suggestions():
     )
 
 
-def generate_pagination(current_page: int, total_pages: int, around_count: int = 4) -> dict:
+def generate_pagination(current_page: int, total_pages: int, around_count: int = 2) -> dict:
     """
     Generate a pagination dictionary.
 
@@ -201,19 +201,19 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
     Returns:
         dict: A dictionary with keys 'current_page', 'prev', 'next', and 'pages'.
     """
-    pages = list(range(1, min(3, total_pages + 1)))
-    around_start = max(1, current_page - around_count)
-    if around_start > 3:
-        pages.append(None)  # type: ignore
-    elif around_start <= 3:
-        around_start = 3
-    pages.extend(range(around_start, min(current_page + around_count + 1, total_pages + 1)))
-    around_end = current_page + around_count
-    if around_end < total_pages - 2:
-        pages.append(None)  # type: ignore
-    elif around_end >= total_pages - 2:
-        around_end = total_pages - 3
-    pages.extend(range(max(around_end + 1, total_pages - 1), total_pages + 1))
+    # Calculate all the page ranges
+    start_pages = range(1, min(3, total_pages + 1))
+    around_pages = range(max(1, current_page - around_count), min(current_page + around_count + 1, total_pages + 1))
+    end_pages = range(max(current_page + around_count + 1, total_pages - 1), total_pages + 1)
+
+    # Build the pages list
+    pages = list(start_pages)
+    if pages[-1] is not None and around_pages and around_pages[0] - pages[-1] > 1:
+        pages.append(0)
+    pages.extend(p for p in around_pages if p not in pages)
+    if pages[-1] is not None and end_pages and end_pages[0] - pages[-1] > 1:
+        pages.append(0)
+    pages.extend(p for p in end_pages if p not in pages)
 
     return {
         "current_page": current_page,
@@ -237,14 +237,14 @@ def search():
         button_url = query.get("button_url")
         status = {"type": status_type, "msg": msg, "title": title, "button_text": button_text, "button_url": button_url}
 
-    page = request.args.get("page", 1, type=int)
     if request.method == "POST":
         search_string = request.form.get("search", "")
+        # TODO: page
+        # page = request.form.get("page", "")
         result = Investor.get_search(query_string=search_string, page=1)
         investors = result.get("investors")
-        page = int(result.get("page", 1))
-        pages = int(result.get("pages", 1))
-        pagination = generate_pagination(page, pages)
+        # pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+        pagination = generate_pagination(10, 25)
 
         return render_template(
             "search.html", investors=investors, query=search_string, pagination=pagination, status=status

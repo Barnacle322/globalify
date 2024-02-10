@@ -25,7 +25,7 @@ from ..utils.fake_data import (
     get_websites,
 )
 from ..utils.suggestion import geocode_location
-from ..utils.typesense_search import search
+from ..utils.typesense_search import populate_schema, search
 from .helpers import Industry, Round
 
 
@@ -427,6 +427,7 @@ class Investor(db.Model):
     _coordinates: Mapped[str] = mapped_column(String, nullable=True)
     _country: Mapped[str] = mapped_column(String, nullable=True)
     bias: Mapped[int] = mapped_column(Integer, nullable=True)
+    search_index: Mapped[str] = mapped_column(String, nullable=True)
 
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
@@ -617,7 +618,7 @@ class Investor(db.Model):
         job_positions = get_job_positions(50)
         locations = get_countrys(50)
         companies = get_companies(50)
-        for i in range(1, 50):
+        for i in range(1, 10):
             num_rounds = random.randint(1, 5)
             rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
             num_industries = random.randint(1, 6)
@@ -928,6 +929,47 @@ class Investor(db.Model):
                 file.write(json.dumps(investor_json) + "\n")
 
         return investors
+
+    @staticmethod
+    def sync_search_index():
+        investors = Investor.get_all()
+        data = []
+        for investor in investors:
+            investor_object = {}
+            if investor.search_index:
+                investor_object["id"] = investor.search_index
+            investor_object["db_id"] = investor.id
+            investor_object["name"] = investor.full_name
+            investor_object["firm_name"] = investor.firm_name
+            investor_object["about"] = investor.about
+            investor_object["position"] = investor.position
+            investor_object["n_investments"] = investor.n_investments
+            investor_object["n_exits"] = investor.n_exits
+            investor_object["min_investment"] = investor.min_investment
+            investor_object["max_investment"] = investor.max_investment
+            investor_object["location"] = investor.location
+            investor_object["rounds"] = [round_.name for round_ in investor.rounds]
+            investor_object["industries"] = [industry.name for industry in investor.industries]
+            investor_object["notable_investments"] = [
+                notable_investment.name for notable_investment in investor.notable_investments
+            ]
+            data.append(investor_object)
+
+        result = populate_schema("investors", data)
+
+        objects = []
+        for line in result.splitlines():
+            if line:
+                parsed_line = json.loads(line)
+                objects.append((parsed_line.get("db_id"), parsed_line.get("id")))
+
+        query = "UPDATE investor SET search_index = CASE id "
+        for db_id, search_index in objects:
+            query += f"WHEN {db_id} THEN '{search_index}' "
+        query += "END WHERE id IN (" + ",".join(str(t[0]) for t in objects) + ")"
+
+        db.session.execute(db.text(query))
+        db.session.commit()
 
 
 class InvestmentFirm(db.Model):

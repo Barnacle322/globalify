@@ -25,7 +25,7 @@ from ..utils.fake_data import (
     get_websites,
 )
 from ..utils.suggestion import geocode_location
-from ..utils.typesense_search import populate_schema, search
+from ..utils.typesense_search import create_schema, delete_schema, search, upsert_documents
 from .helpers import Industry, Round
 
 
@@ -491,9 +491,7 @@ class Investor(db.Model):
                 per_page=per_page,
                 page=page,
             )
-            print("Results:", results)
-        except Exception as e:
-            print(e)
+        except Exception:
             results = {}
 
         found = results.get("found", 0)
@@ -904,7 +902,7 @@ class Investor(db.Model):
         return completeness_score
 
     @staticmethod
-    def index():
+    def generate_index_file():
         investors = Investor.get_all()
 
         with open("investor_index.jsonl", "w") as file:
@@ -931,7 +929,7 @@ class Investor(db.Model):
         return investors
 
     @staticmethod
-    def sync_search_index():
+    def sync_search_index(recreate: bool = False):
         investors = Investor.get_all()
         data = []
         for investor in investors:
@@ -955,7 +953,54 @@ class Investor(db.Model):
             ]
             data.append(investor_object)
 
-        result = populate_schema("investors", data)
+        if recreate:
+            investor_schema = {
+                "name": "investors",
+                "fields": [
+                    {"name": "name", "type": "string"},
+                    {
+                        "name": "db_id",
+                        "type": "int32",
+                        "facet": True,
+                    },
+                    {"name": "firm_name", "type": "string", "optional": True},
+                    {"name": "about", "type": "string", "optional": True},
+                    {"name": "position", "type": "string", "facet": True, "optional": True},
+                    {"name": "n_investments", "type": "int32", "optional": True},
+                    {"name": "n_exits", "type": "int32", "optional": True},
+                    {"name": "min_investment", "type": "int32", "optional": True},
+                    {"name": "max_investment", "type": "int32", "optional": True},
+                    {"name": "location", "type": "string", "facet": True, "optional": True},
+                    {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
+                    {"name": "industries", "type": "string[]", "facet": True, "optional": True},
+                    {"name": "notable_investments", "type": "string[]", "optional": True},
+                    {
+                        "name": "embedding",
+                        "type": "float[]",
+                        "embed": {
+                            "from": [
+                                "name",
+                                "firm_name",
+                                "about",
+                                "position",
+                                "location",
+                                "rounds",
+                                "industries",
+                                "notable_investments",
+                            ],
+                            "model_config": {"model_name": "ts/all-MiniLM-L12-v2"},
+                        },
+                    },
+                ],
+                "primary_key": "db_id",
+            }
+            try:
+                delete_schema("investors")
+            except Exception:
+                print("Schema does not exist")
+            create_schema(investor_schema)
+
+        result = upsert_documents("investors", data)
 
         objects = []
         for line in result.splitlines():

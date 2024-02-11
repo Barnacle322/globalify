@@ -12,7 +12,7 @@ client = Client(
             }
         ],
         "api_key": os.getenv("_TYPESENSE_API_KEY", "xyz"),
-        "connection_timeout_seconds": 2000,
+        "connection_timeout_seconds": 100,
     }
 )
 
@@ -163,13 +163,13 @@ def populate_schema_from_file(
                     "filter_by": "db_id",
                 },
             )
-            print(client.collections[schema_name].documents.export({"include_fields": "id, db_id"}))
+            client.collections[schema_name].documents.export({"include_fields": "id, db_id"})
             print(f"Populated {schema_name} schema")
     else:
         raise ValueError("Schema name and file path are required")
 
 
-def populate_schema(schema_name: str, data: list[dict]):
+def upsert_documents(schema_name: str, data: list[dict]):
     if schema_name and data:
         print(f"Populating {schema_name} schema")
         client.collections[schema_name].documents.import_(
@@ -244,27 +244,27 @@ def setup():
     except Exception as e:
         print(f"Error deleting investors schema: {e}")
     create_schema(investor_schema)
-    # populate_schema_from_file("investors", file_path="./investor_index.jsonl")
+    populate_schema_from_file("investors", file_path="./investor_index.jsonl")
 
-    # city_schema = {
-    #     "name": "cities",
-    #     "fields": [
-    #         {"name": "city", "type": "string"},
-    #         {"name": "city_ascii", "type": "string"},
-    #         {"name": "country", "type": "string", "facet": True},
-    #         {"name": "admin_name", "type": "string", "facet": True},
-    #         {"name": "population", "type": "int32", "facet": True},
-    #         {"name": "latitude", "type": "float", "facet": True},
-    #         {"name": "longitude", "type": "float", "facet": True},
-    #     ],
-    # }
+    city_schema = {
+        "name": "cities",
+        "fields": [
+            {"name": "city", "type": "string"},
+            {"name": "city_ascii", "type": "string"},
+            {"name": "country", "type": "string", "facet": True},
+            {"name": "admin_name", "type": "string", "facet": True},
+            {"name": "population", "type": "int32", "facet": True},
+            {"name": "latitude", "type": "float", "facet": True},
+            {"name": "longitude", "type": "float", "facet": True},
+        ],
+    }
 
-    # try:
-    #     delete_schema("cities")
-    # except Exception as e:
-    #     print(f"Error deleting cities schema: {e}")
-    # create_schema(city_schema)
-    # populate_schema_from_file("cities", file_path="./cities_index.jsonl")
+    try:
+        delete_schema("cities")
+    except Exception as e:
+        print(f"Error deleting cities schema: {e}")
+    create_schema(city_schema)
+    populate_schema_from_file("cities", file_path="./cities_index.jsonl")
 
 
 def update_schema(schema_name: str, file_path: str) -> None:
@@ -300,48 +300,20 @@ def search(collection: str, q: str, query_by: str, sort_by: str | None = None, p
     return results
 
 
-# if __name__ == "__main__":
-#     searchh = search(
-#         collection="investors",
-#         q="from america",
-#         query_by="name, firm_name, about, position, location, rounds, industries, notable_investments",
-#         per_page=10,
-#         page=1,
-#     )
-#     print(len(searchh))
-#     print(searchh)
+def create_index(file_name: str):
+    import csv
+    import json
 
-# if __name__ == "__main__":
-#     searchh = search(
-#         collection="cities",
-#         q="Osh",
-#         query_by="city, city_ascii, country, admin_name",
-#         per_page=10,
-#         page=1,
-#     )
-
-#     print(len(searchh))
-#     print(searchh)
-
-# def create_index(file_name: str):
-#     # CSV reader
-#     import csv
-#     import json
-
-#     with open(file_name, newline="", encoding="utf-8") as csvfile:
-#         reader = csv.DictReader(csvfile)
-#         for row in reader:
-#             with open("cities_index.jsonl", "a", encoding="utf-8") as jsonl_file:
-#                 json_row = {}
-#                 json_row["city"] = row["city"]
-#                 json_row["city_ascii"] = row["city_ascii"]
-#                 json_row["country"] = row["country"]
-#                 json_row["admin_name"] = row["admin_name"]
-#                 json_row["population"] = int(float(row.get("population", 0))) if row.get("population") != "" else 0
-#                 json_row["latitude"] = float(row["lat"])
-#                 json_row["longitude"] = float(row["lng"])
-#                 jsonl_file.write(json.dumps(json_row) + "\n")
-
-
-# if __name__ == "__main__":
-#     setup()
+    with open(file_name, newline="", encoding="utf-8") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            with open("cities_index.jsonl", "a", encoding="utf-8") as jsonl_file:
+                json_row = {}
+                json_row["city"] = row["city"]
+                json_row["city_ascii"] = row["city_ascii"]
+                json_row["country"] = row["country"]
+                json_row["admin_name"] = row["admin_name"]
+                json_row["population"] = int(float(row.get("population", 0))) if row.get("population") != "" else 0
+                json_row["latitude"] = float(row["lat"])
+                json_row["longitude"] = float(row["lng"])
+                jsonl_file.write(json.dumps(json_row) + "\n")

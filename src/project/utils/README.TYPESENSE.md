@@ -13,28 +13,34 @@ mkdir typesense-data
 Then, run the following command to pull the Typesense image and run it:
 
 ```bash
-docker run --name typesense -p 8108:8108 -v $pwd/typesense-data:/data typesense/typesense:0.26.0.rc54 --data-dir /data --api-key=xyz --enable-cors
+docker run --name typesense -p 8108:8108 -v $pwd\typesense-data:/data typesense/typesense:0.25.2 --data-dir /data --api-key=xyz --enable-cors
 ```
-This was only tested on Windows. If you are using a different OS, you may need to change the volume mount.
 
+This was only tested on Windows. If you are using a different OS, you may need to change the volume mount.
+13
+After that you need to install a model from an official [repo of typesense](https://huggingface.co/typesense/models/tree/main/all-MiniLM-L12-v2).
+
+Download all files and add them to the `typesense-data/models/all-MiniLM-L12-v2` directory. Make sure to rename the config file to `config.json` and the vocab file to `vocab.txt`.
+
+After that you may need to restart the docker container.
 
 ## Control
 
 Start the Typesense server by running the following command:
 
-```bash
+```sh
 docker start typesense
 ```
 
 To stop the Typesense server, run the following command:
 
-```bash
+```sh
 docker stop typesense
 ```
 
 To remove the Typesense server, run the following command:
 
-```bash
+```sh
 docker rm typesense
 ```
 

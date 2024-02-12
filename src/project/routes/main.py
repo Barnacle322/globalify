@@ -185,6 +185,7 @@ def dashboard():
 
     investors = Investor.get_pagination(
         page=page,
+        per_page=12,
         search_string=search_string,
         filter_fields=filter_fields,
         rounds=rounds,
@@ -255,6 +256,20 @@ def get_suggestions():
         "suggestions.html",
         investors=sorted_investors,
     )
+
+
+@main.route("/search", methods=["GET", "POST"])
+@login_required
+@check_user_info_complete
+@check_verification
+def search():
+    page = request.args.get("page", 1, type=int)
+    if request.method == "POST":
+        search_string = request.form.get("search", "")
+        investors = Investor.get_search(query_string=search_string, page=page, per_page=250)
+
+        return render_template("search.html", investors=investors, query=search_string)
+    return render_template("search.html", investors=[])
 
 
 @main.route("/dashboard/investment-firms")

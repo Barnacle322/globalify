@@ -477,6 +477,8 @@ def test_resend_verification_email_already_verified(client, verified_user):
     assert b"Already Verified" in response.data
     assert b"Great news! Your account is already verified." in response.data
     assert response.status_code == 200
+    assert b"Dashboard" in response.data
+    assert b"Find Ideal Investor" in response.data
 
 
 def test_resend_verification_email_success(client, user_with_complete_user_info, app):

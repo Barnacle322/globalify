@@ -350,16 +350,24 @@ class EmailVerification(db.Model):
                 self.is_expired = True
                 db.session.commit()
 
-    @classmethod
-    def set_expired_for_user(cls, user_id):
+    @staticmethod
+    def set_expired_for_user(user_id: int) -> None:
         """
         Set is_expired=True for all EmailVerification records associated with the given user_id.
 
         Args:
             user_id (int): The ID of the user for whom to set EmailVerification records as expired.
         """
-        cls.query.filter_by(user_id=user_id).update({cls.is_expired: True})
-        db.session.commit()
+        try:
+            # EmailVerification.query.filter_by(user_id=user_id).update({EmailVerification.is_expired: True})
+            email_verifications = db.session.scalars(
+                db.select(EmailVerification).where(EmailVerification.user_id == user_id)
+            ).all()
+            for email_verification in email_verifications:
+                email_verification.is_expired = True
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
     @staticmethod
     def get_by_token(token: str) -> EmailVerification | None:

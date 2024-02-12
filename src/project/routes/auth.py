@@ -57,7 +57,6 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
 
     Raises:
         Exception: If the user exists but the OAuth provider is different.
-
     """
     user = User.get_by_email(email)
     if not user:
@@ -82,7 +81,6 @@ def api_call(url: str, access_token: str):
 
     Returns:
         dict: The JSON response from the API call.
-
     """
     response = requests.get(
         url,
@@ -104,9 +102,6 @@ def verify_email():
 
     Args:
         token (str): The verification token received by the user.
-
-    Returns:
-        str: The rendered HTML template based on the verification status.
     """
     token = request.args.get("uuid", "")
 
@@ -156,27 +151,23 @@ def resend_verification_email(user_id):
 
     Args:
         user_id (str): The user ID for which to resend the email verification.
-
-    Returns:
-        str: Redirects the user to the dashboard page.
     """
     user = User.get_by_id(user_id)
-    if user:
-        if not user.is_verified:
-            EmailVerification.set_expired_for_user(user_id)
-
-            new_verification = user.create_verification_token(user_id)
-
-            html_content = render_template("email/email_verify.html", uuid=new_verification)
-            send_email(
-                recepients=user.email,
-                subject="Confirm Your Email Address!",
-                html_content=html_content,
-            )
-        else:
-            return render_template("errors/email_verification/already_verified.html")
-    else:
+    if not user:
         abort(404)
+
+    if user.is_verified:
+        return render_template("errors/email_verification/already_verified.html")
+
+    EmailVerification.set_expired_for_user(user_id)
+    new_verification = user.create_verification_token(user_id)
+    html_content = render_template("email/email_verify.html", uuid=new_verification)
+    send_email(
+        recepients=user.email,
+        subject="Confirm Your Email Address!",
+        html_content=html_content,
+    )
+
     return redirect(url_for("main.dashboard"))
 
 
@@ -206,8 +197,6 @@ def linkedin_callback():
     Makes API calls to retrieve the user's email and personal info from LinkedIn.
     Creates or updates the user and user info records in the database.
     Logs in the user and redirects to the appropriate page.
-
-
     """
     # BUG: For some reason client_secret is not being passed during
     # app initialization. Hardcoding it for now.

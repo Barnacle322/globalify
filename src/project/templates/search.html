@@ -1,8 +1,9 @@
-{% extends "layouts/layout_app.html" %} {% block title %}Investors{% endblock %} {% block head %} {{ super() }}
+{% extends "layouts/layout_app.html" %}{% block additional_scripts %}
 <script src="/static/scripts/dashboard.js" defer></script>
 <!-- <script src="/static/scripts/search.js" defer></script>
 <script src="/static/scripts/query_setter.js" defer></script> -->
-{% endblock %} {% block content %}
+{% endblock %} {% block title %}Investors{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
+%}
 <main
     class="mx-auto pt-24 flex h-full min-h-screen w-full max-w-7xl flex-col items-start justify-center overflow-x-visible"
 >
@@ -175,3 +176,4 @@
     {% endif %}
 </main>
 {% endblock %}
+

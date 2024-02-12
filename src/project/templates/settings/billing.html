@@ -1,6 +1,5 @@
 {% extends "layouts/layout_app.html" %} {% block additional_scripts%}
 <script src="/static/scripts/dashboard.js" defer></script>
-<script src="/static/scripts/idempotency.js" defer></script>
 {% endblock %} {% block title %}Settings{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content %}
 <div class="mx-auto block max-w-7xl pt-24 lg:flex lg:gap-x-16 lg:px-8">
     <aside class="flex overflow-x-auto py-4 lg:block lg:w-64 lg:flex-none lg:py-20">
@@ -129,6 +128,7 @@
                     id="checkout-and-portal-button"
                     type="submit"
                     class="flex gap-2 rounded-lg bg-[#635bff] px-4 py-2 text-white"
+                    onclick="this.classList.add('cursor-not-allowed', 'pointer-events-none', 'opacity-50');"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

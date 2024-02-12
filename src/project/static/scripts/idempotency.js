@@ -6,6 +6,6 @@ forms.forEach((form) => {
     form.addEventListener("submit", function (event) {
         submitButton.disabled = true;
         submitButton.innerText = "Loading...";
-        submitButton.classList.add("opacity-50", "cursor-not-allowed");
+        submitButton.classList.add("idempotency");
     });
 });

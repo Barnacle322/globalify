@@ -1,6 +1,18 @@
 {% extends "layouts/layout_app.html" %} {% block additional_scripts%}
 <script src="/static/scripts/dashboard.js" defer></script>
 <script src="/static/scripts/notification.js" defer></script>
+<script>
+    var upgradeLinkClicked = false;
+    function handleUpgradeClick(link) {
+        if (!upgradeLinkClicked) {
+            upgradeLinkClicked = true;
+            link.classList.add("opacity-50", "cursor-not-allowed");
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
 {% endblock %} {% block title %}Settings{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content %}
 <div class="mx-auto block max-w-7xl pt-24 lg:flex lg:gap-x-16 lg:px-8">
     <aside class="flex overflow-x-auto py-4 lg:block lg:w-64 lg:flex-none lg:py-20">
@@ -271,6 +283,7 @@
                     href="/settings/delete-account"
                     type="submit"
                     class="inline-flex h-12 items-center justify-center rounded-xl bg-red-500 px-4 text-white transition-colors ease-in-out hover:bg-red-600"
+                    onclick="return handleUpgradeClick(this);"
                 >
                     Yes, delete my account
                 </a>

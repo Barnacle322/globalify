@@ -3,11 +3,9 @@
 <script src="/static/scripts/idempotency.js" defer></script>
 <script>
     var upgradeLinkClicked = false;
-
     function handleUpgradeClick(link) {
         if (!upgradeLinkClicked) {
             upgradeLinkClicked = true;
-            link.innerText = "Upgrading...";
             link.classList.add("opacity-50", "cursor-not-allowed");
             return true;
         } else {

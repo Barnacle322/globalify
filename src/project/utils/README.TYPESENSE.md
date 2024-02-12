@@ -16,6 +16,10 @@ Then, run the following command to pull the Typesense image and run it:
 docker run --name typesense -p 8108:8108 -v $pwd\typesense-data:/data typesense/typesense:0.25.2 --data-dir /data --api-key=xyz --enable-cors
 ```
 
+```bash
+docker run --name typesense -p 8108:8108 -v $(pwd)/typesense-data:/data typesense/typesense:0.25.2 --data-dir /data --api-key=xyz --enable-cors
+```
+
 This was only tested on Windows. If you are using a different OS, you may need to change the volume mount.
 13
 After that you need to install a model from an official [repo of typesense](https://huggingface.co/typesense/models/tree/main/all-MiniLM-L12-v2).

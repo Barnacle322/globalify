@@ -242,9 +242,14 @@ def search():
         # TODO: page
         # page = request.form.get("page", "")
         result = Investor.get_search(query_string=search_string, page=1)
+        pages = result.get("pages")
+        page = result.get("page")
+        if not page and not pages:
+            pages = 1
+            page = 1
         investors = result.get("investors")
         # pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
-        pagination = generate_pagination(10, 25)
+        pagination = generate_pagination((page), pages)
 
         return render_template(
             "search.html", investors=investors, query=search_string, pagination=pagination, status=status

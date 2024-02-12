@@ -230,8 +230,7 @@ def setup():
                         "notable_investments",
                     ],
                     "model_config": {
-                        "model_name": "google/embedding-gecko-001",
-                        "api_key": "AIzaSyCPSc9cr5jomv89ZuISfY9sMIB0uFQLY04",
+                        "model_name": "ts/all-MiniLM-L12-v2",
                     },
                 },
             },
@@ -244,7 +243,7 @@ def setup():
     except Exception as e:
         print(f"Error deleting investors schema: {e}")
     create_schema(investor_schema)
-    populate_schema_from_file("investors", file_path="./investor_index.jsonl")
+    # populate_schema_from_file("investors", file_path="./investor_index.jsonl")
 
     city_schema = {
         "name": "cities",

@@ -17,10 +17,9 @@ from flask import (
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Company, Industry, InvestmentFirm, Investor, Round, Waitlist, WaitlistCharge
+from ..models import Company, InvestmentFirm, Investor, Waitlist, WaitlistCharge
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
-from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import pass_score
 
 main = Blueprint("main", __name__)
@@ -64,7 +63,9 @@ def construct_query_string(**kwargs):
 
 @main.get("/")
 def index():
-    posts = parse_medium_html()
+    # TODO: Turned off for better performance
+    # posts = parse_medium_html()
+    posts = []
     return render_template("coming_soon.html", posts=posts)
 
 
@@ -142,97 +143,6 @@ def post_download():
     )
 
 
-@main.route("/dashboard")
-@main.route("/dashboard/investors")
-@login_required
-@check_user_info_complete
-@check_verification
-def dashboard():
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-
-    # ?q=Julie
-    search_string = request.args.get("search", "")
-    # ?page=1
-    page = request.args.get("page", 1, type=int)
-    # ?filter_field=firm_name
-    filter_fields = request.args.getlist("filter_field")
-    # ?sort_field=firm_name
-    sort_field = request.args.get("sort_field", None)
-    # ?descending= or ?descending=1
-    descending = request.args.get("descending", False, type=bool)
-    # ?min_investment=100000
-    min_investment = request.args.get("min_investment", type=int)
-    max_investment = request.args.get("max_investment", type=int)
-    # ?rounds_exclusive= or ?rounds_exclusive=1
-    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
-    # ?industries_exclusive= or ?industries_exclusive=1
-    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
-
-    # ?round=Seed&round=Series+A
-    rounds = []
-    for round_name in request.args.getlist("round"):
-        if round_object := Round.get_by_name(round_name):
-            rounds.append(round_object)
-
-    # ?industry=Healthcare&industry=FinTech
-    industries = []
-    for industry_name in request.args.getlist("industry"):
-        if industry_object := Industry.get_by_name(industry_name):
-            industries.append(industry_object)
-
-    investors = Investor.get_pagination(
-        page=page,
-        per_page=12,
-        search_string=search_string,
-        filter_fields=filter_fields,
-        rounds=rounds,
-        industries=industries,
-        sort_field=sort_field,
-        descending=descending,
-        min_investment=min_investment,
-        max_investment=max_investment,
-        rounds_exclusive=rounds_exclusive,
-        industries_exclusive=industries_exclusive,
-    )
-
-    combined_query = construct_query_string(
-        search=search_string,
-        filter_field=[str(filter_field) for filter_field in filter_fields],
-        sort_field=sort_field,
-        descending=descending,
-        rounds_exclusive=rounds_exclusive,
-        industries_exclusive=industries_exclusive,
-        round=[str(round_obj.name) for round_obj in rounds],
-        industry=[str(industry.name) for industry in industries],
-        min_investment=min_investment,
-        max_investment=max_investment,
-    )
-
-    return render_template(
-        "dashboard_investor.html",
-        combined_query=combined_query,
-        fields={
-            "first_name": "First Name",
-            "last_name": "Last Name",
-            "firm_name": "Firm Name",
-            "position": "Position",
-            "about": "About",
-            "n_investments": "Current Investments",
-            "n_exits": "Successful Exits",
-            "min_investment": "Minimum Investment",
-            "max_investment": "Maximum Investment",
-        },
-        investors=investors,
-        industry_list=Industry.get_all(),
-        round_list=Round.get_all(),
-        status_type=status_type,
-        msg=msg,
-    )
-
-
 @main.route("/dashboard/suggestions")
 @login_required
 @check_user_info_complete
@@ -263,92 +173,22 @@ def get_suggestions():
 @check_user_info_complete
 @check_verification
 def search():
+    status, status_type, msg, title, button_text, button_url = {}, None, None, None, None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+        title = query.get("title")
+        button_text = query.get("button_text")
+        button_url = query.get("button_url")
+        status = {"type": status_type, "msg": msg, "title": title, "button_text": button_text, "button_url": button_url}
+
     page = request.args.get("page", 1, type=int)
     if request.method == "POST":
         search_string = request.form.get("search", "")
         investors = Investor.get_search(query_string=search_string, page=page, per_page=250)
 
         return render_template("search.html", investors=investors, query=search_string)
-    return render_template("search.html", investors=[])
-
-
-@main.route("/dashboard/investment-firms")
-@login_required
-@check_user_info_complete
-@check_verification
-def investment_firms():
-    # ?q=Robinson-Sanders
-    search_string = request.args.get("search", "")
-    # ?page=1
-    page = request.args.get("page", 1, type=int)
-    # ?filter_field=name
-    filter_fields = request.args.getlist("filter_field")
-    # ?sort_field=name
-    sort_field = request.args.get("sort_field", None)
-    # ?descending= or ?descending=1
-    descending = request.args.get("descending", False, type=bool)
-    # ?min_investment=100000
-    min_investment = request.args.get("min_investment", type=int)
-    max_investment = request.args.get("max_investment", type=int)
-    # ?rounds_exclusive= or ?rounds_exclusive=1
-    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
-    # ?industries_exclusive= or ?industries_exclusive=1
-    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
-
-    # ?round=Seed&round=Series+A
-    rounds = []
-    for round_name in request.args.getlist("round"):
-        if round_object := Round.get_by_name(round_name):
-            rounds.append(round_object)
-
-    # ?industry=Healthcare&industry=FinTech
-    industries = []
-    for industry_name in request.args.getlist("industry"):
-        if industry_object := Industry.get_by_name(industry_name):
-            industries.append(industry_object)
-
-    investment_firms = InvestmentFirm.get_pagination(
-        page=page,
-        search_string=search_string,
-        filter_fields=filter_fields,
-        rounds=rounds,
-        industries=industries,
-        sort_field=sort_field,
-        descending=descending,
-        min_investment=min_investment,
-        max_investment=max_investment,
-        rounds_exclusive=rounds_exclusive,
-        industries_exclusive=industries_exclusive,
-    )
-
-    combined_query = construct_query_string(
-        search=search_string,
-        filter_field=[str(filter_field) for filter_field in filter_fields],
-        sort_field=sort_field,
-        descending=descending,
-        rounds_exclusive=rounds_exclusive,
-        industries_exclusive=industries_exclusive,
-        round=[str(round.name) for round in rounds],
-        industry=[str(industry.name) for industry in industries],
-        min_investment=min_investment,
-        max_investment=max_investment,
-    )
-
-    return render_template(
-        "dashboard_firm.html",
-        combined_query=combined_query,
-        fields={
-            "name": "Name",
-            "about": "About",
-            "n_investments": "Current Investments",
-            "n_exits": "Successful Exits",
-            "min_investment": "Minimum Investment",
-            "max_investment": "Maximum Investment",
-        },
-        investment_firms=investment_firms,
-        industry_list=Industry.get_all(),
-        round_list=Round.get_all(),
-    )
+    return render_template("search.html", investors=[], status=status)
 
 
 @main.route("/investor/<int:investor_id>")

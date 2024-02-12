@@ -11,7 +11,6 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
-from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..extensions import db
 from ..utils.enums import OauthProvider, Tier
@@ -21,10 +20,7 @@ from .helpers import Country, Industry, Round
 
 class User(UserMixin, db.Model):
     """
-    Base class for a user in the application.
-    This should not be used directly to instantiate a user.
-    Instead, use one of the subclasses(`UserRegular` and `UserOauth`).
-    Although, this can be used to query for users.
+    User model representing a user in the database.
 
     Attributes:
         id (Mapped[int]): Unique identifier for the user, serves as the primary key.
@@ -32,9 +28,8 @@ class User(UserMixin, db.Model):
         email (Mapped[str]): The email address of the user, must be unique and is non-nullable.
         is_verified (Mapped[bool]): Boolean flag indicating if the user's email is verified.
         is_admin (Mapped[bool]): Boolean flag indicating if the user has admin privileges.
+        oauth_provider (Mapped[OauthProvider]): The OAuth provider used to authenticate the user, non-nullable.
 
-    __mapper_args__:
-        Configures the inheritance scheme, setting 'user' as the polymorphic identity and 'type' as the polymorphic discriminator column.
 
     Relationships:
         user_info (relationship): Defines a one-to-one or one-to-many relationship with the UserInfo model.
@@ -49,8 +44,7 @@ class User(UserMixin, db.Model):
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-
-    __mapper_args__ = {"polymorphic_identity": "user", "polymorphic_on": type}
+    oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -96,58 +90,6 @@ class User(UserMixin, db.Model):
         return verification.token
 
 
-class UserOauth(User):
-    """
-    Subclass of User that adds OAuth provider authentication support.
-
-    This class extends the User model to include functionality for users who authenticate via an OAuth provider.
-
-    Attributes:
-        oauth_provider (Mapped[OauthProvider]): Enum field representing the OAuth provider used for authentication, can be nullable.
-
-    """
-
-    oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider), nullable=True)
-
-    __mapper_args__ = {
-        "polymorphic_identity": "user_oauth",
-    }
-
-
-class UserRegular(User):
-    """
-    Subclass of User designed for regular users who authenticate with a password.
-
-    This class adds password-based authentication mechanisms to the User model, including methods to set and verify passwords.
-
-    Attributes:
-        password_hash (Mapped[str]): Stores the hash of the user's password, can be nullable.
-
-    Methods:
-        password: Write-only property to set the user's password. The actual password should never be readable.
-        verify_password: Verifies a provided password against the stored password hash.
-    """
-
-    password_hash: Mapped[str] = mapped_column(String, nullable=True)
-
-    __mapper_args__ = {
-        "polymorphic_identity": "user_regular",
-    }
-
-    @property
-    def password(self) -> None:
-        raise AttributeError("Password is not a readable attribute.")
-
-    @password.setter
-    def password(self, password: str) -> None:
-        self.password_hash = generate_password_hash(password, "scrypt")
-
-    def verify_password(self, password: str) -> bool:
-        if not self.password_hash:
-            return False
-        return check_password_hash(self.password_hash, password)
-
-
 class UserInfo(db.Model):
     """
     Represents additional information about a user.
@@ -163,7 +105,6 @@ class UserInfo(db.Model):
         twitter_url (str | None): The Twitter profile URL of the user.
         picture_url (str | None): The Google storage blob ID for the user's profile picture.
         is_complete (bool): Indicates if the user's profile is complete.
-        language (str): The language preference of the user.
 
     """
 
@@ -180,7 +121,6 @@ class UserInfo(db.Model):
     twitter_url: Mapped[str | None] = mapped_column(String, nullable=True)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    language: Mapped[str] = mapped_column(String, nullable=True, default="English")
 
     user: Mapped[User] = relationship(User, backref=backref("user_info", passive_deletes=True))
 

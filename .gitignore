@@ -401,3 +401,4 @@ start_prod.ps1
 start_local.ps1
 .old_venv
 .idea
+typesense-data

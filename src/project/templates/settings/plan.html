@@ -26,6 +26,26 @@
                     </a>
                 </li>
                 <li>
+                    <a href="/settings/company" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="h-6 w-6"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"
+                            />
+                        </svg>
+
+                        Company
+                    </a>
+                </li>
+                <li>
                     <a href="/settings/security" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -88,104 +108,71 @@
                         Billing
                     </a>
                 </li>
-
-                <li>
-                    <a href="/settings/company" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="h-6 w-6"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"
-                            />
-                        </svg>
-
-                        Company
-                    </a>
-                </li>
             </ul>
         </nav>
     </aside>
     <main class="flex-auto px-4 sm:px-6 lg:px-0 lg:py-4">
-        <div class="acc acx">
-            <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-                <div>
-                    <h2 class="font-medium leading-7">Your subscription</h2>
-                    <p class="mt-1 leading-6 text-slate-700">
-                        This is your current subscription. You can update your plan any time.
-                    </p>
-                </div>
-                <div
-                    class="flex max-w-lg flex-col justify-between rounded-xl bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-300 p-4 md:col-span-2"
-                >
-                    <div class="flex justify-between">
-                        <div class="flex flex-col">
-                            <img src="/static/elements/globalify.png" alt="" class="w-28" /><span
-                                class="font-medium text-white"
-                                >{{ subscription.tier.value.upper() }}</span
-                            >
-                        </div>
-                        <div class="flex items-baseline justify-end gap-4">
-                            {% if subscription.tier.value != "free" %}
-                            <form action="/payment/create-portal-session-subscription-cancel" method="POST">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                <input
-                                    type="hidden"
-                                    name="subscription_id"
-                                    value="{{ subscription.subscription_id }}"
-                                />
-                                <button class="text-xs text-white underline">Cancel</button>
-                            </form>
-                            <form action="/payment/create-portal-session-subscription-update" method="POST">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                <input
-                                    type="hidden"
-                                    name="subscription_id"
-                                    value="{{ subscription.subscription_id }}"
-                                />
-                                <button
-                                    class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
-                                >
-                                    Upgrade
-                                </button>
-                            </form>
-                            {% else %}
-                            <a
-                                href="/payment/pricing"
+        <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+            <div>
+                <h2 class="font-medium leading-7">Your subscription</h2>
+                <p class="mt-1 leading-6 text-slate-700">
+                    This is your current subscription. You can update your plan any time.
+                </p>
+            </div>
+            <div
+                class="flex max-w-lg flex-col justify-between rounded-xl bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-300 p-4 md:col-span-2"
+            >
+                <div class="flex justify-between">
+                    <div class="flex flex-col">
+                        <img src="/static/elements/globalify.png" alt="" class="w-28" /><span
+                            class="font-medium text-white"
+                            >{{ subscription.tier.value.upper() }}</span
+                        >
+                    </div>
+                    <div class="flex items-baseline justify-end gap-4">
+                        {% if subscription.tier.value != "free" %}
+                        <form action="/payment/create-portal-session-subscription-cancel" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <input type="hidden" name="subscription_id" value="{{ subscription.subscription_id }}" />
+                            <button class="text-xs text-white underline">Cancel</button>
+                        </form>
+                        <form action="/payment/create-portal-session-subscription-update" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <input type="hidden" name="subscription_id" value="{{ subscription.subscription_id }}" />
+                            <button
                                 class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
-                                >Upgrade</a
                             >
-                            {% endif %}
-                        </div>
+                                Upgrade
+                            </button>
+                        </form>
+                        {% else %}
+                        <a
+                            href="/payment/pricing"
+                            class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
+                            >Upgrade</a
+                        >
+                        {% endif %}
                     </div>
-                    {% if subscription.tier.value == "free" %}
-                    <div class="mt-5 text-xs leading-4 text-slate-900">
-                        You have free access to some Globalify features
-                    </div>
-                    {% elif subscription.tier.value == "elevate" %}
-                    <div class="mt-5 text-xs leading-4 text-slate-900">
-                        You have access to our investor database. Your subscription will be renewed on
-                        <u>{{ subscription.expires_at}}</u>
-                    </div>
-                    {% elif subscription.tier.value == "connect pro" %}
-                    <div class="mt-5 text-xs leading-4 text-slate-900">
-                        You have access to our database and also will be promoted to investors. Your subscription will
-                        be renewed on
-                        <u>{{ subscription.expires_at}}</u>
-                    </div>
-                    {% elif subscription.tier.value == "boost academy" %}
-                    <div class="mt-5 text-xs leading-4 text-slate-900">
-                        You have full access to our services. Your subscription will be renewed on
-                        <u>{{ subscription.expires_at}}</u>
-                    </div>
-                    {% endif %}
                 </div>
+                {% if subscription.tier.value == "free" %}
+                <div class="mt-5 text-xs leading-4 text-slate-900">You have free access to some Globalify features</div>
+                {% elif subscription.tier.value == "elevate" %}
+                <div class="mt-5 text-xs leading-4 text-slate-900">
+                    You have access to our investor database. Your subscription will be renewed on
+                    <u>{{ subscription.expires_at}}</u>
+                </div>
+                {% elif subscription.tier.value == "connect pro" %}
+                <div class="mt-5 text-xs leading-4 text-slate-900">
+                    You have access to our database and also will be promoted to investors. Your subscription will be
+                    renewed on
+                    <u>{{ subscription.expires_at}}</u>
+                </div>
+                {% elif subscription.tier.value == "boost academy" %}
+                <div class="mt-5 text-xs leading-4 text-slate-900">
+                    You have full access to our services. Your subscription will be renewed on
+                    <u>{{ subscription.expires_at}}</u>
+                </div>
+                {% endif %}
             </div>
         </div>
     </main>

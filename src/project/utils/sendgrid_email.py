@@ -28,7 +28,6 @@ def send_email(recepients: str | list[str], subject: str, html_content: str) -> 
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         sg.send(message)
         current_app.logger.info(f"Email sent to {recepients}")
-        print("aidana")
     except Exception as e:
         current_app.logger.error(f"Email could not be sent to {recepients}")
         current_app.logger.error(e)

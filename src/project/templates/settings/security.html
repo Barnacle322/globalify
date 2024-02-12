@@ -27,6 +27,26 @@
                     </a>
                 </li>
                 <li>
+                    <a href="/settings/company" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="h-6 w-6"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"
+                            />
+                        </svg>
+
+                        Company
+                    </a>
+                </li>
+                <li>
                     <a
                         href="/settings/security"
                         class="flex gap-x-3 rounded-md bg-slate-100 py-2 pl-2 pr-3 font-medium leading-6 text-sky-500"
@@ -87,27 +107,6 @@
                             ></path>
                         </svg>
                         Billing
-                    </a>
-                </li>
-
-                <li>
-                    <a href="/settings/company" class="flex gap-x-3 rounded-md py-2 pl-2 pr-3 font-medium leading-6">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="h-6 w-6"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"
-                            />
-                        </svg>
-
-                        Company
                     </a>
                 </li>
             </ul>
@@ -259,83 +258,22 @@
             </button>
         </div>
         {% endif %} {% endif %}
-        <div class="acc acx">
-            <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-                <div>
-                    <h2 class="font-medium leading-7">Change password</h2>
-                    <p class="mt-1 leading-6 text-slate-700">Update your password associated with your account.</p>
-                </div>
-                <form class="md:col-span-2" action="/settings/change-password" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
-                        <div class="col-span-full">
-                            <label for="current-password" class="block text-sm font-medium leading-6"
-                                >Current password</label
-                            >
-                            <div class="mt-2">
-                                <input
-                                    id="current-password"
-                                    name="current-password"
-                                    type="password"
-                                    autocomplete="current-password"
-                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                />
-                            </div>
-                        </div>
-                        <div class="col-span-full">
-                            <label for="new-password" class="block text-sm font-medium leading-6">New password</label>
-                            <div class="mt-2">
-                                <input
-                                    id="new-password"
-                                    name="new-password"
-                                    type="password"
-                                    autocomplete="new-password"
-                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                />
-                            </div>
-                        </div>
-                        <div class="col-span-full">
-                            <label for="confirm-password" class="block text-sm font-medium leading-6"
-                                >Confirm password</label
-                            >
-                            <div class="mt-2">
-                                <input
-                                    id="confirm-password"
-                                    name="confirm-password"
-                                    type="password"
-                                    autocomplete="new-password"
-                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-8 flex">
-                        <button
-                            type="submit"
-                            class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
-                        >
-                            Save
-                        </button>
-                    </div>
-                </form>
+        <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+            <div>
+                <h2 class="font-medium leading-7">Delete account</h2>
+                <p class="mt-1 leading-6 text-slate-700">
+                    No longer want to use our service? You can delete your account here. This action is not reversible.
+                    All information related to this account will be deleted permanently.
+                </p>
             </div>
-            <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-                <div>
-                    <h2 class="font-medium leading-7">Delete account</h2>
-                    <p class="mt-1 leading-6 text-slate-700">
-                        No longer want to use our service? You can delete your account here. This action is not
-                        reversible. All information related to this account will be deleted permanently.
-                    </p>
-                </div>
-                <div class="lx yx md:col-span-2">
-                    <a
-                        href="/settings/delete-account"
-                        type="submit"
-                        class="inline-flex h-12 items-center justify-center rounded-xl bg-red-500 px-4 text-white transition-colors ease-in-out hover:bg-red-600"
-                    >
-                        Yes, delete my account
-                    </a>
-                </div>
+            <div class="lx yx md:col-span-2">
+                <a
+                    href="/settings/delete-account"
+                    type="submit"
+                    class="inline-flex h-12 items-center justify-center rounded-xl bg-red-500 px-4 text-white transition-colors ease-in-out hover:bg-red-600"
+                >
+                    Yes, delete my account
+                </a>
             </div>
         </div>
     </main>

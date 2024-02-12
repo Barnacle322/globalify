@@ -1,13 +1,9 @@
-import re
-
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
+from ..models import Company, Country, Industry, Round, User, UserInfo, UserPayment
 from ..utils.enums import Status, StatusType, Tier
-from ..utils.errors.error_messages import AUTH_INVALID_EMAIL
-from ..utils.info_lists import languages as language_list
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
@@ -30,7 +26,6 @@ def index():
     return render_template(
         "settings/general.html",
         user=authenticated_user,
-        languages=language_list,
         status_type=status_type,
         msg=msg,
     )
@@ -87,41 +82,6 @@ def billing():
     )
 
 
-@settings.route("/change-password", methods=["POST"])
-@login_required
-@check_user_info_complete
-@check_verification
-@fresh_login_required
-def change_password():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    current_password = request.form.get("current-password")
-    new_password = request.form.get("new-password")
-    confirm_password = request.form.get("confirm-password")
-
-    if not isinstance(authenticated_user, UserRegular):
-        status = Status(StatusType.ERROR, "Cannot change password for oauth users.").get_status()
-        return redirect(url_for("settings.security", _external=False, **status))
-
-    if not current_password or not new_password or not confirm_password:
-        status = Status(StatusType.ERROR, "Please fill out all fields.").get_status()
-        return redirect(url_for("settings.security", _external=False, **status))
-
-    if not authenticated_user.verify_password(current_password):
-        status = Status(StatusType.ERROR, "Incorrect password.").get_status()
-        return redirect(url_for("settings.security", _external=False, **status))
-
-    if new_password != confirm_password:
-        status = Status(StatusType.ERROR, "Passwords do not match.").get_status()
-        return redirect(url_for("settings.security", _external=False, **status))
-
-    authenticated_user.password = new_password
-    db.session.commit()
-    status = Status(StatusType.SUCCESS, "Password successfully changed.").get_status()
-
-    return redirect(url_for("settings.security", _external=False, **status))
-
-
 @settings.post("/personal-info")
 @login_required
 @check_user_info_complete
@@ -132,10 +92,8 @@ def change_personal_info():  # noqa
 
     first_name = request.form.get("first-name")
     last_name = request.form.get("last-name")
-    email = request.form.get("email")
     username = request.form.get("username")
     bio = request.form.get("bio")
-    language = request.form.get("language")
 
     user_info = authenticated_user.user_info[0]  # type: ignore
     if first_name and first_name.strip() != user_info.first_name:
@@ -149,21 +107,6 @@ def change_personal_info():  # noqa
             status = Status(StatusType.ERROR, "Last name cannot be empty.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.last_name = last_name.strip()
-
-    if email and email != authenticated_user.email:
-        if email == " ":
-            status = Status(StatusType.ERROR, "Email cannot be empty.").get_status()
-            return redirect(url_for("settings.index", _external=False, **status))
-
-        if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
-            status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
-            return redirect(url_for("auth.register", _external=False, **status))
-
-        if isinstance(authenticated_user, UserOauth):
-            status = Status(StatusType.ERROR, "Cannot change email for oauth users.").get_status()
-            return redirect(url_for("settings.index", _external=False, **status))
-
-        authenticated_user.email = email
 
     if bio and bio.strip() != user_info.bio:
         if bio == " ":
@@ -180,16 +123,6 @@ def change_personal_info():  # noqa
             return redirect(url_for("settings.index", _external=False, **status))
 
         user_info.username = username.strip()
-
-    if language and language != user_info.language:
-        if language == " ":
-            status = Status(StatusType.ERROR, "Language cannot be empty.").get_status()
-            return redirect(url_for("settings.index", _external=False, **status))
-        if language not in language_list:
-            status = Status(StatusType.ERROR, "Invalid language.").get_status()
-            return redirect(url_for("settings.index", _external=False, **status))
-
-        user_info.language = language
 
     db.session.commit()
 
@@ -220,10 +153,7 @@ def delete_account():
 
         return redirect(url_for("main.index", _external=False))
 
-    if isinstance(authenticated_user, UserOauth):
-        return render_template("settings/delete_oauth_account.html")
-
-    return render_template("settings/delete_account.html")
+    return render_template("settings/delete_oauth_account.html")
 
 
 @settings.route("/company", methods=["GET", "POST"])

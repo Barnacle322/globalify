@@ -89,6 +89,7 @@
 
                 <div class="mt-2 flex flex-col gap-2">
                     <p class="text-gray-500">{{ investor.location }}</p>
+                    <p class="text-gray-500">${{ investor.min_investment }} - {{ investor.max_investment }}</p>
                     <p class="flex flex-wrap gap-1">
                         {% for round in investor.rounds %}
                         <a class="text-nowrap rounded-lg bg-black px-2 py-1 text-sm text-white">{{ round }}</a>

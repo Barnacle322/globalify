@@ -25,7 +25,7 @@ from ..utils.fake_data import (
     get_websites,
 )
 from ..utils.suggestion import geocode_location
-from ..utils.typesense_search import create_schema, delete_schema, search, upsert_documents
+from ..utils.typesense_search import SearchBuilder, create_schema, delete_schema, search, upsert_documents
 from .helpers import Industry, Round
 
 
@@ -478,21 +478,41 @@ class Investor(db.Model):
     @classmethod
     def get_search(
         cls,
+        rounds: list[str],
+        industries: list[str],
         query_string: str,
-        query_by: str = "location, rounds, industries, embedding, notable_investments, name, firm_name, position",
+        query_by: list[str],
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        rounds_exclusive: bool = False,
+        industries_exclusive: bool = False,
+        min_investment: int | None = None,
+        max_investment: int | None = None,
         per_page: int = 12,
         page: int = 1,
     ):
         try:
+            builder = (
+                SearchBuilder()
+                .with_sort(sort_by, sort_desc)
+                .with_query(query_string)
+                .with_query_by(query_by)
+                .with_filter_by_rounds(rounds, rounds_exclusive)
+                .with_filter_by_industries(industries, industries_exclusive)
+                .with_filter_by_investment_range(min_investment, max_investment)
+                .build()  # type: ignore
+            )
             results = search(
                 collection="investors",
-                q=query_string,
-                query_by=query_by,
-                per_page=per_page,
-                page=page,
+                q=builder["q"],
+                query_by=builder["query_by"],
+                filter_by=builder.get("filter_by"),
+                sort_by="",
             )
         except Exception:
             results = {}
+
+        print(results)
 
         found = results.get("found", 0)
         page = results.get("page", 1)

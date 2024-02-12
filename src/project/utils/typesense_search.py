@@ -49,17 +49,72 @@ class SearchBuilder:
             self.parameters["query_by_weights"] = ",".join(str(weight) for weight in weights)
         return self
 
-    def with_filter(self, filter: str):
-        """
-        Sets the filter_by parameter.
+    def with_filter_by_rounds(self, rounds: list[str], rounds_exclusive: bool | None = False):
+        if rounds_exclusive and len(rounds) > 1:
+            conditions = []
+            for round in rounds:
+                conditions.append(f"rounds: {round}")
+            self.parameters["filter_by"] = " && ".join(conditions)
+        elif len(rounds) > 1:
+            self.parameters["filter_by"] = f"rounds: [{", ".join(rounds)}]"
+        else:
+            self.parameters["filter_by"] = f"rounds: {rounds[0]}"
 
-        Args:
-            filter (str): The filter conditions.
-        """
-        self.parameters["filter_by"] = filter
         return self
 
-    def with_sort(self, sorts: list[tuple[str, str]]):
+    def with_filter_by_industries(self, industries: list[str], industries_exclusive: bool | None = False):
+        if industries:
+            if self.parameters["filter_by"] is None:
+                if industries_exclusive and len(industries) > 1:
+                    conditions = []
+                    for industry in industries:
+                        conditions.append(f"industries: {industry}")
+                    self.parameters["filter_by"] = " && ".join(conditions)
+                elif len(industries) > 1:
+                    self.parameters["filter_by"] = f"industries: [{", ".join(industries)}]"
+                else:
+                    self.parameters["filter_by"] = f"industries: {industries[0]}"
+            else:
+                if industries_exclusive and len(industries) > 1:
+                    conditions = []
+                    for industry in industries:
+                        conditions.append(f"industries: {industry}")
+                    self.parameters["filter_by"] += " && " + " && ".join(conditions)
+                elif len(industries) > 1:
+                    self.parameters["filter_by"] += " && " + f"industries: [{", ".join(industries)}]"
+                else:
+                    self.parameters["filter_by"] += " && " + f"industries: {industries[0]}"
+        return self
+
+    def with_filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
+        if self.parameters["filter_by"] is None:
+            if min_investment and max_investment:
+                self.parameters["filter_by"] = f"min_investment:<={max_investment} && max_investment:>={min_investment}"
+            elif min_investment is not None:
+                self.parameters["filter_by"] = f"max_investment:>={min_investment}"
+            elif max_investment is not None:
+                self.parameters["filter_by"] = f"min_investment:<={max_investment}"
+        else:
+            if min_investment and max_investment:
+                self.parameters["filter_by"] += (
+                    " && " + f"min_investment:<={max_investment} && max_investment:>={min_investment}"
+                )
+            elif min_investment is not None:
+                self.parameters["filter_by"] += " && " + f"max_investment:>={min_investment}"
+            elif max_investment is not None:
+                self.parameters["filter_by"] += " && " + f"min_investment:<={max_investment}"
+
+            return self
+
+    # def with_filter_by_countries(self, countries: list[str]):
+    #     if len(countries) > 1:
+    #         self.parameters["filter_by"] = f"countries: [{", ".join(countries)}]"
+    #     else:
+    #         self.parameters["filter_by"] = f"countries: {countries[0]}"
+
+    #     return self
+
+    def with_sort(self, sort_by: str | None, sort_desc: bool | None):
         """
         Sets the sort_by parameter.
 
@@ -72,9 +127,13 @@ class SearchBuilder:
         Raises:
             ValueError: If more than 3 fields are provided.
         """
-        if len(sorts) > 3:
-            raise ValueError("Only up to 3 fields can be specified for sorting")
-        self.parameters["sort_by"] = ",".join(f"{field}:{direction}" for field, direction in sorts)
+        if sort_by:
+            if sort_desc:
+                self.parameters["sort_by"] = f"{sort_by}:desc"
+            else:
+                self.parameters["sort_by"] = f"{sort_by}:asc"
+        else:
+            return self
         return self
 
     def with_pinned_hits(self, hits: list[tuple[str, int]]):
@@ -137,6 +196,7 @@ class SearchBuilder:
         return self
 
     def build(self) -> dict:
+        self.parameters["prefix"] = False
         return self.parameters
 
 
@@ -198,20 +258,20 @@ def setup():
     investor_schema = {
         "name": "investors",
         "fields": [
-            {"name": "name", "type": "string"},
+            {"name": "name", "type": "string", "sort": True},
             {
                 "name": "db_id",
                 "type": "int32",
                 "facet": True,
             },
-            {"name": "firm_name", "type": "string", "optional": True},
+            {"name": "firm_name", "type": "string", "optional": True, "sort": True},
             {"name": "about", "type": "string", "optional": True},
-            {"name": "position", "type": "string", "facet": True, "optional": True},
-            {"name": "n_investments", "type": "int32", "optional": True},
-            {"name": "n_exits", "type": "int32", "optional": True},
-            {"name": "min_investment", "type": "int32", "optional": True},
-            {"name": "max_investment", "type": "int32", "optional": True},
-            {"name": "location", "type": "string", "facet": True, "optional": True},
+            {"name": "position", "type": "string", "facet": True, "optional": True, "sort": True},
+            {"name": "n_investments", "type": "int32", "optional": True, "sort": True},
+            {"name": "n_exits", "type": "int32", "optional": True, "sort": True},
+            {"name": "min_investment", "type": "int32", "optional": True, "sort": True},
+            {"name": "max_investment", "type": "int32", "optional": True, "sort": True},
+            {"name": "location", "type": "string", "facet": True, "optional": True, "sort": True},
             {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
             {"name": "industries", "type": "string[]", "facet": True, "optional": True},
             {"name": "notable_investments", "type": "string[]", "optional": True},
@@ -276,24 +336,25 @@ def update_schema(schema_name: str, file_path: str) -> None:
         raise ValueError("Schema name and file path are required")
 
 
-def search(collection: str, q: str, query_by: str, sort_by: str | None = None, per_page: int = 10, page: int = 1):
-    if not sort_by:
-        search_parameters = {
-            "q": q,
-            "query_by": query_by,
-            "per_page": per_page,
-            "page": page,
-            "prefix": False,
-        }
-    else:
-        search_parameters = {
-            "q": q,
-            "query_by": query_by,
-            "sort_by": sort_by,
-            "per_page": per_page,
-            "page": page,
-            "prefix": False,
-        }
+def search(
+    collection: str,
+    q: str,
+    query_by: str,
+    filter_by: str | None = None,
+    sort_by: str | None = None,
+    per_page: int = 12,
+    page: int = 1,
+):
+    search_parameters = {
+        "q": q,
+        "query_by": query_by,
+        "filter_by": filter_by,
+        "sort_by": sort_by,
+        "per_page": per_page,
+        "page": page,
+        "prefix": False,
+    }
+    print(search_parameters)
 
     results = client.collections[collection].documents.search(search_parameters)
     return results
@@ -316,3 +377,15 @@ def create_index(file_name: str):
                 json_row["latitude"] = float(row["lat"])
                 json_row["longitude"] = float(row["lng"])
                 jsonl_file.write(json.dumps(json_row) + "\n")
+
+
+# params = {
+#     "q": "singapore",
+#     "query_by": "location,rounds,industries,embedding,notable_investments,name,firm_name,position",
+#     "filter_by": "rounds: Seed && rounds: Pre-Seed || industries: FinTech",
+#     "sort_by": "",
+#     "per_page": 10,
+#     "page": 1,
+#     "prefix": False,
+# }
+# print(client.collections["investors"].documents.search(params))

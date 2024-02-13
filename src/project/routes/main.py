@@ -264,13 +264,15 @@ def search():
         # for round_name in request.args.getlist("round"):
         #     if round_object := Round.get_by_name(round_name):
         #         rounds.append(round_object.name)
-        rounds = ["Seed", "Series C"]
+        # rounds = ["Seed", "Series C"]
+        rounds = []
 
         # industries = []
         # for industry_name in request.args.getlist("industry"):
         #     if industry_object := Industry.get_by_name(industry_name):
         #         industries.append(industry_object.name)
-        industries = ["FinTech", "AI", "Cloud", "SaaS", "InsureTech"]
+        # industries = ["FinTech", "AI", "Cloud", "SaaS", "InsureTech"]
+        industries = []
 
         # rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
         rounds_exclusive = True

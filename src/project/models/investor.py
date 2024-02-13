@@ -491,26 +491,26 @@ class Investor(db.Model):
         per_page: int = 12,
         page: int = 1,
     ):
-        try:
-            builder = (
-                SearchBuilder()
-                .with_sort(sort_by, sort_desc)
-                .with_query(query_string)
-                .with_query_by(query_by)
-                .with_filter_by_rounds(rounds, rounds_exclusive)
-                .with_filter_by_industries(industries, industries_exclusive)
-                .with_filter_by_investment_range(min_investment, max_investment)
-                .build()  # type: ignore
-            )
-            results = search(
-                collection="investors",
-                q=builder["q"],
-                query_by=builder["query_by"],
-                filter_by=builder.get("filter_by"),
-                sort_by="",
-            )
-        except Exception:
-            results = {}
+        # try:
+        builder = (
+            SearchBuilder()
+            .with_sort(sort_by, sort_desc)
+            .with_query(query_string)
+            .with_query_by(query_by)
+            .with_filter_by_investment_range(min_investment, max_investment)
+            .with_filter_by_rounds(rounds, rounds_exclusive)
+            .with_filter_by_industries(industries, industries_exclusive)
+            .build()
+        )
+        results = search(
+            collection="investors",
+            q=builder["q"],
+            query_by=builder["query_by"],
+            filter_by=builder.get("filter_by"),
+            sort_by="",
+        )
+        # except Exception:
+            # results = {}
 
         print(results)
 

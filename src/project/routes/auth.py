@@ -1,7 +1,8 @@
+import datetime
 import os
 
 import requests
-from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import (
     current_user,
     login_required,
@@ -90,6 +91,38 @@ def api_call(url: str, access_token: str):
     return response
 
 
+def update_is_expired(email_verification: EmailVerification):
+    """
+    Update the is_expired field of the email_verification object
+    based on the current time.
+
+    Args:
+        email_verification (EmailVerification): The email_verification object to update.
+    """
+    if not email_verification.is_expired:
+        expiration_time = email_verification.created_at + datetime.timedelta(minutes=5)
+
+        if datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC):
+            email_verification.is_expired = True
+            db.session.commit()
+
+
+def create_verification_token(user_id: int) -> str:
+    """
+    Create a verification token and store it in the EmailVerification table.
+
+    Args:
+        user_id (int): The ID of the user for whom the verification token is being created.
+
+    Returns:
+        str: The generated verification token.
+    """
+    verification = EmailVerification(user_id=user_id)
+    db.session.add(verification)
+    db.session.commit()
+    return verification.token
+
+
 @auth.route("/verify-email/")
 def verify_email():
     """
@@ -116,12 +149,13 @@ def verify_email():
     user = User.get_by_id(email_verification.user_id)
 
     if not user:
-        abort(404)
+        status = Status(StatusType.ERROR, "User not found.").get_status()
+        return redirect(url_for("auth.login", _external=False, **status))
 
     if user.is_verified:
         return render_template("errors/email_verification/already_verified.html")
 
-    email_verification.update_is_expired()
+    update_is_expired(email_verification)
 
     if email_verification.is_expired:
         return render_template(
@@ -154,13 +188,14 @@ def resend_verification_email(user_id):
     """
     user = User.get_by_id(user_id)
     if not user:
-        abort(404)
+        status = Status(StatusType.ERROR, "User not found.").get_status()
+        return redirect(url_for("auth.login", _external=False, **status))
 
     if user.is_verified:
         return render_template("errors/email_verification/already_verified.html")
 
-    EmailVerification.set_expired_for_user(user_id)
-    new_verification = user.create_verification_token(user_id)
+    EmailVerification.deactivate_user_tokens(user_id)
+    new_verification = create_verification_token(user_id)
     html_content = render_template("email/email_verify.html", uuid=new_verification)
     send_email(
         recepients=user.email,
@@ -168,7 +203,7 @@ def resend_verification_email(user_id):
         html_content=html_content,
     )
 
-    return redirect(url_for("main.dashboard"))
+    return redirect(url_for("main.search"))
 
 
 @auth.route("/login", methods=["GET", "POST"])

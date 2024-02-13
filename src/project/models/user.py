@@ -74,21 +74,6 @@ class User(UserMixin, db.Model):
     def get_all(cls) -> Sequence[User]:
         return db.session.scalars(db.select(cls)).all()
 
-    def create_verification_token(self, user_id) -> str:
-        """
-        Create a verification token and store it in the EmailVerification table.
-
-        Args:
-            user_id (int): The ID of the user for whom the verification token is being created.
-
-        Returns:
-            str: The generated verification token.
-        """
-        verification = EmailVerification(user_id=user_id)
-        db.session.add(verification)
-        db.session.commit()
-        return verification.token
-
 
 class UserInfo(db.Model):
     """
@@ -329,29 +314,19 @@ class EmailVerification(db.Model):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     token: Mapped[str] = mapped_column(String, nullable=False, default=lambda: str(uuid4()))
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC)
+    )
     is_expired: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def update_is_expired(self):
-        """
-        Update the is_expired field of the email_verification object
-        based on the current time.
-
-        Args:
-            email_verification (EmailVerification): The email_verification object to update.
-        """
-        if not self.is_expired:
-            expiration_time = self.created_at + datetime.timedelta(minutes=5)
-
-            if datetime.datetime.utcnow() > expiration_time:
-                self.is_expired = True
-                db.session.commit()
+    def __repr__(self):
+        return f"<EmailVerification token created at {self.created_at}"
 
     @staticmethod
-    def set_expired_for_user(user_id: int) -> None:
+    def deactivate_user_tokens(user_id: int) -> None:
         """
         Set is_expired=True for all EmailVerification records associated with the given user_id.
 

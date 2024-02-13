@@ -85,9 +85,12 @@ class QueryBuilder:
 
         """
         if sort_field and hasattr(self.cls, sort_field):
+            alias = self.cls
+            column = getattr(alias, sort_field)
             self.base_query = (
-                self.base_query.order_by(desc(sort_field)) if descending else self.base_query.order_by(sort_field)
+                self.base_query.order_by(desc(column)) if descending else self.base_query.order_by(column)
             )
+
         return self
 
     def filter_by_rounds(self, rounds: list[Round] | None, rounds_exclusive: bool):

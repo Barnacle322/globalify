@@ -401,4 +401,5 @@ pyrightconfig.json
 .vscode
 start_prod.ps1
 start_local.ps1
+.idea
 typesense-data

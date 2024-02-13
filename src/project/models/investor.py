@@ -512,7 +512,7 @@ class Investor(db.Model):
         # except Exception:
             # results = {}
 
-        print(results)
+        # print(results)
 
         found = results.get("found", 0)
         page = results.get("page", 1)

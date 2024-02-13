@@ -239,87 +239,81 @@ def search():
         button_url = query.get("button_url")
         status = {"type": status_type, "msg": msg, "title": title, "button_text": button_text, "button_url": button_url}
 
-    if request.method == "POST":
-        search_string = request.form.get("search", "")
+    search_string = request.args.get("search", "")
+    page = request.args.get("page", 1, type=int)
 
-        # query_by = request.form.getlist("query_by")
-        query_by = [
-            "location",
-            "rounds",
-            "industries",
-            "embedding",
-            "notable_investments",
-            "name",
-            "firm_name",
-            "position",
-        ]
+    # query_by = request.form.getlist("query_by")
+    query_by = [
+        "location",
+        "rounds",
+        "industries",
+        "embedding",
+        "notable_investments",
+        "name",
+        "firm_name",
+        "position",
+    ]
 
-        # sort_by = request.args.get("sort_field", "")
-        sort_by = None
+    sort_by = request.args.get("sort_field", "")
+    # sort_by = None
 
-        # sort_desc = request.args.get("descending", False, type=bool)
-        sort_desc = False
+    sort_desc = request.args.get("descending", False, type=bool)
+    # sort_desc = False
 
-        # rounds = []
-        # for round_name in request.args.getlist("round"):
-        #     if round_object := Round.get_by_name(round_name):
-        #         rounds.append(round_object.name)
-        rounds = ["Seed", "Series C"]
-        # rounds = []
+    rounds = []
+    for round_name in request.args.getlist("round"):
+        if round_object := Round.get_by_name(round_name):
+            rounds.append(round_object.name)
+    # rounds = ["Seed", "Series C"]
+    # rounds = []
 
-        # industries = []
-        # for industry_name in request.args.getlist("industry"):
-        #     if industry_object := Industry.get_by_name(industry_name):
-        #         industries.append(industry_object.name)
-        # industries = ["FinTech", "AI", "Cloud", "SaaS", "InsureTech"]
-        industries = []
+    industries = []
+    for industry_name in request.args.getlist("industry"):
+        if industry_object := Industry.get_by_name(industry_name):
+            industries.append(industry_object.name)
+    # industries = ["FinTech", "AI", "Cloud", "SaaS", "InsureTech"]
+    # industries = []
 
-        # rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
-        rounds_exclusive = False
+    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
+    # rounds_exclusive = False
 
-        # industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
-        industries_exclusive = True
+    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
+    # industries_exclusive = True
 
-        # min_investment = request.args.get("min_investment", type=int)
-        min_investment = None
+    min_investment = request.args.get("min_investment", type=int)
+    # min_investment = None
 
-        # max_investment = request.args.get("max_investment", type=int)
-        max_investment = None
+    max_investment = request.args.get("max_investment", type=int)
+    # max_investment = None
 
-        countries = []
-        for country_name in request.args.getlist("country"):
-            if country_object := Country.get_by_name(country_name):
-                countries.append(country_object.name)
+    # countries = []
+    # for country_name in request.args.getlist("country"):
+    #     if country_object := Country.get_by_name(country_name):
+    #         countries.append(country_object.name)
 
-        result = Investor.get_search(
-            query_string=search_string,
-            query_by=query_by,
-            sort_by=sort_by,
-            sort_desc=sort_desc,
-            rounds=rounds,
-            industries=industries,
-            rounds_exclusive=rounds_exclusive,
-            industries_exclusive=industries_exclusive,
-            min_investment=min_investment,
-            max_investment=max_investment,
-            # countries=countries,
-        )
+    result = Investor.get_search(
+        query_string=search_string,
+        query_by=query_by,
+        sort_by=sort_by,
+        sort_desc=sort_desc,
+        rounds=rounds,
+        industries=industries,
+        rounds_exclusive=rounds_exclusive,
+        industries_exclusive=industries_exclusive,
+        min_investment=min_investment,
+        max_investment=max_investment,
+        page=page,
+        # countries=countries,
+    )
 
-        investors = result.get("investors")
-        pagination = generate_pagination(1, 25)
+    investors = result.get("investors")
+    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-        return render_template(
-            "search.html",
-            investors=investors,
-            query=search_string,
-            pagination=pagination,
-            status=status,
-            industry_list=Industry.get_all(),
-            round_list=Round.get_all(),
-        )
     return render_template(
         "search.html",
-        investors=[],
+        investors=investors,
+        query=search_string,
+        pagination=pagination,
         status=status,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),

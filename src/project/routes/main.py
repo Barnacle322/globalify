@@ -264,8 +264,8 @@ def search():
         # for round_name in request.args.getlist("round"):
         #     if round_object := Round.get_by_name(round_name):
         #         rounds.append(round_object.name)
-        # rounds = ["Seed", "Series C"]
-        rounds = []
+        rounds = ["Seed", "Series C"]
+        # rounds = []
 
         # industries = []
         # for industry_name in request.args.getlist("industry"):
@@ -275,16 +275,16 @@ def search():
         industries = []
 
         # rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
-        rounds_exclusive = True
+        rounds_exclusive = False
 
         # industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
         industries_exclusive = True
 
         # min_investment = request.args.get("min_investment", type=int)
-        min_investment = 1_001_000
+        min_investment = None
 
         # max_investment = request.args.get("max_investment", type=int)
-        max_investment = 2_000_000
+        max_investment = None
 
         countries = []
         for country_name in request.args.getlist("country"):

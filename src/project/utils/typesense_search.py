@@ -20,7 +20,7 @@ client = Client(
 class SearchBuilder:
     def __init__(self):
         self.parameters = {}
-        self.filters = {}
+        self.filters = []
 
     def with_query(self, query: str):
         """
@@ -50,14 +50,30 @@ class SearchBuilder:
             self.parameters["query_by_weights"] = ",".join(str(weight) for weight in weights)
         return self
 
-    def with_filter_by_rounds(self, rounds: list[str], rounds_exclusive: bool = False):
-        self.filters["rounds"] = {"exclusivity": rounds_exclusive, "list": rounds}
+    def with_filter_by_rounds(self, rounds: list[str] | None, exclusivity: bool = True):
+        if rounds:
+            if exclusivity:
+                for round in rounds:
+                    self.filters.append(f"rounds:={round}")
+            else:
+                self.filters.append(f'rounds:=[{",".join(rounds)}]')
         return self
 
-    def with_filter_by_industries(self, industries: list[str], industries_exclusive: bool = False):
-        self.filters["industries"] = {"exclusivity": industries_exclusive, "list": industries}
+    def with_filter_by_industries(self, industries: list[str] | None, exclusivity: bool = True):
+        if industries:
+            if exclusivity:
+                for industry in industries:
+                    self.filters.append(f"industries:={industry}")
+            else:
+                self.filters.append(f'industries:=[{",".join(industries)}]')
         return self
 
+    def with_filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
+        if min_investment:
+            self.filters.append(f"min_investment:>{min_investment}")
+        if max_investment:
+            self.filters.append(f"max_investment:<{max_investment}")
+        return self
 
     # def with_filter_by_rounds(self, rounds: list[str], rounds_exclusive: bool | None = False):
     #     if rounds_exclusive and len(rounds) > 1:
@@ -96,25 +112,25 @@ class SearchBuilder:
     #                 self.parameters["filter_by"] += " && " + f"industries: {industries[0]}"
     #     return self
 
-    def with_filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
-        # if self.parameters["filter_by"] is None:
-        if min_investment and max_investment:
-            self.parameters["filter_by"] = f"min_investment:<={max_investment} && max_investment:>={min_investment} && "
-        elif min_investment is not None:
-            self.parameters["filter_by"] = f"max_investment:>={min_investment} && "
-        elif max_investment is not None:
-            self.parameters["filter_by"] = f"min_investment:<={max_investment} && "
-        # else:
-        #     if min_investment and max_investment:
-        #         self.parameters["filter_by"] += (
-        #             " && " + f"min_investment:<={max_investment} && max_investment:>={min_investment}"
-        #         )
-        #     elif min_investment is not None:
-        #         self.parameters["filter_by"] += " && " + f"max_investment:>={min_investment}"
-        #     elif max_investment is not None:
-        #         self.parameters["filter_by"] += " && " + f"min_investment:<={max_investment}"
+    # def with_filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
+    # if self.parameters["filter_by"] is None:
+    # if min_investment and max_investment:
+    #     self.parameters["filter_by"] = f"min_investment:<={max_investment} && max_investment:>={min_investment} && "
+    # elif min_investment is not None:
+    #     self.parameters["filter_by"] = f"max_investment:>={min_investment} && "
+    # elif max_investment is not None:
+    #     self.parameters["filter_by"] = f"min_investment:<={max_investment} && "
+    # else:
+    #     if min_investment and max_investment:
+    #         self.parameters["filter_by"] += (
+    #             " && " + f"min_investment:<={max_investment} && max_investment:>={min_investment}"
+    #         )
+    #     elif min_investment is not None:
+    #         self.parameters["filter_by"] += " && " + f"max_investment:>={min_investment}"
+    #     elif max_investment is not None:
+    #         self.parameters["filter_by"] += " && " + f"min_investment:<={max_investment}"
 
-        return self
+    # return self
 
     # def with_filter_by_countries(self, countries: list[str]):
     #     if len(countries) > 1:
@@ -207,23 +223,7 @@ class SearchBuilder:
 
     def build(self) -> dict:
         self.parameters["prefix"] = False
-        for field, obj in self.filters.items():
-            for value in obj.get("list"):
-                if value == obj.get("list")[-1]:
-                    if self.parameters.get("filter_by"):
-                        self.parameters["filter_by"] += f" {field}:{value}"
-                    else:
-                        self.parameters["filter_by"] = f" {field}:{value}"
-                else:
-                    if self.parameters.get("filter_by"):
-                        self.parameters["filter_by"] += f" {field}:{value} {"&&" if obj.get("exclusivity")  else "||"}"
-                    else:
-                        self.parameters["filter_by"] = f" {field}:{value} {"&&" if obj.get("exclusivity")  else "||"}"
-
-            if (field, obj) == list(self.filters.items())[-1]:
-                pass
-            else:
-                self.parameters["filter_by"] += " && "
+        self.parameters["filter_by"] = " && ".join(self.filters)
         return self.parameters
 
 

@@ -470,7 +470,7 @@ class Company(db.Model):
 
     @coordinates.setter
     def coordinates(self, coordinates: str) -> None:
-        self._coordinates = geocode_location(coordinates)  # type: ignore
+        self._coordinates = geocode_location(coordinates)["coordinates"]  # type: ignore
 
     @staticmethod
     def get_by_id(id: int) -> Company | None:

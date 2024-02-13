@@ -1,175 +1,177 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="/static/css/main.css" />
-        <meta name="view-transition" content="same-origin" />
-        <script src="/static/scripts/search.js" defer></script>
-
-        <title>Search | Globalify</title>
-    </head>
-    <body class="w-full">
-        <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-center">
-            <div class="flex w-full max-w-7xl items-center gap-7 px-9">
-                <a href="/"><img class="h-[30px] w-[113px]" src="/static/elements/logo-black.png" /></a>
-                <div class="hidden gap-7 sm:flex">
-                    <a href="/">Search</a>
-                    <a href="">Blog</a>
-                    <a href="">Team</a>
-                    <a href="">FAQ</a>
+{% extends "layouts/layout_app.html" %} {% block title %}Investors{% endblock %} {% block head %} {{ super() }}
+<script src="/static/scripts/dashboard.js" defer></script>
+<!-- <script src="/static/scripts/search.js" defer></script>
+<script src="/static/scripts/query_setter.js" defer></script> -->
+{% endblock %} {% block content %}
+<main
+    class="mx-auto pt-24 flex h-full min-h-screen w-full max-w-7xl flex-col items-start justify-center overflow-x-visible"
+>
+    <section class="flex flex-col gap-10 px-4 justify-evenly lg:w-1/2 mt-12 mx-auto">
+        <form class="flex flex-col gap-2" action="/search" method="post">
+            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+            <h1 class="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none mb-8">Find Ideal Investor</h1>
+            <div class="relative flex gap-2">
+                <label for="search" class="sr-only">Search</label>
+                <input
+                    type="search"
+                    name="search"
+                    id="search"
+                    class="w-full min-w-[190px] rounded-xl border border-stone-300 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Search"
+                    value="{{ query }}"
+                    required
+                />
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <svg
+                        class="size-4 text-gray-400"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                    >
+                        <path
+                            d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"
+                        />
+                    </svg>
                 </div>
+                <button
+                    class="text-nowrap rounded-lg bg-black px-4 font-medium text-white transition-colors hover:bg-neutral-800 ease-in-out text-sm w-fit"
+                    type="submit"
+                >
+                    Find!
+                </button>
             </div>
-            <a href="/logout" class="mr-9">Logout</a>
-        </nav>
-        <main class="mt-28 flex h-full w-full">
-            <div class="mx-auto flex flex-col px-4">
-                <div class="-m-1.5 overflow-x-auto">
-                    <div class="inline-block min-w-full p-1.5 align-middle">
-                        <div class="divide-y divide-gray-200 rounded-xl border">
-                            <div class="px-4 py-3">
-                                <div class="relative flex max-w-xs gap-2">
-                                    <label for="search" class="sr-only">Search</label>
-                                    <input
-                                        type="text"
-                                        name="search"
-                                        id="search"
-                                        class="block w-full rounded-md border-gray-200 p-3 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"
-                                        placeholder="Search"
-                                        value="{{ search_query }}"
-                                    />
-                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                        <svg
-                                            class="h-3.5 w-3.5 text-gray-400"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            fill="currentColor"
-                                            viewBox="0 0 16 16"
-                                        >
-                                            <path
-                                                d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <button class="rounded-xl bg-sky-500 px-2 text-sm text-white" onclick="search()">
-                                        Search
-                                    </button>
-                                </div>
-                            </div>
-                            <div>
-                                <table class="table-auto divide-y divide-gray-200">
-                                    <thead class="bg-gray-50 px-3">
-                                        <tr class="text-left text-xs font-medium uppercase text-gray-500">
-                                            <th class="py-4 pl-4">
-                                                <div class="flex h-5 items-center">
-                                                    <input
-                                                        id="checkbox-all"
-                                                        type="checkbox"
-                                                        class="rounded border-gray-200 text-sky-500 focus:ring-blue-500"
-                                                    />
-                                                    <label for="checkbox-all" class="sr-only">Checkbox</label>
-                                                </div>
-                                            </th>
-                                            <th class="pl-4">Full name</th>
-                                            <th class="pl-4">Firm name</th>
-                                            <th class="pl-4">Position</th>
-                                            <th class="pl-4">Rounds</th>
-                                            <th class="pl-4">Industries</th>
-                                            <th class="px-4">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-200">
-                                        {% if investors %} {% for investor in investors %}
-                                        <tr class="whitespace-nowrap text-sm text-gray-800">
-                                            <td class="pl-4">
-                                                <div class="flex h-5 items-center">
-                                                    <input
-                                                        id="checkbox"
-                                                        type="checkbox"
-                                                        class="rounded border-gray-200 text-sky-500 focus:ring-blue-500"
-                                                    />
-                                                    <label for="checkbox" class="sr-only">Checkbox</label>
-                                                </div>
-                                            </td>
-                                            <td class="py-6 pl-4 font-medium">{{ investor.full_name }}</td>
-                                            <td class="py-6 pl-4">{{ investor.firm_name}}</td>
-                                            <td class="py-6 pl-4">{{ investor.position }}</td>
-                                            <td class="py-6 pl-4">
-                                                <div class="flex flex-wrap gap-1">
-                                                    {% for round in investor.rounds %}
-                                                    <div
-                                                        class="min-w-max rounded-full bg-sky-500 px-3 py-1 text-center text-white"
-                                                    >
-                                                        {{ round.name }}
-                                                    </div>
-                                                    {% endfor %}
-                                                </div>
-                                            </td>
-                                            <td class="py-6 pl-4">
-                                                <div class="flex max-w-xs flex-wrap gap-1">
-                                                    {% for industry in investor.industries %}
-                                                    <div
-                                                        class="min-w-max rounded-full bg-sky-500 px-3 py-1 text-center text-white"
-                                                    >
-                                                        {{ industry.name}}
-                                                    </div>
-                                                    {% endfor %}
-                                                </div>
-                                            </td>
-                                            <td class="py-6 pl-4 font-medium">
-                                                <a
-                                                    class="text-blue-500 hover:text-blue-700"
-                                                    href="/investor/{{ investor.id }}"
-                                                    >View</a
-                                                >
-                                            </td>
-                                        </tr>
-                                        {% endfor %} {% endif %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="px-4 py-1">
-                                <nav class="flex items-center">
-                                    {% if investors.has_prev %}
-                                    <a
-                                        class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
-                                        href="/search?page={{ investors.prev_num }}{{ '&search=' + search_query if search_query else ''}}"
-                                    >
-                                        <span aria-hidden="true">«</span>
-                                        <span class="sr-only">Previous</span>
-                                    </a>
-                                    {% endif %} {% for page in investors.iter_pages() %} {% if page %} {% if
-                                    investors.page == page %}
-                                    <a
-                                        class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500 text-sm font-medium text-white hover:bg-sky-400"
-                                        href="/search?page={{ page }}{{ '&search=' + search_query if search_query else ''}}"
-                                        aria-current="page"
-                                        >{{ page }}</a
-                                    >
-                                    {% else %}
-                                    <a
-                                        class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-medium text-gray-400 hover:text-sky-400"
-                                        href="/search?page={{ page }}{{ '&search=' + search_query if search_query else ''}}"
-                                        >{{ page }}</a
-                                    >
-                                    {% endif %} {% else %}
-                                    <div class="text-gray-400">...</div>
-                                    {% endif %} {% endfor %} {% if investors.has_next %}
-                                    <a
-                                        class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
-                                        href="/search?page={{ investors.next_num }}{{ '&search=' + search_query if search_query else ''}}"
-                                    >
-                                        <span class="sr-only">Next</span>
-                                        <span aria-hidden="true">»</span>
-                                    </a>
-                                    {% endif %}
-                                </nav>
-                            </div>
-                        </div>
+            <div class="text-gray-600 text-sm justify-between items-center flex mb-6">
+                <span>Try something like "web3 ai pre-seed in california..."</span>
+                <button type="button" class="flex gap-2 justify-center items-center w-fit">
+                    <span>Advanced</span
+                    ><svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-3"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </button>
+            </div>
+
+            <div id="cool-button" class="flex items-center justify-center rounded-xl w-full gap-5">
+                <div class="items-start justify-center w-fit">
+                    <div class="relative group w-full">
+                        <div
+                            class="w-full absolute -inset-0.5 bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%] rounded-lg blur opacity-75 group-hover:opacity-100 transition-all duration-1000 group-hover:duration-200 animate-border group-hover:scale-110"
+                        ></div>
+                        <a
+                            href="/dashboard/suggestions"
+                            class="relative px-7 py-4 bg-black rounded-lg leading-none flex justify-center items-center text-white text-sm w-full group-hover:scale-105 transition-all ease-in-out duration-200"
+                        >
+                            Pick For Me ✨
+                        </a>
                     </div>
                 </div>
             </div>
-        </main>
-    </body>
-</html>
+        </form>
+    </section>
+    <section class="container px-4 py-12 sm:mt-10">
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {% for investor in investors %}
+            <article class="flex flex-col rounded-lg border p-6 shadow-sm">
+                <div class="flex flex-row items-center gap-2">
+                    <a href="/investor/{{ investor.id }}" class="text-xl font-bold leading-none">
+                        {{ investor.full_name }}
+                        <span class="text-base font-normal text-gray-500">@ {{ investor.firm_name }}</span>
+                    </a>
+                </div>
+
+                <div class="mt-2 flex flex-col gap-2">
+                    <p class="text-gray-500">{{ investor.location }}</p>
+                    <p class="flex flex-wrap gap-1">
+                        {% for round in investor.rounds %}
+                        <a class="text-nowrap rounded-lg bg-black px-2 py-1 text-sm text-white">{{ round.name }}</a>
+                        {% endfor %}
+                    </p>
+                    <p class="flex flex-wrap gap-1">
+                        {% for industry in investor.industries %}
+                        <a class="text-nowrap rounded-lg bg-black px-2 py-1 text-sm text-white">{{ industry.name }}</a>
+                        {% endfor %}
+                    </p>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% if status %}
+    <section class="fixed top-0 left-0 w-full h-full pointer-events-none">
+        <div class="max-w-7xl mx-auto h-full w-full relative">
+            <div
+                id="toast-interactive"
+                class="fade-in-up w-full absolute z-50 pointer-events-auto right-3 bottom-3 max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow-lg"
+                role="alert"
+            >
+                <div class="flex">
+                    <div
+                        class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-white bg-neutral-900 rounded-lg"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-4"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"
+                            />
+                        </svg>
+
+                        <span class="sr-only">Refresh icon</span>
+                    </div>
+                    <div class="ms-3 text-sm font-normal">
+                        <span class="mb-1 text-sm font-semibold text-gray-900 dark:text-white"
+                            >{{ status.get("title") }}</span
+                        >
+                        <div class="mb-2 text-sm font-normal">{{ status.get("msg") }}</div>
+                        <a
+                            href="{{ status.get('button_url') }}"
+                            class="inline-flex justify-center w-1/3 px-2 py-1.5 text-xs font-medium text-center text-white bg-black rounded-lg hover:bg-neutral-800 focus:ring-4 focus:outline-none focus:ring-blue-300"
+                            >{{ status.get("button_text") }}</a
+                        >
+                    </div>
+                    <button
+                        type="button"
+                        class="ms-auto -mx-1.5 -my-1.5 bg-white items-center justify-center flex-shrink-0 text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8"
+                        data-dismiss-target="#toast-interactive"
+                        aria-label="Close"
+                        onclick="this.parentNode.parentNode.classList.add('fade-out-down');"
+                    >
+                        <span class="sr-only">Close</span>
+                        <svg
+                            class="w-3 h-3"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 14 14"
+                        >
+                            <path
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                            />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</main>
+{% endblock %}

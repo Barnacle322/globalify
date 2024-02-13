@@ -384,8 +384,7 @@ def test_company_form_authenticated_post(client, user_with_complete_user_info, a
     )
     assert response.status_code == 200
     assert b"Dashboard" in response.data
-    assert b"Investors" in response.data
-    assert b"Firms" in response.data
+    assert b"Find Ideal Investor" in response.data
 
 
 @pytest.fixture()

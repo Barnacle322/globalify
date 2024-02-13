@@ -4,9 +4,14 @@ module.exports = {
     content: ["./src/project/templates/**/*.{html,htm}"],
     theme: {
         extend: {
-            gridTemplateColumns: {
-                "auto-repeat": "repeat(auto-fit, 12rem)",
-                "auto-repeat-mobile": "repeat(auto-fit, 9rem)",
+            animation: {
+                border: "border 4s ease infinite",
+            },
+            keyframes: {
+                border: {
+                    "0%, 100%": { backgroundPosition: "0% 50%" },
+                    "50%": { backgroundPosition: "100% 50%" },
+                },
             },
         },
     },

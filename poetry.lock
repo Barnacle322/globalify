@@ -1950,6 +1950,20 @@ files = [
 rapidfuzz = ">=3.0.0,<4.0.0"
 
 [[package]]
+name = "typesense"
+version = "0.19.0"
+description = "Python client for Typesense, an open source and typo tolerant search engine."
+optional = false
+python-versions = ">=3"
+files = [
+    {file = "typesense-0.19.0-py3-none-any.whl", hash = "sha256:4c7447f8cc6be456abb420cd6a39e52afa50afa4d10d8313cc8afb2b70e15d87"},
+    {file = "typesense-0.19.0.tar.gz", hash = "sha256:21cf6897eceb2cd3c9cab3d7372b3c4cd1ea88d1a57d4cce058d5a0518f0121b"},
+]
+
+[package.dependencies]
+requests = "*"
+
+[[package]]
 name = "typing-extensions"
 version = "4.9.0"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -2045,4 +2059,4 @@ email = ["email-validator"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "a763412dc53803f2a727bf0ebde5d7cc393d54d58a15daa09f2a5e794f8c5c3d"
+content-hash = "5ecfa7ec2d899bea86aca3de8b67661ae3b1d88fc15decde57f01ec512083e22"

@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import csv
+import json
 import random
 from collections.abc import Sequence
 from itertools import islice
 
 from flask_sqlalchemy.pagination import Pagination
 from geopy.distance import geodesic
-from sqlalchemy import Column, ForeignKey, Integer, String, and_, desc, or_
-from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
+from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String, and_, desc, or_
+from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
 from sqlalchemy.sql import Select
 from thefuzz import fuzz
 
@@ -23,6 +24,7 @@ from ..utils.fake_data import (
     get_names,
     get_websites,
 )
+from ..utils.search import search
 from ..utils.suggestion import geocode_location, weights
 from .helpers import Industry, Round
 
@@ -408,12 +410,12 @@ class Investor(db.Model):
     website: Mapped[str] = mapped_column(String, nullable=True)
     linkedin: Mapped[str] = mapped_column(String, nullable=True)
     twitter: Mapped[str] = mapped_column(String, nullable=True)
-    email: Mapped[str] = mapped_column(String, nullable=True, unique=True)
+    email: Mapped[str] = mapped_column(String, nullable=True, unique=False)
     phone_number: Mapped[str] = mapped_column(String, nullable=True)
     n_investments: Mapped[int] = mapped_column(Integer, nullable=True)
     n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
-    min_investment: Mapped[int] = mapped_column(Integer, nullable=True)
-    max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
+    min_investment: Mapped[int] = mapped_column(BigInteger, nullable=True)
+    max_investment: Mapped[int] = mapped_column(BigInteger, nullable=True)
     location: Mapped[str] = mapped_column(String, nullable=True)
     _coordinates: Mapped[str] = mapped_column(String, nullable=True)
     bias: Mapped[int] = mapped_column(Integer, nullable=True)
@@ -448,9 +450,43 @@ class Investor(db.Model):
 
     @staticmethod
     def get_all() -> Sequence[Investor]:
-        return db.session.scalars(
-            db.select(Investor).options(selectinload(Investor.rounds), selectinload(Investor.industries))
-        ).all()
+        return (
+            db.session.scalars(
+                db.select(Investor).options(joinedload(Investor.rounds), joinedload(Investor.industries))
+            )
+            .unique()
+            .all()
+        )
+
+    @classmethod
+    def get_search(
+        cls,
+        query_string: str,
+        query_by: str = "name, firm_name, about, position, location, rounds, industries, notable_investments",
+        per_page: int = 10,
+        page: int = 1,
+    ):
+        try:
+            results = search(
+                collection="investors",
+                q=query_string,
+                query_by=query_by,
+                per_page=per_page,
+                page=page,
+            )
+        except Exception as e:
+            print(e)
+            results = {}
+
+        found = results.get("found", 0)
+        pages = found // per_page
+        if found % per_page > 0:
+            pages += 1
+
+        hits = results.get("hits", [])
+        id_list = [hit.get("document", {}).get("db_id", 0) for hit in hits]
+
+        return Investor.get_by_id_list(id_list)
 
     @classmethod
     def get_pagination(
@@ -476,7 +512,7 @@ class Investor(db.Model):
 
         Args:
             page (int): The page number to retrieve (default: 1).
-            per_page (int): The number of investors per page (default: 10).
+            per_page (int): The number of investors per page (default: 12).
             error_out (bool): Whether to raise an error if the requested page is out of range (default: False).
             search_string (str): The search string to filter investors by (default: "").
             filter_fields (list[str] | None): The fields to filter investors on (default: None).
@@ -497,7 +533,8 @@ class Investor(db.Model):
         try:
             combined_query = (
                 QueryBuilder(
-                    db.select(Investor).options(selectinload(Investor.rounds), selectinload(Investor.industries)), cls
+                    db.select(Investor).options(joinedload(Investor.rounds), joinedload(Investor.industries)),
+                    cls,
                 )
                 .apply_search_filters(search_string, filter_fields, search_fields)
                 .apply_sorting(sort_field, descending)
@@ -516,6 +553,18 @@ class Investor(db.Model):
     @staticmethod
     def get_by_id(id: int) -> Investor | None:
         return db.session.scalar(db.select(Investor).where(Investor.id == id))
+
+    @staticmethod
+    def get_by_id_list(ids: list[int]) -> Sequence[Investor] | None:
+        return (
+            db.session.scalars(
+                db.select(Investor)
+                .options(joinedload(Investor.rounds), joinedload(Investor.industries))
+                .where(Investor.id.in_(ids))
+            )
+            .unique()
+            .all()
+        )
 
     @staticmethod
     def get_by_email(email: str) -> Investor | None:
@@ -646,6 +695,117 @@ class Investor(db.Model):
                 print("Added investor:", investor)
         db.session.commit()
 
+    @staticmethod
+    def populate_blockchain(file_name="globalify - blockchain.csv"):
+        with open(file_name, newline="") as file:
+            reader = csv.reader(file, delimiter=";")
+            existing_notable_investments = NotableInvestment.get_all()
+            existing_industry_list = Industry.get_industry_list()
+            for row in islice(reader, 1, None):
+                first_name = row[0].split(" ")[0]
+                if len(row[0].split(" ")) == 1:
+                    last_name = None
+                else:
+                    last_name = row[0].split(" ")[1]
+                firm_name = row[1]
+                firm_name = firm_name.replace('"', "")
+
+                email = row[4]
+                if email == "":
+                    email = None
+
+                industries = row[7].split(",")
+                industry_list = []
+                for industry in industries:
+                    if "—" in industry:
+                        industry = industry.split(" — ")[1]
+                    industry = (
+                        industry.replace(")", "")
+                        .replace("(", "")
+                        .replace(" Commerce", " ")
+                        .replace("Smart Tech", " ")
+                        .replace("Money Tech", "")
+                        .replace("Health Tech", "")
+                        .strip()
+                    )
+                    for i in existing_industry_list:
+                        if i and fuzz.ratio(industry, i.name) > 80:
+                            industry = i
+                            industry_list.append(industry)
+                            break
+
+                round_list = []
+                for round_ in row[14].split(","):
+                    for r in Round.get_all():
+                        if round_ == "Series B+":
+                            round_list.append(Round.get_by_name("Series B"))
+                            round_list.append(Round.get_by_name("Series C"))
+                            break
+                        if r and fuzz.ratio(round_.lower(), r.name.lower()) > 90:
+                            round_ = r
+                            round_list.append(round_)
+                            break
+
+                notable_investment_list = []
+                for notable_investment in row[15].split(","):
+                    existing = None
+                    for eni in existing_notable_investments:
+                        if fuzz.ratio(notable_investment, eni.name) > 90:
+                            existing = eni
+                            break
+                    if existing:
+                        notable_investment_list.append(existing)
+                    else:
+                        ni = NotableInvestment(name=notable_investment)
+                        db.session.add(ni)
+                        notable_investment_list.append(ni)
+
+                check_size_string = row[13]
+                range_set = set()
+                for range_ in check_size_string.split(","):
+                    sanitized_range = (
+                        range_.replace("$", "")
+                        .replace(",", " ")
+                        .replace(" ", "")
+                        .replace("K", "000")
+                        .replace("M", "000000")
+                        .replace("B", "000000000")
+                        .replace("+", "")
+                    )
+                    if "-" in sanitized_range:
+                        min_investment, max_investment = sanitized_range.split("-")
+                        range_set.add(int(min_investment))
+                        range_set.add(int(max_investment))
+                    else:
+                        if sanitized_range in ["", " "]:
+                            continue
+                        range_set.add(int(sanitized_range))
+                min_investment, max_investment = None, None
+                if len(range_set) > 1:
+                    min_investment, max_investment = min(range_set), max(range_set)
+                elif len(range_set) == 1:
+                    min_investment = range_set.pop()
+                investor = Investor(
+                    first_name=first_name,
+                    last_name=last_name,
+                    firm_name=row[1],
+                    position=row[2],
+                    about=row[22],
+                    email=email,
+                    location=row[6],
+                    coordinates=row[6],
+                    industries=list(set(industry_list)),
+                    linkedin=row[9],
+                    twitter=row[11],
+                    min_investment=min_investment,
+                    max_investment=max_investment,
+                    rounds=list(set(round_list)),
+                    notable_investments=list(set(notable_investment_list)),
+                )
+                db.session.add(investor)
+                print("Added investor:", investor)
+        db.session.commit()
+
     def calculate_score(self, company):
         try:
             if self.bias:
@@ -692,6 +852,33 @@ class Investor(db.Model):
 
         return total_score
 
+    @staticmethod
+    def index():
+        investors = Investor.get_all()
+
+        with open("investor_index.jsonl", "w") as file:
+            for investor in investors:
+                investor_json = {}
+                investor_json["db_id"] = investor.id
+                investor_json["name"] = investor.full_name
+                investor_json["firm_name"] = investor.firm_name
+                investor_json["about"] = investor.about
+                investor_json["position"] = investor.position
+                investor_json["n_investments"] = investor.n_investments
+                investor_json["n_exits"] = investor.n_exits
+                investor_json["min_investment"] = investor.min_investment
+                investor_json["max_investment"] = investor.max_investment
+                investor_json["location"] = investor.location
+                investor_json["rounds"] = [round_.name for round_ in investor.rounds]
+                investor_json["industries"] = [industry.name for industry in investor.industries]
+                investor_json["notable_investments"] = [
+                    notable_investment.name for notable_investment in investor.notable_investments
+                ]
+
+                file.write(json.dumps(investor_json) + "\n")
+
+        return investors
+
 
 class InvestmentFirm(db.Model):
     """
@@ -737,11 +924,15 @@ class InvestmentFirm(db.Model):
 
     @staticmethod
     def get_all() -> Sequence[InvestmentFirm]:
-        return db.session.scalars(
-            db.select(InvestmentFirm).options(
-                selectinload(InvestmentFirm.rounds), selectinload(InvestmentFirm.industries)
+        return (
+            db.session.scalars(
+                db.select(InvestmentFirm).options(
+                    joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries)
+                )
             )
-        ).all()
+            .unique()
+            .all()
+        )
 
     @classmethod
     def get_pagination(
@@ -787,7 +978,7 @@ class InvestmentFirm(db.Model):
             combined_query = (
                 QueryBuilder(
                     db.select(InvestmentFirm).options(
-                        selectinload(InvestmentFirm.rounds), selectinload(InvestmentFirm.industries)
+                        joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries)
                     ),
                     cls,
                 )

@@ -69,6 +69,17 @@ class Industry(db.Model):
         except Exception:
             db.session.rollback()
 
+    @staticmethod
+    def populate_if_not_exists() -> None:
+        try:
+            for category, industries in industry_aggregate.items():
+                for industry in industries:
+                    if not Industry.get_by_name(industry):
+                        db.session.add(Industry(name=industry, category=category))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
 
 class Round(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

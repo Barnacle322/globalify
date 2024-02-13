@@ -2,6 +2,8 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,flask,node
 
 investor.csv
+globalify - blockchain.csv
+investor_index.jsonl
 
 ### Flask ###
 instance/*
@@ -399,5 +401,4 @@ pyrightconfig.json
 .vscode
 start_prod.ps1
 start_local.ps1
-.old_venv
-.idea
+typesense-data

@@ -5,6 +5,7 @@ document.getElementById("search").addEventListener("keydown", function (event) {
 function search() {
     const roundValues = getCheckedValues("round");
     const industryValues = getCheckedValues("industry");
+    const countryValues = getCheckedValues("country");
     const sortValues = getCheckedValues("sort_field");
     const filterValues = getCheckedValues("filter_field");
 
@@ -23,6 +24,7 @@ function search() {
         "industries_exclusive",
         "round",
         "industry",
+        "country",
         "sort_field",
         "descending",
         "page",
@@ -32,6 +34,7 @@ function search() {
 
     handleLists(roundValues, "round", paramsArray);
     handleLists(industryValues, "industry", paramsArray);
+    handleLists(countryValues, "country", paramsArray);
     handleLists(sortValues, "sort_field", paramsArray);
     handleLists(filterValues, "filter_field", paramsArray);
 

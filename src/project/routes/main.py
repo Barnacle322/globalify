@@ -210,10 +210,11 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 
     # Build the pages list
     pages = list(start_pages)
-    if pages[-1] is not None and around_pages and around_pages[0] - pages[-1] > 1:
+
+    if pages and pages[-1] is not None and around_pages and around_pages[0] - pages[-1] > 1:
         pages.append(0)
     pages.extend(p for p in around_pages if p not in pages)
-    if pages[-1] is not None and end_pages and end_pages[0] - pages[-1] > 1:
+    if pages and pages[-1] is not None and end_pages and end_pages[0] - pages[-1] > 1:
         pages.append(0)
     pages.extend(p for p in end_pages if p not in pages)
 
@@ -222,6 +223,9 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
         "prev": max(1, current_page - 1),
         "next": min(current_page + 1, total_pages),
         "pages": pages,
+        "has_other_pages": bool(len(pages) > 2),
+        "has_prev": bool(current_page > 1),
+        "has_next": bool(current_page < total_pages),
     }
 
 
@@ -240,51 +244,33 @@ def search():
         status = {"type": status_type, "msg": msg, "title": title, "button_text": button_text, "button_url": button_url}
 
     search_string = request.args.get("search", "")
+
     page = request.args.get("page", 1, type=int)
 
-    # query_by = request.form.getlist("query_by")
-    query_by = [
-        "location",
-        "rounds",
-        "industries",
-        "embedding",
-        "notable_investments",
-        "name",
-        "firm_name",
-        "position",
-    ]
+    # TODO: Fix case with no fields selected
+    query_by = request.args.getlist("filter_field") if request.args.getlist("filter_field") else ["name"]
 
     sort_by = request.args.get("sort_field", "")
-    # sort_by = None
 
     sort_desc = request.args.get("descending", False, type=bool)
-    # sort_desc = False
 
     rounds = []
     for round_name in request.args.getlist("round"):
         if round_object := Round.get_by_name(round_name):
             rounds.append(round_object.name)
-    # rounds = ["Seed", "Series C"]
-    # rounds = []
 
     industries = []
     for industry_name in request.args.getlist("industry"):
         if industry_object := Industry.get_by_name(industry_name):
             industries.append(industry_object.name)
-    # industries = ["FinTech", "AI", "Cloud", "SaaS", "InsureTech"]
-    # industries = []
 
     rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
-    # rounds_exclusive = False
 
     industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
-    # industries_exclusive = True
 
     min_investment = request.args.get("min_investment", type=int)
-    # min_investment = None
 
     max_investment = request.args.get("max_investment", type=int)
-    # max_investment = None
 
     # countries = []
     # for country_name in request.args.getlist("country"):
@@ -306,14 +292,39 @@ def search():
         # countries=countries,
     )
 
+    combined_query = construct_query_string(
+        search=search_string,
+        filter_field=[str(filter_field) for filter_field in query_by],
+        sort_by=sort_by,
+        sort_desc=sort_desc,
+        rounds_exclusive=rounds_exclusive,
+        industries_exclusive=industries_exclusive,
+        round=[str(round_obj) for round_obj in rounds],
+        industry=[str(industry) for industry in industries],
+        min_investment=min_investment,
+        max_investment=max_investment,
+    )
     investors = result.get("investors")
+
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     return render_template(
         "search.html",
         investors=investors,
         query=search_string,
+        fields={
+            "location": "Location",
+            "rounds": "Rounds",
+            "industries": "Industries",
+            "embedding": "Embedding",
+            "notable_investments": "Notable Investments",
+            "name": "Name",
+            "firm_name": "Firm Name",
+            "position": "Position",
+        },
+        combined_query=combined_query,
         pagination=pagination,
+        total_pages=len(pagination.get("pages", [])),
         status=status,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),

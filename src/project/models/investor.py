@@ -452,7 +452,7 @@ class Investor(db.Model):
         geo_data = geocode_location(coordinates)
         if geo_data is not None:
             print(geo_data)
-            self._coordinates = geo_data["coordinates"]  # type: ignore
+            # self._coordinates = geo_data["coordinates"]  # type: ignore
             self._country = geo_data["country_name"]  # type: ignore
 
     @property
@@ -508,14 +508,14 @@ class Investor(db.Model):
             query_by=builder["query_by"],
             filter_by=builder.get("filter_by"),
             sort_by="",
+            page=page
         )
         # except Exception:
             # results = {}
 
-        # print(results)
-
         found = results.get("found", 0)
         page = results.get("page", 1)
+
         pages = found // per_page
         if found % per_page > 0:
             pages += 1

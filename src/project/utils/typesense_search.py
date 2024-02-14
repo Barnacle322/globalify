@@ -381,7 +381,7 @@ def search(
         "page": page,
         "prefix": False,
     }
-    print(search_parameters)
+    # print(search_parameters)
 
     results = client.collections[collection].documents.search(search_parameters)
     return results

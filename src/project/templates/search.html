@@ -40,12 +40,35 @@
             >
                 Find!
             </button>
+            <a
+                href="/search"
+                class="text-nowrap rounded-lg bg-black px-4 py-3 font-medium text-white transition-colors hover:bg-neutral-800 ease-in-out text-sm w-fit"
+            >
+                Reset
+            </a>
         </div>
-        <div class="mt-3 flex flex-col gap-2 flex-wrap lg:flex-row">
+        <div class="text-gray-600 text-sm justify-between items-center flex mb-6">
+            <span>Try something like "web3 ai pre-seed in california..."</span>
+
+            <button type="button" class="flex gap-2 justify-center items-center w-fit">
+                <span>Advanced</span
+                ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-3"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+            </button>
+        </div>
+        <div class="flex flex-col gap-2 flex-wrap lg:flex-row">
             <div class="group relative inline-block text-left">
                 <button
                     type="button"
-                    class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
+                    class="flex w-full items-center justify-center gap-1 rounded-lg text-white bg-black px-2 py-3 text-sm transition-colors ease-in-out hover:bg-neutral-800 group-has-[:checked]:border-black"
                     id="filter-options-menu"
                     aria-haspopup="true"
                     aria-expanded="true"
@@ -97,7 +120,7 @@
             <div class="group relative inline-block text-left">
                 <button
                     type="button"
-                    class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
+                    class="flex w-full items-center justify-center gap-1 text-white rounded-lg bg-black px-2 py-3 text-sm transition-colors ease-in-out hover:bg-neutral-800 group-has-[:checked]:border-black"
                     id="round-options-menu"
                     aria-haspopup="true"
                     aria-expanded="true"
@@ -160,7 +183,7 @@
             <div class="group relative inline-block text-left">
                 <button
                     type="button"
-                    class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
+                    class="flex w-full items-center justify-center gap-1 rounded-lg text-white bg-black px-2 py-3 text-sm transition-colors ease-in-out hover:bg-neutral-800 group-has-[:checked]:border-sky-500"
                     id="industry-options-menu"
                     aria-haspopup="true"
                     aria-expanded="true"
@@ -226,34 +249,11 @@
                         {% endfor %} {% endfor %}
                     </div>
                 </div>
-                <div class="relative inline-block text-left">
-                    <input
-                        type="range"
-                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
-                        id="min_investment"
-                        min="0"
-                        max="100"
-                        value="0"
-                    />
-                    <input
-                        type="range"
-                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
-                        id="max_investment"
-                        min="0"
-                        max="100"
-                        value="100"
-                    />
-                    <div class="flex justify-between">
-                        <span>$0&nbsp;&nbsp;</span>
-                        <span>$25M</span>
-                        <span>$50М</span>
-                    </div>
-                </div>
             </div>
             <div class="relative inline-block text-left">
                 <button
                     type="button"
-                    class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-white px-2 py-3 text-sm transition-colors ease-in-out hover:border-slate-300 group-has-[:checked]:border-sky-500"
+                    class="flex w-full items-center justify-center gap-1 rounded-xl text-white bg-black px-2 py-3 text-sm transition-colors ease-in-out hover:bg-neutral-800 group-has-[:checked]:border-sky-500"
                     id="sorting-options-menu"
                     aria-haspopup="true"
                     aria-expanded="true"
@@ -315,25 +315,29 @@
                     </div>
                 </div>
             </div>
-            <a href="/search" class="mt-3 w-full rounded-lg bg-sky-500 py-3 text-center text-white"> Reset </a>
-        </div>
-
-        <div class="text-gray-600 text-sm justify-between items-center flex mb-6">
-            <span>Try something like "web3 ai pre-seed in california..."</span>
-
-            <button type="button" class="flex gap-2 justify-center items-center w-fit">
-                <span>Advanced</span
-                ><svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-3"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                </svg>
-            </button>
+            <div class="relative inline-block text-left">
+                <input
+                    type="range"
+                    class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
+                    id="min_investment"
+                    min="0"
+                    max="100"
+                    value="0"
+                />
+                <input
+                    type="range"
+                    class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
+                    id="max_investment"
+                    min="0"
+                    max="100"
+                    value="100"
+                />
+                <div class="flex justify-between">
+                    <span>$0&nbsp;&nbsp;</span>
+                    <span>$25M</span>
+                    <span>$50М</span>
+                </div>
+            </div>
         </div>
 
         <div id="cool-button" class="flex items-center justify-center rounded-xl w-full gap-5">
@@ -381,19 +385,19 @@
             {% endfor %}
         </div>
         <nav class="mt-10 flex w-full items-center justify-center gap-2">
-            {% if pagination %}
+            {% if pagination and pagination.has_other_pages %} {% if pagination.has_prev %}
             <a
                 id="prev"
                 class="inline-flex items-center justify-center rounded border px-3 py-2 text-black"
-                href="/search?page={{ pagination.prev }}"
+                href="/search?page={{ pagination.prev }}{{ combined_query if combined_query else ''}}"
             >
                 Previous
             </a>
-            {% for page in pagination.pages %} {% if page == pagination.current_page %}
+            {% endif %} {% for page in pagination.pages %} {% if page == pagination.current_page %}
             <a
                 id="current"
                 class="inline-flex size-11 items-center justify-center rounded-lg border bg-black text-sm font-medium text-white transition-opacity duration-200 ease-in-out hover:opacity-90"
-                href="/search?page={{ pagination.current_page }}"
+                href="/search?page={{ pagination.current_page }}{{ combined_query if combined_query else ''}}"
                 >{{ pagination.current_page }}</a
             >
             {% elif not page %}
@@ -403,18 +407,18 @@
             <a
                 id="page"
                 class="inline-flex size-11 items-center justify-center rounded-lg border text-sm font-medium"
-                href="/search?page={{ page }}&search={{ query }}"
+                href="/search?page={{ page }}{{ combined_query if combined_query else ''}}"
                 >{{ page }}</a
             >
-            {% endif %} {% endfor %}
+            {% endif %} {% endfor %} {% if pagination.has_next %}
             <a
                 id="next"
                 class="inline-flex items-center justify-center rounded border px-3 py-2 text-black"
-                href="/search?page={{ pagination.next }}"
+                href="/search?page={{ pagination.next }}{{ combined_query if combined_query else ''}}"
             >
                 Next
             </a>
-            {% endif %}
+            {% endif %} {% endif %}
         </nav>
     </section>
     {% if status %}
@@ -488,4 +492,3 @@
     {% endif %}
 </main>
 {% endblock %}
-

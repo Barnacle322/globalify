@@ -13,7 +13,7 @@ from ..extensions import db, login_manager, oauth
 from ..models import Company, User, UserInfo, UserPayment
 from ..models.user import EmailVerification
 from ..utils.email_verification import create_verification_token, update_is_expired
-from ..utils.enums import OauthProvider, Status, StatusType
+from ..utils.enums import Events, OauthProvider, Status, StatusType
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
     AUTH_USERNAME_USED,
@@ -23,7 +23,7 @@ from ..utils.errors.error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
-from ..utils.sendgrid_email import send_email
+from ..utils.google_pubsub import send_event
 
 auth = Blueprint("auth", __name__)
 
@@ -163,12 +163,7 @@ def resend_verification_email(user_id):
 
     EmailVerification.deactivate_user_tokens(user_id)
     new_verification = create_verification_token(user_id)
-    html_content = render_template("email/email_verify.html", uuid=new_verification)
-    send_email(
-        recepients=user.email,
-        subject="Confirm Your Email Address!",
-        html_content=html_content,
-    )
+    send_event(email=user.email, event_type=Events.USER_COMPLETED_ONBOARDING, random_key=new_verification)
 
     return redirect(url_for("main.search"))
 
@@ -396,11 +391,8 @@ def onboarding():
         )
 
         new_verification = create_verification_token(user_id=authenticated_user.id)
-        html_content = render_template("email/email_verify.html", uuid=new_verification)
-        send_email(
-            recepients=authenticated_user.email,
-            subject="Confirm Your Email Address!",
-            html_content=html_content,
+        send_event(
+            email=authenticated_user.email, event_type=Events.USER_COMPLETED_ONBOARDING, random_key=new_verification
         )
 
         return redirect(url_for("main.search", _external=False, **status))

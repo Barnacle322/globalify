@@ -428,6 +428,15 @@ def onboarding():
             button_url=url_for("auth.expanded_onboarding", _external=False),
         )
 
+        EmailVerification.deactivate_user_tokens(user_id=authenticated_user.id)
+        new_verification = create_verification_token(user_id=authenticated_user.id)
+        html_content = render_template("email/email_verify.html", uuid=new_verification)
+        send_email(
+            recepients=authenticated_user.email,
+            subject="Confirm Your Email Address!",
+            html_content=html_content,
+        )
+
         return redirect(url_for("main.search", _external=False, **status))
 
     return render_template(

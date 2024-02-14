@@ -510,7 +510,7 @@ class Investor(db.Model):
             sort_by="",
         )
         # except Exception:
-            # results = {}
+        # results = {}
 
         print(results)
 

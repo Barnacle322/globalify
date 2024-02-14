@@ -122,12 +122,12 @@ def verify_email():
     if user.is_verified:
         return render_template("errors/email_verification/already_verified.html")
 
-    update_is_expired(email_verification)
-
     if email_verification.is_expired:
         return render_template(
             "errors/email_verification/verification_expired.html", user_id=email_verification.user_id
         )
+
+    update_is_expired(email_verification)
 
     user.is_verified = True
     email_verification.is_used = True
@@ -399,7 +399,7 @@ def onboarding():
         send_event(
             "A new user has completed onboarding!",
             email=authenticated_user.email,
-            event_type=Events.USER_COMPLETED_ONBOARDINGl.value,
+            event_type=Events.USER_COMPLETED_ONBOARDING.value,
             random_key=new_verification,
         )
 

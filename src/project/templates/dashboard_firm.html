@@ -1,5 +1,5 @@
 {% extends "layouts/layout_app.html" %} {% block title %}Investment Firms{% endblock %} {% block head %} {{ super() }}
-<script src="/static/scripts/dashboard.js" defer></script>
+<script src="/static/scripts/search.js" defer></script>
 <script src="/static/scripts/search.js" defer></script>
 <script src="/static/scripts/query_setter.js" defer></script>
 {% endblock %} {% block content %}
@@ -38,7 +38,7 @@
                 </button>
             </div>
             <div class="flex items-center justify-center rounded-xl border-2 p-1 text-sm">
-                <a href="/dashboard" class="flex w-full items-center justify-center gap-1 p-3">
+                <a href="/search" class="flex w-full items-center justify-center gap-1 p-3">
                     <svg
                         data-darkreader-inline-stroke=""
                         fill="none"
@@ -58,7 +58,7 @@
                     <span>Investors</span>
                 </a>
                 <a
-                    href="/dashboard/investment-firms"
+                    href="/search/investment-firms"
                     class="flex w-full items-center justify-center gap-1 rounded-lg bg-sky-500 p-3 text-white"
                 >
                     <svg
@@ -361,7 +361,7 @@
                     </div>
                 </div>
             </div>
-            <a href="/dashboard/investment-firms" class="mt-3 w-full rounded-lg bg-sky-500 py-3 text-center text-white">
+            <a href="/search/investment-firms" class="mt-3 w-full rounded-lg bg-sky-500 py-3 text-center text-white">
                 Reset
             </a>
         </section>
@@ -384,14 +384,14 @@
                     <div class="flex flex-wrap gap-1">
                         {% for round in investment_firm.rounds %}
                         <a
-                            href="/dashboard/investment-firms?round={{ round.name }}"
+                            href="/search/investment-firms?round={{ round.name }}"
                             class="inline-flex w-max items-center justify-center rounded-full bg-sky-500 p-2 text-sm leading-none text-white"
                         >
                             {{ round.name }}
                         </a>
                         {% endfor %} {% for industry in investment_firm.industries %}
                         <a
-                            href="/dashboard/investment-firms?industry={{ industry.name }}"
+                            href="/search/investment-firms?industry={{ industry.name }}"
                             class="inline-flex w-max items-center justify-center rounded-full bg-sky-500 p-2 text-sm leading-none text-white"
                         >
                             {{ industry.name}}
@@ -406,7 +406,7 @@
                     {% if investment_firms.has_prev %}
                     <a
                         class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
-                        href="/dashboard/investment-firms?page={{ investment_firms.prev_num }}{{ combined_query if combined_query else ''}}"
+                        href="/search/investment-firms?page={{ investment_firms.prev_num }}{{ combined_query if combined_query else ''}}"
                     >
                         <span aria-hidden="true">«</span>
                         <span class="sr-only">Previous</span>
@@ -415,14 +415,14 @@
                     investment_firms.page == page %}
                     <a
                         class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500 text-sm font-medium text-white hover:bg-sky-400"
-                        href="/dashboard/investment-firms?page={{ page }}{{ combined_query if combined_query else ''}}"
+                        href="/search/investment-firms?page={{ page }}{{ combined_query if combined_query else ''}}"
                         aria-current="page"
                         >{{ page }}</a
                     >
                     {% else %}
                     <a
                         class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-medium text-gray-400 hover:text-sky-400"
-                        href="/dashboard/investment-firms?page={{ page }}{{ combined_query if combined_query else ''}}"
+                        href="/search/investment-firms?page={{ page }}{{ combined_query if combined_query else ''}}"
                         >{{ page }}</a
                     >
                     {% endif %} {% else %}
@@ -430,7 +430,7 @@
                     {% endif %} {% endfor %} {% if investment_firms.has_next %}
                     <a
                         class="inline-flex items-center gap-2 rounded-md p-4 font-medium text-gray-400 hover:text-sky-500"
-                        href="/dashboard/investment-firms?page={{ investment_firms.next_num }}{{ combined_query if combined_query else ''}}"
+                        href="/search/investment-firms?page={{ investment_firms.next_num }}{{ combined_query if combined_query else ''}}"
                     >
                         <span class="sr-only">Next</span>
                         <span aria-hidden="true">»</span>
@@ -442,3 +442,4 @@
     </div>
 </main>
 {% endblock %}
+

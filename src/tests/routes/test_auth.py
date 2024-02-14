@@ -498,7 +498,7 @@ def test_resend_verification_email_success(client, user_with_complete_user_info,
 
         response = client.get("/resend-verification/1")
         assert response.status_code == 302
-        assert response.location == "/dashboard/investors"
+        assert response.location == "/search/investors"
 
         updated_verification = EmailVerification.get_by_token(verification_token)
         assert updated_verification is not None

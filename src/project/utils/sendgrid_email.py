@@ -1,8 +1,11 @@
 import os
+import ssl
 
 from flask import current_app
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Email, Mail
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 SENDER_EMAIL = "info@globalify.xyz"
 SENDER_NAME = "Globalify"
@@ -28,3 +31,4 @@ def send_email(recepients: str | list[str], subject: str, html_content: str) -> 
     except Exception as e:
         current_app.logger.error(f"Email could not be sent to {recepients}")
         current_app.logger.error(e)
+        print(e)

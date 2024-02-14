@@ -16,10 +16,9 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
-from src.project.models.helpers import Country, Industry, Round
-
 from ..extensions import db
 from ..models import Company, InvestmentFirm, Investor, Waitlist, WaitlistCharge
+from ..models.helpers import Country, Industry, Round
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
@@ -45,10 +44,8 @@ def check_verification(func):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
-        # TODO
         elif not current_user.is_verified:  # type: ignore
-            # return redirect(url_for("auth.verify"))
-            pass
+            return render_template("verify_email.html", user_id=current_user.id)
         return func(*args, **kwargs)
 
     return decorated_function

@@ -511,7 +511,8 @@ class Investor(db.Model):
             query_by=builder["query_by"],
             filter_by=builder.get("filter_by"),
             sort_by="",
-            page=page
+            page=page,
+            per_page=per_page,
         )
         # except Exception:
             # results = {}

@@ -211,10 +211,21 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
     # Build the pages list
     pages = list(start_pages)
 
-    if pages and pages[-1] is not None and around_pages and around_pages[0] - pages[-1] > 1:
+    if not pages:
+        return {
+            "current_page": 0,
+            "prev": 0,
+            "next": 0,
+            "pages": [],
+            "has_other_pages": False,
+            "has_prev": False,
+            "has_next": False,
+        }
+
+    if around_pages and around_pages[0] - pages[-1] > 1:
         pages.append(0)
     pages.extend(p for p in around_pages if p not in pages)
-    if pages and pages[-1] is not None and end_pages and end_pages[0] - pages[-1] > 1:
+    if end_pages and end_pages[0] - pages[-1] > 1:
         pages.append(0)
     pages.extend(p for p in end_pages if p not in pages)
 
@@ -223,7 +234,7 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
         "prev": max(1, current_page - 1),
         "next": min(current_page + 1, total_pages),
         "pages": pages,
-        "has_other_pages": bool(len(pages) > 2),
+        "has_other_pages": bool(len(pages) > 1),
         "has_prev": bool(current_page > 1),
         "has_next": bool(current_page < total_pages),
     }
@@ -247,8 +258,16 @@ def search():
 
     page = request.args.get("page", 1, type=int)
 
-    # TODO: Fix case with no fields selected
-    query_by = request.args.getlist("filter_field") if request.args.getlist("filter_field") else ["name"]
+    query_by = [
+        "location",
+        "rounds",
+        "industries",
+        "embedding",
+        "notable_investments",
+        "name",
+        "firm_name",
+        "position",
+    ]
 
     sort_by = request.args.get("sort_field", "")
 
@@ -272,6 +291,7 @@ def search():
 
     max_investment = request.args.get("max_investment", type=int)
 
+    # ToDo: fix it
     # countries = []
     # for country_name in request.args.getlist("country"):
     #     if country_object := Country.get_by_name(country_name):
@@ -289,21 +309,10 @@ def search():
         min_investment=min_investment,
         max_investment=max_investment,
         page=page,
+        per_page=2,
         # countries=countries,
     )
 
-    combined_query = construct_query_string(
-        search=search_string,
-        filter_field=[str(filter_field) for filter_field in query_by],
-        sort_by=sort_by,
-        sort_desc=sort_desc,
-        rounds_exclusive=rounds_exclusive,
-        industries_exclusive=industries_exclusive,
-        round=[str(round_obj) for round_obj in rounds],
-        industry=[str(industry) for industry in industries],
-        min_investment=min_investment,
-        max_investment=max_investment,
-    )
     investors = result.get("investors")
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
@@ -322,7 +331,6 @@ def search():
             "firm_name": "Firm Name",
             "position": "Position",
         },
-        combined_query=combined_query,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
         status=status,

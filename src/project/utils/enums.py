@@ -1,6 +1,11 @@
 from enum import Enum
 
 
+class NotificationDestination(Enum):
+    ALL = "all"
+    SEARCH = "search"
+
+
 class StatusType(Enum):
     SUCCESS = 1
     WARNING = 2

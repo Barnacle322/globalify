@@ -2,6 +2,7 @@
 <script src="/static/scripts/search.js" defer></script>
 <script src="/static/scripts/dashboard.js" defer></script>
 <script src="/static/scripts/query_setter.js" defer></script>
+<script src="/static/scripts/query_param_handler.js" defer></script>
 {% endblock %} {% block content %}
 <main
     class="mx-auto pt-24 flex h-full min-h-screen w-full max-w-7xl flex-col items-start justify-center overflow-x-visible"
@@ -65,58 +66,7 @@
             </button>
         </div>
         <div class="flex flex-col gap-2 flex-wrap lg:flex-row">
-            <div class="group relative inline-block text-left">
-                <button
-                    type="button"
-                    class="flex w-full items-center justify-center gap-1 rounded-lg text-white bg-black px-2 py-3 text-sm transition-colors ease-in-out hover:bg-neutral-800 group-has-[:checked]:border-black"
-                    id="filter-options-menu"
-                    aria-haspopup="true"
-                    aria-expanded="true"
-                >
-                    <svg
-                        data-darkreader-inline-stroke=""
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.5"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                        aria-hidden="true"
-                        class="h-5 w-5"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
-                        ></path>
-                    </svg>
-                    Filter By
-                </button>
-
-                <div
-                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
-                    id="filter-options"
-                    role="menu"
-                    aria-orientation="vertical"
-                    aria-labelledby="filter-options-menu"
-                >
-                    <div class="py-1 has-[:checked]:border-sky-500" role="list">
-                        {% if fields %} {% for field, field_name in fields.items() %}
-                        <label
-                            class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                            role="menuitem"
-                        >
-                            <input
-                                type="checkbox"
-                                name="filter_field"
-                                value="{{ field }}"
-                                class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                            />
-                            {{ field_name }}
-                        </label>
-                        {% endfor %} {% endif %}
-                    </div>
-                </div>
-            </div>
+            
             <div class="group relative inline-block text-left">
                 <button
                     type="button"
@@ -389,7 +339,7 @@
             <a
                 id="prev"
                 class="inline-flex items-center justify-center rounded border px-3 py-2 text-black"
-                href="/search?page={{ pagination.prev }}{{ combined_query if combined_query else ''}}"
+                href="/search?page={{ pagination.prev }}"
             >
                 Previous
             </a>
@@ -397,7 +347,7 @@
             <a
                 id="current"
                 class="inline-flex size-11 items-center justify-center rounded-lg border bg-black text-sm font-medium text-white transition-opacity duration-200 ease-in-out hover:opacity-90"
-                href="/search?page={{ pagination.current_page }}{{ combined_query if combined_query else ''}}"
+                href="/search?page={{ pagination.current_page }}"
                 >{{ pagination.current_page }}</a
             >
             {% elif not page %}
@@ -407,14 +357,14 @@
             <a
                 id="page"
                 class="inline-flex size-11 items-center justify-center rounded-lg border text-sm font-medium"
-                href="/search?page={{ page }}{{ combined_query if combined_query else ''}}"
+                href="/search?page={{ page }}"
                 >{{ page }}</a
             >
             {% endif %} {% endfor %} {% if pagination.has_next %}
             <a
                 id="next"
                 class="inline-flex items-center justify-center rounded border px-3 py-2 text-black"
-                href="/search?page={{ pagination.next }}{{ combined_query if combined_query else ''}}"
+                href="/search?page={{ pagination.next }}"
             >
                 Next
             </a>

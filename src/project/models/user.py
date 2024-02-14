@@ -14,7 +14,7 @@ from sqlalchemy.orm import Mapped, backref, mapped_column, relationship, validat
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..extensions import db
-from ..utils.enums import OauthProvider, Tier
+from ..utils.enums import OauthProvider, StatusType, Tier
 from ..utils.suggestion import geocode_location
 from .helpers import Country, Industry, Round
 
@@ -286,6 +286,35 @@ class UserPayment(db.Model):
             "subscription_id": self.subscription_id,
         }
         return subscription
+
+
+class Notification(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    msg: Mapped[str] = mapped_column(String, nullable=False)
+    button_text: Mapped[str] = mapped_column(String, nullable=False)
+    button_url: Mapped[str] = mapped_column(String, nullable=False)
+    destination: Mapped[str] = mapped_column(String, nullable=True, default="all")
+    status_type: Mapped[StatusType] = mapped_column(SQLEnum(StatusType), nullable=False, default=StatusType.SUCCESS)
+    is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC)
+    )
+
+    user: Mapped[User] = relationship(User, backref=backref("notifications", passive_deletes=True))
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<Notification {self.title}>"
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> Notification | None:
+        return db.session.scalar(db.select(Notification).where(Notification.user_id == user_id))
 
 
 class WaitlistCharge(db.Model):

@@ -2,7 +2,6 @@ const menus = [
     { menu: "user-menu", button: "user-menu-button" },
     { menu: "industry-options", button: "industry-options-menu" },
     { menu: "sorting-options", button: "sorting-options-menu" },
-    { menu: "filter-options", button: "filter-options-menu" },
     { menu: "round-options", button: "round-options-menu" },
     { menu: "country-options", button: "country-options-menu" },
 ];

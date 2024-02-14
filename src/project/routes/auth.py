@@ -10,7 +10,7 @@ from flask_login import (
 )
 
 from ..extensions import db, login_manager, oauth
-from ..models import Company, User, UserInfo, UserPayment
+from ..models import Company, Notification, User, UserInfo, UserPayment
 from ..utils.enums import OauthProvider, Status, StatusType
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
@@ -275,7 +275,7 @@ def onboarding():
         return redirect(url_for("auth.login"))
 
     if user_info.is_complete:
-        return redirect(url_for("auth.company_form"))
+        return redirect(url_for("auth.onboarding"))
 
     if request.method == "POST":
         first_name, last_name, username, company_name = (
@@ -304,6 +304,18 @@ def onboarding():
         user_info.is_complete = True
 
         db.session.commit()
+
+        # notification = Notification(
+        #     user_id=authenticated_user.id,
+        #     title="You have registered!",
+        #     msg="Add some more info to get better results!",
+        #     button_text="Go!",
+        #     button_url=url_for("auth.expanded_onboarding", _external=False),
+        #     status_type=StatusType.SUCCESS,
+        # )
+        # db.session.add(notification)
+        # db.session.commit()
+
         status = Status(
             StatusType.SUCCESS,
             "Add some more info to get better results!",
@@ -313,7 +325,7 @@ def onboarding():
             button_url=url_for("auth.expanded_onboarding", _external=False),
         )
 
-        return redirect(url_for("main.search", _external=False, **status))
+        return redirect(url_for("main.search", _external=False))
 
     return render_template(
         "auth/onboarding.html",

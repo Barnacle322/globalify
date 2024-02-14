@@ -163,7 +163,12 @@ def resend_verification_email(user_id):
 
     EmailVerification.deactivate_user_tokens(user_id)
     new_verification = create_verification_token(user_id)
-    send_event(email=user.email, event_type=Events.USER_COMPLETED_ONBOARDING, random_key=new_verification)
+    send_event(
+        "A new user has completed onboarding!",
+        email=user.email,
+        event_type=Events.USER_COMPLETED_ONBOARDING.value,
+        random_key=new_verification,
+    )
 
     return redirect(url_for("main.search"))
 
@@ -336,7 +341,7 @@ def onboarding():
 
     If the current user is anonymous, it redirects to the login page.
     If user_info is not found for the authenticated user, it redirects to the login page.
-    If user_info.is_complete is True, it redirects to the company_form route.
+    If user_info.is_complete is True, it redirects to the search route.
     If the request method is POST, it processes the onboarding form data and updates the user's information.
 
     """
@@ -352,7 +357,7 @@ def onboarding():
         return redirect(url_for("auth.login"))
 
     if user_info.is_complete:
-        return redirect(url_for("auth.company_form"))
+        return redirect(url_for("main.search"))
 
     if request.method == "POST":
         first_name, last_name, username, company_name = (
@@ -392,7 +397,10 @@ def onboarding():
 
         new_verification = create_verification_token(user_id=authenticated_user.id)
         send_event(
-            email=authenticated_user.email, event_type=Events.USER_COMPLETED_ONBOARDING, random_key=new_verification
+            "A new user has completed onboarding!",
+            email=authenticated_user.email,
+            event_type=Events.USER_COMPLETED_ONBOARDINGl.value,
+            random_key=new_verification,
         )
 
         return redirect(url_for("main.search", _external=False, **status))

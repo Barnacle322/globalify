@@ -1,4 +1,3 @@
-import datetime
 import os
 
 import requests
@@ -10,11 +9,10 @@ from flask_login import (
     logout_user,
 )
 
-from src.project.models.user import EmailVerification
-from src.project.utils.sendgrid_email import send_email
-
 from ..extensions import db, login_manager, oauth
 from ..models import Company, User, UserInfo, UserPayment
+from ..models.user import EmailVerification
+from ..utils.email_verification import create_verification_token, update_is_expired
 from ..utils.enums import OauthProvider, Status, StatusType
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
@@ -25,6 +23,7 @@ from ..utils.errors.error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
+from ..utils.sendgrid_email import send_email
 
 auth = Blueprint("auth", __name__)
 
@@ -89,38 +88,6 @@ def api_call(url: str, access_token: str):
     ).json()
 
     return response
-
-
-def update_is_expired(email_verification: EmailVerification):
-    """
-    Update the is_expired field of the email_verification object
-    based on the current time.
-
-    Args:
-        email_verification (EmailVerification): The email_verification object to update.
-    """
-    if not email_verification.is_expired:
-        expiration_time = email_verification.created_at + datetime.timedelta(minutes=5)
-
-        if datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC):
-            email_verification.is_expired = True
-            db.session.commit()
-
-
-def create_verification_token(user_id: int) -> str:
-    """
-    Create a verification token and store it in the EmailVerification table.
-
-    Args:
-        user_id (int): The ID of the user for whom the verification token is being created.
-
-    Returns:
-        str: The generated verification token.
-    """
-    verification = EmailVerification(user_id=user_id)
-    db.session.add(verification)
-    db.session.commit()
-    return verification.token
 
 
 @auth.route("/verify-email/")
@@ -428,7 +395,6 @@ def onboarding():
             button_url=url_for("auth.expanded_onboarding", _external=False),
         )
 
-        EmailVerification.deactivate_user_tokens(user_id=authenticated_user.id)
         new_verification = create_verification_token(user_id=authenticated_user.id)
         html_content = render_template("email/email_verify.html", uuid=new_verification)
         send_email(

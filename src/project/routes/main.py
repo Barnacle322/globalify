@@ -16,10 +16,9 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
-from src.project.models.helpers import Country, Industry, Round
-
 from ..extensions import db
 from ..models import Company, InvestmentFirm, Investor, Waitlist, WaitlistCharge
+from ..models.helpers import Country, Industry, Round
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html

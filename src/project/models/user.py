@@ -10,7 +10,8 @@ from flask_login import UserMixin
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship, validates
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..extensions import db
 from ..utils.enums import OauthProvider, Tier
@@ -119,47 +120,35 @@ class UserInfo(db.Model):
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
-    @property
-    def linkedin(self):
-        return self.linkedin_url
-
-    @property
-    def instagram(self):
-        return self.instagram_url
-
-    @property
-    def twitter(self):
-        return self.twitter_url
-
-    @linkedin.setter
-    def linkedin(self, linkedin) -> None:
+    @validates("linkedin_url")
+    def validate_linkedin(self, key, linkedin):
         if not linkedin:
-            self.linkedin_url = None
             return None
-        if re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
-            self.linkedin_url = linkedin
-        else:
-            raise ValueError("Invalid linkedin url.")
+        if not re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
+            raise ValueError(
+                "Invalid LinkedIn URL format. Ensure it follows the pattern: https://www.linkedin.com/in/username."
+            )
+        return linkedin
 
-    @instagram.setter
-    def instagram(self, instagram) -> None:
+    @validates("instagram_url")
+    def validate_instagram(self, key, instagram):
         if not instagram:
-            self.instagram_url = None
             return None
-        if re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
-            self.instagram_url = instagram
-        else:
-            raise ValueError("Invalid instagram url.")
+        if not re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
+            raise ValueError(
+                "Invalid Instagram URL format. Ensure it follows the pattern: https://www.instagram.com/username."
+            )
+        return instagram
 
-    @twitter.setter
-    def twitter(self, twitter) -> None:
+    @validates("twitter_url")
+    def validate_twitter(self, key, twitter):
         if not twitter:
-            self.twitter_url = None
             return None
-        if re.match(r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE):
-            self.twitter_url = twitter
-        else:
-            raise ValueError("Invalid twitter url.")
+        if not re.match(
+            r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE
+        ):
+            raise ValueError("Invalid Twitter URL format. Ensure it follows the pattern: https://twitter.com/username.")
+        return twitter
 
     def sanitize(self):
         """

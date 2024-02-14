@@ -20,9 +20,9 @@ def new_user_oauth(app):
             last_name="Doe",
             username="janedoe",
             user=user,
-            linkedin="https://linkedin.com/in/janedoe",
-            twitter="https://twitter.com/janedoe",
-            instagram="https://instagram.com/janedoe",
+            linkedin_url="https://linkedin.com/in/janedoe",
+            twitter_url="https://twitter.com/janedoe",
+            instagram_url="https://instagram.com/janedoe",
             bio="I'm a cool person",
         )
         user_payment = UserPayment(
@@ -99,9 +99,9 @@ def test_user_info(new_user_oauth, app):
         assert user_info.first_name == "John"
         assert user_info.last_name == "Doe"
         assert user_info.username == "johndoe"
-        assert user_info.linkedin == "https://linkedin.com/in/johndoe"
-        assert user_info.twitter == "https://twitter.com/johndoe"
-        assert user_info.instagram == "https://instagram.com/johndoe"
+        assert user_info.linkedin_url == "https://linkedin.com/in/johndoe"
+        assert user_info.twitter_url == "https://twitter.com/johndoe"
+        assert user_info.instagram_url == "https://instagram.com/johndoe"
         assert user_info.bio == "I'm a cool person"
         assert user_info.picture_url is None
 

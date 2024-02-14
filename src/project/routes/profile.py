@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, render_template
+from flask import Blueprint, abort, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
 from ..models import Company, User, UserInfo
@@ -31,6 +31,7 @@ def user_profile(user_id):
 
 @profile.route("/company/<int:user_id>/", methods=["GET", "POST"])
 @check_verification
+@login_required
 def company(user_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 

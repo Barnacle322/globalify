@@ -160,7 +160,7 @@ def delete_account():
 @login_required
 @check_user_info_complete
 @check_verification
-def company():
+def change_company_info():
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -181,22 +181,17 @@ def company():
         if company_name and company_name.strip() != company.name:
             if company_name == " ":
                 status = Status(StatusType.ERROR, "Company name cannot be empty.").get_status()
-                return redirect(url_for("settings.company", _external=False, **status))
+                return redirect(url_for("settings.change_company_info", _external=False, **status))
             company.name = company_name.strip()
 
         preferred_round_id = request.form.get("round", type=int)
         industry_id = request.form.get("industry", type=int)
-        print(industry_id)
-
-        if not industry_id:
-            status = Status(StatusType.ERROR, "Industry ID is required.").get_status()
-            return redirect(url_for("settings.company", _external=False, **status))
 
         if not preferred_round_id or not industry_id:
             status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
             return redirect(
                 url_for(
-                    "settings.company",
+                    "settings.change_company_info",
                     _external=False,
                     **status,
                 )
@@ -205,7 +200,7 @@ def company():
         country_id = request.form.get("country", type=int)
         if not country_id:
             status = Status(StatusType.ERROR, "Country ID is required.").get_status()
-            return redirect(url_for("settings.company", _external=False, **status))
+            return redirect(url_for("settings.change_company_info", _external=False, **status))
 
         company.description = request.form.get("description", "").strip()
         company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
@@ -219,7 +214,7 @@ def company():
         status = Status(StatusType.SUCCESS, "Company successfully changed.").get_status()
         return redirect(
             url_for(
-                "settings.company",
+                "settings.change_company_info",
                 _external=False,
                 **status,
             )

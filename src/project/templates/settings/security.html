@@ -6,7 +6,7 @@
     function handleUpgradeClick(link) {
         if (!upgradeLinkClicked) {
             upgradeLinkClicked = true;
-            link.classList.add("opacity-50", "cursor-not-allowed");
+            link.classList.add("opacity-50", "pointer-events-none");
             return true;
         } else {
             return false;

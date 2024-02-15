@@ -7,13 +7,13 @@ from sqlite3 import Connection as SQLite3Connection
 from uuid import uuid4
 
 from flask_login import UserMixin
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, event
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship, validates
 
 from ..extensions import db
-from ..utils.enums import OauthProvider, StatusType, Tier
+from ..utils.enums import NotificationDestination, OauthProvider, Tier
 from ..utils.suggestion import geocode_location
 from .helpers import Country, Industry, Round
 
@@ -289,15 +289,11 @@ class UserPayment(db.Model):
 
 class Notification(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    json_data: Mapped[dict] = mapped_column(JSON, nullable=True, default={})
+    destination: Mapped[NotificationDestination] = mapped_column(
+        SQLEnum(NotificationDestination), nullable=True, default=NotificationDestination.SEARCH
     )
-    title: Mapped[str] = mapped_column(String, nullable=False)
-    msg: Mapped[str] = mapped_column(String, nullable=False)
-    button_text: Mapped[str] = mapped_column(String, nullable=False)
-    button_url: Mapped[str] = mapped_column(String, nullable=False)
-    destination: Mapped[str] = mapped_column(String, nullable=True, default="all")
-    status_type: Mapped[StatusType] = mapped_column(SQLEnum(StatusType), nullable=False, default=StatusType.SUCCESS)
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC)
@@ -309,11 +305,55 @@ class Notification(db.Model):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Notification {self.title}>"
+        return f"<Notification {self.created_at}>"
+
+    @staticmethod
+    def create_notification(
+        user_id: int,
+        title: str,
+        msg: str,
+        destination: NotificationDestination,
+        icon_url: str = "",
+        button_text: str = "",
+        button_url: str = "",
+    ):
+        notification = Notification(
+            user_id=user_id,
+            json_data={
+                "title": title,
+                "msg": msg,
+                "button_text": button_text,
+                "button_url": button_url,
+                "icon_url": icon_url,
+            },
+            destination=destination,
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return notification
+
+    @classmethod
+    def get_by_id(cls, id: int) -> Notification | None:
+        return db.session.scalar(db.select(cls).where(cls.id == id))
 
     @staticmethod
     def get_by_user_id(user_id: int) -> Notification | None:
         return db.session.scalar(db.select(Notification).where(Notification.user_id == user_id))
+
+    @staticmethod
+    def get_notification_for_view(
+        user_id: int, destination: NotificationDestination, is_read: bool = False
+    ) -> Notification | None:
+        return (
+            db.session.query(Notification)
+            .filter(
+                Notification.user_id == user_id,
+                Notification.destination == destination,
+                Notification.is_read == is_read,
+            )
+            .order_by(desc(Notification.created_at))
+            .first()
+        )
 
 
 class WaitlistCharge(db.Model):

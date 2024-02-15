@@ -16,7 +16,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
-from src.project.models.helpers import Industry, Round
+from src.project.models.helpers import Country, Industry, Round
 
 from ..extensions import db
 from ..models import Company, InvestmentFirm, Investor, Waitlist, WaitlistCharge
@@ -260,6 +260,7 @@ def search():
 
     query_by = [
         "location",
+        "country",
         "rounds",
         "industries",
         "embedding",
@@ -291,11 +292,10 @@ def search():
 
     max_investment = request.args.get("max_investment", type=int)
 
-    # ToDo: fix it
-    # countries = []
-    # for country_name in request.args.getlist("country"):
-    #     if country_object := Country.get_by_name(country_name):
-    #         countries.append(country_object.name)
+    countries = []
+    for country_name in request.args.getlist("country"):
+        if country_object := Country.get_by_name(country_name):
+            countries.append(country_object.name)
 
     result = Investor.get_search(
         query_string=search_string,
@@ -310,7 +310,7 @@ def search():
         max_investment=max_investment,
         page=page,
         per_page=12,
-        # countries=countries,
+        countries=countries,
     )
 
     investors = result.get("investors")

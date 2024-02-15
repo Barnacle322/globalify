@@ -496,14 +496,13 @@ class Investor(db.Model):
         try:
             builder = (
                 SearchBuilder()
-                .with_sort(sort_by, sort_desc)
-                .with_query(query_string)
-                .with_query_by(query_by)
-                .with_filter_by_investment_range(min_investment, max_investment)
-                .with_filter_by_rounds(rounds, rounds_exclusive)
-                .with_filter_by_industries(industries, industries_exclusive)
-                .with_filter_by_countries(countries)
-                .with_sort(sort_by, sort_desc)
+                .query(query_string)
+                .query_by(query_by)
+                .filter_by_investment_range(min_investment, max_investment)
+                .filter_by_rounds(rounds, rounds_exclusive)
+                .filter_by_industries(industries, industries_exclusive)
+                .filter_by_countries(countries)
+                .sort_by(sort_by, sort_desc)
                 .build()
             )
             builder.update({"page": page, "per_page": per_page})
@@ -995,6 +994,7 @@ class Investor(db.Model):
                     {"name": "min_investment", "type": "int32", "optional": True, "sort": True},
                     {"name": "max_investment", "type": "int32", "optional": True, "sort": True},
                     {"name": "location", "type": "string", "facet": True, "optional": True},
+                    {"name": "country", "type": "string", "facet": True, "optional": True},
                     {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
                     {"name": "industries", "type": "string[]", "facet": True, "optional": True},
                     {"name": "notable_investments", "type": "string[]", "optional": True},

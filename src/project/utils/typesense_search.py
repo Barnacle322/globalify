@@ -22,7 +22,7 @@ class SearchBuilder:
         self.parameters = {}
         self.filters = []
 
-    def with_query(self, query: str):
+    def query(self, query: str):
         """
         Sets the query parameter.
 
@@ -32,7 +32,7 @@ class SearchBuilder:
         self.parameters["q"] = query
         return self
 
-    def with_query_by(self, fields: list[str], weights: list[int] | None = None):
+    def query_by(self, fields: list[str], weights: list[int] | None = None):
         """
         Sets the query_by and query_by_weights parameters.
 
@@ -50,7 +50,7 @@ class SearchBuilder:
             self.parameters["query_by_weights"] = ",".join(str(weight) for weight in weights)
         return self
 
-    def with_filter_by_rounds(self, rounds: list[str] | None, exclusivity: bool = True):
+    def filter_by_rounds(self, rounds: list[str] | None, exclusivity: bool = True):
         if rounds:
             if exclusivity:
                 for round in rounds:
@@ -59,7 +59,7 @@ class SearchBuilder:
                 self.filters.append(f'rounds:=[{",".join(rounds)}]')
         return self
 
-    def with_filter_by_industries(self, industries: list[str] | None, exclusivity: bool = True):
+    def filter_by_industries(self, industries: list[str] | None, exclusivity: bool = True):
         if industries:
             if exclusivity:
                 for industry in industries:
@@ -68,7 +68,7 @@ class SearchBuilder:
                 self.filters.append(f'industries:=[{",".join(industries)}]')
         return self
 
-    def with_filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
+    def filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
         # if min_investment:
         #     self.filters.append(f"min_investment:>{min_investment}")
         # if max_investment:
@@ -81,16 +81,16 @@ class SearchBuilder:
             self.filters.append(f"min_investment:<={max_investment}")
         return self
 
-    def with_filter_by_countries(self, countries: list[str] | None):
+    def filter_by_countries(self, countries: list[str] | None):
         if countries:
             if len(countries) > 1:
-                self.filters.append(f"countries: [{", ".join(countries)}]")
+                self.filters.append(f"country: [{", ".join(countries)}]")
             else:
-                self.filters.append(f"countries: {countries[0]}")
+                self.filters.append(f"country: {countries[0]}")
 
         return self
 
-    def with_sort(self, sort_by: str | None, sort_desc: bool | None):
+    def sort_by(self, sort_by: str | None, sort_desc: bool | None):
         """
         Sets the sort_by parameter.
 
@@ -112,7 +112,7 @@ class SearchBuilder:
             return self
         return self
 
-    def with_pinned_hits(self, hits: list[tuple[str, int]]):
+    def pinned_hits(self, hits: list[tuple[str, int]]):
         """
         Sets the pinned_hits parameter.
 
@@ -125,7 +125,7 @@ class SearchBuilder:
         self.parameters["pinned_hits"] = ",".join(f"{record_id}:{position}" for record_id, position in hits)
         return self
 
-    def with_hidden_hits(self, hits: list[str]):
+    def hidden_hits(self, hits: list[str]):
         """
         Sets the hidden_hits parameter.
 
@@ -138,7 +138,7 @@ class SearchBuilder:
         self.parameters["hidden_hits"] = ",".join(hits)
         return self
 
-    def with_group_by(self, fields: list[str]):
+    def group_by(self, fields: list[str]):
         """
         Sets the group_by parameter.
 
@@ -151,7 +151,7 @@ class SearchBuilder:
         self.parameters["group_by"] = ",".join(fields)
         return self
 
-    def with_page(self, page: int):
+    def page(self, page: int):
         """
         Sets the page parameter.
 
@@ -161,7 +161,7 @@ class SearchBuilder:
         self.parameters["page"] = page
         return self
 
-    def with_per_page(self, per_page: int):
+    def per_page(self, per_page: int):
         """
         Sets the per_page parameter.
 
@@ -249,6 +249,7 @@ def setup():
             {"name": "min_investment", "type": "int32", "optional": True, "sort": True},
             {"name": "max_investment", "type": "int32", "optional": True, "sort": True},
             {"name": "location", "type": "string", "facet": True, "optional": True},
+            {"name": "country", "type": "string", "facet": True, "optional": True},
             {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
             {"name": "industries", "type": "string[]", "facet": True, "optional": True},
             {"name": "notable_investments", "type": "string[]", "optional": True},

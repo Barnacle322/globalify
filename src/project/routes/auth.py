@@ -14,7 +14,9 @@ from src.project.models.helpers import Country, Industry, Round
 
 from ..extensions import db, login_manager, oauth
 from ..models import Company, User, UserInfo, UserPayment
-from ..utils.enums import OauthProvider, Status, StatusType
+from ..models.user import EmailVerification
+from ..utils.email_verification import create_verification_token, update_is_expired
+from ..utils.enums import Events, OauthProvider, Status, StatusType
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
     AUTH_USERNAME_USED,
@@ -24,6 +26,7 @@ from ..utils.errors.error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
+from ..utils.google_pubsub import send_event
 
 auth = Blueprint("auth", __name__)
 
@@ -57,7 +60,6 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
 
     Raises:
         Exception: If the user exists but the OAuth provider is different.
-
     """
     user = User.get_by_email(email)
     if not user:
@@ -82,7 +84,6 @@ def api_call(url: str, access_token: str):
 
     Returns:
         dict: The JSON response from the API call.
-
     """
     response = requests.get(
         url,
@@ -90,6 +91,89 @@ def api_call(url: str, access_token: str):
     ).json()
 
     return response
+
+
+@auth.route("/verify-email/")
+def verify_email():
+    """
+    Handles the email verification process using the provided token.
+
+    If the token is not found, renders a template with an error message.
+    If the token is expired, renders a template indicating that the verification has expired.
+    If the user does not exist, aborts the request with a 404 error.
+    If the user is already verified, renders a template indicating that the user is already verified.
+
+    Args:
+        token (str): The verification token received by the user.
+    """
+    token = request.args.get("uuid", "")
+
+    email_verification = EmailVerification.get_by_token(token)
+
+    if not email_verification:
+        return render_template("errors/email_verification/invalid_token.html")
+
+    if email_verification.is_used:
+        return render_template("errors/email_verification/already_used.html")
+
+    user = User.get_by_id(email_verification.user_id)
+
+    if not user:
+        status = Status(StatusType.ERROR, "User not found.").get_status()
+        return redirect(url_for("auth.login", _external=False, **status))
+
+    if user.is_verified:
+        return render_template("errors/email_verification/already_verified.html")
+
+    if email_verification.is_expired:
+        return render_template(
+            "errors/email_verification/verification_expired.html", user_id=email_verification.user_id
+        )
+
+    update_is_expired(email_verification)
+
+    user.is_verified = True
+    email_verification.is_used = True
+    db.session.commit()
+
+    return render_template("verification_success.html")
+
+
+@auth.route("/resend-verification/<user_id>")
+@login_required
+def resend_verification_email(user_id):
+    """
+    Resends the email verification for a user with the given user ID.
+
+    If the user is found:
+       a. Checks if the user is not already verified.
+       b. Deletes any existing EmailVerification records for the user from the database.
+       c. Creates a new EmailVerification record for the user.
+       d. Sends an email containing a verification link to the user.
+    If the user is already verified, renders a template indicating that the user is already verified.
+    If the user is not found, aborts the request with a 404 error.
+
+    Args:
+        user_id (str): The user ID for which to resend the email verification.
+    """
+    user = User.get_by_id(user_id)
+    if not user:
+        status = Status(StatusType.ERROR, "User not found.").get_status()
+        return redirect(url_for("auth.login", _external=False, **status))
+
+    if user.is_verified:
+        return render_template("errors/email_verification/already_verified.html")
+
+    EmailVerification.deactivate_user_tokens(user_id)
+    new_verification = create_verification_token(user_id)
+    send_event(
+        "A new user has completed onboarding!",
+        email=user.email,
+        event_type=Events.USER_COMPLETED_ONBOARDING.value,
+        random_key=new_verification,
+    )
+
+    return redirect(url_for("main.search"))
 
 
 @auth.route("/login", methods=["GET", "POST"])
@@ -118,8 +202,6 @@ def linkedin_callback():
     Makes API calls to retrieve the user's email and personal info from LinkedIn.
     Creates or updates the user and user info records in the database.
     Logs in the user and redirects to the appropriate page.
-
-
     """
     # BUG: For some reason client_secret is not being passed during
     # app initialization. Hardcoding it for now.
@@ -262,7 +344,7 @@ def onboarding():
 
     If the current user is anonymous, it redirects to the login page.
     If user_info is not found for the authenticated user, it redirects to the login page.
-    If user_info.is_complete is True, it redirects to the company_form route.
+    If user_info.is_complete is True, it redirects to the search route.
     If the request method is POST, it processes the onboarding form data and updates the user's information.
 
     """
@@ -321,6 +403,14 @@ def onboarding():
             title="You have registered!",
             button_text="Go!",
             button_url=url_for("auth.expanded_onboarding", _external=False),
+        )
+
+        new_verification = create_verification_token(user_id=authenticated_user.id)
+        send_event(
+            "A new user has completed onboarding!",
+            email=authenticated_user.email,
+            event_type=Events.USER_COMPLETED_ONBOARDING.value,
+            random_key=new_verification,
         )
 
         return redirect(url_for("main.search", _external=False, **status))

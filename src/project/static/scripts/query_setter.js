@@ -7,6 +7,7 @@ window.onload = function () {
         "descending",
         "rounds_exclusive",
         "industries_exclusive",
+        "country",
     ];
     paramsArray.forEach((param) => {
         setCheckedValuesFromParams(param);

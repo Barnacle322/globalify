@@ -18,9 +18,11 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import Company, InvestmentFirm, Investor, Waitlist, WaitlistCharge
+from ..models.helpers import Country, Industry, Round
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
-from ..utils.suggestion import pass_score
+from ..utils.parse_medium import parse_medium_html
+from ..utils.suggestion import WEIGHTS
 
 main = Blueprint("main", __name__)
 
@@ -42,10 +44,8 @@ def check_verification(func):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
-        # TODO
         elif not current_user.is_verified:  # type: ignore
-            # return redirect(url_for("auth.verify"))
-            pass
+            return render_template("verify_email.html", user_id=current_user.id)
         return func(*args, **kwargs)
 
     return decorated_function
@@ -66,7 +66,7 @@ def construct_query_string(**kwargs):
 @main.get("/")
 def index():
     # TODO: Turned off for better performance
-    # posts = parse_medium_html()
+    posts = parse_medium_html()
     posts = []
     return render_template("coming_soon.html", posts=posts)
 
@@ -145,7 +145,7 @@ def post_download():
     )
 
 
-@main.route("/dashboard/suggestions")
+@main.route("/suggestions")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -154,20 +154,72 @@ def get_suggestions():
 
     investors = Investor.get_all()
 
-    scored_investors = [(investor, investor.calculate_score(company)) for investor in investors]
+    scored_investors = []
+
+    for investor in investors:
+        bias_score = investor.calculate_bias_score()
+        location_score = investor.calculate_location_score(company)
+        exits_score = investor.calculate_exits_score()
+        industry_score = investor.calculate_industry_score(company)
+        round_score = investor.calculate_round_score(company)
+        completeness_score = investor.calculate_completeness_score()
+
+        total_score = (
+            WEIGHTS["bias"] * bias_score
+            + WEIGHTS["location"] * location_score
+            + WEIGHTS["exits"] * exits_score
+            + WEIGHTS["industry"] * industry_score
+            + WEIGHTS["round"] * round_score
+            + WEIGHTS["completeness"] * completeness_score
+        )
+        scored_investors.append((investor, total_score))
 
     suggested_investors = sorted(
-        (investor for investor in scored_investors if investor[1] >= pass_score),
+        (investor for investor in scored_investors),
         key=lambda investor: investor[1],
         reverse=True,
     )
 
-    sorted_investors = [investor[0] for investor in suggested_investors]
+    sorted_investors = [investor[0] for investor in suggested_investors][:15]
 
     return render_template(
         "suggestions.html",
         investors=sorted_investors,
     )
+
+
+def generate_pagination(current_page: int, total_pages: int, around_count: int = 2) -> dict:
+    """
+    Generate a pagination dictionary.
+
+    Args:
+        current_page (int): The current page number.
+        total_pages (int): The total number of pages.
+        around_count (int, optional): The number of pages to show around the current page. Defaults to 4.
+
+    Returns:
+        dict: A dictionary with keys 'current_page', 'prev', 'next', and 'pages'.
+    """
+    # Calculate all the page ranges
+    start_pages = range(1, min(3, total_pages + 1))
+    around_pages = range(max(1, current_page - around_count), min(current_page + around_count + 1, total_pages + 1))
+    end_pages = range(max(current_page + around_count + 1, total_pages - 1), total_pages + 1)
+
+    # Build the pages list
+    pages = list(start_pages)
+    if pages[-1] is not None and around_pages and around_pages[0] - pages[-1] > 1:
+        pages.append(0)
+    pages.extend(p for p in around_pages if p not in pages)
+    if pages[-1] is not None and end_pages and end_pages[0] - pages[-1] > 1:
+        pages.append(0)
+    pages.extend(p for p in end_pages if p not in pages)
+
+    return {
+        "current_page": current_page,
+        "prev": max(1, current_page - 1),
+        "next": min(current_page + 1, total_pages),
+        "pages": pages,
+    }
 
 
 @main.route("/search", methods=["GET", "POST"])
@@ -184,13 +236,91 @@ def search():
         button_url = query.get("button_url")
         status = {"type": status_type, "msg": msg, "title": title, "button_text": button_text, "button_url": button_url}
 
-    page = request.args.get("page", 1, type=int)
     if request.method == "POST":
         search_string = request.form.get("search", "")
-        investors = Investor.get_search(query_string=search_string, page=page, per_page=250)
 
-        return render_template("search.html", investors=investors, query=search_string)
-    return render_template("search.html", investors=[], status=status)
+        # query_by = request.form.getlist("query_by")
+        query_by = [
+            "location",
+            "rounds",
+            "industries",
+            "embedding",
+            "notable_investments",
+            "name",
+            "firm_name",
+            "position",
+        ]
+
+        # sort_by = request.args.get("sort_field", "")
+        sort_by = None
+
+        # sort_desc = request.args.get("descending", False, type=bool)
+        sort_desc = False
+
+        # rounds = []
+        # for round_name in request.args.getlist("round"):
+        #     if round_object := Round.get_by_name(round_name):
+        #         rounds.append(round_object.name)
+        rounds = ["Seed", "Series C"]
+        # rounds = []
+
+        # industries = []
+        # for industry_name in request.args.getlist("industry"):
+        #     if industry_object := Industry.get_by_name(industry_name):
+        #         industries.append(industry_object.name)
+        # industries = ["FinTech", "AI", "Cloud", "SaaS", "InsureTech"]
+        industries = []
+
+        # rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
+        rounds_exclusive = False
+
+        # industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
+        industries_exclusive = True
+
+        # min_investment = request.args.get("min_investment", type=int)
+        min_investment = None
+
+        # max_investment = request.args.get("max_investment", type=int)
+        max_investment = None
+
+        countries = []
+        for country_name in request.args.getlist("country"):
+            if country_object := Country.get_by_name(country_name):
+                countries.append(country_object.name)
+
+        result = Investor.get_search(
+            query_string=search_string,
+            query_by=query_by,
+            sort_by=sort_by,
+            sort_desc=sort_desc,
+            rounds=rounds,
+            industries=industries,
+            rounds_exclusive=rounds_exclusive,
+            industries_exclusive=industries_exclusive,
+            min_investment=min_investment,
+            max_investment=max_investment,
+            # countries=countries,
+        )
+
+        investors = result.get("investors")
+        pagination = generate_pagination(1, 25)
+
+        return render_template(
+            "search.html",
+            investors=investors,
+            query=search_string,
+            pagination=pagination,
+            status=status,
+            industry_list=Industry.get_all(),
+            round_list=Round.get_all(),
+        )
+    return render_template(
+        "search.html",
+        investors=[],
+        status=status,
+        industry_list=Industry.get_all(),
+        round_list=Round.get_all(),
+    )
 
 
 @main.route("/investor/<int:investor_id>")

@@ -10,7 +10,7 @@ from flask_login import UserMixin
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship, validates
 
 from ..extensions import db
 from ..utils.enums import OauthProvider, Tier
@@ -119,47 +119,35 @@ class UserInfo(db.Model):
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
-    @property
-    def linkedin(self):
-        return self.linkedin_url
-
-    @property
-    def instagram(self):
-        return self.instagram_url
-
-    @property
-    def twitter(self):
-        return self.twitter_url
-
-    @linkedin.setter
-    def linkedin(self, linkedin) -> None:
+    @validates("linkedin_url")
+    def validate_linkedin(self, key, linkedin):
         if not linkedin:
-            self.linkedin_url = None
             return None
-        if re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
-            self.linkedin_url = linkedin
-        else:
-            raise ValueError("Invalid linkedin url.")
+        if not re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
+            raise ValueError(
+                "Invalid LinkedIn URL format. Ensure it follows the pattern: https://www.linkedin.com/in/username."
+            )
+        return linkedin
 
-    @instagram.setter
-    def instagram(self, instagram) -> None:
+    @validates("instagram_url")
+    def validate_instagram(self, key, instagram):
         if not instagram:
-            self.instagram_url = None
             return None
-        if re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
-            self.instagram_url = instagram
-        else:
-            raise ValueError("Invalid instagram url.")
+        if not re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
+            raise ValueError(
+                "Invalid Instagram URL format. Ensure it follows the pattern: https://www.instagram.com/username."
+            )
+        return instagram
 
-    @twitter.setter
-    def twitter(self, twitter) -> None:
+    @validates("twitter_url")
+    def validate_twitter(self, key, twitter):
         if not twitter:
-            self.twitter_url = None
             return None
-        if re.match(r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE):
-            self.twitter_url = twitter
-        else:
-            raise ValueError("Invalid twitter url.")
+        if not re.match(
+            r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE
+        ):
+            raise ValueError("Invalid Twitter URL format. Ensure it follows the pattern: https://twitter.com/username.")
+        return twitter
 
     def sanitize(self):
         """
@@ -299,6 +287,65 @@ class UserPayment(db.Model):
         return subscription
 
 
+class EmailVerification(db.Model):
+    """
+    Represents email verification information.
+
+    Attributes:
+        id (int): The verification ID.
+        user_id (int): The ID of the user associated with the verification.
+        token (str): The unique token generated for email verification.
+        created_at (datetime.datetime): The date and time when the verification was created.
+    """
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    token: Mapped[str] = mapped_column(String, nullable=False, default=lambda: str(uuid4()))
+    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC)
+    )
+    is_expired: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<EmailVerification token created at {self.created_at}"
+
+    @staticmethod
+    def deactivate_user_tokens(user_id: int) -> None:
+        """
+        Set is_expired=True for all EmailVerification records associated with the given user_id.
+
+        Args:
+            user_id (int): The ID of the user for whom to set EmailVerification records as expired.
+        """
+        try:
+            # EmailVerification.query.filter_by(user_id=user_id).update({EmailVerification.is_expired: True})
+            email_verifications = db.session.scalars(
+                db.select(EmailVerification).where(EmailVerification.user_id == user_id)
+            ).all()
+            for email_verification in email_verifications:
+                email_verification.is_expired = True
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    @staticmethod
+    def get_by_token(token: str) -> EmailVerification | None:
+        """
+        Retrieves an email verification record by token.
+
+        Args:
+            token (str): The verification token.
+
+        Returns:
+            EmailVerification | None: The email verification record or None if not found.
+        """
+        return db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
+
+
 class WaitlistCharge(db.Model):
     """
     Represents a waitlist charge.
@@ -411,7 +458,7 @@ class Company(db.Model):
 
     @coordinates.setter
     def coordinates(self, coordinates: str) -> None:
-        self._coordinates = geocode_location(coordinates)  # type: ignore
+        self._coordinates = geocode_location(coordinates)["coordinates"]  # type: ignore
 
     @staticmethod
     def get_by_id(id: int) -> Company | None:

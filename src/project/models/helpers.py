@@ -129,6 +129,10 @@ class Country(db.Model):
         return db.session.scalar(db.select(Country).filter(Country.id == id))
 
     @staticmethod
+    def get_by_name(name: str) -> Country | None:
+        return db.session.scalar(db.select(Country).filter(Country.name == name))
+
+    @staticmethod
     def populate() -> None:
         try:
             country_list: list[Country] = []

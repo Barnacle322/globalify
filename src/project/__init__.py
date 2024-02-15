@@ -4,7 +4,7 @@ from datetime import timedelta
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
+from .extensions import csrf, db, login_manager, migrate, oauth
 from .routes.auth import auth
 from .routes.main import (
     bad_request,

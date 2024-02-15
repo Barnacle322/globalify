@@ -11,7 +11,6 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship, validates
-from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..extensions import db
 from ..utils.enums import OauthProvider, StatusType, Tier

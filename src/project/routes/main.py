@@ -16,7 +16,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
-from src.project.models.helpers import Country, Industry, Round
+from src.project.models.helpers import Industry, Round
 
 from ..extensions import db
 from ..models import Company, InvestmentFirm, Investor, Waitlist, WaitlistCharge
@@ -309,7 +309,7 @@ def search():
         min_investment=min_investment,
         max_investment=max_investment,
         page=page,
-        per_page=2,
+        per_page=12,
         # countries=countries,
     )
 

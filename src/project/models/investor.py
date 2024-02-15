@@ -25,7 +25,7 @@ from ..utils.fake_data import (
     get_websites,
 )
 from ..utils.suggestion import geocode_location
-from ..utils.typesense_search import SearchBuilder, create_schema, delete_schema, search, upsert_documents
+from ..utils.typesense_search import SearchBuilder, client, create_schema, delete_schema, upsert_documents
 from .helpers import Industry, Round
 
 
@@ -87,9 +87,7 @@ class QueryBuilder:
         if sort_field and hasattr(self.cls, sort_field):
             alias = self.cls
             column = getattr(alias, sort_field)
-            self.base_query = (
-                self.base_query.order_by(desc(column)) if descending else self.base_query.order_by(column)
-            )
+            self.base_query = self.base_query.order_by(desc(column)) if descending else self.base_query.order_by(column)
 
         return self
 
@@ -491,31 +489,30 @@ class Investor(db.Model):
         industries_exclusive: bool = False,
         min_investment: int | None = None,
         max_investment: int | None = None,
+        countries: list[str] | None = None,
         per_page: int = 12,
         page: int = 1,
     ):
-        # try:
-        builder = (
-            SearchBuilder()
-            .with_sort(sort_by, sort_desc)
-            .with_query(query_string)
-            .with_query_by(query_by)
-            .with_filter_by_investment_range(min_investment, max_investment)
-            .with_filter_by_rounds(rounds, rounds_exclusive)
-            .with_filter_by_industries(industries, industries_exclusive)
-            .build()
-        )
-        results = search(
-            collection="investors",
-            q=builder["q"],
-            query_by=builder["query_by"],
-            filter_by=builder.get("filter_by"),
-            sort_by="",
-            page=page,
-            per_page=per_page,
-        )
-        # except Exception:
-            # results = {}
+        try:
+            builder = (
+                SearchBuilder()
+                .with_sort(sort_by, sort_desc)
+                .with_query(query_string)
+                .with_query_by(query_by)
+                .with_filter_by_investment_range(min_investment, max_investment)
+                .with_filter_by_rounds(rounds, rounds_exclusive)
+                .with_filter_by_industries(industries, industries_exclusive)
+                .with_filter_by_countries(countries)
+                .with_sort(sort_by, sort_desc)
+                .build()
+            )
+            builder.update({"page": page, "per_page": per_page})
+
+            results = client.collections["investors"].documents.search(builder)
+        except Exception as e:
+            print(e)
+            results = {"found": 0, "page": 1, "per_page": 12, "hits": []}
+            return results
 
         found = results.get("found", 0)
         page = results.get("page", 1)
@@ -539,6 +536,7 @@ class Investor(db.Model):
                     "min_investment": hit.get("document", {}).get("min_investment", 0),
                     "max_investment": hit.get("document", {}).get("max_investment", 0),
                     "location": hit.get("document", {}).get("location", ""),
+                    "_country": hit.get("document", {}).get("country", ""),
                     "rounds": hit.get("document", {}).get("rounds", []),
                     "industries": hit.get("document", {}).get("industries", []),
                     "notable_investments": hit.get("document", {}).get("notable_investments", []),
@@ -546,69 +544,69 @@ class Investor(db.Model):
             )
         return {"investors": investor_list, "found": found, "pages": pages, "page": page}
 
-    @classmethod
-    def get_pagination(
-        cls,
-        page: int = 1,
-        per_page: int = 10,
-        error_out: bool = False,
-        search_string: str = "",
-        filter_fields: list[str] | None = None,
-        rounds: list[Round] | None = None,
-        rounds_exclusive: bool = False,
-        industries: list[Industry] | None = None,
-        industries_exclusive: bool = False,
-        countries: list[str] | None = None,
-        min_investment: int | None = None,
-        max_investment: int | None = None,
-        sort_field: str | None = None,
-        descending: bool = False,
-        search_fields: tuple[str, ...] = ("first_name", "last_name", "firm_name", "position", "about"),
-        # company: Company | None = None,
-    ) -> Pagination | list[None]:
-        """
-        Get a paginated list of investors based on the provided filters.
+    # @classmethod
+    # def get_pagination(
+    #     cls,
+    #     page: int = 1,
+    #     per_page: int = 10,
+    #     error_out: bool = False,
+    #     search_string: str = "",
+    #     filter_fields: list[str] | None = None,
+    #     rounds: list[Round] | None = None,
+    #     rounds_exclusive: bool = False,
+    #     industries: list[Industry] | None = None,
+    #     industries_exclusive: bool = False,
+    #     countries: list[str] | None = None,
+    #     min_investment: int | None = None,
+    #     max_investment: int | None = None,
+    #     sort_field: str | None = None,
+    #     descending: bool = False,
+    #     search_fields: tuple[str, ...] = ("first_name", "last_name", "firm_name", "position", "about"),
+    #     # company: Company | None = None,
+    # ) -> Pagination | list[None]:
+    #     """
+    #     Get a paginated list of investors based on the provided filters.
 
-        Args:
-            page (int): The page number to retrieve (default: 1).
-            per_page (int): The number of investors per page (default: 12).
-            error_out (bool): Whether to raise an error if the requested page is out of range (default: False).
-            search_string (str): The search string to filter investors by (default: "").
-            filter_fields (list[str] | None): The fields to filter investors on (default: None).
-            rounds (list[Round] | None): The rounds to filter investors by (default: None).
-            rounds_exclusive (bool): Whether the rounds filter should be exclusive or inclusive (default: False).
-            industries (list[Industry] | None): The industries to filter investors by (default: None).
-            industries_exclusive (bool): Whether the industries filter should be exclusive or inclusive (default: False).
-            min_investment (int | None): The minimum investment amount to filter investors by (default: None).
-            max_investment (int | None): The maximum investment amount to filter investors by (default: None).
-            sort_field (str | None): The field to sort the investors by (default: None).
-            descending (bool): Whether to sort the investors in descending order (default: False).
-            search_fields (tuple[str, ...]): The fields to search for the search string in (default: ("first_name", "last_name", "firm_name", "position", "about")).
+    #     Args:
+    #         page (int): The page number to retrieve (default: 1).
+    #         per_page (int): The number of investors per page (default: 12).
+    #         error_out (bool): Whether to raise an error if the requested page is out of range (default: False).
+    #         search_string (str): The search string to filter investors by (default: "").
+    #         filter_fields (list[str] | None): The fields to filter investors on (default: None).
+    #         rounds (list[Round] | None): The rounds to filter investors by (default: None).
+    #         rounds_exclusive (bool): Whether the rounds filter should be exclusive or inclusive (default: False).
+    #         industries (list[Industry] | None): The industries to filter investors by (default: None).
+    #         industries_exclusive (bool): Whether the industries filter should be exclusive or inclusive (default: False).
+    #         min_investment (int | None): The minimum investment amount to filter investors by (default: None).
+    #         max_investment (int | None): The maximum investment amount to filter investors by (default: None).
+    #         sort_field (str | None): The field to sort the investors by (default: None).
+    #         descending (bool): Whether to sort the investors in descending order (default: False).
+    #         search_fields (tuple[str, ...]): The fields to search for the search string in (default: ("first_name", "last_name", "firm_name", "position", "about")).
 
-        Returns:
-            Pagination | list[None]: The paginated list of investors or an empty list if an exception occurs.
+    #     Returns:
+    #         Pagination | list[None]: The paginated list of investors or an empty list if an exception occurs.
 
-        """
-        try:
-            combined_query = (
-                QueryBuilder(
-                    db.select(Investor).options(joinedload(Investor.rounds), joinedload(Investor.industries)),
-                    cls,
-                )
-                .apply_search_filters(search_string, filter_fields, search_fields)
-                .apply_sorting(sort_field, descending)
-                .filter_by_rounds(rounds, rounds_exclusive)
-                .filter_by_industries(industries, industries_exclusive)
-                .filter_by_investment_range(min_investment, max_investment)
-                .filter_by_countries(countries)
-                .build()
-            )
-            investors = db.paginate(combined_query, page=page, per_page=per_page, error_out=error_out)
-            if investors.pages < page:
-                investors = db.paginate(combined_query, page=investors.pages, per_page=per_page, error_out=error_out)
-            return investors
-        except Exception:
-            return []
+    #     """
+    #     try:
+    #         combined_query = (
+    #             QueryBuilder(
+    #                 db.select(Investor).options(joinedload(Investor.rounds), joinedload(Investor.industries)),
+    #                 cls,
+    #             )
+    #             .apply_search_filters(search_string, filter_fields, search_fields)
+    #             .apply_sorting(sort_field, descending)
+    #             .filter_by_rounds(rounds, rounds_exclusive)
+    #             .filter_by_industries(industries, industries_exclusive)
+    #             .filter_by_investment_range(min_investment, max_investment)
+    #             .filter_by_countries(countries)
+    #             .build()
+    #         )
+    #         investors = db.paginate(combined_query, page=page, per_page=per_page, error_out=error_out)
+    #         if investors.pages < page:
+    #             investors = db.paginate(combined_query, page=investors.pages, per_page=per_page, error_out=error_out)
+    #         return investors
+    #     except Exception:
+    #         return []
 
     @staticmethod
     def get_by_id(id: int) -> Investor | None:
@@ -942,6 +940,7 @@ class Investor(db.Model):
                 investor_json["min_investment"] = investor.min_investment
                 investor_json["max_investment"] = investor.max_investment
                 investor_json["location"] = investor.location
+                investor_json["country"] = investor._country
                 investor_json["rounds"] = [round_.name for round_ in investor.rounds]
                 investor_json["industries"] = [industry.name for industry in investor.industries]
                 investor_json["notable_investments"] = [
@@ -970,6 +969,7 @@ class Investor(db.Model):
             investor_object["min_investment"] = investor.min_investment
             investor_object["max_investment"] = investor.max_investment
             investor_object["location"] = investor.location
+            investor_object["country"] = investor._country
             investor_object["rounds"] = [round_.name for round_ in investor.rounds]
             investor_object["industries"] = [industry.name for industry in investor.industries]
             investor_object["notable_investments"] = [
@@ -990,10 +990,10 @@ class Investor(db.Model):
                     {"name": "firm_name", "type": "string", "optional": True},
                     {"name": "about", "type": "string", "optional": True},
                     {"name": "position", "type": "string", "facet": True, "optional": True},
-                    {"name": "n_investments", "type": "int32", "optional": True},
-                    {"name": "n_exits", "type": "int32", "optional": True},
-                    {"name": "min_investment", "type": "int32", "optional": True},
-                    {"name": "max_investment", "type": "int32", "optional": True},
+                    {"name": "n_investments", "type": "int32", "optional": True, "sort": True},
+                    {"name": "n_exits", "type": "int32", "optional": True, "sort": True},
+                    {"name": "min_investment", "type": "int32", "optional": True, "sort": True},
+                    {"name": "max_investment", "type": "int32", "optional": True, "sort": True},
                     {"name": "location", "type": "string", "facet": True, "optional": True},
                     {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
                     {"name": "industries", "type": "string[]", "facet": True, "optional": True},
@@ -1023,7 +1023,6 @@ class Investor(db.Model):
             except Exception:
                 print("Schema does not exist")
             create_schema(investor_schema)
-
         result = upsert_documents("investors", data)
 
         objects = []

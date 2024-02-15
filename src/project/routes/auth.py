@@ -10,7 +10,7 @@ from flask_login import (
 )
 
 from ..extensions import db, login_manager, oauth
-from ..models import Company, Notification, User, UserInfo, UserPayment
+from ..models import Company, User, UserInfo, UserPayment
 from ..utils.enums import OauthProvider, Status, StatusType
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,

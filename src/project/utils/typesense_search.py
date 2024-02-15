@@ -69,76 +69,26 @@ class SearchBuilder:
         return self
 
     def with_filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
-        if min_investment:
-            self.filters.append(f"min_investment:>{min_investment}")
-        if max_investment:
-            self.filters.append(f"max_investment:<{max_investment}")
+        # if min_investment:
+        #     self.filters.append(f"min_investment:>{min_investment}")
+        # if max_investment:
+        #     self.filters.append(f"max_investment:<{max_investment}")
+        if min_investment and max_investment:
+            self.filters.append(f"min_investment:<={max_investment} && max_investment:>={min_investment}")
+        elif min_investment is not None:
+            self.filters.append(f"max_investment:>={min_investment}")
+        elif max_investment is not None:
+            self.filters.append(f"min_investment:<={max_investment}")
         return self
 
-    # def with_filter_by_rounds(self, rounds: list[str], rounds_exclusive: bool | None = False):
-    #     if rounds_exclusive and len(rounds) > 1:
-    #         conditions = []
-    #         for round in rounds:
-    #             conditions.append(f"rounds: {round}")
-    #         self.parameters["filter_by"] = " && ".join(conditions)
-    #     elif len(rounds) > 1:
-    #         self.parameters["filter_by"] = f"rounds: [{", ".join(rounds)}]"
-    #     else:
-    #         self.parameters["filter_by"] = f"rounds: {rounds[0]}"
+    def with_filter_by_countries(self, countries: list[str] | None):
+        if countries:
+            if len(countries) > 1:
+                self.filters.append(f"countries: [{", ".join(countries)}]")
+            else:
+                self.filters.append(f"countries: {countries[0]}")
 
-    #     return self
-
-    # def with_filter_by_industries(self, industries: list[str], industries_exclusive: bool | None = False):
-    #     if industries:
-    #         if self.parameters["filter_by"] is None:
-    #             if industries_exclusive and len(industries) > 1:
-    #                 conditions = []
-    #                 for industry in industries:
-    #                     conditions.append(f"industries: {industry}")
-    #                 self.parameters["filter_by"] = " && ".join(conditions)
-    #             elif len(industries) > 1:
-    #                 self.parameters["filter_by"] = f"industries: [{", ".join(industries)}]"
-    #             else:
-    #                 self.parameters["filter_by"] = f"industries: {industries[0]}"
-    #         else:
-    #             if industries_exclusive and len(industries) > 1:
-    #                 conditions = []
-    #                 for industry in industries:
-    #                     conditions.append(f"industries: {industry}")
-    #                 self.parameters["filter_by"] += " && " + " && ".join(conditions)
-    #             elif len(industries) > 1:
-    #                 self.parameters["filter_by"] += " && " + f"industries: [{", ".join(industries)}]"
-    #             else:
-    #                 self.parameters["filter_by"] += " && " + f"industries: {industries[0]}"
-    #     return self
-
-    # def with_filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
-    # if self.parameters["filter_by"] is None:
-    # if min_investment and max_investment:
-    #     self.parameters["filter_by"] = f"min_investment:<={max_investment} && max_investment:>={min_investment} && "
-    # elif min_investment is not None:
-    #     self.parameters["filter_by"] = f"max_investment:>={min_investment} && "
-    # elif max_investment is not None:
-    #     self.parameters["filter_by"] = f"min_investment:<={max_investment} && "
-    # else:
-    #     if min_investment and max_investment:
-    #         self.parameters["filter_by"] += (
-    #             " && " + f"min_investment:<={max_investment} && max_investment:>={min_investment}"
-    #         )
-    #     elif min_investment is not None:
-    #         self.parameters["filter_by"] += " && " + f"max_investment:>={min_investment}"
-    #     elif max_investment is not None:
-    #         self.parameters["filter_by"] += " && " + f"min_investment:<={max_investment}"
-
-    # return self
-
-    # def with_filter_by_countries(self, countries: list[str]):
-    #     if len(countries) > 1:
-    #         self.parameters["filter_by"] = f"countries: [{", ".join(countries)}]"
-    #     else:
-    #         self.parameters["filter_by"] = f"countries: {countries[0]}"
-
-    #     return self
+        return self
 
     def with_sort(self, sort_by: str | None, sort_desc: bool | None):
         """
@@ -285,20 +235,20 @@ def setup():
     investor_schema = {
         "name": "investors",
         "fields": [
-            {"name": "name", "type": "string", "sort": True},
+            {"name": "name", "type": "string"},
             {
                 "name": "db_id",
                 "type": "int32",
                 "facet": True,
             },
-            {"name": "firm_name", "type": "string", "optional": True, "sort": True},
+            {"name": "firm_name", "type": "string", "optional": True},
             {"name": "about", "type": "string", "optional": True},
-            {"name": "position", "type": "string", "facet": True, "optional": True, "sort": True},
+            {"name": "position", "type": "string", "facet": True, "optional": True},
             {"name": "n_investments", "type": "int32", "optional": True, "sort": True},
             {"name": "n_exits", "type": "int32", "optional": True, "sort": True},
             {"name": "min_investment", "type": "int32", "optional": True, "sort": True},
             {"name": "max_investment", "type": "int32", "optional": True, "sort": True},
-            {"name": "location", "type": "string", "facet": True, "optional": True, "sort": True},
+            {"name": "location", "type": "string", "facet": True, "optional": True},
             {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
             {"name": "industries", "type": "string[]", "facet": True, "optional": True},
             {"name": "notable_investments", "type": "string[]", "optional": True},
@@ -367,16 +317,12 @@ def search(
     collection: str,
     q: str,
     query_by: str,
-    filter_by: str | None = None,
-    sort_by: str | None = None,
     per_page: int = 12,
     page: int = 1,
 ):
     search_parameters = {
         "q": q,
         "query_by": query_by,
-        "filter_by": filter_by,
-        "sort_by": sort_by,
         "per_page": per_page,
         "page": page,
         "prefix": False,

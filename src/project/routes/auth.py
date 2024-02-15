@@ -10,14 +10,11 @@ from flask_login import (
     logout_user,
 )
 
-from src.project.models.helpers import Country, Industry, Round
-
 from ..extensions import db, login_manager, oauth
-
-from ..models import Company, User, UserInfo, UserPayment, Notification
+from ..models import Company, Notification, User, UserInfo, UserPayment
 from ..models.user import EmailVerification
 from ..utils.email_verification import create_verification_token, update_is_expired
-from ..utils.enums import NotificationDestination, OauthProvider, Status, StatusType
+from ..utils.enums import Events, NotificationDestination, OauthProvider, Status, StatusType
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
     AUTH_USERNAME_USED,
@@ -408,7 +405,6 @@ def onboarding():
 
         db.session.commit()
 
-
         notification = Notification.create_notification(
             user_id=authenticated_user.id,
             title="Success!",
@@ -427,13 +423,9 @@ def onboarding():
             random_key=new_verification,
         )
 
-        return redirect(url_for("main.search", _external=False, **status))
+        return redirect(url_for("main.search", _external=False))
 
-    return render_template(
-        "auth/onboarding.html",
-        user_info=user_info.sanitize(),
-        notification=notification
-    )
+    return render_template("auth/onboarding.html", user_info=user_info.sanitize(), notification=notification)
 
 
 @auth.get("/username/<username>")

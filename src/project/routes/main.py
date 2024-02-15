@@ -17,8 +17,7 @@ from flask import (
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Company, InvestmentFirm, Investor, Waitlist, WaitlistCharge, Country, Industry, Round, Notification
-
+from ..models import Company, Country, Industry, InvestmentFirm, Investor, Notification, Round, Waitlist, WaitlistCharge
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html

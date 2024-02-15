@@ -4,6 +4,7 @@ from enum import Enum
 class NotificationDestination(Enum):
     ALL = "all"
     SEARCH = "search"
+    ONBOARDING = "onboarding"
 
 
 class StatusType(Enum):

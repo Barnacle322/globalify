@@ -1,13 +1,16 @@
 import os
+import uuid
 
 import requests
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from flask_login import (
     current_user,
     login_required,
     login_user,
     logout_user,
 )
+
+from src.project.models.helpers import Country, Industry, Round
 
 from ..extensions import db, login_manager, oauth
 from ..models import Company, User, UserInfo, UserPayment
@@ -360,12 +363,19 @@ def onboarding():
         return redirect(url_for("main.search"))
 
     if request.method == "POST":
+        request_key = str(uuid.uuid4())
+
+        if session.get("last_request_key") == request_key:
+            return redirect(url_for("main.settings"))
+
         first_name, last_name, username, company_name = (
             request.form.get("first_name"),
             request.form.get("last_name"),
             request.form.get("username"),
             request.form.get("company_name"),
         )
+
+        session["last_request_key"] = request_key
 
         if not first_name or not last_name or not username or not company_name:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()

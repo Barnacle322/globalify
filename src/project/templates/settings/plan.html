@@ -1,6 +1,19 @@
-{% extends "layouts/layout_app.html" %} {% block title %}Settings{% endblock %} {% block head %} {{ super() }}
-<script src="/static/scripts/search.js" defer></script>
-{% endblock %} {% block content %}
+{% extends "layouts/layout_app.html" %} {% block additional_scripts%}
+<script src="/static/scripts/dashboard.js" defer></script>
+<script src="/static/scripts/idempotency.js" defer></script>
+<script>
+    var upgradeLinkClicked = false;
+    function handleUpgradeClick(link) {
+        if (!upgradeLinkClicked) {
+            upgradeLinkClicked = true;
+            link.classList.add("opacity-50", "pointer-events-none");
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
+{% endblock %} {% block title %}Settings{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content %}
 <div class="mx-auto block max-w-7xl pt-24 lg:flex lg:gap-x-16 lg:px-8">
     <aside class="flex overflow-x-auto py-4 lg:block lg:w-64 lg:flex-none lg:py-20">
         <nav class="flex-none px-4 sm:px-6 xl:px-0">
@@ -140,6 +153,7 @@
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                             <input type="hidden" name="subscription_id" value="{{ subscription.subscription_id }}" />
                             <button
+                                type="submit"
                                 class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
                             >
                                 Upgrade
@@ -149,6 +163,7 @@
                         <a
                             href="/payment/pricing"
                             class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
+                            onclick="return handleUpgradeClick(this);"
                             >Upgrade</a
                         >
                         {% endif %}

@@ -144,3 +144,9 @@
 .fade-out-down {
     animation: fadeOutDown 0.5s ease-in-out forwards;
 }
+
+.idempotency {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}

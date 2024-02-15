@@ -2,12 +2,14 @@ from flask import Blueprint, abort, render_template
 from flask_login import current_user, login_required
 
 from ..models import Company, User, UserInfo
+from .main import check_verification
 
 profile = Blueprint("profile", __name__)
 
 
 @profile.route("/user/<int:user_id>/", methods=["GET"])
 @login_required
+@check_verification
 def user_profile(user_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
@@ -28,6 +30,7 @@ def user_profile(user_id):
 
 
 @profile.route("/company/<int:user_id>/", methods=["GET", "POST"])
+@check_verification
 @login_required
 def company(user_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore

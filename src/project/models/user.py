@@ -356,6 +356,65 @@ class Notification(db.Model):
         )
 
 
+class EmailVerification(db.Model):
+    """
+    Represents email verification information.
+
+    Attributes:
+        id (int): The verification ID.
+        user_id (int): The ID of the user associated with the verification.
+        token (str): The unique token generated for email verification.
+        created_at (datetime.datetime): The date and time when the verification was created.
+    """
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    token: Mapped[str] = mapped_column(String, nullable=False, default=lambda: str(uuid4()))
+    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC)
+    )
+    is_expired: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<EmailVerification token created at {self.created_at}"
+
+    @staticmethod
+    def deactivate_user_tokens(user_id: int) -> None:
+        """
+        Set is_expired=True for all EmailVerification records associated with the given user_id.
+
+        Args:
+            user_id (int): The ID of the user for whom to set EmailVerification records as expired.
+        """
+        try:
+            # EmailVerification.query.filter_by(user_id=user_id).update({EmailVerification.is_expired: True})
+            email_verifications = db.session.scalars(
+                db.select(EmailVerification).where(EmailVerification.user_id == user_id)
+            ).all()
+            for email_verification in email_verifications:
+                email_verification.is_expired = True
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    @staticmethod
+    def get_by_token(token: str) -> EmailVerification | None:
+        """
+        Retrieves an email verification record by token.
+
+        Args:
+            token (str): The verification token.
+
+        Returns:
+            EmailVerification | None: The email verification record or None if not found.
+        """
+        return db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
+
+
 class WaitlistCharge(db.Model):
     """
     Represents a waitlist charge.

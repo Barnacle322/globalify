@@ -1,8 +1,10 @@
-{% extends "layouts/layout_app.html" %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }}
+{% extends "layouts/layout_app.html" %} {% block additional_scripts %}
 <script src="/static/scripts/dashboard.js" defer></script>
 <script src="/static/scripts/search.js" defer></script>
-{% endblock %} {% block content %}
+{% endblock %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
+%}
 <main class="mt-28 flex h-full w-full items-center justify-center pb-16">
     <section class="h-16 w-full max-w-7xl rounded-lg border-2"></section>
 </main>
 {% endblock %}
+

@@ -47,3 +47,5 @@ class Events(Enum):
     STRIPE_TRIAL_WILL_END = "stripe.trial_will_end"
     STRIPE_PAYMENT_FAILED = "stripe.payment_failed"
     STRIPE_PAYMENT_SUCCEDED = "stripe.payment_succeeded"
+
+    USER_COMPLETED_ONBOARDING = "user.completed_onboarding"

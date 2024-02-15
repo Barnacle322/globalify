@@ -16,11 +16,12 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
-from src.project.models.helpers import Country, Industry, Round
+from src.project.models.helpers import Industry, Round
+from src.project.models.user import Notification
 
 from ..extensions import db
 from ..models import Company, InvestmentFirm, Investor, Waitlist, WaitlistCharge
-from ..utils.enums import Status, StatusType
+from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import WEIGHTS
@@ -64,6 +65,21 @@ def construct_query_string(**kwargs):
         if value:
             query_string += f"&{key}={value}"
     return query_string
+
+
+@main.post("/notification/edit/<notification_id>")
+def update_notification(notification_id):
+    notification = Notification.get_by_id(notification_id)
+    if not notification:
+        return render_template("404.html")
+
+    if notification.user_id != current_user.id:
+        return render_template("404.html")
+
+    notification.is_read = True
+    db.session.commit()
+
+    return jsonify({"status": "success"})
 
 
 @main.get("/")
@@ -245,15 +261,11 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 @check_user_info_complete
 @check_verification
 def search():
-    status, status_type, msg, title, button_text, button_url = {}, None, None, None, None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-        title = query.get("title")
-        button_text = query.get("button_text")
-        button_url = query.get("button_url")
-        status = {"type": status_type, "msg": msg, "title": title, "button_text": button_text, "button_url": button_url}
-
+    notification = Notification.get_notification_for_view(
+        current_user.id,
+        NotificationDestination.SEARCH,
+        is_read=False,
+    )
     search_string = request.args.get("search", "")
 
     page = request.args.get("page", 1, type=int)
@@ -333,7 +345,7 @@ def search():
         },
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
-        status=status,
+        notification=notification,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
     )

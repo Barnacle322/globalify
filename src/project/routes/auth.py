@@ -10,8 +10,8 @@ from flask_login import (
 )
 
 from ..extensions import db, login_manager, oauth
-from ..models import Company, User, UserInfo, UserPayment
-from ..utils.enums import OauthProvider, Status, StatusType
+from ..models import Company, Notification, User, UserInfo, UserPayment
+from ..utils.enums import NotificationDestination, OauthProvider, Status, StatusType
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
     AUTH_USERNAME_USED,
@@ -263,11 +263,11 @@ def onboarding():
     If the request method is POST, it processes the onboarding form data and updates the user's information.
 
     """
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-
+    notification = Notification.get_notification_for_view(
+        user_id=current_user.id,
+        destination=NotificationDestination.ONBOARDING,
+        is_read=False,
+    )
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
@@ -286,12 +286,22 @@ def onboarding():
         )
 
         if not first_name or not last_name or not username or not company_name:
-            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
-            return redirect(url_for("auth.onboarding", _external=False, **status))
+            notification = Notification.create_notification(
+                user_id=authenticated_user.id,
+                title="Error!",
+                msg=AUTH_FIELDS_INCOMPLETE,
+                destination=NotificationDestination.ONBOARDING,
+            )
+            return redirect(url_for("auth.onboarding", _external=False))
 
         if UserInfo.is_taken(username):
-            status = Status(StatusType.ERROR, AUTH_USERNAME_USED).get_status()
-            return redirect(url_for("auth.onboarding", _external=False, **status))
+            notification = Notification.create_notification(
+                user_id=authenticated_user.id,
+                title="Error!",
+                msg=AUTH_USERNAME_USED,
+                destination=NotificationDestination.ONBOARDING,
+            )
+            return redirect(url_for("auth.onboarding", _external=False))
 
         user_info.first_name = first_name
         user_info.last_name = last_name
@@ -305,33 +315,22 @@ def onboarding():
 
         db.session.commit()
 
-        # notification = Notification(
-        #     user_id=authenticated_user.id,
-        #     title="You have registered!",
-        #     msg="Add some more info to get better results!",
-        #     button_text="Go!",
-        #     button_url=url_for("auth.expanded_onboarding", _external=False),
-        #     status_type=StatusType.SUCCESS,
-        # )
-        # db.session.add(notification)
-        # db.session.commit()
 
-        status = Status(
-            StatusType.SUCCESS,
-            "Add some more info to get better results!",
-        ).get_status(
-            title="You have registered!",
+        notification = Notification.create_notification(
+            user_id=authenticated_user.id,
+            title="Success!",
+            msg="Add some more info to get better results!",
+            destination=NotificationDestination.SEARCH,
             button_text="Go!",
             button_url=url_for("auth.expanded_onboarding", _external=False),
+            icon_url="",
         )
-
         return redirect(url_for("main.search", _external=False))
 
     return render_template(
         "auth/onboarding.html",
         user_info=user_info.sanitize(),
-        status_type=status_type,
-        msg=msg,
+        notification=notification
     )
 
 

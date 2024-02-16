@@ -316,14 +316,24 @@ class Notification(db.Model):
         icon_url: str = "",
         button_text: str = "",
         button_url: str = "",
+        button_text2: str = "",
+        button_url2: str = "",
     ):
         notification = Notification(
             user_id=user_id,
             json_data={
                 "title": title,
                 "msg": msg,
-                "button_text": button_text,
-                "button_url": button_url,
+                "buttons": [
+                    {
+                    "text": button_text,
+                    "url": button_url,
+                    },
+                    {
+                    "text": button_text2,
+                    "url": button_url2,
+                    },
+                ],
                 "icon_url": icon_url,
             },
             destination=destination,

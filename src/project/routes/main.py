@@ -319,8 +319,10 @@ def search():
         per_page=12,
         countries=countries,
     )
-
+    print(result)
     investors = result.get("investors")
+    investors = ["Agahan", "Arstan", "Daniyar"]
+    print(investors)
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 

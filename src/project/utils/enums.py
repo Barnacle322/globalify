@@ -5,6 +5,8 @@ class NotificationDestination(Enum):
     ALL = "all"
     SEARCH = "search"
     ONBOARDING = "onboarding"
+    INDEX = "index"
+    COMPANY = "change_company_info"
 
 
 class StatusType(Enum):

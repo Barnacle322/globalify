@@ -1,8 +1,7 @@
 import os
-import uuid
 
 import requests
-from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import (
     current_user,
     login_required,
@@ -11,8 +10,7 @@ from flask_login import (
 )
 
 from ..extensions import db, login_manager, oauth
-from ..models import Company, Notification, User, UserInfo, UserPayment
-from ..models.user import EmailVerification
+from ..models import Company, EmailVerification, Notification, User, UserInfo, UserPayment
 from ..utils.email_verification import create_verification_token, update_is_expired
 from ..utils.enums import Events, NotificationDestination, OauthProvider, Status, StatusType
 from ..utils.errors.error_messages import (
@@ -58,6 +56,7 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
 
     Raises:
         Exception: If the user exists but the OAuth provider is different.
+
     """
     user = User.get_by_email(email)
     if not user:
@@ -82,6 +81,7 @@ def api_call(url: str, access_token: str):
 
     Returns:
         dict: The JSON response from the API call.
+
     """
     response = requests.get(
         url,
@@ -342,38 +342,32 @@ def onboarding():
 
     If the current user is anonymous, it redirects to the login page.
     If user_info is not found for the authenticated user, it redirects to the login page.
-    If user_info.is_complete is True, it redirects to the search route.
+    If user_info.is_complete is True, it redirects to the company_form route.
     If the request method is POST, it processes the onboarding form data and updates the user's information.
 
     """
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
     notification = Notification.get_notification_for_view(
-        user_id=current_user.id,
+        user_id=authenticated_user.id,
         destination=NotificationDestination.ONBOARDING,
         is_read=False,
     )
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info:
         return redirect(url_for("auth.login"))
 
     if user_info.is_complete:
-        return redirect(url_for("main.search"))
+        return redirect(url_for("auth.onboarding"))
 
     if request.method == "POST":
-        request_key = str(uuid.uuid4())
-
-        if session.get("last_request_key") == request_key:
-            return redirect(url_for("main.settings"))
-
         first_name, last_name, username, company_name = (
             request.form.get("first_name"),
             request.form.get("last_name"),
             request.form.get("username"),
             request.form.get("company_name"),
         )
-
-        session["last_request_key"] = request_key
 
         if not first_name or not last_name or not username or not company_name:
             notification = Notification.create_notification(

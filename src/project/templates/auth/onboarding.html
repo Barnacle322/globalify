@@ -1,11 +1,12 @@
 {% extends "layouts/layout_clean.html" %} {% block additional_scripts%}
 <script src="/static/scripts/onboarding.js" defer></script>
 <script src="/static/scripts/idempotency.js" defer></script>
+<script src="/static/scripts/notificationHandler.js" defer></script>
 {% endblock %} {% block title %}Onboarding{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
 %}
 <main class="flex h-full flex-col items-center justify-center overflow-x-hidden p-6">
     <form action="/onboarding" method="POST" class="max-w-md">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <h1 class="mb-4 text-center text-3xl font-semibold text-gray-900">We just need some more info</h1>
         <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
             <div class="sm:col-span-3">
@@ -117,7 +118,8 @@
                         class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300"
                         data-dismiss-target="#toast-interactive"
                         aria-label="Close"
-                        onclick="this.parentNode.parentNode.classList.add('fade-out-down');"
+                        onclick="markNotificationAsRead()"
+                        data-notification-id="{{ notification.id }}"
                     >
                         <span class="sr-only">Close</span>
                         <svg

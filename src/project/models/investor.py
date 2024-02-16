@@ -507,13 +507,14 @@ class Investor(db.Model):
             )
             builder.update({"page": page, "per_page": per_page})
 
-            results = client.collections["investors"].documents.search(builder)
+            results = client.collection["investors"].documents.search(builder)
         except Exception as e:
-            print(e)
+            print("Aidana", e)
             results = {"found": 0, "page": 1, "per_page": 12, "hits": []}
             return results
 
         found = results.get("found", 0)
+        print("Aidana", found)
         page = results.get("page", 1)
 
         pages = found // per_page

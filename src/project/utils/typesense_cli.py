@@ -44,11 +44,10 @@ def update_schema(schema_name, file_path):
     type=str,
     default="location, rounds, industries, embedding, notable_investments, name, firm_name, position",
 )
-@click.option("--sort_by", type=str, default=None)
 @click.option("--per_page", type=int, default=10)
 @click.option("--page", type=int, default=1)
-def search(q, query_by, sort_by, per_page, page):
-    result = typesense_search("investors", q, query_by, sort_by, per_page, page)
+def search(q, query_by, per_page, page):
+    result = typesense_search("investors", q, query_by, per_page, page)
     for hit in result["hits"]:
         print(hit.get("document", {}).get("name"))
 
@@ -56,11 +55,10 @@ def search(q, query_by, sort_by, per_page, page):
 @cli.command("search-cities")
 @click.option("--q", type=str, default="*")
 @click.option("--query_by", type=str, default="city, city_ascii, country, admin_name")
-@click.option("--sort_by", type=str, default=None)
 @click.option("--per_page", type=int, default=10)
 @click.option("--page", type=int, default=1)
-def search_cities(q, query_by, sort_by, per_page, page):
-    result = typesense_search("cities", q, query_by, sort_by, per_page, page)
+def search_cities(q, query_by, per_page, page):
+    result = typesense_search("cities", q, query_by, per_page, page)
     for hit in result["hits"]:
         print(hit.get("document", {}).get("city"))
 

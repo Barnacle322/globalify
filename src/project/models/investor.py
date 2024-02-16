@@ -25,7 +25,7 @@ from ..utils.fake_data import (
     get_websites,
 )
 from ..utils.suggestion import geocode_location
-from ..utils.typesense_search import SearchBuilder, client, create_schema, delete_schema, upsert_documents
+from ..utils.typesense_search import SearchBuilder, create_schema, delete_schema, upsert_documents
 from .helpers import Industry, Round
 
 
@@ -493,8 +493,10 @@ class Investor(db.Model):
         page: int = 1,
     ):
         try:
-            search_params = (
-                SearchBuilder()
+            # if query_string == "":
+            #     raise ValueError("query_string cannot be empty")
+            results = (
+                SearchBuilder("investors")
                 .query(query_string)
                 .query_by(query_by)
                 .filter_by_investment_range(min_investment, max_investment)
@@ -506,9 +508,8 @@ class Investor(db.Model):
                 .build()
             )
 
-            results = client.collections["investors"].documents.search(search_params)
         except Exception:
-            results = {"found": 0, "page": 1, "per_page": 12, "hits": []}
+            results = {"found": 0, "page": page, "per_page": per_page, "hits": []}
             return results
 
         found = results.get("found", 0)

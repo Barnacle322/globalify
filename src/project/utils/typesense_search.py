@@ -18,7 +18,8 @@ client = Client(
 
 
 class SearchBuilder:
-    def __init__(self):
+    def __init__(self, collection: str):
+        self.collection = collection
         self.parameters = {}
         self.filters = []
 
@@ -151,7 +152,7 @@ class SearchBuilder:
         self.parameters["group_by"] = ",".join(fields)
         return self
 
-    def page(self, page: int, per_page: int = 12):
+    def page(self, page: int, per_page: int):
         """
         Sets the page and per_page parameters.
 
@@ -166,7 +167,8 @@ class SearchBuilder:
     def build(self) -> dict:
         self.parameters["prefix"] = False
         self.parameters["filter_by"] = " && ".join(self.filters)
-        return self.parameters
+        results = client.collections[self.collection].documents.search(self.parameters)
+        return results
 
 
 def create_schema(schema: dict) -> None:
@@ -310,7 +312,7 @@ def search(
     collection: str,
     q: str,
     query_by: str,
-    per_page: int = 12,
+    per_page: int = 1,
     page: int = 1,
 ):
     search_parameters = {
@@ -320,7 +322,6 @@ def search(
         "page": page,
         "prefix": False,
     }
-    # print(search_parameters)
 
     results = client.collections[collection].documents.search(search_parameters)
     return results

@@ -261,9 +261,30 @@ def search():
         NotificationDestination.SEARCH,
         is_read=False,
     )
-    search_string = request.args.get("search", "")
 
+    search_string = request.args.get("search", "")
+    sort_by = request.args.get("sort_field", "")
+    sort_desc = request.args.get("descending", False, type=bool)
+    min_investment = request.args.get("min_investment", type=int)
+    max_investment = request.args.get("max_investment", type=int)
     page = request.args.get("page", 1, type=int)
+
+    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
+    rounds = []
+    for round_name in request.args.getlist("round"):
+        if round_object := Round.get_by_name(round_name):
+            rounds.append(round_object.name)
+
+    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
+    industries = []
+    for industry_name in request.args.getlist("industry"):
+        if industry_object := Industry.get_by_name(industry_name):
+            industries.append(industry_object.name)
+
+    countries = []
+    for country_name in request.args.getlist("country"):
+        if country_object := Country.get_by_name(country_name):
+            countries.append(country_object.name)
 
     query_by = [
         "location",
@@ -276,33 +297,6 @@ def search():
         "firm_name",
         "position",
     ]
-
-    sort_by = request.args.get("sort_field", "")
-
-    sort_desc = request.args.get("descending", False, type=bool)
-
-    rounds = []
-    for round_name in request.args.getlist("round"):
-        if round_object := Round.get_by_name(round_name):
-            rounds.append(round_object.name)
-
-    industries = []
-    for industry_name in request.args.getlist("industry"):
-        if industry_object := Industry.get_by_name(industry_name):
-            industries.append(industry_object.name)
-
-    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
-
-    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
-
-    min_investment = request.args.get("min_investment", type=int)
-
-    max_investment = request.args.get("max_investment", type=int)
-
-    countries = []
-    for country_name in request.args.getlist("country"):
-        if country_object := Country.get_by_name(country_name):
-            countries.append(country_object.name)
 
     result = Investor.get_search(
         query_string=search_string,
@@ -320,23 +314,24 @@ def search():
         countries=countries,
     )
     investors = result.get("investors")
-
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+
+    fields = {
+        "location": "Location",
+        "rounds": "Rounds",
+        "industries": "Industries",
+        "embedding": "Embedding",
+        "notable_investments": "Notable Investments",
+        "name": "Name",
+        "firm_name": "Firm Name",
+        "position": "Position",
+    }
 
     return render_template(
         "search.html",
         investors=investors,
         query=search_string,
-        fields={
-            "location": "Location",
-            "rounds": "Rounds",
-            "industries": "Industries",
-            "embedding": "Embedding",
-            "notable_investments": "Notable Investments",
-            "name": "Name",
-            "firm_name": "Firm Name",
-            "position": "Position",
-        },
+        fields=fields,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
         notification=notification,

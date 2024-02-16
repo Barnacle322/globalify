@@ -25,7 +25,7 @@ from ..utils.fake_data import (
     get_websites,
 )
 from ..utils.suggestion import geocode_location
-from ..utils.typesense_search import SearchBuilder, create_schema, delete_schema, upsert_documents
+from ..utils.typesense_search import SearchBuilder, create_schema, create_synonyms, delete_schema, upsert_documents
 from .helpers import Industry, Round
 
 
@@ -1021,6 +1021,7 @@ class Investor(db.Model):
                 print("Schema does not exist")
             create_schema(investor_schema)
         result = upsert_documents("investors", data)
+        create_synonyms("investors")
 
         objects = []
         for line in result.splitlines():

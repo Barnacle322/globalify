@@ -2,6 +2,8 @@ import os
 
 from typesense.client import Client
 
+from ..utils.info_lists import synonyms
+
 client = Client(
     {
         "nodes": [
@@ -344,6 +346,12 @@ def create_index(file_name: str):
                 json_row["latitude"] = float(row["lat"])
                 json_row["longitude"] = float(row["lng"])
                 jsonl_file.write(json.dumps(json_row) + "\n")
+
+
+def create_synonyms(schema_name: str) -> None:
+    for synonym in synonyms:
+        print("Creating synomym for", synonym["name"], "with items", synonym["item"])
+        client.collections[schema_name].synonyms.upsert(synonym["name"], synonym["item"])
 
 
 # params = {

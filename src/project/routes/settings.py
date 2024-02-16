@@ -36,7 +36,6 @@ def index():
 @check_user_info_complete
 @check_verification
 def security():
-
     return render_template(
         "settings/security.html",
     )
@@ -92,7 +91,7 @@ def change_personal_info():  # noqa
     user_info = authenticated_user.user_info[0]  # type: ignore
     if first_name and first_name.strip() != user_info.first_name:
         if first_name == " ":
-            notification = Notification.create_notification(
+            Notification.create_notification(
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="First name cannot be empty.",
@@ -103,7 +102,7 @@ def change_personal_info():  # noqa
 
     if last_name and last_name.strip() != user_info.last_name:
         if last_name == " ":
-            notification = Notification.create_notification(
+            Notification.create_notification(
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="Last name cannot be empty.",
@@ -114,7 +113,7 @@ def change_personal_info():  # noqa
 
     if bio and bio.strip() != user_info.bio:
         if bio == " ":
-            notification = Notification.create_notification(
+            Notification.create_notification(
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="Bio cannot be empty.",
@@ -125,7 +124,7 @@ def change_personal_info():  # noqa
 
     if username and username.strip() != user_info.username:
         if username == " ":
-            notification = Notification.create_notification(
+            Notification.create_notification(
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="Username cannot be empty.",
@@ -133,7 +132,7 @@ def change_personal_info():  # noqa
             )
             return redirect(url_for("settings.index", _external=False))
         if UserInfo.is_taken(username):
-            notification = Notification.create_notification(
+            Notification.create_notification(
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="Username is taken.",
@@ -144,7 +143,7 @@ def change_personal_info():  # noqa
         user_info.username = username.strip()
 
     db.session.commit()
-    notification = Notification.create_notification(
+    Notification.create_notification(
         user_id=authenticated_user.id,
         title="Success!",
         msg="Personal info successfully changed.",

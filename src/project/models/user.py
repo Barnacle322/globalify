@@ -326,12 +326,12 @@ class Notification(db.Model):
                 "msg": msg,
                 "buttons": [
                     {
-                    "text": button_text,
-                    "url": button_url,
+                        "text": button_text,
+                        "url": button_url,
                     },
                     {
-                    "text": button_text2,
-                    "url": button_url2,
+                        "text": button_text2,
+                        "url": button_url2,
                     },
                 ],
                 "icon_url": icon_url,

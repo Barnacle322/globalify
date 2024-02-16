@@ -93,7 +93,7 @@
                     Rounds
                 </button>
                 <div
-                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                     id="round-options"
                     role="menu"
                     aria-orientation="vertical"
@@ -157,7 +157,7 @@
                 </button>
 
                 <div
-                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                     id="industry-options"
                     role="menu"
                     aria-orientation="vertical"
@@ -228,7 +228,7 @@
                     Sort By
                 </button>
                 <div
-                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                     id="sorting-options"
                     role="menu"
                     aria-orientation="vertical"
@@ -307,7 +307,7 @@
             </div>
         </div>
     </section>
-    <section class="container px-4 py-12 sm:mt-10">
+    <section class="px-4 py-12 sm:mt-10">
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {% for investor in investors %}
             <article class="flex flex-col rounded-lg border p-6 shadow-sm">
@@ -406,15 +406,14 @@
                             >{{ notification.json_data.get("title") }}</span
                         >
                         <div class="mb-2 text-sm font-normal">{{ notification.json_data.get("msg") }}</div>
-                        {% for button in notification.json_data.get("buttons", []) %}
-                        {% if button.url and button.text %}
+                        {% for button in notification.json_data.get("buttons", []) %} {% if button.url and button.text
+                        %}
                         <a
                             href="{{ button.url }}"
                             class="inline-flex justify-center w-1/3 px-2 py-1.5 text-xs font-medium text-center text-white bg-black rounded-lg hover:bg-neutral-800 focus:ring-4 focus:outline-none focus:ring-blue-300"
                             >{{ button.text }}</a
                         >
-                        {% endif %}
-                        {% endfor %}
+                        {% endif %} {% endfor %}
                     </div>
                     <button
                         type="button"

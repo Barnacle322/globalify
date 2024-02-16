@@ -151,23 +151,15 @@ class SearchBuilder:
         self.parameters["group_by"] = ",".join(fields)
         return self
 
-    def page(self, page: int):
+    def page(self, page: int, per_page: int = 12):
         """
-        Sets the page parameter.
+        Sets the page and per_page parameters.
 
         Args:
             page (int): The page number.
-        """
-        self.parameters["page"] = page
-        return self
-
-    def per_page(self, per_page: int):
-        """
-        Sets the per_page parameter.
-
-        Args:
             per_page (int): The number of results per page.
         """
+        self.parameters["page"] = page
         self.parameters["per_page"] = per_page
         return self
 

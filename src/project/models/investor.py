@@ -452,7 +452,6 @@ class Investor(db.Model):
     def coordinates(self, coordinates: str) -> None:
         geo_data = geocode_location(coordinates)
         if geo_data is not None:
-            print(geo_data)
             # self._coordinates = geo_data["coordinates"]  # type: ignore
             self._country = geo_data["country_name"]  # type: ignore
 
@@ -494,7 +493,7 @@ class Investor(db.Model):
         page: int = 1,
     ):
         try:
-            builder = (
+            search_params = (
                 SearchBuilder()
                 .query(query_string)
                 .query_by(query_by)
@@ -503,27 +502,24 @@ class Investor(db.Model):
                 .filter_by_industries(industries, industries_exclusive)
                 .filter_by_countries(countries)
                 .sort_by(sort_by, sort_desc)
+                .page(page, per_page)
                 .build()
             )
-            builder.update({"page": page, "per_page": per_page})
 
-            results = client.collection["investors"].documents.search(builder)
-        except Exception as e:
-            print("Aidana", e)
+            results = client.collections["investors"].documents.search(search_params)
+        except Exception:
             results = {"found": 0, "page": 1, "per_page": 12, "hits": []}
             return results
 
         found = results.get("found", 0)
-        print("Aidana", found)
         page = results.get("page", 1)
 
         pages = found // per_page
         if found % per_page > 0:
             pages += 1
 
-        hits = results.get("hits", [])
         investor_list = []
-        for hit in hits:
+        for hit in results.get("hits", []):
             investor_list.append(
                 {
                     "id": hit.get("document", {}).get("db_id", 0),
@@ -702,7 +698,6 @@ class Investor(db.Model):
                 min_investment, max_investment = None, None
                 if len(range_set) > 1:
                     min_investment, max_investment = min(range_set), max(range_set)
-                    # print(min_investment, max_investment)
 
                 industry_list = []
                 for industry in row[5].split(","):

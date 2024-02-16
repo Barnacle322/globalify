@@ -30,7 +30,7 @@ class SearchBuilder:
         Args:
             query (str): The search query.
         """
-        self.parameters["q"] = query
+        self.parameters["q"] = query if query else "*"
         return self
 
     def query_by(self, fields: list[str], weights: list[int] | None = None):

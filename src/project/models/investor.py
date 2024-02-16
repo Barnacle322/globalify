@@ -452,7 +452,7 @@ class Investor(db.Model):
     def coordinates(self, coordinates: str) -> None:
         geo_data = geocode_location(coordinates)
         if geo_data is not None:
-            # self._coordinates = geo_data["coordinates"]  # type: ignore
+            self._coordinates = geo_data["coordinates"]  # type: ignore
             self._country = geo_data["country_name"]  # type: ignore
 
     @property

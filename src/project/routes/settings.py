@@ -203,7 +203,7 @@ def change_company_info():
         company_name = request.form.get("company-name", "")
         if company_name and company_name.strip() != company.name:
             if company_name == " ":
-                notification = Notification.create_notification(
+                Notification.create_notification(
                     user_id=authenticated_user.id,
                     title="Error!",
                     msg="Company name cannot be empty.",
@@ -216,7 +216,7 @@ def change_company_info():
         industry_id = request.form.get("industry", type=int)
 
         if not preferred_round_id or not industry_id:
-            notification = Notification.create_notification(
+            Notification.create_notification(
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="Please select rounds and industries.",
@@ -226,7 +226,7 @@ def change_company_info():
 
         country_id = request.form.get("country", type=int)
         if not country_id:
-            notification = Notification.create_notification(
+            Notification.create_notification(
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="Country ID is required.",
@@ -243,7 +243,7 @@ def change_company_info():
         company.coordinates = Country.get_by_id(country_id).name  # type: ignore
         db.session.commit()
 
-        notification = Notification.create_notification(
+        Notification.create_notification(
             user_id=authenticated_user.id,
             title="Success!",
             msg="Company successfully changed.",

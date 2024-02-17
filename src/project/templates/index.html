@@ -4,11 +4,17 @@
 %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
     <section
-        class="relative mx-auto max-w-7xl px-8 pb-16 text-center sm:px-6 lg:px-8 lg:pt-24 flex flex-col justify-center items-center"
+        class="relative mx-auto max-w-7xl px-8 pb-16 text-center sm:px-6 pt-5 lg:px-8 lg:pt-24 flex flex-col justify-center items-center"
     >
         <img
             class="absolute w-fit h-fit left-1/2 top-0 transform -translate-x-1/2 scale-75 origin-top pointer-events-none -z-50"
             src="/static/elements/hero-bg.svg"
+            alt=""
+        />
+        <img class="absolute right-1/2 top-0 pointer-events-none" src="/static/elements/blue-blob.svg" alt="" />
+        <img
+            class="absolute left-1/2 top-0 pointer-events-none opacity-60"
+            src="/static/elements/red-blob.svg"
             alt=""
         />
         <span
@@ -90,57 +96,28 @@
             <img class="drop-shadow-lg" src="/static/elements/globalify_hero.png" alt="" />
         </div>
     </section>
+
     <section
-        class="fade-in flex-col items-center justify-center gap-2.5 px-8 py-24 sm:px-6 lg:px-8"
+        class="fade-in flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8 bg-[#1C1236] text-white"
         style="animation-delay: 1.2s"
     >
-        <div class="flex flex-col items-center justify-center">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 md:text-center lg:px-8">
-                <h2 class="text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
-                    Tailored experience for specific regions
-                </h2>
-                <p class="mt-4 text-lg tracking-tight text-slate-700">Experts from around the world are here to help</p>
+        <div class="flex flex-col items-center justify-center max-w-7xl">
+            <div class="px-4 sm:px-6 md:text-center lg:px-8 flex flex-col gap-4 justify-center items-center">
+                <span
+                    class="w-fit border border-slate-200 bg-white text-slate-900 px-3 py-1 rounded-full font-medium inline-flex gap-2 justify-center items-center shadow-md shadow-white/50 text-xs"
+                    ><img src="/static/elements/award.svg" alt="" />Experts</span
+                >
+                <h2 class="text-3xl font-semibold sm:text-4xl">Tailored experience for specific regions</h2>
+                <p class="text-slate-500">Experts from around the world are here to help</p>
             </div>
-            <div class="mt-6 flex flex-wrap items-center justify-center gap-6">
-                <div class="relative flex flex-col items-center justify-center gap-2">
-                    <img
-                        class="h-48 transition-transform duration-300 ease-in-out hover:scale-110"
-                        src="/static/elements/jp.svg"
-                        alt=""
-                    />
-                    <div class="text-slate-700">Japan</div>
-                </div>
-                <div class="relative flex flex-col items-center justify-between gap-2">
-                    <img
-                        class="h-48 py-8 transition-transform duration-300 ease-in-out hover:scale-110"
-                        src="/static/elements/kg.svg"
-                        alt=""
-                    />
-                    <div class="text-slate-700">Kyrgyzstan</div>
-                </div>
-                <div class="relative flex flex-col items-center justify-center gap-2">
-                    <img
-                        class="h-48 py-8 transition-transform duration-300 ease-in-out hover:scale-110"
-                        src="/static/elements/kz.svg"
-                        alt=""
-                    />
-                    <div class="text-slate-700">Kazakhstan</div>
-                </div>
-                <div class="relative flex flex-col items-center justify-center gap-2">
-                    <img
-                        class="h-48 py-8 transition-transform duration-300 ease-in-out hover:scale-110"
-                        src="/static/elements/hk.svg"
-                        alt=""
-                    />
-                    <div class="text-slate-700">Hong Kong</div>
-                </div>
-            </div>
+            <img class="mt-10" src="/static/elements/countries.svg" alt="" />
         </div>
     </section>
+
     <section
         id="faq"
         aria-labelledby="faq-title"
-        class="fade-in bg-transparent pb-20 sm:py-32"
+        class="fade-in bg-transparent pb-20 sm:py-32 py-10"
         style="animation-delay: 1.2s"
     >
         <div class="mx-auto max-w-7xl px-8 sm:px-6 lg:px-8">

@@ -103,8 +103,7 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 def index():
     # TODO: Turned off for better performance
     posts = parse_medium_html()
-    posts = []
-    return render_template("coming_soon.html", posts=posts)
+    return render_template("index.html", posts=posts)
 
 
 @main.route("/suggestions")

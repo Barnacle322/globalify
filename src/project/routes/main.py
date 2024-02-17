@@ -262,7 +262,7 @@ def investment_firm(firm_id):
     return render_template("investment_firm.html", investment_firm=investment_firm, user=current_user)
 
 
-@main.post("/notification/edit/<notification_id>")
+@main.get("/notification/edit/<notification_id>")
 def update_notification(notification_id):
     notification = Notification.get_by_id(notification_id)
     if not notification:

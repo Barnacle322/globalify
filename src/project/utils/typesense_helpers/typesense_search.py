@@ -111,8 +111,7 @@ class SearchBuilder:
                 self.parameters["sort_by"] = f"{sort_by}:desc"
             else:
                 self.parameters["sort_by"] = f"{sort_by}:asc"
-        else:
-            return self
+
         return self
 
     def pinned_hits(self, hits: list[tuple[str, int]]):

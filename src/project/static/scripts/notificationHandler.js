@@ -1,28 +1,23 @@
-function markNotificationAsRead() {
-
+async function markNotificationAsRead() {
     const button = document.querySelector('.ms-auto[data-dismiss-target="#toast-interactive"]');
 
-    const notificationId = button.getAttribute('data-notification-id');
+    if (!button) {
+        console.error("Button not found");
+        return;
+    }
 
-    const csrfToken = document.getElementById("csrf_token").value;
+    const notificationId = button.getAttribute("data-notification-id");
 
-    fetch(`/notification/edit/${notificationId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        },
-    })
-    .then(response => {
+    try {
+        const response = await fetch(`/notification/edit/${notificationId}`);
+
         if (response.ok) {
-            console.log('Notification marked as read');
-            button.parentNode.parentNode.classList.add('fade-out-down');
+            console.log("Notification marked as read");
+            button.parentNode.parentNode.classList.add("fade-out-down");
         } else {
-            console.error('Failed to mark notification as read');
+            console.error("Failed to mark notification as read");
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+    } catch (error) {
+        console.error("Error:", error);
+    }
 }
-

@@ -1,0 +1,147 @@
+{% extends "layouts/layout_clean.html" %} {% block additional_scripts%}
+<script src="/static/scripts/onboarding.js" defer></script>
+<script src="/static/scripts/idempotency.js" defer></script>
+<script src="/static/scripts/notificationHandler.js" defer></script>
+{% endblock %} {% block title %}Onboarding{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
+%}
+<main class="flex h-full flex-col items-center justify-center overflow-x-hidden p-6">
+    <form action="/onboarding" method="POST" class="max-w-md">
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+        <h1 class="mb-4 text-center text-3xl font-semibold text-gray-900">We just need some more info</h1>
+        <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+            <div class="sm:col-span-3">
+                <label for="first_name" class="block text-sm font-medium leading-6 text-gray-900">First name*</label>
+                <div class="mt-2">
+                    <input
+                        type="text"
+                        name="first_name"
+                        id="first_name"
+                        autocomplete="given-name"
+                        value="{{ user_info.first_name if user_info.first_name else ''}}"
+                        required
+                        class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2"
+                    />
+                </div>
+            </div>
+            <div class="sm:col-span-3">
+                <label for="last_name" class="block text-sm font-medium leading-6 text-gray-900">Last name*</label>
+                <div class="mt-2">
+                    <input
+                        type="text"
+                        name="last_name"
+                        id="last_name"
+                        autocomplete="family-name"
+                        value="{{ user_info.last_name if user_info.last_name else ''}}"
+                        required
+                        class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2"
+                    />
+                </div>
+            </div>
+            <div class="sm:col-span-4">
+                <label for="username" class="block text-sm font-medium leading-6 text-gray-900">Username*</label>
+                <div class="mt-2">
+                    <span class="absolute hidden h-12 select-none items-center pl-3 text-gray-500 sm:flex">
+                        globalify.com/user/
+                    </span>
+                    <input
+                        type="text"
+                        name="username"
+                        id="username"
+                        autocomplete="username"
+                        pattern="[a-zA-Z0-9_]{3,20}"
+                        class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2 sm:pl-[168px]"
+                        minlength="4"
+                        placeholder="janesmith"
+                        required
+                    />
+                </div>
+            </div>
+            <div class="sm:col-span-6">
+                <label for="company_name" class="block text-sm font-medium leading-6 text-gray-900"
+                    >Company name*</label
+                >
+                <div class="mt-2">
+                    <input
+                        type="text"
+                        name="company_name"
+                        id="company_name"
+                        required
+                        class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2"
+                    />
+                </div>
+            </div>
+            <button
+                type="submit"
+                class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400 sm:col-span-6"
+            >
+                Next
+            </button>
+        </div>
+    </form>
+    {% if notification %}
+    <section class="pointer-events-none fixed left-0 top-0 h-full w-full">
+        <div class="relative mx-auto h-full w-full max-w-7xl">
+            <div
+                id="toast-interactive"
+                class="fade-in-up pointer-events-auto absolute bottom-3 right-3 z-50 w-full max-w-xs rounded-lg bg-white p-4 text-gray-500 shadow-lg"
+                role="alert"
+            >
+                <div class="flex">
+                    <div
+                        class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-white"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-4"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"
+                            />
+                        </svg>
+
+                        <span class="sr-only">Refresh icon</span>
+                    </div>
+                    <div class="ms-3 text-sm font-normal">
+                        <span class="mb-1 text-sm font-semibold text-gray-900 dark:text-white"
+                            >{{ notification.json_data.get("title") }}</span
+                        >
+                        <div class="mb-2 text-sm font-normal">{{ notification.json_data.get("msg") }}</div>
+                    </div>
+                    <button
+                        type="button"
+                        class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300"
+                        data-dismiss-target="#toast-interactive"
+                        aria-label="Close"
+                        onclick="markNotificationAsRead()"
+                        data-notification-id="{{ notification.id }}"
+                    >
+                        <span class="sr-only">Close</span>
+                        <svg
+                            class="h-3 w-3"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 14 14"
+                        >
+                            <path
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                            />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</main>
+{% endblock %}

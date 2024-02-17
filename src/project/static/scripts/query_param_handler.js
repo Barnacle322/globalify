@@ -5,7 +5,7 @@ function getQueryParams() {
 function removeDuplicatePageParams(params) {
     const filteredParams = new URLSearchParams();
     params.forEach((value, key) => {
-        if (key !== 'page') {
+        if (key !== "page") {
             filteredParams.append(key, value);
         }
     });
@@ -17,15 +17,15 @@ function appendAllQueryParams(url) {
     const queryParams = removeDuplicatePageParams(params).toString();
 
     if (queryParams) {
-        const separator = url.includes('?') ? '&' : '?';
+        const separator = url.includes("?") ? "&" : "?";
         return `${url}${separator}${queryParams}`;
     }
     return url;
 }
 
-document.querySelectorAll('a').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href && href.startsWith('/') && !href.startsWith('//')) {
-        link.setAttribute('href', appendAllQueryParams(href));
+document.querySelectorAll("a").forEach((link) => {
+    const href = link.getAttribute("href");
+    if (href && href.startsWith("/") && !href.startsWith("//")) {
+        link.setAttribute("href", appendAllQueryParams(href));
     }
 });

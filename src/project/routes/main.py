@@ -50,158 +50,6 @@ def check_verification(func):
     return decorated_function
 
 
-def construct_query_string(**kwargs):
-    query_string = ""
-    for key, value in kwargs.items():
-        if isinstance(value, list):
-            for item in value:
-                query_string += f"&{key}={item}"
-            continue
-        if value:
-            query_string += f"&{key}={value}"
-    return query_string
-
-
-@main.post("/notification/edit/<notification_id>")
-def update_notification(notification_id):
-    notification = Notification.get_by_id(notification_id)
-    if not notification:
-        return render_template("404.html")
-
-    if notification.user_id != current_user.id:
-        return render_template("404.html")
-
-    notification.is_read = True
-    db.session.commit()
-
-    return jsonify({"status": "success"})
-
-
-@main.get("/")
-def index():
-    # TODO: Turned off for better performance
-    posts = parse_medium_html()
-    posts = []
-    return render_template("coming_soon.html", posts=posts)
-
-
-@main.get("/waitlist")
-def waitlist():
-    return render_template("waitlist.html")
-
-
-@main.get("/waitlist/apply")
-def waitlist_apply():
-    return render_template("waitlist/apply.html")
-
-
-@main.post("/waitlist-email")
-def waitlist_email():
-    email = request.get_json().get("email")
-
-    if not email:
-        status = Status(StatusType.ERROR, "Please enter an email.").get_status()
-        return jsonify(**status)
-
-    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
-        status = Status(StatusType.ERROR, "Please enter a valid email.").get_status()
-        return jsonify(**status)
-
-    email_for_newsletter = Waitlist.get_by_email(email)
-    if email_for_newsletter:
-        status = Status(StatusType.ERROR, "Email is already in the system.").get_status()
-        return jsonify(**status)
-
-    new_waitlist = Waitlist(email=email)
-    db.session.add(new_waitlist)
-    db.session.commit()
-
-    status = Status(StatusType.SUCCESS, "Email added.").get_status()
-    return jsonify(**status)
-
-
-@main.get("/waitlist/cancel")
-def cancel_waitlist():
-    return render_template("waitlist/cancel.html")
-
-
-@main.get("/waitlist/success")
-def success_waitlist():
-    return render_template("waitlist/success.html")
-
-
-@main.get("/download/<key>")
-def download(key):
-    waitlist_charge = WaitlistCharge.get_by_random_key(key)
-
-    if not waitlist_charge:
-        return render_template("download.html", can_download=False)
-
-    if waitlist_charge.downloaded:
-        return render_template("download.html", can_download=False)
-
-    return render_template("download.html", can_download=True, random_key=key)
-
-
-@main.post("/download")
-def post_download():
-    random_key = request.form.get("random_key", "")
-    waitlist_charge = WaitlistCharge.get_by_random_key(random_key)
-
-    if not waitlist_charge or waitlist_charge.downloaded:
-        return redirect(url_for("main.index"))
-
-    waitlist_charge.downloaded = True
-    db.session.commit()
-
-    return send_from_directory(
-        "static", "elements/download/Globalify_Early_Bird_Investor_List.xlsx", as_attachment=True
-    )
-
-
-@main.route("/suggestions")
-@login_required
-@check_user_info_complete
-@check_verification
-def get_suggestions():
-    company = Company.get_by_user_id(current_user.id)
-
-    investors = Investor.get_all()
-
-    scored_investors = []
-
-    for investor in investors:
-        bias_score = investor.calculate_bias_score()
-        location_score = investor.calculate_location_score(company)
-        exits_score = investor.calculate_exits_score()
-        industry_score = investor.calculate_industry_score(company)
-        round_score = investor.calculate_round_score(company)
-        completeness_score = investor.calculate_completeness_score()
-
-        total_score = (
-            WEIGHTS["bias"] * bias_score
-            + WEIGHTS["location"] * location_score
-            + WEIGHTS["exits"] * exits_score
-            + WEIGHTS["industry"] * industry_score
-            + WEIGHTS["round"] * round_score
-            + WEIGHTS["completeness"] * completeness_score
-        )
-        scored_investors.append((investor, total_score))
-
-    suggested_investors = sorted(
-        (investor for investor in scored_investors),
-        key=lambda investor: investor[1],
-        reverse=True,
-    )
-
-    sorted_investors = [investor[0] for investor in suggested_investors][:15]
-
-    return render_template(
-        "suggestions.html",
-        investors=sorted_investors,
-    )
-
-
 def generate_pagination(current_page: int, total_pages: int, around_count: int = 2) -> dict:
     """
     Generate a pagination dictionary.
@@ -249,6 +97,57 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
         "has_prev": bool(current_page > 1),
         "has_next": bool(current_page < total_pages),
     }
+
+
+@main.get("/")
+def index():
+    # TODO: Turned off for better performance
+    posts = parse_medium_html()
+    posts = []
+    return render_template("coming_soon.html", posts=posts)
+
+
+@main.route("/suggestions")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_suggestions():
+    company = Company.get_by_user_id(current_user.id)
+
+    investors = Investor.get_all()
+
+    scored_investors = []
+
+    for investor in investors:
+        bias_score = investor.calculate_bias_score()
+        location_score = investor.calculate_location_score(company)
+        exits_score = investor.calculate_exits_score()
+        industry_score = investor.calculate_industry_score(company)
+        round_score = investor.calculate_round_score(company)
+        completeness_score = investor.calculate_completeness_score()
+
+        total_score = (
+            WEIGHTS["bias"] * bias_score
+            + WEIGHTS["location"] * location_score
+            + WEIGHTS["exits"] * exits_score
+            + WEIGHTS["industry"] * industry_score
+            + WEIGHTS["round"] * round_score
+            + WEIGHTS["completeness"] * completeness_score
+        )
+        scored_investors.append((investor, total_score))
+
+    suggested_investors = sorted(
+        (investor for investor in scored_investors),
+        key=lambda investor: investor[1],
+        reverse=True,
+    )
+
+    sorted_investors = [investor[0] for investor in suggested_investors][:15]
+
+    return render_template(
+        "suggestions.html",
+        investors=sorted_investors,
+    )
 
 
 @main.route("/search", methods=["GET", "POST"])
@@ -364,6 +263,95 @@ def investment_firm(firm_id):
     return render_template("investment_firm.html", investment_firm=investment_firm, user=current_user)
 
 
+@main.post("/notification/edit/<notification_id>")
+def update_notification(notification_id):
+    notification = Notification.get_by_id(notification_id)
+    if not notification:
+        return render_template("404.html")
+
+    if notification.user_id != current_user.id:
+        return render_template("404.html")
+
+    notification.is_read = True
+    db.session.commit()
+
+    return jsonify({"status": "success"})
+
+
+@main.get("/waitlist")
+def waitlist():
+    return render_template("waitlist.html")
+
+
+@main.get("/waitlist/apply")
+def waitlist_apply():
+    return render_template("waitlist/apply.html")
+
+
+@main.post("/waitlist-email")
+def waitlist_email():
+    email = request.get_json().get("email")
+
+    if not email:
+        status = Status(StatusType.ERROR, "Please enter an email.").get_status()
+        return jsonify(**status)
+
+    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
+        status = Status(StatusType.ERROR, "Please enter a valid email.").get_status()
+        return jsonify(**status)
+
+    email_for_newsletter = Waitlist.get_by_email(email)
+    if email_for_newsletter:
+        status = Status(StatusType.ERROR, "Email is already in the system.").get_status()
+        return jsonify(**status)
+
+    new_waitlist = Waitlist(email=email)
+    db.session.add(new_waitlist)
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Email added.").get_status()
+    return jsonify(**status)
+
+
+@main.get("/waitlist/cancel")
+def cancel_waitlist():
+    return render_template("waitlist/cancel.html")
+
+
+@main.get("/waitlist/success")
+def success_waitlist():
+    return render_template("waitlist/success.html")
+
+
+@main.get("/download/<key>")
+def download(key):
+    waitlist_charge = WaitlistCharge.get_by_random_key(key)
+
+    if not waitlist_charge:
+        return render_template("download.html", can_download=False)
+
+    if waitlist_charge.downloaded:
+        return render_template("download.html", can_download=False)
+
+    return render_template("download.html", can_download=True, random_key=key)
+
+
+@main.post("/download")
+def post_download():
+    random_key = request.form.get("random_key", "")
+    waitlist_charge = WaitlistCharge.get_by_random_key(random_key)
+
+    if not waitlist_charge or waitlist_charge.downloaded:
+        return redirect(url_for("main.index"))
+
+    waitlist_charge.downloaded = True
+    db.session.commit()
+
+    return send_from_directory(
+        "static", "elements/download/Globalify_Early_Bird_Investor_List.xlsx", as_attachment=True
+    )
+
+
 @main.route("/pricing")
 def pricing():
     return render_template("pricing.html")
@@ -432,7 +420,7 @@ def sitemap():
 
 @main.route("/robots.txt")
 def robots():
-    robots_txt = "User-agent: *\nDisallow: /admin\nDisallow: /logout\nDisallow: /onboarding\nDisallow: /company-form\nDisallow: /login-linkedin\nDisallow: /login-google\nDisallow: /google-oauth\nDisallow: /linkedin-oauth\n\nSitemap: https://globalify.xyz/sitemap.xml"
+    robots_txt = "User-agent: *\nDisallow: /admin\nDisallow: /logout\nDisallow: /onboarding\nDisallow: /login-linkedin\nDisallow: /login-google\nDisallow: /google-oauth\nDisallow: /linkedin-oauth\n\nSitemap: https://globalify.xyz/sitemap.xml"
     response = make_response(robots_txt)
     response.headers["Content-Type"] = "text/plain"
     return response

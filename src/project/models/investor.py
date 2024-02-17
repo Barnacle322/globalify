@@ -10,7 +10,6 @@ from flask_sqlalchemy.pagination import Pagination
 from geopy.distance import geodesic
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String, and_, desc, or_
 from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
-from sqlalchemy.sql import Select
 from thefuzz import fuzz
 
 from ..extensions import db
@@ -27,138 +26,6 @@ from ..utils.fake_data import (
 from ..utils.suggestion import geocode_location
 from ..utils.typesense_search import SearchBuilder, create_schema, create_synonyms, delete_schema, upsert_documents
 from .helpers import Industry, Round
-
-
-class QueryBuilder:
-    """
-    A class that builds and applies filters to a base query.
-
-    This class allows you to dynamically apply search filters, sorting, and various other filters to a base query.
-
-    Attributes:
-        base_query (Select): The base query being built.
-        cls (type[Investor | InvestmentFirm]): The class type for which the query is built.
-
-    """
-
-    def __init__(self, base_query: Select, cls: type[Investor | InvestmentFirm]):
-        self.base_query = base_query
-        self.cls = cls
-
-    def apply_search_filters(self, query_string: str, filter_fields: list[str] | None, search_fields: tuple[str, ...]):
-        """
-        Applies search filters to the query based on the provided parameters.
-
-        Args:
-            query_string (str): The search query string.
-            filter_fields (list[str] | None): The fields to apply the search filters on.
-            search_fields (tuple[str, ...]): The fields to search within.
-
-        Returns:
-            QueryBuilder: The QueryBuilder instance with the applied search filters.
-
-        """
-        if not query_string:
-            return self
-
-        filter_conditions = [
-            getattr(self.cls, field).ilike(f"%{query_string}%")
-            for field in (filter_fields or search_fields)
-            if hasattr(self.cls, field)
-        ]
-
-        if filter_conditions:
-            self.base_query = self.base_query.where(or_(*filter_conditions))
-
-        return self
-
-    def apply_sorting(self, sort_field: str | None, descending: bool):
-        """
-        Applies sorting to the query based on the provided parameters.
-
-        Args:
-            sort_field (str | None): The field to sort by.
-            descending (bool): True if sorting should be done in descending order, False otherwise.
-
-        Returns:
-            QueryBuilder: The QueryBuilder instance with the applied sorting.
-
-        """
-        if sort_field and hasattr(self.cls, sort_field):
-            alias = self.cls
-            column = getattr(alias, sort_field)
-            self.base_query = self.base_query.order_by(desc(column)) if descending else self.base_query.order_by(column)
-
-        return self
-
-    def filter_by_rounds(self, rounds: list[Round] | None, rounds_exclusive: bool):
-        """
-        Filters the query based on a list of rounds.
-
-        Args:
-            rounds (list[Round] | None): The list of rounds to filter by.
-            rounds_exclusive (bool): True if the filter should be exclusive, False otherwise.
-
-        Returns:
-            QueryBuilder: The QueryBuilder instance with the applied round filters.
-
-        """
-        if rounds:
-            round_filters = [self.cls.rounds.any(Round.id == round_obj.id) for round_obj in rounds]
-            condition = and_(*round_filters) if rounds_exclusive else or_(*round_filters)
-            self.base_query = self.base_query.where(condition)
-        return self
-
-    def filter_by_industries(self, industries: list[Industry] | None, industries_exclusive: bool):
-        """
-        Filters the query based on a list of industries.
-
-        Args:
-            industries (list[Industry] | None): The list of industries to filter by.
-            industries_exclusive (bool): True if the filter should be exclusive, False otherwise.
-
-        Returns:
-            QueryBuilder: The QueryBuilder instance with the applied industry filters.
-
-        """
-        if industries:
-            industry_filters = [self.cls.industries.any(Industry.id == industry_obj.id) for industry_obj in industries]
-            condition = and_(*industry_filters) if industries_exclusive else or_(*industry_filters)
-            self.base_query = self.base_query.where(condition)
-        return self
-
-    def filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
-        """
-        Filters the query based on the investment range.
-
-        Args:
-            min_investment (int | None): The minimum investment amount.
-            max_investment (int | None): The maximum investment amount.
-
-        Returns:
-            QueryBuilder: The QueryBuilder instance with the applied investment range filter.
-
-        """
-        if min_investment is not None and max_investment is not None:
-            investment_filters = and_(
-                self.cls.min_investment >= min_investment, self.cls.max_investment <= max_investment
-            )
-            self.base_query = self.base_query.where(investment_filters)
-        elif min_investment is not None:
-            self.base_query = self.base_query.where(self.cls.min_investment >= min_investment)
-        elif max_investment is not None:
-            self.base_query = self.base_query.where(self.cls.max_investment <= max_investment)
-        return self
-
-    def filter_by_countries(self, countries: list[str] | None):
-        if countries:
-            location_filters = [self.cls._country.ilike(country_obj.name) for country_obj in countries]  # type: ignore
-            condition = or_(*location_filters)
-            self.base_query = self.base_query.where(condition)
-        return self
-
-    def build(self):
-        return self.base_query
 
 
 class NotableInvestment(db.Model):
@@ -493,8 +360,6 @@ class Investor(db.Model):
         page: int = 1,
     ):
         try:
-            # if query_string == "":
-            #     raise ValueError("query_string cannot be empty")
             results = (
                 SearchBuilder("investors")
                 .query(query_string)
@@ -505,7 +370,7 @@ class Investor(db.Model):
                 .filter_by_countries(countries)
                 .sort_by(sort_by, sort_desc)
                 .page(page, per_page)
-                .build()
+                .search()
             )
 
         except Exception:
@@ -540,70 +405,6 @@ class Investor(db.Model):
                 }
             )
         return {"investors": investor_list, "found": found, "pages": pages, "page": page}
-
-    # @classmethod
-    # def get_pagination(
-    #     cls,
-    #     page: int = 1,
-    #     per_page: int = 10,
-    #     error_out: bool = False,
-    #     search_string: str = "",
-    #     filter_fields: list[str] | None = None,
-    #     rounds: list[Round] | None = None,
-    #     rounds_exclusive: bool = False,
-    #     industries: list[Industry] | None = None,
-    #     industries_exclusive: bool = False,
-    #     countries: list[str] | None = None,
-    #     min_investment: int | None = None,
-    #     max_investment: int | None = None,
-    #     sort_field: str | None = None,
-    #     descending: bool = False,
-    #     search_fields: tuple[str, ...] = ("first_name", "last_name", "firm_name", "position", "about"),
-    #     # company: Company | None = None,
-    # ) -> Pagination | list[None]:
-    #     """
-    #     Get a paginated list of investors based on the provided filters.
-
-    #     Args:
-    #         page (int): The page number to retrieve (default: 1).
-    #         per_page (int): The number of investors per page (default: 12).
-    #         error_out (bool): Whether to raise an error if the requested page is out of range (default: False).
-    #         search_string (str): The search string to filter investors by (default: "").
-    #         filter_fields (list[str] | None): The fields to filter investors on (default: None).
-    #         rounds (list[Round] | None): The rounds to filter investors by (default: None).
-    #         rounds_exclusive (bool): Whether the rounds filter should be exclusive or inclusive (default: False).
-    #         industries (list[Industry] | None): The industries to filter investors by (default: None).
-    #         industries_exclusive (bool): Whether the industries filter should be exclusive or inclusive (default: False).
-    #         min_investment (int | None): The minimum investment amount to filter investors by (default: None).
-    #         max_investment (int | None): The maximum investment amount to filter investors by (default: None).
-    #         sort_field (str | None): The field to sort the investors by (default: None).
-    #         descending (bool): Whether to sort the investors in descending order (default: False).
-    #         search_fields (tuple[str, ...]): The fields to search for the search string in (default: ("first_name", "last_name", "firm_name", "position", "about")).
-
-    #     Returns:
-    #         Pagination | list[None]: The paginated list of investors or an empty list if an exception occurs.
-
-    #     """
-    #     try:
-    #         combined_query = (
-    #             QueryBuilder(
-    #                 db.select(Investor).options(joinedload(Investor.rounds), joinedload(Investor.industries)),
-    #                 cls,
-    #             )
-    #             .apply_search_filters(search_string, filter_fields, search_fields)
-    #             .apply_sorting(sort_field, descending)
-    #             .filter_by_rounds(rounds, rounds_exclusive)
-    #             .filter_by_industries(industries, industries_exclusive)
-    #             .filter_by_investment_range(min_investment, max_investment)
-    #             .filter_by_countries(countries)
-    #             .build()
-    #         )
-    #         investors = db.paginate(combined_query, page=page, per_page=per_page, error_out=error_out)
-    #         if investors.pages < page:
-    #             investors = db.paginate(combined_query, page=investors.pages, per_page=per_page, error_out=error_out)
-    #         return investors
-    #     except Exception:
-    #         return []
 
     @staticmethod
     def get_by_id(id: int) -> Investor | None:
@@ -1093,71 +894,6 @@ class InvestmentFirm(db.Model):
             .unique()
             .all()
         )
-
-    @classmethod
-    def get_pagination(
-        cls,
-        page: int = 1,
-        per_page: int = 10,
-        error_out: bool = False,
-        search_string: str = "",
-        filter_fields: list[str] | None = None,
-        rounds: list[Round] | None = None,
-        rounds_exclusive: bool = False,
-        industries: list[Industry] | None = None,
-        industries_exclusive: bool = False,
-        min_investment: int | None = None,
-        max_investment: int | None = None,
-        sort_field: str | None = None,
-        descending: bool = False,
-        search_fields: tuple[str, ...] = ("name", "about"),
-    ) -> Pagination | list[None]:
-        """Get a paginated list of investment firms based on various filters.
-
-        Args:
-            page (int, optional): The page number to retrieve. Defaults to 1.
-            per_page (int, optional): The number of items per page. Defaults to 10.
-            error_out (bool, optional): Whether to raise an error if the page is out of range. Defaults to False.
-            search_string (str, optional): The search string to filter investment firms. Defaults to an empty string.
-            filter_fields (list[str] | None, optional): The fields to filter on. Defaults to None.
-            rounds (list[Round] | None, optional): The rounds to filter on. Defaults to None.
-            rounds_exclusive (bool, optional): Whether to exclude the specified rounds. Defaults to False.
-            industries (list[Industry] | None, optional): The industries to filter on. Defaults to None.
-            industries_exclusive (bool, optional): Whether to exclude the specified industries. Defaults to False.
-            min_investment (int | None, optional): The minimum investment amount to filter on. Defaults to None.
-            max_investment (int | None, optional): The maximum investment amount to filter on. Defaults to None.
-            sort_field (str | None, optional): The field to sort the results by. Defaults to None.
-            descending (bool, optional): Whether to sort the results in descending order. Defaults to False.
-            search_fields (tuple[str, ...], optional): The fields to search for the search string. Defaults to ("name", "about").
-
-        Returns:
-            Pagination | list[None]: A paginated list of investment firms.
-
-        """
-        try:
-            combined_query = (
-                QueryBuilder(
-                    db.select(InvestmentFirm).options(
-                        joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries)
-                    ),
-                    cls,
-                )
-                .apply_search_filters(search_string, filter_fields, search_fields)
-                .apply_sorting(sort_field, descending)
-                .filter_by_rounds(rounds, rounds_exclusive)
-                .filter_by_industries(industries, industries_exclusive)
-                .filter_by_investment_range(min_investment, max_investment)
-                .build()
-            )
-            investment_firms = db.paginate(combined_query, page=page, per_page=per_page, error_out=error_out)
-            if investment_firms.pages < page:
-                investment_firms = db.paginate(
-                    combined_query, page=investment_firms.pages, per_page=per_page, error_out=error_out
-                )
-
-            return investment_firms
-        except Exception:
-            return []
 
     @staticmethod
     def get_by_id(id: int) -> InvestmentFirm | None:

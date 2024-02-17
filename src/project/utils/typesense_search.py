@@ -166,11 +166,10 @@ class SearchBuilder:
         self.parameters["per_page"] = per_page
         return self
 
-    def build(self) -> dict:
+    def search(self) -> dict:
         self.parameters["prefix"] = False
         self.parameters["filter_by"] = " && ".join(self.filters)
-        results = client.collections[self.collection].documents.search(self.parameters)
-        return results
+        return client.collections[self.collection].documents.search(self.parameters)
 
 
 def create_schema(schema: dict) -> None:

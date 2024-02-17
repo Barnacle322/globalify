@@ -1,8 +1,7 @@
 import os
-import uuid
 
 import requests
-from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import (
     current_user,
     login_required,
@@ -10,13 +9,10 @@ from flask_login import (
     logout_user,
 )
 
-from src.project.models.helpers import Country, Industry, Round
-
 from ..extensions import db, login_manager, oauth
-from ..models import Company, User, UserInfo, UserPayment
-from ..models.user import EmailVerification
+from ..models import Company, EmailVerification, Notification, User, UserInfo, UserPayment
 from ..utils.email_verification import create_verification_token, update_is_expired
-from ..utils.enums import Events, OauthProvider, Status, StatusType
+from ..utils.enums import Events, NotificationDestination, OauthProvider, Status, StatusType
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
     AUTH_USERNAME_USED,
@@ -26,7 +22,7 @@ from ..utils.errors.error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
-from ..utils.google_pubsub import send_event
+from ..utils.google_helpers.google_pubsub import send_event
 
 auth = Blueprint("auth", __name__)
 
@@ -60,6 +56,7 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
 
     Raises:
         Exception: If the user exists but the OAuth provider is different.
+
     """
     user = User.get_by_email(email)
     if not user:
@@ -84,6 +81,7 @@ def api_call(url: str, access_token: str):
 
     Returns:
         dict: The JSON response from the API call.
+
     """
     response = requests.get(
         url,
@@ -344,30 +342,26 @@ def onboarding():
 
     If the current user is anonymous, it redirects to the login page.
     If user_info is not found for the authenticated user, it redirects to the login page.
-    If user_info.is_complete is True, it redirects to the search route.
+    If user_info.is_complete is True, it redirects to the company_form route.
     If the request method is POST, it processes the onboarding form data and updates the user's information.
 
     """
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-
     authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    notification = Notification.get_notification_for_view(
+        user_id=authenticated_user.id,
+        destination=NotificationDestination.ONBOARDING,
+        is_read=False,
+    )
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info:
         return redirect(url_for("auth.login"))
 
     if user_info.is_complete:
-        return redirect(url_for("main.search"))
+        return redirect(url_for("auth.onboarding"))
 
     if request.method == "POST":
-        request_key = str(uuid.uuid4())
-
-        if session.get("last_request_key") == request_key:
-            return redirect(url_for("main.settings"))
-
         first_name, last_name, username, company_name = (
             request.form.get("first_name"),
             request.form.get("last_name"),
@@ -375,15 +369,23 @@ def onboarding():
             request.form.get("company_name"),
         )
 
-        session["last_request_key"] = request_key
-
         if not first_name or not last_name or not username or not company_name:
-            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
-            return redirect(url_for("auth.onboarding", _external=False, **status))
+            notification = Notification.create_notification(
+                user_id=authenticated_user.id,
+                title="Error!",
+                msg=AUTH_FIELDS_INCOMPLETE,
+                destination=NotificationDestination.ONBOARDING,
+            )
+            return redirect(url_for("auth.onboarding", _external=False))
 
         if UserInfo.is_taken(username):
-            status = Status(StatusType.ERROR, AUTH_USERNAME_USED).get_status()
-            return redirect(url_for("auth.onboarding", _external=False, **status))
+            notification = Notification.create_notification(
+                user_id=authenticated_user.id,
+                title="Error!",
+                msg=AUTH_USERNAME_USED,
+                destination=NotificationDestination.ONBOARDING,
+            )
+            return redirect(url_for("auth.onboarding", _external=False))
 
         user_info.first_name = first_name
         user_info.last_name = last_name
@@ -396,13 +398,15 @@ def onboarding():
         user_info.is_complete = True
 
         db.session.commit()
-        status = Status(
-            StatusType.SUCCESS,
-            "Add some more info to get better results!",
-        ).get_status(
-            title="You have registered!",
+
+        notification = Notification.create_notification(
+            user_id=authenticated_user.id,
+            title="Success!",
+            msg="Add some more info to get better results!",
+            destination=NotificationDestination.SEARCH,
             button_text="Go!",
             button_url=url_for("auth.expanded_onboarding", _external=False),
+            icon_url="",
         )
 
         new_verification = create_verification_token(user_id=authenticated_user.id)
@@ -413,14 +417,9 @@ def onboarding():
             random_key=new_verification,
         )
 
-        return redirect(url_for("main.search", _external=False, **status))
+        return redirect(url_for("main.search", _external=False))
 
-    return render_template(
-        "auth/onboarding.html",
-        user_info=user_info.sanitize(),
-        status_type=status_type,
-        msg=msg,
-    )
+    return render_template("auth/onboarding.html", user_info=user_info.sanitize(), notification=notification)
 
 
 @auth.get("/username/<username>")

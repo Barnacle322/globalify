@@ -1,6 +1,14 @@
 from enum import Enum
 
 
+class NotificationDestination(Enum):
+    ALL = "all"
+    SEARCH = "search"
+    ONBOARDING = "onboarding"
+    INDEX = "index"
+    COMPANY = "change_company_info"
+
+
 class StatusType(Enum):
     SUCCESS = 1
     WARNING = 2

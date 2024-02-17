@@ -15,7 +15,7 @@ from ..utils.errors.error_messages import (
     PAYMENT_EMAIL_USED,
     PAYMENT_NOT_FOUND,
 )
-from ..utils.google_pubsub import send_event
+from ..utils.google_helpers.google_pubsub import send_event
 from .main import check_user_info_complete
 
 payment = Blueprint("payment", __name__)

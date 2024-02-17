@@ -2,8 +2,10 @@
 <script src="/static/scripts/dashboard.js" defer></script>
 <script src="/static/scripts/notification.js" defer></script>
 <script src="/static/scripts/idempotency.js" defer></script>
+<script src="/static/scripts/notificationHandler.js" defer></script>
 {% endblock %} {% block title %}Company{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content %}
 <div class="mx-auto block max-w-7xl pt-24 lg:flex lg:gap-x-16 lg:px-8">
+    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
     <aside class="flex overflow-x-auto py-4 lg:block lg:w-64 lg:flex-none lg:py-20">
         <nav class="flex-none px-4 sm:px-6 xl:px-0">
             <ul class="flex gap-x-3 gap-y-1 whitespace-nowrap lg:flex-col">
@@ -114,148 +116,6 @@
         </nav>
     </aside>
     <main class="flex-auto px-4 sm:px-6 lg:px-0 lg:py-4">
-        {% if status_type %} {% if status_type == '3' %}
-        <div
-            id="bottom-right-message"
-            class="fixed bottom-4 right-4 flex items-center rounded-md border border-gray-300 bg-white p-4 shadow-md"
-            role="alert"
-        >
-            <div
-                class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-500 dark:bg-red-800 dark:text-red-200"
-            >
-                <svg
-                    class="h-5 w-5"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                >
-                    <path
-                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"
-                    />
-                </svg>
-                <span class="sr-only">Error icon</span>
-            </div>
-            <div class="ms-3 text-sm font-normal">{{ msg }}</div>
-            <button
-                type="button"
-                class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-white"
-                data-dismiss-target="#toast-danger"
-                aria-label="Close"
-            >
-                <span class="sr-only">Close</span>
-                <svg
-                    class="h-3 w-3"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                >
-                    <path
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    />
-                </svg>
-            </button>
-        </div>
-        {% endif %} {% if status_type == '2' %}
-        <div
-            id="bottom-right-message"
-            class="fixed bottom-4 right-4 flex items-center rounded-md border border-gray-300 bg-white p-4 shadow-md"
-            role="alert"
-        >
-            <div
-                class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-500 dark:bg-orange-700 dark:text-orange-200"
-            >
-                <svg
-                    class="h-5 w-5"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                >
-                    <path
-                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"
-                    />
-                </svg>
-                <span class="sr-only">Warning icon</span>
-            </div>
-            <div class="ms-3 text-sm font-normal">{{ msg }}</div>
-            <button
-                type="button"
-                class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-white"
-                data-dismiss-target="#toast-warning"
-                aria-label="Close"
-            >
-                <span class="sr-only">Close</span>
-                <svg
-                    class="h-3 w-3"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                >
-                    <path
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    />
-                </svg>
-            </button>
-        </div>
-        {% endif %} {% if status_type == '1' %}
-        <div
-            id="bottom-right-message"
-            class="fixed bottom-4 right-4 flex items-center rounded-md border border-gray-300 bg-white p-4 shadow-md"
-            role="alert"
-        >
-            <div
-                class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-500 dark:bg-green-800 dark:text-green-200"
-            >
-                <svg
-                    class="h-5 w-5"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                >
-                    <path
-                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"
-                    />
-                </svg>
-                <span class="sr-only">Check icon</span>
-            </div>
-            <div class="ms-3 text-sm font-normal">{{ msg }}</div>
-            <button
-                type="button"
-                class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-white"
-                data-dismiss-target="#toast-success"
-                aria-label="Close"
-            >
-                <span class="sr-only">Close</span>
-                <svg
-                    class="h-3 w-3"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                >
-                    <path
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    />
-                </svg>
-            </button>
-        </div>
-        {% endif %} {% endif %}
         <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
             <div>
                 <h2 class="font-medium leading-7">Company Information</h2>
@@ -421,7 +281,71 @@
                 </div>
             </form>
         </div>
+        {% if notification %}
+        <section class="pointer-events-none fixed left-0 top-0 h-full w-full">
+            <div class="relative mx-auto h-full w-full max-w-7xl">
+                <div
+                    id="toast-interactive"
+                    class="fade-in-up pointer-events-auto absolute bottom-3 right-3 z-50 w-full max-w-xs rounded-lg bg-white p-4 text-gray-500 shadow-lg"
+                    role="alert"
+                >
+                    <div class="flex">
+                        <div
+                            class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-white"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-4"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"
+                                />
+                            </svg>
+
+                            <span class="sr-only">Refresh icon</span>
+                        </div>
+                        <div class="ms-3 text-sm font-normal">
+                            <span class="mb-1 text-sm font-semibold text-gray-900 dark:text-white"
+                                >{{ notification.json_data.get("title") }}</span
+                            >
+                            <div class="mb-2 text-sm font-normal">{{ notification.json_data.get("msg") }}</div>
+                        </div>
+                        <button
+                            type="button"
+                            class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300"
+                            data-dismiss-target="#toast-interactive"
+                            aria-label="Close"
+                            onclick="markNotificationAsRead()"
+                            data-notification-id="{{ notification.id }}"
+                        >
+                            <span class="sr-only">Close</span>
+                            <svg
+                                class="h-3 w-3"
+                                aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 14 14"
+                            >
+                                <path
+                                    stroke="currentColor"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
     </main>
 </div>
 {% endblock %}
-

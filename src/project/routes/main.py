@@ -17,9 +17,8 @@ from flask import (
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Company, InvestmentFirm, Investor, Waitlist, WaitlistCharge
-from ..models.helpers import Country, Industry, Round
-from ..utils.enums import Status, StatusType
+from ..models import Company, Country, Industry, InvestmentFirm, Investor, Notification, Round, Waitlist, WaitlistCharge
+from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import WEIGHTS
@@ -51,24 +50,231 @@ def check_verification(func):
     return decorated_function
 
 
-def construct_query_string(**kwargs):
-    query_string = ""
-    for key, value in kwargs.items():
-        if isinstance(value, list):
-            for item in value:
-                query_string += f"&{key}={item}"
-            continue
-        if value:
-            query_string += f"&{key}={value}"
-    return query_string
+def generate_pagination(current_page: int, total_pages: int, around_count: int = 2) -> dict:
+    """
+    Generate a pagination dictionary.
+
+    Args:
+        current_page (int): The current page number.
+        total_pages (int): The total number of pages.
+        around_count (int, optional): The number of pages to show around the current page. Defaults to 4.
+
+    Returns:
+        dict: A dictionary with keys 'current_page', 'prev', 'next', and 'pages'.
+    """
+    # Calculate all the page ranges
+    start_pages = range(1, min(3, total_pages + 1))
+    around_pages = range(max(1, current_page - around_count), min(current_page + around_count + 1, total_pages + 1))
+    end_pages = range(max(current_page + around_count + 1, total_pages - 1), total_pages + 1)
+
+    # Build the pages list
+    pages = list(start_pages)
+
+    if not pages:
+        return {
+            "current_page": 0,
+            "prev": 0,
+            "next": 0,
+            "pages": [],
+            "has_other_pages": False,
+            "has_prev": False,
+            "has_next": False,
+        }
+
+    if around_pages and around_pages[0] - pages[-1] > 1:
+        pages.append(0)
+    pages.extend(p for p in around_pages if p not in pages)
+    if end_pages and end_pages[0] - pages[-1] > 1:
+        pages.append(0)
+    pages.extend(p for p in end_pages if p not in pages)
+
+    return {
+        "current_page": current_page,
+        "prev": max(1, current_page - 1),
+        "next": min(current_page + 1, total_pages),
+        "pages": pages,
+        "has_other_pages": bool(len(pages) > 1),
+        "has_prev": bool(current_page > 1),
+        "has_next": bool(current_page < total_pages),
+    }
 
 
 @main.get("/")
 def index():
     # TODO: Turned off for better performance
     posts = parse_medium_html()
-    posts = []
-    return render_template("coming_soon.html", posts=posts)
+    return render_template("index.html", posts=posts)
+
+
+@main.route("/suggestions")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_suggestions():
+    company = Company.get_by_user_id(current_user.id)
+
+    investors = Investor.get_all()
+
+    scored_investors = []
+
+    for investor in investors:
+        bias_score = investor.calculate_bias_score()
+        location_score = investor.calculate_location_score(company)
+        exits_score = investor.calculate_exits_score()
+        industry_score = investor.calculate_industry_score(company)
+        round_score = investor.calculate_round_score(company)
+        completeness_score = investor.calculate_completeness_score()
+
+        total_score = (
+            WEIGHTS["bias"] * bias_score
+            + WEIGHTS["location"] * location_score
+            + WEIGHTS["exits"] * exits_score
+            + WEIGHTS["industry"] * industry_score
+            + WEIGHTS["round"] * round_score
+            + WEIGHTS["completeness"] * completeness_score
+        )
+        scored_investors.append((investor, total_score))
+
+    suggested_investors = sorted(
+        (investor for investor in scored_investors),
+        key=lambda investor: investor[1],
+        reverse=True,
+    )
+
+    sorted_investors = [investor[0] for investor in suggested_investors][:15]
+
+    return render_template(
+        "suggestions.html",
+        investors=sorted_investors,
+    )
+
+
+@main.route("/search", methods=["GET", "POST"])
+@login_required
+@check_user_info_complete
+@check_verification
+def search():
+    notification = Notification.get_notification_for_view(
+        current_user.id,
+        NotificationDestination.SEARCH,
+        is_read=False,
+    )
+
+    search_string = request.args.get("search", "")
+    sort_by = request.args.get("sort_field", "")
+    sort_desc = request.args.get("descending", False, type=bool)
+    min_investment = request.args.get("min_investment", type=int)
+    max_investment = request.args.get("max_investment", type=int)
+    page = request.args.get("page", 1, type=int)
+
+    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
+    rounds = []
+    for round_name in request.args.getlist("round"):
+        if round_object := Round.get_by_name(round_name):
+            rounds.append(round_object.name)
+
+    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
+    industries = []
+    for industry_name in request.args.getlist("industry"):
+        if industry_object := Industry.get_by_name(industry_name):
+            industries.append(industry_object.name)
+
+    countries = []
+    for country_name in request.args.getlist("country"):
+        if country_object := Country.get_by_name(country_name):
+            countries.append(country_object.name)
+
+    query_by = [
+        "location",
+        "country",
+        "rounds",
+        "industries",
+        "embedding",
+        "notable_investments",
+        "name",
+        "firm_name",
+        "position",
+    ]
+
+    result = Investor.get_search(
+        query_string=search_string,
+        query_by=query_by,
+        sort_by=sort_by,
+        sort_desc=sort_desc,
+        rounds=rounds,
+        industries=industries,
+        rounds_exclusive=rounds_exclusive,
+        industries_exclusive=industries_exclusive,
+        min_investment=min_investment,
+        max_investment=max_investment,
+        page=page,
+        per_page=12,
+        countries=countries,
+    )
+    investors = result.get("investors")
+    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+
+    fields = {
+        "location": "Location",
+        "rounds": "Rounds",
+        "industries": "Industries",
+        "embedding": "Embedding",
+        "notable_investments": "Notable Investments",
+        "name": "Name",
+        "firm_name": "Firm Name",
+        "position": "Position",
+    }
+
+    return render_template(
+        "search.html",
+        investors=investors,
+        query=search_string,
+        fields=fields,
+        pagination=pagination,
+        total_pages=len(pagination.get("pages", [])),
+        notification=notification,
+        industry_list=Industry.get_all(),
+        round_list=Round.get_all(),
+    )
+
+
+@main.route("/investor/<int:investor_id>")
+@login_required
+@check_user_info_complete
+@check_verification
+def investor(investor_id):
+    investor = Investor.get_by_id(int(investor_id))
+    if not investor:
+        return redirect(url_for("main.dashboard"))
+
+    return render_template("investor.html", investor=investor, user=current_user)
+
+
+@main.route("/investment-firm/<int:firm_id>")
+@login_required
+@check_user_info_complete
+@check_verification
+def investment_firm(firm_id):
+    investment_firm = InvestmentFirm.get_by_id(int(firm_id))
+    if not investment_firm:
+        return redirect(url_for("main.dashboard"))
+
+    return render_template("investment_firm.html", investment_firm=investment_firm, user=current_user)
+
+
+@main.post("/notification/edit/<notification_id>")
+def update_notification(notification_id):
+    notification = Notification.get_by_id(notification_id)
+    if not notification:
+        return render_template("404.html")
+
+    if notification.user_id != current_user.id:
+        return render_template("404.html")
+
+    notification.is_read = True
+    db.session.commit()
+
+    return jsonify({"status": "success"})
 
 
 @main.get("/waitlist")
@@ -145,208 +351,6 @@ def post_download():
     )
 
 
-@main.route("/suggestions")
-@login_required
-@check_user_info_complete
-@check_verification
-def get_suggestions():
-    company = Company.get_by_user_id(current_user.id)
-
-    investors = Investor.get_all()
-
-    scored_investors = []
-
-    for investor in investors:
-        bias_score = investor.calculate_bias_score()
-        location_score = investor.calculate_location_score(company)
-        exits_score = investor.calculate_exits_score()
-        industry_score = investor.calculate_industry_score(company)
-        round_score = investor.calculate_round_score(company)
-        completeness_score = investor.calculate_completeness_score()
-
-        total_score = (
-            WEIGHTS["bias"] * bias_score
-            + WEIGHTS["location"] * location_score
-            + WEIGHTS["exits"] * exits_score
-            + WEIGHTS["industry"] * industry_score
-            + WEIGHTS["round"] * round_score
-            + WEIGHTS["completeness"] * completeness_score
-        )
-        scored_investors.append((investor, total_score))
-
-    suggested_investors = sorted(
-        (investor for investor in scored_investors),
-        key=lambda investor: investor[1],
-        reverse=True,
-    )
-
-    sorted_investors = [investor[0] for investor in suggested_investors][:15]
-
-    return render_template(
-        "suggestions.html",
-        investors=sorted_investors,
-    )
-
-
-def generate_pagination(current_page: int, total_pages: int, around_count: int = 2) -> dict:
-    """
-    Generate a pagination dictionary.
-
-    Args:
-        current_page (int): The current page number.
-        total_pages (int): The total number of pages.
-        around_count (int, optional): The number of pages to show around the current page. Defaults to 4.
-
-    Returns:
-        dict: A dictionary with keys 'current_page', 'prev', 'next', and 'pages'.
-    """
-    # Calculate all the page ranges
-    start_pages = range(1, min(3, total_pages + 1))
-    around_pages = range(max(1, current_page - around_count), min(current_page + around_count + 1, total_pages + 1))
-    end_pages = range(max(current_page + around_count + 1, total_pages - 1), total_pages + 1)
-
-    # Build the pages list
-    pages = list(start_pages)
-    if pages[-1] is not None and around_pages and around_pages[0] - pages[-1] > 1:
-        pages.append(0)
-    pages.extend(p for p in around_pages if p not in pages)
-    if pages[-1] is not None and end_pages and end_pages[0] - pages[-1] > 1:
-        pages.append(0)
-    pages.extend(p for p in end_pages if p not in pages)
-
-    return {
-        "current_page": current_page,
-        "prev": max(1, current_page - 1),
-        "next": min(current_page + 1, total_pages),
-        "pages": pages,
-    }
-
-
-@main.route("/search", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
-def search():
-    status, status_type, msg, title, button_text, button_url = {}, None, None, None, None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-        title = query.get("title")
-        button_text = query.get("button_text")
-        button_url = query.get("button_url")
-        status = {"type": status_type, "msg": msg, "title": title, "button_text": button_text, "button_url": button_url}
-
-    if request.method == "POST":
-        search_string = request.form.get("search", "")
-
-        # query_by = request.form.getlist("query_by")
-        query_by = [
-            "location",
-            "rounds",
-            "industries",
-            "embedding",
-            "notable_investments",
-            "name",
-            "firm_name",
-            "position",
-        ]
-
-        # sort_by = request.args.get("sort_field", "")
-        sort_by = None
-
-        # sort_desc = request.args.get("descending", False, type=bool)
-        sort_desc = False
-
-        # rounds = []
-        # for round_name in request.args.getlist("round"):
-        #     if round_object := Round.get_by_name(round_name):
-        #         rounds.append(round_object.name)
-        rounds = ["Seed", "Series C"]
-        # rounds = []
-
-        # industries = []
-        # for industry_name in request.args.getlist("industry"):
-        #     if industry_object := Industry.get_by_name(industry_name):
-        #         industries.append(industry_object.name)
-        # industries = ["FinTech", "AI", "Cloud", "SaaS", "InsureTech"]
-        industries = []
-
-        # rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
-        rounds_exclusive = False
-
-        # industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
-        industries_exclusive = True
-
-        # min_investment = request.args.get("min_investment", type=int)
-        min_investment = None
-
-        # max_investment = request.args.get("max_investment", type=int)
-        max_investment = None
-
-        countries = []
-        for country_name in request.args.getlist("country"):
-            if country_object := Country.get_by_name(country_name):
-                countries.append(country_object.name)
-
-        result = Investor.get_search(
-            query_string=search_string,
-            query_by=query_by,
-            sort_by=sort_by,
-            sort_desc=sort_desc,
-            rounds=rounds,
-            industries=industries,
-            rounds_exclusive=rounds_exclusive,
-            industries_exclusive=industries_exclusive,
-            min_investment=min_investment,
-            max_investment=max_investment,
-            # countries=countries,
-        )
-
-        investors = result.get("investors")
-        pagination = generate_pagination(1, 25)
-
-        return render_template(
-            "search.html",
-            investors=investors,
-            query=search_string,
-            pagination=pagination,
-            status=status,
-            industry_list=Industry.get_all(),
-            round_list=Round.get_all(),
-        )
-    return render_template(
-        "search.html",
-        investors=[],
-        status=status,
-        industry_list=Industry.get_all(),
-        round_list=Round.get_all(),
-    )
-
-
-@main.route("/investor/<int:investor_id>")
-@login_required
-@check_user_info_complete
-@check_verification
-def investor(investor_id):
-    investor = Investor.get_by_id(int(investor_id))
-    if not investor:
-        return redirect(url_for("main.dashboard"))
-
-    return render_template("investor.html", investor=investor, user=current_user)
-
-
-@main.route("/investment-firm/<int:firm_id>")
-@login_required
-@check_user_info_complete
-@check_verification
-def investment_firm(firm_id):
-    investment_firm = InvestmentFirm.get_by_id(int(firm_id))
-    if not investment_firm:
-        return redirect(url_for("main.dashboard"))
-
-    return render_template("investment_firm.html", investment_firm=investment_firm, user=current_user)
-
-
 @main.route("/pricing")
 def pricing():
     return render_template("pricing.html")
@@ -415,7 +419,7 @@ def sitemap():
 
 @main.route("/robots.txt")
 def robots():
-    robots_txt = "User-agent: *\nDisallow: /admin\nDisallow: /logout\nDisallow: /onboarding\nDisallow: /company-form\nDisallow: /login-linkedin\nDisallow: /login-google\nDisallow: /google-oauth\nDisallow: /linkedin-oauth\n\nSitemap: https://globalify.xyz/sitemap.xml"
+    robots_txt = "User-agent: *\nDisallow: /admin\nDisallow: /logout\nDisallow: /onboarding\nDisallow: /login-linkedin\nDisallow: /login-google\nDisallow: /google-oauth\nDisallow: /linkedin-oauth\n\nSitemap: https://globalify.xyz/sitemap.xml"
     response = make_response(robots_txt)
     response.headers["Content-Type"] = "text/plain"
     return response

@@ -2,7 +2,6 @@ import base64
 import io
 from uuid import UUID, uuid4
 
-from flask import current_app
 from google.cloud import storage
 from PIL import Image
 
@@ -44,7 +43,7 @@ def upload_blob(
     try:
         blob.upload_from_file(io.BytesIO(content), content_type="image/jpeg")
     except Exception as e:
-        current_app.logger.error(e)
+        print(e)
         raise
 
     if old_blob_id:
@@ -108,7 +107,7 @@ def load_picture(picture_uuid):
         picture = download_blob_into_memory(picture_uuid)
         picture_base64 = base64.b64encode(picture).decode("utf-8")
     except Exception as e:
-        current_app.logger.error(e)
+        print(e)
         raise
 
     return picture_base64
@@ -123,5 +122,5 @@ def upload_picture(picture, bucket_name: str = BUCKET_NAME):
         picture_url = upload_blob(resized_picture.read(), bucket_name=bucket_name)
         return picture_url
     except Exception as e:
-        current_app.logger.error(e)
+        print(e)
         raise

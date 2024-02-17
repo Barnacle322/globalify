@@ -92,4 +92,4 @@ def parse_medium_html() -> list:
             }
         )
 
-    return posts
+    return posts[:6]

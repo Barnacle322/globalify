@@ -1,5 +1,5 @@
-document.getElementById("search").addEventListener("keydown", function (event) {
-    if (event.key === "Enter") search();
+document.getElementById("search-btn").addEventListener("click", function (event) {
+    search();
 });
 
 function search() {

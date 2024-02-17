@@ -6,9 +6,8 @@ import random
 from collections.abc import Sequence
 from itertools import islice
 
-from flask_sqlalchemy.pagination import Pagination
 from geopy.distance import geodesic
-from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String, and_, desc, or_
+from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
 from thefuzz import fuzz
 
@@ -23,8 +22,15 @@ from ..utils.fake_data import (
     get_names,
     get_websites,
 )
+from ..utils.info_lists import notable_investment_list
 from ..utils.suggestion import geocode_location
-from ..utils.typesense_search import SearchBuilder, create_schema, create_synonyms, delete_schema, upsert_documents
+from ..utils.typesense_helpers.typesense_search import (
+    SearchBuilder,
+    create_schema,
+    create_synonyms,
+    delete_schema,
+    upsert_documents,
+)
 from .helpers import Industry, Round
 
 
@@ -63,147 +69,8 @@ class NotableInvestment(db.Model):
 
         """
         try:
-            notable_investment_list = list(
-                set(
-                    [
-                        "Uber",
-                        "Airbnb",
-                        "Robinhood",
-                        "Stripe",
-                        "Coinbase",
-                        "DoorDash",
-                        "Twitch",
-                        "Reddit",
-                        "TikTok",
-                        "Snapchat",
-                        "Spotify",
-                        "Lyft",
-                        "Zoom",
-                        "Pinterest",
-                        "Dropbox",
-                        "Slack",
-                        "Tinder",
-                        "Instagram",
-                        "Facebook",
-                        "Twitter",
-                        "LinkedIn",
-                        "YouTube",
-                        "Google",
-                        "PayPal",
-                        "Tesla",
-                        "SpaceX",
-                        "Amazon",
-                        "Netflix",
-                        "Apple",
-                        "Microsoft",
-                        "Intel",
-                        "Cisco",
-                        "Oracle",
-                        "IBM",
-                        "HP",
-                        "Dell",
-                        "eBay",
-                        "Yahoo",
-                        "AOL",
-                        "Compaq",
-                        "Netscape",
-                        "Sun Microsystems",
-                        "3Com",
-                        "Adobe",
-                        "AMD",
-                        "Xerox",
-                        "Sony",
-                        "Nintendo",
-                        "Sega",
-                        "Panasonic",
-                        "Samsung",
-                        "LG",
-                        "Nokia",
-                        "Motorola",
-                        "Siemens",
-                        "Philips",
-                        "Vodafone",
-                        "Ericsson",
-                        "Alcatel",
-                        "Sanyo",
-                        "Sharp",
-                        "NEC",
-                        "Palm",
-                        "BlackBerry",
-                        "HTC",
-                        "Qualcomm",
-                        "Verizon",
-                        "AT&T",
-                        "Vodafone",
-                        "T-Mobile",
-                        "Sprint",
-                        "Orange",
-                        "Bell",
-                        "Telus",
-                        "Rogers",
-                        "Comcast",
-                        "Time Warner",
-                        "Cox",
-                        "Charter",
-                        "CenturyLink",
-                        "Viacom",
-                        "CBS",
-                        "Disney",
-                        "News Corp",
-                        "Vivendi",
-                        "Bertelsmann",
-                        "Time Warner",
-                        "Sony",
-                        "Liberty Media",
-                        "Vodafone",
-                        "Televisa",
-                        "BCE",
-                        "Dish",
-                        "DirecTV",
-                        "Sky",
-                        "Telecom Italia",
-                        "Telefónica",
-                        "NTT",
-                        "KDDI",
-                        "Softbank",
-                        "SK Telecom",
-                        "KT",
-                        "LG Uplus",
-                        "China Mobile",
-                        "China Unicom",
-                        "China Telecom",
-                        "VimpelCom",
-                        "MTS",
-                        "Megafon",
-                        "Telecom Argentina",
-                        "Telecom Egypt",
-                        "Etisalat",
-                        "Ooredoo",
-                        "STC",
-                        "MTN",
-                        "TeliaSonera",
-                        "Telenor",
-                        "Telstra",
-                        "SingTel",
-                        "Telkom Indonesia",
-                        "Axiata",
-                        "Turkcell",
-                        "Mobily",
-                        "Mobinil",
-                        "Zain",
-                        "Omantel",
-                        "Qtel",
-                        "Batelco",
-                        "Vivacom",
-                        "TDC",
-                        "Telenor",
-                        "Tele2",
-                        "DNA",
-                        "Elisa",
-                    ]
-                )
-            )
-            db.session.add_all(list(map(lambda x: NotableInvestment(name=x), notable_investment_list)))
+            notable_investments = list(set(notable_investment_list))
+            db.session.add_all(list(map(lambda x: NotableInvestment(name=x), notable_investments)))
             db.session.commit()
         except Exception:
             db.session.rollback()

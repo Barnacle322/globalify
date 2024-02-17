@@ -2,7 +2,7 @@ import os
 
 import googlemaps
 
-from .typesense_search import search
+from .typesense_helpers.typesense_search import search
 
 gmaps = googlemaps.Client(key=os.getenv("_GOOGLE_MAPS_API_KEY"))
 

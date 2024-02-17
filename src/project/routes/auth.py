@@ -22,7 +22,7 @@ from ..utils.errors.error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
-from ..utils.google_pubsub import send_event
+from ..utils.google_helpers.google_pubsub import send_event
 
 auth = Blueprint("auth", __name__)
 

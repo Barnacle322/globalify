@@ -3,17 +3,32 @@
 {% endblock %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
 %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
-    <section class="mx-auto max-w-7xl px-8 pb-16 pt-16 text-center sm:px-6 lg:px-8 lg:pt-24">
+    <section
+        class="relative mx-auto max-w-7xl px-8 pb-16 text-center sm:px-6 lg:px-8 lg:pt-24 flex flex-col justify-center items-center"
+    >
+        <img
+            class="absolute w-fit h-fit left-1/2 top-0 transform -translate-x-1/2 scale-75 origin-top pointer-events-none -z-50"
+            src="/static/elements/hero-bg.svg"
+            alt=""
+        />
+        <span
+            class="move-up text-xs bg-white rounded-full border-gray w-fit border border-gray-200 px-2 py-1 shadow-lg text-semibold"
+            ><span class="bg-gradient-to-r from-[#8076E7] to-[#E776C1] bg-clip-text text-transparent"
+                >Finding investors with ease</span
+            ></span
+        >
         <h1
-            class="move-up mx-auto mb-10 max-w-sm text-center text-4xl font-bold tracking-tight text-slate-900 sm:max-w-lg sm:text-5xl lg:text-6xl"
+            class="move-up mx-auto mb-10 max-w-sm text-center text-4xl font-semibold text-slate-900 sm:max-w-lg sm:text-5xl lg:text-6xl mt-5"
         >
             Globalify is
-            <span
-                class="background-animate bg-gradient-to-r from-sky-500 via-teal-500 to-indigo-500 bg-clip-text text-transparent"
+            <span class="background-animate bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text text-transparent"
                 >Launching Soon</span
             >
         </h1>
-        <p class="move-up mx-auto mb-10 max-w-2xl text-center text-lg text-slate-700" style="animation-delay: 0.8s">
+        <p
+            class="move-up mx-auto mb-10 max-w-2xl text-center sm:text-lg text-slate-700 text-base"
+            style="animation-delay: 0.8s"
+        >
             Limited to just <b>100 Early Access spots!</b> Get ahead with our exclusive preview pack and discover
             leading investors, handpicked just for your startup in various industries.
         </p>
@@ -28,7 +43,7 @@
             <button
                 id="notification_button"
                 onclick="showEmailField()"
-                class="group inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 hover:text-slate-900 hover:ring-slate-300 focus:outline-none focus-visible:outline-blue-600 focus-visible:ring-slate-300 active:bg-slate-100 active:text-slate-600"
+                class="bg-white group inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 hover:text-slate-900 hover:ring-slate-300 focus:outline-none focus-visible:outline-blue-600 focus-visible:ring-slate-300 active:bg-slate-100 active:text-slate-600"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -68,12 +83,12 @@
                 </button>
             </form>
         </div>
-        <img
-            class="fade-in mt-10 drop-shadow-lg"
+        <div
+            class="bg-gradient-to-br from-[#3EB5FD] via-30% via-[#685AF3] to-[#D380CC] p-3 mt-10 fade-in rounded-xl"
             style="animation-delay: 1.2s"
-            src="/static/elements/globalify_hero.png"
-            alt=""
-        />
+        >
+            <img class="drop-shadow-lg" src="/static/elements/globalify_hero.png" alt="" />
+        </div>
     </section>
     <section
         class="fade-in flex-col items-center justify-center gap-2.5 px-8 py-24 sm:px-6 lg:px-8"

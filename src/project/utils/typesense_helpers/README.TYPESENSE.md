@@ -53,5 +53,5 @@ docker rm typesense
 To perform DDL operations, we have a CLI tool that can be used to create collections and define their schemas. The CLI tool is located in the `typesense-cli` directory. To use the CLI tool, run the following command:
 
 ```bash
-python -m src.project.utils.typesense-cli setup
+python -m src.project.utils.typesense.typesense_cli setup
 ```

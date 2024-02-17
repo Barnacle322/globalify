@@ -2,7 +2,7 @@ import os
 
 from typesense.client import Client
 
-from ..utils.info_lists import synonyms
+from ..info_lists import synonyms
 
 client = Client(
     {
@@ -351,15 +351,3 @@ def create_synonyms(schema_name: str) -> None:
     for synonym in synonyms:
         print("Creating synomym for", synonym["name"], "with items", synonym["item"])
         client.collections[schema_name].synonyms.upsert(synonym["name"], synonym["item"])
-
-
-# params = {
-#     "q": "singapore",
-#     "query_by": "location,rounds,industries,embedding,notable_investments,name,firm_name,position",
-#     "filter_by": "rounds: Seed && rounds: Pre-Seed || industries: FinTech",
-#     "sort_by": "",
-#     "per_page": 10,
-#     "page": 1,
-#     "prefix": False,
-# }
-# print(client.collections["investors"].documents.search(params))

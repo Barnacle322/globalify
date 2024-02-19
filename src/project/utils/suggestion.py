@@ -18,6 +18,7 @@ def check_weights(weights: dict[str, float]) -> None:
 def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str] | None:
     if not location:
         return {"coordinates": "", "country_name": ""}
+    print(f"Searching Typesense: {location}")
     try:
         search_lookup = search("cities", q=location, query_by="city, city_ascii, country, admin_name")
         if search_lookup and int(search_lookup.get("found", "0")) > 0:
@@ -25,6 +26,7 @@ def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str]
             first_result = results[0].get("document")
             coordinates = f"{first_result.get('latitude')},{first_result.get('longitude')}"
             country_name = first_result.get("country")
+            print(f"Typesense search results: {coordinates}, {country_name}")
             return {"coordinates": coordinates, "country_name": country_name}
         else:
             print("No search results found")
@@ -36,6 +38,7 @@ def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str]
         print("Skipping Google Maps API")
         return None
 
+    print(f"Using Google Maps API for geocoding: {location}")
     try:
         geocoded_location = gmaps.geocode(location)  # type: ignore
         if geocoded_location:
@@ -44,6 +47,7 @@ def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str]
                 if item.get("types")[0] == "country":
                     country_name = item.get("long_name")
                     break
+            print(f"Geocoded location: {coordinates}, {country_name}")
             return {"coordinates": coordinates, "country_name": country_name}  # type: ignore
         else:
             print("No geocoded location found")

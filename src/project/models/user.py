@@ -90,7 +90,6 @@ class UserInfo(db.Model):
         twitter_url (str | None): The Twitter profile URL of the user.
         picture_url (str | None): The Google storage blob ID for the user's profile picture.
         is_complete (bool): Indicates if the user's profile is complete.
-
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -152,8 +151,7 @@ class UserInfo(db.Model):
     def sanitize(self):
         """
         Returns:
-            dict[str, str]: A dictionary representing the UserInfo object.
-
+            dict[str, str]: A dictionary representing the UserInfo without any sensitive info.
         """
         user_info = {
             "user_id": self.user_id,
@@ -194,7 +192,6 @@ class UserPayment(db.Model):
         expires_at (datetime.datetime | None): The date and time when the payment expires.
         is_active (bool): Indicates whether the payment is active or not.
         tier (Tier): The subscription tier associated with the payment.
-
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -218,52 +215,21 @@ class UserPayment(db.Model):
 
     @property
     def created_epoch(self) -> datetime.datetime | None:
-        """
-        Returns:
-            DateTime | None: The created date and time in epoch format.
-
-        """
         return self.created
 
     @property
     def expires_at_epoch(self) -> datetime.datetime | None:
-        """
-        Returns:
-            DateTime | None: The expiration date and time in epoch format.
-
-        """
         return self.expires_at
 
     @created_epoch.setter
     def created_epoch(self, created_epoch: int) -> None:
-        """
-        Sets the created date and time using the provided epoch value.
-
-        Args:
-            created_epoch (int): The epoch value representing the created date and time.
-
-        """
         self.created = datetime.datetime.fromtimestamp(created_epoch, tz=datetime.UTC)
 
     @expires_at_epoch.setter
     def expires_at_epoch(self, expires_at_epoch: int) -> None:
-        """
-        Sets the expiration date and time using the provided epoch value.
-
-        Args:
-            expires_at_epoch (int): The epoch value representing the expiration date and time.
-
-        """
         self.expires_at = datetime.datetime.fromtimestamp(expires_at_epoch, tz=datetime.UTC)
 
     def is_expired(self) -> bool:
-        """
-        Checks if the payment has expired.
-
-        Returns:
-            bool: True if the payment has expired, False otherwise.
-
-        """
         if not self.expires_at:
             return True
         return self.expires_at.replace(tzinfo=datetime.UTC) < datetime.datetime.now(tz=datetime.UTC)
@@ -411,7 +377,6 @@ class EmailVerification(db.Model):
             user_id (int): The ID of the user for whom to set EmailVerification records as expired.
         """
         try:
-            # EmailVerification.query.filter_by(user_id=user_id).update({EmailVerification.is_expired: True})
             email_verifications = db.session.scalars(
                 db.select(EmailVerification).where(EmailVerification.user_id == user_id)
             ).all()
@@ -423,15 +388,6 @@ class EmailVerification(db.Model):
 
     @staticmethod
     def get_by_token(token: str) -> EmailVerification | None:
-        """
-        Retrieves an email verification record by token.
-
-        Args:
-            token (str): The verification token.
-
-        Returns:
-            EmailVerification | None: The email verification record or None if not found.
-        """
         return db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
 
     @staticmethod
@@ -458,7 +414,6 @@ class WaitlistCharge(db.Model):
         customer_name (str): The name of the customer associated with the charge.
         random_key (str): The randomly generated key.
         downloaded (bool): Indicates whether the product database has been downloaded.
-
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

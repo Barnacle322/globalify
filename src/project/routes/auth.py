@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 
 import requests
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
@@ -57,7 +58,6 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
 
     Raises:
         Exception: If the user exists but the OAuth provider is different.
-
     """
     user = User.get_by_email(email)
     if not user:
@@ -82,7 +82,6 @@ def api_call(url: str, access_token: str):
 
     Returns:
         dict: The JSON response from the API call.
-
     """
     response = requests.get(
         url,
@@ -165,7 +164,7 @@ def verify_email():
         destination=NotificationDestination.SEARCH,
     )
 
-    return redirect(url_for("main.search", _external=False))
+    return redirect(url_for("main.search"))
 
 
 @auth.route("/resend-verification/<user_id>")
@@ -355,7 +354,6 @@ def google_callback():
     Makes API calls to retrieve the user's email and personal info from Google.
     Creates or updates the user and user info records in the database.
     Logs in the user and redirects to the appropriate page.
-
     """
     authorization = oauth.google.authorize_access_token()  # type: ignore
     if not authorization:
@@ -414,7 +412,6 @@ def onboarding():
     If user_info is not found for the authenticated user, it redirects to the login page.
     If user_info.is_complete is True, it redirects to the company_form route.
     If the request method is POST, it processes the onboarding form data and updates the user's information.
-
     """
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
@@ -457,9 +454,19 @@ def onboarding():
             )
             return redirect(url_for("auth.onboarding", _external=False))
 
+        username_regex = r"^[a-zA-Z0-9]{4,20}$"
+        if not re.match(username_regex, username):
+            notification = Notification.create_notification(
+                user_id=authenticated_user.id,
+                title="Error!",
+                msg="Username should be 4 to 20 characters long and should only have alphanumeric values.",
+                destination=NotificationDestination.ONBOARDING,
+            )
+            return redirect(url_for("auth.onboarding", _external=False))
+
         user_info.first_name = first_name
         user_info.last_name = last_name
-        user_info.username = username
+        user_info.username = username.lower()
 
         if not Company.get_by_user_id(authenticated_user.id):
             company = Company(user_id=authenticated_user.id, name=company_name)
@@ -471,8 +478,8 @@ def onboarding():
 
         Notification.create_notification(
             user_id=authenticated_user.id,
-            title="Success!",
-            msg="Add some more info to get better results!",
+            title="Welcome!",
+            msg="To get better recommendations, complete your profile.",
             destination=NotificationDestination.SEARCH,
             button_text="Go!",
             button_url=url_for("auth.expanded_onboarding", _external=False),
@@ -500,18 +507,11 @@ def username(username: str):
 
     Args:
         username (str): The username to check.
-
-    Returns:
-        dict: A JSON response containing the "is_taken" status of the username.
-            - "is_taken" (bool): True if the username is already taken, False otherwise.
-
     """
-
-    is_taken = UserInfo.is_taken(username)
-
-    return jsonify({"is_taken": is_taken})
+    return jsonify({"is_taken": UserInfo.is_taken(username)})
 
 
+# TODO
 @auth.route("/expanded-onboarding", methods=["GET", "POST"])
 @login_required
 def expanded_onboarding():
@@ -522,14 +522,11 @@ def expanded_onboarding():
     If user_info is not found for the authenticated user, it redirects to the login page.
     If user_info.is_complete is False, it redirects to the onboarding route.
     If the request method is POST, it processes the expanded onboarding form data and updates the user's information.
-
     """
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
-
-    # authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     return render_template(
         "auth/expanded_onboarding.html",

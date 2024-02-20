@@ -35,6 +35,14 @@ from .helpers import Industry, Round
 
 
 class NotableInvestment(db.Model):
+    """
+    Represents a notable investment of an investor or investment firm.
+
+    Attributes:
+        id (int): The unique identifier for the notable investment (primary key).
+        name (str): The name of the notable investment (not nullable).
+    """
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
 
@@ -140,7 +148,6 @@ class Investor(db.Model):
         location (str): The location or address of the investor.
         rounds (List[Round]): List of Round objects associated with the investor.
         industries (List[Industry]): List of Industry objects associated with the investor.
-
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -724,7 +731,6 @@ class InvestmentFirm(db.Model):
         max_investment (int): The maximum investment amount for the investment firm.
         rounds (list[Round]): The rounds associated with the investment firm.
         industries (list[Industry]): The industries associated with the investment firm.
-
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

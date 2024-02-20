@@ -1,15 +1,6 @@
 function markNotificationAsRead(button) {
     const notificationId = button.getAttribute('data-notification-id');
     const csrfToken = document.getElementById("csrf_token").value;
-
-    fetch(`/notification/edit/${notificationId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        },
-    })
-    .then(response => {
         if (response.ok) {
             console.log('Notification marked as read');
             const notificationElement = button.closest('.fade-in-up');
@@ -24,10 +15,9 @@ function markNotificationAsRead(button) {
                 });
             });
         } else {
-            console.error('Failed to mark notification as read');
+            console.error("Failed to mark notification as read");
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+    } catch (error) {
+        console.error("Error:", error);
+    }
 }

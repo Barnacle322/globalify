@@ -1,19 +1,19 @@
-async function markNotificationAsRead() {
-    const button = document.querySelector('.ms-auto[data-dismiss-target="#toast-interactive"]');
-
-    if (!button) {
-        console.error("Button not found");
-        return;
-    }
-
-    const notificationId = button.getAttribute("data-notification-id");
-
-    try {
-        const response = await fetch(`/notification/edit/${notificationId}`);
-
+function markNotificationAsRead(button) {
+    const notificationId = button.getAttribute('data-notification-id');
+    const csrfToken = document.getElementById("csrf_token").value;
         if (response.ok) {
-            console.log("Notification marked as read");
-            button.parentNode.parentNode.classList.add("fade-out-down");
+            console.log('Notification marked as read');
+            const notificationElement = button.closest('.fade-in-up');
+            notificationElement.classList.add('fade-out-down');
+            
+            notificationElement.addEventListener('animationend', () => {
+                notificationElement.remove();
+                const notifications = document.querySelectorAll('.fade-in-up');
+                notifications.forEach((notification, index) => {
+                    notification.style.transition = 'bottom 0.5s ease';
+                    notification.style.bottom = `${index * (notification.offsetHeight + 10)}px`;
+                });
+            });
         } else {
             console.error("Failed to mark notification as read");
         }

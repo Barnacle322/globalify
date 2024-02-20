@@ -44,7 +44,13 @@ def check_verification(func):
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
         elif not current_user.is_verified:  # type: ignore
-            return render_template("verify_email.html", user_id=current_user.id)
+            notifications = Notification.fetch_notifications(
+                user_id=current_user.id,
+                destination=NotificationDestination.VERIFICATION,
+                is_read=False,
+            )
+            print("Agahan", notifications)
+            return render_template("verify_email.html", user_id=current_user.id, notifications=notifications)
         return func(*args, **kwargs)
 
     return decorated_function
@@ -154,12 +160,12 @@ def get_suggestions():
 @check_user_info_complete
 @check_verification
 def search():
-    notification = Notification.get_notification_for_view(
+    notifications = Notification.fetch_notifications(
         current_user.id,
         NotificationDestination.SEARCH,
         is_read=False,
     )
-
+    print(notifications)
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "")
     sort_desc = request.args.get("descending", False, type=bool)
@@ -208,7 +214,7 @@ def search():
         min_investment=min_investment,
         max_investment=max_investment,
         page=page,
-        per_page=12,
+        per_page=6,
         countries=countries,
     )
     investors = result.get("investors")
@@ -232,7 +238,7 @@ def search():
         fields=fields,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
-        notification=notification,
+        notifications=notifications,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),

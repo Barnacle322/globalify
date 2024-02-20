@@ -5,9 +5,10 @@ class NotificationDestination(Enum):
     ALL = "all"
     SEARCH = "search"
     ONBOARDING = "onboarding"
-    INDEX = "index"
+    SETTINGS_INDEX = "settings_index"
     COMPANY = "change_company_info"
     VERIFICATION = "email_verification"
+    INDEX = "index"
 
 
 class StatusType(Enum):

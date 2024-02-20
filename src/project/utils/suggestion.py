@@ -12,7 +12,7 @@ WEIGHTS = {"bias": 0.3, "industry": 0.25, "round": 0.07, "location": 0.25, "exit
 
 def check_weights(weights: dict[str, float]) -> None:
     if sum(weights.values()) != 1.0:
-        print("!!! The weights must sum to 1.0 !!!")
+        print("!!! The weights should sum to 1.0 !!!")
 
 
 def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str] | None:

@@ -18,10 +18,11 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import Company, Country, Industry, InvestmentFirm, Investor, Notification, Round, Waitlist, WaitlistCharge
+from ..models.investor import ScoreBuilder
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
-from ..utils.suggestion import WEIGHTS
+from ..utils.suggestion import WEIGHTS, check_weights
 
 main = Blueprint("main", __name__)
 
@@ -117,21 +118,27 @@ def get_suggestions():
 
     scored_investors = []
 
+    check_weights(WEIGHTS)
+
     for investor in investors:
-        bias_score = investor.calculate_bias_score()
-        location_score = investor.calculate_location_score(company)
-        exits_score = investor.calculate_exits_score()
-        industry_score = investor.calculate_industry_score(company)
-        round_score = investor.calculate_round_score(company)
-        completeness_score = investor.calculate_completeness_score()
+        scores = (
+            ScoreBuilder(investor, company)  # type: ignore
+            .calculate_bias_score()
+            .calculate_location_score()
+            .calculate_exits_score()
+            .calculate_industry_score()
+            .calculate_round_score()
+            .calculate_completeness_score()
+            .build_scores()
+        )
 
         total_score = (
-            WEIGHTS["bias"] * bias_score
-            + WEIGHTS["location"] * location_score
-            + WEIGHTS["exits"] * exits_score
-            + WEIGHTS["industry"] * industry_score
-            + WEIGHTS["round"] * round_score
-            + WEIGHTS["completeness"] * completeness_score
+            WEIGHTS["bias"] * scores["bias"]
+            + WEIGHTS["location"] * scores["location"]
+            + WEIGHTS["exits"] * scores["exits"]
+            + WEIGHTS["industry"] * scores["industry"]
+            + WEIGHTS["round"] * scores["round"]
+            + WEIGHTS["completeness"] * scores["completeness"]
         )
         scored_investors.append((investor, total_score))
 

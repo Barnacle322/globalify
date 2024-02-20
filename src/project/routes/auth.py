@@ -156,8 +156,13 @@ def resend_verification_email(user_id):
     """
     user = User.get_by_id(user_id)
     if not user:
-        status = Status(StatusType.ERROR, "User not found.").get_status()
-        return redirect(url_for("auth.login", _external=False, **status))
+        Notification.create_notification(
+            user_id=user_id,
+            title="Error!",
+            msg="User not found.",
+            destination=NotificationDestination.VERIFICATION,
+        )
+        return redirect(url_for("auth.login", _external=False))
 
     if user.is_verified:
         return render_template("errors/email_verification/already_verified.html")
@@ -170,6 +175,16 @@ def resend_verification_email(user_id):
         event_type=Events.USER_COMPLETED_ONBOARDING.value,
         random_key=new_verification,
     )
+
+    Notification.mark_notifications_as_read(user_id=user_id, destination=NotificationDestination.VERIFICATION)
+
+    Notification.create_notification(
+        user_id=user_id,
+        title="Success!",
+        msg="Good news! Your verification code has been successfully resent. Please check your email inbox for the code.",
+        destination=NotificationDestination.VERIFICATION,
+    )
+    db.session.commit()
 
     return redirect(url_for("main.search"))
 

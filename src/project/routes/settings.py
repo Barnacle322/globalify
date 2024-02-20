@@ -18,16 +18,16 @@ settings = Blueprint("settings", __name__)
 def index():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    notification = Notification.get_notification_for_view(
+    notifications = Notification.get_notification_for_view(
         user_id=authenticated_user.id,
         destination=NotificationDestination.INDEX,
         is_read=False,
     )
-
+    print(notifications)
     return render_template(
         "settings/general.html",
         user=authenticated_user,
-        notification=notification,
+        notifications=notifications,
     )
 
 

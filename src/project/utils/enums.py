@@ -7,6 +7,7 @@ class NotificationDestination(Enum):
     ONBOARDING = "onboarding"
     INDEX = "index"
     COMPANY = "change_company_info"
+    VERIFICATION = "email_verification"
 
 
 class StatusType(Enum):

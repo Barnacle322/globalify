@@ -1,9 +1,5 @@
-function markNotificationAsRead() {
-
-    const button = document.querySelector('.ms-auto[data-dismiss-target="#toast-interactive"]');
-
+function markNotificationAsRead(button) {
     const notificationId = button.getAttribute('data-notification-id');
-
     const csrfToken = document.getElementById("csrf_token").value;
 
     fetch(`/notification/edit/${notificationId}`, {
@@ -16,7 +12,18 @@ function markNotificationAsRead() {
     .then(response => {
         if (response.ok) {
             console.log('Notification marked as read');
-            button.parentNode.parentNode.classList.add('fade-out-down');
+            const notificationElement = button.closest('.fade-in-up');
+            notificationElement.classList.add('fade-out-down');
+            
+            // Удаление элемента и обновление позиций после завершения анимации
+            notificationElement.addEventListener('animationend', () => {
+                notificationElement.remove();
+                const notifications = document.querySelectorAll('.fade-in-up');
+                notifications.forEach((notification, index) => {
+                    notification.style.transition = 'bottom 0.5s ease'; // Установка плавной анимации движения вниз
+                    notification.style.bottom = `${index * (notification.offsetHeight + 10)}px`; // Обновление позиций
+                });
+            });
         } else {
             console.error('Failed to mark notification as read');
         }
@@ -25,4 +32,3 @@ function markNotificationAsRead() {
         console.error('Error:', error);
     });
 }
-

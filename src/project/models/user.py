@@ -353,7 +353,7 @@ class Notification(db.Model):
     @staticmethod
     def get_notification_for_view(
         user_id: int, destination: NotificationDestination, is_read: bool = False
-    ) -> Notification | None:
+    ) -> list[Notification] | None:
         return (
             db.session.query(Notification)
             .filter(
@@ -362,8 +362,15 @@ class Notification(db.Model):
                 Notification.is_read == is_read,
             )
             .order_by(desc(Notification.created_at))
-            .first()
+            .all()
         )
+
+    @staticmethod
+    def mark_notifications_as_read(user_id: int, destination: NotificationDestination) -> None:
+        unread_notifications = Notification.query.filter_by(user_id=user_id, destination=destination ,is_read=False).all()
+        for notification in unread_notifications:
+            notification.is_read = True
+        db.session.commit()
 
 
 class EmailVerification(db.Model):

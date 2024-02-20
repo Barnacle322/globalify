@@ -20,7 +20,7 @@ def index():
 
     notifications = Notification.get_notification_for_view(
         user_id=authenticated_user.id,
-        destination=NotificationDestination.INDEX,
+        destination=NotificationDestination.SETTINGS_INDEX,
         is_read=False,
     )
     print(notifications)
@@ -95,7 +95,7 @@ def change_personal_info():  # noqa
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="First name cannot be empty.",
-                destination=NotificationDestination.INDEX,
+                destination=NotificationDestination.SETTINGS_INDEX,
             )
             return redirect(url_for("settings.index", _external=False))
         user_info.first_name = first_name.strip()
@@ -106,7 +106,7 @@ def change_personal_info():  # noqa
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="Last name cannot be empty.",
-                destination=NotificationDestination.INDEX,
+                destination=NotificationDestination.SETTINGS_INDEX,
             )
             return redirect(url_for("settings.index", _external=False))
         user_info.last_name = last_name.strip()
@@ -117,7 +117,7 @@ def change_personal_info():  # noqa
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="Bio cannot be empty.",
-                destination=NotificationDestination.INDEX,
+                destination=NotificationDestination.SETTINGS_INDEX,
             )
             return redirect(url_for("settings.index", _external=False))
         user_info.bio = bio.strip()
@@ -128,7 +128,7 @@ def change_personal_info():  # noqa
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="Username cannot be empty.",
-                destination=NotificationDestination.INDEX,
+                destination=NotificationDestination.SETTINGS_INDEX,
             )
             return redirect(url_for("settings.index", _external=False))
         if UserInfo.is_taken(username):
@@ -136,7 +136,7 @@ def change_personal_info():  # noqa
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg="Username is taken.",
-                destination=NotificationDestination.INDEX,
+                destination=NotificationDestination.SETTINGS_INDEX,
             )
             return redirect(url_for("settings.index", _external=False))
 
@@ -147,7 +147,7 @@ def change_personal_info():  # noqa
         user_id=authenticated_user.id,
         title="Success!",
         msg="Personal info successfully changed.",
-        destination=NotificationDestination.INDEX,
+        destination=NotificationDestination.SETTINGS_INDEX,
     )
     return redirect(url_for("settings.index", _external=False))
 

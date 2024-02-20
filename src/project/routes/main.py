@@ -107,9 +107,14 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 
 @main.get("/")
 def index():
+    notifications = Notification.get_notification_for_view(
+        user_id=current_user.id,
+        destination=NotificationDestination.INDEX,
+        is_read=False,
+    )
     # TODO: Turned off for better performance
     posts = parse_medium_html()
-    return render_template("index.html", posts=posts)
+    return render_template("index.html", posts=posts, notifications=notifications)
 
 
 @main.route("/suggestions")

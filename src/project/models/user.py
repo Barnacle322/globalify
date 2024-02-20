@@ -7,7 +7,7 @@ from sqlite3 import Connection as SQLite3Connection
 from uuid import uuid4
 
 from flask_login import UserMixin
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship, validates
@@ -296,7 +296,7 @@ class Notification(db.Model):
     )
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC)
+        DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
     user: Mapped[User] = relationship(User, backref=backref("notifications", passive_deletes=True))
@@ -351,9 +351,9 @@ class Notification(db.Model):
         return db.session.scalar(db.select(Notification).where(Notification.user_id == user_id))
 
     @staticmethod
-    def fetch_notification(
+    def fetch_notifications(
         user_id: int, destination: NotificationDestination, is_read: bool = False
-    ) -> list[Notification] | None:
+    ) -> Sequence[Notification] | None:
         return db.session.scalars(
             db.select(Notification)
             .where(
@@ -362,7 +362,7 @@ class Notification(db.Model):
                 Notification.is_read == is_read,
             )
             .order_by(desc(Notification.created_at))
-        ).all() # type: ignore
+        ).all()
 
     @staticmethod
     def mark_notifications_as_read(user_id: int, destination: NotificationDestination) -> None:
@@ -392,7 +392,7 @@ class EmailVerification(db.Model):
     token: Mapped[str] = mapped_column(String, nullable=False, default=lambda: str(uuid4()))
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC)
+        DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     is_expired: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
@@ -433,6 +433,17 @@ class EmailVerification(db.Model):
             EmailVerification | None: The email verification record or None if not found.
         """
         return db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
+
+    @staticmethod
+    def fetch_email_verification(user_id: int) -> EmailVerification | None:
+        last_verification = db.session.scalar(
+            db.select(EmailVerification)
+            .where(
+                EmailVerification.user_id == user_id,
+            )
+            .order_by(EmailVerification.created_at.desc())
+        )
+        return last_verification
 
 
 class WaitlistCharge(db.Model):

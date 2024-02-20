@@ -44,12 +44,12 @@ def check_verification(func):
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
         elif not current_user.is_verified:  # type: ignore
-            notifications = Notification.fetch_notification(
+            notifications = Notification.fetch_notifications(
                 user_id=current_user.id,
                 destination=NotificationDestination.VERIFICATION,
                 is_read=False,
             )
-            print("Agahan",notifications)
+            print("Agahan", notifications)
             return render_template("verify_email.html", user_id=current_user.id, notifications=notifications)
         return func(*args, **kwargs)
 
@@ -160,7 +160,7 @@ def get_suggestions():
 @check_user_info_complete
 @check_verification
 def search():
-    notifications = Notification.fetch_notification(
+    notifications = Notification.fetch_notifications(
         current_user.id,
         NotificationDestination.SEARCH,
         is_read=False,

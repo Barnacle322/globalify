@@ -1,3 +1,4 @@
+import datetime
 import os
 
 import requests
@@ -89,6 +90,7 @@ def api_call(url: str, access_token: str):
     ).json()
 
     return response
+
 
 @login_required
 @auth.route("/verify-email/")
@@ -197,6 +199,19 @@ def resend_verification_email(user_id):
         )
         return redirect(url_for("main.search", _external=False))
 
+    last_verification = EmailVerification.fetch_email_verification(user_id)
+    print("Arstan",last_verification)
+
+    if last_verification and not last_verification.is_expired:
+        if datetime.datetime.utcnow() - last_verification.created_at < datetime.timedelta(minutes=1):
+            Notification.create_notification(
+                user_id=current_user.id,
+                title="Error",
+                msg="Please wait for 1 minute before requesting another verification code.",
+                destination=NotificationDestination.VERIFICATION,
+            )
+            return redirect(url_for("auth.email_verification_required", _external=False))
+
     EmailVerification.deactivate_user_tokens(user_id)
     new_verification = create_verification_token(user_id)
     send_event(
@@ -220,12 +235,12 @@ def resend_verification_email(user_id):
 @auth.route("/email-verification-required", methods=["GET"])
 @login_required
 def email_verification_required():
-    notifications = Notification.fetch_notification(
+    notifications = Notification.fetch_notifications(
         user_id=current_user.id,
         destination=NotificationDestination.VERIFICATION,
         is_read=False,
     )
-    print("Agahan",notifications)
+    print("Agahan", notifications)
     return render_template("verify_email.html", user_id=current_user.id, notifications=notifications)
 
 
@@ -403,7 +418,7 @@ def onboarding():
     """
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    notifications = Notification.fetch_notification(
+    notifications = Notification.fetch_notifications(
         user_id=authenticated_user.id,
         destination=NotificationDestination.ONBOARDING,
         is_read=False,

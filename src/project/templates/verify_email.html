@@ -1,5 +1,18 @@
 {% extends "layouts/layout_app.html" %} {% block additional_scripts %}
 <script src="/static/scripts/notificationHandler.js" defer></script>
+<script src="/static/scripts/idempotency.js" defer></script>
+<script>
+    var upgradeLinkClicked = false;
+    function handleUpgradeClick(link) {
+        if (!upgradeLinkClicked) {
+            upgradeLinkClicked = true;
+            link.classList.add("opacity-50", "pointer-events-none");
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
 {% endblock %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
 %}
 <main
@@ -15,6 +28,7 @@
         <a
             href="/resend-verification/{{ user_id }}"
             class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-lg font-semibold text-slate-50 hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300 dark:text-slate-900 dark:hover:bg-slate-200"
+            onclick="return handleUpgradeClick(this);"
         >
             Resend Verification Email
         </a>

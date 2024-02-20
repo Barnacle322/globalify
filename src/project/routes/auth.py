@@ -401,7 +401,7 @@ def onboarding():
     """
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    notification = Notification.get_notification_for_view(
+    notifications = Notification.get_notification_for_view(
         user_id=authenticated_user.id,
         destination=NotificationDestination.ONBOARDING,
         is_read=False,
@@ -423,7 +423,7 @@ def onboarding():
         )
 
         if not first_name or not last_name or not username or not company_name:
-            notification = Notification.create_notification(
+            Notification.create_notification(
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg=AUTH_FIELDS_INCOMPLETE,
@@ -432,7 +432,7 @@ def onboarding():
             return redirect(url_for("auth.onboarding", _external=False))
 
         if UserInfo.is_taken(username):
-            notification = Notification.create_notification(
+            Notification.create_notification(
                 user_id=authenticated_user.id,
                 title="Error!",
                 msg=AUTH_USERNAME_USED,
@@ -452,7 +452,7 @@ def onboarding():
 
         db.session.commit()
 
-        notification = Notification.create_notification(
+        Notification.create_notification(
             user_id=authenticated_user.id,
             title="Success!",
             msg="Add some more info to get better results!",
@@ -472,7 +472,7 @@ def onboarding():
 
         return redirect(url_for("main.search", _external=False))
 
-    return render_template("auth/onboarding.html", user_info=user_info.sanitize(), notification=notification)
+    return render_template("auth/onboarding.html", user_info=user_info.sanitize(), notifications=notifications)
 
 
 @auth.get("/username/<username>")

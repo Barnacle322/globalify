@@ -45,11 +45,11 @@ class Industry(db.Model):
 
     @staticmethod
     def get_by_id(id: int) -> Industry | None:
-        return db.session.scalar(db.select(Industry).filter(Industry.id == id))
+        return db.session.scalar(db.select(Industry).where(Industry.id == id))
 
     @staticmethod
     def get_by_name(name: str) -> Industry | None:
-        return db.session.scalar(db.select(Industry).filter(Industry.name == name))
+        return db.session.scalar(db.select(Industry).where(Industry.name == name))
 
     @staticmethod
     def populate() -> None:
@@ -96,11 +96,11 @@ class Round(db.Model):
 
     @staticmethod
     def get_by_id(id: int) -> Round | None:
-        return db.session.scalar(db.select(Round).filter(Round.id == id))
+        return db.session.scalar(db.select(Round).where(Round.id == id))
 
     @staticmethod
     def get_by_name(name: str) -> Round | None:
-        return db.session.scalar(db.select(Round).filter(Round.name == name))
+        return db.session.scalar(db.select(Round).where(Round.name == name))
 
     @staticmethod
     def populate() -> None:
@@ -138,15 +138,15 @@ class Country(db.Model):
 
     @staticmethod
     def get_by_code(code: str) -> Country | None:
-        return db.session.scalar(db.select(Country).filter(Country.code == code))
+        return db.session.scalar(db.select(Country).where(Country.code == code))
 
     @staticmethod
     def get_by_id(id: int) -> Country | None:
-        return db.session.scalar(db.select(Country).filter(Country.id == id))
+        return db.session.scalar(db.select(Country).where(Country.id == id))
 
     @staticmethod
     def get_by_name(name: str) -> Country | None:
-        return db.session.scalar(db.select(Country).filter(Country.name == name))
+        return db.session.scalar(db.select(Country).where(Country.name == name))
 
     @staticmethod
     def populate() -> None:

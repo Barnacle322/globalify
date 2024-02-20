@@ -90,7 +90,7 @@ def api_call(url: str, access_token: str):
 
     return response
 
-
+@login_required
 @auth.route("/verify-email/")
 def verify_email():
     """
@@ -109,10 +109,28 @@ def verify_email():
     email_verification = EmailVerification.get_by_token(token)
 
     if not email_verification:
-        return render_template("errors/email_verification/invalid_token.html")
+        Notification.create_notification(
+            user_id=current_user.id,
+            title="Error",
+            msg="The email verification code is invalid.",
+            button_text="Resend code!",
+            button_url=url_for("main.search", _external=False),
+            icon_url="",
+            destination=NotificationDestination.INDEX,
+        )
+        return redirect(url_for("main.index", _external=False))
 
     if email_verification.is_used:
-        return render_template("errors/email_verification/already_used.html")
+        Notification.create_notification(
+            user_id=current_user.id,
+            title="Error",
+            msg="The email verification code has already been used.",
+            destination=NotificationDestination.INDEX,
+            button_text="Resend code!",
+            button_url=url_for("main.search", _external=False),
+            icon_url="",
+        )
+        return redirect(url_for("main.index", _external=False))
 
     user = User.get_by_id(email_verification.user_id)
 
@@ -121,12 +139,25 @@ def verify_email():
         return redirect(url_for("auth.login", _external=False, **status))
 
     if user.is_verified:
-        return render_template("errors/email_verification/already_verified.html")
+        Notification.create_notification(
+            user_id=current_user.id,
+            title="Error",
+            msg="The user is already verified.",
+            destination=NotificationDestination.SEARCH,
+        )
+        return redirect(url_for("main.search", _external=False))
 
     if email_verification.is_expired:
-        return render_template(
-            "errors/email_verification/verification_expired.html", user_id=email_verification.user_id
+        Notification.create_notification(
+            user_id=current_user.id,
+            title="Error",
+            msg="The email verification code has expired.",
+            destination=NotificationDestination.INDEX,
+            button_text="Resend code!",
+            button_url=url_for("main.search", _external=False),
+            icon_url="",
         )
+        return redirect(url_for("main.index", _external=False))
 
     update_is_expired(email_verification)
 
@@ -134,7 +165,14 @@ def verify_email():
     email_verification.is_used = True
     db.session.commit()
 
-    return render_template("verification_success.html")
+    Notification.create_notification(
+        user_id=current_user.id,
+        title="Success!",
+        msg="Your email has been verified.",
+        destination=NotificationDestination.SEARCH,
+    )
+
+    return redirect(url_for("main.search", _external=False))
 
 
 @auth.route("/resend-verification/<user_id>")

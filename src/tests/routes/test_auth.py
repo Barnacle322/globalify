@@ -419,7 +419,6 @@ def test_company_form_authenticated_post(client, app, user_with_complete_user_in
 
 def test_verify_email_invalid_token(client):
     response = client.get("/verify-email/?uuid=invalid_token")
-    print(response.data)
     assert b"Invalid Verification Token" in response.data
     assert response.status_code == 200
 
@@ -459,7 +458,6 @@ def test_verify_email_already_used(client, app, verified_user):
         db.session.commit()
 
         response = client.get(f"/verify-email/?uuid={verified_verification.token}")
-        print("Agahan", response.data)
         assert b"Already Used" in response.data
         assert b"Oops! It seems this code has already been used." in response.data
         assert response.status_code == 200

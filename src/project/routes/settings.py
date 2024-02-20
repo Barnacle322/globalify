@@ -23,7 +23,7 @@ def index():
         destination=NotificationDestination.SETTINGS_INDEX,
         is_read=False,
     )
-    print(notifications)
+
     return render_template(
         "settings/general.html",
         user=authenticated_user,

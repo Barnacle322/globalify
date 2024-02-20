@@ -2,7 +2,7 @@
 <script src="/static/scripts/dashboard.js" defer></script>
 <script src="/static/scripts/notification.js" defer></script>
 <script src="/static/scripts/idempotency.js" defer></script>
-<script src="/static/scripts/notificationHandler.js" defer></script>
+
 {% endblock %} {% block title %}Settings{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content %}
 <div class="mx-auto block max-w-7xl pt-24 lg:flex lg:gap-x-16 lg:px-8">
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />

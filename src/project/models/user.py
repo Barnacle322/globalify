@@ -318,7 +318,7 @@ class Notification(db.Model):
 
     @staticmethod
     def fetch_notifications(
-        user_id: int, destination: NotificationDestination, is_read: bool = False
+        user_id: int, destination: NotificationDestination, is_read: bool = 0
     ) -> Sequence[Notification] | None:
         return db.session.scalars(
             db.select(Notification)
@@ -334,9 +334,10 @@ class Notification(db.Model):
     def mark_notifications_as_read(user_id: int, destination: NotificationDestination) -> None:
         unread_notifications = db.session.scalars(
             db.select(Notification).where(
-                Notification.user_id == user_id, Notification.destination == destination, Notification.is_read is False
+                Notification.user_id == user_id, Notification.destination == destination, Notification.is_read == 0
             )
         ).all()
+        print(unread_notifications)
         for notification in unread_notifications:
             notification.is_read = True
         db.session.commit()

@@ -224,6 +224,7 @@
         transform: translateY(150%);
     }
 }
+
 .fade-out-right {
     animation: fadeOutRight 1s ease-in-out forwards;
 }

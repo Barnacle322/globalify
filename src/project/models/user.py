@@ -52,27 +52,27 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f"<User {self.email} | {self.type}>"
 
-    @classmethod
-    def delete_by_id(cls, id: int) -> None:
+    @staticmethod
+    def delete_by_id(id: int) -> None:
         """
         Deletes the user and all associated data.
         This includes the `UserInfo`, `UserPayment`, and `Company` objects.
         """
-        if user := cls.get_by_id(id):
+        if user := User.get_by_id(id):
             db.session.delete(user)
             db.session.commit()
 
-    @classmethod
-    def get_by_id(cls, id: int) -> User | None:
-        return db.session.scalar(db.select(cls).where(cls.id == id))
+    @staticmethod
+    def get_by_id(id: int) -> User | None:
+        return db.session.scalar(db.select(User).where(User.id == id))
 
-    @classmethod
-    def get_by_email(cls, email: str) -> User | None:
-        return db.session.scalar(db.select(cls).where(cls.email == email))
+    @staticmethod
+    def get_by_email(email: str) -> User | None:
+        return db.session.scalar(db.select(User).where(User.email == email))
 
-    @classmethod
-    def get_all(cls) -> Sequence[User]:
-        return db.session.scalars(db.select(cls)).all()
+    @staticmethod
+    def get_all() -> Sequence[User]:
+        return db.session.scalars(db.select(User)).all()
 
 
 class UserInfo(db.Model):
@@ -489,7 +489,7 @@ class Company(db.Model):
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=True)
     number_of_employees: Mapped[int] = mapped_column(Integer, nullable=True)
-    website: Mapped[str] = mapped_column(String, nullable=True)
+    website_url: Mapped[str] = mapped_column(String, nullable=True)
     picture_url: Mapped[str] = mapped_column(String, nullable=True)
     country_id: Mapped[int] = mapped_column(Integer, ForeignKey("country.id"), nullable=True)
     preferred_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
@@ -514,6 +514,44 @@ class Company(db.Model):
     @coordinates.setter
     def coordinates(self, coordinates: str) -> None:
         self._coordinates = geocode_location(coordinates)["coordinates"]  # type: ignore
+
+    @validates("website_url")
+    def validate_website(self, key, website):
+        if not website:
+            return None
+        if not re.match(r"^(https?:\/\/)?(www\.)?[\w.-]+\.[a-z]{2,}\/?[\w.-]*$", website, re.IGNORECASE):
+            raise ValueError("Invalid website URL format. Ensure it follows the pattern: https://www.example.com.")
+        return website
+
+    @validates("linkedin_url")
+    def validate_linkedin(self, key, linkedin):
+        if not linkedin:
+            return None
+        if not re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
+            raise ValueError(
+                "Invalid LinkedIn URL format. Ensure it follows the pattern: https://www.linkedin.com/in/username."
+            )
+        return linkedin
+
+    @validates("instagram_url")
+    def validate_instagram(self, key, instagram):
+        if not instagram:
+            return None
+        if not re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
+            raise ValueError(
+                "Invalid Instagram URL format. Ensure it follows the pattern: https://www.instagram.com/username."
+            )
+        return instagram
+
+    @validates("twitter_url")
+    def validate_twitter(self, key, twitter):
+        if not twitter:
+            return None
+        if not re.match(
+            r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE
+        ):
+            raise ValueError("Invalid Twitter URL format. Ensure it follows the pattern: https://twitter.com/username.")
+        return twitter
 
     @staticmethod
     def get_by_id(id: int) -> Company | None:

@@ -12,7 +12,7 @@ from flask_login import (
 )
 
 from ..extensions import db, login_manager, oauth
-from ..models import Company, EmailVerification, Notification, User, UserInfo, UserPayment
+from ..models import Company, Country, EmailVerification, Industry, Notification, Round, User, UserInfo, UserPayment
 from ..utils.email_verification import create_verification_token, update_is_expired
 from ..utils.enums import Events, NotificationDestination, OauthProvider, Status, StatusType
 from ..utils.errors.error_messages import (
@@ -443,7 +443,7 @@ def onboarding():
                 msg=AUTH_FIELDS_INCOMPLETE,
                 destination=NotificationDestination.ONBOARDING,
             )
-            return redirect(url_for("auth.onboarding", _external=False))
+            return redirect(url_for("auth.onboarding"))
 
         if UserInfo.is_taken(username):
             Notification.create_notification(
@@ -452,7 +452,7 @@ def onboarding():
                 msg=AUTH_USERNAME_USED,
                 destination=NotificationDestination.ONBOARDING,
             )
-            return redirect(url_for("auth.onboarding", _external=False))
+            return redirect(url_for("auth.onboarding"))
 
         username_regex = r"^[a-zA-Z0-9]{4,20}$"
         if not re.match(username_regex, username):
@@ -462,7 +462,7 @@ def onboarding():
                 msg="Username should be 4 to 20 characters long and should only have alphanumeric values.",
                 destination=NotificationDestination.ONBOARDING,
             )
-            return redirect(url_for("auth.onboarding", _external=False))
+            return redirect(url_for("auth.onboarding"))
 
         user_info.first_name = first_name
         user_info.last_name = last_name
@@ -482,7 +482,7 @@ def onboarding():
             msg="To get better recommendations, complete your profile.",
             destination=NotificationDestination.SEARCH,
             button_text="Go!",
-            button_url=url_for("auth.expanded_onboarding", _external=False),
+            button_url=url_for("auth.expanded_onboarding"),
             icon_url="",
         )
 
@@ -494,7 +494,7 @@ def onboarding():
             random_key=new_verification,
         )
 
-        return redirect(url_for("main.search", _external=False))
+        return redirect(url_for("main.search"))
 
     return render_template("auth/onboarding.html", user_info=user_info.sanitize(), notifications=notifications)
 
@@ -511,7 +511,6 @@ def username(username: str):
     return jsonify({"is_taken": UserInfo.is_taken(username)})
 
 
-# TODO
 @auth.route("/expanded-onboarding", methods=["GET", "POST"])
 @login_required
 def expanded_onboarding():
@@ -528,8 +527,56 @@ def expanded_onboarding():
         status_type = query.get("type")
         msg = query.get("msg")
 
+    industries = Industry.get_all()
+    rounds = Round.get_all()
+    countries = Country.get_all()
+    company = Company.get_by_user_id(current_user.id)
+
+    if request.method == "POST":
+        company_name = request.form.get("company_name")
+        industry_id = request.form.get("industry", type=int)
+        round_id = request.form.get("round", type=int)
+        country_id = request.form.get("country", type=int)
+        website = request.form.get("website")
+
+        if not company_name or not industry_id or not round_id or not country_id:
+            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
+            return redirect(url_for("auth.expanded_onboarding", _external=False, **status))
+
+        company.name = company_name
+        company.industry = Industry.get_by_id(industry_id)
+        company.preferred_round = Round.get_by_id(round_id)
+        company.country = Country.get_by_id(country_id)
+        company.website_url = website
+
+        db.session.commit()
+        print(current_user.id)
+        current_notification = Notification.get_notification_for_view(
+            user_id=current_user.id,
+            destination=NotificationDestination.SEARCH,
+        )
+
+        if current_notification:
+            current_notification.is_read = True
+            db.session.commit()
+
+        Notification.create_notification(
+            user_id=current_user.id,
+            title="Onboarding completed!",
+            msg="Go and try our suggestions!",
+            button_text="See",
+            button_url=url_for("main.get_suggestions"),
+            destination=NotificationDestination.SEARCH,
+        )
+
+        return redirect(url_for("main.search"))
+
     return render_template(
         "auth/expanded_onboarding.html",
+        industries=industries,
+        rounds=rounds,
+        countries=countries,
+        company_name=company.name,
         status_type=status_type,
         msg=msg,
     )

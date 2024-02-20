@@ -241,6 +241,7 @@ def search():
         notifications=notifications,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
+        countries=Country.get_all(),
     )
 
 
@@ -251,7 +252,7 @@ def search():
 def investor(investor_id):
     investor = Investor.get_by_id(int(investor_id))
     if not investor:
-        return redirect(url_for("main.dashboard"))
+        return redirect(url_for("main.search"))
 
     return render_template("investor.html", investor=investor, user=current_user)
 
@@ -263,7 +264,7 @@ def investor(investor_id):
 def investment_firm(firm_id):
     investment_firm = InvestmentFirm.get_by_id(int(firm_id))
     if not investment_firm:
-        return redirect(url_for("main.dashboard"))
+        return redirect(url_for("main.search"))
 
     return render_template("investment_firm.html", investment_firm=investment_firm, user=current_user)
 

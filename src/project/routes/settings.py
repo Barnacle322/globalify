@@ -18,7 +18,7 @@ settings = Blueprint("settings", __name__)
 def index():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    notifications = Notification.get_notification_for_view(
+    notifications = Notification.fetch_notification(
         user_id=authenticated_user.id,
         destination=NotificationDestination.SETTINGS_INDEX,
         is_read=False,
@@ -185,7 +185,7 @@ def delete_account():
 def change_company_info():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    notification = Notification.get_notification_for_view(
+    notifications = Notification.fetch_notification(
         user_id=authenticated_user.id,
         destination=NotificationDestination.COMPANY,
         is_read=False,
@@ -262,5 +262,5 @@ def change_company_info():
         rounds=rounds,
         countries=countries,
         company=company,
-        notification=notification,
+        notifications=notifications,
     )

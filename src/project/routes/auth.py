@@ -113,24 +113,18 @@ def verify_email():
             user_id=current_user.id,
             title="Error",
             msg="The email verification code is invalid.",
-            button_text="Resend code!",
-            button_url=url_for("main.search", _external=False),
-            icon_url="",
-            destination=NotificationDestination.INDEX,
+            destination=NotificationDestination.VERIFICATION,
         )
-        return redirect(url_for("main.index", _external=False))
+        return redirect(url_for("auth.email_verification_required", _external=False))
 
     if email_verification.is_used:
         Notification.create_notification(
             user_id=current_user.id,
             title="Error",
             msg="The email verification code has already been used.",
-            destination=NotificationDestination.INDEX,
-            button_text="Resend code!",
-            button_url=url_for("main.search", _external=False),
-            icon_url="",
+            destination=NotificationDestination.VERIFICATION,
         )
-        return redirect(url_for("main.index", _external=False))
+        return redirect(url_for("auth.email_verification_required", _external=False))
 
     user = User.get_by_id(email_verification.user_id)
 
@@ -145,19 +139,16 @@ def verify_email():
             msg="The user is already verified.",
             destination=NotificationDestination.SEARCH,
         )
-        return redirect(url_for("main.search", _external=False))
+        return redirect(url_for("auth.email_verification_required", _external=False))
 
     if email_verification.is_expired:
         Notification.create_notification(
             user_id=current_user.id,
             title="Error",
             msg="The email verification code has expired.",
-            destination=NotificationDestination.INDEX,
-            button_text="Resend code!",
-            button_url=url_for("main.search", _external=False),
-            icon_url="",
+            destination=NotificationDestination.VERIFICATION,
         )
-        return redirect(url_for("main.index", _external=False))
+        return redirect(url_for("auth.email_verification_required", _external=False))
 
     update_is_expired(email_verification)
 
@@ -194,16 +185,17 @@ def resend_verification_email(user_id):
     """
     user = User.get_by_id(user_id)
     if not user:
-        Notification.create_notification(
-            user_id=user_id,
-            title="Error!",
-            msg="User not found.",
-            destination=NotificationDestination.VERIFICATION,
-        )
-        return redirect(url_for("auth.login", _external=False))
+        status = Status(StatusType.ERROR, "User not found.").get_status()
+        return redirect(url_for("auth.login", _external=False, **status))
 
     if user.is_verified:
-        return render_template("errors/email_verification/already_verified.html")
+        Notification.create_notification(
+            user_id=current_user.id,
+            title="Error",
+            msg="The user is already verified.",
+            destination=NotificationDestination.SEARCH,
+        )
+        return redirect(url_for("main.search", _external=False))
 
     EmailVerification.deactivate_user_tokens(user_id)
     new_verification = create_verification_token(user_id)
@@ -214,8 +206,6 @@ def resend_verification_email(user_id):
         random_key=new_verification,
     )
 
-    Notification.mark_notifications_as_read(user_id=user_id, destination=NotificationDestination.VERIFICATION)
-
     Notification.create_notification(
         user_id=user_id,
         title="Success!",
@@ -225,6 +215,18 @@ def resend_verification_email(user_id):
     db.session.commit()
 
     return redirect(url_for("main.search"))
+
+
+@auth.route("/email-verification-required", methods=["GET"])
+@login_required
+def email_verification_required():
+    notifications = Notification.fetch_notification(
+        user_id=current_user.id,
+        destination=NotificationDestination.VERIFICATION,
+        is_read=False,
+    )
+    print("Agahan",notifications)
+    return render_template("verify_email.html", user_id=current_user.id, notifications=notifications)
 
 
 @auth.route("/login", methods=["GET", "POST"])
@@ -401,7 +403,7 @@ def onboarding():
     """
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    notifications = Notification.get_notification_for_view(
+    notifications = Notification.fetch_notification(
         user_id=authenticated_user.id,
         destination=NotificationDestination.ONBOARDING,
         is_read=False,

@@ -44,12 +44,12 @@ def check_verification(func):
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
         elif not current_user.is_verified:  # type: ignore
-            notifications = Notification.get_notification_for_view(
+            notifications = Notification.fetch_notification(
                 user_id=current_user.id,
                 destination=NotificationDestination.VERIFICATION,
                 is_read=False,
             )
-            print(notifications)
+            print("Agahan",notifications)
             return render_template("verify_email.html", user_id=current_user.id, notifications=notifications)
         return func(*args, **kwargs)
 
@@ -107,14 +107,9 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 
 @main.get("/")
 def index():
-    notifications = Notification.get_notification_for_view(
-        user_id=current_user.id,
-        destination=NotificationDestination.INDEX,
-        is_read=False,
-    )
     # TODO: Turned off for better performance
     posts = parse_medium_html()
-    return render_template("index.html", posts=posts, notifications=notifications)
+    return render_template("index.html", posts=posts)
 
 
 @main.route("/suggestions")
@@ -165,7 +160,7 @@ def get_suggestions():
 @check_user_info_complete
 @check_verification
 def search():
-    notifications = Notification.get_notification_for_view(
+    notifications = Notification.fetch_notification(
         current_user.id,
         NotificationDestination.SEARCH,
         is_read=False,
@@ -219,7 +214,7 @@ def search():
         min_investment=min_investment,
         max_investment=max_investment,
         page=page,
-        per_page=12,
+        per_page=6,
         countries=countries,
     )
     investors = result.get("investors")

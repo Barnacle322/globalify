@@ -351,19 +351,18 @@ class Notification(db.Model):
         return db.session.scalar(db.select(Notification).where(Notification.user_id == user_id))
 
     @staticmethod
-    def get_notification_for_view(
+    def fetch_notification(
         user_id: int, destination: NotificationDestination, is_read: bool = False
     ) -> list[Notification] | None:
-        return (
-            db.session.query(Notification)
-            .filter(
+        return db.session.scalars(
+            db.select(Notification)
+            .where(
                 Notification.user_id == user_id,
                 Notification.destination == destination,
                 Notification.is_read == is_read,
             )
             .order_by(desc(Notification.created_at))
-            .all()
-        )
+        ).all() # type: ignore
 
     @staticmethod
     def mark_notifications_as_read(user_id: int, destination: NotificationDestination) -> None:

@@ -15,13 +15,12 @@ function markNotificationAsRead(button) {
             const notificationElement = button.closest('.fade-in-up');
             notificationElement.classList.add('fade-out-down');
             
-            // Удаление элемента и обновление позиций после завершения анимации
             notificationElement.addEventListener('animationend', () => {
                 notificationElement.remove();
                 const notifications = document.querySelectorAll('.fade-in-up');
                 notifications.forEach((notification, index) => {
-                    notification.style.transition = 'bottom 0.5s ease'; // Установка плавной анимации движения вниз
-                    notification.style.bottom = `${index * (notification.offsetHeight + 10)}px`; // Обновление позиций
+                    notification.style.transition = 'bottom 0.5s ease';
+                    notification.style.bottom = `${index * (notification.offsetHeight + 10)}px`;
                 });
             });
         } else {

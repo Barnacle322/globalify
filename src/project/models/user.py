@@ -367,7 +367,11 @@ class Notification(db.Model):
 
     @staticmethod
     def mark_notifications_as_read(user_id: int, destination: NotificationDestination) -> None:
-        unread_notifications = Notification.query.filter_by(user_id=user_id, destination=destination ,is_read=False).all()
+        unread_notifications = db.session.scalars(
+            db.select(Notification).where(
+                Notification.user_id == user_id, Notification.destination == destination, Notification.is_read is False
+            )
+        ).all()
         for notification in unread_notifications:
             notification.is_read = True
         db.session.commit()

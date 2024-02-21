@@ -43,7 +43,7 @@ class SuggestionBuilder:
             # Calculate bias score
             try:
                 bias_score = (investor["bias"] / 100) if investor["bias"] else 0
-            except (AttributeError, TypeError, ZeroDivisionError) as e:
+            except Exception as e:
                 print(f"An error occurred while calculating bias score: {e}")
                 bias_score = 0
 
@@ -54,7 +54,7 @@ class SuggestionBuilder:
                     location_score = 1 - (distance / 20038)
                 else:
                     location_score = 0
-            except (AttributeError, TypeError, ZeroDivisionError) as e:
+            except Exception as e:
                 print(f"An error occurred while calculating location score: {e}")
                 location_score = 0
 
@@ -64,7 +64,7 @@ class SuggestionBuilder:
                     exits_score = 1 if (investor["n_exits"] / investor["n_investments"]) >= 0.5 else 0
                 else:
                     exits_score = 0
-            except (AttributeError, TypeError, ZeroDivisionError) as e:
+            except Exception as e:
                 print(f"An error occurred while calculating exits score: {e}")
                 exits_score = 0
 
@@ -76,7 +76,7 @@ class SuggestionBuilder:
                     industry_score = 0.8
                 else:
                     industry_score = 0
-            except (AttributeError, TypeError) as e:
+            except Exception as e:
                 print(f"An error occurred while calculating industry score: {e}")
                 industry_score = 0
 
@@ -88,7 +88,7 @@ class SuggestionBuilder:
                     round_score = 0.8
                 else:
                     round_score = 0
-            except (AttributeError, TypeError) as e:
+            except Exception as e:
                 print(f"An error occurred while calculating round score: {e}")
                 round_score = 0
 
@@ -100,7 +100,7 @@ class SuggestionBuilder:
                         completeness_score -= 0.1
                 if completeness_score < 0:
                     completeness_score = 0
-            except (AttributeError, TypeError) as e:
+            except Exception as e:
                 print(f"An error occurred while calculating completeness score: {e}")
                 completeness_score = 0
 
@@ -114,7 +114,7 @@ class SuggestionBuilder:
                     + WEIGHTS["completeness"] * completeness_score
                 )
                 investor["total_score"] = total_score
-            except (AttributeError, TypeError) as e:
+            except Exception as e:
                 print(f"An error occurred while calculating total score: {e}")
                 investor["total_score"] = 0
         return self
@@ -123,7 +123,7 @@ class SuggestionBuilder:
         self.investor_list = sorted(self.investor_list, key=lambda x: x["total_score"], reverse=True)
         return self
 
-    def get_list_of_ids(self, quantity: int):
+    def get_id_list(self, quantity: int):
         return [investor["id"] for investor in self.investor_list[:quantity]]
 
 
@@ -309,10 +309,10 @@ class Investor(db.Model):
             .all()
         )
 
-    @classmethod
-    def get_suggestions(cls, company: Company | None, quantity: int) -> Sequence[Investor] | None:
+    @staticmethod
+    def get_suggestions(company: Company | None, quantity: int) -> Sequence[Investor] | None:
         investor_list = []
-        for investor in cls.get_all():
+        for investor in Investor.get_all():
             investor_info = {
                 "id": investor.id,
                 "bias": investor.bias,
@@ -327,18 +327,17 @@ class Investor(db.Model):
             }
             investor_list.append(investor_info)
         investor_ids = (
-            SuggestionBuilder(investor_list, company).calculate_all_scores().sort_by_score().get_list_of_ids(quantity)
+            SuggestionBuilder(investor_list, company).calculate_all_scores().sort_by_score().get_id_list(quantity)
         )
-        suggestions = cls.get_by_id_list(investor_ids)
+        suggestions = Investor.get_by_id_list(investor_ids)
         suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}  # type: ignore
         sorted_suggestions = [
             suggestions_dict[investor_id] for investor_id in investor_ids if investor_id in suggestions_dict
         ]
         return sorted_suggestions
 
-    @classmethod
+    @staticmethod
     def get_search(
-        cls,
         rounds: list[str],
         industries: list[str],
         query_string: str,

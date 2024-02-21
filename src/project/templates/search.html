@@ -343,7 +343,7 @@
                 </div>
                 <a class="self-end my-3 text-sm text-gray-500 underline" href="./search">Clear all</a>
             </div>
-            <div id="cool-button" class="flex items-center justify-center rounded-xl w-full gap-5 mt-5">
+            <div id="cool-button" class="flex items-center justify-center rounded-xl w-full gap-5 mt-8">
                 <div class="items-start justify-center w-fit">
                     <div class="relative group w-full">
                         <div
@@ -360,7 +360,7 @@
             </div>
         </div>
     </section>
-    <section class="px-4 py-12 sm:mt-10">
+    <section class="px-4 py-12 sm:mt-10 max-w-7xl mx-auto">
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {% for investor in investors %}
             <article class="flex flex-col rounded-lg border p-6 shadow-sm">
@@ -377,7 +377,7 @@
                     <p class="text-sm text-gray-500">{{ ", ".join(investor.industries) }}</p>
                     <p class="flex flex-wrap gap-1">
                         {% for round in investor.rounds %}
-                        <a class="text-nowrap rounded-lg bg-black px-2 py-1 text-sm text-white">{{ round }}</a>
+                        <a class="text-nowrap rounded-lg bg-blue-600 px-2 py-1 text-sm text-white">{{ round }}</a>
                         {% endfor %}
                     </p>
                 </div>

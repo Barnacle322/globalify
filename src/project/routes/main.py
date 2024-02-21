@@ -227,14 +227,10 @@ def search():
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     fields = {
-        "location": "Location",
-        "rounds": "Rounds",
-        "industries": "Industries",
-        "embedding": "Embedding",
-        "notable_investments": "Notable Investments",
-        "name": "Name",
-        "firm_name": "Firm Name",
-        "position": "Position",
+        "n_investments": "Number of Investments",
+        "n_exits": "Number of Exits",
+        "min_investment": "Minimum Investment",
+        "max_investment": "Maximum Investment",
     }
 
     return render_template(

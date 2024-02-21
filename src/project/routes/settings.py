@@ -239,7 +239,7 @@ def change_company_info():
         company.country_id = country_id
         company.preferred_round_id = preferred_round_id
         company.industry_id = industry_id
-        company.website = request.form.get("website", "")
+        company.website_url = request.form.get("website", "")
         company.coordinates = Country.get_by_id(country_id).name  # type: ignore
         db.session.commit()
 

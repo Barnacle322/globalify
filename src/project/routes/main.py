@@ -174,13 +174,10 @@ def get_suggestions():
 
 
 @main.route("/search", methods=["GET", "POST"])
-# @login_required
-# @check_user_info_complete
-# @check_verification
+@login_required
+@check_user_info_complete
+@check_verification
 def search():
-    user = User.get_by_id(1)
-    login_user(user, remember=True)
-
     notifications = Notification.fetch_notifications(
         current_user.id,
         NotificationDestination.SEARCH,

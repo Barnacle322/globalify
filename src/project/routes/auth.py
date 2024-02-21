@@ -518,6 +518,8 @@ def expanded_onboarding():
     rounds = Round.get_all()
     countries = Country.get_all()
     company = Company.get_by_user_id(current_user.id)
+    if not company:
+        return redirect(url_for("auth.onboarding"))
 
     if request.method == "POST":
         company_name = request.form.get("company_name")
@@ -531,10 +533,18 @@ def expanded_onboarding():
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
             return redirect(url_for("auth.expanded_onboarding", _external=False, **status))
 
+        industry = Industry.get_by_id(industry_id)
+        round = Round.get_by_id(round_id)
+        country = Country.get_by_id(country_id)
+
+        if not industry or not round or not country:
+            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
+            return redirect(url_for("auth.expanded_onboarding", _external=False, **status))
+
         company.name = company_name
-        company.industry = Industry.get_by_id(industry_id)
-        company.preferred_round = Round.get_by_id(round_id)
-        company.country = Country.get_by_id(country_id)
+        company.industry = industry
+        company.preferred_round = round
+        company.country = country
         company.website_url = website
 
         db.session.commit()

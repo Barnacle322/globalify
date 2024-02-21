@@ -10,7 +10,7 @@ from flask_login import UserMixin
 from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Mapped, backref, mapped_column, relationship, validates
+from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, mapped_column, relationship, validates
 
 from ..extensions import db
 from ..utils.enums import NotificationDestination, OauthProvider, Tier
@@ -18,7 +18,7 @@ from ..utils.suggestion import geocode_location
 from .helpers import Country, Industry, Round
 
 
-class User(UserMixin, db.Model):
+class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     User model representing a user in the database.
 
@@ -39,18 +39,17 @@ class User(UserMixin, db.Model):
     The declared_attr decorator is used to create the relationships dynamically based on the class name, with cascading delete.
     """
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    type = mapped_column(String(50))
+    oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
+    id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    # def __init__(self, **kwargs):
+    #     super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<User {self.email} | {self.type}>"
+        return f"<User {self.email}>"
 
     @staticmethod
     def delete_by_id(id: int) -> None:
@@ -75,7 +74,7 @@ class User(UserMixin, db.Model):
         return db.session.scalars(db.select(User)).all()
 
 
-class UserInfo(db.Model):
+class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Represents additional information about a user.
 
@@ -92,6 +91,8 @@ class UserInfo(db.Model):
         is_complete (bool): Indicates if the user's profile is complete.
     """
 
+    user: Mapped[User] = relationship(User, backref=backref("user_info", passive_deletes=True))
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True
@@ -105,8 +106,6 @@ class UserInfo(db.Model):
     twitter_url: Mapped[str | None] = mapped_column(String, nullable=True)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-
-    user: Mapped[User] = relationship(User, backref=backref("user_info", passive_deletes=True))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -180,7 +179,7 @@ class UserInfo(db.Model):
         return True if user_info else False
 
 
-class UserPayment(db.Model):
+class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Represents user payment information.
 
@@ -194,6 +193,8 @@ class UserPayment(db.Model):
         tier (Tier): The subscription tier associated with the payment.
     """
 
+    user: Mapped[User] = relationship(User, backref=backref("user_payment", passive_deletes=True))
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True
@@ -204,8 +205,6 @@ class UserPayment(db.Model):
     expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     tier: Mapped[Tier] = mapped_column(SQLEnum(Tier), nullable=False, default=Tier.FREE)
-
-    user: Mapped[User] = relationship(User, backref=backref("user_payment", passive_deletes=True))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -253,19 +252,20 @@ class UserPayment(db.Model):
         return subscription
 
 
-class Notification(db.Model):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
-    json_data: Mapped[dict] = mapped_column(JSON, nullable=True, default={})
-    destination: Mapped[NotificationDestination] = mapped_column(
-        SQLEnum(NotificationDestination), nullable=True, default=NotificationDestination.SEARCH
-    )
-    is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
     user: Mapped[User] = relationship(User, backref=backref("notifications", passive_deletes=True))
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    json_data: Mapped[dict] = mapped_column(JSON, nullable=True)
+    destination: Mapped[NotificationDestination] = mapped_column(
+        SQLEnum(NotificationDestination), nullable=True, default=NotificationDestination.SEARCH
+    )
+    is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -318,7 +318,7 @@ class Notification(db.Model):
 
     @staticmethod
     def fetch_notifications(
-        user_id: int, destination: NotificationDestination, is_read: bool = 0
+        user_id: int, destination: NotificationDestination, is_read: bool | int = 0
     ) -> Sequence[Notification] | None:
         return db.session.scalars(
             db.select(Notification)
@@ -343,7 +343,7 @@ class Notification(db.Model):
         db.session.commit()
 
 
-class EmailVerification(db.Model):
+class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Represents email verification information.
 
@@ -354,13 +354,13 @@ class EmailVerification(db.Model):
         created_at (datetime.datetime): The date and time when the verification was created.
     """
 
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     token: Mapped[str] = mapped_column(String, nullable=False, default=lambda: str(uuid4()))
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
     is_expired: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __init__(self, **kwargs):
@@ -403,7 +403,7 @@ class EmailVerification(db.Model):
         return last_verification
 
 
-class WaitlistCharge(db.Model):
+class WaitlistCharge(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Represents a waitlist charge.
 
@@ -464,7 +464,7 @@ class Waitlist(db.Model):
         return db.session.scalar(db.select(Waitlist).where(Waitlist.email == email))
 
 
-class Company(db.Model):
+class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     SQLAlchemy model representing a company.
 
@@ -488,17 +488,17 @@ class Company(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[str] = mapped_column(String, nullable=True)
-    number_of_employees: Mapped[int] = mapped_column(Integer, nullable=True)
-    website_url: Mapped[str] = mapped_column(String, nullable=True)
-    picture_url: Mapped[str] = mapped_column(String, nullable=True)
-    country_id: Mapped[int] = mapped_column(Integer, ForeignKey("country.id"), nullable=True)
-    preferred_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
-    industry_id: Mapped[int] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True)
+    description: Mapped[str | None] = mapped_column(String, nullable=True)
+    number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    website_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    country_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("country.id"), nullable=True)
+    preferred_round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
+    industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True)
+    _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
 
     user: Mapped[User] = relationship(User, backref=backref("company", passive_deletes=True), lazy=True)
     country: Mapped[Country] = relationship()
-    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
     preferred_round: Mapped[Round] = relationship()
     industry: Mapped[Industry] = relationship()
 

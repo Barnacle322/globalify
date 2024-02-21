@@ -4,13 +4,13 @@ from collections.abc import Sequence
 
 import pycountry
 from sqlalchemy import Integer, String, event
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
 
 from ..extensions import db
 from ..utils.info_lists import aggregate as industry_aggregate
 
 
-class Industry(db.Model):
+class Industry(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Represents an industry.
 
@@ -72,7 +72,7 @@ class Industry(db.Model):
             db.session.rollback()
 
 
-class Round(db.Model):
+class Round(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Represents a funding round.
 
@@ -112,7 +112,7 @@ class Round(db.Model):
             db.session.rollback()
 
 
-class Country(db.Model):
+class Country(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Represents a country.
 

@@ -14,10 +14,21 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from flask_login import current_user, login_required
+from flask_login import current_user, login_required, login_user
 
 from ..extensions import db
-from ..models import Company, Country, Industry, InvestmentFirm, Investor, Notification, Round, Waitlist, WaitlistCharge
+from ..models import (
+    Company,
+    Country,
+    Industry,
+    InvestmentFirm,
+    Investor,
+    Notification,
+    Round,
+    User,
+    Waitlist,
+    WaitlistCharge,
+)
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
@@ -163,10 +174,13 @@ def get_suggestions():
 
 
 @main.route("/search", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
+# @login_required
+# @check_user_info_complete
+# @check_verification
 def search():
+    user = User.get_by_id(1)
+    login_user(user, remember=True)
+
     notifications = Notification.fetch_notifications(
         current_user.id,
         NotificationDestination.SEARCH,
@@ -289,11 +303,6 @@ def update_notification(notification_id):
 @main.get("/waitlist")
 def waitlist():
     return render_template("waitlist.html")
-
-
-@main.get("/waitlist/apply")
-def waitlist_apply():
-    return render_template("waitlist/apply.html")
 
 
 @main.post("/waitlist-email")

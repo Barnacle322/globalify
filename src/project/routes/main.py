@@ -18,7 +18,6 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import Company, Country, Industry, InvestmentFirm, Investor, Notification, Round, Waitlist, WaitlistCharge
-from ..models.investor import ScoreBuilder
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
@@ -114,45 +113,12 @@ def index():
 def get_suggestions():
     company = Company.get_by_user_id(current_user.id)
 
-    investors = Investor.get_all()
-
-    scored_investors = []
-
     check_weights(WEIGHTS)
-
-    for investor in investors:
-        scores = (
-            ScoreBuilder(investor, company)  # type: ignore
-            .calculate_bias_score()
-            .calculate_location_score()
-            .calculate_exits_score()
-            .calculate_industry_score()
-            .calculate_round_score()
-            .calculate_completeness_score()
-            .build_scores()
-        )
-
-        total_score = (
-            WEIGHTS["bias"] * scores["bias"]
-            + WEIGHTS["location"] * scores["location"]
-            + WEIGHTS["exits"] * scores["exits"]
-            + WEIGHTS["industry"] * scores["industry"]
-            + WEIGHTS["round"] * scores["round"]
-            + WEIGHTS["completeness"] * scores["completeness"]
-        )
-        scored_investors.append((investor, total_score))
-
-    suggested_investors = sorted(
-        (investor for investor in scored_investors),
-        key=lambda investor: investor[1],
-        reverse=True,
-    )
-
-    sorted_investors = [investor[0] for investor in suggested_investors][:15]
+    suggested_investors = Investor.get_suggestions(company=company, quantity=15)
 
     return render_template(
         "suggestions.html",
-        investors=sorted_investors,
+        investors=suggested_investors,
     )
 
 

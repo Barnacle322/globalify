@@ -22,7 +22,7 @@ from ..utils.fake_data import (
 )
 from ..utils.info_lists import notable_investment_list
 from ..utils.scraper import populate_blockchain, populate_demo
-from ..utils.suggestion import geocode_location
+from ..utils.suggestion import WEIGHTS, geocode_location
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
     create_schema,
@@ -33,91 +33,98 @@ from ..utils.typesense_helpers.typesense_search import (
 from .helpers import Industry, Round
 
 
-class ScoreBuilder:
-    def __init__(self, cls: type[Investor], company: type[Company]):
-        self.cls = cls
+class SuggestionBuilder:
+    def __init__(self, investor_list: list[dict], company: Company | None):
+        self.investor_list = investor_list
         self.company = company
-        self.scores = {}
 
-    def calculate_bias_score(self):
-        try:
-            bias_score = (self.cls.bias / 100) if self.cls.bias else 0
-        except (AttributeError, TypeError, ZeroDivisionError) as e:
-            print(f"An error occurred while calculating bias score: {e}")
-            bias_score = 0
-        self.scores["bias"] = bias_score
-        return self
+    def calculate_all_scores(self):
+        for investor in self.investor_list:
+            # Calculate bias score
+            try:
+                bias_score = (investor["bias"] / 100) if investor["bias"] else 0
+            except (AttributeError, TypeError, ZeroDivisionError) as e:
+                print(f"An error occurred while calculating bias score: {e}")
+                bias_score = 0
 
-    def calculate_location_score(self):
-        try:
-            if self.company.coordinates and self.cls.coordinates:
-                distance = float(geodesic(self.company.coordinates, self.cls.coordinates).kilometers)
-                location_score = 1 - (distance / 20038)
-            else:
+            # Calculate location score
+            try:
+                if self.company.coordinates and investor["coordinates"]:  # type: ignore
+                    distance = float(geodesic(self.company.coordinates, investor["coordinates"]).kilometers)  # type: ignore
+                    location_score = 1 - (distance / 20038)
+                else:
+                    location_score = 0
+            except (AttributeError, TypeError, ZeroDivisionError) as e:
+                print(f"An error occurred while calculating location score: {e}")
                 location_score = 0
-        except (AttributeError, TypeError, ZeroDivisionError) as e:
-            print(f"An error occurred while calculating location score: {e}")
-            location_score = 0
-        self.scores["location"] = location_score
-        return self
 
-    def calculate_exits_score(self):
-        try:
-            if self.cls.n_investments and self.cls.n_exits:
-                successful_exits = 1 if (self.cls.n_exits / self.cls.n_investments) >= 0.5 else 0  # type: ignore
-            else:
-                successful_exits = 0
-        except (AttributeError, TypeError, ZeroDivisionError) as e:
-            print(f"An error occurred while calculating exits score: {e}")
-            successful_exits = 0
-        self.scores["exits"] = successful_exits
-        return self
+            # Calculate exits score
+            try:
+                if investor["n_investments"] and investor["n_exits"]:
+                    exits_score = 1 if (investor["n_exits"] / investor["n_investments"]) >= 0.5 else 0
+                else:
+                    exits_score = 0
+            except (AttributeError, TypeError, ZeroDivisionError) as e:
+                print(f"An error occurred while calculating exits score: {e}")
+                exits_score = 0
 
-    def calculate_industry_score(self):
-        try:
-            if self.company.industry in self.cls.industries and len(self.cls.industries) == 1:  # type: ignore
-                industry_score = 1
-            elif self.company.industry in self.cls.industries:
-                industry_score = 0.8
-            else:
+            # Calculate industry score
+            try:
+                if self.company.industry.name in investor["industries"] and len(investor["industries"]) == 1:  # type: ignore
+                    industry_score = 1
+                elif self.company.industry.name in investor["industries"]:  # type: ignore
+                    industry_score = 0.8
+                else:
+                    industry_score = 0
+            except (AttributeError, TypeError) as e:
+                print(f"An error occurred while calculating industry score: {e}")
                 industry_score = 0
-        except (AttributeError, TypeError) as e:
-            print(f"An error occurred while calculating industry score: {e}")
-            industry_score = 0
-        self.scores["industry"] = industry_score
-        return self
 
-    def calculate_round_score(self):
-        try:
-            if self.company.preferred_round in self.cls.rounds and len(self.cls.rounds) == 1:  # type: ignore
-                round_score = 1
-            elif self.company.preferred_round in self.cls.rounds:
-                round_score = 0.8
-            else:
+            # Calculate round score
+            try:
+                if self.company.preferred_round.name in investor["rounds"] and len(investor["rounds"]) == 1:  # type: ignore
+                    round_score = 1
+                elif self.company.preferred_round.name in investor["rounds"]:  # type: ignore
+                    round_score = 0.8
+                else:
+                    round_score = 0
+            except (AttributeError, TypeError) as e:
+                print(f"An error occurred while calculating round score: {e}")
                 round_score = 0
-        except (AttributeError, TypeError) as e:
-            print(f"An error occurred while calculating round score: {e}")
-            round_score = 0
-        self.scores["round"] = round_score
-        return self
 
-    def calculate_completeness_score(self):
-        try:
-            attributes_dict = vars(self)
-            completeness_score = 1
-            for value in attributes_dict.values():
-                if not value:
-                    completeness_score -= 0.1
-            if completeness_score < 0:
+            # Calculate completeness score
+            try:
+                completeness_score = 1
+                for value in investor.values():
+                    if not value:
+                        completeness_score -= 0.1
+                if completeness_score < 0:
+                    completeness_score = 0
+            except (AttributeError, TypeError) as e:
+                print(f"An error occurred while calculating completeness score: {e}")
                 completeness_score = 0
-        except (AttributeError, TypeError) as e:
-            print(f"An error occurred while calculating completeness score: {e}")
-            completeness_score = 0
-        self.scores["completeness"] = completeness_score
+
+            try:
+                total_score = (
+                    WEIGHTS["bias"] * bias_score
+                    + WEIGHTS["location"] * location_score
+                    + WEIGHTS["exits"] * exits_score
+                    + WEIGHTS["industry"] * industry_score
+                    + WEIGHTS["round"] * round_score
+                    + WEIGHTS["completeness"] * completeness_score
+                )
+                investor["total_score"] = total_score
+            except (AttributeError, TypeError) as e:
+                print(f"An error occurred while calculating total score: {e}")
+                investor["total_score"] = 0
         return self
 
-    def build_scores(self):
-        return self.scores
+    def sort_by_score(self):
+        self.investor_list = sorted(self.investor_list, key=lambda x: x["total_score"], reverse=True)
+        return self
+
+    def get_list_of_ids(self, quantity: int):
+        return [investor["id"] for investor in self.investor_list[:quantity]]
 
 
 class NotableInvestment(db.Model):
@@ -301,6 +308,35 @@ class Investor(db.Model):
             .unique()
             .all()
         )
+
+    @classmethod
+    def get_suggestions(cls, company: Company | None, quantity: int) -> Sequence[Investor] | None:
+        investor_list = []
+        for investor in cls.get_all():
+            investor_info = {
+                "id": investor.id,
+                "bias": investor.bias,
+                "n_investments": investor.n_investments,
+                "n_exits": investor.n_exits,
+                "coordinates": investor.coordinates,
+                "rounds": [round.name for round in investor.rounds],
+                "industries": [industry.name for industry in investor.industries],
+                "min_investment": investor.min_investment,
+                "max_investment": investor.max_investment,
+                "about": investor.about,
+            }
+            investor_list.append(investor_info)
+        investor_ids = (
+            SuggestionBuilder(investor_list, company).calculate_all_scores().sort_by_score().get_list_of_ids(quantity)
+        )
+        suggestions = cls.get_by_id_list(investor_ids)
+        sorted_suggestions = []
+        for investor_id in investor_ids:
+            for suggestion in suggestions:  # type: ignore
+                if suggestion.id == investor_id:
+                    sorted_suggestions.append(suggestion)
+                    break
+        return sorted_suggestions
 
     @classmethod
     def get_search(

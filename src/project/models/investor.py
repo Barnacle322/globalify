@@ -330,12 +330,10 @@ class Investor(db.Model):
             SuggestionBuilder(investor_list, company).calculate_all_scores().sort_by_score().get_list_of_ids(quantity)
         )
         suggestions = cls.get_by_id_list(investor_ids)
-        sorted_suggestions = []
-        for investor_id in investor_ids:
-            for suggestion in suggestions:  # type: ignore
-                if suggestion.id == investor_id:
-                    sorted_suggestions.append(suggestion)
-                    break
+        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}  # type: ignore
+        sorted_suggestions = [
+            suggestions_dict[investor_id] for investor_id in investor_ids if investor_id in suggestions_dict
+        ]
         return sorted_suggestions
 
     @classmethod

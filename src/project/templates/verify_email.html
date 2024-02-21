@@ -6,6 +6,7 @@
 %}
 <main class="relative flex w-full items-center justify-center overflow-x-hidden px-4 pb-52">
     <section class="flex flex-col justify-center items-center max-w-md gap-8 mt-36 md:mt-48">
+        <input type="hidden" id="user_id" value="{{ user_id }}">
         <article class="text-center flex flex-col gap-2">
             <h1 class="text-3xl font-bold md:text-5xl">Email Verification</h1>
             <p class="max-w-xl md:text-lg text-slate-600 text-base">
@@ -33,7 +34,6 @@
                     id="resendButton"
                     href="/resend-verification/{{ user_id }}"
                     class="underline"
-                    onclick="startResendTimer(event);"
                 >
                     <div id="timer-container" style="display: none">
                         <span id="timer"></span>

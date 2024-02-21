@@ -7,7 +7,7 @@ from sqlite3 import Connection as SQLite3Connection
 from uuid import uuid4
 
 from flask_login import UserMixin
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship, validates
@@ -52,27 +52,27 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f"<User {self.email} | {self.type}>"
 
-    @classmethod
-    def delete_by_id(cls, id: int) -> None:
+    @staticmethod
+    def delete_by_id(id: int) -> None:
         """
         Deletes the user and all associated data.
         This includes the `UserInfo`, `UserPayment`, and `Company` objects.
         """
-        if user := cls.get_by_id(id):
+        if user := User.get_by_id(id):
             db.session.delete(user)
             db.session.commit()
 
-    @classmethod
-    def get_by_id(cls, id: int) -> User | None:
-        return db.session.scalar(db.select(cls).where(cls.id == id))
+    @staticmethod
+    def get_by_id(id: int) -> User | None:
+        return db.session.scalar(db.select(User).where(User.id == id))
 
-    @classmethod
-    def get_by_email(cls, email: str) -> User | None:
-        return db.session.scalar(db.select(cls).where(cls.email == email))
+    @staticmethod
+    def get_by_email(email: str) -> User | None:
+        return db.session.scalar(db.select(User).where(User.email == email))
 
-    @classmethod
-    def get_all(cls) -> Sequence[User]:
-        return db.session.scalars(db.select(cls)).all()
+    @staticmethod
+    def get_all() -> Sequence[User]:
+        return db.session.scalars(db.select(User)).all()
 
 
 class UserInfo(db.Model):
@@ -262,7 +262,7 @@ class Notification(db.Model):
     )
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC)
+        DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
     user: Mapped[User] = relationship(User, backref=backref("notifications", passive_deletes=True))
@@ -317,10 +317,10 @@ class Notification(db.Model):
         return db.session.scalar(db.select(Notification).where(Notification.user_id == user_id))
 
     @staticmethod
-    def get_notification_for_view(
-        user_id: int, destination: NotificationDestination, is_read: bool = False
-    ) -> Notification | None:
-        return db.session.scalar(
+    def fetch_notifications(
+        user_id: int, destination: NotificationDestination, is_read: bool = 0
+    ) -> Sequence[Notification] | None:
+        return db.session.scalars(
             db.select(Notification)
             .where(
                 Notification.user_id == user_id,
@@ -328,7 +328,19 @@ class Notification(db.Model):
                 Notification.is_read == is_read,
             )
             .order_by(desc(Notification.created_at))
-        )
+        ).all()
+
+    @staticmethod
+    def mark_notifications_as_read(user_id: int, destination: NotificationDestination) -> None:
+        unread_notifications = db.session.scalars(
+            db.select(Notification).where(
+                Notification.user_id == user_id, Notification.destination == destination, Notification.is_read == 0
+            )
+        ).all()
+        print(unread_notifications)
+        for notification in unread_notifications:
+            notification.is_read = True
+        db.session.commit()
 
 
 class EmailVerification(db.Model):
@@ -347,7 +359,7 @@ class EmailVerification(db.Model):
     token: Mapped[str] = mapped_column(String, nullable=False, default=lambda: str(uuid4()))
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC)
+        DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     is_expired: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
@@ -378,6 +390,17 @@ class EmailVerification(db.Model):
     @staticmethod
     def get_by_token(token: str) -> EmailVerification | None:
         return db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
+
+    @staticmethod
+    def fetch_email_verification(user_id: int) -> EmailVerification | None:
+        last_verification = db.session.scalar(
+            db.select(EmailVerification)
+            .where(
+                EmailVerification.user_id == user_id,
+            )
+            .order_by(EmailVerification.created_at.desc())
+        )
+        return last_verification
 
 
 class WaitlistCharge(db.Model):
@@ -467,7 +490,7 @@ class Company(db.Model):
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=True)
     number_of_employees: Mapped[int] = mapped_column(Integer, nullable=True)
-    website: Mapped[str] = mapped_column(String, nullable=True)
+    website_url: Mapped[str] = mapped_column(String, nullable=True)
     picture_url: Mapped[str] = mapped_column(String, nullable=True)
     country_id: Mapped[int] = mapped_column(Integer, ForeignKey("country.id"), nullable=True)
     preferred_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
@@ -492,6 +515,44 @@ class Company(db.Model):
     @coordinates.setter
     def coordinates(self, coordinates: str) -> None:
         self._coordinates = geocode_location(coordinates)["coordinates"]  # type: ignore
+
+    @validates("website_url")
+    def validate_website(self, key, website):
+        if not website:
+            return None
+        if not re.match(r"^(https?:\/\/)?(www\.)?[\w.-]+\.[a-z]{2,}\/?[\w.-]*$", website, re.IGNORECASE):
+            raise ValueError("Invalid website URL format. Ensure it follows the pattern: https://www.example.com.")
+        return website
+
+    @validates("linkedin_url")
+    def validate_linkedin(self, key, linkedin):
+        if not linkedin:
+            return None
+        if not re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
+            raise ValueError(
+                "Invalid LinkedIn URL format. Ensure it follows the pattern: https://www.linkedin.com/in/username."
+            )
+        return linkedin
+
+    @validates("instagram_url")
+    def validate_instagram(self, key, instagram):
+        if not instagram:
+            return None
+        if not re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
+            raise ValueError(
+                "Invalid Instagram URL format. Ensure it follows the pattern: https://www.instagram.com/username."
+            )
+        return instagram
+
+    @validates("twitter_url")
+    def validate_twitter(self, key, twitter):
+        if not twitter:
+            return None
+        if not re.match(
+            r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE
+        ):
+            raise ValueError("Invalid Twitter URL format. Ensure it follows the pattern: https://twitter.com/username.")
+        return twitter
 
     @staticmethod
     def get_by_id(id: int) -> Company | None:

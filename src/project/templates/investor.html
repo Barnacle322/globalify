@@ -29,6 +29,36 @@
             </svg>
             <span>{{ investor.location }}</span>
         </div>
+        <h2 class="mt-4 text-4xl font-medium">Contacts</h2>
+        {% if investor.website %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Website</h2>
+            <div class="flex flex-wrap gap-1">
+                <a href="{{ investor.website }}" class="underline" target="_blank"> {{ investor.website }} </a>
+            </div>
+        </div>
+        {% endif %} {% if investor.linkedin %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Linkedin</h2>
+            <div class="flex flex-wrap gap-1">
+                <a href="{{ investor.linkedin }}" class="underline" target="_blank"> {{ investor.linkedin }} </a>
+            </div>
+        </div>
+        {% endif %} {% if investor.twitter %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Twitter</h2>
+            <div class="flex flex-wrap gap-1">
+                <a href="{{ investor.twitter }}" class="underline" target="_blank"> {{ investor.twitter }} </a>
+            </div>
+        </div>
+        {% endif %} {% if investor.phone_number %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Phone Number</h2>
+            <div class="flex flex-wrap gap-1">
+                <a href="tel:{{ investor.phone_number }}" class="underline"> {{ investor.phone_number }} </a>
+            </div>
+        </div>
+        {% endif %}
     </section>
     <section class="flex max-w-[40rem] flex-col items-start justify-start gap-3 px-8">
         <h2 class="text-4xl font-medium">General Info</h2>
@@ -52,36 +82,7 @@
                 {% endfor %}
             </div>
         </div>
-        <h2 class="mt-4 text-4xl font-medium">Contacts</h2>
-        {% if investor.website %}
-        <div class="flex flex-col gap-1">
-            <h2 class="font-medium">Website</h2>
-            <div class="flex flex-wrap gap-1">
-                <a href="{{ investor.website }}" class="underline" target="_blank"> {{ investor.website }} </a>
-            </div>
-        </div>
-        {% endif %} {% if investor.linkedin %}
-        <div class="flex flex-col gap-1">
-            <h2 class="font-medium">Linkedin</h2>
-            <div class="flex flex-wrap gap-1">
-                <a href="{{ investor.linkedin }}" class="underline"target="_blank"> {{ investor.linkedin }} </a>
-            </div>
-        </div>
-        {% endif %} {% if investor.twitter %}
-        <div class="flex flex-col gap-1">
-            <h2 class="font-medium">Twitter</h2>
-            <div class="flex flex-wrap gap-1">
-                <a href="{{ investor.twitter }}" class="underline"target="_blank"> {{ investor.twitter }} </a>
-            </div>
-        </div>
-        {% endif %} {% if investor.phone_number %}
-        <div class="flex flex-col gap-1">
-            <h2 class="font-medium">Phone Number</h2>
-            <div class="flex flex-wrap gap-1">
-                <a href="tel:{{ investor.phone_number }}" class="underline"> {{ investor.phone_number }} </a>
-            </div>
-        </div>
-        {% endif %}
+
         <h2 class="mt-4 text-4xl font-medium">Investments</h2>
         {% if investor.notable_investments %}
         <div class="flex flex-col gap-1">

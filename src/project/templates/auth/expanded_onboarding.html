@@ -5,58 +5,48 @@
 {% endblock %} {% block title %}Onboarding{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
 %}
 <main class="flex h-full flex-col items-center justify-center overflow-x-hidden p-6">
-    <form action="/onboarding" method="POST" class="max-w-md">
+    <form action="/expanded-onboarding" method="POST" class="max-w-2xl w-full">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-        <h1 class="mb-4 text-center text-3xl font-semibold text-gray-900">We just need some more info</h1>
+        <h1 class="mb-4 text-center text-4xl font-semibold text-slate-900">Personalize your experience</h1>
+        <p class="text-center text-slate-400">
+            Add your personal and company information to get started with Globalify.
+        </p>
+
+        <ol class="flex items-center w-full text-sm font-medium text-center text-gray-500 sm:text-base pt-10">
+            <li
+                class="flex md:w-full items-center text-blue-600 sm:after:content-[''] after:w-full after:h-1 after:border-b after:border-blue-600 after:border-1 after:hidden sm:after:inline-block after:mx-6 xl:after:mx-10"
+            >
+                <span class="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200">
+                    <svg
+                        class="w-3.5 h-3.5 sm:w-4 sm:h-4 me-2.5"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                    >
+                        <path
+                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"
+                        />
+                    </svg>
+                    Basic<span class="hidden sm:inline-flex sm:ms-2">Info</span>
+                </span>
+            </li>
+            <li
+                class="flex md:w-full items-center after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-200 after:border-1 after:hidden sm:after:inline-block after:mx-6 xl:after:mx-10"
+            >
+                <span class="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200">
+                    <span class="me-2">2</span>
+                    Company<span class="hidden sm:inline-flex sm:ms-2">Info</span>
+                </span>
+            </li>
+            <li class="flex items-center">
+                <span class="me-2">3</span>
+                Tier
+            </li>
+        </ol>
+
         <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-            <div class="sm:col-span-3">
-                <label for="first_name" class="block text-sm font-medium leading-6 text-gray-900">First name*</label>
-                <div class="mt-2">
-                    <input
-                        type="text"
-                        name="first_name"
-                        id="first_name"
-                        autocomplete="given-name"
-                        value="{{ user_info.first_name if user_info.first_name else ''}}"
-                        required
-                        class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2"
-                    />
-                </div>
-            </div>
-            <div class="sm:col-span-3">
-                <label for="last_name" class="block text-sm font-medium leading-6 text-gray-900">Last name*</label>
-                <div class="mt-2">
-                    <input
-                        type="text"
-                        name="last_name"
-                        id="last_name"
-                        autocomplete="family-name"
-                        value="{{ user_info.last_name if user_info.last_name else ''}}"
-                        required
-                        class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2"
-                    />
-                </div>
-            </div>
-            <div class="sm:col-span-4">
-                <label for="username" class="block text-sm font-medium leading-6 text-gray-900">Username*</label>
-                <div class="mt-2">
-                    <span class="absolute hidden h-12 select-none items-center pl-3 text-gray-500 sm:flex">
-                        globalify.com/user/
-                    </span>
-                    <input
-                        type="text"
-                        name="username"
-                        id="username"
-                        autocomplete="username"
-                        pattern="[a-zA-Z0-9_]{3,20}"
-                        class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2 sm:pl-[168px]"
-                        minlength="4"
-                        placeholder="janesmith"
-                        required
-                    />
-                </div>
-            </div>
-            <div class="sm:col-span-6">
+            <div class="sm:col-span-full">
                 <label for="company_name" class="block text-sm font-medium leading-6 text-gray-900"
                     >Company name*</label
                 >
@@ -65,11 +55,83 @@
                         type="text"
                         name="company_name"
                         id="company_name"
+                        autocomplete="organization-title"
                         required
+                        value="{{ company_name }}"
                         class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2"
                     />
                 </div>
             </div>
+
+            <div class="sm:col-span-3">
+                <label for="industry" class="block text-sm font-medium leading-6 text-gray-900">Industry*</label>
+                <div class="mt-2">
+                    <select
+                        id="industry"
+                        name="industry"
+                        class="h-12 w-full rounded-xl border border-stone-300 px-2"
+                        required
+                    >
+                        <option disabled selected>Select an industry</option>
+                        {% for category, industry in industries.items() %}
+                        <optgroup label="{{ category }}">
+                            {% for ind in industry %}
+                            <option value="{{ ind.id }}">{{ ind.name }}</option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="sm:col-span-3">
+                <label for="round" class="block text-sm font-medium leading-6 text-gray-900">Round*</label>
+                <div class="mt-2">
+                    <select
+                        id="round"
+                        name="round"
+                        class="h-12 w-full rounded-xl border border-stone-300 px-2"
+                        required
+                    >
+                        <option disabled selected>Select a round</option>
+                        {% for round in rounds %}
+                        <option value="{{ round.id }}">{{ round.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="sm:col-span-4">
+                <label for="country" class="block text-sm font-medium leading-6 text-gray-900">Country*</label>
+                <div class="mt-2">
+                    <select
+                        id="country"
+                        name="country"
+                        class="h-12 w-full rounded-xl border border-stone-300 px-2"
+                        required
+                    >
+                        <option disabled selected>Select a country</option>
+                        {% for country in countries %}
+                        <option value="{{ country.id }}">{{ country.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="sm:col-span-full">
+                <label for="website" class="block text-sm font-medium leading-6 text-gray-900">Website</label>
+                <div class="mt-2">
+                    <input
+                        type="url"
+                        name="website"
+                        id="website"
+                        pattern="https?://.+"
+                        placeholder="https://www.example.com"
+                        class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2"
+                    />
+                </div>
+            </div>
+
             <button
                 type="submit"
                 class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400 sm:col-span-6"
@@ -108,7 +170,7 @@
                         <span class="sr-only">Refresh icon</span>
                     </div>
                     <div class="ms-3 text-sm font-normal">
-                        <span class="mb-1 text-sm font-semibold text-gray-900 dark:text-white"
+                        <span class="mb-1 text-sm font-semibold text-gray-900"
                             >{{ notification.json_data.get("title") }}</span
                         >
                         <div class="mb-2 text-sm font-normal">{{ notification.json_data.get("msg") }}</div>

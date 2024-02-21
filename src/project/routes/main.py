@@ -38,13 +38,26 @@ def check_user_info_complete(func):
     return decorated_function
 
 
+# def check_verification(func):
+#     @wraps(func)
+#     def decorated_function(*args, **kwargs):
+#         if not current_user.is_authenticated:  # type: ignore
+#             return redirect(url_for("auth.login"))
+#         elif not current_user.is_verified:  # type: ignore
+#             notifications = Notification.fetch_notifications(
+#                 user_id=current_user.id,
+#                 destination=NotificationDestination.VERIFICATION,
+#                 is_read=False,
+#             )
+#             return render_template("verify_email.html", user_id=current_user.id, notifications=notifications)
+#         return func(*args, **kwargs)
+
+#     return decorated_function
+
+
 def check_verification(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated:  # type: ignore
-            return redirect(url_for("auth.login"))
-        elif not current_user.is_verified:  # type: ignore
-            return render_template("verify_email.html", user_id=current_user.id)
         return func(*args, **kwargs)
 
     return decorated_function
@@ -127,12 +140,11 @@ def get_suggestions():
 @check_user_info_complete
 @check_verification
 def search():
-    notification = Notification.get_notification_for_view(
+    notifications = Notification.fetch_notifications(
         current_user.id,
         NotificationDestination.SEARCH,
         is_read=False,
     )
-
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "")
     sort_desc = request.args.get("descending", False, type=bool)
@@ -188,14 +200,10 @@ def search():
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     fields = {
-        "location": "Location",
-        "rounds": "Rounds",
-        "industries": "Industries",
-        "embedding": "Embedding",
-        "notable_investments": "Notable Investments",
-        "name": "Name",
-        "firm_name": "Firm Name",
-        "position": "Position",
+        "n_investments": "Number of Investments",
+        "n_exits": "Number of Exits",
+        "min_investment": "Minimum Investment",
+        "max_investment": "Maximum Investment",
     }
 
     return render_template(
@@ -205,9 +213,10 @@ def search():
         fields=fields,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
-        notification=notification,
+        notifications=notifications,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
+        countries=Country.get_all(),
     )
 
 
@@ -218,7 +227,7 @@ def search():
 def investor(investor_id):
     investor = Investor.get_by_id(int(investor_id))
     if not investor:
-        return redirect(url_for("main.dashboard"))
+        return redirect(url_for("main.search"))
 
     return render_template("investor.html", investor=investor, user=current_user)
 
@@ -230,7 +239,7 @@ def investor(investor_id):
 def investment_firm(firm_id):
     investment_firm = InvestmentFirm.get_by_id(int(firm_id))
     if not investment_firm:
-        return redirect(url_for("main.dashboard"))
+        return redirect(url_for("main.search"))
 
     return render_template("investment_firm.html", investment_firm=investment_firm, user=current_user)
 
@@ -247,7 +256,7 @@ def update_notification(notification_id):
     notification.is_read = True
     db.session.commit()
 
-    return jsonify({"status": "success"})
+    return jsonify({"status": "success"}, 200)
 
 
 @main.get("/waitlist")

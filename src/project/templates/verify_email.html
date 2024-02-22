@@ -1,5 +1,4 @@
 {% extends "layouts/layout_clean.html" %} {% block additional_scripts %}
-<script src="/static/scripts/dashboard.js" defer></script>
 <script src="/static/scripts/notificationHandler.js" defer></script>
 <script src="/static/scripts/idempotency.js" defer></script>
 <script src="/static/scripts/resend_veification_timer.js" defer></script>
@@ -15,7 +14,7 @@
             </p>
         </article>
 
-        <form action="/verify-email/" method="GET" class="w-full flex flex-col items-center">
+        <form action="/verify-email" method="GET" class="w-full flex flex-col items-center">
             <input
                 type="text"
                 id="uuid"
@@ -35,7 +34,6 @@
                     <div id="timer-container" style="display: none">
                         <span id="timer"></span>
                     </div>
-                    Resend Verification Email
                 </a>
                 <span id="resendTimer" style="display: none"></span>
             </div>
@@ -44,6 +42,5 @@
 
     {% import "macros/notification_macros.html" as notification_macros %} {{
     notification_macros.render_notifications(notifications) }}
-
 </main>
 {% endblock %}

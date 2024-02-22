@@ -14,7 +14,7 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from flask_login import current_user, login_required, login_user
+from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import (
@@ -25,7 +25,6 @@ from ..models import (
     Investor,
     Notification,
     Round,
-    User,
     Waitlist,
     WaitlistCharge,
 )
@@ -112,7 +111,6 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 
 @main.get("/")
 def index():
-    # TODO: Turned off for better performance
     posts = parse_medium_html()
     return render_template("index.html", posts=posts)
 
@@ -165,7 +163,7 @@ def get_suggestions():
 @check_user_info_complete
 @check_verification
 def search():
-    notifications = Notification.fetch_notifications(
+    notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.SEARCH,
         is_read=False,
@@ -218,7 +216,7 @@ def search():
         min_investment=min_investment,
         max_investment=max_investment,
         page=page,
-        per_page=3,
+        per_page=9,
         countries=countries,
     )
     investors = result.get("investors")

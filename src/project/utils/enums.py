@@ -62,8 +62,8 @@ class ButtonLayout:
     url: str
     dismiss: bool = True
 
-    def get_json(self) -> dict[str, str]:
-        return {"text": self.text, "url": self.url}
+    def get_json(self) -> dict[str, str | bool]:
+        return {"text": self.text, "url": self.url, "dismiss": self.dismiss}
 
 
 @dataclass
@@ -77,16 +77,15 @@ class NotificationLayout:
     def get_json(self, **kwargs) -> dict[str, str]:
         json_dict = {
             "title": self.title,
+            "is_closable": self.is_closable,
             **kwargs,
         }
 
         if self.msg:
             json_dict["msg"] = self.msg
-        if self.buttons:
+        if self.buttons and self.buttons != []:
             json_dict["buttons"] = [button.get_json() for button in self.buttons]
         if self.icon_url:
             json_dict["icon_url"] = self.icon_url
-        if self.is_closable:
-            json_dict["is_closable"] = self.is_closable
 
         return json_dict

@@ -111,7 +111,7 @@ def handle_customer(authenticated_user: User) -> UserPayment:
 
     # If customer isn't in DB, create a new one
     user_payment = UserPayment(
-        user_id=authenticated_user.id,
+        user=authenticated_user,
         customer_id=stripe_customer.get("id"),
     )
     db.session.add(user_payment)
@@ -311,6 +311,8 @@ def create_checkout_session():
         return redirect(url_for("payment.index", _external=False, **status))
 
     try:
+        if not user_payment.customer_id:
+            raise Exception(PAYMENT_NOT_FOUND)
         checkout_session = create_checkout(customer_id=user_payment.customer_id, tier=tier)
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
@@ -352,7 +354,7 @@ def customer_portal():
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    if not user_payment:
+    if not user_payment or not user_payment.customer_id:
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
@@ -393,7 +395,7 @@ def subscription_update():
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    if not user_payment:
+    if not user_payment or not user_payment.customer_id:
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
@@ -442,7 +444,7 @@ def subscription_cancel():
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    if not user_payment:
+    if not user_payment or not user_payment.customer_id:
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 

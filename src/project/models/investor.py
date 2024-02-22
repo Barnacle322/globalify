@@ -8,7 +8,7 @@ from itertools import islice
 
 from geopy.distance import geodesic
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
+from sqlalchemy.orm import Mapped, MappedAsDataclass, joinedload, mapped_column, relationship
 from thefuzz import fuzz
 
 from ..extensions import db
@@ -34,7 +34,7 @@ from ..utils.typesense_helpers.typesense_search import (
 from .helpers import Industry, Round
 
 
-class NotableInvestment(db.Model):
+class NotableInvestment(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Represents a notable investment of an investor or investment firm.
 
@@ -125,7 +125,7 @@ investment_firm_industry = db.Table(
 )
 
 
-class Investor(db.Model):
+class Investor(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Class representing an investor in the database.
 
@@ -713,7 +713,7 @@ class Investor(db.Model):
         db.session.commit()
 
 
-class InvestmentFirm(db.Model):
+class InvestmentFirm(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Represents an investment firm.
 

@@ -49,26 +49,13 @@ def check_user_info_complete(func):
     return decorated_function
 
 
-# def check_verification(func):
-#     @wraps(func)
-#     def decorated_function(*args, **kwargs):
-#         if not current_user.is_authenticated:  # type: ignore
-#             return redirect(url_for("auth.login"))
-#         elif not current_user.is_verified:  # type: ignore
-#             notifications = Notification.fetch_notifications(
-#                 user_id=current_user.id,
-#                 destination=NotificationDestination.VERIFICATION,
-#                 is_read=False,
-#             )
-#             return render_template("verify_email.html", user_id=current_user.id, notifications=notifications)
-#         return func(*args, **kwargs)
-
-#     return decorated_function
-
-
 def check_verification(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:  # type: ignore
+            return redirect(url_for("auth.login"))
+        elif not current_user.is_verified:  # type: ignore
+            return redirect(url_for("auth.email_verification_required"))
         return func(*args, **kwargs)
 
     return decorated_function
@@ -231,7 +218,7 @@ def search():
         min_investment=min_investment,
         max_investment=max_investment,
         page=page,
-        per_page=12,
+        per_page=3,
         countries=countries,
     )
     investors = result.get("investors")
@@ -283,13 +270,14 @@ def investment_firm(firm_id):
 
 
 @main.get("/notification/edit/<int:notification_id>")
+@login_required
 def update_notification(notification_id):
     notification = Notification.get_by_id(int(notification_id))
     if not notification:
-        return render_template("404.html")
+        return redirect(url_for("main.search"))
 
     if notification.user_id != current_user.id:
-        return render_template("404.html")
+        return redirect(url_for("main.search"))
 
     notification.is_read = True
     db.session.commit()

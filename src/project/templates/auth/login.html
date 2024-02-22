@@ -23,6 +23,13 @@
                 <img src="/static/elements/google.svg" alt="" />
                 <span class="font-medium">Google</span>
             </a>
+            {% if status_type %} {% if status_type == '3' %}
+                <div class="rounded-xl text-red-500">{{ msg }}</div>
+                {% endif %} {% if status_type == '2' %}
+                <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                {% endif %} {% if status_type == '1' %}
+                <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                {% endif %} {% endif %}
             <div class="my-2 text-xs text-slate-400">
                 <span>By signing in, you agree to </span
                 ><a href="/terms-of-service" class="underline">Terms of Service</a><span> and </span

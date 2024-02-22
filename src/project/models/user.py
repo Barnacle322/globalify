@@ -273,41 +273,6 @@ class Notification(db.Model):
     def __repr__(self):
         return f"<Notification {self.created_at}>"
 
-    @staticmethod
-    def create_notification(
-        user_id: int,
-        title: str,
-        msg: str,
-        destination: NotificationDestination,
-        icon_url: str = "",
-        button_text: str = "",
-        button_url: str = "",
-        button_text2: str = "",
-        button_url2: str = "",
-    ):
-        notification = Notification(
-            user_id=user_id,
-            json_data={
-                "title": title,
-                "msg": msg,
-                "buttons": [
-                    {
-                        "text": button_text,
-                        "url": button_url,
-                    },
-                    {
-                        "text": button_text2,
-                        "url": button_url2,
-                    },
-                ],
-                "icon_url": icon_url,
-            },
-            destination=destination,
-        )
-        db.session.add(notification)
-        db.session.commit()
-        return notification
-
     @classmethod
     def get_by_id(cls, id: int) -> Notification | None:
         return db.session.scalar(db.select(cls).where(cls.id == id))

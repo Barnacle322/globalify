@@ -259,13 +259,14 @@ def investment_firm(firm_id):
 
 
 @main.get("/notification/edit/<int:notification_id>")
+@login_required
 def update_notification(notification_id):
     notification = Notification.get_by_id(int(notification_id))
     if not notification:
-        return render_template("404.html")
+        return redirect(url_for("main.search"))
 
     if notification.user_id != current_user.id:
-        return render_template("404.html")
+        return redirect(url_for("main.search"))
 
     notification.is_read = True
     db.session.commit()

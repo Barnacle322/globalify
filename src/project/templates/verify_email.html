@@ -1,4 +1,5 @@
-{% extends "layouts/layout_app.html" %} {% block additional_scripts %}
+{% extends "layouts/layout_clean.html" %} {% block additional_scripts %}
+<script src="/static/scripts/dashboard.js" defer></script>
 <script src="/static/scripts/notificationHandler.js" defer></script>
 <script src="/static/scripts/idempotency.js" defer></script>
 <script src="/static/scripts/resend_veification_timer.js" defer></script>
@@ -6,7 +7,7 @@
 %}
 <main class="relative flex w-full items-center justify-center overflow-x-hidden px-4 pb-52">
     <section class="flex flex-col justify-center items-center max-w-md gap-8 mt-36 md:mt-48">
-        <input type="hidden" id="user_id" value="{{ user_id }}">
+        <input type="hidden" id="user_id" value="{{ user_id }}" />
         <article class="text-center flex flex-col gap-2">
             <h1 class="text-3xl font-bold md:text-5xl">Email Verification</h1>
             <p class="max-w-xl md:text-lg text-slate-600 text-base">
@@ -30,11 +31,7 @@
                 Verify
             </button>
             <div class="flex justify-center gap-x-6 mt-3 text-sm">
-                <a
-                    id="resendButton"
-                    href="/resend-verification/{{ user_id }}"
-                    class="underline"
-                >
+                <a id="resendButton" href="/resend-verification/{{ user_id }}" class="underline">
                     <div id="timer-container" style="display: none">
                         <span id="timer"></span>
                     </div>
@@ -79,7 +76,14 @@
                         >
                         <div class="mb-2 text-sm font-normal">{{ notification.json_data.get("msg") }}</div>
                         {% for button in notification.json_data.get("buttons", []) %} {% if button.url and button.text
-                        %}
+                        %} {% if button.dismiss %}
+                        <a
+                            href="{{ button.url }}"
+                            class="inline-flex justify-center w-1/3 px-2 py-1.5 text-xs font-medium text-center text-white bg-black rounded-lg hover:bg-neutral-800 focus:ring-4 focus:outline-none focus:ring-blue-300"
+                            data-notification-id="{{ notification.id }}"
+                            >{{ button.text }}</a
+                        >
+                        {% else %}
                         <a
                             href="{{ button.url }}"
                             class="inline-flex justify-center w-1/3 px-2 py-1.5 text-xs font-medium text-center text-white bg-black rounded-lg hover:bg-neutral-800 focus:ring-4 focus:outline-none focus:ring-blue-300"
@@ -87,8 +91,9 @@
                             data-notification-id="{{ notification.id }}"
                             >{{ button.text }}</a
                         >
-                        {% endif %} {% endfor %}
+                        {% endif %}{% endif %} {% endfor %}
                     </div>
+                    {% if notification.json_data.get("is_closable") %}
                     <button
                         type="button"
                         class="ms-auto -mx-1.5 -my-1.5 bg-white items-center justify-center flex-shrink-0 text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8"
@@ -114,6 +119,7 @@
                             />
                         </svg>
                     </button>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

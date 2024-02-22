@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -5,10 +6,10 @@ class NotificationDestination(Enum):
     ALL = "all"
     SEARCH = "search"
     ONBOARDING = "onboarding"
-    SETTINGS_INDEX = "settings_index"
     COMPANY = "change_company_info"
     VERIFICATION = "email_verification"
     INDEX = "index"
+    EXPANDED_ONBOARDING = "expanded_onboarding"
 
 
 class StatusType(Enum):
@@ -53,3 +54,30 @@ class Events(Enum):
     STRIPE_PAYMENT_SUCCEDED = "stripe.payment_succeeded"
 
     USER_COMPLETED_ONBOARDING = "user.completed_onboarding"
+
+
+@dataclass
+class ButtonLayout:
+    text: str
+    url: str
+    dismiss: bool = True
+
+    def get_json(self) -> dict[str, str]:
+        return {"text": self.text, "url": self.url}
+
+
+@dataclass
+class NotificationLayout:
+    title: str
+    msg: str | None = None
+    buttons: list[ButtonLayout] = field(default_factory=list)
+    icon_url: str | None = None
+    is_closable: bool = True
+
+    def get_json(self, **kwargs) -> dict[str, str]:
+        json_dict = {
+            "title": self.title,
+            **self.__dict__,
+            **kwargs,
+        }
+        return json_dict

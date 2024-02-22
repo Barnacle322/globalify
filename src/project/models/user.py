@@ -85,11 +85,11 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
         is_complete (bool): Indicates if the user's profile is complete.
     """
 
-    user: Mapped[User] = relationship(User, backref=backref("user_info", passive_deletes=True))
+    user: Mapped[User] = relationship(User, backref=backref("user_info", passive_deletes=True, uselist=False))
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True, init=False
     )
     first_name: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
@@ -181,7 +181,7 @@ class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
         tier (Tier): The subscription tier associated with the payment.
     """
 
-    user: Mapped[User] = relationship(User, backref=backref("user_payment", passive_deletes=True))
+    user: Mapped[User] = relationship(User, backref=backref("user_payment", passive_deletes=True, uselist=False))
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(

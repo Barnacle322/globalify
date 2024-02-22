@@ -41,7 +41,7 @@ def check_user_info_complete(func):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
-        elif not current_user.user_info[0].is_complete:  # type: ignore
+        elif not current_user.user_info.is_complete:  # type: ignore
             return redirect(url_for("auth.onboarding"))
         return func(*args, **kwargs)
 

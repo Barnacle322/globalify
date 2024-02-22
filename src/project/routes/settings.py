@@ -88,7 +88,7 @@ def change_personal_info():  # noqa
     username = request.form.get("username")
     bio = request.form.get("bio")
 
-    user_info = authenticated_user.user_info[0]  # type: ignore
+    user_info = authenticated_user.user_info  # type: ignore
     if first_name and first_name.strip() != user_info.first_name:
         if first_name == " ":
             status = Status(StatusType.ERROR, "First name cannot be empty.").get_status()

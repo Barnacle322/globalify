@@ -32,6 +32,8 @@ from ..utils.errors.error_messages import (
     OAUTH_NO_USER_INFO,
 )
 from ..utils.google_helpers.google_pubsub import send_event
+from .main import check_user_info_complete, check_verification
+from .payment import waitlist as payment_waitlist
 
 auth = Blueprint("auth", __name__)
 
@@ -73,7 +75,7 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
         db.session.commit()
         return user
 
-    if user.oauth_provider != oauth_provider:
+    if user.oauth_provider != oauth_provider:  # type: ignore
         raise Exception(OAUTH_MISMATCHED_PROVIDER)
 
     return user
@@ -99,6 +101,8 @@ def api_call(url: str, access_token: str):
 
 
 @auth.route("/fetch-time/<int:user_id>", methods=["GET"])
+@login_required
+@check_user_info_complete
 def fetch_time(user_id):
     if not user_id:
         return jsonify({"error": "User ID is required"})
@@ -117,6 +121,7 @@ def fetch_time(user_id):
 
 @auth.route("/verify-email")
 @login_required
+@check_user_info_complete
 def verify_email():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
     token = request.args.get("uuid", "")
@@ -171,6 +176,7 @@ def verify_email():
 
 @auth.route("/resend-verification/<user_id>")
 @login_required
+@check_user_info_complete
 def resend_verification_email(user_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
     user = User.get_by_id(user_id)
@@ -228,6 +234,7 @@ def resend_verification_email(user_id):
 
 @auth.route("/email-verification", methods=["GET", "POST"])
 @login_required
+@check_user_info_complete
 def email_verification_required():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
@@ -313,7 +320,6 @@ def linkedin_callback():
     user_info = UserInfo.get_by_user_id(user.id)
     if not user_info:
         user_info = UserInfo(
-            user_id=user.id,
             user=user,
             first_name=first_name,
             last_name=last_name,
@@ -377,7 +383,6 @@ def google_callback():
     user_info = UserInfo.get_by_user_id(user.id)
     if not user_info:
         user_info = UserInfo(
-            user_id=user.id,
             user=user,
             first_name=google_user_info.get("given_name"),
             last_name=google_user_info.get("family_name"),
@@ -524,6 +529,8 @@ def username(username: str):
 
 @auth.route("/expanded-onboarding", methods=["GET", "POST"])
 @login_required
+@check_verification
+@check_user_info_complete
 def expanded_onboarding():
     """
     Handles the expanded onboarding process for authenticated users.
@@ -553,7 +560,6 @@ def expanded_onboarding():
         country_id = request.form.get("country", type=int)
         website = request.form.get("website")
 
-        print(company_name, industry_id, round_id, country_id, website)
         if not company_name or not industry_id or not round_id or not country_id:
             status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
             return redirect(url_for("auth.expanded_onboarding", _external=False, **status))
@@ -591,7 +597,12 @@ def expanded_onboarding():
         db.session.add(notification)
         db.session.commit()
 
-        return redirect(url_for("main.search"))
+        return payment_waitlist(
+            email=authenticated_user.email,
+            first_name=authenticated_user.user_info.first_name,  # type: ignore
+            last_name=authenticated_user.user_info.last_name,  # type: ignore
+            user=authenticated_user,
+        )
 
     return render_template(
         "auth/expanded_onboarding.html",
@@ -607,8 +618,5 @@ def expanded_onboarding():
 @auth.route("/logout")
 @login_required
 def logout():
-    """
-    Logs out the current user and redirects to the index page.
-    """
     logout_user()
     return redirect(url_for("main.index"))

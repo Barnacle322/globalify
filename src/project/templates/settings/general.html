@@ -127,14 +127,13 @@
                 {% endif %} {% if status_type == '1' %}
                 <div class="rounded-xl text-lime-500">{{ msg }}</div>
                 {% endif %} {% endif %}
-        
             </div>
             <form class="md:col-span-2" action="/settings/personal-info" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
                 <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
                     <div class="col-span-full flex items-start gap-x-8">
-                        {% if not user.user_info[0].picture_url %}
+                        {% if not user.user_info.picture_url %}
                         <img
                             class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
                             src="/static/elements/default_pfp.svg"
@@ -143,7 +142,7 @@
                         {% else %}
                         <img
                             class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
-                            src="{{ user.user_info[0].picture_url }}"
+                            src="{{ user.user_info.picture_url }}"
                             alt="Profile picture"
                         />
                         {% endif %}
@@ -167,7 +166,7 @@
                                 id="first-name"
                                 autocomplete="given-name"
                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                value="{{ user.user_info[0].first_name }}"
+                                value="{{ user.user_info.first_name }}"
                             />
                         </div>
                     </div>
@@ -180,7 +179,7 @@
                                 id="last-name"
                                 autocomplete="family-name"
                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                value="{{ user.user_info[0].last_name }}"
+                                value="{{ user.user_info.last_name }}"
                             />
                         </div>
                     </div>
@@ -217,7 +216,7 @@
                                 minlength="4"
                                 placeholder="janesmith"
                                 required
-                                value="{{ user.user_info[0].username }}"
+                                value="{{ user.user_info.username }}"
                             />
                         </div>
                     </div>
@@ -231,7 +230,7 @@
                                 cols="50"
                                 class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                             >
-{{ user.user_info[0].bio if user.user_info[0].bio else '' }}</textarea
+{{ user.user_info.bio if user.user_info.bio else '' }}</textarea
                             >
                         </div>
                     </div>

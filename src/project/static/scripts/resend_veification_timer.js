@@ -28,7 +28,7 @@ function startResendTimer(countdown) {
 
 function fetchCreatedAtAndUpdateTimer() {
     var userId = document.getElementById("user_id").value;
-    fetch("/update-timer?user_id=" + userId, {
+    fetch("/fetch-time?user_id=" + userId, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",

@@ -494,7 +494,7 @@ def onboarding():
                 "Welcome!",
                 "To get better recommendations, complete your profile.",
                 [
-                    ButtonLayout("Go!", url_for("auth.expanded_onboarding"), False).get_json(),  # type: ignore
+                    ButtonLayout("Go!", url_for("auth.expanded_onboarding"), False),
                 ],
                 is_closable=False,
             ).get_json(),
@@ -580,7 +580,7 @@ def expanded_onboarding():
                 "Onboarding completed!!",
                 "Go and try our suggestions!",
                 [
-                    ButtonLayout("See!", url_for("main.get_suggestions")).get_json(),  # type: ignore
+                    ButtonLayout("See!", url_for("main.get_suggestions"))
                 ],
             ).get_json(),
             destination=NotificationDestination.SEARCH,

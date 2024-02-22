@@ -77,7 +77,16 @@ class NotificationLayout:
     def get_json(self, **kwargs) -> dict[str, str]:
         json_dict = {
             "title": self.title,
-            **self.__dict__,
             **kwargs,
         }
+
+        if self.msg:
+            json_dict["msg"] = self.msg
+        if self.buttons:
+            json_dict["buttons"] = [button.get_json() for button in self.buttons]
+        if self.icon_url:
+            json_dict["icon_url"] = self.icon_url
+        if self.is_closable:
+            json_dict["is_closable"] = self.is_closable
+
         return json_dict

@@ -222,9 +222,7 @@ def search():
     )
     investors = result.get("investors")
 
-
     waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
-
     if not waitlist_charge:
         investors = []
 

@@ -117,7 +117,13 @@
                     Search
                 </button>
             </div>
-
+            {% if not investors %}
+            <div class="text-center my-12">
+                <p class="text-2xl text-gray-700">
+                    To access the list of investors, you need to purchase a subscription!
+                </p>
+            </div>
+            {% endif %}
             <div class="flex flex-col flex-wrap sm:flex-row mt-5 gap-x-5 gap-y-3">
                 <div class="group relative text-left">
                     <label class="font-semibold text-sm" for="round-options">Rounds</label>

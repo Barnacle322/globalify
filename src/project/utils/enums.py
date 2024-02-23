@@ -41,9 +41,7 @@ class OauthProvider(Enum):
 
 class Tier(Enum):
     FREE = "free"
-    ELEVATE = "elevate"
-    CONNECT = "connect pro"
-    BOOST = "boost academy"
+    PREMIMUM = "premium"
 
 
 class Events(Enum):

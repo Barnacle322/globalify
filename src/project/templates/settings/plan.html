@@ -143,23 +143,7 @@
                         >
                     </div>
                     <div class="flex items-baseline justify-end gap-4">
-                        {% if subscription.tier.value != "free" %}
-                        <form action="/payment/create-portal-session-subscription-cancel" method="POST">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                            <input type="hidden" name="subscription_id" value="{{ subscription.subscription_id }}" />
-                            <button class="text-xs text-white underline">Cancel</button>
-                        </form>
-                        <form action="/payment/create-portal-session-subscription-update" method="POST">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                            <input type="hidden" name="subscription_id" value="{{ subscription.subscription_id }}" />
-                            <button
-                                type="submit"
-                                class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
-                            >
-                                Upgrade
-                            </button>
-                        </form>
-                        {% else %}
+                        {% if subscription.tier.value == "free" %}
                         <a
                             href="/payment/pricing"
                             class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
@@ -171,21 +155,9 @@
                 </div>
                 {% if subscription.tier.value == "free" %}
                 <div class="mt-5 text-xs leading-4 text-slate-900">You have free access to some Globalify features</div>
-                {% elif subscription.tier.value == "elevate" %}
-                <div class="mt-5 text-xs leading-4 text-slate-900">
-                    You have access to our investor database. Your subscription will be renewed on
-                    <u>{{ subscription.expires_at}}</u>
-                </div>
-                {% elif subscription.tier.value == "connect pro" %}
-                <div class="mt-5 text-xs leading-4 text-slate-900">
-                    You have access to our database and also will be promoted to investors. Your subscription will be
-                    renewed on
-                    <u>{{ subscription.expires_at}}</u>
-                </div>
-                {% elif subscription.tier.value == "boost academy" %}
+                {% elif subscription.tier.value == "premium" %}
                 <div class="mt-5 text-xs leading-4 text-slate-900">
                     You have full access to our services. Your subscription will be renewed on
-                    <u>{{ subscription.expires_at}}</u>
                 </div>
                 {% endif %}
             </div>

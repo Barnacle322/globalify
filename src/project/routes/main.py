@@ -168,6 +168,7 @@ def search():
         NotificationDestination.SEARCH,
         is_read=False,
     )
+
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "")
     sort_desc = request.args.get("descending", False, type=bool)
@@ -220,6 +221,13 @@ def search():
         countries=countries,
     )
     investors = result.get("investors")
+
+
+    waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
+
+    if not waitlist_charge:
+        investors = []
+
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     fields = {

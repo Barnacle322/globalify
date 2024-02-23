@@ -215,7 +215,7 @@ def resend_verification_email(user_id):
         "A user has requested a new verification code!",
         email=user.email,
         event_type=Events.USER_COMPLETED_ONBOARDING.value,
-        random_key=verification,
+        random_key=verification.token,
     )
 
     notification = Notification(
@@ -507,7 +507,7 @@ def onboarding():
             "A new user has completed onboarding!",
             email=authenticated_user.email,
             event_type=Events.USER_COMPLETED_ONBOARDING.value,
-            random_key=verification,
+            random_key=verification.token,
         )
 
         return redirect(url_for("main.search"))

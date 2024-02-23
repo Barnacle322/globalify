@@ -99,12 +99,12 @@ const upperSlider = document.getElementById("max_investment");
 
 lowerSlider.oninput = function () {
     if (parseInt(lowerSlider.value) >= parseInt(upperSlider.value)) {
-        lowerSlider.value = parseInt(upperSlider.value) - 1;
+        lowerSlider.value = parseInt(upperSlider.value) - 9;
     }
 };
 
 upperSlider.oninput = function () {
     if (parseInt(upperSlider.value) <= parseInt(lowerSlider.value)) {
-        upperSlider.value = parseInt(lowerSlider.value) + 1;
+        upperSlider.value = parseInt(lowerSlider.value) + 9;
     }
 };

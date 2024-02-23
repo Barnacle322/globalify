@@ -5,15 +5,14 @@ from flask import url_for
 
 from src.project import db
 from src.project.extensions import oauth
-from src.project.models import UserInfo, UserOauth, UserPayment, UserRegular
+from src.project.models import User, UserInfo, UserPayment
 from src.project.models.user import Company, User
-from src.project.utils.status_enum import OauthProvider
 
 
 @pytest.fixture()
 def verified_user(app):
     with app.app_context():
-        user = UserRegular(
+        user = User(
             email="johndoe@example.com",
             is_verified=True,
             password="password",
@@ -40,7 +39,7 @@ def verified_user(app):
 @pytest.fixture()
 def unverified_user(app):
     with app.app_context():
-        user = UserRegular(
+        user = User(
             email="johndoe@example.com",
             password="password",
         )
@@ -66,7 +65,7 @@ def unverified_user(app):
 @pytest.fixture()
 def username_taken_user(app):
     with app.app_context():
-        user = UserRegular(
+        user = User(
             email="angelina@example.com",
             is_verified=True,
             password="password",
@@ -93,7 +92,7 @@ def username_taken_user(app):
 @pytest.fixture()
 def new_user_oauth(app):
     with app.app_context():
-        user = UserOauth(email="janedoe@example.com", oauth_provider=OauthProvider.GOOGLE, is_verified=True)
+        user = User(email="janedoe@example.com", oauth_provider=OauthProvider.GOOGLE, is_verified=True)
         db.session.add(user)
         db.session.commit()
         user_info = UserInfo(
@@ -111,7 +110,7 @@ def new_user_oauth(app):
 @pytest.fixture()
 def new_user_with_company(app):
     with app.app_context():
-        user = UserRegular(
+        user = User(
             email="margarita@example.com",
             is_verified=True,
             password="password",
@@ -305,12 +304,12 @@ def test_settings_change_personal_info(client, verified_user, app):
     with app.app_context():
         updated_user = User.query.filter_by(email="newemail@example.com").first()
         assert updated_user is not None
-        assert updated_user.user_info[0].first_name == "NewFirstName"
-        assert updated_user.user_info[0].last_name == "NewLastName"
+        assert updated_user.user_info.first_name == "NewFirstName"
+        assert updated_user.user_info.last_name == "NewLastName"
         assert updated_user.email == "newemail@example.com"
-        assert updated_user.user_info[0].username == "newusername"
-        assert updated_user.user_info[0].bio == "New bio"
-        assert updated_user.user_info[0].language == "English"
+        assert updated_user.user_info.username == "newusername"
+        assert updated_user.user_info.bio == "New bio"
+        assert updated_user.user_info.language == "English"
 
 
 def test_change_personal_info_empty_first_name(client, verified_user):

@@ -17,7 +17,17 @@ from flask import (
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Company, Country, Industry, InvestmentFirm, Investor, Notification, Round, Waitlist, WaitlistCharge
+from ..models import (
+    Company,
+    Country,
+    Industry,
+    InvestmentFirm,
+    Investor,
+    Notification,
+    Round,
+    Waitlist,
+    WaitlistCharge,
+)
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
@@ -31,33 +41,20 @@ def check_user_info_complete(func):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
-        elif not current_user.user_info[0].is_complete:  # type: ignore
+        elif not current_user.user_info.is_complete:  # type: ignore
             return redirect(url_for("auth.onboarding"))
         return func(*args, **kwargs)
 
     return decorated_function
 
 
-# def check_verification(func):
-#     @wraps(func)
-#     def decorated_function(*args, **kwargs):
-#         if not current_user.is_authenticated:  # type: ignore
-#             return redirect(url_for("auth.login"))
-#         elif not current_user.is_verified:  # type: ignore
-#             notifications = Notification.fetch_notifications(
-#                 user_id=current_user.id,
-#                 destination=NotificationDestination.VERIFICATION,
-#                 is_read=False,
-#             )
-#             return render_template("verify_email.html", user_id=current_user.id, notifications=notifications)
-#         return func(*args, **kwargs)
-
-#     return decorated_function
-
-
 def check_verification(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:  # type: ignore
+            return redirect(url_for("auth.login"))
+        elif not current_user.is_verified:  # type: ignore
+            return redirect(url_for("auth.email_verification_required"))
         return func(*args, **kwargs)
 
     return decorated_function
@@ -114,7 +111,6 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 
 @main.get("/")
 def index():
-    # TODO: Turned off for better performance
     posts = parse_medium_html()
     return render_template("index.html", posts=posts)
 
@@ -140,7 +136,7 @@ def get_suggestions():
 @check_user_info_complete
 @check_verification
 def search():
-    notifications = Notification.fetch_notifications(
+    notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.SEARCH,
         is_read=False,
@@ -193,7 +189,7 @@ def search():
         min_investment=min_investment,
         max_investment=max_investment,
         page=page,
-        per_page=12,
+        per_page=9,
         countries=countries,
     )
     investors = result.get("investors")
@@ -245,13 +241,14 @@ def investment_firm(firm_id):
 
 
 @main.get("/notification/edit/<int:notification_id>")
+@login_required
 def update_notification(notification_id):
     notification = Notification.get_by_id(int(notification_id))
     if not notification:
-        return render_template("404.html")
+        return redirect(url_for("main.search"))
 
     if notification.user_id != current_user.id:
-        return render_template("404.html")
+        return redirect(url_for("main.search"))
 
     notification.is_read = True
     db.session.commit()
@@ -262,11 +259,6 @@ def update_notification(notification_id):
 @main.get("/waitlist")
 def waitlist():
     return render_template("waitlist.html")
-
-
-@main.get("/waitlist/apply")
-def waitlist_apply():
-    return render_template("waitlist/apply.html")
 
 
 @main.post("/waitlist-email")

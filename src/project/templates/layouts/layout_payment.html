@@ -60,7 +60,7 @@
                         aria-haspopup="true"
                     >
                         <span class="sr-only">Open user menu</span>
-                        {% if not user.user_info[0].picture_url %}
+                        {% if not user.user_info.picture_url %}
                         <img
                             class="aspect-square h-6 w-6 rounded-full"
                             src="/static/elements/default_pfp.svg"
@@ -69,7 +69,7 @@
                         {% else %}
                         <img
                             class="aspect-square h-8 w-8 rounded-full"
-                            src="{{ user.user_info[0].picture_url }}"
+                            src="{{ user.user_info.picture_url }}"
                             alt="Profile picture"
                         />
                         {% endif %}

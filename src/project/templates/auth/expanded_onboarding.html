@@ -8,9 +8,16 @@
     <form action="/expanded-onboarding" method="POST" class="max-w-2xl w-full">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <h1 class="mb-4 text-center text-4xl font-semibold text-slate-900">Personalize your experience</h1>
-        <p class="text-center text-slate-400">
+        <p class="text-center text-slate-400 mb-2">
             Add your personal and company information to get started with Globalify.
         </p>
+        {% if status_type %} {% if status_type == '3' %}
+        <div class="rounded-xl text-red-500 text-center">{{ msg }}</div>
+        {% endif %} {% if status_type == '2' %}
+        <div class="rounded-xl text-orange-400 text-center">{{ msg }}</div>
+        {% endif %} {% if status_type == '1' %}
+        <div class="rounded-xl text-lime-500 text-center">{{ msg }}</div>
+        {% endif %} {% endif %}
 
         <ol class="flex items-center w-full text-sm font-medium text-center text-gray-500 sm:text-base pt-10">
             <li

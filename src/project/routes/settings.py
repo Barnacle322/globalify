@@ -2,8 +2,8 @@ from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Notification, Round, User, UserInfo, UserPayment
-from ..utils.enums import NotificationDestination, Tier
+from ..models import Company, Country, Industry, Round, User, UserInfo, UserPayment
+from ..utils.enums import Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
@@ -16,18 +16,18 @@ settings = Blueprint("settings", __name__)
 @check_user_info_complete
 @check_verification
 def index():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
 
-    notifications = Notification.fetch_notifications(
-        user_id=authenticated_user.id,
-        destination=NotificationDestination.SETTINGS_INDEX,
-        is_read=False,
-    )
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     return render_template(
         "settings/general.html",
         user=authenticated_user,
-        notifications=notifications,
+        status_type=status_type,
+        msg=msg,
     )
 
 
@@ -88,68 +88,38 @@ def change_personal_info():  # noqa
     username = request.form.get("username")
     bio = request.form.get("bio")
 
-    user_info = authenticated_user.user_info[0]  # type: ignore
+    user_info = authenticated_user.user_info  # type: ignore
     if first_name and first_name.strip() != user_info.first_name:
         if first_name == " ":
-            Notification.create_notification(
-                user_id=authenticated_user.id,
-                title="Error!",
-                msg="First name cannot be empty.",
-                destination=NotificationDestination.SETTINGS_INDEX,
-            )
-            return redirect(url_for("settings.index", _external=False))
+            status = Status(StatusType.ERROR, "First name cannot be empty.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
         user_info.first_name = first_name.strip()
 
     if last_name and last_name.strip() != user_info.last_name:
         if last_name == " ":
-            Notification.create_notification(
-                user_id=authenticated_user.id,
-                title="Error!",
-                msg="Last name cannot be empty.",
-                destination=NotificationDestination.SETTINGS_INDEX,
-            )
-            return redirect(url_for("settings.index", _external=False))
+            status = Status(StatusType.ERROR, "Last name cannot be empty.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
         user_info.last_name = last_name.strip()
 
     if bio and bio.strip() != user_info.bio:
         if bio == " ":
-            Notification.create_notification(
-                user_id=authenticated_user.id,
-                title="Error!",
-                msg="Bio cannot be empty.",
-                destination=NotificationDestination.SETTINGS_INDEX,
-            )
-            return redirect(url_for("settings.index", _external=False))
+            status = Status(StatusType.ERROR, "Bio cannot be empty.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
         user_info.bio = bio.strip()
 
     if username and username.strip() != user_info.username:
         if username == " ":
-            Notification.create_notification(
-                user_id=authenticated_user.id,
-                title="Error!",
-                msg="Username cannot be empty.",
-                destination=NotificationDestination.SETTINGS_INDEX,
-            )
-            return redirect(url_for("settings.index", _external=False))
+            status = Status(StatusType.ERROR, "Username cannot be empty.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
         if UserInfo.is_taken(username):
-            Notification.create_notification(
-                user_id=authenticated_user.id,
-                title="Error!",
-                msg="Username is taken.",
-                destination=NotificationDestination.SETTINGS_INDEX,
-            )
-            return redirect(url_for("settings.index", _external=False))
-
+            status = Status(StatusType.ERROR, "Username is taken.").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
         user_info.username = username.strip()
 
     db.session.commit()
-    Notification.create_notification(
-        user_id=authenticated_user.id,
-        title="Success!",
-        msg="Personal info successfully changed.",
-        destination=NotificationDestination.SETTINGS_INDEX,
-    )
-    return redirect(url_for("settings.index", _external=False))
+
+    status = Status(StatusType.SUCCESS, "Personal info successfully changed.").get_status()
+    return redirect(url_for("settings.index", _external=False, **status))
 
 
 @settings.route("/delete-account", methods=["GET", "POST"])
@@ -183,13 +153,12 @@ def delete_account():
 @check_user_info_complete
 @check_verification
 def change_company_info():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
 
-    notifications = Notification.fetch_notifications(
-        user_id=authenticated_user.id,
-        destination=NotificationDestination.COMPANY,
-        is_read=False,
-    )
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     company = Company.get_by_user_id(authenticated_user.id)
     if not company:
@@ -203,56 +172,43 @@ def change_company_info():
         company_name = request.form.get("company-name", "")
         if company_name and company_name.strip() != company.name:
             if company_name == " ":
-                Notification.create_notification(
-                    user_id=authenticated_user.id,
-                    title="Error!",
-                    msg="Company name cannot be empty.",
-                    destination=NotificationDestination.COMPANY,
-                )
-                return redirect(url_for("settings.change_company_info", _external=False))
+                status = Status(StatusType.ERROR, "Company name cannot be empty.").get_status()
+                return redirect(url_for("settings.change_company_info", _external=False, **status))
             company.name = company_name.strip()
 
         preferred_round_id = request.form.get("round", type=int)
         industry_id = request.form.get("industry", type=int)
 
         if not preferred_round_id or not industry_id:
-            Notification.create_notification(
-                user_id=authenticated_user.id,
-                title="Error!",
-                msg="Please select rounds and industries.",
-                destination=NotificationDestination.COMPANY,
+            status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
+            return redirect(
+                url_for(
+                    "settings.change_company_info",
+                    _external=False,
+                    **status,
+                )
             )
-            return redirect(url_for("settings.change_company_info", _external=False))
 
         country_id = request.form.get("country", type=int)
         if not country_id:
-            Notification.create_notification(
-                user_id=authenticated_user.id,
-                title="Error!",
-                msg="Country ID is required.",
-                destination=NotificationDestination.COMPANY,
-            )
-            return redirect(url_for("settings.change_company_info", _external=False))
+            status = Status(StatusType.ERROR, "Country ID is required.").get_status()
+            return redirect(url_for("settings.change_company_info", _external=False, **status))
 
         company.description = request.form.get("description", "").strip()
         company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
         company.country_id = country_id
         company.preferred_round_id = preferred_round_id
         company.industry_id = industry_id
-        company.website = request.form.get("website", "")
+        company.website_url = request.form.get("website", "")
         company.coordinates = Country.get_by_id(country_id).name  # type: ignore
         db.session.commit()
 
-        Notification.create_notification(
-            user_id=authenticated_user.id,
-            title="Success!",
-            msg="Company successfully changed.",
-            destination=NotificationDestination.COMPANY,
-        )
+        status = Status(StatusType.SUCCESS, "Company successfully changed.").get_status()
         return redirect(
             url_for(
                 "settings.change_company_info",
                 _external=False,
+                **status,
             )
         )
 
@@ -262,5 +218,6 @@ def change_company_info():
         rounds=rounds,
         countries=countries,
         company=company,
-        notifications=notifications,
+        status_type=status_type,
+        msg=msg,
     )

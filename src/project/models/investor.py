@@ -349,8 +349,12 @@ class Investor(db.Model):
     @staticmethod
     def populate_demo(file_name="investor.csv"):
         with open(file_name, newline="") as file:
+            existing_notable_investments = NotableInvestment.get_all()
+            existing_industry_list = Industry.get_industry_list()
             reader = csv.reader(file, delimiter=";")
-            for row in islice(reader, 84, None):
+            # for row in islice(reader, 84, None):
+            counter = 0
+            for i, row in enumerate(reader):
                 check_size_string = row[8]
                 range_set = set()
                 for range_ in check_size_string.split(","):
@@ -377,7 +381,7 @@ class Investor(db.Model):
 
                 industry_list = []
                 for industry in row[5].split(","):
-                    for i in Industry.get_industry_list():
+                    for i in existing_industry_list:
                         if i and fuzz.ratio(industry, i.name) > 80:
                             industry = i
                             industry_list.append(industry)
@@ -394,9 +398,14 @@ class Investor(db.Model):
                             round_ = r
                             round_list.append(round_)
                             break
+
                 notable_investment_list = []
                 for notable_investment in row[10].split(","):
-                    existing = NotableInvestment.get_by_name(notable_investment)
+                    existing = None
+                    for eni in existing_notable_investments:
+                        if fuzz.ratio(notable_investment, eni.name) > 90:
+                            existing = eni
+                            break
                     if existing:
                         notable_investment_list.append(existing)
                     else:

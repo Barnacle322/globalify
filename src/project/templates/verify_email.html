@@ -1,0 +1,46 @@
+{% extends "layouts/layout_clean.html" %} {% block additional_scripts %}
+<script src="/static/scripts/notificationHandler.js" defer></script>
+<script src="/static/scripts/idempotency.js" defer></script>
+<script src="/static/scripts/resend_veification_timer.js" defer></script>
+{% endblock %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
+%}
+<main class="relative flex w-full items-center justify-center overflow-x-hidden px-4 pb-52">
+    <section class="flex flex-col justify-center items-center max-w-md gap-8 mt-36 md:mt-48">
+        <input type="hidden" id="user_id" value="{{ user_id }}" />
+        <article class="text-center flex flex-col gap-2">
+            <h1 class="text-3xl font-bold md:text-5xl">Email Verification</h1>
+            <p class="max-w-xl md:text-lg text-slate-600 text-base">
+                A verification email has been sent to you! Click the link or input a code to verify your email address.
+            </p>
+        </article>
+
+        <form action="/verify-email" method="GET" class="w-full flex flex-col items-center">
+            <input
+                type="text"
+                id="uuid"
+                name="uuid"
+                placeholder="Enter the verification code"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md mb-4"
+                required
+            />
+            <button
+                type="submit"
+                class="inline-flex items-center justify-center rounded-xl bg-slate-900 w-full py-2 font-semibold text-white"
+            >
+                Verify
+            </button>
+            <div class="flex justify-center gap-x-6 mt-3 text-sm">
+                <a id="resendButton" href="/resend-verification/{{ user_id }}" class="underline">
+                    <div id="timer-container" style="display: none">
+                        <span id="timer"></span>
+                    </div>
+                </a>
+                <span id="resendTimer" style="display: none"></span>
+            </div>
+        </form>
+    </section>
+
+    {% import "macros/notification_macros.html" as notification_macros %} {{
+    notification_macros.render_notifications(notifications) }}
+</main>
+{% endblock %}

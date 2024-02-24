@@ -5,15 +5,14 @@ from flask import url_for
 
 from src.project import db
 from src.project.extensions import oauth
-from src.project.models import UserInfo, UserOauth, UserPayment, UserRegular
-from src.project.models.user import User
-from src.project.utils.enums import OauthProvider
+from src.project.models import User, UserInfo, UserPayment
+from src.project.models.user import Company
 
 
 @pytest.fixture()
-def new_user(app):
+def verified_user(app):
     with app.app_context():
-        user = UserRegular(
+        user = User(
             email="johndoe@example.com",
             is_verified=True,
             password="password",
@@ -38,9 +37,35 @@ def new_user(app):
 
 
 @pytest.fixture()
-def new_user2(app):
+def unverified_user(app):
     with app.app_context():
-        user = UserRegular(
+        user = User(
+            email="johndoe@example.com",
+            password="password",
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        user_info = UserInfo(
+            first_name="John",
+            last_name="Doe",
+            username="johndoe",
+            is_complete=True,
+            user=user,
+        )
+        user_payment = UserPayment(
+            customer_id="cus_123",
+            user=user,
+        )
+        db.session.add_all([user_info, user_payment])
+        db.session.commit()
+        return user
+
+
+@pytest.fixture()
+def username_taken_user(app):
+    with app.app_context():
+        user = User(
             email="angelina@example.com",
             is_verified=True,
             password="password",
@@ -67,7 +92,7 @@ def new_user2(app):
 @pytest.fixture()
 def new_user_oauth(app):
     with app.app_context():
-        user = UserOauth(email="janedoe@example.com", oauth_provider=OauthProvider.GOOGLE, is_verified=True)
+        user = User(email="janedoe@example.com", oauth_provider=OauthProvider.GOOGLE, is_verified=True)
         db.session.add(user)
         db.session.commit()
         user_info = UserInfo(
@@ -82,6 +107,40 @@ def new_user_oauth(app):
         return user
 
 
+@pytest.fixture()
+def new_user_with_company(app):
+    with app.app_context():
+        user = User(
+            email="margarita@example.com",
+            is_verified=True,
+            password="password",
+        )
+        db.session.add(user)
+        db.session.commit()
+        user_info = UserInfo(
+            first_name="John",
+            last_name="Doe",
+            username="johndoe",
+            is_complete=True,
+            user=user,
+        )
+        db.session.add(user_info)
+        db.session.commit()
+        company = Company(
+            name="Test Company",
+            description="Test description",
+            number_of_employees=10,
+            website="https://www.example.com",
+            country_id=1,
+            preferred_round_id=1,
+            industry_id=1,
+            user=user,
+        )
+        db.session.add(company)
+        db.session.commit()
+        return user
+
+
 def test_settings_anonymous_get(client):
     response = client.get("/settings/general", follow_redirects=True)
     assert response.status_code == 200
@@ -90,7 +149,19 @@ def test_settings_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_authenticated_get(client, new_user):
+def test_settings_authenticated_unverified_get(client, unverified_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/settings/general")
+    assert response.status_code == 200
+    assert b"Email Verification Required" in response.data
+    assert (
+        b"If the link in the message is not working, you can manually enter the code you received in the message."
+        in response.data
+    )
+    assert b"Resend Verification Email" in response.data
+
+
+def test_settings_authenticated_get(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/settings/general")
     assert response.status_code == 200
@@ -98,7 +169,19 @@ def test_settings_authenticated_get(client, new_user):
     assert b"Use a permanent address where you can receive mail." in response.data
 
 
-def test_settings_security_authenticated_get(client, new_user):
+def test_settings_security_authenticated_unverified_get(client, unverified_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/settings/security")
+    assert response.status_code == 200
+    assert b"Email Verification Required" in response.data
+    assert (
+        b"If the link in the message is not working, you can manually enter the code you received in the message."
+        in response.data
+    )
+    assert b"Resend Verification Email" in response.data
+
+
+def test_settings_security_authenticated_get(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/settings/security")
     assert response.status_code == 200
@@ -114,7 +197,19 @@ def test_settings_security_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_plan_authenticated_get(client, new_user):
+def test_settings_plan_authenticated_unverified_get(client, unverified_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/settings/plan")
+    assert response.status_code == 200
+    assert b"Email Verification Required" in response.data
+    assert (
+        b"If the link in the message is not working, you can manually enter the code you received in the message."
+        in response.data
+    )
+    assert b"Resend Verification Email" in response.data
+
+
+def test_settings_plan_authenticated_get(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
     response = client.get("/settings/plan")
     assert response.status_code == 200
@@ -130,7 +225,33 @@ def test_settings_plan_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_billing_authenticated_get(client, new_user):
+def test_settings_billing_authenticated_unverified_get(client, unverified_user):
+    with patch("stripe.Invoice.list") as mock_invoice_list:
+        mock_invoice_list.return_value = [
+            {
+                "id": "invoice_123",
+                "created": 1642370100,
+                "amount_due": 1000,
+                "amount_paid": 500,
+                "currency": "usd",
+                "status": "paid",
+                "hosted_invoice_url": "https://example.com/invoice/123",
+            }
+        ]
+
+        client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+        response = client.get("/settings/billing", follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Email Verification Required" in response.data
+    assert (
+        b"If the link in the message is not working, you can manually enter the code you received in the message."
+        in response.data
+    )
+    assert b"Resend Verification Email" in response.data
+
+
+def test_settings_billing_authenticated_get(client, verified_user):
     with patch("stripe.Invoice.list") as mock_invoice_list:
         mock_invoice_list.return_value = [
             {
@@ -161,7 +282,7 @@ def test_settings_billing_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_change_personal_info(client, new_user, app):
+def test_settings_change_personal_info(client, verified_user, app):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -183,15 +304,15 @@ def test_settings_change_personal_info(client, new_user, app):
     with app.app_context():
         updated_user = User.query.filter_by(email="newemail@example.com").first()
         assert updated_user is not None
-        assert updated_user.user_info[0].first_name == "NewFirstName"
-        assert updated_user.user_info[0].last_name == "NewLastName"
+        assert updated_user.user_info.first_name == "NewFirstName"
+        assert updated_user.user_info.last_name == "NewLastName"
         assert updated_user.email == "newemail@example.com"
-        assert updated_user.user_info[0].username == "newusername"
-        assert updated_user.user_info[0].bio == "New bio"
-        assert updated_user.user_info[0].language == "English"
+        assert updated_user.user_info.username == "newusername"
+        assert updated_user.user_info.bio == "New bio"
+        assert updated_user.user_info.language == "English"
 
 
-def test_change_personal_info_empty_first_name(client, new_user):
+def test_change_personal_info_empty_first_name(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -206,7 +327,7 @@ def test_change_personal_info_empty_first_name(client, new_user):
     assert b"First name cannot be empty." in response.data
 
 
-def test_change_personal_info_empty_last_name(client, new_user):
+def test_change_personal_info_empty_last_name(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -221,7 +342,7 @@ def test_change_personal_info_empty_last_name(client, new_user):
     assert b"Last name cannot be empty." in response.data
 
 
-def test_change_personal_info_empty_email(client, new_user):
+def test_change_personal_info_empty_email(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -236,7 +357,7 @@ def test_change_personal_info_empty_email(client, new_user):
     assert b"Email cannot be empty." in response.data
 
 
-def test_change_personal_info_invalid_email(client, new_user):
+def test_change_personal_info_invalid_email(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -279,7 +400,7 @@ def test_change_personal_info_oauth_user_email(client, new_user_oauth, app, monk
         assert b"Cannot change email for oauth users." in settings_response.data
 
 
-def test_change_personal_info_empty_bio(client, new_user):
+def test_change_personal_info_empty_bio(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -294,7 +415,7 @@ def test_change_personal_info_empty_bio(client, new_user):
     assert b"Bio cannot be empty." in response.data
 
 
-def test_change_personal_info_empty_username(client, new_user):
+def test_change_personal_info_empty_username(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -309,7 +430,7 @@ def test_change_personal_info_empty_username(client, new_user):
     assert b"Username cannot be empty." in response.data
 
 
-def test_change_personal_info_taken_username(client, new_user, new_user2):
+def test_change_personal_info_taken_username(client, verified_user, username_taken_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -324,7 +445,7 @@ def test_change_personal_info_taken_username(client, new_user, new_user2):
     assert b"Username is taken." in response.data
 
 
-def test_change_personal_info_empty_language(client, new_user):
+def test_change_personal_info_empty_language(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -339,7 +460,7 @@ def test_change_personal_info_empty_language(client, new_user):
     assert b"Language cannot be empty." in response.data
 
 
-def test_change_personal_info_invalid_language(client, new_user):
+def test_change_personal_info_invalid_language(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -354,7 +475,7 @@ def test_change_personal_info_invalid_language(client, new_user):
     assert b"Invalid language." in response.data
 
 
-def test_change_password(client, new_user):
+def test_change_password(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -371,7 +492,7 @@ def test_change_password(client, new_user):
     assert b"Password successfully changed." in response.data
 
 
-def test_change_password_invalid_password(client, new_user):
+def test_change_password_invalid_password(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -388,7 +509,7 @@ def test_change_password_invalid_password(client, new_user):
     assert b"Incorrect password." in response.data
 
 
-def test_change_password_mismatch_password(client, new_user):
+def test_change_password_mismatch_password(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -405,7 +526,7 @@ def test_change_password_mismatch_password(client, new_user):
     assert b"Passwords do not match." in response.data
 
 
-def test_change_password_empty_password(client, new_user):
+def test_change_password_empty_password(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -422,7 +543,7 @@ def test_change_password_empty_password(client, new_user):
     assert b"Please fill out all fields." in response.data
 
 
-def test_change_password_empty_confirm_password(client, new_user):
+def test_change_password_empty_confirm_password(client, verified_user):
     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
     response = client.post(
@@ -484,7 +605,7 @@ def test_google_callback(app, client, monkeypatch, new_user_oauth):
         assert b"Search" in response.data
 
 
-def test_delete_account(client, new_user, app):
+def test_delete_account(client, verified_user, app):
     with app.test_request_context():
         client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
@@ -498,3 +619,118 @@ def test_delete_account(client, new_user, app):
         assert b"100 Early Access spots!" in response.data
 
         assert User.get_by_email("johndoe@example.com") is None
+
+
+def test_settings_company_anonymous_get(client):
+    response = client.get("/settings/company", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Welcome back!" in response.data
+    assert b"Sign in" in response.data
+    assert b"Oops! Looks like you aren&#39;t logged in" in response.data
+
+
+def test_settings_company_authenticated_get(client, new_user_with_company):
+    client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+    response = client.get("/settings/company")
+    assert response.status_code == 200
+    assert b"Company Information" in response.data
+    assert b"Update your company information here." in response.data
+
+
+def test_settings_company_authenticated_without_company_get(client, new_user):
+    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+    response = client.get("/settings/company")
+    assert response.status_code == 404
+
+
+def test_change_company_empty_name(client, new_user_with_company, app):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+        response = client.post(
+            url_for("settings.change_company_info"),
+            data={
+                "company-name": " ",
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Company name cannot be empty." in response.data
+
+
+def test_change_company_empty_industry_and_round(client, new_user_with_company, app):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+        response = client.post(
+            url_for("settings.change_company_info"),
+            data={
+                "industry": None,
+                "round": None,
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Please select rounds and industries." in response.data
+
+
+def test_change_company_empty_country(client, new_user_with_company, app):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+        response = client.post(
+            url_for("settings.change_company_info"),
+            data={
+                "industry": 1,
+                "round": 1,
+                "country": None,
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Country ID is required." in response.data
+
+
+def test_change_company_valid_data(client, new_user_with_company, app):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+        response = client.post(
+            url_for("settings.change_company_info"),
+            data={
+                "company-name": "Globalify",
+                "description": "Very good company",
+                "number_of_employees": 100,
+                "industry": 2,
+                "round": 2,
+                "country": 3,
+                "website": "https://www.globalify.com",
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Company successfully changed." in response.data
+
+        company = Company.get_by_user_id(1)
+
+        assert company
+
+        assert company.name == "Globalify"
+        assert company.description == "Very good company"
+        assert company.number_of_employees == 100
+        assert company.website == "https://www.globalify.com"
+        assert company.country_id == 3
+        assert company.preferred_round_id == 2
+        assert company.industry_id == 2

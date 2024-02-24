@@ -1,13 +1,9 @@
-import re
-
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Round, User, UserInfo, UserOauth, UserPayment, UserRegular
+from ..models import Company, Country, Industry, Round, User, UserInfo, WaitlistCharge
 from ..utils.enums import Status, StatusType, Tier
-from ..utils.errors.error_messages import AUTH_INVALID_EMAIL
-from ..utils.info_lists import languages as language_list
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
@@ -30,7 +26,6 @@ def index():
     return render_template(
         "settings/general.html",
         user=authenticated_user,
-        languages=language_list,
         status_type=status_type,
         msg=msg,
     )
@@ -41,15 +36,8 @@ def index():
 @check_user_info_complete
 @check_verification
 def security():
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-
     return render_template(
         "settings/security.html",
-        status_type=status_type,
-        msg=msg,
     )
 
 
@@ -60,10 +48,14 @@ def security():
 def plan():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    user_payment = UserPayment.get_by_user_id(authenticated_user.id)
+    # user_payment = UserPayment.get_by_user_id(authenticated_user.id)
     subscription = {"tier": Tier.FREE}
-    if user_payment and user_payment.customer_id and user_payment.subscription_id:
-        subscription = user_payment.sanitize()
+    # if user_payment and user_payment.customer_id and user_payment.subscription_id:
+    #     subscription = user_payment.sanitize()
+
+    waitlist_charge = WaitlistCharge.get_by_customer_email(authenticated_user.email)
+    if waitlist_charge:
+        subscription = {"tier": Tier.PREMIMUM}
 
     return render_template(
         "settings/plan.html",
@@ -87,57 +79,20 @@ def billing():
     )
 
 
-@settings.route("/change-password", methods=["POST"])
-@login_required
-@check_user_info_complete
-@check_verification
-@fresh_login_required
-def change_password():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    current_password = request.form.get("current-password")
-    new_password = request.form.get("new-password")
-    confirm_password = request.form.get("confirm-password")
-
-    if not isinstance(authenticated_user, UserRegular):
-        status = Status(StatusType.ERROR, "Cannot change password for oauth users.").get_status()
-        return redirect(url_for("settings.security", _external=False, **status))
-
-    if not current_password or not new_password or not confirm_password:
-        status = Status(StatusType.ERROR, "Please fill out all fields.").get_status()
-        return redirect(url_for("settings.security", _external=False, **status))
-
-    if not authenticated_user.verify_password(current_password):
-        status = Status(StatusType.ERROR, "Incorrect password.").get_status()
-        return redirect(url_for("settings.security", _external=False, **status))
-
-    if new_password != confirm_password:
-        status = Status(StatusType.ERROR, "Passwords do not match.").get_status()
-        return redirect(url_for("settings.security", _external=False, **status))
-
-    authenticated_user.password = new_password
-    db.session.commit()
-    status = Status(StatusType.SUCCESS, "Password successfully changed.").get_status()
-
-    return redirect(url_for("settings.security", _external=False, **status))
-
-
 @settings.post("/personal-info")
 @login_required
 @check_user_info_complete
 @check_verification
 @fresh_login_required
-def change_personal_info():  # noqa
+def change_personal_info():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     first_name = request.form.get("first-name")
     last_name = request.form.get("last-name")
-    email = request.form.get("email")
     username = request.form.get("username")
     bio = request.form.get("bio")
-    language = request.form.get("language")
 
-    user_info = authenticated_user.user_info[0]  # type: ignore
+    user_info = authenticated_user.user_info  # type: ignore
     if first_name and first_name.strip() != user_info.first_name:
         if first_name == " ":
             status = Status(StatusType.ERROR, "First name cannot be empty.").get_status()
@@ -149,21 +104,6 @@ def change_personal_info():  # noqa
             status = Status(StatusType.ERROR, "Last name cannot be empty.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.last_name = last_name.strip()
-
-    if email and email != authenticated_user.email:
-        if email == " ":
-            status = Status(StatusType.ERROR, "Email cannot be empty.").get_status()
-            return redirect(url_for("settings.index", _external=False, **status))
-
-        if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
-            status = Status(StatusType.ERROR, AUTH_INVALID_EMAIL).get_status()
-            return redirect(url_for("auth.register", _external=False, **status))
-
-        if isinstance(authenticated_user, UserOauth):
-            status = Status(StatusType.ERROR, "Cannot change email for oauth users.").get_status()
-            return redirect(url_for("settings.index", _external=False, **status))
-
-        authenticated_user.email = email
 
     if bio and bio.strip() != user_info.bio:
         if bio == " ":
@@ -178,18 +118,7 @@ def change_personal_info():  # noqa
         if UserInfo.is_taken(username):
             status = Status(StatusType.ERROR, "Username is taken.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
-
         user_info.username = username.strip()
-
-    if language and language != user_info.language:
-        if language == " ":
-            status = Status(StatusType.ERROR, "Language cannot be empty.").get_status()
-            return redirect(url_for("settings.index", _external=False, **status))
-        if language not in language_list:
-            status = Status(StatusType.ERROR, "Invalid language.").get_status()
-            return redirect(url_for("settings.index", _external=False, **status))
-
-        user_info.language = language
 
     db.session.commit()
 
@@ -220,14 +149,14 @@ def delete_account():
 
         return redirect(url_for("main.index", _external=False))
 
-    if isinstance(authenticated_user, UserOauth):
-        return render_template("settings/delete_oauth_account.html")
-
-    return render_template("settings/delete_account.html")
+    return render_template("settings/delete_oauth_account.html")
 
 
 @settings.route("/company", methods=["GET", "POST"])
-def company():
+@login_required
+@check_user_info_complete
+@check_verification
+def change_company_info():
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -248,22 +177,17 @@ def company():
         if company_name and company_name.strip() != company.name:
             if company_name == " ":
                 status = Status(StatusType.ERROR, "Company name cannot be empty.").get_status()
-                return redirect(url_for("settings.company", _external=False, **status))
+                return redirect(url_for("settings.change_company_info", _external=False, **status))
             company.name = company_name.strip()
 
         preferred_round_id = request.form.get("round", type=int)
         industry_id = request.form.get("industry", type=int)
-        print(industry_id)
-
-        if not industry_id:
-            status = Status(StatusType.ERROR, "Industry ID is required.").get_status()
-            return redirect(url_for("settings.company", _external=False, **status))
 
         if not preferred_round_id or not industry_id:
             status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
             return redirect(
                 url_for(
-                    "settings.company",
+                    "settings.change_company_info",
                     _external=False,
                     **status,
                 )
@@ -272,21 +196,21 @@ def company():
         country_id = request.form.get("country", type=int)
         if not country_id:
             status = Status(StatusType.ERROR, "Country ID is required.").get_status()
-            return redirect(url_for("settings.company", _external=False, **status))
+            return redirect(url_for("settings.change_company_info", _external=False, **status))
 
         company.description = request.form.get("description", "").strip()
         company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
         company.country_id = country_id
         company.preferred_round_id = preferred_round_id
         company.industry_id = industry_id
-        company.website = request.form.get("website", "")
+        company.website_url = request.form.get("website", "")
         company.coordinates = Country.get_by_id(country_id).name  # type: ignore
         db.session.commit()
 
         status = Status(StatusType.SUCCESS, "Company successfully changed.").get_status()
         return redirect(
             url_for(
-                "settings.company",
+                "settings.change_company_info",
                 _external=False,
                 **status,
             )

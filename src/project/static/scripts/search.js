@@ -1,10 +1,11 @@
-document.getElementById("search").addEventListener("keydown", function (event) {
-    if (event.key === "Enter") search();
+document.getElementById("search-btn").addEventListener("click", function (event) {
+    search();
 });
 
 function search() {
     const roundValues = getCheckedValues("round");
     const industryValues = getCheckedValues("industry");
+    const countryValues = getCheckedValues("country");
     const sortValues = getCheckedValues("sort_field");
     const filterValues = getCheckedValues("filter_field");
 
@@ -23,6 +24,7 @@ function search() {
         "industries_exclusive",
         "round",
         "industry",
+        "country",
         "sort_field",
         "descending",
         "page",
@@ -32,6 +34,7 @@ function search() {
 
     handleLists(roundValues, "round", paramsArray);
     handleLists(industryValues, "industry", paramsArray);
+    handleLists(countryValues, "country", paramsArray);
     handleLists(sortValues, "sort_field", paramsArray);
     handleLists(filterValues, "filter_field", paramsArray);
 
@@ -96,12 +99,12 @@ const upperSlider = document.getElementById("max_investment");
 
 lowerSlider.oninput = function () {
     if (parseInt(lowerSlider.value) >= parseInt(upperSlider.value)) {
-        lowerSlider.value = parseInt(upperSlider.value) - 1;
+        lowerSlider.value = parseInt(upperSlider.value) - 9;
     }
 };
 
 upperSlider.oninput = function () {
     if (parseInt(upperSlider.value) <= parseInt(lowerSlider.value)) {
-        upperSlider.value = parseInt(lowerSlider.value) + 1;
+        upperSlider.value = parseInt(lowerSlider.value) + 9;
     }
 };

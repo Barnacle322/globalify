@@ -1,6 +1,7 @@
-{% extends "layouts/layout_app.html" %} {% block title %} Company Profile {% endblock %} {% block head %} {{ super() }}
+{% extends "layouts/layout_app.html" %} {% block additional_scripts%}
 <script src="/static/scripts/dashboard.js" defer></script>
-{% endblock %} {% block content %}
+{% endblock %} {% block title %} Company Profile {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
+content %}
 <main class="flex min-h-screen w-full items-start justify-center bg-neutral-100 pt-24">
     <div class="mx-9 flex max-w-4xl flex-col lg:mx-auto lg:w-full">
         <div class="flex w-full">

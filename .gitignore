@@ -1,13 +1,11 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,flask,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,flask,node
 
-investor.csv
-
 ### Flask ###
 instance/*
 !instance/.gitignore
 .webassets-cache
-.env
+*.env
 
 ### Flask.Python Stack ###
 # Byte-compiled / optimized / DLL files
@@ -399,7 +397,6 @@ pyrightconfig.json
 .vscode
 start_prod.ps1
 start_local.ps1
-.old_venv
 .idea
 typesense-data
 .DS_Store

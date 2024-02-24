@@ -8,14 +8,14 @@ from flask_login import current_user, login_required
 from stripe import InvalidRequestError, SignatureVerificationError
 
 from ..extensions import csrf, db
-from ..models import User, UserInfo, UserPayment, WaitlistCharge
-from ..utils.enums import Events, Status, StatusType, Tier
+from ..models import Notification, User, UserInfo, UserPayment, WaitlistCharge
+from ..utils.enums import ButtonLayout, Events, NotificationDestination, NotificationLayout, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
     ONBOARDING_INCOMPLETE,
     PAYMENT_EMAIL_USED,
     PAYMENT_NOT_FOUND,
 )
-from ..utils.google_pubsub import send_event
+from ..utils.google_helpers.google_pubsub import send_event
 from .main import check_user_info_complete
 
 payment = Blueprint("payment", __name__)
@@ -43,6 +43,25 @@ def get_invoices(authenticated_user: User):
 
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
     if not user_payment or not user_payment.customer_id:
+        waitlist_charge = WaitlistCharge.get_by_customer_email(authenticated_user.email)
+        if not waitlist_charge:
+            return []
+        stripe_invoices = stripe.PaymentIntent.list(customer=waitlist_charge.stripe_customer_id)
+        print(stripe_invoices)
+        invoices = []
+        for stripe_invoice in stripe_invoices:
+            invoice = {
+                "id": stripe_invoice.get("id"),
+                "created": datetime.datetime.fromtimestamp(stripe_invoice.get("created", 0), tz=datetime.UTC).date(),
+                "amount_due": stripe_invoice.get("amount"),
+                "amount_paid": stripe_invoice.get("amount"),
+                "currency": stripe_invoice.get("currency"),
+                "status": stripe_invoice.get("status"),
+                "hosted_invoice_url": stripe_invoice.get("hosted_invoice_url"),
+            }
+            invoices.append(invoice)
+            print(invoices)
+            return invoices
         return []
 
     stripe_invoices = stripe.Invoice.list(customer=user_payment.customer_id)
@@ -111,7 +130,7 @@ def handle_customer(authenticated_user: User) -> UserPayment:
 
     # If customer isn't in DB, create a new one
     user_payment = UserPayment(
-        user_id=authenticated_user.id,
+        user=authenticated_user,
         customer_id=stripe_customer.get("id"),
     )
     db.session.add(user_payment)
@@ -222,23 +241,7 @@ def has_subscriptions(customer_id: str) -> bool:
     return active_subscriptions or trialing_subscriptions  # type: ignore
 
 
-@payment.post("/waitlist")
-def waitlist():
-    """
-    Creates a new entry in the waitlist.
-
-    Returns:
-        The response object containing the redirect URL for the created checkout session.
-
-    Raises:
-        PAYMENT_EMAIL_USED: If there is more than one customer with the same email.
-        Any exception raised during the creation of the checkout session.
-
-    """
-    email = request.form.get("email", "")
-    first_name = request.form.get("first-name", "")
-    last_name = request.form.get("last-name", "")
-
+def waitlist(email: str, first_name: str, last_name: str, user: User):
     full_name = f"{first_name} {last_name}"
 
     customer_data = stripe.Customer.search(query=f"email:'{email}'")
@@ -258,11 +261,39 @@ def waitlist():
             customer_id=stripe_customer.get("id", ""),
             tier="teaser",
             cancel_url=request.host_url + "waitlist/cancel",
-            success_url=request.host_url + "waitlist/success",
+            success_url=request.host_url + "search",
         )
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
+
+    Notification.mark_notifications_as_read(
+        user_id=user.id,
+        destination=NotificationDestination.SEARCH,
+    )
+
+    notification = Notification(
+        user=user,
+        json_data=NotificationLayout(
+            title="Onboarding completed!!",
+            msg="Go and try our suggestions!",
+            buttons=[ButtonLayout(text="Try!", url=url_for("main.get_suggestions"))],
+        ).get_json(),
+        destination=NotificationDestination.SEARCH,
+    )
+    db.session.add(notification)
+    db.session.commit()
+
+    notification = Notification(
+        user=user,
+        json_data=NotificationLayout(
+            title="Payment successful!",
+            msg="Thank you for supporting us!",
+        ).get_json(),
+        destination=NotificationDestination.SEARCH,
+    )
+    db.session.add(notification)
+    db.session.commit()
 
     return redirect(checkout_session.url, code=303)  # type: ignore
 
@@ -311,6 +342,8 @@ def create_checkout_session():
         return redirect(url_for("payment.index", _external=False, **status))
 
     try:
+        if not user_payment.customer_id:
+            raise Exception(PAYMENT_NOT_FOUND)
         checkout_session = create_checkout(customer_id=user_payment.customer_id, tier=tier)
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
@@ -352,7 +385,7 @@ def customer_portal():
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    if not user_payment:
+    if not user_payment or not user_payment.customer_id:
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
@@ -393,7 +426,7 @@ def subscription_update():
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    if not user_payment:
+    if not user_payment or not user_payment.customer_id:
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
@@ -442,7 +475,7 @@ def subscription_cancel():
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    if not user_payment:
+    if not user_payment or not user_payment.customer_id:
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
@@ -473,7 +506,8 @@ def subscription_cancel():
 
 @payment.route("/pricing", methods=["GET"])
 def index():
-    return render_template("payment/index.html")
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    return render_template("payment/index.html", user=authenticated_user)
 
 
 @payment.route("/success", methods=["GET"])

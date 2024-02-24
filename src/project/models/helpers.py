@@ -18,7 +18,6 @@ class Industry(db.Model):
         id (int): The industry ID.
         name (str): The name of the industry.
         category (str): The category of the industry.
-
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -46,11 +45,11 @@ class Industry(db.Model):
 
     @staticmethod
     def get_by_id(id: int) -> Industry | None:
-        return db.session.scalar(db.select(Industry).filter(Industry.id == id))
+        return db.session.scalar(db.select(Industry).where(Industry.id == id))
 
     @staticmethod
     def get_by_name(name: str) -> Industry | None:
-        return db.session.scalar(db.select(Industry).filter(Industry.name == name))
+        return db.session.scalar(db.select(Industry).where(Industry.name == name))
 
     @staticmethod
     def populate() -> None:
@@ -74,6 +73,14 @@ class Industry(db.Model):
 
 
 class Round(db.Model):
+    """
+    Represents a funding round.
+
+    Attributes:
+        id (int): The round ID.
+        name (str): The name of the round.
+    """
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
 
@@ -89,11 +96,11 @@ class Round(db.Model):
 
     @staticmethod
     def get_by_id(id: int) -> Round | None:
-        return db.session.scalar(db.select(Round).filter(Round.id == id))
+        return db.session.scalar(db.select(Round).where(Round.id == id))
 
     @staticmethod
     def get_by_name(name: str) -> Round | None:
-        return db.session.scalar(db.select(Round).filter(Round.name == name))
+        return db.session.scalar(db.select(Round).where(Round.name == name))
 
     @staticmethod
     def populate() -> None:
@@ -106,6 +113,15 @@ class Round(db.Model):
 
 
 class Country(db.Model):
+    """
+    Represents a country.
+
+    Attributes:
+        id (int): The country ID.
+        name (str): The name of the country.
+        code (str): The code of the country.
+    """
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     code: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -122,11 +138,15 @@ class Country(db.Model):
 
     @staticmethod
     def get_by_code(code: str) -> Country | None:
-        return db.session.scalar(db.select(Country).filter(Country.code == code))
+        return db.session.scalar(db.select(Country).where(Country.code == code))
 
     @staticmethod
     def get_by_id(id: int) -> Country | None:
-        return db.session.scalar(db.select(Country).filter(Country.id == id))
+        return db.session.scalar(db.select(Country).where(Country.id == id))
+
+    @staticmethod
+    def get_by_name(name: str) -> Country | None:
+        return db.session.scalar(db.select(Country).where(Country.name == name))
 
     @staticmethod
     def populate() -> None:

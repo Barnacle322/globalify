@@ -7,24 +7,20 @@ from sqlite3 import Connection as SQLite3Connection
 from uuid import uuid4
 
 from flask_login import UserMixin
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, event
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func, or_
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
-from werkzeug.security import check_password_hash, generate_password_hash
+from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, mapped_column, relationship, validates
 
 from ..extensions import db
-from ..utils.enums import OauthProvider, Tier
+from ..utils.enums import NotificationDestination, OauthProvider, Tier
 from ..utils.suggestion import geocode_location
 from .helpers import Country, Industry, Round
 
 
-class User(UserMixin, db.Model):
+class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     """
-    Base class for a user in the application.
-    This should not be used directly to instantiate a user.
-    Instead, use one of the subclasses(`UserRegular` and `UserOauth`).
-    Although, this can be used to query for users.
+    User model representing a user in the database.
 
     Attributes:
         id (Mapped[int]): Unique identifier for the user, serves as the primary key.
@@ -32,9 +28,8 @@ class User(UserMixin, db.Model):
         email (Mapped[str]): The email address of the user, must be unique and is non-nullable.
         is_verified (Mapped[bool]): Boolean flag indicating if the user's email is verified.
         is_admin (Mapped[bool]): Boolean flag indicating if the user has admin privileges.
+        oauth_provider (Mapped[OauthProvider]): The OAuth provider used to authenticate the user, non-nullable.
 
-    __mapper_args__:
-        Configures the inheritance scheme, setting 'user' as the polymorphic identity and 'type' as the polymorphic discriminator column.
 
     Relationships:
         user_info (relationship): Defines a one-to-one or one-to-many relationship with the UserInfo model.
@@ -44,96 +39,36 @@ class User(UserMixin, db.Model):
     The declared_attr decorator is used to create the relationships dynamically based on the class name, with cascading delete.
     """
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    type = mapped_column(String(50))
+    oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
+    id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    __mapper_args__ = {"polymorphic_identity": "user", "polymorphic_on": type}
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<User {self.email} | {self.type}>"
-
-    @classmethod
-    def delete_by_id(cls, id: int) -> None:
+    @staticmethod
+    def delete_by_id(id: int) -> None:
         """
         Deletes the user and all associated data.
         This includes the `UserInfo`, `UserPayment`, and `Company` objects.
         """
-        if user := cls.get_by_id(id):
+        if user := User.get_by_id(id):
             db.session.delete(user)
             db.session.commit()
 
-    @classmethod
-    def get_by_id(cls, id: int) -> User | None:
-        return db.session.scalar(db.select(cls).where(cls.id == id))
+    @staticmethod
+    def get_by_id(id: int) -> User | None:
+        return db.session.scalar(db.select(User).where(User.id == id))
 
-    @classmethod
-    def get_by_email(cls, email: str) -> User | None:
-        return db.session.scalar(db.select(cls).where(cls.email == email))
+    @staticmethod
+    def get_by_email(email: str) -> User | None:
+        return db.session.scalar(db.select(User).where(User.email == email))
 
-    @classmethod
-    def get_all(cls) -> Sequence[User]:
-        return db.session.scalars(db.select(cls)).all()
-
-
-class UserOauth(User):
-    """
-    Subclass of User that adds OAuth provider authentication support.
-
-    This class extends the User model to include functionality for users who authenticate via an OAuth provider.
-
-    Attributes:
-        oauth_provider (Mapped[OauthProvider]): Enum field representing the OAuth provider used for authentication, can be nullable.
-
-    """
-
-    oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider), nullable=True)
-
-    __mapper_args__ = {
-        "polymorphic_identity": "user_oauth",
-    }
+    @staticmethod
+    def get_all() -> Sequence[User]:
+        return db.session.scalars(db.select(User)).all()
 
 
-class UserRegular(User):
-    """
-    Subclass of User designed for regular users who authenticate with a password.
-
-    This class adds password-based authentication mechanisms to the User model, including methods to set and verify passwords.
-
-    Attributes:
-        password_hash (Mapped[str]): Stores the hash of the user's password, can be nullable.
-
-    Methods:
-        password: Write-only property to set the user's password. The actual password should never be readable.
-        verify_password: Verifies a provided password against the stored password hash.
-    """
-
-    password_hash: Mapped[str] = mapped_column(String, nullable=True)
-
-    __mapper_args__ = {
-        "polymorphic_identity": "user_regular",
-    }
-
-    @property
-    def password(self) -> None:
-        raise AttributeError("Password is not a readable attribute.")
-
-    @password.setter
-    def password(self, password: str) -> None:
-        self.password_hash = generate_password_hash(password, "scrypt")
-
-    def verify_password(self, password: str) -> bool:
-        if not self.password_hash:
-            return False
-        return check_password_hash(self.password_hash, password)
-
-
-class UserInfo(db.Model):
+class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Represents additional information about a user.
 
@@ -148,84 +83,62 @@ class UserInfo(db.Model):
         twitter_url (str | None): The Twitter profile URL of the user.
         picture_url (str | None): The Google storage blob ID for the user's profile picture.
         is_complete (bool): Indicates if the user's profile is complete.
-        language (str): The language preference of the user.
-
     """
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user: Mapped[User] = relationship(User, backref=backref("user_info", passive_deletes=True, uselist=False))
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True, init=False
     )
-    first_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    username: Mapped[str | None] = mapped_column(String, nullable=True)
-    bio: Mapped[str | None] = mapped_column(String, nullable=True)
-    linkedin_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    instagram_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    twitter_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    first_name: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    last_name: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    username: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    bio: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    linkedin_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    instagram_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    twitter_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    picture_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    language: Mapped[str] = mapped_column(String, nullable=True, default="English")
-
-    user: Mapped[User] = relationship(User, backref=backref("user_info", passive_deletes=True))
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<UserInfo: {self.username} | {'Complete' if self.is_complete else 'Incomplete'}>"
 
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
-    @property
-    def linkedin(self):
-        return self.linkedin_url
-
-    @property
-    def instagram(self):
-        return self.instagram_url
-
-    @property
-    def twitter(self):
-        return self.twitter_url
-
-    @linkedin.setter
-    def linkedin(self, linkedin) -> None:
+    @validates("linkedin_url")
+    def validate_linkedin(self, key, linkedin):
         if not linkedin:
-            self.linkedin_url = None
             return None
-        if re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
-            self.linkedin_url = linkedin
-        else:
-            raise ValueError("Invalid linkedin url.")
+        if not re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
+            raise ValueError(
+                "Invalid LinkedIn URL format. Ensure it follows the pattern: https://www.linkedin.com/in/username."
+            )
+        return linkedin
 
-    @instagram.setter
-    def instagram(self, instagram) -> None:
+    @validates("instagram_url")
+    def validate_instagram(self, key, instagram):
         if not instagram:
-            self.instagram_url = None
             return None
-        if re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
-            self.instagram_url = instagram
-        else:
-            raise ValueError("Invalid instagram url.")
+        if not re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
+            raise ValueError(
+                "Invalid Instagram URL format. Ensure it follows the pattern: https://www.instagram.com/username."
+            )
+        return instagram
 
-    @twitter.setter
-    def twitter(self, twitter) -> None:
+    @validates("twitter_url")
+    def validate_twitter(self, key, twitter):
         if not twitter:
-            self.twitter_url = None
             return None
-        if re.match(r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE):
-            self.twitter_url = twitter
-        else:
-            raise ValueError("Invalid twitter url.")
+        if not re.match(
+            r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE
+        ):
+            raise ValueError("Invalid Twitter URL format. Ensure it follows the pattern: https://twitter.com/username.")
+        return twitter
 
     def sanitize(self):
         """
         Returns:
-            dict[str, str]: A dictionary representing the UserInfo object.
-
+            dict[str, str]: A dictionary representing the UserInfo without any sensitive info.
         """
         user_info = {
             "user_id": self.user_id,
@@ -254,7 +167,7 @@ class UserInfo(db.Model):
         return True if user_info else False
 
 
-class UserPayment(db.Model):
+class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     Represents user payment information.
 
@@ -266,76 +179,38 @@ class UserPayment(db.Model):
         expires_at (datetime.datetime | None): The date and time when the payment expires.
         is_active (bool): Indicates whether the payment is active or not.
         tier (Tier): The subscription tier associated with the payment.
-
     """
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user: Mapped[User] = relationship(User, backref=backref("user_payment", passive_deletes=True, uselist=False))
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True, init=False
     )
-    customer_id: Mapped[str] = mapped_column(String, nullable=True)
-    subscription_id: Mapped[str] = mapped_column(String, nullable=True)
-    created: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
-    expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
+    customer_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    subscription_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    created: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, default=None)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     tier: Mapped[Tier] = mapped_column(SQLEnum(Tier), nullable=False, default=Tier.FREE)
 
-    user: Mapped[User] = relationship(User, backref=backref("user_payment", passive_deletes=True))
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<UserPayment: {self.customer_id} | {'Active' if self.is_active else 'Inactive'}>"
-
     @property
     def created_epoch(self) -> datetime.datetime | None:
-        """
-        Returns:
-            DateTime | None: The created date and time in epoch format.
-
-        """
         return self.created
 
     @property
     def expires_at_epoch(self) -> datetime.datetime | None:
-        """
-        Returns:
-            DateTime | None: The expiration date and time in epoch format.
-
-        """
         return self.expires_at
 
     @created_epoch.setter
     def created_epoch(self, created_epoch: int) -> None:
-        """
-        Sets the created date and time using the provided epoch value.
-
-        Args:
-            created_epoch (int): The epoch value representing the created date and time.
-
-        """
         self.created = datetime.datetime.fromtimestamp(created_epoch, tz=datetime.UTC)
 
     @expires_at_epoch.setter
     def expires_at_epoch(self, expires_at_epoch: int) -> None:
-        """
-        Sets the expiration date and time using the provided epoch value.
-
-        Args:
-            expires_at_epoch (int): The epoch value representing the expiration date and time.
-
-        """
         self.expires_at = datetime.datetime.fromtimestamp(expires_at_epoch, tz=datetime.UTC)
 
     def is_expired(self) -> bool:
-        """
-        Checks if the payment has expired.
-
-        Returns:
-            bool: True if the payment has expired, False otherwise.
-
-        """
         if not self.expires_at:
             return True
         return self.expires_at.replace(tzinfo=datetime.UTC) < datetime.datetime.now(tz=datetime.UTC)
@@ -359,6 +234,114 @@ class UserPayment(db.Model):
         return subscription
 
 
+class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
+    user: Mapped[User] = relationship(User, backref=backref("notifications", passive_deletes=True))
+
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, init=False)
+    json_data: Mapped[dict] = mapped_column(JSON, nullable=True, default=False)
+    destination: Mapped[NotificationDestination] = mapped_column(
+        SQLEnum(NotificationDestination), nullable=True, default=NotificationDestination.SEARCH
+    )
+    is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    @classmethod
+    def get_by_id(cls, id: int) -> Notification | None:
+        return db.session.scalar(db.select(cls).where(cls.id == id))
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> Notification | None:
+        return db.session.scalar(db.select(Notification).where(Notification.user_id == user_id))
+
+    @staticmethod
+    def get_unread(
+        user_id: int, destination: NotificationDestination, is_read: bool = False
+    ) -> Sequence[Notification] | None:
+        return db.session.scalars(
+            db.select(Notification)
+            .where(
+                Notification.user_id == user_id,
+                or_(Notification.destination == destination, Notification.destination == NotificationDestination.ALL),
+                Notification.is_read.is_(is_read),
+            )
+            .order_by(desc(Notification.created_at))
+        ).all()
+
+    @staticmethod
+    def mark_notifications_as_read(user_id: int, destination: NotificationDestination) -> None:
+        unread_notifications = db.session.scalars(
+            db.select(Notification).where(
+                Notification.user_id == user_id,
+                or_(Notification.destination == destination, Notification.destination == NotificationDestination.ALL),
+                Notification.is_read.is_(False),
+            )
+        ).all()
+        for notification in unread_notifications:
+            notification.is_read = True
+        db.session.commit()
+
+
+class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
+    """
+    Represents email verification information.
+
+    Attributes:
+        id (int): The verification ID.
+        user_id (int): The ID of the user associated with the verification.
+        token (str): The unique token generated for email verification.
+        created_at (datetime.datetime): The date and time when the verification was created.
+    """
+
+    user: Mapped[User] = relationship(User, backref=backref("email_verifications", passive_deletes=True), init=False)
+
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    token: Mapped[str] = mapped_column(String, nullable=False, insert_default=lambda: str(uuid4()), init=False)
+    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    @property
+    def is_expired(self) -> bool:
+        expiration_time = self.created_at + datetime.timedelta(minutes=5)
+        return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
+
+    @property
+    def is_resendable(self) -> bool:
+        expiration_time = self.created_at + datetime.timedelta(minutes=1)
+        return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
+
+    @staticmethod
+    def expire_all_by_user_id(user_id: int) -> None:
+        try:
+            email_verifications = db.session.scalars(
+                db.select(EmailVerification).where(EmailVerification.user_id == user_id)
+            ).all()
+            for email_verification in email_verifications:
+                email_verification.is_expired = True
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    @staticmethod
+    def get_by_token(token: str) -> EmailVerification | None:
+        return db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
+
+    @staticmethod
+    def get_last_unused_by_user_id(user_id: int) -> EmailVerification | None:
+        last_verification = db.session.scalar(
+            db.select(EmailVerification)
+            .where(EmailVerification.user_id == user_id)
+            .where(EmailVerification.is_used.is_(False))
+            .order_by(EmailVerification.created_at.desc())
+        )
+        return last_verification
+
+
 class WaitlistCharge(db.Model):
     """
     Represents a waitlist charge.
@@ -371,7 +354,6 @@ class WaitlistCharge(db.Model):
         customer_name (str): The name of the customer associated with the charge.
         random_key (str): The randomly generated key.
         downloaded (bool): Indicates whether the product database has been downloaded.
-
     """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -445,17 +427,17 @@ class Company(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[str] = mapped_column(String, nullable=True)
-    number_of_employees: Mapped[int] = mapped_column(Integer, nullable=True)
-    website: Mapped[str] = mapped_column(String, nullable=True)
-    picture_url: Mapped[str] = mapped_column(String, nullable=True)
-    country_id: Mapped[int] = mapped_column(Integer, ForeignKey("country.id"), nullable=True)
-    preferred_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
-    industry_id: Mapped[int] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True)
+    description: Mapped[str | None] = mapped_column(String, nullable=True)
+    number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    website_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    country_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("country.id"), nullable=True)
+    preferred_round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
+    industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True)
+    _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
 
     user: Mapped[User] = relationship(User, backref=backref("company", passive_deletes=True), lazy=True)
     country: Mapped[Country] = relationship()
-    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
     preferred_round: Mapped[Round] = relationship()
     industry: Mapped[Industry] = relationship()
 
@@ -471,7 +453,45 @@ class Company(db.Model):
 
     @coordinates.setter
     def coordinates(self, coordinates: str) -> None:
-        self._coordinates = geocode_location(coordinates)  # type: ignore
+        self._coordinates = geocode_location(coordinates)["coordinates"]  # type: ignore
+
+    @validates("website_url")
+    def validate_website(self, key, website):
+        if not website:
+            return None
+        if not re.match(r"^(https?:\/\/)?(www\.)?[\w.-]+\.[a-z]{2,}\/?[\w.-]*$", website, re.IGNORECASE):
+            raise ValueError("Invalid website URL format. Ensure it follows the pattern: https://www.example.com.")
+        return website
+
+    @validates("linkedin_url")
+    def validate_linkedin(self, key, linkedin):
+        if not linkedin:
+            return None
+        if not re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
+            raise ValueError(
+                "Invalid LinkedIn URL format. Ensure it follows the pattern: https://www.linkedin.com/in/username."
+            )
+        return linkedin
+
+    @validates("instagram_url")
+    def validate_instagram(self, key, instagram):
+        if not instagram:
+            return None
+        if not re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
+            raise ValueError(
+                "Invalid Instagram URL format. Ensure it follows the pattern: https://www.instagram.com/username."
+            )
+        return instagram
+
+    @validates("twitter_url")
+    def validate_twitter(self, key, twitter):
+        if not twitter:
+            return None
+        if not re.match(
+            r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE
+        ):
+            raise ValueError("Invalid Twitter URL format. Ensure it follows the pattern: https://twitter.com/username.")
+        return twitter
 
     @staticmethod
     def get_by_id(id: int) -> Company | None:

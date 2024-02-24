@@ -1,4 +1,15 @@
+from dataclasses import dataclass, field
 from enum import Enum
+
+
+class NotificationDestination(Enum):
+    ALL = "all"
+    SEARCH = "search"
+    ONBOARDING = "onboarding"
+    COMPANY = "change_company_info"
+    VERIFICATION = "email_verification"
+    INDEX = "index"
+    EXPANDED_ONBOARDING = "expanded_onboarding"
 
 
 class StatusType(Enum):
@@ -30,6 +41,8 @@ class OauthProvider(Enum):
 
 class Tier(Enum):
     FREE = "free"
+    PREMIMUM = "early bird"
+
     ELEVATE = "elevate"
     CONNECT = "connect pro"
     BOOST = "boost academy"
@@ -41,3 +54,40 @@ class Events(Enum):
     STRIPE_TRIAL_WILL_END = "stripe.trial_will_end"
     STRIPE_PAYMENT_FAILED = "stripe.payment_failed"
     STRIPE_PAYMENT_SUCCEDED = "stripe.payment_succeeded"
+
+    USER_COMPLETED_ONBOARDING = "user.completed_onboarding"
+
+
+@dataclass
+class ButtonLayout:
+    text: str
+    url: str
+    dismiss: bool = True
+
+    def get_json(self) -> dict[str, str | bool]:
+        return {"text": self.text, "url": self.url, "dismiss": self.dismiss}
+
+
+@dataclass
+class NotificationLayout:
+    title: str
+    msg: str | None = None
+    buttons: list[ButtonLayout] = field(default_factory=list)
+    icon_url: str | None = None
+    is_closable: bool = True
+
+    def get_json(self, **kwargs) -> dict[str, str]:
+        json_dict = {
+            "title": self.title,
+            "is_closable": self.is_closable,
+            **kwargs,
+        }
+
+        if self.msg:
+            json_dict["msg"] = self.msg
+        if self.buttons and self.buttons != []:
+            json_dict["buttons"] = [button.get_json() for button in self.buttons]
+        if self.icon_url:
+            json_dict["icon_url"] = self.icon_url
+
+        return json_dict

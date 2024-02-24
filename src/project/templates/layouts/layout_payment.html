@@ -43,7 +43,7 @@
             <div class="flex w-full max-w-7xl items-center gap-7 px-9">
                 <a href="/"><img class="h-[30px] w-[113px]" src="/static/elements/logo-black.png" /></a>
                 <div class="hidden gap-7 font-medium sm:flex">
-                    <a href="/dashboard">Dashboard</a>
+                    <a href="/search">Dashboard</a>
                     <a href="https://blog.globalify.xyz">Blog</a>
                     <a href="">Resources</a>
                     <a href="">Help</a>
@@ -60,7 +60,7 @@
                         aria-haspopup="true"
                     >
                         <span class="sr-only">Open user menu</span>
-                        {% if not user.user_info[0].picture_url %}
+                        {% if not user.user_info.picture_url %}
                         <img
                             class="aspect-square h-6 w-6 rounded-full"
                             src="/static/elements/default_pfp.svg"
@@ -69,7 +69,7 @@
                         {% else %}
                         <img
                             class="aspect-square h-8 w-8 rounded-full"
-                            src="{{ user.user_info[0].picture_url }}"
+                            src="{{ user.user_info.picture_url }}"
                             alt="Profile picture"
                         />
                         {% endif %}

@@ -580,23 +580,6 @@ def expanded_onboarding():
 
         db.session.commit()
 
-        Notification.mark_notifications_as_read(
-            user_id=authenticated_user.id,
-            destination=NotificationDestination.SEARCH,
-        )
-
-        notification = Notification(
-            user=authenticated_user,
-            json_data=NotificationLayout(
-                title="Onboarding completed!!",
-                msg="Go and try our suggestions!",
-                buttons=[ButtonLayout(text="See!", url=url_for("main.get_suggestions"))],
-            ).get_json(),
-            destination=NotificationDestination.SEARCH,
-        )
-        db.session.add(notification)
-        db.session.commit()
-
         return payment_waitlist(
             email=authenticated_user.email,
             first_name=authenticated_user.user_info.first_name,  # type: ignore

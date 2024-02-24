@@ -117,13 +117,6 @@
                     Search
                 </button>
             </div>
-            {% if not investors %}
-            <div class="text-center my-12">
-                <p class="text-2xl text-gray-700">
-                    To access the list of investors, you need to purchase a subscription!
-                </p>
-            </div>
-            {% endif %}
             <div class="flex flex-col flex-wrap sm:flex-row mt-5 gap-x-5 gap-y-3">
                 <div class="group relative text-left">
                     <label class="font-semibold text-sm" for="round-options">Rounds</label>
@@ -371,8 +364,8 @@
         </div>
     </section>
     <section class="px-4 py-12 sm:mt-10 max-w-7xl mx-auto">
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {% for investor in investors %}
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 relative">
+            {% if investors %} {% for investor in investors %}
             <article class="flex flex-col rounded-lg p-6 shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px]">
                 <div class="flex flex-row items-center gap-2">
                     <a href="/investor/{{ investor.id }}" class="text-xl font-bold leading-none">
@@ -392,8 +385,45 @@
                     </p>
                 </div>
             </article>
+            {% endfor %} {% else %} {% for _ in range(9) %}
+            <article
+                class="flex flex-col rounded-lg p-6 shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px] blur-[10px] pointer-events-none select-none"
+            >
+                <div class="flex flex-row items-center gap-2">
+                    <a class="text-xl font-bold leading-none">
+                        Investor name
+                        <span class="text-base font-normal text-gray-500">@ Firm name</span>
+                    </a>
+                </div>
+
+                <div class="mt-2 flex flex-col gap-2">
+                    <p class="text-gray-500">Location</p>
+
+                    <p class="text-sm text-gray-500">Industry list</p>
+                    <p class="flex flex-wrap gap-1">
+                        <a class="text-nowrap rounded-lg bg-blue-600 px-2 py-1 text-sm text-white">Round 1</a>
+                        <a class="text-nowrap rounded-lg bg-blue-600 px-2 py-1 text-sm text-white">Round 2</a>
+                    </p>
+                </div>
+            </article>
             {% endfor %}
+
+            <p
+                class="absolute translate-x-[50%] -translate-y-[50%] right-1/2 top-1/2 flex flex-col justify-center items-center"
+            >
+                <span class="text-3xl font-bold">View more</span>
+                <span class="mt-2 text-slate-800 max-w-sm text-center"
+                    >Sign up for our Early Bird tier to get full access to the database of investors!</span
+                >
+                <a
+                    class="bg-blue-500 py-2 px-3 rounded-lg text-white mt-3 hover:bg-blue-400 transition-colors ease-in-out"
+                    href="/expanded-onboarding"
+                    >Get access</a
+                >
+            </p>
+            {% endif %}
         </div>
+
         <nav class="mt-10 flex w-full items-center justify-center gap-2">
             {% if pagination and pagination.has_other_pages %} {% if pagination.has_prev %}
             <a
@@ -406,7 +436,7 @@
             {% endif %} {% for page in pagination.pages %} {% if page == pagination.current_page %}
             <a
                 id="current"
-                class="inline-flex size-11 items-center justify-center rounded-lg border bg-black text-sm font-medium text-white transition-opacity duration-200 ease-in-out hover:opacity-90"
+                class="inline-flex size-11 items-center justify-center rounded-lg border bg-blue-500 text-sm font-medium text-white transition-opacity duration-200 ease-in-out hover:opacity-90"
                 href="/search?page={{ pagination.current_page }}"
                 >{{ pagination.current_page }}</a
             >

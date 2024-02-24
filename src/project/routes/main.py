@@ -120,6 +120,10 @@ def index():
 @check_user_info_complete
 @check_verification
 def get_suggestions():
+    waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
+    if not waitlist_charge:
+        access = False
+
     company = Company.get_by_user_id(current_user.id)
 
     investors = Investor.get_all()
@@ -155,6 +159,7 @@ def get_suggestions():
     return render_template(
         "suggestions.html",
         investors=sorted_investors,
+        access=access,
     )
 
 
@@ -223,7 +228,7 @@ def search():
     investors = result.get("investors")
 
     waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
-    if not waitlist_charge:
+    if not waitlist_charge and page > 1:
         investors = []
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))

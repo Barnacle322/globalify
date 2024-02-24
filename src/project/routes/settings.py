@@ -1,10 +1,8 @@
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
-from src.project.models.user import WaitlistCharge
-
 from ..extensions import db
-from ..models import Company, Country, Industry, Round, User, UserInfo
+from ..models import Company, Country, Industry, Round, User, UserInfo, WaitlistCharge
 from ..utils.enums import Status, StatusType, Tier
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
@@ -50,10 +48,12 @@ def security():
 def plan():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
+    # user_payment = UserPayment.get_by_user_id(authenticated_user.id)
     subscription = {"tier": Tier.FREE}
+    # if user_payment and user_payment.customer_id and user_payment.subscription_id:
+    #     subscription = user_payment.sanitize()
 
     waitlist_charge = WaitlistCharge.get_by_customer_email(authenticated_user.email)
-
     if waitlist_charge:
         subscription = {"tier": Tier.PREMIMUM}
 
@@ -84,7 +84,7 @@ def billing():
 @check_user_info_complete
 @check_verification
 @fresh_login_required
-def change_personal_info():  # noqa
+def change_personal_info():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     first_name = request.form.get("first-name")

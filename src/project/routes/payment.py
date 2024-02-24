@@ -9,7 +9,7 @@ from stripe import InvalidRequestError, SignatureVerificationError
 
 from ..extensions import csrf, db
 from ..models import Notification, User, UserInfo, UserPayment, WaitlistCharge
-from ..utils.enums import Events, NotificationDestination, NotificationLayout, Status, StatusType, Tier
+from ..utils.enums import ButtonLayout, Events, NotificationDestination, NotificationLayout, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
     ONBOARDING_INCOMPLETE,
     PAYMENT_EMAIL_USED,
@@ -267,11 +267,28 @@ def waitlist(email: str, first_name: str, last_name: str, user: User):
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
+    Notification.mark_notifications_as_read(
+        user_id=user.id,
+        destination=NotificationDestination.SEARCH,
+    )
+
+    notification = Notification(
+        user=user,
+        json_data=NotificationLayout(
+            title="Onboarding completed!!",
+            msg="Go and try our suggestions!",
+            buttons=[ButtonLayout(text="Try!", url=url_for("main.get_suggestions"))],
+        ).get_json(),
+        destination=NotificationDestination.SEARCH,
+    )
+    db.session.add(notification)
+    db.session.commit()
+
     notification = Notification(
         user=user,
         json_data=NotificationLayout(
             title="Payment successful!",
-            msg="Thank you for supporting us! ",
+            msg="Thank you for supporting us!",
         ).get_json(),
         destination=NotificationDestination.SEARCH,
     )

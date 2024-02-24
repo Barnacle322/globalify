@@ -121,7 +121,8 @@ def index():
 @check_verification
 def get_suggestions():
     waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
-    if not waitlist_charge:
+    access = True
+    if not waitlist_charge and not current_user.is_admin:
         access = False
 
     company = Company.get_by_user_id(current_user.id)
@@ -228,7 +229,8 @@ def search():
     investors = result.get("investors")
 
     waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
-    if not waitlist_charge and page > 1:
+    if not waitlist_charge and page > 1 and not current_user.is_admin:
+        print("here")
         investors = []
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))

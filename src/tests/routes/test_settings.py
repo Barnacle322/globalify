@@ -391,12 +391,13 @@ def test_settings_change_personal_info(client, verified_user, app, monkeypatch):
         assert response.status_code == 200
         assert b"Personal info successfully changed." in response.data
 
-        updated_user = User.query.filter_by(id=1).first()
+        #ToDo Fix this
+        updated_user = User.get_by_id(1)
         assert updated_user is not None
-        assert updated_user.user_info.first_name == "NewFirstName"
-        assert updated_user.user_info.last_name == "NewLastName"
-        assert updated_user.user_info.username == "newusername"
-        assert updated_user.user_info.bio == "New bio"
+        assert updated_user.user_info.first_name == "NewFirstName" # type: ignore
+        assert updated_user.user_info.last_name == "NewLastName" # type: ignore
+        assert updated_user.user_info.username == "newusername" # type: ignore
+        assert updated_user.user_info.bio == "New bio" # type: ignore
 
 
 def test_change_personal_info_empty_first_name(client, verified_user, app, monkeypatch):

@@ -132,7 +132,7 @@
     animation: gradient 10s ease infinite;
 }
 
-.fade-in {
+/* .fade-in {
     opacity: 0;
     -webkit-animation: fade-in 0.8s ease-in-out forwards;
     -moz-animation: fade-in 0.8s ease-in-out forwards;
@@ -150,7 +150,7 @@
     -webkit-animation: pulse 0.5s ease-in-out;
     -moz-animation: pulse 0.5s ease-in-out;
     animation: pulse 0.5s ease-in-out;
-}
+} */
 
 @keyframes gradient {
     0% {
@@ -225,7 +225,7 @@
     }
 }
 
-.fade-out-right {
+/* .fade-out-right {
     animation: fadeOutRight 1s ease-in-out forwards;
 }
 
@@ -235,7 +235,7 @@
 
 .fade-out-down {
     animation: fadeOutDown 0.5s ease-in-out forwards;
-}
+} */
 
 .idempotency {
     opacity: 0.5;

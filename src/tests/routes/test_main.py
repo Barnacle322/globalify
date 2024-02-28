@@ -1,9 +1,15 @@
+from unittest.mock import MagicMock
+
 import pytest
+from flask import url_for
 
 from src.project import db
+from src.project.extensions import oauth
 from src.project.models.helpers import Industry, Round
 from src.project.models.investor import InvestmentFirm, Investor, NotableInvestment
-from src.project.models.user import UserInfo, UserRegular, WaitlistCharge
+from src.project.models.user import Notification, User, UserInfo, UserPayment, WaitlistCharge
+from src.project.utils.enums import NotificationDestination, NotificationLayout, OauthProvider
+from src.project.utils.errors.error_messages import AUTH_FIELDS_INCOMPLETE
 
 
 def test_index(client):
@@ -34,16 +40,6 @@ def test_about(client):
     assert b"The team" in response.data
     assert b"info@globalify.xyz" in response.data
     assert b"Use Globalify - Fund Your Startup" in response.data
-
-
-def test_waitlist_apply(client):
-    response = client.get("/waitlist/apply")
-    assert response.status_code == 200
-    assert b"Join Globalify!" in response.data
-    assert b"Email" in response.data
-    assert b"First name" in response.data
-    assert b"Last name" in response.data
-    assert b"Proceed" in response.data
 
 
 def test_waitlist_email(client):
@@ -82,7 +78,7 @@ def test_waitlist_cancel(client):
     assert response.status_code == 200
     assert b"Payment canceled" in response.data
     assert b"You have not been charged." in response.data
-    assert b"Go to home" in response.data
+    assert b"Go to dashboard" in response.data
 
 
 def test_waitlist_success(client):
@@ -205,9 +201,9 @@ def test_download_post_success(client, app):
 @pytest.fixture()
 def verified_user(app):
     with app.app_context():
-        user = UserRegular(
+        user = User(
+            oauth_provider=OauthProvider.GOOGLE,
             email="johndoe@example.com",
-            password="password",
             is_verified=True,
         )
         db.session.add(user)
@@ -220,21 +216,60 @@ def verified_user(app):
             is_complete=True,
             user=user,
         )
-        db.session.add_all(
-            [
-                user_info,
-            ]
+        user_payment = UserPayment(
+            customer_id="cus_123",
+            user=user,
         )
+        db.session.add_all([user_info, user_payment])
         db.session.commit()
+        return user
+
+
+@pytest.fixture()
+def verified_user_wtih_waitlist_charge(app):
+    with app.app_context():
+        user = User(
+            oauth_provider=OauthProvider.GOOGLE,
+            email="johny@example.com",
+            is_verified=True,
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        user_info = UserInfo(
+            first_name="John",
+            last_name="Doe",
+            username="johny",
+            is_complete=True,
+            user=user,
+        )
+        user_payment = UserPayment(
+            customer_id="cus_123",
+            user=user,
+        )
+        db.session.add_all([user_info, user_payment])
+        db.session.commit()
+
+        wailist_charge = WaitlistCharge(
+            stripe_customer_id="stripe_id",
+            charge_id="charge_id",
+            customer_email="johny@example.com",
+            customer_name="John Doe",
+            random_key="12345",
+            downloaded=False,
+        )
+        db.session.add(wailist_charge)
+        db.session.commit()
+
         return user
 
 
 @pytest.fixture()
 def unverified_user(app):
     with app.app_context():
-        user = UserRegular(
+        user = User(
+            oauth_provider=OauthProvider.GOOGLE,
             email="johndoe@example.com",
-            password="password",
         )
         db.session.add(user)
         db.session.commit()
@@ -246,11 +281,11 @@ def unverified_user(app):
             is_complete=True,
             user=user,
         )
-        db.session.add_all(
-            [
-                user_info,
-            ]
+        user_payment = UserPayment(
+            customer_id="cus_123",
+            user=user,
         )
+        db.session.add_all([user_info, user_payment])
         db.session.commit()
         return user
 
@@ -311,135 +346,107 @@ def populate_investment_firm(app):
 def test_dashboard_anonymous_get(client):
     response = client.get("/search", follow_redirects=True)
     assert response.status_code == 200
-    assert b"Welcome back!" in response.data
-    assert b"Sign in" in response.data
+    assert b"Welcome!" in response.data
+    assert b"Sign in with your social media" in response.data
+    assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_dashboard_authenticated_unverified_get(client, unverified_user):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search")
+def test_dashboard_unverified_get(client, unverified_user, app, monkeypatch):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        response = client.get("/search", follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Email Verification" in response.data
+        assert (
+            b"A verification email has been sent to you! Click the link or input a code to verify your email address."
+            in response.data
+        )
+        assert b"Verify" in response.data
+
+
+def test_dashboard_verified_get(client, verified_user, app, monkeypatch):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        response = client.get("/search")
+        assert response.status_code == 200
+        assert b"View more" in response.data
+        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+
+
+def test_dashboard_firm_anonymous_get(client):
+    response = client.get("/investment-firm/1", follow_redirects=True)
     assert response.status_code == 200
-    assert b"Email Verification Required" in response.data
-    assert (
-        b"If the link in the message is not working, you can manually enter the code you received in the message."
-        in response.data
-    )
-    assert b"Resend Verification Email" in response.data
+    assert b"Welcome!" in response.data
+    assert b"Sign in with your social media" in response.data
+    assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_dashboard_authenticated_get(client, verified_user):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search")
-    assert response.status_code == 200
-    assert b"Find Ideal Investor" in response.data
-    assert b"Only show investors with selected rounds" in response.data
-    assert b"Only show investors with selected industries" in response.data
+def test_dashboard_firm_unverified_get(client, unverified_user, app, monkeypatch):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        response = client.get("/investment-firm/1", follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Email Verification" in response.data
+        assert (
+            b"A verification email has been sent to you! Click the link or input a code to verify your email address."
+            in response.data
+        )
+        assert b"Verify" in response.data
 
 
-def test_dashboard_query_search(client, verified_user, investor):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search?search=Julie")
+def test_dashboard_firm_not_found_verified_get(client, verified_user, app, monkeypatch):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
-    assert response.status_code == 200
-    assert b"Julie" in response.data
-    assert b"Doe" in response.data
-    assert b"Qwerty LLC" in response.data
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
-# TODO: What is this?
-# def test_dashboard_query_page(client, new_user, populate_notable_investment, populate_investor):
-#     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-#     response = client.get("/search?page=2")
-#     assert response.status_code == 200
-#     assert b'current="page"\n                        >2</a' in response.data
-
-
-def test_dashboard_query_industry(client, verified_user, populate_notable_investment, populate_investor):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search?industry=AI")
-    assert response.status_code == 200
-    assert b"AI" in response.data
-
-
-def test_dashboard_query_round(client, verified_user, populate_notable_investment, populate_investor):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search?round=Seed")
-    assert response.status_code == 200
-    assert b"Seed" in response.data
-
-
-def test_dashboard_query_industry_and_round(client, verified_user, populate_notable_investment, populate_investor):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search?industry=AI&round=Seed")
-    assert response.status_code == 200
-    assert b"AI" in response.data
-    assert b"Seed" in response.data
-
-
-def test_dashboard_firms_anonymous_get(client):
-    response = client.get("/search/investment-firms", follow_redirects=True)
-    assert response.status_code == 200
-    assert b"Welcome back!" in response.data
-    assert b"Sign in" in response.data
-
-
-def test_dashboard_firms_authenticated_get(client, verified_user):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search/investment-firms")
-    assert response.status_code == 200
-    assert b"Investors" in response.data
-    assert b"Firms" in response.data
-    assert b"Only show firms with selected rounds" in response.data
-    assert b"Only show firms with selected industries" in response.data
-
-
-def test_dashboard_firms_authenticated_unverified_get(client, unverified_user):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search/investment-firms")
-    assert response.status_code == 200
-    assert b"Email Verification Required" in response.data
-    assert (
-        b"If the link in the message is not working, you can manually enter the code you received in the message."
-        in response.data
-    )
-    assert b"Resend Verification Email" in response.data
-
-
-def test_dashboard_firms_query_search(client, verified_user, investment_firm):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search/investment-firms?search=Qwerty")
-    assert response.status_code == 200
-    assert b"Qwerty LLC" in response.data
-    assert b"Qwerty LLC is a great investment firm." in response.data
-
-
-def test_dashboard_firms_query_page(client, verified_user, populate_investment_firm):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search/investment-firms?page=2")
-    assert response.status_code == 200
-    assert b'current="page"\n                        >2</a' in response.data
-
-
-def test_dashboard_firms_query_industry(client, verified_user, populate_investment_firm):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search/investment-firms?industry=AI")
-    assert response.status_code == 200
-    assert b"AI" in response.data
-
-
-def test_dashboard_firms_query_round(client, verified_user, populate_investment_firm):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search/investment-firms?round=Seed")
-    assert response.status_code == 200
-    assert b"Seed" in response.data
-
-
-def test_dashboard_firms_query_industry_and_round(client, verified_user, populate_investment_firm):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/search/investment-firms?industry=AI&round=Seed")
-    assert response.status_code == 200
-    assert b"AI" in response.data
-    assert b"Seed" in response.data
+        response = client.get("/investment-firm/1", follow_redirects=True)
+        assert response.status_code == 200
+        assert b"View more" in response.data
+        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
 
 
 def test_error_handler_404(client):
@@ -448,24 +455,173 @@ def test_error_handler_404(client):
     assert b"Page not found" in response.data
 
 
-def test_investor_get(client, verified_user, investor):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+def test_investor_anonymous_get(client):
     response = client.get("/investor/1", follow_redirects=True)
     assert response.status_code == 200
-    assert b"Julie" in response.data
-    assert b"Qwerty LLC" in response.data
-    assert b"Julie is a founder and CEO at Qwerty LLC. She is a great investor." in response.data
-    assert b"Industries" in response.data
-    assert b"Rounds" in response.data
+    assert b"Welcome!" in response.data
+    assert b"Sign in with your social media" in response.data
+    assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_investor_not_found(client, verified_user, investor):
-    client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-    response = client.get("/investor/99999999", follow_redirects=True)
+def test_investor_unverified_get(client, unverified_user, app, monkeypatch):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        response = client.get("/investor/1", follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Email Verification" in response.data
+        assert (
+            b"A verification email has been sent to you! Click the link or input a code to verify your email address."
+            in response.data
+        )
+        assert b"Verify" in response.data
+
+
+def test_investor_verified_get(client, verified_user, investor, app, monkeypatch):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+        response = client.get("/investor/1", follow_redirects=True)
+        assert response.status_code == 200
+        assert b"Julie" in response.data
+        assert b"Qwerty LLC" in response.data
+        assert b"Julie is a founder and CEO at Qwerty LLC. She is a great investor." in response.data
+        assert b"Industries" in response.data
+        assert b"Rounds" in response.data
+
+
+def test_investor_not_found(client, verified_user, investor, app, monkeypatch):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+        response = client.get("/investor/99999999", follow_redirects=True)
+        assert response.status_code == 200
+        assert b"View more" in response.data
+        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+
+
+def test_notification_anonymous_edit(client):
+    response = client.get("/notification/edit/1", follow_redirects=True)
     assert response.status_code == 200
-    assert b"Find Ideal Investor" in response.data
-    assert b"Only show investors with selected rounds" in response.data
-    assert b"Only show investors with selected industries" in response.data
+    assert b"Welcome!" in response.data
+    assert b"Sign in with your social media" in response.data
+    assert b"Oops! Looks like you aren&#39;t logged in" in response.data
+
+
+def test_edit_not_found_notification(client, verified_user, app, monkeypatch):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+        response = client.get("/notification/edit/99999999", follow_redirects=True)
+        assert response.status_code == 200
+        assert b"View more" in response.data
+        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+
+
+def test_edit_notification_mismatch_user(client, verified_user, verified_user_wtih_waitlist_charge, app, monkeypatch):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        user = User.get_by_id(2)
+
+        assert user is not None
+
+        notification = Notification(
+            user=user,
+            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
+            destination=NotificationDestination.ONBOARDING,
+        )
+        db.session.add(notification)
+        db.session.commit()
+
+        response = client.get("/notification/edit/1", follow_redirects=True)
+        assert response.status_code == 200
+        assert b"View more" in response.data
+        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+
+
+def test_success_edit_notification(client, verified_user, app, monkeypatch):
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        user = User.get_by_id(1)
+
+        assert user is not None
+
+        notification = Notification(
+            user=user,
+            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
+            destination=NotificationDestination.ONBOARDING,
+        )
+        db.session.add(notification)
+        db.session.commit()
+
+        response = client.get("/notification/edit/1", follow_redirects=True)
+
+        updated_notification = Notification.get_by_user_id(1)
+
+        assert updated_notification is not None
+        assert updated_notification.is_read
+        assert response.status_code == 200
+        assert b'[\n  {\n    "status": "success"\n  },\n  200\n]\n' in response.data
 
 
 # TODO

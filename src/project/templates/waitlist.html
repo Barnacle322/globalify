@@ -3,7 +3,7 @@ endblock %} {% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden bg-white">
     <section id="payment" class="mx-auto w-full max-w-7xl bg-transparent px-8 pb-16 pt-3 sm:px-6 lg:pt-24">
         <div
-            class="relative flex flex-col gap-10 overflow-hidden rounded-3xl border-2 bg-black bg-cover p-10 shadow-lg lg:flex-row lg:bg-[linear-gradient(to_right,rgba(0,0,0,1)_40%,rgba(0,0,0,0)_70%),url('/static/elements/waitlist_hero.jpg')]"
+            class="relative flex flex-col gap-10 overflow-hidden rounded-3xl border-2 bg-black bg-cover p-10 shadow-lg lg:flex-row bg-gradient-to-b from-[#3F4472] via-[#231645] to-[#3F4472]"
         >
             <div class="flex flex-col gap-5 text-white lg:w-1/2">
                 <span class="text-[40px] font-semibold leading-tight"
@@ -15,7 +15,7 @@ endblock %} {% block content %}
                     >
                     now</span
                 >
-                <p class="text-lg lg:text-xl">
+                <p class="lg:text-lg">
                     Get early access to our investor network and find the right investors for your startup.
 
                     <br /><br />
@@ -28,113 +28,38 @@ endblock %} {% block content %}
                 </p> -->
                 <a
                     href="/login"
-                    class="rounded-xl bg-sky-500 px-5 py-3 text-center transition-colors ease-in-out hover:bg-sky-400 lg:w-72 mt-7"
+                    class="rounded-xl bg-sky-500 px-5 py-3 text-center transition-colors ease-in-out hover:bg-sky-400 lg:w-72 mt-5"
                 >
                     Create an account
                 </a>
             </div>
+            <div class="absolute translate-x-1/2 hidden lg:block">
+                <img class="" src="/static/elements/hero.png" alt="" />
+            </div>
         </div>
     </section>
-
-    <section id="faq" aria-labelledby="faq-title" class="bg-transparent py-20 sm:py-32">
-        <div class="mx-auto max-w-7xl px-8 sm:px-6 lg:px-8">
-            <div class="mx-auto lg:mx-0">
-                <h2 class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
-                    Frequently asked questions
-                </h2>
-                <p class="mx-auto mt-4 text-center text-lg tracking-tight text-slate-700">
-                    If you can’t find what you’re looking for, email our support team and we will get back to you.
+    <section class="flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8 mt-20 mb-20">
+        <div class="flex flex-col items-center justify-center max-w-7xl w-full">
+            <div class="px-4 sm:px-6 md:text-center lg:px-8 flex flex-col gap-4 justify-center items-center">
+                <span
+                    class="w-fit border border-slate-200 bg-white text-slate-900 px-3 py-1 rounded-full font-medium inline-flex gap-2 justify-center items-center shadow-xl text-xs"
+                    ><img src="/static/elements/cards.svg" alt="" />FAQ</span
+                >
+                <h2 class="text-3xl font-semibold sm:text-[40px] max-w-2xl mt-5">Frequently Asked Questions</h2>
+                <p class="text-slate-500">
+                    If you can’t find what you’re looking for, email our support team and we wil get back to you.
                 </p>
             </div>
-            <ul role="list" class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3">
-                <li>
-                    <ul role="list" class="flex flex-col gap-y-8">
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">
-                                What is the early access version of Globalify?
-                            </h3>
-                            <p class="mt-4 text-slate-700">
-                                We’re still developing the platform, but we want to share what we have already built.
-                                That’s why we are launching an early access version with some of the planned
-                                functionality.
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">
-                                How much do you charge for the early access version?
-                            </h3>
-                            <p class="mt-4 text-slate-700">
-                                Early access costs $199 USD. And for that you get $500 worth of features.
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">What do I get for that?</h3>
-                            <ol class="mt-4 text-slate-700">
-                                <li>- A curated list of lead investors and VC firms from our search engine</li>
-                                <li>- An early access to our platform, while it’s still under development.</li>
-                                <li>- 3 months of our top-tier subscription after the end of the early access.</li>
-                                <li>- A tribute to you on our website as one of the founding users.</li>
-                            </ol>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul role="list" class="flex flex-col gap-y-8">
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">How long will the early access last?</h3>
-                            <p class="mt-4 text-slate-700">
-                                We don’t have an exact date, but we aim to launch in Q2 2024. Until that time we plan to
-                                update the platform weekly, if not daily!
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">How would you be using my money?</h3>
-                            <p class="mt-4 text-slate-700">
-                                We use all the money we get to build and grow Globalify further. That includes paying
-                                for the server infrastructure and giving salaries to our employees.
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">Can I get a refund?</h3>
-                            <p class="mt-4 text-slate-700">
-                                Yes! If you don’t like our service, we can offer you a full refund. No questions asked.
-                            </p>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul role="list" class="flex flex-col gap-y-8">
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">
-                                How do I sign up for the early access version?
-                            </h3>
-                            <p class="mt-4 text-slate-700">
-                                Fill out your details in the <a href="#payment" class="underline">form above</a>, and
-                                pay with Stripe, Apple Pay, or Google Pay, if it's still open.
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">
-                                Can I give feedback about something I don’t like?
-                            </h3>
-                            <p class="mt-4 text-slate-700">
-                                Yes, absolutely! We want to hear everything you have in mind because that helps us build
-                                a better product. You can reach us at
-                                <a class="underline" href="mailto:info@globalify.xyz">info@globalify.xyz</a>
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">
-                                Why are there only 100 spots for the early access version?
-                            </h3>
-                            <p class="mt-4 text-slate-700">
-                                We limit the number to 100 so we can pay close attention to what each user says. This
-                                helps us improve the tech to make the best product.
-                            </p>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
+            <div class="bg-slate-50 rounded-2xl w-full flex justify-center items-center flex-col gap-7 p-10 mt-10">
+                {% for i in range(10) %}
+                <article class="bg-white shadow-lg rounded-xl w-full p-8">
+                    <span class="font-medium text-xl font-['Lexend']">What is Globalify?</span>
+                    <p class="text-slate-400 mt-3">
+                        Globalify is a hub for entrepreneurs to connect with investors from around the world
+                    </p>
+                </article>
+                {% endfor %}
+            </div>
         </div>
     </section>
 </main>

@@ -1,158 +1,179 @@
-{% extends "layouts/layout_teaser.html" %} {% block title %}About us{% endblock %} {% block head %} {{ super() }} {%
-endblock %} {% block content %}
+{% extends "layouts/layout_teaser.html" %} {% block additional_scripts %}
+<script src="/static/scripts/cycle.js" defer></script>
+{% endblock %} {% block title %}About us{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content %}
 
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
-    <section class="mx-auto max-w-5xl px-8 pt-12 sm:px-12 sm:pt-20 md:pt-32 lg:px-8 lg:pt-20 xl:px-16">
-        <h1
-            class="mx-auto mb-14 max-w-2xl text-center text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl"
-        >
-            <span class="text-sky-500">Globalify's</span> mission and vision
-        </h1>
-        <p class="mx-auto max-w-2xl text-center text-lg text-slate-700">
-            Bridging global growth for startups everywhere, where every idea has the power to become a unicorn 🦄
-        </p>
-    </section>
-
     <section
-        class="mx-auto flex max-w-5xl flex-col items-start justify-start gap-5 px-8 pt-16 text-center sm:px-6 lg:flex-row lg:px-8 lg:pt-24"
+        class="flex flex-col items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8 mt-12 mb-20 max-w-5xl mx-auto"
     >
-        <article class="w-full text-start lg:w-2/5">
-            <h2 class="text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">Our Passion</h2>
-        </article>
-        <article class="w-full text-start lg:w-3/5">
-            <p class="text-lg text-slate-700">
-                We are all about igniting a world of exciting opportunities. We make the search for funding easy, while
-                keeping things professional.
-                <br /><br />
-                Globalify is more than a search engine; it's a matchmaker. We help businesses find their perfect
-                investor and guide venture capitals to discover high-quality deals.
-                <br /><br />
-                Our goal is to transform business dreams into thrilling realities and make the journey to success an
-                adventure for everyone!
-            </p>
-        </article>
-    </section>
-
-    <section
-        class="mx-auto flex max-w-5xl flex-col items-center justify-center gap-5 px-8 pt-12 text-center sm:px-6 lg:flex-row lg:px-8 lg:pt-20"
-    >
-        <img
-            class="aspect-[21/9] w-full rounded-lg object-cover object-right-top lg:rounded-3xl"
-            src="/static/elements/Team/group_photo.jpg"
-            alt=""
-        />
-    </section>
-
-    <section
-        class="mx-auto flex max-w-5xl flex-col items-start justify-center gap-5 px-8 pt-16 text-center sm:px-6 lg:flex-row lg:px-8 lg:pt-28"
-    >
-        <article class="flex flex-col gap-5 text-start">
-            <h2 class="text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">Our platform</h2>
-            <p class="text-lg text-slate-700">
-                Our search engine and launchpad is where innovative startups and amazing investors come together,
-                sparking connections that span the globe
-            </p>
-        </article>
-        <img class="w-full lg:w-3/5" src="/static/elements/globalify_hero.png" alt="" />
-    </section>
-
-    <section
-        class="mx-auto flex w-full max-w-5xl flex-col items-start justify-start gap-10 px-8 pt-16 text-start sm:px-6 lg:px-8 lg:pt-28"
-    >
-        <h2 class="text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">The what, the how, the who</h2>
-        <article class="flex flex-col items-stretch justify-between gap-y-10 lg:flex-row">
-            <div class="flex flex-col gap-2 p-0 lg:pr-3">
-                <h3 class="text-2xl font-medium">The what</h3>
-                <p class="text-lg text-slate-700">
-                    Globalify helps you search for and connect with potential investors. Whether you're a startup or a
-                    growing business, our search engine can help you.
+        <div class="flex flex-col items-center justify-center max-w-7xl w-full">
+            <div class="px-4 sm:px-6 md:text-center lg:px-8 flex flex-col gap-4 justify-center items-center">
+                <span
+                    class="w-fit border border-slate-200 bg-white text-slate-900 px-3 py-1 rounded-full font-medium inline-flex gap-2 justify-center items-center shadow-xl text-xs"
+                    ><img src="/static/elements/eye.svg" alt="" />Vision</span
+                >
+                <h2 class="text-3xl font-semibold sm:text-[40px] max-w-2xl mt-5">Globalify's mission and vision</h2>
+                <p class="text-slate-500">
+                    If you can’t find what you’re looking for, email our support team and we wil get back to you.
                 </p>
             </div>
-            <div class="flex flex-col gap-2 p-0 lg:px-3">
-                <h3 class="text-2xl font-medium">The how</h3>
+        </div>
+        <div class="relative xl:mb-64">
+            <img
+                class="aspect-[21/9] w-full rounded-lg object-cover object-right-top lg:rounded-3xl mt-8"
+                src="/static/elements/Team/group_photo.jpg"
+                alt=""
+            />
+            <article
+                class="xl:w-9/12 bg-white shadow-lg p-12 rounded-xl xl:absolute bottom-0 xl:translate-y-3/4 xl:-translate-x-1/4"
+            >
+                <h2 class="text-3xl font-medium text-slate-900 sm:text-4xl mb-5">Our Passion</h2>
                 <p class="text-lg text-slate-700">
-                    Just type in what you're looking for, and our search engine will show you a list of investors and
-                    venture capitals that might be interested in your business.
+                    We are all about igniting a world of exciting opportunities. We make the search for funding easy,
+                    while keeping things professional.
+                    <br /><br />
+                    Globalify is more than a search engine; it's a matchmaker. We help businesses find their perfect
+                    investor and guide venture capitals to discover high-quality deals.
+                    <br /><br />
+                    Our goal is to transform business dreams into thrilling realities and make the journey to success an
+                    adventure for everyone!
                 </p>
-            </div>
-            <div class="flex flex-col gap-2 p-0 lg:pl-3">
-                <h3 class="text-2xl font-medium">The who</h3>
-                <p class="text-lg text-slate-700">
-                    Anyone looking for funding! It doesn't matter if you're just starting out or have been in business
-                    for a while. Globalify is here to help.
-                </p>
-            </div>
-        </article>
+            </article>
+        </div>
     </section>
 
-    <section id="team" class="z-10 flex flex-col items-center gap-12 px-8 pt-28">
-        <div class="text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">The team</div>
-        <div class="flex flex-col items-start justify-center gap-x-12 gap-y-7 lg:flex-row">
-            <div class="flex flex-col gap-2">
-                <a href="/arisa" class="mb-1.5 h-[400px] w-[300px] overflow-hidden rounded-xl bg-zinc-300">
+    <section
+        class="bg-[#1C1336] mx-auto flex w-full flex-col items-start justify-start gap-10 px-8 text-start text-white mt-10 py-16"
+    >
+        <div class="flex w-full max-w-7xl justify-center items-start mx-auto gap-10 lg:flex-row flex-col">
+            <div class="w-full flex flex-col font-['Lexend']">
+                <blockquote class="text-4xl max-w-lg">
+                    “Globalify is more than just a search engine; it's your gateway to new opportunities and growth.”
+                </blockquote>
+                <hr class="border-slate-700 lg:my-16 my-8" />
+                <div class="flex gap-2">
                     <img
-                        class="transform rounded-xl transition duration-[400ms] hover:scale-105"
-                        src="/static/elements/Team/Arisa.JPG"
+                        class="size-12 rounded-full object-cover object-top"
+                        src="/static/elements/Team/Jennifer.JPG"
                         alt=""
                     />
-                </a>
-                <p>
-                    <span class="text-2xl sm:text-3xl">Arisa Ueno</span>
-                    <br />
-                    <span class="text-xl sm:text-2xl">CEO</span>
-                </p>
+                    <div>
+                        <span class="font-['Poppins']">Jennifer Cheng-Lo</span>
+                        <br />
+                        <span class="text-slate-400">CGO of Globalify</span>
+                    </div>
+                </div>
             </div>
-            <div class="flex flex-col gap-2">
-                <a href="/eric" class="mb-1.5 h-[400px] w-[300px] overflow-hidden rounded-xl bg-zinc-300">
-                    <img
-                        class="transform rounded-xl transition duration-[400ms] hover:scale-105"
-                        src="/static/elements/Team/Eric.JPG"
-                        alt=""
-                    />
-                </a>
-                <p>
-                    <span class="text-2xl sm:text-3xl">Eric Fung</span>
-                    <br />
-                    <span class="text-xl sm:text-2xl">COO</span>
-                </p>
-            </div>
-            <div class="flex flex-col gap-2">
-                <a href="/arstan" class="mb-1.5 h-[400px] w-[300px] overflow-hidden rounded-xl bg-zinc-300">
-                    <img
-                        class="transform rounded-xl transition duration-[400ms] hover:scale-105"
-                        src="/static/elements/Team/Arstan.JPG"
-                        alt=""
-                    />
-                </a>
-                <p>
-                    <span class="text-2xl sm:text-3xl">Arstan Usenov</span>
-                    <br />
-                    <span class="text-xl sm:text-2xl">CTO</span>
-                </p>
+            <div class="w-full flex flex-col items-stretch gap-8 mt-12 lg:mt-0">
+                <h2 class="bg-gradient-to-r from-[#0EA5E9] to-[#DE7CC8] text-transparent bg-clip-text w-fit text-3xl">
+                    The what, the how, the who
+                </h2>
+                <div class="flex gap-5" id="thelist">
+                    <article id="thewhat" class="border border-slate-700 rounded-2xl p-6 w-full sm:max-w-xl shrink-0">
+                        <span class="font-['Lexend'] font-medium text-xl">The what</span>
+                        <p class="text-white/30 mt-2">
+                            Globalify helps you search for and connect with potential investors. Whether you're a
+                            startup or a growing business, our search engine can help you.
+                        </p>
+                    </article>
+                    <article id="thehow" class="border border-slate-700 rounded-2xl p-6 w-full sm:max-w-xl shrink-0">
+                        <span class="font-['Lexend'] font-medium text-xl">The how</span>
+                        <p class="text-white/30 mt-2">
+                            Just type in what you're looking for, and our search engine will show you a list of
+                            investors and venture capitals that might be interested in your business.
+                        </p>
+                    </article>
+                    <article id="thewho" class="border border-slate-700 rounded-2xl p-6 w-full sm:max-w-xl shrink-0">
+                        <span class="font-['Lexend'] font-medium text-xl">The who</span>
+                        <p class="text-white/30 mt-2">
+                            Anyone looking for funding! It doesn't matter if you're just starting out or have been in
+                            business for a while. Globalify is here to help.
+                        </p>
+                    </article>
+                </div>
+                <div class="flex gap-2">
+                    <button
+                        onclick="cycleBack()"
+                        class="rounded-full border border-white size-8 flex justify-center items-center hover:bg-pink-400 transition-colors ease-in"
+                    >
+                        <img class="size-4" src="/static/elements/arrow-left.svg" alt="" />
+                    </button>
+                    <button
+                        onclick="cycleForward()"
+                        class="rounded-full border border-white size-8 flex justify-center items-center hover:bg-cyan-500 transition-colors ease-in-out"
+                    >
+                        <img class="size-4" src="/static/elements/arrow-right.svg" alt="" />
+                    </button>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="relative mx-auto max-w-2xl overflow-hidden bg-transparent px-8 pt-28 lg:max-w-4xl lg:px-8">
-        <img class="mx-auto h-12" src="/static/elements/logo-black.png" alt="" />
-        <figure class="mt-10">
-            <blockquote class="text-center text-xl font-semibold text-gray-900 sm:text-2xl">
-                <p>“Globalify is more than just a search engine; it's your gateway to new opportunities and growth.”</p>
-            </blockquote>
-            <figcaption class="mt-10">
-                <img class="mx-auto h-10 w-10 rounded-full" src="/static/elements/Team/arisa_square.JPG" alt="" />
-                <div class="mt-4 flex items-center justify-center space-x-3 text-base">
-                    <div class="font-semibold text-gray-900">Arisa Ueno</div>
-                    <svg viewBox="0 0 2 2" width="3" height="3" aria-hidden="true" class="fill-gray-900">
-                        <circle cx="1" cy="1" r="1" />
-                    </svg>
-                    <div class="text-gray-600">CEO of Globalify</div>
-                </div>
-            </figcaption>
-        </figure>
+    <section
+        class="flex flex-col items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8 mt-12 mb-20 max-w-7xl w-full mx-auto"
+    >
+        <div class="flex flex-col items-center justify-center max-w-7xl w-full">
+            <div class="px-4 sm:px-6 md:text-center lg:px-8 flex flex-col gap-4 justify-center items-center">
+                <span
+                    class="w-fit border border-slate-200 bg-white text-slate-900 px-3 py-1 rounded-full font-medium inline-flex gap-2 justify-center items-center shadow-xl text-xs"
+                    ><img src="/static/elements/people.svg" alt="" />Team</span
+                >
+                <h2 class="text-3xl font-semibold sm:text-[40px] max-w-2xl mt-5">Our team</h2>
+            </div>
+        </div>
+        <div class="relative grid grid-cols-1 lg:grid-cols-3 gap-3 w-full">
+            <article class="shadow-lg rounded-2xl p-14 w-full flex justify-center items-center flex-col">
+                <img
+                    class="bg-fuchsia-300 w-80 aspect-square rounded-xl object-cover object-top"
+                    src="/static/elements/Team/Eric.JPG"
+                    alt=""
+                />
+                <figcaption class="flex-col flex justify-center items-center mt-5">
+                    <span class="font-semibold text-xl">Eric Fung</span>
+                    <span class="text-slate-500">CFO</span>
+                </figcaption>
+                <!-- <div class="flex gap-4">
+                    <a class="shadow-xl rounded-full size-7" href="">F</a>
+                    <a class="shadow-xl rounded-full size-7" href="">F</a>
+                    <a class="shadow-xl rounded-full size-7" href="">F</a>
+                </div> -->
+            </article>
+            <article class="shadow-lg rounded-2xl p-14 w-full flex justify-center items-center flex-col">
+                <img
+                    class="bg-fuchsia-300 w-80 aspect-square rounded-xl object-cover"
+                    src="/static/elements/Team/Jennifer.JPG"
+                    alt=""
+                />
+                <figcaption class="flex-col flex justify-center items-center mt-5">
+                    <span class="font-semibold text-xl">Jennifer Cheng-Lo</span>
+                    <span class="text-slate-500">CGO</span>
+                </figcaption>
+                <!-- <div class="flex gap-4">
+                    <a class="shadow-xl rounded-full size-7" href="">F</a>
+                    <a class="shadow-xl rounded-full size-7" href="">F</a>
+                    <a class="shadow-xl rounded-full size-7" href="">F</a>
+                </div> -->
+            </article>
+            <article class="shadow-lg rounded-2xl p-14 w-full flex justify-center items-center flex-col">
+                <img
+                    class="bg-fuchsia-300 w-80 aspect-square rounded-xl object-cover"
+                    src="/static/elements/Team/Arstan.JPG"
+                    alt=""
+                />
+                <figcaption class="flex-col flex justify-center items-center mt-5">
+                    <span class="font-semibold text-xl">Arstan Usenov</span>
+                    <span class="text-slate-500">CTO</span>
+                </figcaption>
+                <!-- <div class="flex gap-4">
+                    <a class="shadow-xl rounded-full size-7" href="">F</a>
+                    <a class="shadow-xl rounded-full size-7" href="">F</a>
+                    <a class="shadow-xl rounded-full size-7" href="">F</a>
+                </div> -->
+            </article>
+        </div>
     </section>
 
-    <section class="group mx-auto max-w-7xl px-8 py-28 sm:px-12 lg:px-8 xl:px-16">
+    <section class="group mx-auto max-w-7xl px-8 py-28 sm:px-12 lg:px-8 xl:px-16 mb-32">
         <h2 class="text-center text-lg font-medium text-slate-900">Want to talk?</h2>
         <div class="mt-4 text-center transition-all duration-500 group-hover:scale-105">
             <span

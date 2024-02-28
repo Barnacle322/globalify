@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import url_for
-from sqlalchemy import func
 
 from src.project import db
 from src.project.extensions import oauth

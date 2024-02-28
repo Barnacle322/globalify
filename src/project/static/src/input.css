@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @font-face {
+    font-family: "Lexend";
+    src: url("../elements/fonts/Lexend.ttf");
+}
+
+@font-face {
     font-family: "Poppins";
     src: url("/static/elements/fonts/Poppins-Black.ttf");
     font-weight: 900;

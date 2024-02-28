@@ -134,9 +134,6 @@ def test_settings_anonymous_get(client):
 
 
 def test_settings_unverified_get(client, unverified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -158,9 +155,6 @@ def test_settings_unverified_get(client, unverified_user, app, monkeypatch):
 
 
 def test_settings_verified_get(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -186,9 +180,6 @@ def test_settings_security_anonymous_get(client):
 
 
 def test_settings_security_unverified_get(client, unverified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -209,9 +200,6 @@ def test_settings_security_unverified_get(client, unverified_user, app, monkeypa
 
 
 def test_settings_security_verified_get(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -241,9 +229,6 @@ def test_settings_plan_anonymous_get(client):
 
 
 def test_settings_plan_unverified_get(client, unverified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -265,9 +250,6 @@ def test_settings_plan_unverified_get(client, unverified_user, app, monkeypatch)
 
 
 def test_settings_plan_verified_get(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -305,9 +287,6 @@ def test_settings_billing_unverified_get(client, unverified_user, app, monkeypat
                 "hosted_invoice_url": "https://example.com/invoice/123",
             }
         ]
-        app.config["SERVER_NAME"] = "localhost"
-        app.config["APPLICATION_ROOT"] = ""
-        app.config["PREFERRED_URL_SCHEME"] = "http"
         with app.app_context():
             mock_authorize = MagicMock(
                 return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -342,9 +321,6 @@ def test_settings_billing_verified_get(client, verified_user, app, monkeypatch):
                 "hosted_invoice_url": "https://example.com/invoice/123",
             }
         ]
-        app.config["SERVER_NAME"] = "localhost"
-        app.config["APPLICATION_ROOT"] = ""
-        app.config["PREFERRED_URL_SCHEME"] = "http"
         with app.app_context():
             mock_authorize = MagicMock(
                 return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -364,9 +340,6 @@ def test_settings_billing_verified_get(client, verified_user, app, monkeypatch):
 
 
 def test_anonymous_user_change_personal_info(client, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         response = client.post(
             "/settings/personal-info",
@@ -386,9 +359,6 @@ def test_anonymous_user_change_personal_info(client, app, monkeypatch):
 
 
 def test_unverified_user_change_personal_info(client, unverified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -420,9 +390,6 @@ def test_unverified_user_change_personal_info(client, unverified_user, app, monk
 
 
 def test_verified_user_change_personal_info(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -447,7 +414,7 @@ def test_verified_user_change_personal_info(client, verified_user, app, monkeypa
         assert response.status_code == 200
         assert b"Personal info successfully changed." in response.data
 
-        #TODO Fix this
+        # TODO Fix this
         updated_user = User.get_by_id(1)
         assert updated_user is not None
         assert updated_user.user_info.first_name == "NewFirstName"  # type: ignore
@@ -457,9 +424,6 @@ def test_verified_user_change_personal_info(client, verified_user, app, monkeypa
 
 
 def test_verified_user_change_personal_info_empty_first_name(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -483,9 +447,6 @@ def test_verified_user_change_personal_info_empty_first_name(client, verified_us
 
 
 def test_verified_user_change_personal_info_empty_last_name(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -509,9 +470,6 @@ def test_verified_user_change_personal_info_empty_last_name(client, verified_use
 
 
 def test_verified_user_change_personal_info_empty_bio(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -536,9 +494,6 @@ def test_verified_user_change_personal_info_empty_bio(client, verified_user, app
 
 
 def test_verified_user_change_personal_info_empty_username(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -561,10 +516,9 @@ def test_verified_user_change_personal_info_empty_username(client, verified_user
         assert b"Username cannot be empty." in response.data
 
 
-def test_verified_user_change_personal_info_taken_username(client, verified_user, username_taken_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
+def test_verified_user_change_personal_info_taken_username(
+    client, verified_user, username_taken_user, app, monkeypatch
+):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -588,9 +542,6 @@ def test_verified_user_change_personal_info_taken_username(client, verified_user
 
 
 def test_google_callback(app, client, monkeypatch, verified_user):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -604,9 +555,6 @@ def test_google_callback(app, client, monkeypatch, verified_user):
 
 
 def test_delete_account(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -639,9 +587,6 @@ def test_settings_company_anonymous_get(client):
 
 
 def test_settings_company_unverified_get(client, unverified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -663,9 +608,6 @@ def test_settings_company_unverified_get(client, unverified_user, app, monkeypat
 
 
 def test_settings_company_verified_get(client, new_user_with_company, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
@@ -683,9 +625,6 @@ def test_settings_company_verified_get(client, new_user_with_company, app, monke
 
 
 def test_verified_user_without_company_get(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -703,9 +642,6 @@ def test_verified_user_without_company_get(client, verified_user, app, monkeypat
 
 
 def test_verified_user_change_company_empty_name(client, new_user_with_company, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
@@ -729,9 +665,6 @@ def test_verified_user_change_company_empty_name(client, new_user_with_company, 
 
 
 def test_verified_user_change_company_empty_industry_and_round(client, new_user_with_company, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
@@ -756,9 +689,6 @@ def test_verified_user_change_company_empty_industry_and_round(client, new_user_
 
 
 def test_verified_user_change_company_empty_country(client, new_user_with_company, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
@@ -783,9 +713,6 @@ def test_verified_user_change_company_empty_country(client, new_user_with_compan
 
 
 def test_verified_user_change_company_valid_data(client, new_user_with_company, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}

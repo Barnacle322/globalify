@@ -8,6 +8,9 @@ from ..project import create_app, db
 def app():
     app = create_app("sqlite:///test_db.sqlite")
     app.config.update({"WTF_CSRF_ENABLED": False, "DEBUG_TB_ENABLED": False})
+    app.config["SERVER_NAME"] = "localhost"
+    app.config["APPLICATION_ROOT"] = ""
+    app.config["PREFERRED_URL_SCHEME"] = "http"
 
     with app.app_context():
         db.drop_all()

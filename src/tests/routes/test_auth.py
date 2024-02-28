@@ -15,6 +15,7 @@ from src.project.utils.errors.error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
+from src.project.utils.google_helpers import google_pubsub
 
 
 @pytest.fixture()
@@ -41,6 +42,19 @@ def verified_user(app):
         )
         db.session.add_all([user_info, user_payment])
         db.session.commit()
+
+        company = Company(
+            name="Test Company",
+            description="Test description",
+            number_of_employees=10,
+            website_url="https://www.example.com",
+            country_id=1,
+            preferred_round_id=1,
+            industry_id=1,
+            user=user,
+        )
+        db.session.add(company)
+        db.session.commit()
         return user
 
 
@@ -49,7 +63,7 @@ def unverified_incomplete_user(app):
     with app.app_context():
         user = User(
             oauth_provider=OauthProvider.GOOGLE,
-            email="janedoe@example.com",
+            email="imamidinov.agahan06@gmail.com",
         )
         db.session.add(user)
         db.session.commit()
@@ -90,9 +104,6 @@ def test_login_page(client):
 
 
 def test_unverified_user_login(client, unverified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -113,9 +124,6 @@ def test_unverified_user_login(client, unverified_user, app, monkeypatch):
 
 
 def test_verified_user_login(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -147,9 +155,6 @@ def test_onboarding_anonymous_get(client, app):
 
 
 def test_onboarding_authenticated_user(client, unverified_incomplete_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "janedoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -165,26 +170,22 @@ def test_onboarding_authenticated_user(client, unverified_incomplete_user, app, 
         assert b"We just need some more info" in response.data
 
 
-def test_onboarding_post_valid_data(client, unverified_incomplete_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
+def test_onboarding_post_valid_data(client, app, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "janedoe@example.com", "given_name": "Test", "family_name": "User"}}
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "John", "family_name": "Doe"}}
         )
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(target=google_pubsub, name="send_event", value=MagicMock())
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="janedoe@example.com"), follow_redirects=True)
 
         response = client.post(
             "/onboarding",
             data={
-                "first_name": "Jane",
+                "first_name": "John",
                 "last_name": "Doe",
-                "username": "janedoe",
+                "username": "johndoe",
                 "company_name": "Globalify",
             },
             follow_redirects=True,
@@ -198,10 +199,11 @@ def test_onboarding_post_valid_data(client, unverified_incomplete_user, app, mon
         assert b"Verify" in response.data
 
         user = User.get_by_id(1)
+
         assert user.user_info.is_complete  # type: ignore
-        assert user.user_info.first_name == "Jane"  # type: ignore
+        assert user.user_info.first_name == "John"  # type: ignore
         assert user.user_info.last_name == "Doe"  # type: ignore
-        assert user.user_info.username == "janedoe"  # type: ignore
+        assert user.user_info.username == "johndoe"  # type: ignore
 
         company = Company.get_by_id(1)
         assert company is not None
@@ -209,9 +211,6 @@ def test_onboarding_post_valid_data(client, unverified_incomplete_user, app, mon
 
 
 def test_onboarding_incomplete(client, unverified_incomplete_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "janedoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -238,9 +237,6 @@ def test_onboarding_incomplete(client, unverified_incomplete_user, app, monkeypa
 
 
 def test_nickname_taken(client, unverified_incomplete_user, unverified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "janedoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -267,9 +263,6 @@ def test_nickname_taken(client, unverified_incomplete_user, unverified_user, app
 
 
 def test_logout_endpoint(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -294,10 +287,7 @@ def test_username_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_username_authenticated_get(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
+def test_username_verified_get(client, verified_user, app, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -321,9 +311,6 @@ def test_verify_email_anonymous_get(client):
 
 
 def test_verify_email_incomplete_user_get(client, unverified_incomplete_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -340,9 +327,6 @@ def test_verify_email_incomplete_user_get(client, unverified_incomplete_user, ap
 
 
 def test_verify_email_invalid_token(client, unverified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -359,10 +343,8 @@ def test_verify_email_invalid_token(client, unverified_user, app, monkeypatch):
         assert b"The code you have put in is invalid" in response.data
 
 
+# TODO fix this test
 def test_verify_email_expired_token(client, app, unverified_user, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -373,7 +355,9 @@ def test_verify_email_expired_token(client, app, unverified_user, monkeypatch):
 
         client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
         expired_verification = EmailVerification(user_id=1)
-        expired_verification.created_at = datetime.datetime.now() + datetime.timedelta(minutes=6)  # Установка времени создания более 5 минут назад
+        expired_verification.created_at = datetime.datetime.now() + datetime.timedelta(
+            minutes=6
+        )  # Установка времени создания более 5 минут назад
         db.session.add(expired_verification)
         db.session.commit()
 
@@ -386,9 +370,6 @@ def test_verify_email_expired_token(client, app, unverified_user, monkeypatch):
 
 
 def test_verify_email_already_verified(client, app, verified_user, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -410,9 +391,6 @@ def test_verify_email_already_verified(client, app, verified_user, monkeypatch):
 
 
 def test_verify_email_already_used(client, app, verified_user, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -434,10 +412,7 @@ def test_verify_email_already_used(client, app, verified_user, monkeypatch):
         assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
 
 
-def test_verify_email_mismatch_user(client, app, unverified_user, unverified_incomplete_user,monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
+def test_verify_email_mismatch_user(client, app, unverified_user, unverified_incomplete_user, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -459,9 +434,6 @@ def test_verify_email_mismatch_user(client, app, unverified_user, unverified_inc
 
 
 def test_resend_verification_email_user_not_found(client, unverified_user, monkeypatch, app):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -479,9 +451,6 @@ def test_resend_verification_email_user_not_found(client, unverified_user, monke
 
 
 def test_resend_verification_email_already_verified(client, verified_user, app, monkeypatch):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -491,6 +460,7 @@ def test_resend_verification_email_already_verified(client, verified_user, app, 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
         client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
         response = client.get("/resend-verification/1", follow_redirects=True)
 
         assert response.status_code == 200
@@ -498,57 +468,133 @@ def test_resend_verification_email_already_verified(client, verified_user, app, 
         assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
 
 
-def test_resend_verification_email_success(client, user_with_complete_user_info, app):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
+def test_resend_verification_very_quick(client, unverified_user, app, monkeypatch):
     with app.app_context():
-        client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-        user = UserRegular.get_by_id(1)
-        assert user is not None
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
-        verification_token = "valid_token"
-        new_verification = EmailVerification(user_id=user.id, token=verification_token)
-        db.session.add(new_verification)
-        db.session.commit()
-        assert new_verification is not None
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        response = client.get("/resend-verification/1")
-        assert response.status_code == 302
-        assert response.location == "/search/investors"
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
-        updated_verification = EmailVerification.get_by_token(verification_token)
-        assert updated_verification is not None
-        assert updated_verification.is_expired
+        client.get("/resend-verification/1", follow_redirects=True)
 
-        updated_user = UserRegular.get_by_id(1)
-        assert updated_user is not None
-        assert updated_user.is_verified is False
+        response = client.get("/resend-verification/1", follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Hey! Slow down.." in response.data
+        assert b"You can only request a new code every minute." in response.data
 
 
-def test_verify_email_success(client, app, user_with_complete_user_info):
+def test_resend_verification_email_success(client, unverified_user, app, monkeypatch):
     with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        response = client.get("/resend-verification/1", follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Verification code sent!" in response.data
+        assert (
+            b"Please check your email for the new verification code. It may take a few minutes to arrive."
+            in response.data
+        )
+
+
+def test_verify_email_success(client, app, unverified_user, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
         valid_verification = EmailVerification(user_id=1)
         db.session.add(valid_verification)
         db.session.commit()
 
-        response = client.get(f"/verify-email/?uuid={valid_verification.token}")
-        assert b"Email Verified" in response.data
-        assert response.status_code == 200
+        response = client.get(f"/verify-email?uuid={valid_verification.token}", follow_redirects=True)
 
-        updated_user = UserRegular.get_by_id(1)
+        assert response.status_code == 200
+        assert b"View more" in response.data
+        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+
+        updated_user = User.get_by_id(1)
         assert updated_user is not None
-        assert updated_user.is_verified is True
+        assert updated_user.is_verified
 
         updated_verification = EmailVerification.get_by_token(valid_verification.token)
         assert updated_verification is not None
         assert updated_verification.is_used
 
 
+def test_expanded_onboarding_anonymous_user_get(client):
+    response = client.get("/expanded-onboarding", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Welcome!" in response.data
+    assert b"Sign in with your social media" in response.data
+    assert b"Oops! Looks like you aren&#39;t logged in" in response.data
+
+
+def test_expanded_onboarding_unverified_user_get(client, unverified_user, app, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        response = client.get("/expanded-onboarding", follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Email Verification" in response.data
+        assert (
+            b"A verification email has been sent to you! Click the link or input a code to verify your email address."
+            in response.data
+        )
+        assert b"Verify" in response.data
+
+
+def test_expanded_onboarding_verified_user_get(client, verified_user, app, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        response = client.get("/expanded-onboarding", follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Personalize your experience" in response.data
+        assert b"Add your personal and company information to get started with Globalify." in response.data
+
+
 @pytest.fixture()
 def linkedin_user_oauth(app):
     with app.app_context():
-        user = UserOauth(email="linkedinuseroauth@example.com", oauth_provider=OauthProvider.LINKEDIN, is_verified=True)
+        user = User(
+            oauth_provider=OauthProvider.LINKEDIN,
+            email="linkedinuseroauth@example.com",
+            is_verified=True,
+        )
         db.session.add(user)
         user_info = UserInfo(
             first_name="user",
@@ -578,8 +624,9 @@ def test_linkedin_callback(client, linkedin_user_oauth, app):
             }
 
             response = client.get(url_for("auth.linkedin_callback"), follow_redirects=True)
-
             assert response.status_code == 200
+            assert b"View more" in response.data
+            assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
             assert b"Search" in response.data
 
 
@@ -604,7 +651,7 @@ def test_linkedin_callback_authorization_failure(client, app):
             assert OAUTH_NO_EMAIL in response.text
 
 
-def test_linkedin_with_existing_google_oauth_user(client, google_user_oauth, app):
+def test_linkedin_with_existing_google_oauth_user(client, verified_user, app):
     app.config["SERVER_NAME"] = "localhost"
     app.config["APPLICATION_ROOT"] = ""
     app.config["PREFERRED_URL_SCHEME"] = "http"
@@ -614,7 +661,7 @@ def test_linkedin_with_existing_google_oauth_user(client, google_user_oauth, app
         ) as mock_api_call:
             mock_oauth.authorize_access_token.return_value = {"access_token": "mock_token"}
             mock_api_call.return_value = {
-                "elements": [{"handle~": {"emailAddress": "janedoe@example.com"}}],
+                "elements": [{"handle~": {"emailAddress": "johndoe@example.com"}}],
                 "localizedFirstName": "user",
                 "localizedLastName": "oauth",
             }
@@ -624,23 +671,25 @@ def test_linkedin_with_existing_google_oauth_user(client, google_user_oauth, app
             assert OAUTH_MISMATCHED_PROVIDER in response.text
 
 
-def test_google_callback(app, client, monkeypatch, google_user_oauth):
+def test_google_callback(app, client, monkeypatch, verified_user):
     app.config["SERVER_NAME"] = "localhost"
     app.config["APPLICATION_ROOT"] = ""
     app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "janedoe@example.com", "given_name": "Test", "family_name": "User"}}
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
         )
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
         assert response.status_code == 200
+        assert b"View more" in response.data
+        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
         assert b"Profile" in response.data
 
 
-def test_google_callback_user_info_failure(app, client, monkeypatch, google_user_oauth):
+def test_google_callback_user_info_failure(app, client, monkeypatch, verified_user):
     app.config["SERVER_NAME"] = "localhost"
     app.config["APPLICATION_ROOT"] = ""
     app.config["PREFERRED_URL_SCHEME"] = "http"
@@ -654,7 +703,7 @@ def test_google_callback_user_info_failure(app, client, monkeypatch, google_user
         assert OAUTH_NO_USER_INFO in response.text
 
 
-def test_google_callback_user_info_no_email(app, client, monkeypatch, google_user_oauth):
+def test_google_callback_user_info_no_email(app, client, monkeypatch, verified_user):
     app.config["SERVER_NAME"] = "localhost"
     app.config["APPLICATION_ROOT"] = ""
     app.config["PREFERRED_URL_SCHEME"] = "http"

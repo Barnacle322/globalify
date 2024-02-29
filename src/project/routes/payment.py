@@ -284,17 +284,6 @@ def waitlist(email: str, first_name: str, last_name: str, user: User):
     db.session.add(notification)
     db.session.commit()
 
-    notification = Notification(
-        user=user,
-        json_data=NotificationLayout(
-            title="Payment successful!",
-            msg="Thank you for supporting us!",
-        ).get_json(),
-        destination=NotificationDestination.SEARCH,
-    )
-    db.session.add(notification)
-    db.session.commit()
-
     return redirect(checkout_session.url, code=303)  # type: ignore
 
 
@@ -638,6 +627,22 @@ def new_waitlist(data_object):
         customer_name=customer_name,
     )
     db.session.add(new_waitlist_charge)
+    db.session.commit()
+
+    user = User.get_by_email(customer_email)
+
+    if not user:
+        return jsonify(success=False, message="No user found")
+
+    notification = Notification(
+        user=user,
+        json_data=NotificationLayout(
+            title="Payment successful!",
+            msg="Thank you for supporting us!",
+        ).get_json(),
+        destination=NotificationDestination.SEARCH,
+    )
+    db.session.add(notification)
     db.session.commit()
 
     google_pubsub.send_event(

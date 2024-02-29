@@ -112,6 +112,7 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 @main.get("/")
 def index():
     posts = parse_medium_html()
+    # posts = []
     return render_template("index.html", posts=posts)
 
 

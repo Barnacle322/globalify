@@ -569,6 +569,33 @@ def test_expanded_onboarding_unverified_user_get(client, unverified_user, app, m
         assert b"Verify" in response.data
 
 
+def test_expanded_onboarding_post_empty_data(client, verified_user, app, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        response = client.post(
+            "/expanded-onboarding",
+            data=dict(
+                company_name="",
+                industry="",
+                round="",
+                country="",
+                website="",
+            ),
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Please fill out all fields." in response.data
+
+
 def test_expanded_onboarding_verified_user_get(client, verified_user, app, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
@@ -581,6 +608,36 @@ def test_expanded_onboarding_verified_user_get(client, verified_user, app, monke
         client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.get("/expanded-onboarding", follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Personalize your experience" in response.data
+        assert b"Add your personal and company information to get started with Globalify." in response.data
+
+
+def test_expanded_onboarding_post_valid_data(client, verified_user, app, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={
+                "userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}
+            }
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        response = client.post(
+            "/expanded-onboarding",
+            data=dict(
+                company_name="Globalify",
+                industry="AI",
+                round="SEED",
+                country="United States",
+                website="https://globalify.com",
+            ),
+            follow_redirects=True,
+        )
 
         assert response.status_code == 200
         assert b"Personalize your experience" in response.data

@@ -182,7 +182,6 @@ def test_company_profile_unverified_get(client, unverified_user, app, monkeypatc
         assert b"Verify" in response.data
 
 
-
 def test_company_profile_authenticated_without_company_get(client, verified_user, app, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(

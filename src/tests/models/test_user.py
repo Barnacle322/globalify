@@ -47,7 +47,7 @@ def new_company(app):
             user_id=1,
             description="A very cool company",
             number_of_employees=3,
-            website="https://globalify.xyz",
+            website_url="https://globalify.xyz",
             country_id=235,
             preferred_round_id=1,
             industry_id=1,
@@ -96,25 +96,25 @@ def test_user_info(new_user_oauth, app):
         assert user_info
         assert user_infos and len(user_infos) == 1
 
-        assert user_info.first_name == "John"
+        assert user_info.first_name == "Jane"
         assert user_info.last_name == "Doe"
-        assert user_info.username == "johndoe"
-        assert user_info.linkedin_url == "https://linkedin.com/in/johndoe"
-        assert user_info.twitter_url == "https://twitter.com/johndoe"
-        assert user_info.instagram_url == "https://instagram.com/johndoe"
+        assert user_info.username == "janedoe"
+        assert user_info.linkedin_url == "https://linkedin.com/in/janedoe"
+        assert user_info.twitter_url == "https://twitter.com/janedoe"
+        assert user_info.instagram_url == "https://instagram.com/janedoe"
         assert user_info.bio == "I'm a cool person"
         assert user_info.picture_url is None
 
-        assert UserInfo.is_taken("johndoe")
-        assert not UserInfo.is_taken("janedoe")
+        assert UserInfo.is_taken("janedoe")
+        assert not UserInfo.is_taken("johndoe")
         assert user_info.sanitize() == {
             "user_id": 1,
-            "username": "johndoe",
-            "first_name": "John",
+            "username": "janedoe",
+            "first_name": "Jane",
             "last_name": "Doe",
-            "linkedin": "https://linkedin.com/in/johndoe",
-            "instagram": "https://instagram.com/johndoe",
-            "twitter": "https://twitter.com/johndoe",
+            "linkedin": "https://linkedin.com/in/janedoe",
+            "instagram": "https://instagram.com/janedoe",
+            "twitter": "https://twitter.com/janedoe",
             "bio": "I'm a cool person",
             "pfp": None,
         }
@@ -162,7 +162,7 @@ def test_company(new_user_oauth, new_company, app):
         assert company.user_id == 1
         assert company.description == "A very cool company"
         assert company.number_of_employees == 3
-        assert company.website == "https://globalify.xyz"
+        assert company.website_url == "https://globalify.xyz"
         assert company.country_id == 235
         assert company.preferred_round_id == 1
         assert company.industry_id == 1

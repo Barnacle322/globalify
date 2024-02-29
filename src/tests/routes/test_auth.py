@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import url_for
+from freezegun import freeze_time
 
 from src.project import db
 from src.project.extensions import oauth
@@ -343,7 +344,7 @@ def test_verify_email_invalid_token(client, unverified_user, app, monkeypatch):
         assert b"The code you have put in is invalid" in response.data
 
 
-# TODO fix this test
+@freeze_time("2024-02-29 12:00:00")
 def test_verify_email_expired_token(client, app, unverified_user, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
@@ -355,18 +356,13 @@ def test_verify_email_expired_token(client, app, unverified_user, monkeypatch):
 
         client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
         expired_verification = EmailVerification(user_id=1)
-        expired_verification.created_at = datetime.datetime.now() + datetime.timedelta(
-            minutes=6
-        )  # Установка времени создания более 5 минут назад
         db.session.add(expired_verification)
         db.session.commit()
-
-        print(expired_verification.is_expired)
-        response = client.get(f"/verify-email?uuid={expired_verification.token}", follow_redirects=True)
-        # print(response.data)
-        assert b"Error" in response.data
-        assert b"Email verification code has expired." in response.data
-        assert response.status_code == 200
+        with freeze_time():
+            response = client.get(f"/verify-email?uuid={expired_verification.token}", follow_redirects=True)
+            assert b"Error" in response.data
+            assert b"Email verification code has expired." in response.data
+            assert response.status_code == 200
 
 
 def test_verify_email_already_verified(client, app, verified_user, monkeypatch):
@@ -617,9 +613,7 @@ def test_expanded_onboarding_verified_user_get(client, verified_user, app, monke
 def test_expanded_onboarding_post_valid_data(client, verified_user, app, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
-            return_value={
-                "userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}
-            }
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
         )
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 

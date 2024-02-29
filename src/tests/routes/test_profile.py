@@ -132,6 +132,26 @@ def test_user_profile_unverified_get(client, unverified_user, app, monkeypatch):
         assert b"Verify" in response.data
 
 
+def test_user_profile_verified_get(client, verified_user, app, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+
+        response = client.get("/profile/user/1", follow_redirects=True)
+        print(response.data)
+        assert b"User Profile" in response.data
+        assert b"Company Profile" in response.data
+        assert b"johndoe@example.com" in response.data
+        assert b"John" in response.data
+        assert b"Doe" in response.data
+
+
 def test_company_profile_verified_get(client, verified_user_with_company, app, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(

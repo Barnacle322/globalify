@@ -59,11 +59,12 @@ function getSearch() {
         .then((response) => response.json())
         .then((data) => {
             document.getElementById("results").innerHTML = "";
-            document
-                .getElementById("results")
-                .parentElement.removeChild(
-                    document.getElementById("results").parentElement.getElementsByTagName("a")[0],
-                );
+            // Remove the "See More Results" button if it exists
+            if (document.getElementById("results").parentElement.lastChild.tagName === "A") {
+                document
+                    .getElementById("results")
+                    .parentElement.removeChild(document.getElementById("results").parentElement.lastChild);
+            }
             console.log(data);
             data.forEach((investor) => {
                 const card = new Card(investor);

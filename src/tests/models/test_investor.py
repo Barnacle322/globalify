@@ -1,6 +1,9 @@
 import pytest
 from flask_sqlalchemy.pagination import Pagination
 
+from src.project.models.investor import SuggestionBuilder
+from src.project.models.user import Company
+
 from ...project import db
 from ...project.models import Industry, Investor, NotableInvestment, Round
 
@@ -342,3 +345,134 @@ def test_filter_by_nonexistent_industry(app, populate_notable_investment, popula
         filtered_items = Investor.get_pagination(industries=[non_existing_industry], industries_exclusive=True)
         assert isinstance(filtered_items, Pagination)
         assert len(filtered_items.items) == 0
+
+
+@pytest.fixture()
+def suggestion_builder_data():
+    investor_list = [
+        {
+            "id": 1,
+            "first_name": "John",
+            "last_name": "Doe",
+            "firm_name": "BlackRock",
+            "about": "About John",
+            "position": "CEO",
+            "website": "https://www.blackrock.com",
+            "linkedin": "https://www.linkedin.com/in/John",
+            "twitter": "https://www.twitter.com/john",
+            "email": "johndoe@example.com",
+            "phone_number": "+11806123274",
+            "n_investments": 107,
+            "n_exits": 41,
+            "min_investment": 100000,
+            "max_investment": 50000000,
+            "location": "Grenada",
+            "coordinates": "33.7816,-89.813",
+            "country": "United States",
+            "bias": 50,
+            "industries": ["Technology", "Finance"],
+            "rounds": ["Series A", "Series B"],
+            "preferred_round": "Series B",
+        },
+        {
+            "id": 2,
+            "first_name": "Jane",
+            "last_name": "Doe",
+            "firm_name": "Amazon",
+            "about": "About Jane",
+            "position": "CFO",
+            "website": "https://www.amazon.com",
+            "linkedin": "https://www.linkedin.com/in/Jane",
+            "twitter": "https://www.twitter.com/jane",
+            "email": "janedoe@example.com",
+            "phone_number": "+11806921574",
+            "n_investments": 96,
+            "n_exits": 35,
+            "min_investment": 200000,
+            "max_investment": 80000000,
+            "location": "Spain",
+            "coordinates": "39.3669,-3.355",
+            "country": "Spain",
+            "bias": 43,
+            "industries": ["Agriculture", "Healthcare"],
+            "rounds": ["Series A", "Series C"],
+            "preferred_round": "Series C",
+        },
+        {
+            "id": 3,
+            "first_name": "Bob",
+            "last_name": "Doe",
+            "firm_name": "Apple",
+            "about": "About Bob",
+            "position": "CTO",
+            "website": "https://www.apple.com",
+            "linkedin": "https://www.linkedin.com/in/Bob",
+            "twitter": "https://www.twitter.com/bob",
+            "email": "bobdoe@example.com",
+            "phone_number": "+11806123574",
+            "n_investments": 86,
+            "n_exits": 25,
+            "min_investment": 300000,
+            "max_investment": 90000000,
+            "location": "Nepal",
+            "coordinates": "29.25,82.2167",
+            "country": "Nepal",
+            "bias": 60,
+            "industries": ["AI", "Blockchain"],
+            "rounds": ["Series A", "Series C"],
+            "preferred_round": "Series C",
+        }
+    ]
+    return investor_list
+
+
+@pytest.fixture
+def sample_company():
+    return Company(
+        name="Sample Company",
+        industry=Industry(name="Tech"),
+        preferred_round=Round(name="Series A"),
+        coordinates="37.7749,-122.4194"  # Coordinates of San Francisco
+    )
+
+
+@pytest.fixture()
+def suggestion_builder_instance(suggestion_builder_data, sample_company):
+    return SuggestionBuilder(investor_list=suggestion_builder_data, company=sample_company)
+
+
+def test_suggestion_builder(suggestion_builder_instance):
+    assert isinstance(suggestion_builder_instance, SuggestionBuilder)
+    assert isinstance(suggestion_builder_instance.investor_list, list)
+    assert len(suggestion_builder_instance.investor_list) == 3
+
+
+def test_calculate_all_scores(suggestion_builder_instance):
+    suggestion_builder_instance.calculate_all_scores()
+    investors = suggestion_builder_instance.investor_list
+
+    assert investors[0]["total_score"] == pytest.approx(0.4789, 0.001)
+    assert investors[1]["total_score"] == pytest.approx(0.3771, 0.001)
+    assert investors[2]["total_score"] == pytest.approx(0.3943, 0.001)
+
+
+def test_sort_by_score(suggestion_builder_instance):
+    suggestion_builder_instance.calculate_all_scores()
+    suggestion_builder_instance.sort_by_score()
+    investors = suggestion_builder_instance.investor_list
+
+    assert investors[0]["id"] == 1
+    assert investors[1]["id"] == 3
+    assert investors[2]["id"] == 2
+
+
+def test_get_id_list(suggestion_builder_data, sample_company):
+
+    suggestion_builder = SuggestionBuilder(investor_list=suggestion_builder_data, company=sample_company)
+    suggestion_builder.calculate_all_scores()
+    suggestion_builder.sort_by_score()
+
+    id_list = suggestion_builder.get_id_list(quantity=1)
+
+    assert len(id_list) == 1
+    assert id_list[0] == 1

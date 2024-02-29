@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @font-face {
+    font-family: "Lexend";
+    src: url("../elements/fonts/Lexend.ttf");
+}
+
+@font-face {
     font-family: "Poppins";
     src: url("/static/elements/fonts/Poppins-Black.ttf");
     font-weight: 900;
@@ -124,34 +129,6 @@
     }
 }
 
-.background-animate {
-    background-size: 500%;
-
-    -webkit-animation: gradient 10s ease infinite;
-    -moz-animation: gradient 10s ease infinite;
-    animation: gradient 10s ease infinite;
-}
-
-.fade-in {
-    opacity: 0;
-    -webkit-animation: fade-in 0.8s ease-in-out forwards;
-    -moz-animation: fade-in 0.8s ease-in-out forwards;
-    animation: fade-in 0.8s ease-in-out forwards;
-}
-
-.move-up {
-    opacity: 0;
-    -webkit-animation: move-up 0.8s ease-in-out forwards;
-    -moz-animation: move-up 0.8s ease-in-out forwards;
-    animation: move-up 0.8s ease-in-out forwards;
-}
-
-.pulse {
-    -webkit-animation: pulse 0.5s ease-in-out;
-    -moz-animation: pulse 0.5s ease-in-out;
-    animation: pulse 0.5s ease-in-out;
-}
-
 @keyframes gradient {
     0% {
         background-position: 0% 50%;
@@ -170,6 +147,17 @@
     }
     100% {
         opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        opacity: 1;
+        scale: 1;
+    }
+    100% {
+        opacity: 0;
+        scale: 0.8;
     }
 }
 
@@ -225,6 +213,28 @@
     }
 }
 
+@keyframes slide-left {
+    0% {
+        opacity: 100%;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 100%;
+        transform: translateX(-102%);
+    }
+}
+
+@keyframes slide-right {
+    0% {
+        opacity: 100%;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 100%;
+        transform: translateX(102%);
+    }
+}
+
 .fade-out-right {
     animation: fadeOutRight 1s ease-in-out forwards;
 }
@@ -241,6 +251,62 @@
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
+}
+
+.background-animate {
+    background-size: 500%;
+
+    -webkit-animation: gradient 10s ease infinite;
+    -moz-animation: gradient 10s ease infinite;
+    animation: gradient 10s ease infinite;
+}
+
+.fade-in {
+    opacity: 0;
+    -webkit-animation: fade-in 0.8s ease-in-out forwards;
+    -moz-animation: fade-in 0.8s ease-in-out forwards;
+    animation: fade-in 0.8s ease-in-out forwards;
+}
+
+.short-fade-in {
+    opacity: 0;
+    -webkit-animation: fade-in 0.3s ease-in-out forwards;
+    -moz-animation: fade-in 0.3s ease-in-out forwards;
+    animation: fade-in 0.3s ease-in-out forwards;
+}
+
+.fade-out {
+    opacity: 1;
+    -webkit-animation: fade-out 0.3s ease-in-out;
+    -moz-animation: fade-out 0.3s ease-in-out;
+    animation: fade-out 0.3s ease-in-out;
+}
+
+.slide-left {
+    opacity: 0;
+    -webkit-animation: slide-left 0.3s ease-in-out;
+    -moz-animation: slide-left 0.3s ease-in-out;
+    animation: slide-left 0.3s ease-in-out;
+}
+
+.slide-right {
+    opacity: 0;
+    -webkit-animation: slide-right 0.3s ease-in-out;
+    -moz-animation: slide-right 0.3s ease-in-out;
+    animation: slide-right 0.3s ease-in-out;
+}
+
+.move-up {
+    opacity: 0;
+    -webkit-animation: move-up 0.8s ease-in-out forwards;
+    -moz-animation: move-up 0.8s ease-in-out forwards;
+    animation: move-up 0.8s ease-in-out forwards;
+}
+
+.pulse {
+    -webkit-animation: pulse 0.5s ease-in-out;
+    -moz-animation: pulse 0.5s ease-in-out;
+    animation: pulse 0.5s ease-in-out;
 }
 
 .slider-thumb::-webkit-slider-thumb {

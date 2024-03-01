@@ -27,6 +27,12 @@ def new_investment_firm(app):
         db.session.commit()
 
 
+@pytest.fixture()
+def populate_investment_firm(app):
+    with app.app_context():
+        InvestmentFirm.populate()
+
+
 def test_investment_firm(new_investment_firm, app):
     with app.app_context():
         investment_firm = InvestmentFirm.query.first()
@@ -44,3 +50,47 @@ def test_investment_firm(new_investment_firm, app):
         assert investment_firm.industries == [Industry.get_by_id(1)]
         assert investment_firm.location == "Antwerp"
         assert investment_firm._country == "Berlin"
+
+
+def test_get_all_investment_firm(populate_investment_firm, app):
+    with app.app_context():
+        investment_firm = InvestmentFirm.get_all()
+
+        assert len(investment_firm) == 49
+        assert investment_firm
+
+        assert investment_firm[0].id == 1
+        assert investment_firm[1].id == 2
+        assert investment_firm[2].id == 3
+        assert investment_firm[3].id == 4
+        assert investment_firm[4].id == 5
+        assert investment_firm[5].id == 6
+        assert investment_firm[6].id == 7
+        assert investment_firm[7].id == 8
+        assert investment_firm[8].id == 9
+
+
+def test_get_by_email_existings(new_investment_firm, app):
+    with app.app_context():
+        investment_firm = InvestmentFirm.get_by_email("belux@blackrock.com")
+        assert investment_firm
+        assert investment_firm.email == "belux@blackrock.com"
+
+
+def test_get_by_email_non_existings(new_investment_firm, app):
+    with app.app_context():
+        investment_firm = InvestmentFirm.get_by_email("delux@blackrock.com")
+        assert not investment_firm
+
+
+def test_get_by_id_existing(new_investment_firm, app):
+    with app.app_context():
+        investor_firm = InvestmentFirm.get_by_id(1)
+        assert investor_firm
+        assert investor_firm.id == 1
+
+
+def test_get_by_id_non_existing(new_investment_firm, app):
+    with app.app_context():
+        investor_firm = InvestmentFirm.get_by_id(999)
+        assert not investor_firm

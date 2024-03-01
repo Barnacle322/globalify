@@ -1323,9 +1323,6 @@ select {
 .z-50 {
   z-index: 50;
 }
-.z-40 {
-  z-index: 40;
-}
 .col-span-full {
   grid-column: 1 / -1;
 }
@@ -2310,16 +2307,6 @@ select {
   --tw-gradient-to: rgb(2 132 199 / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
-.from-slate-200 {
-  --tw-gradient-from: #e2e8f0 var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(226 232 240 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-.from-slate-100 {
-  --tw-gradient-from: #f1f5f9 var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(241 245 249 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
 .from-white {
   --tw-gradient-from: #fff var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
@@ -2374,9 +2361,6 @@ select {
 }
 .to-sky-500 {
   --tw-gradient-to: #0ea5e9 var(--tw-gradient-to-position);
-}
-.to-white {
-  --tw-gradient-to: #fff var(--tw-gradient-to-position);
 }
 .to-slate-100 {
   --tw-gradient-to: #f1f5f9 var(--tw-gradient-to-position);
@@ -2536,12 +2520,14 @@ select {
   padding-top: 7px;
   padding-bottom: 7px;
 }
-.py-20 {
-  padding-top: 5rem;
-  padding-bottom: 5rem;
-}
 .pb-16 {
   padding-bottom: 4rem;
+}
+.pb-20 {
+  padding-bottom: 5rem;
+}
+.pb-5 {
+  padding-bottom: 1.25rem;
 }
 .pb-52 {
   padding-bottom: 13rem;
@@ -2582,6 +2568,9 @@ select {
 .pt-16 {
   padding-top: 4rem;
 }
+.pt-20 {
+  padding-top: 5rem;
+}
 .pt-24 {
   padding-top: 6rem;
 }
@@ -2593,18 +2582,6 @@ select {
 }
 .pt-8 {
   padding-top: 2rem;
-}
-.pt-20 {
-  padding-top: 5rem;
-}
-.pb-10 {
-  padding-bottom: 2.5rem;
-}
-.pb-20 {
-  padding-bottom: 5rem;
-}
-.pb-5 {
-  padding-bottom: 1.25rem;
 }
 .text-left {
   text-align: left;
@@ -2837,11 +2814,6 @@ select {
 .shadow-xl {
   --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-}
-.shadow-2xl {
-  --tw-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-  --tw-shadow-colored: 0 25px 50px -12px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 .shadow-indigo-600\/10 {
@@ -4212,6 +4184,10 @@ select {
 
   .lg\:pt-32 {
     padding-top: 8rem;
+  }
+
+  .lg\:pt-36 {
+    padding-top: 9rem;
   }
 
   .lg\:text-6xl {

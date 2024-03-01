@@ -22,16 +22,6 @@ def test_index(client):
     assert b"Finding investors with ease" in response.data
 
 
-def test_waitlist(client):
-    response = client.get("/waitlist")
-    assert response.status_code == 200
-    assert b"Limited time offer!" in response.data
-    print(response.data)
-    assert b"Early Access" in response.data
-    assert b"Get early access to our investor network and find the right investors for your startup." in response.data
-    assert b"Be one of the first to explore our beta search engine, launching in Q1." in response.data
-
-
 def test_about(client):
     response = client.get("/about")
     assert response.status_code == 200

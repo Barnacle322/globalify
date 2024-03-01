@@ -1,23 +1,23 @@
 {% extends "layouts/layout_teaser.html" %} {% block additional_scripts %}
-<script src="/static/scripts/email.js" defer></script>
-<script src="/static/scripts/notificationHandler.js" defer></script>
+<!-- <script src="/static/scripts/email.js" defer></script> -->
+<script src="/static/scripts/demoSearch.js" defer></script>
 {% endblock %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
 %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
     <section
-        class="relative mx-auto max-w-7xl px-8 pb-16 text-center sm:px-6 pt-5 lg:px-8 lg:pt-24 flex flex-col justify-center items-center"
+        class="relative mx-auto max-w-7xl px-8 pb-5 text-center sm:px-6 pt-5 lg:px-8 lg:pt-24 flex flex-col justify-center items-center"
     >
         <img
             class="absolute w-fit h-fit left-1/2 top-0 transform -translate-x-1/2 scale-75 origin-top pointer-events-none -z-50"
             src="/static/elements/hero-bg.svg"
             alt=""
         />
-        <img class="absolute right-1/2 top-0 pointer-events-none" src="/static/elements/blue-blob.svg" alt="" />
+        <!-- <img class="absolute right-1/2 top-0 pointer-events-none" src="/static/elements/blue-blob.svg" alt="" />
         <img
             class="absolute left-1/2 top-0 pointer-events-none opacity-60"
             src="/static/elements/red-blob.svg"
             alt=""
-        />
+        /> -->
         <span
             class="move-up text-xs bg-white rounded-full border-gray w-fit border border-gray-200 px-2 py-1 shadow-lg text-semibold"
             style="animation-delay: 1.2s"
@@ -39,7 +39,7 @@
             Unlock your business's potential with our extensive network of investors. We're here to help you secure the
             funding you need to take your business to the next level.
         </p>
-        <div class="move-up flex flex-wrap items-center justify-center gap-x-6 gap-y-3" style="animation-delay: 1s">
+        <!-- <div class="move-up flex flex-wrap items-center justify-center gap-x-6 gap-y-3" style="animation-delay: 1s">
             <a
                 class="pulse inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 font-semibold text-slate-50 transition-colors ease-in-out hover:bg-slate-800 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
                 style="animation-delay: 2.5s"
@@ -89,20 +89,65 @@
                     Submit
                 </button>
             </form>
-        </div>
-        <div
+        </div> -->
+        <!-- <div
             class="bg-gradient-to-br from-[#3EB5FD] via-30% via-[#685AF3] to-[#D380CC] p-3 mt-10 fade-in rounded-xl"
             style="animation-delay: 1.2s"
         >
-            <img class="drop-shadow-lg" src="/static/elements/globalify_hero.png" alt="" />
-        </div>
+            <img class="drop-shadow-lg" src="/static/elements/hero.png" alt="" />
+        </div> -->
     </section>
 
     <section
-        class="fade-in flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8 bg-[#1C1236] text-white"
+        class="bg-gradient-to-b from-white to-slate-100 w-full px-8 pb-20 fade-in flex flex-col justify-center items-center"
         style="animation-delay: 1.2s"
     >
-        <div class="flex flex-col items-center justify-center max-w-7xl">
+        <div class="max-w-4xl w-full">
+            <div
+                class="flex gap-2 bg-white py-4 rounded-sm shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px] pr-5 pulse"
+                style="animation-delay: 2.5s"
+            >
+                <div class="relative w-full">
+                    <input
+                        type="search"
+                        name="search"
+                        id="search"
+                        class="w-full border-0 p-3 pl-12 text-sm focus:ring-0"
+                        placeholder="AI web3 series a funding from california..."
+                        autocomplete="off"
+                        required
+                    />
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                            />
+                        </svg>
+                    </div>
+                </div>
+                <button
+                    id="search-btn"
+                    onclick="getSearch()"
+                    class="text-nowrap rounded-lg bg-blue-500 px-4 font-medium text-white transition-colors ease-in-out text-sm w-fit py-3"
+                >
+                    Search
+                </button>
+            </div>
+        </div>
+        <div id="results" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 relative max-w-7xl mt-10"></div>
+    </section>
+
+    <section class="flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8 bg-[#1C1236] text-white">
+        <div class="fade-in flex flex-col items-center justify-center max-w-7xl" style="animation-delay: 1.2s">
             <div class="px-4 sm:px-6 md:text-center lg:px-8 flex flex-col gap-4 justify-center items-center">
                 <span
                     class="w-fit border border-slate-200 bg-white text-slate-900 px-3 py-1 rounded-full font-medium inline-flex gap-2 justify-center items-center shadow-md shadow-white/50 text-xs"
@@ -116,105 +161,49 @@
     </section>
 
     <section
-        id="faq"
-        aria-labelledby="faq-title"
-        class="fade-in bg-transparent pb-20 sm:py-32 py-10"
+        class="fade-in flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8"
         style="animation-delay: 1.2s"
     >
-        <div class="mx-auto max-w-7xl px-8 sm:px-6 lg:px-8">
-            <div class="mx-auto lg:mx-0">
-                <h2 class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
-                    Frequently asked questions
+        <div class="flex flex-col items-center justify-center max-w-7xl">
+            <div class="px-4 sm:px-6 md:text-center lg:px-8 flex flex-col gap-4 justify-center items-center">
+                <span
+                    class="w-fit border border-slate-200 bg-white text-slate-900 px-3 py-1 rounded-full font-medium inline-flex gap-2 justify-center items-center shadow-xl text-xs"
+                    ><img src="/static/elements/3dcube.svg" alt="" />Testimonials</span
+                >
+                <h2 class="text-3xl font-semibold sm:text-[40px] max-w-2xl mt-2">
+                    Hear it from other entrepreneurs. It does
+                    <span class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent">work</span>
                 </h2>
-                <p class="mx-auto mt-4 text-center text-lg tracking-tight text-slate-700">
-                    If you can’t find what you’re looking for, email our support team and we will get back to you.
-                </p>
             </div>
-            <ul role="list" class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3">
-                <li>
-                    <ul role="list" class="flex flex-col gap-y-8">
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">What is Globalify?</h3>
-                            <p class="mt-4 text-slate-700">
-                                Globalify is a hub for entrepreneurs to connect with investors from around the world.
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">What can I do with Globalify?</h3>
-                            <p class="mt-4 text-slate-700">
-                                For now you can create a profile and look at the list of investors. In the future we are
-                                planning on adding a lot more features.
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">How do I sign up for the early access?</h3>
-                            <p class="mt-4 text-slate-700">
-                                You can sign up <a href="/waitlsit" class="underline">here</a>. It's very simple! Just
-                                fill in your details and process payment through Stripe.
-                            </p>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul role="list" class="flex flex-col gap-y-8">
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">Do you offer refunds?</h3>
-                            <p class="mt-4 text-slate-700">
-                                Yes! You can get your money back with no questions asked. We also offer a free 14 day
-                                trial. If you are not satisfied with our product, you can cancel anytime.
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">Is my data safe with your search engine?</h3>
-                            <p class="mt-4 text-slate-700">
-                                Absolutely! We use the latest security measures to keep your data safe and private.
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">
-                                How can I provide feedback about the product?
-                            </h3>
-                            <p class="mt-4 text-slate-700">
-                                You can send us feedback via email or through a feedback form on our website or email us
-                                at
-                                <a href="mailto:info@globalify.xyz" class="font-bold underline">info@globalify.xyz</a>
-                            </p>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul role="list" class="flex flex-col gap-y-8">
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">
-                                What do you do with the data you collect?
-                            </h3>
-                            <p class="mt-4 text-slate-700">
-                                About the data we collect you can read in our
-                                <a class="underline" href="/privacy-policy">privacy policy</a>
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">When will you launch?</h3>
-                            <p class="mt-4 text-slate-700">
-                                We plan to launch in Q2 2023. We are currently in the process of building our product
-                                and are looking for early adopters to help us test it out.
-                            </p>
-                        </li>
-                        <li>
-                            <h3 class="text-lg font-medium text-slate-900">
-                                I'd like to know more about Globalify before I sign up.
-                            </h3>
-                            <p class="mt-4 text-slate-700">
-                                You can ask us anything! Just send us an email at
-                                <a href="mailto:info@globalify.xyz" class="font-bold underline">info@globalify.xyz</a>
-                                and we will get back to you as soon as possible.
-                            </p>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
+            <div class="grid grid-cols-1 md:grid-cols-2 mt-20 gap-x-20 gap-y-10">
+                <article class="flex bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] rounded-[2rem] p-6">
+                    <div class="p-8 bg-white rounded-3xl leading-loose">
+                        <p class="line-clamp-5">
+                            Thanks to team at Globalify, I was able to secure the funding I needed to take my business
+                            to the next level. I can't recommend them enough!
+                        </p>
+                        <div class="flex flex-col mt-5">
+                            <span class="font-bold">Pol Ricart</span>
+                            <span class="text-slate-400">Entrepreneur</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="flex bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] rounded-[2rem] p-6">
+                    <div class="p-8 bg-white rounded-3xl leading-loose">
+                        <p class="line-clamp-5">
+                            Globalify has been a game changer for my business! I was able to connect with investors from
+                            around the world and secure the funding I needed to grow my business.
+                        </p>
+                        <div class="flex flex-col mt-5">
+                            <span class="font-bold">Alberto Fernandez</span>
+                            <span class="text-slate-400">Entrepreneur</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
         </div>
     </section>
+
     <section class="fade-in mx-auto max-w-7xl px-8 pb-16 pt-16 sm:px-6 lg:px-8 lg:pt-24" style="animation-delay: 1.2s">
         <div class="mx-auto lg:mx-0">
             <h2 class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
@@ -224,12 +213,6 @@
                 Learn how to grow your business with our expert advice.
             </p>
         </div>
-        <!-- <div class="mx-auto max-w-2xl lg:mx-0">
-                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">From the blog</h2>
-                    <p class="mt-2 text-lg leading-8 text-slate-700">
-                        Learn how to grow your business with our expert advice.
-                    </p>
-                </div> -->
         <div
             class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3"
         >

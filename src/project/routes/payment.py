@@ -267,11 +267,17 @@ def waitlist(email: str, first_name: str, last_name: str, user: User):
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
+    Notification.mark_notifications_as_read(
+        user_id=user.id,
+        destination=NotificationDestination.SEARCH,
+    )
+
     notification = Notification(
         user=user,
         json_data=NotificationLayout(
-            title="Payment successful!",
-            msg="Thank you for supporting us! ",
+            title="Onboarding completed!!",
+            msg="Go and try our suggestions!",
+            buttons=[ButtonLayout(text="Try!", url=url_for("main.get_suggestions"))],
         ).get_json(),
         destination=NotificationDestination.SEARCH,
     )
@@ -621,6 +627,22 @@ def new_waitlist(data_object):
         customer_name=customer_name,
     )
     db.session.add(new_waitlist_charge)
+    db.session.commit()
+
+    user = User.get_by_email(customer_email)
+
+    if not user:
+        return jsonify(success=False, message="No user found")
+
+    notification = Notification(
+        user=user,
+        json_data=NotificationLayout(
+            title="Payment successful!",
+            msg="Thank you for supporting us!",
+        ).get_json(),
+        destination=NotificationDestination.SEARCH,
+    )
+    db.session.add(notification)
     db.session.commit()
 
     send_event(

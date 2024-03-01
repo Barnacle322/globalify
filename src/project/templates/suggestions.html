@@ -15,7 +15,7 @@
     </section>
     <section class="container px-4 py-12 sm:mt-10">
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {% for investor in investors %}
+            {% if access %} {% for investor in investors %}
             <article class="flex flex-col rounded-lg border p-6 shadow-sm">
                 <div class="flex flex-row items-center gap-2">
                     <a href="/investor/{{ investor.id }}" class="text-xl font-bold leading-none">
@@ -38,7 +38,42 @@
                     </p>
                 </div>
             </article>
-            {% endfor %}
+            {% endfor %} {% else %}
+            <p class="flex flex-col justify-center items-center">
+                <span class="text-3xl font-bold">View more</span>
+                <span class="mt-2 text-slate-800 max-w-sm text-center"
+                    >Sign up for our Early Bird tier to get full access to the database of investors!</span
+                >
+                <a
+                    class="bg-black py-2 px-3 rounded-lg text-white mt-3 hover:bg-neutral-900 transition-colors ease-in-out"
+                    href="/expanded-onboarding"
+                    >Get access</a
+                >
+            </p>
+            {% for investor in investors %}
+            <article class="flex flex-col rounded-lg border p-6 shadow-sm pointer-events-none select-none blur-sm">
+                <div class="flex flex-row items-center gap-2">
+                    <a class="text-xl font-bold leading-none">
+                        Investor Name
+                        <span class="text-base font-normal text-gray-500">@ Firm name</span>
+                    </a>
+                </div>
+
+                <div class="mt-2 flex flex-col gap-2">
+                    <p class="text-gray-500">{{ investor.location }}</p>
+                    <p class="flex flex-wrap gap-1">
+                        {% for round in investor.rounds %}
+                        <a class="text-nowrap rounded-lg bg-black px-2 py-1 text-sm text-white">{{ round.name }}</a>
+                        {% endfor %}
+                    </p>
+                    <p class="flex flex-wrap gap-1">
+                        {% for industry in investor.industries %}
+                        <a class="text-nowrap rounded-lg bg-black px-2 py-1 text-sm text-white">{{ industry.name }}</a>
+                        {% endfor %}
+                    </p>
+                </div>
+            </article>
+            {% endfor %} {% endif %}
         </div>
     </section>
     <section class="flex flex-col gap-10 px-4 justify-evenly mt-12 mx-auto text-center mb-48">
@@ -57,4 +92,3 @@
     </section>
 </main>
 {% endblock %}
-

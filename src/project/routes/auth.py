@@ -217,7 +217,7 @@ def resend_verification_email(user_id):
         "A user has requested a new verification code!",
         email=user.email,
         event_type=Events.USER_COMPLETED_ONBOARDING.value,
-        random_key=verification,
+        random_key=verification.token,
     )
 
     notification = Notification(
@@ -509,7 +509,7 @@ def onboarding():
             "A new user has completed onboarding!",
             email=authenticated_user.email,
             event_type=Events.USER_COMPLETED_ONBOARDING.value,
-            random_key=verification,
+            random_key=verification.token,
         )
 
         return redirect(url_for("main.search"))
@@ -580,23 +580,6 @@ def expanded_onboarding():
         company.country = country
         company.website_url = website
 
-        db.session.commit()
-
-        Notification.mark_notifications_as_read(
-            user_id=authenticated_user.id,
-            destination=NotificationDestination.SEARCH,
-        )
-
-        notification = Notification(
-            user=authenticated_user,
-            json_data=NotificationLayout(
-                title="Onboarding completed!!",
-                msg="Go and try our suggestions!",
-                buttons=[ButtonLayout(text="See!", url=url_for("main.get_suggestions"))],
-            ).get_json(),
-            destination=NotificationDestination.SEARCH,
-        )
-        db.session.add(notification)
         db.session.commit()
 
         return payment_waitlist(

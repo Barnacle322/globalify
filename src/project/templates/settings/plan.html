@@ -1,18 +1,6 @@
 {% extends "layouts/layout_app.html" %} {% block additional_scripts%}
 <script src="/static/scripts/dashboard.js" defer></script>
 <script src="/static/scripts/idempotency.js" defer></script>
-<script>
-    var upgradeLinkClicked = false;
-    function handleUpgradeClick(link) {
-        if (!upgradeLinkClicked) {
-            upgradeLinkClicked = true;
-            link.classList.add("opacity-50", "pointer-events-none");
-            return true;
-        } else {
-            return false;
-        }
-    }
-</script>
 {% endblock %} {% block title %}Settings{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content %}
 <div class="mx-auto block max-w-7xl pt-24 lg:flex lg:gap-x-16 lg:px-8">
     <aside class="flex overflow-x-auto py-4 lg:block lg:w-64 lg:flex-none lg:py-20">
@@ -143,27 +131,10 @@
                         >
                     </div>
                     <div class="flex items-baseline justify-end gap-4">
-                        {% if subscription.tier.value != "free" %}
-                        <form action="/payment/create-portal-session-subscription-cancel" method="POST">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                            <input type="hidden" name="subscription_id" value="{{ subscription.subscription_id }}" />
-                            <button class="text-xs text-white underline">Cancel</button>
-                        </form>
-                        <form action="/payment/create-portal-session-subscription-update" method="POST">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                            <input type="hidden" name="subscription_id" value="{{ subscription.subscription_id }}" />
-                            <button
-                                type="submit"
-                                class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
-                            >
-                                Upgrade
-                            </button>
-                        </form>
-                        {% else %}
+                        {% if subscription.tier.value == "free" %}
                         <a
-                            href="/payment/pricing"
+                            href="/expanded-onboarding"
                             class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
-                            onclick="return handleUpgradeClick(this);"
                             >Upgrade</a
                         >
                         {% endif %}
@@ -171,21 +142,9 @@
                 </div>
                 {% if subscription.tier.value == "free" %}
                 <div class="mt-5 text-xs leading-4 text-slate-900">You have free access to some Globalify features</div>
-                {% elif subscription.tier.value == "elevate" %}
+                {% elif subscription.tier.value == "early bird" %}
                 <div class="mt-5 text-xs leading-4 text-slate-900">
-                    You have access to our investor database. Your subscription will be renewed on
-                    <u>{{ subscription.expires_at}}</u>
-                </div>
-                {% elif subscription.tier.value == "connect pro" %}
-                <div class="mt-5 text-xs leading-4 text-slate-900">
-                    You have access to our database and also will be promoted to investors. Your subscription will be
-                    renewed on
-                    <u>{{ subscription.expires_at}}</u>
-                </div>
-                {% elif subscription.tier.value == "boost academy" %}
-                <div class="mt-5 text-xs leading-4 text-slate-900">
-                    You have full access to our services. Your subscription will be renewed on
-                    <u>{{ subscription.expires_at}}</u>
+                    You have full access to our database and all the upcoming features
                 </div>
                 {% endif %}
             </div>

@@ -112,6 +112,7 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 @main.get("/")
 def index():
     posts = parse_medium_html()
+    # posts = []
     return render_template("index.html", posts=posts)
 
 
@@ -120,6 +121,11 @@ def index():
 @check_user_info_complete
 @check_verification
 def get_suggestions():
+    waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
+    access = True
+    if not waitlist_charge and not current_user.is_admin:
+        access = False
+
     company = Company.get_by_user_id(current_user.id)
 
     check_weights(WEIGHTS)
@@ -141,6 +147,7 @@ def search():
         NotificationDestination.SEARCH,
         is_read=False,
     )
+
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "")
     sort_desc = request.args.get("descending", False, type=bool)
@@ -193,6 +200,12 @@ def search():
         countries=countries,
     )
     investors = result.get("investors")
+
+    waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
+    if not waitlist_charge and page > 1 and not current_user.is_admin:
+        print("here")
+        investors = []
+
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     fields = {
@@ -214,6 +227,29 @@ def search():
         round_list=Round.get_all(),
         countries=Country.get_all(),
     )
+
+
+@main.get("/demo_search")
+def demo_search():
+    search_query = request.args.get("search", "")
+    result = Investor.get_search(
+        query_string=search_query,
+        query_by=[
+            "location",
+            "country",
+            "rounds",
+            "industries",
+            "embedding",
+            "notable_investments",
+            "name",
+            "firm_name",
+            "position",
+        ],
+        page=1,
+        per_page=9,
+    )
+    investors = result.get("investors")
+    return jsonify(investors)
 
 
 @main.route("/investor/<int:investor_id>")

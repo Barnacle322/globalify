@@ -349,6 +349,8 @@ class Investor(db.Model):
         min_investment: int | None = None,
         max_investment: int | None = None,
         countries: list[str] | None = None,
+        rounds: list[str] | None = None,
+        industries: list[str] | None = None,
         per_page: int = 12,
         page: int = 1,
     ):

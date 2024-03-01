@@ -6,7 +6,7 @@ from flask import url_for
 from src.project import db
 from src.project.extensions import oauth
 from src.project.models import User, UserInfo, UserPayment
-from src.project.models.user import Company, User
+from src.project.models.user import Company
 
 
 @pytest.fixture()

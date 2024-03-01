@@ -659,9 +659,6 @@ def linkedin_user_oauth(app):
 
 
 def test_linkedin_callback(client, linkedin_user_oauth, app):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         with patch("src.project.routes.auth.oauth.linkedin") as mock_oauth, patch(
             "src.project.routes.auth.api_call"
@@ -681,9 +678,6 @@ def test_linkedin_callback(client, linkedin_user_oauth, app):
 
 
 def test_linkedin_callback_authorization_failure(client, app):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         with patch("src.project.routes.auth.oauth.linkedin") as mock_oauth, patch(
             "src.project.routes.auth.api_call"
@@ -702,9 +696,6 @@ def test_linkedin_callback_authorization_failure(client, app):
 
 
 def test_linkedin_with_existing_google_oauth_user(client, verified_user, app):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         with patch("src.project.routes.auth.oauth.linkedin") as mock_oauth, patch(
             "src.project.routes.auth.api_call"
@@ -722,9 +713,6 @@ def test_linkedin_with_existing_google_oauth_user(client, verified_user, app):
 
 
 def test_google_callback(app, client, monkeypatch, verified_user):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -740,9 +728,6 @@ def test_google_callback(app, client, monkeypatch, verified_user):
 
 
 def test_google_callback_user_info_failure(app, client, monkeypatch, verified_user):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(return_value={"userinfo": None})
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
@@ -754,9 +739,6 @@ def test_google_callback_user_info_failure(app, client, monkeypatch, verified_us
 
 
 def test_google_callback_user_info_no_email(app, client, monkeypatch, verified_user):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": None, "given_name": "Test", "family_name": "User"}}
@@ -770,9 +752,6 @@ def test_google_callback_user_info_no_email(app, client, monkeypatch, verified_u
 
 
 def test_google_callback_email_linkedin(app, client, monkeypatch, linkedin_user_oauth):
-    app.config["SERVER_NAME"] = "localhost"
-    app.config["APPLICATION_ROOT"] = ""
-    app.config["PREFERRED_URL_SCHEME"] = "http"
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={

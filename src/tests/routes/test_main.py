@@ -15,19 +15,21 @@ from src.project.utils.errors.error_messages import AUTH_FIELDS_INCOMPLETE
 def test_index(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert b"Globalify is" in response.data
+    assert b"Globalify" in response.data
+    assert b"Your Gateway to Investors" in response.data
     assert b"Tailored experience for specific regions" in response.data
-    assert b"Frequently asked questions" in response.data
-    assert b"From the blog" in response.data
-    assert b"Use Globalify - Fund Your Startup" in response.data
+    assert b"Unlock your business's potential with our extensive network of investors." in response.data
+    assert b"Finding investors with ease" in response.data
 
 
 def test_waitlist(client):
     response = client.get("/waitlist")
     assert response.status_code == 200
     assert b"Limited time offer!" in response.data
-    assert b"Frequently asked questions" in response.data
-    assert b"Use Globalify - Fund Your Startup" in response.data
+    print(response.data)
+    assert b"Early Access" in response.data
+    assert b"Get early access to our investor network and find the right investors for your startup." in response.data
+    assert b"Be one of the first to explore our beta search engine, launching in Q1." in response.data
 
 
 def test_about(client):
@@ -35,9 +37,8 @@ def test_about(client):
     assert response.status_code == 200
     assert b"mission and vision" in response.data
     assert b"Our Passion" in response.data
-    assert b"Our platform" in response.data
     assert b"The what, the how, the who" in response.data
-    assert b"The team" in response.data
+    assert b"Our team" in response.data
     assert b"info@globalify.xyz" in response.data
     assert b"Use Globalify - Fund Your Startup" in response.data
 
@@ -149,11 +150,11 @@ def test_download_post_wrong_key(client, app):
         db.session.commit()
     response = client.post("/download", data={"key": "54321"}, follow_redirects=True)
     assert response.status_code == 200
-    assert b"Globalify is" in response.data
+    assert b"Globalify" in response.data
+    assert b"Your Gateway to Investors" in response.data
     assert b"Tailored experience for specific regions" in response.data
-    assert b"Frequently asked questions" in response.data
-    assert b"From the blog" in response.data
-    assert b"Use Globalify - Fund Your Startup" in response.data
+    assert b"Unlock your business's potential with our extensive network of investors." in response.data
+    assert b"Finding investors with ease" in response.data
 
 
 def test_download_post_already_downloaded(client, app):
@@ -170,11 +171,11 @@ def test_download_post_already_downloaded(client, app):
         db.session.commit()
     response = client.post("/download", data={"key": "12345"}, follow_redirects=True)
     assert response.status_code == 200
-    assert b"Globalify is" in response.data
+    assert b"Globalify" in response.data
+    assert b"Your Gateway to Investors" in response.data
     assert b"Tailored experience for specific regions" in response.data
-    assert b"Frequently asked questions" in response.data
-    assert b"From the blog" in response.data
-    assert b"Use Globalify - Fund Your Startup" in response.data
+    assert b"Unlock your business's potential with our extensive network of investors." in response.data
+    assert b"Finding investors with ease" in response.data
 
 
 def test_download_post_success(client, app):
@@ -618,9 +619,11 @@ def test_success_edit_notification(client, verified_user, app, monkeypatch):
 def test_pricing(client):
     response = client.get("/pricing")
     assert response.status_code == 200
-    assert b"Simple pricing for everyone." in response.data
-    assert b"Perfect for small start-ups that are still ideating." in response.data
-    assert b"Works best for start-ups in their pre-seed and seed rounds." in response.data
+    print(response.data)
+    assert b"Pricing" in response.data
+    assert b"Flexible Pricing Options for Advanced Search Solutions" in response.data
+    assert b"Perfect for small startups" in response.data
+    assert b"Subscribe" in response.data
 
 
 def test_terms_of_service(client):

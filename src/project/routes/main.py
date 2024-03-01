@@ -257,6 +257,29 @@ def search():
     )
 
 
+@main.get("/demo_search")
+def demo_search():
+    search_query = request.args.get("search", "")
+    result = Investor.get_search(
+        query_string=search_query,
+        query_by=[
+            "location",
+            "country",
+            "rounds",
+            "industries",
+            "embedding",
+            "notable_investments",
+            "name",
+            "firm_name",
+            "position",
+        ],
+        page=1,
+        per_page=9,
+    )
+    investors = result.get("investors")
+    return jsonify(investors)
+
+
 @main.route("/investor/<int:investor_id>")
 @login_required
 @check_user_info_complete

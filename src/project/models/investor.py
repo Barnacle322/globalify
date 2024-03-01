@@ -219,8 +219,6 @@ class Investor(db.Model):
     @classmethod
     def get_search(
         cls,
-        rounds: list[str],
-        industries: list[str],
         query_string: str,
         query_by: list[str],
         sort_by: str | None = None,
@@ -230,6 +228,8 @@ class Investor(db.Model):
         min_investment: int | None = None,
         max_investment: int | None = None,
         countries: list[str] | None = None,
+        rounds: list[str] | None = None,
+        industries: list[str] | None = None,
         per_page: int = 12,
         page: int = 1,
     ):

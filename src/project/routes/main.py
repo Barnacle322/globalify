@@ -320,11 +320,6 @@ def update_notification(notification_id):
     return jsonify({"status": "success"}, 200)
 
 
-@main.get("/waitlist")
-def waitlist():
-    return render_template("waitlist.html")
-
-
 @main.post("/waitlist-email")
 def waitlist_email():
     email = request.get_json().get("email")

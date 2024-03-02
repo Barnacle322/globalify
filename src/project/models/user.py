@@ -13,8 +13,8 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, mapped_column, relationship, validates
 
 from ..extensions import db
+from ..utils import suggestion
 from ..utils.enums import NotificationDestination, OauthProvider, Tier
-from ..utils.suggestion import geocode_location
 from .helpers import Country, Industry, Round
 
 
@@ -453,7 +453,7 @@ class Company(db.Model):
 
     @coordinates.setter
     def coordinates(self, coordinates: str) -> None:
-        self._coordinates = geocode_location(coordinates)["coordinates"]  # type: ignore
+        self._coordinates = suggestion.geocode_location(coordinates)["coordinates"]  # type: ignore
 
     @validates("website_url")
     def validate_website(self, key, website):

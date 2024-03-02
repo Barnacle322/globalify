@@ -119,8 +119,6 @@ def test_user_profile_unverified_get(client, unverified_user, app, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/profile/user/1", follow_redirects=True)
 
         assert response.status_code == 200
@@ -141,10 +139,7 @@ def test_user_profile_verified_get(client, verified_user, app, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/profile/user/1", follow_redirects=True)
-        print(response.data)
         assert b"User Profile" in response.data
         assert b"Company Profile" in response.data
         assert b"johndoe@example.com" in response.data
@@ -161,11 +156,8 @@ def test_company_profile_verified_get(client, verified_user_with_company, app, m
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/profile/company/1", follow_redirects=True)
         assert response.status_code == 200
-        print(response.data)
         assert b"User Profile" in response.data
         assert b"Company Profile" in response.data
         assert b"Test Company" in response.data
@@ -189,8 +181,6 @@ def test_company_profile_unverified_get(client, unverified_user, app, monkeypatc
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/profile/company/1", follow_redirects=True)
 
         assert response.status_code == 200
@@ -210,8 +200,6 @@ def test_company_profile_authenticated_without_company_get(client, verified_user
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.get("/profile/company/1", follow_redirects=True)
         assert response.status_code == 404

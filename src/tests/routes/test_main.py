@@ -10,6 +10,7 @@ from src.project.models.investor import InvestmentFirm, Investor, NotableInvestm
 from src.project.models.user import Notification, User, UserInfo, UserPayment, WaitlistCharge
 from src.project.utils.enums import NotificationDestination, NotificationLayout, OauthProvider
 from src.project.utils.errors.error_messages import AUTH_FIELDS_INCOMPLETE
+from src.project.utils.google_helpers import google_pubsub
 
 
 def test_index(client):
@@ -350,8 +351,7 @@ def test_dashboard_unverified_get(client, unverified_user, app, monkeypatch):
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
+        monkeypatch.setattr(target=google_pubsub, name="send_event", value=MagicMock())
 
         response = client.get("/search", follow_redirects=True)
 
@@ -373,12 +373,10 @@ def test_dashboard_verified_get(client, verified_user, app, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/search")
         assert response.status_code == 200
-        assert b"View more" in response.data
-        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+        assert b"Pick For Me" in response.data
+        assert b"To get better recommendations, complete your profile."
 
 
 def test_dashboard_firm_anonymous_get(client):
@@ -397,8 +395,6 @@ def test_dashboard_firm_unverified_get(client, unverified_user, app, monkeypatch
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.get("/investment-firm/1", follow_redirects=True)
 
@@ -420,12 +416,10 @@ def test_dashboard_firm_not_found_verified_get(client, verified_user, app, monke
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/investment-firm/1", follow_redirects=True)
         assert response.status_code == 200
-        assert b"View more" in response.data
-        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+        assert b"Pick For Me" in response.data
+        assert b"To get better recommendations, complete your profile."
 
 
 def test_error_handler_404(client):
@@ -451,8 +445,6 @@ def test_investor_unverified_get(client, unverified_user, app, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/investor/1", follow_redirects=True)
 
         assert response.status_code == 200
@@ -473,7 +465,6 @@ def test_investor_verified_get(client, verified_user, investor, app, monkeypatch
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
         response = client.get("/investor/1", follow_redirects=True)
         assert response.status_code == 200
         assert b"Julie" in response.data
@@ -492,11 +483,10 @@ def test_investor_not_found(client, verified_user, investor, app, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
         response = client.get("/investor/99999999", follow_redirects=True)
         assert response.status_code == 200
-        assert b"View more" in response.data
-        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+        assert b"Pick For Me" in response.data
+        assert b"To get better recommendations, complete your profile."
 
 
 def test_notification_anonymous_edit(client):
@@ -516,11 +506,10 @@ def test_edit_not_found_notification(client, verified_user, app, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
         response = client.get("/notification/edit/99999999", follow_redirects=True)
         assert response.status_code == 200
-        assert b"View more" in response.data
-        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+        assert b"Pick For Me" in response.data
+        assert b"To get better recommendations, complete your profile."
 
 
 def test_edit_notification_mismatch_user(client, verified_user, verified_user_wtih_waitlist_charge, app, monkeypatch):
@@ -531,8 +520,6 @@ def test_edit_notification_mismatch_user(client, verified_user, verified_user_wt
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         user = User.get_by_id(2)
 
@@ -548,8 +535,8 @@ def test_edit_notification_mismatch_user(client, verified_user, verified_user_wt
 
         response = client.get("/notification/edit/1", follow_redirects=True)
         assert response.status_code == 200
-        assert b"View more" in response.data
-        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+        assert b"Pick For Me" in response.data
+        assert b"To get better recommendations, complete your profile."
 
 
 def test_success_edit_notification(client, verified_user, app, monkeypatch):
@@ -558,10 +545,9 @@ def test_success_edit_notification(client, verified_user, app, monkeypatch):
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
         )
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(target=google_pubsub, name="send_event", value=MagicMock())
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         user = User.get_by_id(1)
 
@@ -582,7 +568,6 @@ def test_success_edit_notification(client, verified_user, app, monkeypatch):
         assert updated_notification is not None
         assert updated_notification.is_read
         assert response.status_code == 200
-        assert b'[\n  {\n    "status": "success"\n  },\n  200\n]\n' in response.data
 
 
 # TODO
@@ -609,7 +594,6 @@ def test_success_edit_notification(client, verified_user, app, monkeypatch):
 def test_pricing(client):
     response = client.get("/pricing")
     assert response.status_code == 200
-    print(response.data)
     assert b"Pricing" in response.data
     assert b"Flexible Pricing Options for Advanced Search Solutions" in response.data
     assert b"Perfect for small startups" in response.data

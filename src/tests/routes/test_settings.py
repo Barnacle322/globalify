@@ -7,6 +7,7 @@ from src.project import db
 from src.project.extensions import oauth
 from src.project.models import User, UserInfo, UserPayment
 from src.project.models.user import Company
+from src.project.utils import suggestion
 from src.project.utils.enums import OauthProvider
 
 
@@ -126,7 +127,6 @@ def new_user_with_company(app):
 
 def test_settings_anonymous_get(client):
     response = client.get("/settings/general", follow_redirects=True)
-    print(response.data)
     assert response.status_code == 200
     assert b"Welcome!" in response.data
     assert b"Sign in with your social media" in response.data
@@ -141,8 +141,6 @@ def test_settings_unverified_get(client, unverified_user, app, monkeypatch):
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.get("/settings/general", follow_redirects=True)
         assert response.status_code == 200
@@ -162,8 +160,6 @@ def test_settings_verified_get(client, verified_user, app, monkeypatch):
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.get("/settings/general")
         assert response.status_code == 200
@@ -188,8 +184,6 @@ def test_settings_security_unverified_get(client, unverified_user, app, monkeypa
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         assert response.status_code == 200
         assert b"Email Verification" in response.data
         assert (
@@ -207,8 +201,6 @@ def test_settings_security_verified_get(client, verified_user, app, monkeypatch)
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.get("/settings/security")
         assert response.status_code == 200
@@ -237,8 +229,6 @@ def test_settings_plan_unverified_get(client, unverified_user, app, monkeypatch)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/settings/plan", follow_redirects=True)
         assert response.status_code == 200
         assert b"Email Verification" in response.data
@@ -257,8 +247,6 @@ def test_settings_plan_verified_get(client, verified_user, app, monkeypatch):
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.get("/settings/plan")
         assert response.status_code == 200
@@ -295,8 +283,6 @@ def test_settings_billing_unverified_get(client, unverified_user, app, monkeypat
 
             response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-            client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
             response = client.get("/settings/billing", follow_redirects=True)
 
             assert response.status_code == 200
@@ -328,8 +314,6 @@ def test_settings_billing_verified_get(client, verified_user, app, monkeypatch):
             monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
             response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-            client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
             response = client.get("/settings/billing", follow_redirects=True)
 
@@ -367,8 +351,6 @@ def test_unverified_user_change_personal_info(client, unverified_user, app, monk
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.post(
             "/settings/personal-info",
             data={
@@ -397,8 +379,6 @@ def test_verified_user_change_personal_info(client, verified_user, app, monkeypa
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.post(
             "/settings/personal-info",
@@ -432,8 +412,6 @@ def test_verified_user_change_personal_info_empty_first_name(client, verified_us
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.post(
             "/settings/personal-info",
             data={
@@ -454,8 +432,6 @@ def test_verified_user_change_personal_info_empty_last_name(client, verified_use
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.post(
             "/settings/personal-info",
@@ -489,7 +465,6 @@ def test_verified_user_change_personal_info_empty_bio(client, verified_user, app
         )
 
         assert response.status_code == 200
-        print(response.data)
         assert b"Bio cannot be empty." in response.data
 
 
@@ -718,6 +693,7 @@ def test_verified_user_change_company_valid_data(client, new_user_with_company, 
             return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
         )
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(suggestion, "geocode_location", MagicMock(return_value={"coordinates": "20.45,16.5167"}))
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
@@ -748,5 +724,6 @@ def test_verified_user_change_company_valid_data(client, new_user_with_company, 
         assert company.number_of_employees == 100
         assert company.website_url == "https://www.globalify.com"
         assert company.country_id == 3
+        assert company._coordinates == "20.45,16.5167"
         assert company.preferred_round_id == 2
         assert company.industry_id == 2

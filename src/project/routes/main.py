@@ -231,7 +231,6 @@ def search():
 
     waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
     if not waitlist_charge and page > 1 and not current_user.is_admin:
-        print("here")
         investors = []
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))

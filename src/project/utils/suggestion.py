@@ -16,6 +16,7 @@ def check_weights(weights: dict[str, float]) -> None:
 
 
 def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str] | None:
+    raise Exception("Sent an event")
     if not location:
         return {"coordinates": "", "country_name": ""}
     print(f"Searching Typesense: {location}")

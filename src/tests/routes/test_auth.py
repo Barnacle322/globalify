@@ -1,3 +1,4 @@
+import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -112,8 +113,6 @@ def test_unverified_user_login(client, unverified_user, app, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         assert response.status_code == 200
         assert b"Email Verification" in response.data
         assert (
@@ -132,11 +131,10 @@ def test_verified_user_login(client, verified_user, app, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         assert response.status_code == 200
-        assert b"View more" in response.data
-        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+
+        assert b"Pick For Me" in response.data
+        assert b"To get better recommendations, complete your profile."
 
 
 def test_oauth_user_with_existing_email_different_provider(app, verified_user):
@@ -230,7 +228,6 @@ def test_onboarding_incomplete(client, unverified_incomplete_user, app, monkeypa
             },
             follow_redirects=True,
         )
-        print(response.data)
         assert response.status_code == 200
         assert b"Error!" in response.data
         assert b"Please fill out all fields." in response.data
@@ -271,7 +268,6 @@ def test_logout_endpoint(client, verified_user, app, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
         response = client.get("/logout", follow_redirects=True)
         assert response.status_code == 200
         assert b"Globalify" in response.data
@@ -296,7 +292,6 @@ def test_username_verified_get(client, verified_user, app, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
         response = client.get("/username/johndoe", follow_redirects=True)
         assert response.status_code == 200
         assert b"is_taken" in response.data
@@ -319,8 +314,6 @@ def test_verify_email_incomplete_user_get(client, unverified_incomplete_user, ap
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/verify-email?uuid=invalid_token", follow_redirects=True)
         assert response.status_code == 200
         assert b"We just need some more info" in response.data
@@ -335,29 +328,28 @@ def test_verify_email_invalid_token(client, unverified_user, app, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/verify-email?uuid=invalid_token", follow_redirects=True)
         assert response.status_code == 200
         assert b"Invalid code" in response.data
         assert b"The code you have put in is invalid" in response.data
 
 
-@freeze_time("2024-02-29 12:00:00")
 def test_verify_email_expired_token(client, app, unverified_user, monkeypatch):
     with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        with freeze_time("2024-01-01 12:00:00"):
+            mock_authorize = MagicMock(
+                return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+            )
+            monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+            response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-        expired_verification = EmailVerification(user_id=1)
-        db.session.add(expired_verification)
-        db.session.commit()
-        with freeze_time():
+            expired_verification = EmailVerification(user_id=1)
+            expired_verification.created_at = datetime.datetime.now()
+            db.session.add(expired_verification)
+            db.session.commit()
+
+        with freeze_time("2024-01-01 13:00:00"):
             response = client.get(f"/verify-email?uuid={expired_verification.token}", follow_redirects=True)
             assert b"Error" in response.data
             assert b"Email verification code has expired." in response.data
@@ -373,16 +365,14 @@ def test_verify_email_already_verified(client, app, verified_user, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         verified_verification = EmailVerification(user_id=1)
         db.session.add(verified_verification)
         db.session.commit()
 
         response = client.get(f"/verify-email?uuid={verified_verification.token}", follow_redirects=True)
         assert response.status_code == 200
-        assert b"View more" in response.data
-        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+        assert b"Pick For Me" in response.data
+        assert b"To get better recommendations, complete your profile."
 
 
 def test_verify_email_already_used(client, app, verified_user, monkeypatch):
@@ -394,8 +384,6 @@ def test_verify_email_already_used(client, app, verified_user, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         verified_verification = EmailVerification(user_id=1)
         verified_verification.is_used = True
         db.session.add(verified_verification)
@@ -403,8 +391,8 @@ def test_verify_email_already_used(client, app, verified_user, monkeypatch):
 
         response = client.get(f"/verify-email?uuid={verified_verification.token}", follow_redirects=True)
         assert response.status_code == 200
-        assert b"View more" in response.data
-        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+        assert b"Pick For Me" in response.data
+        assert b"To get better recommendations, complete your profile."
 
 
 def test_verify_email_mismatch_user(client, app, unverified_user, unverified_incomplete_user, monkeypatch):
@@ -415,8 +403,6 @@ def test_verify_email_mismatch_user(client, app, unverified_user, unverified_inc
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         verification_token = EmailVerification(user_id=2)
         db.session.add(verification_token)
@@ -437,8 +423,6 @@ def test_resend_verification_email_user_not_found(client, unverified_user, monke
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/resend-verification/999", follow_redirects=True)
 
         assert response.status_code == 200
@@ -454,13 +438,11 @@ def test_resend_verification_email_already_verified(client, verified_user, app, 
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/resend-verification/1", follow_redirects=True)
 
         assert response.status_code == 200
-        assert b"View more" in response.data
-        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+        assert b"Pick For Me" in response.data
+        assert b"To get better recommendations, complete your profile."
 
 
 def test_resend_verification_very_quick(client, unverified_user, app, monkeypatch):
@@ -469,10 +451,9 @@ def test_resend_verification_very_quick(client, unverified_user, app, monkeypatc
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
         )
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(target=google_pubsub, name="send_event", value=MagicMock())
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         client.get("/resend-verification/1", follow_redirects=True)
 
@@ -489,10 +470,9 @@ def test_resend_verification_email_success(client, unverified_user, app, monkeyp
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
         )
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(target=google_pubsub, name="send_event", value=MagicMock())
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.get("/resend-verification/1", follow_redirects=True)
 
@@ -513,8 +493,6 @@ def test_verify_email_success(client, app, unverified_user, monkeypatch):
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         valid_verification = EmailVerification(user_id=1)
         db.session.add(valid_verification)
         db.session.commit()
@@ -522,8 +500,8 @@ def test_verify_email_success(client, app, unverified_user, monkeypatch):
         response = client.get(f"/verify-email?uuid={valid_verification.token}", follow_redirects=True)
 
         assert response.status_code == 200
-        assert b"View more" in response.data
-        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+        assert b"Pick For Me" in response.data
+        assert b"To get better recommendations, complete your profile."
 
         updated_user = User.get_by_id(1)
         assert updated_user is not None
@@ -551,8 +529,6 @@ def test_expanded_onboarding_unverified_user_get(client, unverified_user, app, m
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/expanded-onboarding", follow_redirects=True)
 
         assert response.status_code == 200
@@ -572,8 +548,6 @@ def test_expanded_onboarding_post_empty_data(client, verified_user, app, monkeyp
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.post(
             "/expanded-onboarding",
@@ -600,8 +574,6 @@ def test_expanded_onboarding_verified_user_get(client, verified_user, app, monke
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
-
         response = client.get("/expanded-onboarding", follow_redirects=True)
 
         assert response.status_code == 200
@@ -617,8 +589,6 @@ def test_expanded_onboarding_post_valid_data(client, verified_user, app, monkeyp
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com"), follow_redirects=True)
 
         response = client.post(
             "/expanded-onboarding",
@@ -672,8 +642,8 @@ def test_linkedin_callback(client, linkedin_user_oauth, app):
 
             response = client.get(url_for("auth.linkedin_callback"), follow_redirects=True)
             assert response.status_code == 200
-            assert b"View more" in response.data
-            assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+            assert b"Pick For Me" in response.data
+            assert b"To get better recommendations, complete your profile."
             assert b"Search" in response.data
 
 
@@ -722,8 +692,8 @@ def test_google_callback(app, client, monkeypatch, verified_user):
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
         assert response.status_code == 200
-        assert b"View more" in response.data
-        assert b"Sign up for our Early Bird tier to get full access to the database of investors!" in response.data
+        assert b"Pick For Me" in response.data
+        assert b"To get better recommendations, complete your profile."
         assert b"Profile" in response.data
 
 

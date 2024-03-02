@@ -27,8 +27,12 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
     app.secret_key = os.getenv("SECRET_KEY", "18c2ff95-83a1-4998-8bee-0c6a2170497c")
 
-    if app.config["DEBUG"]:
-        # app.config["DEBUG_TB_PROFILER_ENABLED"] = True
+    if os.getenv("FLASK_ENV") == "testing":
+        app.config["TESTING"] = True
+        app.config["WTF_CSRF_ENABLED"] = False
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test_db.sqlite"
+
+    if app.config["DEBUG"] and not app.config["TESTING"]:
         app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
         app.config["SQLALCHEMY_RECORD_QUERIES"] = True
         app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True

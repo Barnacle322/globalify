@@ -338,8 +338,6 @@ class Investor(db.Model):
 
     @staticmethod
     def get_search(
-        rounds: list[str],
-        industries: list[str],
         query_string: str,
         query_by: list[str],
         sort_by: str | None = None,

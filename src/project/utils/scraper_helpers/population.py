@@ -49,7 +49,7 @@ def get_rounds(rounds: str) -> list[Round]:
     return list(set(round_list))
 
 
-def get_notable_investments(existing_notable_investments, notable_investments_cls, notable_investments: str) -> list:
+def get_notable_investments(notable_investments: str, existing_notable_investments, notable_investments_cls) -> list:
     notable_investment_list = []
     for notable_investment in notable_investments.split(","):
         existing = None
@@ -66,7 +66,7 @@ def get_notable_investments(existing_notable_investments, notable_investments_cl
     return list(set(notable_investment_list))
 
 
-def get_industries(existing_industries, industry_cls, industries: str) -> list:
+def get_industries(industries: str, existing_industries) -> list:
     industry_list = []
     for industry in industries.split(","):
         if "—" in industry:

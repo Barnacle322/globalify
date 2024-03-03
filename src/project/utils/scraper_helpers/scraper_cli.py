@@ -3,6 +3,11 @@ import json
 from itertools import islice
 
 import click
+from population import get_industries, get_min_max_investment, get_notable_investments, get_rounds
+
+from src.project.models.investor import Investor
+
+from ...extensions import db
 
 # class Config:
 #     def __init__(self):
@@ -53,8 +58,8 @@ def get_indices(file, delimiter):
 )
 @click.option(
     "--column-name",
-    prompt="Enter a column number(s) of the first name and last name separated by a space ' '",
-    help="Column for first name",
+    prompt="Enter a column number of full name. If first name and last name are in separated columns, enter numbers with a space between them ' '",
+    help="Column for name",
 )
 @click.option(
     "--column-firm-name",
@@ -106,7 +111,7 @@ def get_indices(file, delimiter):
 )
 @click.option(
     "--column-investment-range",
-    prompt="Enter a column number(s) of the minimum and maximum investment sums separated by a space ' '",
+    prompt="Enter a column number of the investment range or column numbers of minimum and maximum investment sums separated by a space ' '",
     help="Column for investment range",
     default="",
 )
@@ -215,6 +220,37 @@ def sanitize_data(file, column, extra):
 
     with open("investor_list.json", "w") as file:
         file.write(json.dumps(investor_list, indent=4))
+
+
+# @cli.command()
+# @click.argument("file", type=click.File("r"), required=True)
+# def populate_db(file):
+#     """Populate the database with the data from the json file"""
+#     investor_list = json.load(file)
+#     for investor in investor_list:
+#         industries = get_industries(investor.get("industry"))
+#         min_investment, max_investment = get_min_max_investment(investor.get("investment_range"))
+#         rounds = get_rounds(investor.get("rounds"))
+#         notable_investments = get_notable_investments(investor.get("notable_investments"))
+
+#         investor = Investor(
+#             first_name=investor.get("first_name"),
+#             last_name=investor.get("last_name"),
+#             firm_name=investor.get("firm_name"),
+#             position=investor.get("position"),
+#             about=investor.get("about"),
+#             email=investor.get("email"),
+#             linkedin=investor.get("linkedin"),
+#             twitter=investor.get("twitter"),
+#             location=investor.get("location"),
+#             min_investment=min_investment,
+#             max_investment=max_investment,
+#             industries=industries,
+#             rounds=rounds,
+#             notable_investments=notable_investments,
+#         )
+#         db.session.add(investor)
+#     db.session.commit()
 
 
 if __name__ == "__main__":

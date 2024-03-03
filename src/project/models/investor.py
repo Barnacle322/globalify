@@ -22,6 +22,12 @@ from ..utils.fake_data import (
 )
 from ..utils.info_lists import notable_investment_list
 from ..utils.scraper import populate_blockchain, populate_demo
+from ..utils.scraper_helpers.population import (
+    get_industries,
+    get_min_max_investment,
+    get_notable_investments,
+    get_rounds,
+)
 from ..utils.suggestion import WEIGHTS, geocode_location
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
@@ -494,6 +500,42 @@ class Investor(db.Model):
             print("Added investor:", item)
         print(f"Added {count} investors")
         db.session.commit()
+
+    @staticmethod
+    def populate_cli():
+        notable_investment_list = NotableInvestment.get_all()
+        industry_list = Industry.get_industry_list()
+        with open("investor_list.json", "r") as file:
+            investors = json.load(file)
+            for investor in investors:
+                industries = get_industries(investor.get("industry"), industry_list)
+                min_investment, max_investment = get_min_max_investment(investor.get("investment_range"))
+                rounds = get_rounds(investor.get("rounds"))
+                notable_investments = (
+                    get_notable_investments(
+                        investor.get("notable_investments"), notable_investment_list, NotableInvestment
+                    ),
+                )
+                print(investor)
+
+                investor = Investor(
+                    first_name=investor.get("first_name"),
+                    last_name=investor.get("last_name"),
+                    firm_name=investor.get("firm_name"),
+                    position=investor.get("position"),
+                    about=investor.get("about"),
+                    email=investor.get("email"),
+                    linkedin=investor.get("linkedin"),
+                    twitter=investor.get("twitter"),
+                    location=investor.get("location"),
+                    min_investment=min_investment,
+                    max_investment=max_investment,
+                    industries=list(set(industries)),
+                    rounds=rounds,
+                    notable_investments=notable_investments,
+                )
+                db.session.add(investor)
+            db.session.commit()
 
     @staticmethod
     def generate_index_file():

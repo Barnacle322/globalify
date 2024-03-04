@@ -502,6 +502,93 @@ class Investor(db.Model):
         db.session.commit()
 
     @staticmethod
+    def populate_demo(file_name="investor.csv"):
+        with open(file_name, newline="") as file:
+            existing_notable_investments = NotableInvestment.get_all()
+            existing_industry_list = Industry.get_industry_list()
+            reader = csv.reader(file, delimiter=";")
+            # for row in islice(reader, 84, None):
+
+            for i, row in enumerate(reader):
+                check_size_string = row[8]
+                range_set = set()
+                for range_ in check_size_string.split(","):
+                    sanitized_range = (
+                        range_.replace("$", "")
+                        .replace(",", " ")
+                        .replace(" ", "")
+                        .replace("K", "000")
+                        .replace("M", "000000")
+                        .replace("B", "000000000")
+                        .replace("+", "")
+                    )
+                    if "-" in sanitized_range:
+                        min_investment, max_investment = sanitized_range.split("-")
+                        range_set.add(int(min_investment))
+                        range_set.add(int(max_investment))
+                    else:
+                        if sanitized_range in ["", " "]:
+                            continue
+                        range_set.add(int(sanitized_range))
+                min_investment, max_investment = None, None
+                if len(range_set) > 1:
+                    min_investment, max_investment = min(range_set), max(range_set)
+
+                industry_list = []
+                for industry in row[5].split(","):
+                    for i in existing_industry_list:
+                        if i and fuzz.ratio(industry, i.name) > 80:
+                            industry = i
+                            industry_list.append(industry)
+                            break
+
+                round_list = []
+                for round_ in row[9].split(","):
+                    for r in Round.get_all():
+                        if round_ == "Series B+":
+                            round_list.append(Round.get_by_name("Series B"))
+                            round_list.append(Round.get_by_name("Series C"))
+                            break
+                        if r and fuzz.ratio(round_.lower(), r.name.lower()) > 90:
+                            round_ = r
+                            round_list.append(round_)
+                            break
+
+                notable_investment_list = []
+                for notable_investment in row[10].split(","):
+                    existing = None
+                    for eni in existing_notable_investments:
+                        if fuzz.ratio(notable_investment, eni.name) > 90:
+                            existing = eni
+                            break
+                    if existing:
+                        notable_investment_list.append(existing)
+                    else:
+                        ni = NotableInvestment(name=notable_investment)
+                        db.session.add(ni)
+                        notable_investment_list.append(ni)
+
+                investor = Investor(
+                    first_name=row[0].split(" ")[0],
+                    last_name=row[0].split(" ")[1],
+                    firm_name=row[1],
+                    position=row[2],
+                    email=row[3],
+                    location=row[4],
+                    coordinates=row[4],
+                    industries=list(set(industry_list)),
+                    linkedin=row[6],
+                    twitter=row[7],
+                    min_investment=min_investment,
+                    max_investment=max_investment,
+                    rounds=list(set(round_list)),
+                    notable_investments=notable_investment_list,
+                )
+                db.session.add(investor)
+                print("Added investor:", investor)
+        db.session.commit()
+
+    @staticmethod
     def populate_cli():
         notable_investment_list = NotableInvestment.get_all()
         industry_list = Industry.get_industry_list()

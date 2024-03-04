@@ -33,7 +33,7 @@ from ..utils.errors.error_messages import (
     OAUTH_NO_EMAIL,
     OAUTH_NO_USER_INFO,
 )
-from ..utils.google_helpers.google_pubsub import send_event
+from ..utils.google_helpers import google_pubsub
 from .main import check_user_info_complete, check_verification
 from .payment import waitlist as payment_waitlist
 
@@ -213,7 +213,7 @@ def resend_verification_email(user_id):
     db.session.add(verification)
     db.session.commit()
 
-    send_event(
+    google_pubsub.send_event(
         "A user has requested a new verification code!",
         email=user.email,
         event_type=Events.USER_COMPLETED_ONBOARDING.value,
@@ -505,7 +505,7 @@ def onboarding():
         verification = EmailVerification(user_id=authenticated_user.id)
         db.session.add(verification)
         db.session.commit()
-        send_event(
+        google_pubsub.send_event(
             "A new user has completed onboarding!",
             email=authenticated_user.email,
             event_type=Events.USER_COMPLETED_ONBOARDING.value,

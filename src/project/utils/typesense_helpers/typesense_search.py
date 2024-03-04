@@ -166,6 +166,8 @@ class SearchBuilder:
         return self
 
     def search(self) -> dict:
+        if os.getenv("FLASK_ENV") == "testing":
+            return {"found": 0, "page": 1, "per_page": 9, "hits": []}
         self.parameters["prefix"] = False
         self.parameters["filter_by"] = " && ".join(self.filters)
         return client.collections[self.collection].documents.search(self.parameters)

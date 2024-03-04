@@ -203,7 +203,6 @@ def search():
 
     waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
     if not waitlist_charge and page > 1 and not current_user.is_admin:
-        print("here")
         investors = []
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
@@ -290,11 +289,6 @@ def update_notification(notification_id):
     db.session.commit()
 
     return jsonify({"status": "success"}, 200)
-
-
-@main.get("/waitlist")
-def waitlist():
-    return render_template("waitlist.html")
 
 
 @main.post("/waitlist-email")

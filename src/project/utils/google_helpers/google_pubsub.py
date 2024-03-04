@@ -41,8 +41,10 @@ def get_callback(
 
 
 def send_event(msg: str, **attributes) -> None:
-    # publish_future = publisher.publish(topic_path, msg.encode("utf-8"), **attributes)
-    # publish_future.add_done_callback(get_callback(publish_future, msg))
-    # publish_futures.append(publish_future)
-    # futures.wait(publish_futures, return_when=futures.ALL_COMPLETED)
+    if os.getenv("FLASK_ENV") == "testing":
+        raise Exception("Pub/Sub is disabled in testing environment")
+    publish_future = publisher.publish(topic_path, msg.encode("utf-8"), **attributes)
+    publish_future.add_done_callback(get_callback(publish_future, msg))
+    publish_futures.append(publish_future)
+    futures.wait(publish_futures, return_when=futures.ALL_COMPLETED)
     print(f"Published messages with error handler to {topic_path}.")

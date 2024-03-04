@@ -149,7 +149,7 @@ typing-extensions==4.9.0
     #   psycopg
     #   sqlalchemy
     #   stripe
-urllib3==2.2.0
+urllib3==2.2.1
     # via requests
 werkzeug==3.0.1
     # via

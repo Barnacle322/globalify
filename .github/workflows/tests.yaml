@@ -48,4 +48,5 @@ jobs:
                   _PUBSUB_AUTH_PROVIDER_X509_CERT_URL: ${{ secrets._PUBSUB_AUTH_PROVIDER_X509_CERT_URL }}
                   _PUBSUB_CLIENT_X509_CERT_URL: ${{ secrets._PUBSUB_CLIENT_X509_CERT_URL }}
                   _PUBSUB_UNIVERSE_DOMAIN: ${{ secrets._PUBSUB_UNIVERSE_DOMAIN }}
+                  _GOOGLE_MAPS_API_KEY: ${{ secrets._GOOGLE_MAPS_API_KEY }}
               run: poetry run pytest -vvs -W ignore::DeprecationWarning || echo "Tests failed" > test-status

@@ -136,7 +136,7 @@ sgmllib3k==1.0.0
     # via feedparser
 six==1.16.0
     # via python-dateutil
-sqlalchemy==2.0.27
+sqlalchemy==2.0.28
     # via
     #   alembic
     #   flask-sqlalchemy

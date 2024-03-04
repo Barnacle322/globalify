@@ -16,6 +16,9 @@ def check_weights(weights: dict[str, float]) -> None:
 
 
 def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str] | None:
+    if os.getenv("FLASK_ENV") == "testing":
+        raise Exception("Geocoding is disabled in testing environment")
+
     if not location:
         return {"coordinates": "", "country_name": ""}
     print(f"Searching Typesense: {location}")

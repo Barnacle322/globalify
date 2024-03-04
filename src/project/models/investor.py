@@ -353,7 +353,7 @@ class Investor(db.Model):
             existing_industry_list = Industry.get_industry_list()
             reader = csv.reader(file, delimiter=";")
             # for row in islice(reader, 84, None):
-            counter = 0
+
             for i, row in enumerate(reader):
                 check_size_string = row[8]
                 range_set = set()

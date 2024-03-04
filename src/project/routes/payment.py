@@ -15,7 +15,7 @@ from ..utils.errors.error_messages import (
     PAYMENT_EMAIL_USED,
     PAYMENT_NOT_FOUND,
 )
-from ..utils.google_helpers.google_pubsub import send_event
+from ..utils.google_helpers import google_pubsub
 from .main import check_user_info_complete
 
 payment = Blueprint("payment", __name__)
@@ -575,7 +575,7 @@ def invoice_upcoming(data_object):
     stripe_customer_id = data_object.get("customer")
     customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
 
-    send_event(
+    google_pubsub.send_event(
         "A user's subscription will be renewed",
         event_type=Events.STRIPE_INVOICE_UPCOMING.value,
         email=customer_email,
@@ -586,7 +586,7 @@ def trial_will_end(data_object):
     stripe_customer_id = data_object.get("customer")
     customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
 
-    send_event(
+    google_pubsub.send_event(
         "A user's trial will end soon",
         event_type=Events.STRIPE_TRIAL_WILL_END.value,
         email=customer_email,
@@ -599,7 +599,7 @@ def payment_failed(data_object):
 
     attempt_count = data_object.get("attempt_count")
 
-    send_event(
+    google_pubsub.send_event(
         "A user's subscription could not be renewed",
         event_type=Events.STRIPE_PAYMENT_FAILED.value,
         email=customer_email,
@@ -645,7 +645,7 @@ def new_waitlist(data_object):
     db.session.add(notification)
     db.session.commit()
 
-    send_event(
+    google_pubsub.send_event(
         "A user has signed up for early access",
         event_type=Events.STRIPE_PAYMENT_SUCCEDED.value,
         email=customer_email,

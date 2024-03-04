@@ -1,14 +1,18 @@
 import pytest
-from flask_sqlalchemy.pagination import Pagination
 
 from ...project import db
 from ...project.models import Industry, Investor, NotableInvestment, Round
 
 
 @pytest.fixture()
-def new_investor(app):
+def new_investors(app):
     with app.app_context():
-        investor = Investor(
+        notable_investment1 = NotableInvestment(name="Notable Investment 1")
+        notable_investment2 = NotableInvestment(name="Notable Investment 2")
+        db.session.add_all([notable_investment1, notable_investment2])
+        db.session.commit()
+
+        investor1 = Investor(
             first_name="Jane",
             last_name="Doe",
             firm_name="BerkshireHathaway",
@@ -23,47 +27,214 @@ def new_investor(app):
             n_exits=2,
             min_investment=100000,
             max_investment=50000000,
-            location="Germany",
+            location="Chad",
+            _coordinates="20.45,16.5167",
+            _country="Chad",
             rounds=[Round.get_by_id(1)],
             industries=[Industry.get_by_id(1)],
+            notable_investments=[notable_investment1, notable_investment2],
         )
-        db.session.add(investor)
+
+        investor2 = Investor(
+            first_name="Sophia",
+            last_name="Garcia",
+            firm_name="Garcia Ventures",
+            about="About Sophia",
+            position="Managing Director",
+            website="https://www.garciaventures.com",
+            linkedin="https://www.linkedin.com/in/sophiagarcia",
+            twitter="https://twitter.com/sophiagarcia",
+            email="sophiagarcia@example.com",
+            phone_number="+14445556666",
+            n_investments=70,
+            n_exits=28,
+            min_investment=300000,
+            max_investment=15000000,
+            location="Brazil",
+            _coordinates="-14.235,-51.9253",
+            _country="Brazil",
+            rounds=[Round.get_by_id(1)],
+            industries=[Industry.get_by_id(1)],
+            notable_investments=[notable_investment1, notable_investment2],
+        )
+
+        investor3 = Investor(
+            first_name="Bob",
+            last_name="Doe",
+            firm_name="Apple",
+            about="About Bob",
+            position="CTO",
+            website="https://www.apple.com",
+            linkedin="https://www.linkedin.com/in/Bob",
+            twitter="https://www.twitter.com/bob",
+            email="bobdoe@example.com",
+            phone_number="+11806123574",
+            n_investments=86,
+            n_exits=25,
+            min_investment=300000,
+            max_investment=90000000,
+            location="Nepal",
+            _coordinates="29.25,82.2167",
+            _country="Nepal",
+            rounds=[Round.get_by_id(1)],
+            industries=[Industry.get_by_id(1)],
+            notable_investments=[notable_investment1, notable_investment2],
+        )
+
+        investor4 = Investor(
+            first_name="Holly",
+            last_name="Rivera",
+            firm_name="Horne and Sons",
+            about="About Holly",
+            position="Administrator, sports",
+            website="https://www.byrd.info/mainterms.htm",
+            linkedin="https://www.linkedin.com/in/Holly-Rivera",
+            twitter="https://twitter.com/HollyRivera",
+            email="4willistracey@example.net",
+            phone_number="+12942155364",
+            n_investments=111,
+            n_exits=50,
+            min_investment=35100000,
+            max_investment=38900000,
+            location="American Samoa",
+            _coordinates="-14.274,-170.7046",
+            _country="American Samoa",
+            rounds=[Round.get_by_id(1)],
+            industries=[Industry.get_by_id(1)],
+            notable_investments=[notable_investment1, notable_investment2],
+        )
+
+        investor5 = Investor(
+            first_name="Anthony",
+            last_name="Foster",
+            firm_name="Evans-Kelly",
+            about="About Anthony",
+            position="Occupational therapist",
+            website="https://www.rogers.com/wp-content/categories/tagauthor.asp",
+            linkedin="https://www.linkedin.com/in/Anthony-Foster",
+            twitter="https://twitter.com/AnthonyFoster",
+            email="5dominguezalan@example.com",
+            phone_number="+18331440523",
+            n_investments=195,
+            n_exits=53,
+            min_investment=43900000,
+            max_investment=44800000,
+            location="India",
+            _coordinates="14.92,78.9546",
+            _country="India",
+            rounds=[Round.get_by_id(1)],
+            industries=[Industry.get_by_id(1)],
+            notable_investments=[notable_investment1, notable_investment2],
+        )
+
+        investor6 = Investor(
+            first_name="Emily",
+            last_name="Smith",
+            firm_name="Smith Ventures",
+            about="About Emily",
+            position="Managing Director",
+            website="https://www.smithventures.com",
+            linkedin="https://www.linkedin.com/in/emilysmith",
+            twitter="https://twitter.com/emilysmith",
+            email="emilysmith@example.com",
+            phone_number="+12345678901",
+            n_investments=75,
+            n_exits=30,
+            min_investment=50000,
+            max_investment=3000000,
+            location="Canada",
+            _coordinates="56.1304,-106.3468",
+            _country="Canada",
+            rounds=[Round.get_by_id(1)],
+            industries=[Industry.get_by_id(1)],
+            notable_investments=[notable_investment1, notable_investment2],
+        )
+
+        investor7 = Investor(
+            first_name="Michael",
+            last_name="Johnson",
+            firm_name="Johnson Capital",
+            about="About Michael",
+            position="Investment Analyst",
+            website="https://www.johnsoncapital.com",
+            linkedin="https://www.linkedin.com/in/michaeljohnson",
+            twitter="https://twitter.com/michaeljohnson",
+            email="michaeljohnson@example.com",
+            phone_number="+19876543210",
+            n_investments=50,
+            n_exits=20,
+            min_investment=200000,
+            max_investment=10000000,
+            location="United Kingdom",
+            _coordinates="55.3781,-3.436",
+            _country="United Kingdom",
+            rounds=[Round.get_by_id(1)],
+            industries=[Industry.get_by_id(1)],
+            notable_investments=[notable_investment1, notable_investment2],
+        )
+
+        investor8 = Investor(
+            first_name="Jessica",
+            last_name="Williams",
+            firm_name="Williams Investments",
+            about="About Jessica",
+            position="Founder",
+            website="https://www.williamsinvestments.com",
+            linkedin="https://www.linkedin.com/in/jessicawilliams",
+            twitter="https://twitter.com/jessicawilliams",
+            email="jessicawilliams@example.com",
+            phone_number="+15551234567",
+            n_investments=90,
+            n_exits=35,
+            min_investment=100000,
+            max_investment=5000000,
+            location="Australia",
+            _coordinates="-25.2744,133.7751",
+            _country="Australia",
+            rounds=[Round.get_by_id(1)],
+            industries=[Industry.get_by_id(1)],
+            notable_investments=[notable_investment1, notable_investment2],
+        )
+
+        investor9 = Investor(
+            first_name="David",
+            last_name="Martinez",
+            firm_name="Martinez Capital",
+            about="About David",
+            position="Managing Partner",
+            website="https://www.martinezcapital.com",
+            linkedin="https://www.linkedin.com/in/davidmartinez",
+            twitter="https://twitter.com/davidmartinez",
+            email="davidmartinez@example.com",
+            phone_number="+16667778888",
+            n_investments=80,
+            n_exits=25,
+            min_investment=500000,
+            max_investment=20000000,
+            location="Mexico",
+            _coordinates="23.6345,-102.5528",
+            _country="Mexico",
+            rounds=[Round.get_by_id(1)],
+            industries=[Industry.get_by_id(1)],
+            notable_investments=[notable_investment1, notable_investment2],
+        )
+
+        db.session.add_all(
+            [investor1, investor2, investor3, investor4, investor5, investor6, investor7, investor8, investor9]
+        )
         db.session.commit()
 
 
 @pytest.fixture()
-def new_investors_with_rounds(app):
+def new_notable_investment(app):
     with app.app_context():
-        round_2 = Round.get_by_id(2)
-        round_3 = Round.get_by_id(3)
-
-        assert round_2 and round_3
-
-        investor_with_round_2 = Investor(first_name="Investor1", rounds=[round_2])
-        investor_with_round_3 = Investor(first_name="Investor2", rounds=[round_3])
-        investor_with_both_rounds = Investor(first_name="Investor3", rounds=[round_2, round_3])
-
-        db.session.add_all([investor_with_round_2, investor_with_round_3, investor_with_both_rounds])
+        notable_investment1 = NotableInvestment(name="Notable Investment 1")
+        notable_investment2 = NotableInvestment(name="Notable Investment 2")
+        db.session.add_all([notable_investment1, notable_investment2])
         db.session.commit()
 
 
-@pytest.fixture()
-def new_investors_with_industries(app):
-    with app.app_context():
-        industry_2 = Industry.get_by_id(2)
-        industry_3 = Industry.get_by_id(3)
-
-        assert industry_2 and industry_3
-
-        investor_with_industry_1 = Investor(first_name="Investor1", industries=[industry_2])
-        investor_with_industry_2 = Investor(first_name="Investor2", industries=[industry_3])
-        investor_with_both_industries = Investor(first_name="Investor3", industries=[industry_2, industry_3])
-
-        db.session.add_all([investor_with_industry_1, investor_with_industry_2, investor_with_both_industries])
-        db.session.commit()
-
-
-def test_investor(new_investor, app):
+def test_investor(new_investors, app):
     with app.app_context():
         investor = Investor.query.first()
         assert investor
@@ -81,264 +252,109 @@ def test_investor(new_investor, app):
         assert investor.n_exits == 2
         assert investor.min_investment == 100000
         assert investor.max_investment == 50000000
-        assert investor.location == "Germany"
+        assert investor.location == "Chad"
+        assert investor._coordinates == "20.45,16.5167"
+        assert investor._country == "Chad"
         assert investor.rounds == [Round.get_by_id(1)]
         assert investor.industries == [Industry.get_by_id(1)]
+        assert investor.notable_investments == [
+            NotableInvestment.get_by_name("Notable Investment 1"),
+            NotableInvestment.get_by_name("Notable Investment 2"),
+        ]
 
 
-@pytest.fixture()
-def populate_investor(app):
+def test_get_all(new_investors, app):
     with app.app_context():
-        Investor.populate()
+        investors = Investor.get_all()
+        assert investors
+        assert len(investors) == 9
+
+        assert investors[0].id == 1
+        assert investors[1].id == 2
+        assert investors[2].id == 3
+        assert investors[3].id == 4
+        assert investors[4].id == 5
+        assert investors[5].id == 6
+        assert investors[6].id == 7
+        assert investors[7].id == 8
+        assert investors[8].id == 9
 
 
-@pytest.fixture()
-def populate_notable_investment(app):
+def test_get_by_email_existing(new_investors, app):
     with app.app_context():
-        NotableInvestment.populate()
+        investor = Investor.get_by_email("jane@example.com")
+        assert investor
+        assert investor.email == "jane@example.com"
 
 
-def test_pagination(populate_notable_investment, populate_investor, app):
+def test_get_by_email_not_existing(app):
     with app.app_context():
-        page_size = 10
-        page_number = 1
-
-        paginated_investors_1 = Investor.get_pagination(page=page_number, per_page=page_size)
-        paginated_investors_2 = Investor.get_pagination(page=page_number, per_page=page_size)
-
-        assert isinstance(paginated_investors_1, Pagination)
-        assert len(paginated_investors_1.items) == page_size
-
-        page_number = 2
-        assert isinstance(paginated_investors_2, Pagination)
-        assert len(paginated_investors_2.items) > 0
-        assert len(paginated_investors_2.items) <= page_size
+        investor = Investor.get_by_email("johndoe@example.com")
+        assert not investor
 
 
-@pytest.mark.parametrize(
-    "query_name, filter_field, expected_value",
-    [
-        ("Jane", "first_name", "Jane"),
-        ("Doe", "last_name", "Doe"),
-        ("BerkshireHathaway", "firm_name", "BerkshireHathaway"),
-        ("Investment Analyst", "position", "Investment Analyst"),
-    ],
-)
-def test_filtering_by_field(new_investor, app, query_name, filter_field, expected_value):
+def test_get_by_id_existing(new_investors, app):
     with app.app_context():
-        filtered_items = Investor.get_pagination(search_string=query_name, filter_fields=filter_field)
-
-        assert isinstance(filtered_items, Pagination)
-        assert len(filtered_items.items) == 1
-        assert getattr(filtered_items.items[0], filter_field) == expected_value
+        investor = Investor.get_by_id(1)
+        assert investor
+        assert investor.id == 1
 
 
-def test_search_without_filtering(new_investor, app):
+def test_get_by_id_non_existing(new_investors, app):
     with app.app_context():
-        query = "Jane"
-
-        paginated_investors = Investor.get_pagination(search_string=query)
-
-        assert isinstance(paginated_investors, Pagination)
-        assert len(paginated_investors.items) >= 1
-
-        assert any(
-            query.lower() in field.lower()
-            for item in paginated_investors.items
-            for field in [item.first_name, item.last_name, item.firm_name, item.position]
-        )
+        investor = Investor.get_by_id(999)
+        assert investor is None
 
 
-def test_filter_by_rounds_with_and_operator(app, new_investors_with_rounds):
+def test_get_by_id_list_existing(new_investors, app):
     with app.app_context():
-        round_2 = Round.get_by_id(2)
-        round_3 = Round.get_by_id(3)
-
-        assert round_2 and round_3
-
-        paginated_investors_1 = Investor.get_pagination(rounds=[round_2], rounds_exclusive=True)
-        paginated_investors_2 = Investor.get_pagination(rounds=[round_3], rounds_exclusive=True)
-        paginated_investors_3 = Investor.get_pagination(rounds=[round_2, round_3], rounds_exclusive=True)
-
-        assert isinstance(paginated_investors_1, Pagination)
-        assert len(paginated_investors_1.items) == 2
-
-        assert isinstance(paginated_investors_2, Pagination)
-        assert len(paginated_investors_2.items) == 2
-
-        assert isinstance(paginated_investors_3, Pagination)
-        assert len(paginated_investors_3.items) == 1
+        investor_ids = [1, 2, 3]
+        investors = Investor.get_by_id_list(investor_ids)
+        assert investors
+        assert len(investors) == 3
+        assert investors[0].id == 1
+        assert investors[1].id == 2
+        assert investors[2].id == 3
 
 
-def test_filter_by_rounds_with_or_operator(app, new_investors_with_rounds):
+def test_get_by_id_list_non_existing(new_investors, app):
     with app.app_context():
-        round_2 = Round.get_by_id(2)
-        round_3 = Round.get_by_id(3)
-
-        assert round_2 and round_3
-
-        paginated_investors_1 = Investor.get_pagination(rounds=[round_2], rounds_exclusive=False)
-        paginated_investors_2 = Investor.get_pagination(rounds=[round_3], rounds_exclusive=False)
-        paginated_investors_3 = Investor.get_pagination(rounds=[round_2, round_3], rounds_exclusive=False)
-
-        assert isinstance(paginated_investors_1, Pagination)
-        assert len(paginated_investors_1.items) == 2
-
-        assert isinstance(paginated_investors_2, Pagination)
-        assert len(paginated_investors_2.items) == 2
-
-        assert isinstance(paginated_investors_3, Pagination)
-        assert len(paginated_investors_3.items) == 3
+        investor_ids = [999, 123, 451]
+        investors = Investor.get_by_id_list(investor_ids)
+        assert investors == []
 
 
-def test_filter_by_industries_with_and_operator(app, new_investors_with_industries):
+def test_get_all_notable_investments(new_notable_investment, app):
     with app.app_context():
-        industry_2 = Industry.get_by_id(2)
-        industry_3 = Industry.get_by_id(3)
-
-        assert industry_2 and industry_3
-
-        paginated_investors_1 = Investor.get_pagination(industries=[industry_2], industries_exclusive=True)
-        paginated_investors_2 = Investor.get_pagination(industries=[industry_3], industries_exclusive=True)
-        paginated_investors_3 = Investor.get_pagination(industries=[industry_2, industry_3], industries_exclusive=True)
-
-        assert isinstance(paginated_investors_1, Pagination)
-        assert len(paginated_investors_1.items) == 2
-
-        assert isinstance(paginated_investors_2, Pagination)
-        assert len(paginated_investors_2.items) == 2
-
-        assert isinstance(paginated_investors_3, Pagination)
-        assert len(paginated_investors_3.items) == 1
+        notable_investments = NotableInvestment.get_all()
+        assert notable_investments
+        assert len(notable_investments) == 2
+        assert notable_investments[0].name == "Notable Investment 1"
+        assert notable_investments[1].name == "Notable Investment 2"
 
 
-def test_filter_by_industries_with_or_operator(app, new_investors_with_industries):
+def test_get_by_id_existing_notable_investment(new_notable_investment, app):
     with app.app_context():
-        industry_2 = Industry.get_by_id(2)
-        industry_3 = Industry.get_by_id(3)
-
-        assert industry_2 and industry_3
-
-        paginated_investors_1 = Investor.get_pagination(industries=[industry_2], industries_exclusive=False)
-        paginated_investors_2 = Investor.get_pagination(industries=[industry_3], industries_exclusive=False)
-        paginated_investors_3 = Investor.get_pagination(industries=[industry_2, industry_3], industries_exclusive=False)
-
-        assert isinstance(paginated_investors_1, Pagination)
-        assert len(paginated_investors_1.items) == 2
-
-        assert isinstance(paginated_investors_2, Pagination)
-        assert len(paginated_investors_2.items) == 2
-
-        assert isinstance(paginated_investors_3, Pagination)
-        assert len(paginated_investors_3.items) == 3
+        notable_investment = NotableInvestment.get_by_id(1)
+        assert notable_investment
+        assert notable_investment.id == 1
+        assert notable_investment.name == "Notable Investment 1"
 
 
-@pytest.mark.parametrize(
-    "sort_field",
-    [
-        "first_name",
-        "last_name",
-        "firm_name",
-        "position",
-    ],
-)
-def test_apply_sorting_by_field(populate_notable_investment, populate_investor, app, sort_field):
+def test_get_by_id_non_existing_notable_investment(new_notable_investment, app):
     with app.app_context():
-        paginated_investors_1 = Investor.get_pagination(sort_field=sort_field, descending=False)
-        paginated_investors_2 = Investor.get_pagination(sort_field=sort_field, descending=True)
-
-        assert isinstance(paginated_investors_1, Pagination)
-        assert len(paginated_investors_1.items) > 1
-
-        for i in range(len(paginated_investors_1.items) - 1):
-            current_value = getattr(paginated_investors_1.items[i], sort_field)
-            next_value = getattr(paginated_investors_1.items[i + 1], sort_field)
-            assert current_value <= next_value
-
-        assert isinstance(paginated_investors_2, Pagination)
-        assert len(paginated_investors_2.items) > 1
-
-        for i in range(len(paginated_investors_2.items) - 1):
-            current_value = getattr(paginated_investors_2.items[i], sort_field)
-            next_value = getattr(paginated_investors_2.items[i + 1], sort_field)
-            assert current_value >= next_value
+        notable_investment = NotableInvestment.get_by_id(999)
+        assert notable_investment is None
 
 
-def test_sorting_by_nonexistent_field(populate_notable_investment, populate_investor, app):
+def test_get_by_name_existing_notable_investment(new_notable_investment, app):
     with app.app_context():
-        page_size = 10
-        nonexistent_field = "nonexistent_field"
-
-        paginated_investors = Investor.get_pagination(sort_field=nonexistent_field)
-
-        assert isinstance(paginated_investors, Pagination)
-        assert len(paginated_investors.items) > 0
-        assert len(paginated_investors.items) == page_size
+        notable_investment = NotableInvestment.get_by_name("Notable Investment 1")
+        assert notable_investment
+        assert notable_investment.name == "Notable Investment 1"
 
 
-# failing tests
-
-
-def test_filtering_wrong_query_name(populate_notable_investment, populate_investor, app):
+def test_get_by_name_non_existing_notable_investment(new_notable_investment, app):
     with app.app_context():
-        filtered_items = Investor.get_pagination(search_string="NonExistentName", filter_fields=["first_name"])
-        assert isinstance(filtered_items, Pagination)
-        assert len(filtered_items.items) == 0
-
-
-def test_filtering_wrong_filter_field(populate_notable_investment, populate_investor, app):
-    with app.app_context():
-        page_size = 10
-        filtered_items = Investor.get_pagination(search_string="Jane", filter_fields=["nonexistent_field"])
-
-        assert isinstance(filtered_items, Pagination)
-        assert len(filtered_items.items) == page_size
-
-
-def test_filtering_invalid_query_and_field_combination(new_investor, app):
-    with app.app_context():
-        filtered_items = Investor.get_pagination(search_string="BerkshireHathaway", filter_fields=["position"])
-
-        assert isinstance(filtered_items, Pagination)
-        assert len(filtered_items.items) == 0
-
-
-def test_filtering_for_invalid_query_and_field(populate_notable_investment, populate_investor, app):
-    with app.app_context():
-        page_size = 10
-        filtered_items = Investor.get_pagination(search_string="NonExistentName", filter_fields=["nonexistent_field"])
-
-        assert isinstance(filtered_items, Pagination)
-        assert len(filtered_items.items) == page_size
-
-
-def test_filter_by_empty_rounds_list(app, populate_notable_investment, populate_investor):
-    with app.app_context():
-        page_size = 10
-        filtered_items = Investor.get_pagination(rounds=[], rounds_exclusive=True)
-        assert isinstance(filtered_items, Pagination)
-        assert len(filtered_items.items) == page_size
-
-
-def test_filter_by_nonexistent_round(app, populate_notable_investment, populate_investor):
-    with app.app_context():
-        non_existing_round = Round(id=100, name="NonExistingRound")
-        filtered_items = Investor.get_pagination(rounds=[non_existing_round], rounds_exclusive=True)
-        assert isinstance(filtered_items, Pagination)
-        assert len(filtered_items.items) == 0
-
-
-def test_filter_by_empty_industries_list(app, populate_notable_investment, populate_investor):
-    with app.app_context():
-        page_size = 10
-        filtered_items = Investor.get_pagination(industries=[], industries_exclusive=True)
-        assert isinstance(filtered_items, Pagination)
-        assert len(filtered_items.items) == page_size
-
-
-def test_filter_by_nonexistent_industry(app, populate_notable_investment, populate_investor):
-    with app.app_context():
-        non_existing_industry = Industry(id=100, name="NonExistingIndustry")
-        filtered_items = Investor.get_pagination(industries=[non_existing_industry], industries_exclusive=True)
-        assert isinstance(filtered_items, Pagination)
-        assert len(filtered_items.items) == 0
+        notable_investment = NotableInvestment.get_by_name("Nonexistent Investment")
+        assert notable_investment is None

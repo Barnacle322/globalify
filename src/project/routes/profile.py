@@ -30,8 +30,8 @@ def user_profile(user_id):
 
 
 @profile.route("/company/<int:user_id>/", methods=["GET", "POST"])
-@check_verification
 @login_required
+@check_verification
 def company(user_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 

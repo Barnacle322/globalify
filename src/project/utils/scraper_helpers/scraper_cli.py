@@ -119,21 +119,14 @@ def set_columns(ctx):
 
 
 @cli.command()
-@click.option(
-    "--column",
-    prompt="Enter a column name for the data that should be sanitized",
-    help="Column name for the data",
-    required=True,
-)
-@click.option(
-    "--extra",
-    prompt="Enter the extra data that should be removed from the column with ';' as a separator if needed",
-    help="Extra data for deletion from the column. Use ';' as a separator",
-    required=True,
-)
-def sanitize_data(column, extra):
+def sanitize_data():
     """Sanitize the data in the column"""
     try:
+        column = click.prompt("Enter a column name for the data that should be sanitized", type=str)
+        extra = click.prompt(
+            "Enter the extra data that should be removed from the column with ';' as a separator if needed",
+            type=str,
+        )
         with open("investor_list.json", encoding="utf-8-sig") as file:
             investor_list = json.load(file)
 

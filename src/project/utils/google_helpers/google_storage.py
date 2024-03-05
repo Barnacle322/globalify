@@ -43,7 +43,7 @@ def upload_blob(
     try:
         blob.upload_from_file(io.BytesIO(content), content_type="image/jpeg")
     except Exception as e:
-        print("Agahan", e)
+        print(e)
         raise
 
     if old_blob_id:

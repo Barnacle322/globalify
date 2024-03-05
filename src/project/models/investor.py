@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 import random
 from collections.abc import Sequence
@@ -7,6 +8,7 @@ from collections.abc import Sequence
 from geopy.distance import geodesic
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
+from thefuzz import fuzz
 
 from ..extensions import db
 from ..models.user import Company
@@ -592,19 +594,15 @@ class Investor(db.Model):
     def populate_cli():
         notable_investment_list = NotableInvestment.get_all()
         industry_list = Industry.get_industry_list()
-        with open("investor_list.json", "r") as file:
+        with open("investor_list.json", encoding="utf-8-sig") as file:
             investors = json.load(file)
             for investor in investors:
                 industries = get_industries(investor.get("industry"), industry_list)
                 min_investment, max_investment = get_min_max_investment(investor.get("investment_range"))
                 rounds = get_rounds(investor.get("rounds"))
-                notable_investments = (
-                    get_notable_investments(
-                        investor.get("notable_investments"), notable_investment_list, NotableInvestment
-                    ),
+                notable_investments = get_notable_investments(
+                    investor.get("notable_investments"), notable_investment_list, NotableInvestment
                 )
-                print(investor)
-
                 investor = Investor(
                     first_name=investor.get("first_name"),
                     last_name=investor.get("last_name"),
@@ -615,9 +613,10 @@ class Investor(db.Model):
                     linkedin=investor.get("linkedin"),
                     twitter=investor.get("twitter"),
                     location=investor.get("location"),
+                    coordinates=investor.get("location"),
                     min_investment=min_investment,
                     max_investment=max_investment,
-                    industries=list(set(industries)),
+                    industries=industries,
                     rounds=rounds,
                     notable_investments=notable_investments,
                 )

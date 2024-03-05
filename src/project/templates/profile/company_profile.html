@@ -14,10 +14,10 @@ content %}
         </div>
         <div class="w-full rounded-b-lg rounded-r-lg bg-white p-6 shadow-xl">
             <div class="flex items-center gap-3">
-                {% if company.pfp_uuid %}
+                {% if company.picture_url %}
                 <div class="relative h-32 w-32 overflow-hidden rounded-full">
                     <img
-                        src="{{ company.pfp_uuid }}"
+                        src="{{ company.picture_url }}"
                         alt="Company Logo"
                         class="h-full w-full rounded-full object-cover"
                     />

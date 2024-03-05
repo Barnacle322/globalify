@@ -1,7 +1,7 @@
 {% extends "layouts/layout_teaser.html" %} {% block title %}Pricing{% endblock %} {% block head %} {{ super() }} {%
 endblock %} {% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden text-slate-900">
-    <section class="flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8 mt-20 mb-20">
+    <section class="flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8 mt-6 mb-20">
         <div class="flex flex-col items-center justify-center max-w-7xl w-full">
             <div class="px-4 sm:px-6 md:text-center lg:px-8 flex flex-col gap-4 justify-center items-center">
                 <span
@@ -20,48 +20,60 @@ endblock %} {% block content %}
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 mt-16 gap-x-5 gap-y-10 w-full">
                 <article class="flex flex-col gap-5 w-full">
                     <div class="bg-slate-50 rounded-3xl flex flex-col gap-5 px-5 py-7">
-                        <span class="font-semibold text-lg">Free</span>
+                        <span class="font-semibold text-lg">Community</span>
                         <span>
                             <span
                                 class="text-4xl font-semibold bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent"
-                                >0$</span
+                                >$0</span
                             >/month</span
                         >
-                        <p>Perfect for small startups</p>
-                        <a class="text-lg w-full text-center border-2 rounded-xl py-3" href="/login">Subscribe</a>
+                        <p>A sneak peek into Globalify</p>
+                        <a class="text-lg w-full text-center ring-2 ring-slate-200 rounded-xl py-3" href="/login"
+                            >Subscribe</a
+                        >
                     </div>
                     <div class="flex flex-col divide-y-2">
                         <span class="py-5 inline-flex gap-3 items-center"
-                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Database access</span
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Knowledge Hub
+                            Community</span
+                        >
+                        <span class="py-5 inline-flex gap-3 items-center"
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Global Talk Access</span
                         >
                     </div>
                 </article>
                 <article class="flex flex-col gap-5 w-full">
                     <div class="bg-slate-50 rounded-3xl flex flex-col gap-5 px-5 py-7">
-                        <span class="font-semibold text-lg">Starter</span>
+                        <span class="font-semibold text-lg">Premium</span>
                         <span>
                             <span
                                 class="text-4xl font-semibold bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent"
-                                >49$</span
+                                >$29</span
                             >/month</span
                         >
                         <p>Perfect for small startups</p>
-                        <a class="text-lg w-full text-center border-2 rounded-xl py-3" href="/login">Subscribe</a>
+                        <a class="text-lg w-full text-center ring-2 ring-slate-200 rounded-xl py-3" href="/login"
+                            >Subscribe</a
+                        >
                     </div>
                     <div class="flex flex-col divide-y-2">
                         <span class="py-5 inline-flex gap-3 items-center"
-                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Database access</span
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Knowledge Hub
+                            Premium</span
                         >
                         <span class="py-5 inline-flex gap-3 items-center"
-                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Database access</span
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Global Talk Access</span
+                        >
+                        <span class="py-5 inline-flex gap-3 items-center"
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Search Engine</span
                         >
                     </div>
                 </article>
                 <article class="flex flex-col gap-5 w-full">
                     <div class="bg-[#231645] rounded-3xl flex flex-col gap-5 px-5 py-7 text-white">
-                        <span class="font-semibold text-lg">Early Access</span>
+                        <span class="font-semibold text-lg">Premium Annual</span>
 
-                        <span><span class="text-4xl font-semibold">$199</span>/lifetime</span>
+                        <span><span class="text-4xl font-semibold">$290</span>/year</span>
                         <p>Perfect for small startups</p>
                         <a
                             class="text-lg w-full text-center rounded-xl py-3 bg-gradient-to-r from-[#0EA5E9] to-[#DE7CC8]"
@@ -71,40 +83,64 @@ endblock %} {% block content %}
                     </div>
                     <div class="flex flex-col divide-y-2">
                         <span class="py-5 inline-flex gap-3 items-center"
-                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Database access</span
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Knowledge Hub
+                            Premium</span
                         >
                         <span class="py-5 inline-flex gap-3 items-center"
-                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Database access</span
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Global Talk Access</span
                         >
                         <span class="py-5 inline-flex gap-3 items-center"
-                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Database access</span
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Search Engine</span
                         >
                         <span class="py-5 inline-flex gap-3 items-center"
-                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Database access</span
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Access to Globalify
+                            Labs</span
                         >
                     </div>
                 </article>
                 <article class="flex flex-col gap-5 w-full">
                     <div class="bg-slate-50 rounded-3xl flex flex-col gap-5 px-5 py-7">
-                        <span class="font-semibold text-lg">Pro</span>
+                        <span class="font-semibold text-lg">Platinum</span>
                         <span>
                             <span
                                 class="text-4xl font-semibold bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent"
-                                >79$</span
-                            >/month</span
+                                >Custom</span
+                            ></span
                         >
                         <p>Perfect for small startups</p>
-                        <a class="text-lg w-full text-center border-2 rounded-xl py-3" href="/login">Subscribe</a>
+                        <a
+                            class="text-lg w-full text-center ring-2 ring-slate-200 rounded-xl py-3"
+                            href="mailto:eric@globalify.xyz"
+                            >Contact Us</a
+                        >
                     </div>
                     <div class="flex flex-col divide-y-2">
                         <span class="py-5 inline-flex gap-3 items-center"
-                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Database access</span
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Knowledge Hub
+                            Premium</span
                         >
                         <span class="py-5 inline-flex gap-3 items-center"
-                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Database access</span
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Global Talk Access</span
                         >
                         <span class="py-5 inline-flex gap-3 items-center"
-                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Database access</span
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Search Engine</span
+                        >
+                        <span class="py-5 inline-flex gap-3 items-center"
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Access to Globalify
+                            Labs</span
+                        >
+                        <span class="py-5 inline-flex gap-3 items-center"
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />24/7 Priority
+                            Support</span
+                        >
+                        <span class="py-5 inline-flex gap-3 items-center"
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />API Access</span
+                        >
+                        <span class="py-5 inline-flex gap-3 items-center"
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Multiple Seats</span
+                        >
+                        <span class="py-5 inline-flex gap-3 items-center"
+                            ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Much More</span
                         >
                     </div>
                 </article>

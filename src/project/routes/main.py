@@ -116,6 +116,11 @@ def index():
     return render_template("index.html", posts=posts)
 
 
+@main.get("/incubation")
+def incubation():
+    return render_template("incubation.html")
+
+
 @main.route("/suggestions")
 @login_required
 @check_user_info_complete

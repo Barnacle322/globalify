@@ -1504,17 +1504,14 @@ select {
 .mt-\[8px\] {
   margin-top: 8px;
 }
+.mb-36 {
+  margin-bottom: 9rem;
+}
 .line-clamp-3 {
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
-}
-.line-clamp-5 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
 }
 .block {
   display: block;
@@ -2140,6 +2137,9 @@ select {
 .border-stone-300 {
   --tw-border-opacity: 1;
   border-color: rgb(214 211 209 / var(--tw-border-opacity));
+}
+.border-transparent {
+  border-color: transparent;
 }
 .border-white {
   --tw-border-opacity: 1;
@@ -2828,6 +2828,11 @@ select {
 .ring-1 {
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
   --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+.ring-2 {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
 }
 .ring-black {

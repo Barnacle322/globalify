@@ -215,7 +215,9 @@ def change_company_info():
                     delete_blob_from_url(company.picture_url)
                 company.picture_url = picture_url
             except Exception:
-                status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
+                status = Status(
+                    StatusType.ERROR, "Error loading image. Please reach out to our support team!"
+                ).get_status()
                 return redirect(url_for("settings.index", _external=False, **status))
 
         country_id = request.form.get("country", type=int)

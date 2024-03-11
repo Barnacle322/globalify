@@ -127,7 +127,7 @@
                 <div class="rounded-xl text-lime-500">{{ msg }}</div>
                 {% endif %} {% endif %}
             </div>
-            <form class="md:col-span-2" action="/settings/personal-info" method="POST">
+            <form class="md:col-span-2" action="/settings/personal-info" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
                 <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
@@ -148,9 +148,9 @@
                         <div>
                             <input
                                 type="file"
-                                id="pfp"
-                                name="pfp"
-                                accept="image/png, image/jpeg"
+                                id="picture"
+                                name="picture"
+                                accept="image/png image/jpeg image/jpg"
                                 class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
                             />
                             <p class="mt-2 text-xs leading-5">JPG or PNG</p>

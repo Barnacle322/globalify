@@ -16,10 +16,10 @@ content %}
         </div>
         <div class="w-full rounded-b-lg rounded-r-lg bg-white p-6 shadow-xl">
             <div class="flex items-center gap-3">
-                {% if user_info.pfp_uuid %}
+                {% if user_info.picture_url %}
                 <div class="relative h-32 w-32 overflow-hidden rounded-full">
                     <img
-                        src="{{ user_info.pfp_uuid }}"
+                        src="{{ user_info.picture_url }}"
                         alt="Profile Photo"
                         class="h-full w-full rounded-full object-cover"
                     />

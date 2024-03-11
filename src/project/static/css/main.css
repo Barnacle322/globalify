@@ -1504,9 +1504,6 @@ select {
 .mt-\[8px\] {
   margin-top: 8px;
 }
-.mb-36 {
-  margin-bottom: 9rem;
-}
 .line-clamp-3 {
   overflow: hidden;
   display: -webkit-box;
@@ -2137,9 +2134,6 @@ select {
 .border-stone-300 {
   --tw-border-opacity: 1;
   border-color: rgb(214 211 209 / var(--tw-border-opacity));
-}
-.border-transparent {
-  border-color: transparent;
 }
 .border-white {
   --tw-border-opacity: 1;

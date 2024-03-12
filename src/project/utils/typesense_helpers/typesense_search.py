@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from typesense.client import Client
 
@@ -202,18 +203,15 @@ def populate_schema_from_file(
         raise ValueError("Schema name and file path are required")
 
 
-def upsert_documents(schema_name: str, data: list[dict]):
+def upsert_documents(schema_name: str, data: list[dict]) -> list[dict[str, Any]]:
     if schema_name and data:
         print(f"Populating {schema_name} schema")
-        client.collections[schema_name].documents.import_(
+        import_return = client.collections[schema_name].documents.import_(
             data,
-            {
-                "action": "upsert",
-                "filter_by": "db_id",
-            },
+            {"action": "upsert", "filter_by": "db_id", "return_id": "true"},
         )
         print(f"Populated {schema_name} schema")
-        return client.collections[schema_name].documents.export({"include_fields": "id, db_id"})
+        return import_return
     else:
         raise ValueError("Schema name and file path are required")
 

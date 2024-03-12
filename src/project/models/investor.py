@@ -4,10 +4,11 @@ import csv
 import json
 import random
 from ast import literal_eval
-from collections.abc import Sequence
+from collections.abc import Generator, Sequence
 from itertools import islice
 
 from geopy.distance import geodesic
+from more_itertools import chunked
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
 from thefuzz import fuzz
@@ -216,6 +217,26 @@ class Investor(db.Model):
             .unique()
             .all()
         )
+
+    @staticmethod
+    def get_batches(batch_size: int = 100) -> Generator[Sequence["Investor"], None, None]:
+        # Fetch the investor IDs
+        ids_query = db.session.execute(db.select(Investor.id)).scalars().all()
+
+        # Iterate over the IDs in batches
+        for ids in chunked(ids_query, batch_size):
+            # Fetch the full Investor objects with their related rounds and industries
+            investors = (
+                db.session.scalars(
+                    db.select(Investor)
+                    .options(joinedload(Investor.rounds), joinedload(Investor.industries))
+                    .where(Investor.id.in_(ids))
+                )
+                .unique()
+                .all()
+            )
+            print(investors)
+            yield investors
 
     @classmethod
     def get_search(
@@ -731,30 +752,6 @@ class Investor(db.Model):
 
     @staticmethod
     def sync_search_index(recreate: bool = False):
-        investors = Investor.get_all()
-        data = []
-        for investor in investors:
-            investor_object = {}
-            if investor.search_index:
-                investor_object["id"] = investor.search_index
-            investor_object["db_id"] = investor.id
-            investor_object["name"] = investor.full_name
-            investor_object["firm_name"] = investor.firm_name
-            investor_object["about"] = investor.about
-            investor_object["position"] = investor.position
-            investor_object["n_investments"] = investor.n_investments
-            investor_object["n_exits"] = investor.n_exits
-            investor_object["min_investment"] = investor.min_investment
-            investor_object["max_investment"] = investor.max_investment
-            investor_object["location"] = investor.location
-            investor_object["country"] = investor._country
-            investor_object["rounds"] = [round_.name for round_ in investor.rounds]
-            investor_object["industries"] = [industry.name for industry in investor.industries]
-            investor_object["notable_investments"] = [
-                notable_investment.name for notable_investment in investor.notable_investments
-            ]
-            data.append(investor_object)
-
         if recreate:
             investor_schema = {
                 "name": "investors",
@@ -797,23 +794,54 @@ class Investor(db.Model):
                 delete_schema("investors")
             except Exception:
                 print("Schema does not exist")
+            print("Creating schema")
             create_schema(investor_schema)
-        result = upsert_documents("investors", data)
-        create_synonyms("investors")
+            create_synonyms("investors")
 
-        objects = []
-        for line in result.splitlines():
-            if line:
-                parsed_line = json.loads(line)
-                objects.append((parsed_line.get("db_id"), parsed_line.get("id")))
+        batch_count = 1
+        for investors in Investor.get_batches(batch_size=100):
+            print(f"Processing batch {batch_count} of investors...")
+            data = []
+            for investor in investors:
+                investor_object = {}
+                if investor.search_index and not recreate:
+                    investor_object["id"] = investor.search_index
+                investor_object["db_id"] = investor.id
+                investor_object["name"] = investor.full_name
+                investor_object["firm_name"] = investor.firm_name
+                investor_object["about"] = investor.about
+                investor_object["position"] = investor.position
+                investor_object["n_investments"] = investor.n_investments
+                investor_object["n_exits"] = investor.n_exits
+                investor_object["min_investment"] = investor.min_investment
+                investor_object["max_investment"] = investor.max_investment
+                investor_object["location"] = investor.location
+                investor_object["country"] = investor._country
+                investor_object["rounds"] = [round_.name for round_ in investor.rounds]
+                investor_object["industries"] = [industry.name for industry in investor.industries]
+                investor_object["notable_investments"] = [
+                    notable_investment.name for notable_investment in investor.notable_investments
+                ]
+                data.append(investor_object)
 
-        query = "UPDATE investor SET search_index = CASE id "
-        for db_id, search_index in objects:
-            query += f"WHEN {db_id} THEN '{search_index}' "
-        query += "END WHERE id IN (" + ",".join(str(t[0]) for t in objects) + ")"
+            print("Upserting documents")
+            result = upsert_documents("investors", data)
 
-        db.session.execute(db.text(query))
-        db.session.commit()
+            objects = []
+            for index, obj in enumerate(result):
+                if obj.get("id"):
+                    objects.append((investors[index].id, int(obj.get("id", 0))))
+                else:
+                    continue
+
+            query = "UPDATE investor SET search_index = CASE id "
+            for db_id, search_index in objects:
+                query += f"WHEN {db_id} THEN '{search_index}' "
+            query += "END WHERE id IN (" + ",".join(str(t[0]) for t in objects) + ")"
+
+            db.session.execute(db.text(query))
+            db.session.commit()
+            batch_count += 1
 
 
 class InvestmentFirm(db.Model):

@@ -64,6 +64,32 @@ def download_blob_into_memory(blob_name: UUID, bucket_name: str = BUCKET_NAME) -
     return contents
 
 
+def prepare_picture(image):
+    input_image = Image.open(io.BytesIO(image.read()))
+
+    # Convert RGBA images to RGB mode
+    if input_image.mode == "RGBA":
+        background = Image.new("RGB", input_image.size, (255, 255, 255))
+        background.paste(input_image, mask=input_image.split()[3])
+        input_image = background.convert("RGB")
+
+    width, height = input_image.size
+    size = min(width, height)
+    left = (width - size) // 2
+    top = (height - size) // 2
+    right = left + size
+    bottom = top + size
+
+    square_image = input_image.crop((left, top, right, bottom))
+    square_image.thumbnail((100, 100))
+
+    resized_pfp = io.BytesIO()
+    square_image.save(resized_pfp, format="JPEG")
+    resized_pfp.seek(0)
+
+    return resized_pfp
+
+
 def scale_to_hd(image: io.IOBase) -> io.BytesIO:
     input_image = Image.open(io.BytesIO(image.read()))
 
@@ -118,7 +144,7 @@ def upload_picture(picture, bucket_name: str = BUCKET_NAME):
         raise ValueError("No picture provided")
 
     try:
-        resized_picture = scale_to_hd(picture)
+        resized_picture = prepare_picture(picture)
         picture_url = upload_blob(resized_picture.read(), bucket_name=bucket_name)
         return picture_url
     except Exception as e:

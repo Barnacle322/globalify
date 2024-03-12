@@ -3,10 +3,12 @@ from __future__ import annotations
 import csv
 import json
 import random
-from collections.abc import Sequence
+from ast import literal_eval
+from collections.abc import Generator, Sequence
 from itertools import islice
 
 from geopy.distance import geodesic
+from more_itertools import chunked
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
 from thefuzz import fuzz
@@ -190,8 +192,8 @@ class Investor(db.Model):
         return self._coordinates
 
     @coordinates.setter
-    def coordinates(self, coordinates: str) -> None:
-        geo_data = geocode_location(coordinates)
+    def coordinates(self, location: str) -> None:
+        geo_data = geocode_location(location)
         if geo_data is not None:
             self._coordinates = geo_data["coordinates"]  # type: ignore
             self._country = geo_data["country_name"]  # type: ignore
@@ -215,6 +217,26 @@ class Investor(db.Model):
             .unique()
             .all()
         )
+
+    @staticmethod
+    def get_batches(batch_size: int = 100) -> Generator[Sequence["Investor"], None, None]:
+        # Fetch the investor IDs
+        ids_query = db.session.execute(db.select(Investor.id)).scalars().all()
+
+        # Iterate over the IDs in batches
+        for ids in chunked(ids_query, batch_size):
+            # Fetch the full Investor objects with their related rounds and industries
+            investors = (
+                db.session.scalars(
+                    db.select(Investor)
+                    .options(joinedload(Investor.rounds), joinedload(Investor.industries))
+                    .where(Investor.id.in_(ids))
+                )
+                .unique()
+                .all()
+            )
+            print(investors)
+            yield investors
 
     @classmethod
     def get_search(
@@ -544,6 +566,103 @@ class Investor(db.Model):
                 print("Added investor:", investor)
         db.session.commit()
 
+    @staticmethod
+    def populate_vcsheet(file_name="investors_vc.csv"):
+        with open(file_name, newline="", encoding="utf-8") as file:
+            reader = csv.reader(file, delimiter=",", quotechar='"')
+            existing_notable_investments = NotableInvestment.get_all()
+            existing_industry_list = Industry.get_industry_list()
+            existing_round_list = Round.get_all()
+            for row in islice(reader, 1, None):
+                print("\n")
+                print(row)
+                first_name = row[0]
+                last_name = row[1]
+                firm_name = row[2]
+                position = row[3]
+                about = row[4]
+                email = row[5]
+                website = row[6]
+                linkedin = row[7]
+                twitter = row[8]
+                # crunchbase = row[9]
+                n_exits = row[10] if row[10] else None
+                min_investment = int(row[11]) if row[11] else None
+                max_investment = int(row[12]) if row[12] else None
+                location = row[13]
+                # invests_in_location = row[14]
+
+                industries = row[16]
+
+                if email == "":
+                    email = None
+
+                industries = literal_eval(row[16])
+                industry_list = []
+                for industry in industries:
+                    for i in existing_industry_list:
+                        if i and fuzz.ratio(industry, i.name) > 80:
+                            industry = i
+                            industry_list.append(industry)
+                            break
+                print(f"INDUSTRIES: {industry_list}")
+
+                rounds = literal_eval(row[15])
+                round_list = []
+                for round_ in rounds:
+                    for r in existing_round_list:
+                        if round_ == "Series B+":
+                            round_list.append(Round.get_by_name("Series B"))
+                            round_list.append(Round.get_by_name("Series C"))
+                            break
+                        if r and fuzz.ratio(round_.lower(), r.name.lower()) > 90:
+                            round_ = r
+                            round_list.append(round_)
+                            break
+                print(f"ROUNDS: {round_list}")
+
+                notable_investments = literal_eval(row[17])
+                notable_investment_list = []
+                for notable_investment in notable_investments:
+                    existing = None
+                    for eni in existing_notable_investments:
+                        if fuzz.ratio(notable_investment, eni.name) > 90:
+                            existing = eni
+                            break
+                    if existing:
+                        notable_investment_list.append(existing)
+                    else:
+                        ni = NotableInvestment(name=notable_investment)
+                        db.session.add(ni)
+                        notable_investment_list.append(ni)
+
+                print(f"NOTABLE INVESTMENTS: {notable_investment_list}")
+
+                print(f"MINMAX: {min_investment, max_investment}")
+
+                investor = Investor(
+                    first_name=first_name,
+                    last_name=last_name,
+                    firm_name=firm_name,
+                    position=position,
+                    about=about,
+                    email=email,
+                    location=location,
+                    coordinates=location,
+                    industries=list(set(industry_list)),
+                    rounds=list(set(round_list)),
+                    notable_investments=list(set(notable_investment_list)),
+                    website=website,
+                    linkedin=linkedin,
+                    twitter=twitter,
+                    min_investment=min_investment,
+                    max_investment=max_investment,
+                    n_exits=n_exits,
+                )
+                db.session.add(investor)
+                print("Added investor:", investor)
+        db.session.commit()
+
     def calculate_bias_score(self):
         try:
             bias_score = (self.bias / 100) if self.bias else 0
@@ -633,30 +752,6 @@ class Investor(db.Model):
 
     @staticmethod
     def sync_search_index(recreate: bool = False):
-        investors = Investor.get_all()
-        data = []
-        for investor in investors:
-            investor_object = {}
-            if investor.search_index:
-                investor_object["id"] = investor.search_index
-            investor_object["db_id"] = investor.id
-            investor_object["name"] = investor.full_name
-            investor_object["firm_name"] = investor.firm_name
-            investor_object["about"] = investor.about
-            investor_object["position"] = investor.position
-            investor_object["n_investments"] = investor.n_investments
-            investor_object["n_exits"] = investor.n_exits
-            investor_object["min_investment"] = investor.min_investment
-            investor_object["max_investment"] = investor.max_investment
-            investor_object["location"] = investor.location
-            investor_object["country"] = investor._country
-            investor_object["rounds"] = [round_.name for round_ in investor.rounds]
-            investor_object["industries"] = [industry.name for industry in investor.industries]
-            investor_object["notable_investments"] = [
-                notable_investment.name for notable_investment in investor.notable_investments
-            ]
-            data.append(investor_object)
-
         if recreate:
             investor_schema = {
                 "name": "investors",
@@ -684,14 +779,10 @@ class Investor(db.Model):
                         "type": "float[]",
                         "embed": {
                             "from": [
-                                "name",
-                                "firm_name",
                                 "about",
                                 "position",
                                 "location",
-                                "rounds",
                                 "industries",
-                                "notable_investments",
                             ],
                             "model_config": {"model_name": "ts/all-MiniLM-L12-v2"},
                         },
@@ -703,23 +794,54 @@ class Investor(db.Model):
                 delete_schema("investors")
             except Exception:
                 print("Schema does not exist")
+            print("Creating schema")
             create_schema(investor_schema)
-        result = upsert_documents("investors", data)
-        create_synonyms("investors")
+            create_synonyms("investors")
 
-        objects = []
-        for line in result.splitlines():
-            if line:
-                parsed_line = json.loads(line)
-                objects.append((parsed_line.get("db_id"), parsed_line.get("id")))
+        batch_count = 1
+        for investors in Investor.get_batches(batch_size=100):
+            print(f"Processing batch {batch_count} of investors...")
+            data = []
+            for investor in investors:
+                investor_object = {}
+                if investor.search_index and not recreate:
+                    investor_object["id"] = investor.search_index
+                investor_object["db_id"] = investor.id
+                investor_object["name"] = investor.full_name
+                investor_object["firm_name"] = investor.firm_name
+                investor_object["about"] = investor.about
+                investor_object["position"] = investor.position
+                investor_object["n_investments"] = investor.n_investments
+                investor_object["n_exits"] = investor.n_exits
+                investor_object["min_investment"] = investor.min_investment
+                investor_object["max_investment"] = investor.max_investment
+                investor_object["location"] = investor.location
+                investor_object["country"] = investor._country
+                investor_object["rounds"] = [round_.name for round_ in investor.rounds]
+                investor_object["industries"] = [industry.name for industry in investor.industries]
+                investor_object["notable_investments"] = [
+                    notable_investment.name for notable_investment in investor.notable_investments
+                ]
+                data.append(investor_object)
 
-        query = "UPDATE investor SET search_index = CASE id "
-        for db_id, search_index in objects:
-            query += f"WHEN {db_id} THEN '{search_index}' "
-        query += "END WHERE id IN (" + ",".join(str(t[0]) for t in objects) + ")"
+            print("Upserting documents")
+            result = upsert_documents("investors", data)
 
-        db.session.execute(db.text(query))
-        db.session.commit()
+            objects = []
+            for index, obj in enumerate(result):
+                if obj.get("id"):
+                    objects.append((investors[index].id, obj.get("id", 0)))
+                else:
+                    continue
+
+            query = "UPDATE investor SET search_index = CASE id "
+            for db_id, search_index in objects:
+                query += f"WHEN {db_id} THEN '{search_index}' "
+            query += "END WHERE id IN (" + ",".join(str(t[0]) for t in objects) + ")"
+
+            db.session.execute(db.text(query))
+            db.session.commit()
+            batch_count += 1
 
 
 class InvestmentFirm(db.Model):

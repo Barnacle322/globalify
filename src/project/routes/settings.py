@@ -2,8 +2,9 @@ from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Round, User, UserInfo, WaitlistCharge
+from ..models import Company, Country, Industry, Round, User, UserInfo, UserPayment
 from ..utils.enums import Status, StatusType, Tier
+from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
@@ -48,14 +49,9 @@ def security():
 def plan():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    # user_payment = UserPayment.get_by_user_id(authenticated_user.id)
-    subscription = {"tier": Tier.FREE}
-    # if user_payment and user_payment.customer_id and user_payment.subscription_id:
-    #     subscription = user_payment.sanitize()
-
-    waitlist_charge = WaitlistCharge.get_by_customer_email(authenticated_user.email)
-    if waitlist_charge:
-        subscription = {"tier": Tier.PREMIMUM}
+    user_payment = UserPayment.get_by_user_id(authenticated_user.id)
+    if user_payment and user_payment.customer_id and user_payment.subscription_id:
+        subscription = user_payment.sanitize()
 
     return render_template(
         "settings/plan.html",
@@ -91,8 +87,10 @@ def change_personal_info():
     last_name = request.form.get("last-name")
     username = request.form.get("username")
     bio = request.form.get("bio")
+    picture = request.files.get("picture")
 
     user_info = authenticated_user.user_info  # type: ignore
+
     if first_name and first_name.strip() != user_info.first_name:
         if first_name == " ":
             status = Status(StatusType.ERROR, "First name cannot be empty.").get_status()
@@ -119,6 +117,16 @@ def change_personal_info():
             status = Status(StatusType.ERROR, "Username is taken.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.username = username.strip()
+
+    if picture:
+        try:
+            picture_url = upload_picture(picture)
+            if user_info.picture_url:
+                delete_blob_from_url(user_info.picture_url)
+            user_info.picture_url = picture_url
+        except Exception:
+            status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
 
     db.session.commit()
 
@@ -192,6 +200,20 @@ def change_company_info():
                     **status,
                 )
             )
+
+        picture = request.files.get("picture")
+
+        if picture:
+            try:
+                picture_url = upload_picture(picture)
+                if company.picture_url:
+                    delete_blob_from_url(company.picture_url)
+                company.picture_url = picture_url
+            except Exception:
+                status = Status(
+                    StatusType.ERROR, "Error loading image. Please reach out to our support team!"
+                ).get_status()
+                return redirect(url_for("settings.index", _external=False, **status))
 
         country_id = request.form.get("country", type=int)
         if not country_id:

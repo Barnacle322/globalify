@@ -16,6 +16,8 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
+from src.project.models.user import UserPayment
+
 from ..extensions import db
 from ..models import (
     Company,
@@ -126,9 +128,13 @@ def incubation():
 @check_user_info_complete
 @check_verification
 def get_suggestions():
-    waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
     access = True
-    if not waitlist_charge and not current_user.is_admin:
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+    if current_user.is_admin:
+        access = True
+    elif not user_payment:
+        access = False
+    elif user_payment and not user_payment.is_active:
         access = False
 
     company = Company.get_by_user_id(current_user.id)
@@ -234,8 +240,12 @@ def search():
     )
     investors = result.get("investors")
 
-    waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
-    if not waitlist_charge and page > 1 and not current_user.is_admin:
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+    if current_user.is_admin:
+        pass
+    elif not user_payment and page > 1:
+        investors = []
+    elif user_payment and not user_payment.is_active and page > 1:
         investors = []
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))

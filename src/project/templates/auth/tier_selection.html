@@ -1,0 +1,130 @@
+{% extends "layouts/layout_clean.html" %} {% block additional_scripts%}
+<script src="/static/scripts/notificationHandler.js" defer></script>
+{% endblock %} {% block title %}Onboarding{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
+%}
+<main class="flex h-full flex-col items-center justify-center overflow-x-hidden p-6">
+    <div class="w-full max-w-2xl">
+        <h1 class="mb-4 text-center text-4xl font-semibold text-slate-900">Personalize your experience</h1>
+        <p class="mb-2 text-center text-slate-400">
+            Add your personal and company information to get started with Globalify.
+        </p>
+        {% if status_type %} {% if status_type == '3' %}
+        <div class="rounded-xl text-center text-red-500">{{ msg }}</div>
+        {% endif %} {% if status_type == '2' %}
+        <div class="rounded-xl text-center text-orange-400">{{ msg }}</div>
+        {% endif %} {% if status_type == '1' %}
+        <div class="rounded-xl text-center text-lime-500">{{ msg }}</div>
+        {% endif %} {% endif %}
+
+        <ol class="flex w-full items-center pt-10 text-center text-sm font-medium text-gray-500 sm:text-base">
+            <li
+                class="after:border-1 flex items-center text-blue-600 after:mx-6 after:hidden after:h-1 after:w-full after:border-b after:border-blue-600 sm:after:inline-block sm:after:content-[''] md:w-full xl:after:mx-10"
+            >
+                <span class="flex items-center after:mx-2 after:text-gray-200 after:content-['/'] sm:after:hidden">
+                    <svg
+                        class="me-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                    >
+                        <path
+                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"
+                        />
+                    </svg>
+                    Basic<span class="hidden sm:ms-2 sm:inline-flex">Info</span>
+                </span>
+            </li>
+            <li
+                class="after:border-1 flex items-center text-blue-600 after:mx-6 after:hidden after:h-1 after:w-full after:border-b after:border-blue-600 sm:after:inline-block sm:after:content-[''] md:w-full xl:after:mx-10"
+            >
+                <span class="flex items-center after:mx-2 after:text-gray-200 after:content-['/'] sm:after:hidden">
+                    <svg
+                        class="me-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                    >
+                        <path
+                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"
+                        />
+                    </svg>
+                    Company<span class="hidden sm:ms-2 sm:inline-flex">Info</span>
+                </span>
+            </li>
+            <li class="flex items-center">
+                <span class="flex items-center">
+                    <span class="me-2">3</span>
+                    Tier<span class="hidden sm:ms-2 sm:inline-flex">Info</span>
+                </span>
+            </li>
+        </ol>
+
+        <div class="mt-10 grid grid-cols-6 gap-x-6 gap-y-8">
+            <article class="flex w-full flex-col gap-5 col-span-3">
+                <div class="flex flex-col gap-5 rounded-3xl bg-slate-50 px-5 py-7">
+                    <span class="text-lg font-semibold">Premium</span>
+                    <span>
+                        <span
+                            class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
+                            >$29</span
+                        >/month</span
+                    >
+                    <p>Perfect for growing startups</p>
+                    <form action="/payment/create-checkout-session" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input type="hidden" name="tier" value="premium_monthly" />
+                        <button type="submit" class="w-full rounded-xl py-3 text-center text-lg ring-2 ring-slate-200">
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
+                <div class="flex flex-col divide-y-2">
+                    <span class="inline-flex items-center gap-3 py-5"
+                        ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Knowledge Hub Premium</span
+                    >
+                    <span class="inline-flex items-center gap-3 py-5"
+                        ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Global Talk Access</span
+                    >
+                    <span class="inline-flex items-center gap-3 py-5"
+                        ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Search Engine</span
+                    >
+                </div>
+            </article>
+            <article class="flex w-full flex-col gap-5 col-span-3">
+                <div class="flex flex-col gap-5 rounded-3xl bg-[#231645] px-5 py-7 text-white">
+                    <span class="text-lg font-semibold">Premium Annual</span>
+                    <span><span class="text-4xl font-semibold">$290</span>/year</span>
+                    <p>Advanced tools for growth</p>
+                    <form action="/payment/create-checkout-session" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input type="hidden" name="tier" value="premium_yearly" />
+                        <button
+                            type="submit"
+                            class="w-full rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#DE7CC8] py-3 text-center text-lg"
+                        >
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
+                <div class="flex flex-col divide-y-2">
+                    <span class="inline-flex items-center gap-3 py-5"
+                        ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Knowledge Hub Premium</span
+                    >
+                    <span class="inline-flex items-center gap-3 py-5"
+                        ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Global Talk Access</span
+                    >
+                    <span class="inline-flex items-center gap-3 py-5"
+                        ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Search Engine</span
+                    >
+                    <span class="inline-flex items-center gap-3 py-5"
+                        ><img class="size-5" src="/static/elements/checkmark.svg" alt="" />Access to Globalify
+                        Labs</span
+                    >
+                </div>
+            </article>
+        </div>
+    </div>
+</main>
+{% endblock %}

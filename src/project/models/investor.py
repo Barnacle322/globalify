@@ -830,7 +830,7 @@ class Investor(db.Model):
             objects = []
             for index, obj in enumerate(result):
                 if obj.get("id"):
-                    objects.append((investors[index].id, int(obj.get("id", 0))))
+                    objects.append((investors[index].id, obj.get("id", 0)))
                 else:
                     continue
 

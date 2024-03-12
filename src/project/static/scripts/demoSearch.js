@@ -4,9 +4,9 @@ class Card {
     }
 
     render() {
-        const card = document.createElement("div");
+        const card = document.createElement("article");
+        card.classList.add("flex", "flex-col", "rounded-lg", "p-6", "shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px]");
         card.innerHTML = `
-        <article class="flex flex-col rounded-lg p-6 shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px]">
             <div class="flex flex-row items-center gap-2">
                 <a href="/login?type=1&msg=Log in to see more!" class="text-xl font-bold leading-none">
                     ${this.investor.name}
@@ -26,7 +26,6 @@ class Card {
                         .join("")}
                 </p>
             </div>
-        </article>
         `;
         return card;
     }

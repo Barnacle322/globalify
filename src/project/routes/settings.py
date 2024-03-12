@@ -2,7 +2,7 @@ from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Round, User, UserInfo, WaitlistCharge
+from ..models import Company, Country, Industry, Round, User, UserInfo, UserPayment
 from ..utils.enums import Status, StatusType, Tier
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
@@ -49,14 +49,9 @@ def security():
 def plan():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    # user_payment = UserPayment.get_by_user_id(authenticated_user.id)
-    subscription = {"tier": Tier.FREE}
-    # if user_payment and user_payment.customer_id and user_payment.subscription_id:
-    #     subscription = user_payment.sanitize()
-
-    waitlist_charge = WaitlistCharge.get_by_customer_email(authenticated_user.email)
-    if waitlist_charge:
-        subscription = {"tier": Tier.PREMIMUM}
+    user_payment = UserPayment.get_by_user_id(authenticated_user.id)
+    if user_payment and user_payment.customer_id and user_payment.subscription_id:
+        subscription = user_payment.sanitize()
 
     return render_template(
         "settings/plan.html",

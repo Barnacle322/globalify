@@ -130,15 +130,20 @@
                             >{{ subscription.tier.value.upper() }}</span
                         >
                     </div>
-                    <div class="flex items-baseline justify-end gap-4">
-                        {% if subscription.tier.value == "free" %}
-                        <a
-                            href="/expanded-onboarding"
+                    <form
+                        action="/payment/create-portal-session-subscription-update"
+                        method="POST"
+                        class="flex items-baseline justify-end gap-4"
+                    >
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input type="hidden" name="subscription_id" value="{{ subscription.subscription_id }}" />
+                        <button
+                            type="submit"
                             class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
-                            >Upgrade</a
                         >
-                        {% endif %}
-                    </div>
+                            Upgrade
+                        </button>
+                    </form>
                 </div>
                 {% if subscription.tier.value == "free" %}
                 <div class="mt-5 text-xs leading-4 text-slate-900">You have free access to some Globalify features</div>

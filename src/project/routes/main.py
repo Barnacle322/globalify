@@ -16,7 +16,6 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
-
 from ..extensions import db
 from ..models import (
     Company,
@@ -26,8 +25,8 @@ from ..models import (
     Investor,
     Notification,
     Round,
+    UserPayment,
     Waitlist,
-    UserPayment
     WaitlistCharge,
 )
 from ..utils.enums import NotificationDestination, Status, StatusType

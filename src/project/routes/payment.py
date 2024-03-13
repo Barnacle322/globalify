@@ -268,7 +268,7 @@ def subscription_update():
     return redirect(portal_session.url, code=303)
 
 
-@payment.post("/create-portal-session-subscription-cancel")
+@payment.get("/create-portal-session-subscription-cancel")
 @login_required
 @check_user_info_complete
 def subscription_cancel():
@@ -291,7 +291,10 @@ def subscription_cancel():
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    subscription_id = request.form.get("subscription_id", "")
+    subscription_id = authenticated_user.user_payment.subscription_id  # type: ignore
+    if not subscription_id:
+        status = Status(StatusType.ERROR, "No active subscription found").get_status()
+        return redirect(url_for("settings.plan", _external=False, **status))
 
     try:
         portal_session = stripe.billing_portal.Session.create(

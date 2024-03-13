@@ -47,15 +47,28 @@ def security():
 @check_user_info_complete
 @check_verification
 def plan():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
     if user_payment and user_payment.customer_id and user_payment.subscription_id:
         subscription = user_payment.sanitize()
-
+    else:
+        subscription = {
+            "tier": Tier.FREE,
+            "is_active": False,
+            "start_date": None,
+            "end_date": None,
+        }
     return render_template(
         "settings/plan.html",
         subscription=subscription,
+        status_type=status_type,
+        msg=msg,
     )
 
 

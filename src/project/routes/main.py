@@ -122,6 +122,11 @@ def incubation():
     return render_template("incubation.html")
 
 
+@main.get("/faq")
+def faq():
+    return render_template("faq.html")
+
+
 @main.route("/suggestions")
 @login_required
 @check_user_info_complete

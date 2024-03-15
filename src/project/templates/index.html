@@ -310,7 +310,7 @@
 
     <section class="fade-in mx-auto max-w-7xl px-8 pb-16 pt-16 sm:px-6 lg:px-8 lg:pt-24" style="animation-delay: 1.2s">
         <div class="mx-auto lg:mx-0">
-            <h2 class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
+            <h2 class="mx-auto text-center text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
                 From the blog
             </h2>
             <p class="mx-auto mt-2 text-center text-lg tracking-tight text-slate-700">
@@ -322,7 +322,7 @@
         >
             {% if posts %} {% for post in posts %}
             <article class="flex max-w-xl flex-col items-start">
-                <img class="mb-5 aspect-[3/2] rounded-lg object-cover" src="{{ post.image }}" alt="" />
+                <img class="mb-5 aspect-[3/2] rounded-lg object-cover w-full" src="{{ post.image }}" alt="" />
                 <div class="flex flex-col items-start justify-start">
                     <div class="flex items-center gap-x-4 text-xs">
                         <time class="text-slate-500">{{ post.published }}</time>

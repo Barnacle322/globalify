@@ -1,5 +1,6 @@
 {% extends "layouts/layout_teaser.html" %} {% block additional_scripts %}
-<!-- <script src="/static/scripts/email.js" defer></script> -->
+<script src="/static/scripts/cycle.js" defer></script>
+<!-- <script src="/static/scripts/typewriter.js" defer></script> -->
 <script src="/static/scripts/demoSearch.js" defer></script>
 {% endblock %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
 %}
@@ -30,7 +31,16 @@
         >
             <span class="background-animate bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text text-transparent"
                 >Globalify</span
-            ><br />Your Gateway to Investors
+            ><br />Your Gateway to <br />
+            <div class="relative flex h-10 sm:h-12 lg:h-[60px] justify-center overflow-hidden">
+                <span class="scroll" style="animation-delay: 2s">
+                    <div>Funders</div>
+                    <div>Founders</div>
+                    <div>Partners</div>
+                    <div>Investors</div>
+                    <div>The Future</div>
+                </span>
+            </div>
         </h1>
         <p
             class="move-up mx-auto mb-10 max-w-2xl text-center text-base text-slate-700 sm:text-lg"
@@ -103,10 +113,7 @@
         style="animation-delay: 1.2s"
     >
         <div class="w-full max-w-4xl">
-            <div
-                class="pulse flex gap-2 rounded-lg bg-white py-4 pr-5 shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px]"
-                style="animation-delay: 2.5s"
-            >
+            <div class="flex gap-2 rounded-xl bg-white py-4 pr-5 shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px]">
                 <div class="relative w-full">
                     <input
                         type="text"
@@ -161,247 +168,149 @@
     </section>
 
     <section class="fade-in flex items-center justify-center gap-2.5 px-8 pt-20" style="animation-delay: 1.2s">
-        <div class="flex max-w-7xl flex-col items-center justify-center">
+        <div class="flex max-w-7xl flex-col w-full">
             <div class="flex flex-col items-center justify-center gap-4 px-4 sm:px-6 md:text-center lg:px-8">
                 <span
                     class="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-900 shadow-xl"
                     ><img src="/static/elements/3dcube.svg" alt="" />Testimonials</span
                 >
                 <h2 class="mt-2 max-w-2xl text-3xl font-semibold sm:text-[40px]">
-                    Hear it from other entrepreneurs. It does
+                    Hear it from others as well. <br />
+                    It does
                     <span class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent">work</span>
                 </h2>
             </div>
-            <div class="mt-20 grid grid-cols-1 gap-x-20 gap-y-10 md:grid-cols-2">
-                <article class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6">
-                    <div class="rounded-3xl bg-white p-8 leading-loose">
-                        <p class="line-clamp-7">
-                            Starting my own business was awesome, but getting the funding I needed was a struggle.
-                            Globalify helped me out BIG TIME! They're a super-powered search engine that finds the right
-                            connections to get my startup, MedBrain rolling. Now things are exploding and I'm stoked!
-                        </p>
-                        <div class="mt-5 flex flex-col">
-                            <span class="font-bold">Pol Ricart</span>
-                            <span class="text-slate-400">Entrepreneur, MD</span>
-                        </div>
-                    </div>
-                </article>
-                <article class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6">
-                    <div class="rounded-3xl bg-white p-8 leading-loose">
-                        <p class="line-clamp-7">
-                            Using Globalify's search engine opened up many new opportunities for collaborations and
-                            generated even more interest in my crypto project. It felt like unlocking a door to a world
-                            of possibilities that I hadn't even imagined. ¡Es la caña!
-                        </p>
-                        <div class="mt-5 flex flex-col">
-                            <span class="font-bold">Alberto Fernandez</span>
-                            <span class="text-slate-400">Entrepreneur</span>
-                        </div>
-                    </div>
-                </article>
-                <article class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6">
-                    <div class="rounded-3xl bg-white p-8 leading-loose">
-                        <p class="line-clamp-7">
-                            Thanks to the power of Globalify's proprietary AI Search Engine, I was able to secure the
-                            funding I needed from Web2, Web3, and very famous angel investors to seed my startup. We are
-                            preparing already for the PreA with Institutionals interested who also invested in our Seed.
-                            I can't recommend them enough!
-                        </p>
-                        <div class="mt-5 flex flex-col">
-                            <span class="font-bold">JL</span>
-                            <span class="text-slate-400">First Time Founder</span>
-                        </div>
-                    </div>
-                </article>
-                <article class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6">
-                    <div class="rounded-3xl bg-white p-8 leading-loose">
-                        <p class="line-clamp-7">
-                            Globalify has been such an asset to me for my fund in that as we expanded globally we
-                            decided who to take on for our fund 2 which is oversubscribed! I have a curated waitlist now
-                            of LPs who I am having 1:1 meetings with as my Partners and I decide on strategic
-                            partnerships with as we expand our footprint, ethos, investment advisory, and asset classes.
-                        </p>
-                        <div class="mt-5 flex flex-col">
-                            <span class="font-bold">Vee W</span>
-                            <span class="text-slate-400">Fund Manager, Private Hedge Fund</span>
-                        </div>
-                    </div>
-                </article>
-                <article class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6">
-                    <div class="rounded-3xl bg-white p-8 leading-loose">
-                        <p class="line-clamp-7">
-                            Globalify helped us discover hidden gems for direct investment as well as amazing Fund
-                            Managers to co-invest with. For a select few of the Funds we met via Globalify, we became
-                            LPs after strategic intros and meetings facilitated by the platform. As a single Family
-                            Office, it's important for our Family and I to stay ahead of the curve when it comes to
-                            Tech, Web3, AI, alongside our stable portfolio of traditional investments. We are excited to
-                            bet on the best Founders and Funders via Globalify.
-                        </p>
-                        <div class="mt-5 flex flex-col">
-                            <span class="font-bold">JM </span>
-                            <span class="text-slate-400">Chair, Single Family Office, US & Asia</span>
-                        </div>
-                    </div>
-                </article>
-                <article class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6">
-                    <div class="rounded-3xl bg-white p-8 leading-loose">
-                        <p class="line-clamp-7">
-                            I used Globalify, a cool search engine, to find people who wanted to learn about my Canadian
-                            VR startup. Eric was super helpful and made things easier for me. Thanks to Globalify, I met
-                            great people and learned a lot more. Big shoutout to Globalify for making my dreams a bit
-                            more real!
-                        </p>
-                        <div class="mt-5 flex flex-col">
-                            <span class="font-bold">Miji Lee </span>
-                            <span class="text-slate-400">First Time Founder</span>
-                        </div>
-                    </div>
-                </article>
-            </div>
-        </div>
-    </section>
-
-    <section class="fade-in w-full px-8 pt-20 lg:pt-24" style="animation-delay: 1.2s">
-        <div
-            class="relative mx-auto flex w-full max-w-7xl flex-col gap-10 overflow-hidden rounded-3xl border-2 bg-black bg-gradient-to-b from-[#3F4472] via-[#231645] to-[#3F4472] bg-cover p-10 shadow-lg lg:flex-row"
-        >
-            <div class="flex flex-col gap-5 text-white lg:w-1/2">
-                <span class="text-[40px] font-semibold leading-tight"
-                    >Apply for private
-                    <br />
-                    <span class="bg-gradient-to-r from-sky-500 via-teal-500 to-blue-500 bg-clip-text text-transparent"
-                        >Beta Access
-                    </span>
-                    now!</span
-                >
-                <p class="lg:text-lg">
-                    Get early access to our investor network and find the right investors for your startup.
-
-                    <br /><br />
-                    Explore our beta search engine, get access to premium connections. For those accepted into our
-                    platform, start interacting right away and building out your profile.
-                </p>
-                <!-- <p class="text-4xl">
-                    <s class="text-slate-400">$499</s>
-                    $199<span class="text-base">USD</span>
-                </p> -->
-                <a
-                    href="/login"
-                    class="mt-5 rounded-xl bg-sky-500 px-5 py-3 text-center transition-colors ease-in-out hover:bg-sky-400 lg:w-72"
-                >
-                    Create an account
-                </a>
-            </div>
-            <div class="absolute hidden translate-x-1/2 lg:block">
-                <img class="" src="/static/elements/hero.png" alt="" />
-            </div>
-        </div>
-    </section>
-
-    <section
-        class="fade-in mb-20 mt-20 flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8"
-        style="animation-delay: 1.2s"
-    >
-        <div class="flex w-full max-w-7xl flex-col items-center justify-center">
-            <div class="flex flex-col items-center justify-center gap-4 px-4 sm:px-6 md:text-center lg:px-8">
-                <span
-                    class="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-900 shadow-xl"
-                    ><img src="/static/elements/cards.svg" alt="" />FAQ</span
-                >
-                <h2 class="mt-5 max-w-2xl text-3xl font-semibold sm:text-[40px]">Frequently Asked Questions</h2>
-                <p class="text-slate-500">
-                    If you can’t find what you’re looking for, email our support team and we wil get back to you.
-                </p>
-            </div>
-            <div class="mt-10 flex w-full flex-col items-center justify-center gap-7 rounded-2xl bg-slate-50 p-10">
-                <article class="w-full rounded-xl bg-white p-8 shadow-lg">
-                    <span class="font-['Lexend'] text-xl font-medium">What is Globalify?</span>
-                    <p class="mt-3 text-slate-400">
-                        Globalify is a hub for entrepreneurs to connect with investors from around the world
-                    </p>
-                </article>
-                <article class="w-full rounded-xl bg-white p-8 shadow-lg">
-                    <span class="font-['Lexend'] text-xl font-medium"
-                        >What is Beta? Beta of the Globalify search engine?</span
+            <div class="relative">
+                <div class="mt-20 flex gap-5 w-full overflow-hidden relative" id="thelist">
+                    <article
+                        class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 min-w-full lg:min-w-[calc(50%-10px)]"
                     >
-                    <p class="mt-3 text-slate-400">
-                        It's an early version of our search engine that connects users with investors. We use it to test
-                        and make the search engine better with help from users like you!
-                    </p>
-                </article>
-                <article class="w-full rounded-xl bg-white p-8 shadow-lg">
-                    <span class="font-['Lexend'] text-xl font-medium">Why do I have to pay for the Beta version?</span>
-                    <p class="mt-3 text-slate-400">
-                        We charge for the beta version because it's a special service that uses advanced tech and
-                        important sensitive data. This supports ongoing improvements and ensures keep making the service
-                        better.
-                    </p>
-                </article>
-                <article class="w-full rounded-xl bg-white p-8 shadow-lg">
-                    <span class="font-['Lexend'] text-xl font-medium"
-                        >What do I get by paying for the Premium Version?</span
+                        <div class="rounded-3xl bg-white p-8 leading-loose flex justify-between flex-col">
+                            <p class="line-clamp-7">
+                                Starting my own business was awesome, but getting the funding I needed was a struggle.
+                                Globalify helped me out BIG TIME! They're a super-powered search engine that finds the
+                                right connections to get my startup, MedBrain rolling. Now things are exploding and I'm
+                                stoked!
+                            </p>
+                            <div class="mt-5 flex flex-col">
+                                <span class="font-bold">Pol Ricart</span>
+                                <span class="text-slate-400">Entrepreneur, MD</span>
+                            </div>
+                        </div>
+                    </article>
+                    <article
+                        class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 min-w-full lg:min-w-[calc(50%-10px)]"
                     >
-                    <p class="mt-3 text-slate-400">
-                        Upon signup, having more information filled in enables us to match you to better and more
-                        accurate results. It will feature lead investors matched for your startup and more in many
-                        different industries. And there is Office Hours, where you can ask our experts for advice.
-                    </p>
-                </article>
-                <article class="w-full rounded-xl bg-white p-8 shadow-lg">
-                    <span class="font-['Lexend'] text-xl font-medium">What is the Knowledge Hub?</span>
-                    <p class="mt-3 text-slate-400">
-                        It is a space designed by founders, for founders. A close-knit community of innovators. We aim
-                        to foster a culture of continuous learning and sharing. We believe that each member brings a
-                        unique perspective that enriches the community. It's this collaborative spirit and depth of
-                        diverse experience that drive the value of our Knowledge Hub.
-                    </p>
-                </article>
-                <article class="w-full rounded-xl bg-white p-8 shadow-lg">
-                    <span class="font-['Lexend'] text-xl font-medium">Sharing on Knowledge Hub?</span>
-                    <p class="mt-3 text-slate-400">
-                        You can share your expertise, interests, and experiences in posts and get feedback from other
-                        fellow founders who are on the same journey. We encourage you to ask thought-provoking questions
-                        and provide answers. Open conversations are pivotal to learning. The direct message feature
-                        allows you not only to touch base with other members but could also lead to future
-                        collaborations.
-                    </p>
-                </article>
-                <article class="w-full rounded-xl bg-white p-8 shadow-lg">
-                    <span class="font-['Lexend'] text-xl font-medium">Can I stop my monthly subscription?</span>
-                    <p class="mt-3 text-slate-400">Of course, you can stop anytime.</p>
-                </article>
-                <article class="w-full rounded-xl bg-white p-8 shadow-lg">
-                    <span class="font-['Lexend'] text-xl font-medium"
-                        >Is my information safe with your search engine?</span
+                        <div class="rounded-3xl bg-white p-8 leading-loose flex justify-between flex-col">
+                            <p class="line-clamp-7">
+                                Using Globalify's search engine opened up many new opportunities for collaborations and
+                                generated even more interest in my crypto project. It felt like unlocking a door to a
+                                world of possibilities that I hadn't even imagined. ¡Es la caña!
+                            </p>
+                            <div class="mt-5 flex flex-col">
+                                <span class="font-bold">Alberto Fernandez</span>
+                                <span class="text-slate-400">Entrepreneur</span>
+                            </div>
+                        </div>
+                    </article>
+                    <article
+                        class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 min-w-full lg:min-w-[calc(50%-10px)]"
                     >
-                    <p class="mt-3 text-slate-400">
-                        Yes, for sure! We use the best security to keep your info safe and private.
-                    </p>
-                </article>
-                <article class="w-full rounded-xl bg-white p-8 shadow-lg">
-                    <span class="font-['Lexend'] text-xl font-medium">What kind of help can I get?</span>
-                    <p class="mt-3 text-slate-400">
-                        We offer email help at info@globalify.xyz. Our team is ready to answer your questions. In the
-                        Hub, there is an option to post your questions and comments directly, on the activity chats, or
-                        can DM us directly, however, it may take us 24 hours to respond.
-                    </p>
-                </article>
-                <article class="w-full rounded-xl bg-white p-8 shadow-lg">
-                    <span class="font-['Lexend'] text-xl font-medium">Will the Beta version get updates?</span>
-                    <p class="mt-3 text-slate-400">
-                        The Beta version will receive updates every month. These updates will be based on the valuable
-                        feedback you provide and the exciting new features we have developed. Additionally, we'll send
-                        out scheduled updates and some will be based on the feedback on how we can further improve the
-                        search engine.
-                    </p>
-                </article>
+                        <div class="rounded-3xl bg-white p-8 leading-loose flex justify-between flex-col">
+                            <p class="line-clamp-7">
+                                Thanks to the power of Globalify's proprietary AI Search Engine, I was able to secure
+                                the funding I needed from Web2, Web3, and very famous angel investors to seed my
+                                startup. I can't recommend them enough!
+                            </p>
+                            <div class="mt-5 flex flex-col">
+                                <span class="font-bold">JL</span>
+                                <span class="text-slate-400">First Time Founder</span>
+                            </div>
+                        </div>
+                    </article>
+                    <!-- <article class="rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 min-w-full lg:min-w-[calc(50%-10px)]">
+                        <div class="rounded-3xl bg-white p-8 leading-loose flex justify-between flex-col">
+                            <p class="line-clamp-7">
+                                Globalify has been such an asset to me for my fund in that as we expanded globally we
+                                decided who to take on for our fund 2 which is oversubscribed! I have a curated waitlist now
+                                of LPs who I am having 1:1 meetings with as my Partners and I decide on strategic
+                                partnerships with as we expand our footprint, ethos, investment advisory, and asset classes.
+                            </p>
+                            <div class="mt-5 flex flex-col">
+                                <span class="font-bold">Vee W</span>
+                                <span class="text-slate-400">Fund Manager, Private Hedge Fund</span>
+                            </div>
+                        </div>
+                    </article> -->
+                    <article
+                        class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 min-w-full lg:min-w-[calc(50%-10px)]"
+                    >
+                        <div class="rounded-3xl bg-white p-8 leading-loose flex justify-between flex-col">
+                            <p class="line-clamp-7">
+                                Globalify helped us discover hidden gems for direct investment as well as amazing Fund
+                                Managers to co-invest with. For a select few of the Funds we met via Globalify, we
+                                became LPs after strategic intros and meetings facilitated by the platform.
+                            </p>
+                            <div class="mt-5 flex flex-col">
+                                <span class="font-bold">JM </span>
+                                <span class="text-slate-400">Chair, Single Family Office, US & Asia</span>
+                            </div>
+                        </div>
+                    </article>
+                    <article
+                        class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 min-w-full lg:min-w-[calc(50%-10px)]"
+                    >
+                        <div class="rounded-3xl bg-white p-8 leading-loose flex justify-between flex-col">
+                            <p class="line-clamp-7">
+                                I used Globalify, a cool search engine, to find people who wanted to learn about my
+                                Canadian VR startup. Eric was super helpful and made things easier for me. Thanks to
+                                Globalify, I met great people and learned a lot more. Big shoutout to Globalify for
+                                making my dreams a bit more real!
+                            </p>
+                            <div class="mt-5 flex flex-col">
+                                <span class="font-bold">Miji Lee </span>
+                                <span class="text-slate-400">First Time Founder</span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <button
+                    class="absolute -left-5 top-1/2 size-16 rounded-full border bg-white hover:bg-neutral-50 ease-in-out transition-colors"
+                    onclick="cycleBack()"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6 mx-auto"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>
+                </button>
+                <button
+                    class="absolute -right-5 top-1/2 size-16 rounded-full border bg-white hover:bg-neutral-50 ease-in-out transition-colors"
+                    onclick="cycleForward()"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6 mx-auto"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                </button>
             </div>
         </div>
     </section>
 
     <section class="fade-in mx-auto max-w-7xl px-8 pb-16 pt-16 sm:px-6 lg:px-8 lg:pt-24" style="animation-delay: 1.2s">
         <div class="mx-auto lg:mx-0">
-            <h2 class="mx-auto text-center text-3xl font-medium tracking-tight text-slate-900 sm:text-4xl">
+            <h2 class="mx-auto text-center text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
                 From the blog
             </h2>
             <p class="mx-auto mt-2 text-center text-lg tracking-tight text-slate-700">
@@ -413,7 +322,7 @@
         >
             {% if posts %} {% for post in posts %}
             <article class="flex max-w-xl flex-col items-start">
-                <img class="mb-5 aspect-[3/2] rounded-lg object-cover" src="{{ post.image }}" alt="" />
+                <img class="mb-5 aspect-[3/2] rounded-lg object-cover w-full" src="{{ post.image }}" alt="" />
                 <div class="flex flex-col items-start justify-start">
                     <div class="flex items-center gap-x-4 text-xs">
                         <time class="text-slate-500">{{ post.published }}</time>

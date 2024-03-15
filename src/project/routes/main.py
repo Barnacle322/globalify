@@ -113,13 +113,32 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 @main.get("/")
 def index():
     posts = parse_medium_html()
-    # posts = []
     return render_template("index.html", posts=posts)
 
 
 @main.get("/incubation")
 def incubation():
     return render_template("incubation.html")
+
+
+@main.get("/faq")
+def faq():
+    return render_template("faq.html")
+
+
+@main.get("/about/eric")
+def eric():
+    return render_template("eric.html")
+
+
+@main.get("/about/jennifer")
+def jennifer():
+    return render_template("jennifer.html")
+
+
+@main.get("/about/arstan")
+def arstan():
+    return render_template("arstan.html")
 
 
 @main.route("/suggestions")

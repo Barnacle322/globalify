@@ -126,6 +126,21 @@ def faq():
     return render_template("faq.html")
 
 
+@main.get("/about/eric")
+def eric():
+    return render_template("eric.html")
+
+
+@main.get("/about/jennifer")
+def jennifer():
+    return render_template("jennifer.html")
+
+
+@main.get("/about/arstan")
+def arstan():
+    return render_template("arstan.html")
+
+
 @main.route("/suggestions")
 @login_required
 @check_user_info_complete

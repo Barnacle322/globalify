@@ -254,7 +254,7 @@
 }
 
 .scroll {
-    animation: scroll 6s ease-in-out forwards;
+    animation: scroll 5s ease-in-out forwards;
 }
 
 .fade-out-right {
@@ -342,4 +342,16 @@
 
 .slider-track {
     pointer-events: none;
+}
+
+.view-eric {
+    view-transition-name: view-eric;
+}
+
+.view-jennifer {
+    view-transition-name: view-jennifer;
+}
+
+.view-arstan {
+    view-transition-name: view-arstan;
 }

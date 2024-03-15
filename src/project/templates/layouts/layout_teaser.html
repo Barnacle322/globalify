@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="scroll-pt-12 scroll-smooth">
+<html lang="en" class="scroll-pt-12">
     <head>
         {% block head %}
         <meta charset="UTF-8" />
@@ -39,7 +39,7 @@
         <script src="/static/scripts/menu.js" defer></script>
         {% block additional_scripts %}{% endblock %}
 
-        <title>{% block title %}{% endblock %} | Globalify</title>
+        <title>{% block title %}{% endblock %} • Globalify</title>
         {% endblock %}
     </head>
     <body class="w-full">
@@ -48,7 +48,7 @@
                 <a href="/"><img class="h-8" src="/static/elements/logo-black.png" /></a>
                 <ul class="hidden gap-7 sm:flex">
                     <a href="/about">About us</a>
-                    <a target="_blank" href="/faq">FAQ</a>
+                    <a href="/faq">FAQ</a>
                     <a href="/pricing">Pricing</a>
                     <a target="_blank" href="https://blog.globalify.xyz">Community</a>
                 </ul>
@@ -125,7 +125,6 @@
                             >
                             <a
                                 href="/faq"
-                                target="_blank"
                                 class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-slate-100"
                                 >FAQ</a
                             >

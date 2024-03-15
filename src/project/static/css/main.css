@@ -1552,6 +1552,9 @@ select {
 .aspect-square {
   aspect-ratio: 1 / 1;
 }
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
 .size-11 {
   width: 2.75rem;
   height: 2.75rem;
@@ -1632,18 +1635,15 @@ select {
 .h-\[30px\] {
   height: 30px;
 }
+.h-\[500px\] {
+  height: 500px;
+}
 .h-fit {
   height: -moz-fit-content;
   height: fit-content;
 }
 .h-full {
   height: 100%;
-}
-.h-1 {
-  height: 0.25rem;
-}
-.h-\[60px\] {
-  height: 60px;
 }
 .max-h-60 {
   max-height: 15rem;
@@ -1733,6 +1733,9 @@ select {
 }
 .max-w-2xl {
   max-width: 42rem;
+}
+.max-w-3xl {
+  max-width: 48rem;
 }
 .max-w-4xl {
   max-width: 56rem;
@@ -2068,6 +2071,9 @@ select {
 .text-nowrap {
   text-wrap: nowrap;
 }
+.text-pretty {
+  text-wrap: pretty;
+}
 .rounded {
   border-radius: 0.25rem;
 }
@@ -2224,6 +2230,10 @@ select {
 .bg-red-500 {
   --tw-bg-opacity: 1;
   background-color: rgb(239 68 68 / var(--tw-bg-opacity));
+}
+.bg-sky-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(56 189 248 / var(--tw-bg-opacity));
 }
 .bg-sky-500 {
   --tw-bg-opacity: 1;
@@ -2417,9 +2427,6 @@ select {
 .p-10 {
   padding: 2.5rem;
 }
-.p-12 {
-  padding: 3rem;
-}
 .p-14 {
   padding: 3.5rem;
 }
@@ -2503,6 +2510,10 @@ select {
 .py-2 {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+}
+.py-20 {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
 }
 .py-24 {
   padding-top: 6rem;
@@ -2615,6 +2626,12 @@ select {
 .font-\[\'Poppins\'\] {
   font-family: 'Poppins';
 }
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+.font-serif {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
 .text-2xl {
   font-size: 1.5rem;
   line-height: 2rem;
@@ -2633,6 +2650,10 @@ select {
 }
 .text-6xl {
   font-size: 3.75rem;
+  line-height: 1;
+}
+.text-7xl {
+  font-size: 4.5rem;
   line-height: 1;
 }
 .text-\[40px\] {
@@ -2660,6 +2681,9 @@ select {
 }
 .font-bold {
   font-weight: 700;
+}
+.font-light {
+  font-weight: 300;
 }
 .font-medium {
   font-weight: 500;
@@ -3193,7 +3217,7 @@ select {
 }
 
 .scroll {
-    animation: scroll 6s ease-in-out forwards;
+    animation: scroll 5s ease-in-out forwards;
 }
 
 .fade-out-right {
@@ -3276,6 +3300,18 @@ select {
 
 .slider-track {
     pointer-events: none;
+}
+
+.view-eric {
+    view-transition-name: view-eric;
+}
+
+.view-jennifer {
+    view-transition-name: view-jennifer;
+}
+
+.view-arstan {
+    view-transition-name: view-arstan;
 }
 
 @media (min-width: 1024px) {
@@ -3643,6 +3679,12 @@ select {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.hover\:scale-110:hover {
+  --tw-scale-x: 1.1;
+  --tw-scale-y: 1.1;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
 .hover\:bg-blue-400:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(96 165 250 / var(--tw-bg-opacity));
@@ -3904,6 +3946,10 @@ select {
     margin-top: 2.5rem;
   }
 
+  .sm\:mt-12 {
+    margin-top: 3rem;
+  }
+
   .sm\:mt-16 {
     margin-top: 4rem;
   }
@@ -3928,12 +3974,12 @@ select {
     display: none;
   }
 
-  .sm\:h-4 {
-    height: 1rem;
-  }
-
   .sm\:h-12 {
     height: 3rem;
+  }
+
+  .sm\:h-4 {
+    height: 1rem;
   }
 
   .sm\:w-4 {
@@ -4023,6 +4069,11 @@ select {
     line-height: 1;
   }
 
+  .sm\:text-7xl {
+    font-size: 4.5rem;
+    line-height: 1;
+  }
+
   .sm\:text-8xl {
     font-size: 6rem;
     line-height: 1;
@@ -4086,10 +4137,6 @@ select {
 
   .md\:grid {
     display: grid;
-  }
-
-  .md\:h-12 {
-    height: 3rem;
   }
 
   .md\:w-1\/2 {
@@ -4181,10 +4228,6 @@ select {
 
   .lg\:flex {
     display: flex;
-  }
-
-  .lg\:h-12 {
-    height: 3rem;
   }
 
   .lg\:h-\[60px\] {
@@ -4303,10 +4346,6 @@ select {
 
   .xl\:mt-0 {
     margin-top: 0px;
-  }
-
-  .xl\:h-\[60px\] {
-    height: 60px;
   }
 
   .xl\:w-9\/12 {

@@ -173,7 +173,7 @@ def verify_email():
     return redirect(url_for("main.search"))
 
 
-@auth.route("/resend-verification/<user_id>")
+@auth.route("/resend-verification/<int:user_id>")
 @login_required
 @check_user_info_complete
 def resend_verification_email(user_id):

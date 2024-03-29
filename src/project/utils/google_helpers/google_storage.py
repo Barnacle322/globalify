@@ -4,10 +4,14 @@ from uuid import UUID, uuid4
 
 from google.cloud import storage
 from PIL import Image
+from pillow_heif import register_heif_opener
 
 HD_WIDTH = 1280
 HD_HEIGHT = 720
 BUCKET_NAME = "globalify_profile_pictures"
+
+
+register_heif_opener()
 
 
 def delete_blob_from_url(blob_url: str, bucket_name: str = BUCKET_NAME) -> None:
@@ -66,7 +70,6 @@ def download_blob_into_memory(blob_name: UUID, bucket_name: str = BUCKET_NAME) -
 
 def prepare_picture(image):
     input_image = Image.open(io.BytesIO(image.read()))
-
     # Convert RGBA images to RGB mode
     if input_image.mode == "RGBA":
         background = Image.new("RGB", input_image.size, (255, 255, 255))

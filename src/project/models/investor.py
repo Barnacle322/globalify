@@ -340,8 +340,36 @@ class Investor(db.Model):
             print(investors)
             yield investors
 
+    @staticmethod
+    def get_suggestions(company: Company | None, quantity: int) -> Sequence[Investor] | None:
+        investor_list = []
+        for investor in Investor.get_all():
+            investor_info = {
+                "id": investor.id,
+                "bias": investor.bias,
+                "n_investments": investor.n_investments,
+                "n_exits": investor.n_exits,
+                "coordinates": investor.coordinates,
+                "rounds": [round.name for round in investor.rounds],
+                "industries": [industry.name for industry in investor.industries],
+                "min_investment": investor.min_investment,
+                "max_investment": investor.max_investment,
+                "about": investor.about,
+            }
+            investor_list.append(investor_info)
+        investor_ids = (
+            SuggestionBuilder(investor_list, company).calculate_all_scores().sort_by_score().get_id_list(quantity)
+        )
+        suggestions = Investor.get_by_id_list(investor_ids)
+        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}  # type: ignore
+        sorted_suggestions = [
+            suggestions_dict[investor_id] for investor_id in investor_ids if investor_id in suggestions_dict
+        ]
+        return sorted_suggestions
+
     @classmethod
     def get_search(
+        cls,
         query_string: str,
         query_by: list[str],
         sort_by: str | None = None,

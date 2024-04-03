@@ -163,6 +163,7 @@ def get_suggestions():
     return render_template(
         "suggestions.html",
         investors=suggested_investors,
+        access=access,
     )
 
 

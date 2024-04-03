@@ -3958,6 +3958,10 @@ select {
     margin-top: 5rem;
   }
 
+  .sm\:mb-10 {
+    margin-bottom: 2.5rem;
+  }
+
   .sm\:block {
     display: block;
   }
@@ -4016,6 +4020,11 @@ select {
 
   .sm\:items-center {
     align-items: center;
+  }
+
+  .sm\:bg-white {
+    --tw-bg-opacity: 1;
+    background-color: rgb(255 255 255 / var(--tw-bg-opacity));
   }
 
   .sm\:p-10 {
@@ -4095,6 +4104,12 @@ select {
 
   .sm\:leading-9 {
     line-height: 2.25rem;
+  }
+
+  .sm\:shadow-lg {
+    --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
   }
 
   .sm\:ring-gray-900\/10 {
@@ -4287,6 +4302,11 @@ select {
     border-radius: 1.5rem;
   }
 
+  .lg\:bg-white {
+    --tw-bg-opacity: 1;
+    background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+  }
+
   .lg\:px-0 {
     padding-left: 0px;
     padding-right: 0px;
@@ -4348,6 +4368,10 @@ select {
     margin-top: 0px;
   }
 
+  .xl\:mb-10 {
+    margin-bottom: 2.5rem;
+  }
+
   .xl\:w-9\/12 {
     width: 75%;
   }
@@ -4382,6 +4406,11 @@ select {
     overflow: hidden;
   }
 
+  .xl\:bg-white {
+    --tw-bg-opacity: 1;
+    background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+  }
+
   .xl\:px-0 {
     padding-left: 0px;
     padding-right: 0px;
@@ -4395,6 +4424,12 @@ select {
   .xl\:text-6xl\/none {
     font-size: 3.75rem;
     line-height: 1;
+  }
+
+  .xl\:shadow-lg {
+    --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
   }
 
   .xl\:after\:mx-10::after {

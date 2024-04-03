@@ -1,9 +1,17 @@
-{% extends "layouts/layout_teaser.html" %} {% block additional_scripts %}
+<!-- prettier-ignore -->
+{% extends "layouts/layout_teaser.html" %} 
+{% block additional_scripts %}
 <script src="/static/scripts/cycle.js" defer></script>
-<!-- <script src="/static/scripts/typewriter.js" defer></script> -->
+<script src="/static/scripts/typewriter.js" defer></script>
 <script src="/static/scripts/demoSearch.js" defer></script>
-{% endblock %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
-%}
+<!-- prettier-ignore -->
+{% endblock %} 
+{% block title %}Globalify{% endblock %} 
+{% block head %} 
+{{ super() }} 
+{% endblock %} 
+{% block content %}
+
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
     <section
         class="relative mx-auto flex max-w-7xl flex-col items-center justify-center px-8 pb-5 pt-5 text-center sm:px-6 lg:px-8 lg:pt-24"
@@ -13,12 +21,7 @@
             src="/static/elements/hero-bg.svg"
             alt=""
         />
-        <!-- <img class="absolute right-1/2 top-0 pointer-events-none" src="/static/elements/blue-blob.svg" alt="" />
-        <img
-            class="absolute left-1/2 top-0 pointer-events-none opacity-60"
-            src="/static/elements/red-blob.svg"
-            alt=""
-        /> -->
+
         <span
             class="move-up border-gray text-semibold w-fit rounded-full border border-gray-200 bg-white px-2 py-1 text-xs shadow-lg"
             style="animation-delay: 1.2s"
@@ -49,63 +52,6 @@
             Unlock your business's potential with our extensive network of investors and partners. We're here to help
             you secure the funding you need to take you to the next level.
         </p>
-        <!-- <div class="move-up flex flex-wrap items-center justify-center gap-x-6 gap-y-3" style="animation-delay: 1s">
-            <a
-                class="pulse inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 font-semibold text-slate-50 transition-colors ease-in-out hover:bg-slate-800 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
-                style="animation-delay: 2.5s"
-                href="/waitlist"
-                >Get early access now!</a
-            >
-
-            <button
-                id="notification_button"
-                onclick="showEmailField()"
-                class="bg-white group inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 hover:text-slate-900 hover:ring-slate-300 focus:outline-none focus-visible:outline-blue-600 focus-visible:ring-slate-300 active:bg-slate-100 active:text-slate-600"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="h-4 w-4 flex-none animate-pulse fill-sky-500 group-active:fill-current"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0M3.124 7.5A8.969 8.969 0 015.292 3m13.416 0a8.969 8.969 0 012.168 4.5"
-                    />
-                </svg>
-
-                <span class="ml-2">Get notified</span>
-            </button>
-            <form id="email_input" class="hidden gap-3" action="/waitlist-email" method="POST">
-                <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                <input
-                    class="w-3/4 rounded-xl border border-stone-300 px-2"
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="john@email.com"
-                    autocomplete="email"
-                    required
-                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                />
-                <button
-                    id="submit-button"
-                    class="rounded-xl bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
-                    type="submit"
-                >
-                    Submit
-                </button>
-            </form>
-        </div> -->
-        <!-- <div
-            class="bg-gradient-to-br from-[#3EB5FD] via-30% via-[#685AF3] to-[#D380CC] p-3 mt-10 fade-in rounded-xl"
-            style="animation-delay: 1.2s"
-        >
-            <img class="drop-shadow-lg" src="/static/elements/hero.png" alt="" />
-        </div> -->
     </section>
 
     <section
@@ -120,7 +66,6 @@
                         name="search"
                         id="search"
                         class="w-full border-0 py-3 pl-12 text-sm focus:ring-0"
-                        placeholder="AI web3 series a funding from california..."
                         autocomplete="off"
                         required
                     />

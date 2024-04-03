@@ -35,7 +35,6 @@ from ..utils.errors.error_messages import (
 )
 from ..utils.google_helpers import google_pubsub
 from .main import check_user_info_complete, check_verification
-from .payment import waitlist as payment_waitlist
 
 auth = Blueprint("auth", __name__)
 
@@ -176,7 +175,7 @@ def verify_email():
     return redirect(url_for("main.search"))
 
 
-@auth.route("/resend-verification/<user_id>")
+@auth.route("/resend-verification/<int:user_id>")
 @login_required
 @check_user_info_complete
 def resend_verification_email(user_id):
@@ -495,7 +494,7 @@ def onboarding():
                 buttons=[
                     ButtonLayout(text="Go!", url=url_for("auth.expanded_onboarding"), dismiss=False),
                 ],
-                is_closable=False,
+                is_closable=True,
             ).get_json(),
             destination=NotificationDestination.SEARCH,
         )
@@ -582,12 +581,7 @@ def expanded_onboarding():
 
         db.session.commit()
 
-        return payment_waitlist(
-            email=authenticated_user.email,
-            first_name=authenticated_user.user_info.first_name,  # type: ignore
-            last_name=authenticated_user.user_info.last_name,  # type: ignore
-            user=authenticated_user,
-        )
+        return redirect(url_for("auth.tier_selection"))
 
     return render_template(
         "auth/expanded_onboarding.html",
@@ -598,6 +592,14 @@ def expanded_onboarding():
         status_type=status_type,
         msg=msg,
     )
+
+
+@auth.route("/tier-selection")
+@login_required
+@check_verification
+@check_user_info_complete
+def tier_selection():
+    return render_template("auth/tier_selection.html")
 
 
 @auth.route("/logout")

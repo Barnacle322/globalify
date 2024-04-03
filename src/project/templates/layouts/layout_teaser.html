@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="scroll-pt-12 scroll-smooth">
+<html lang="en" class="scroll-pt-12">
     <head>
         {% block head %}
         <meta charset="UTF-8" />
@@ -35,23 +35,22 @@
         <meta name="view-transition" content="same-origin" />
 
         <link rel="stylesheet" href="/static/css/main.css" />
-        <link rel="stylesheet" href="/static/src/notification.css" />
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
         <script src="/static/scripts/menu.js" defer></script>
         {% block additional_scripts %}{% endblock %}
 
-        <title>{% block title %}{% endblock %} | Globalify</title>
+        <title>{% block title %}{% endblock %} • Globalify</title>
         {% endblock %}
     </head>
     <body class="w-full">
         <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-center text-slate-900">
-            <div class="m-2 flex w-full max-w-7xl items-center justify-between rounded-xl px-9 py-5">
-                <a href="/"><img class="h-[30px] w-[113px]" src="/static/elements/logo-black.png" /></a>
+            <div class="flex w-full max-w-7xl items-center justify-between rounded-xl px-9 py-5">
+                <a href="/"><img class="h-8" src="/static/elements/logo-black.png" /></a>
                 <ul class="hidden gap-7 sm:flex">
                     <a href="/about">About us</a>
-                    <a target="_blank" href="https://blog.globalify.xyz">Blog</a>
+                    <a href="/faq">FAQ</a>
                     <a href="/pricing">Pricing</a>
-                    <a target="_blank" href="https://hub.globalify.xyz">Knowledge</a>
+                    <a target="_blank" href="https://blog.globalify.xyz">Community</a>
                 </ul>
                 <a
                     href="/login"
@@ -125,10 +124,9 @@
                                 >About Us</a
                             >
                             <a
-                                href="https://blog.globalify.xyz"
-                                target="_blank"
+                                href="/faq"
                                 class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-slate-100"
-                                >Blog</a
+                                >FAQ</a
                             >
                             <a
                                 href="/pricing"
@@ -136,10 +134,10 @@
                                 >Pricing</a
                             >
                             <a
-                                href="/#faq"
+                                href="https://blog.globalify.xyz"
                                 target="_blank"
                                 class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-slate-100"
-                                >Knowledge</a
+                                >Community</a
                             >
                         </div>
                         <div class="py-6">
@@ -154,7 +152,7 @@
             </div>
         </div>
         {% block content %} {% endblock %}
-        <footer class="text-sm text-white bg-[#1D1539]" aria-labelledby="footer-heading">
+        <footer class="bg-[#1D1539] text-sm text-white" aria-labelledby="footer-heading">
             <h2 id="footer-heading" class="sr-only">Footer</h2>
             <div class="mx-auto max-w-7xl px-8 pb-8 pt-12 sm:pt-24 lg:px-8 lg:pt-32">
                 <div class="grid xl:grid-cols-3 xl:gap-8">

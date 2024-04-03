@@ -1,0 +1,193 @@
+{% extends "layouts/layout_teaser.html" %} {% block additional_scripts %}
+<script src="/static/scripts/email.js" defer></script>
+<script src="/static/scripts/demoSearch.js" defer></script>
+{% endblock %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
+%}
+<main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
+    <section
+        class="relative mx-auto flex max-w-7xl flex-col items-center justify-center px-8 pb-5 pt-5 text-center sm:px-6 lg:px-8 lg:pt-24"
+    >
+        <img
+            class="pointer-events-none absolute left-1/2 top-0 -z-50 h-fit w-fit origin-top -translate-x-1/2 scale-75 transform"
+            src="/static/elements/hero-bg.svg"
+            alt=""
+        />
+        <!-- <img class="absolute right-1/2 top-0 pointer-events-none" src="/static/elements/blue-blob.svg" alt="" />
+        <img
+            class="absolute left-1/2 top-0 pointer-events-none opacity-60"
+            src="/static/elements/red-blob.svg"
+            alt=""
+        /> -->
+        <span
+            class="move-up border-gray text-semibold w-fit rounded-full border border-gray-200 bg-white px-2 py-1 text-xs shadow-lg"
+            style="animation-delay: 1.2s"
+            ><span class="bg-gradient-to-r from-[#8076E7] to-[#E776C1] bg-clip-text text-transparent"
+                >Level up your business</span
+            ></span
+        >
+        <h1
+            class="move-up mx-auto mb-10 mt-5 max-w-sm text-center text-4xl font-semibold tracking-tight text-slate-900 sm:max-w-lg sm:text-5xl lg:text-6xl"
+        >
+            Globalify
+            <span class="background-animate bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text text-transparent"
+                >Incubator</span
+            ><br />Supercharge your startup
+        </h1>
+        <p
+            class="move-up mx-auto mb-10 max-w-2xl text-center text-base text-slate-700 sm:text-lg"
+            style="animation-delay: 0.8s"
+        >
+            Take your startup to the next level with our flagship program.
+        </p>
+        <div class="move-up flex flex-wrap items-center justify-center gap-x-6 gap-y-3" style="animation-delay: 1s">
+            <!-- <button
+                id="notification_button"
+                onclick="showEmailField()"
+                class="bg-white group inline-flex items-center justify-center rounded-xl px-4 py-2 text-lg text-slate-700 ring-1 ring-slate-200 hover:text-slate-900 hover:ring-slate-300 focus:outline-none focus-visible:outline-blue-600 focus-visible:ring-slate-300 active:bg-slate-100 active:text-slate-600"
+            >
+                <span>Sign Up</span>
+            </button> -->
+            <form id="email_input" class="flex gap-3" action="/waitlist-email" method="POST">
+                <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                <input
+                    class="w-3/4 rounded-xl border border-stone-300 px-2"
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="john@email.com"
+                    autocomplete="email"
+                    required
+                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                />
+                <button
+                    id="submit-button"
+                    class="rounded-xl bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+                    type="submit"
+                >
+                    Submit
+                </button>
+            </form>
+        </div>
+        <!-- <div
+            class="bg-gradient-to-br from-[#3EB5FD] via-30% via-[#685AF3] to-[#D380CC] p-3 mt-10 fade-in rounded-xl"
+            style="animation-delay: 1.2s"
+        >
+            <img class="drop-shadow-lg" src="/static/elements/hero.png" alt="" />
+        </div> -->
+    </section>
+
+    <section class="fade-in mb-10 flex items-center justify-center gap-2.5 px-8 pt-20" style="animation-delay: 1.2s">
+        <div class="flex max-w-7xl flex-col items-center justify-center">
+            <div class="flex flex-col items-center justify-center gap-4 px-4 sm:px-6 md:text-center lg:px-8">
+                <span
+                    class="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-900 shadow-xl"
+                    ><img src="/static/elements/3dcube.svg" alt="" />Testimonials</span
+                >
+                <h2 class="mt-2 max-w-2xl text-3xl font-semibold sm:text-[40px]">
+                    Hear it from other entrepreneurs. It does
+                    <span class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent">work</span>
+                </h2>
+            </div>
+            <div class="mt-20 grid grid-cols-1 gap-x-20 gap-y-10 md:grid-cols-2">
+                <article class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6">
+                    <div class="rounded-3xl bg-white p-8 leading-loose">
+                        <p class="line-clamp-7">
+                            Thanks to team at Globalify, With the support from Globalify's team and their search engine,
+                            I gained the essential resources needed to elevate my business. Their guidance is
+                            invaluable! I can't recommend them enough!
+                        </p>
+                        <div class="mt-5 flex flex-col">
+                            <span class="font-bold">Pol Ricart</span>
+                            <span class="text-slate-400">Entrepreneur</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6">
+                    <div class="rounded-3xl bg-white p-8 leading-loose">
+                        <p class="line-clamp-7">
+                            Globalify is helping my business to connect with the investors and partners around the
+                            world.
+                        </p>
+                        <div class="mt-5 flex flex-col">
+                            <span class="font-bold">Alberto Fernandez</span>
+                            <span class="text-slate-400">Entrepreneur</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6">
+                    <div class="rounded-3xl bg-white p-8 leading-loose">
+                        <p class="line-clamp-7">
+                            Thanks to the power of Globalify's proprietary AI Search Engine, I was able to secure the
+                            funding I needed from Web2, Web3, and very famous angel investors to seed my startup. We are
+                            preparing already for the PreA with Institutionals interested who also invested in our Seed.
+                            I can't recommend them enough!
+                        </p>
+                        <div class="mt-5 flex flex-col">
+                            <span class="font-bold">JL</span>
+                            <span class="text-slate-400">First Time Founder</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6">
+                    <div class="rounded-3xl bg-white p-8 leading-loose">
+                        <p class="line-clamp-7">
+                            Globalify has been such an asset to me for my fund in that as we expanded globally we
+                            decided who to take on for our fund 2 which is oversubscribed! I have a curated waitlist now
+                            of LPs who I am having 1:1 meetings with as my Partners and I decide on strategic
+                            partnerships with as we expand our footprint, ethos, investment advisory, and asset classes.
+                        </p>
+                        <div class="mt-5 flex flex-col">
+                            <span class="font-bold">Vee W</span>
+                            <span class="text-slate-400"
+                                >Fund Manager, Private Hedge Fund, International Asset Manager</span
+                            >
+                        </div>
+                    </div>
+                </article>
+                <article class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6">
+                    <div class="rounded-3xl bg-white p-8 leading-loose">
+                        <p class="line-clamp-7">
+                            Globalify helped us discover hidden gems for direct investment as well as amazing Fund
+                            Managers to co-invest with. For a select few of the Funds we met via Globalify, we became
+                            LPs after strategic intros and meetings facilitated by the platform. As a single Family
+                            Office, it's important for our Family and I to stay ahead of the curve when it comes to
+                            Tech, Web3, AI, alongside our stable portfolio of traditional investments. We are excited to
+                            bet on the best Founders and Funders via Globalify.
+                        </p>
+                        <div class="mt-5 flex flex-col">
+                            <span class="font-bold">JM </span>
+                            <span class="text-slate-400">Chair, Single Family Office, US & Asia</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- <section
+        class="flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8 mt-20 mb-20 fade-in"
+        style="animation-delay: 1.2s"
+    >
+        <div class="flex flex-col items-center justify-center max-w-7xl w-full">
+            <div class="px-4 sm:px-6 md:text-center lg:px-8 flex flex-col gap-4 justify-center items-center">
+                <span
+                    class="w-fit border border-slate-200 bg-white text-slate-900 px-3 py-1 rounded-full font-medium inline-flex gap-2 justify-center items-center shadow-xl text-xs"
+                    ><img src="/static/elements/cards.svg" alt="" />FAQ</span
+                >
+                <h2 class="text-3xl font-semibold sm:text-[40px] max-w-2xl mt-5">Frequently Asked Questions</h2>
+                <p class="text-slate-500">
+                    If you can’t find what you’re looking for, email our support team and we wil get back to you.
+                </p>
+            </div>
+            <div class="bg-slate-50 rounded-2xl w-full flex justify-center items-center flex-col gap-7 p-10 mt-10">
+                <article class="bg-white shadow-lg rounded-xl w-full p-8">
+                    <span class="font-medium text-xl font-['Lexend']">What is Globalify?</span>
+                    <p class="text-slate-400 mt-3">
+                        Globalify is a hub for entrepreneurs to connect with investors from around the world
+                    </p>
+                </article>
+            </div>
+        </div>
+    </section> -->
+</main>
+{% endblock %}

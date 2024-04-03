@@ -25,6 +25,7 @@ from ..models import (
     Investor,
     Notification,
     Round,
+    UserPayment,
     Waitlist,
     WaitlistCharge,
 )
@@ -112,8 +113,32 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 @main.get("/")
 def index():
     posts = parse_medium_html()
-    # posts = []
     return render_template("index.html", posts=posts)
+
+
+@main.get("/incubation")
+def incubation():
+    return render_template("incubation.html")
+
+
+@main.get("/faq")
+def faq():
+    return render_template("faq.html")
+
+
+@main.get("/about/eric")
+def eric():
+    return render_template("eric.html")
+
+
+@main.get("/about/jennifer")
+def jennifer():
+    return render_template("jennifer.html")
+
+
+@main.get("/about/arstan")
+def arstan():
+    return render_template("arstan.html")
 
 
 @main.route("/suggestions")
@@ -121,9 +146,13 @@ def index():
 @check_user_info_complete
 @check_verification
 def get_suggestions():
-    waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
     access = True
-    if not waitlist_charge and not current_user.is_admin:
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+    if current_user.is_admin:
+        access = True
+    elif not user_payment:
+        access = False
+    elif user_payment and not user_payment.is_active:
         access = False
 
     company = Company.get_by_user_id(current_user.id)
@@ -201,8 +230,12 @@ def search():
     )
     investors = result.get("investors")
 
-    waitlist_charge = WaitlistCharge.get_by_customer_email(current_user.email)
-    if not waitlist_charge and page > 1 and not current_user.is_admin:
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+    if current_user.is_admin:
+        pass
+    elif not user_payment and page > 1:
+        investors = []
+    elif user_payment and not user_payment.is_active and page > 1:
         investors = []
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))

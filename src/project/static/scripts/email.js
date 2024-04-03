@@ -17,7 +17,7 @@ function makeSubmission() {
     var button = document.getElementById("submit-button");
     button.classList.add("w-full", "items-center", "cursor-not-allowed");
     button.disabled = "disabled";
-    button.innerHTML = "Subscribed!";
+    button.innerHTML = "Applied!";
 
     return field.value;
 }

@@ -116,9 +116,14 @@
         <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
             <div>
                 <h2 class="font-medium leading-7">Your subscription</h2>
-                <p class="mt-1 leading-6 text-slate-700">
-                    This is your current subscription. You can update your plan any time.
-                </p>
+                <p class="mt-1 leading-6 text-slate-700">Manage your subscription and billing information</p>
+                {% if status_type %} {% if status_type == '3' %}
+                <div class="rounded-xl text-red-500 text-sm mt-2">{{ msg }}</div>
+                {% endif %} {% if status_type == '2' %}
+                <div class="rounded-xl text-orange-400 text-sm mt-2">{{ msg }}</div>
+                {% endif %} {% if status_type == '1' %}
+                <div class="rounded-xl text-lime-500 text-sm mt-2">{{ msg }}</div>
+                {% endif %} {% endif %}
             </div>
             <div
                 class="flex max-w-lg flex-col justify-between rounded-xl bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-300 p-4 md:col-span-2"
@@ -130,21 +135,43 @@
                             >{{ subscription.tier.value.upper() }}</span
                         >
                     </div>
-                    <div class="flex items-baseline justify-end gap-4">
-                        {% if subscription.tier.value == "free" %}
+                    <form
+                        action="/payment/create-portal-session-subscription-update"
+                        method="POST"
+                        class="flex items-baseline justify-end gap-4"
+                    >
+                        {% if subscription.tier.value != "free" %}
+
+                        <a
+                            href="/payment/create-portal-session-subscription-cancel"
+                            class="text-xs text-white underline"
+                        >
+                            Cancel
+                        </a>
+
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input type="hidden" name="subscription_id" value="{{ subscription.subscription_id }}" />
+                        <button
+                            type="submit"
+                            class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
+                        >
+                            Upgrade
+                        </button>
+                        {% else %}
                         <a
                             href="/expanded-onboarding"
                             class="rounded-lg bg-white px-4 py-2 text-xs transition-transform ease-in-out hover:scale-105"
-                            >Upgrade</a
                         >
+                            Subscribe
+                        </a>
                         {% endif %}
-                    </div>
+                    </form>
                 </div>
                 {% if subscription.tier.value == "free" %}
                 <div class="mt-5 text-xs leading-4 text-slate-900">You have free access to some Globalify features</div>
-                {% elif subscription.tier.value == "early bird" %}
+                {% else %}
                 <div class="mt-5 text-xs leading-4 text-slate-900">
-                    You have full access to our database and all the upcoming features
+                    You have full access to our services and all the upcoming features!
                 </div>
                 {% endif %}
             </div>

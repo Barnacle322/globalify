@@ -118,7 +118,7 @@
         <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
             <div>
                 <h2 class="font-medium leading-7">Company Information</h2>
-                <p class="mt-1 leading-6 text-slate-700 mb-2">Update your company information here.</p>
+                <p class="mb-2 mt-1 leading-6 text-slate-700">Update your company information here.</p>
                 {% if status_type %} {% if status_type == '3' %}
                 <div class="rounded-xl text-red-500">{{ msg }}</div>
                 {% endif %} {% if status_type == '2' %}
@@ -126,7 +126,6 @@
                 {% endif %} {% if status_type == '1' %}
                 <div class="rounded-xl text-lime-500">{{ msg }}</div>
                 {% endif %} {% endif %}
-        
             </div>
             <form class="md:col-span-2" action="/settings/company" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -149,8 +148,8 @@
                             <div>
                                 <input
                                     type="file"
-                                    id="pfp"
-                                    name="pfp"
+                                    id="picture"
+                                    name="picture"
                                     accept="image/png, image/jpeg"
                                     class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
                                 />

@@ -1,0 +1,44 @@
+{% extends "layouts/layout_teaser.html" %} {% block additional_scripts %} {% endblock %} {% block title %}Eric Fung{%
+endblock %} {% block head %} {{ super() }} {% endblock %} {% block content %}
+<main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
+    <section
+        class="relative mx-auto gap-3 flex max-w-7xl flex-col items-center justify-center px-8 pb-5 pt-5 text-center sm:px-6 lg:px-8 lg:pt-24"
+    >
+        <span class="font-mono sm:text-lg text-base">CEO of Globalify</span>
+        <h1 class="sm:text-7xl text-5xl">Eric Fung</h1>
+        <img
+            class="bg-slate-50 h-[500px] aspect-square object-cover rounded-3xl mt-5 view-eric"
+            src="/static/elements/Team/Eric.JPG"
+            alt=""
+        />
+        <p class="text-pretty text-start max-w-3xl text-xl leading-8 mt-10 font-light">
+            Eric boasts a solid track record in both corporate and startup environments, highlighted by a successful
+            exit from a luxury gifts e-commerce platform. As the CEO and COO at GLOBALIFY, he has been
+            instrumental in expanding the company's reach in the tech startup ecosystem by implementing AI-driven tools
+            and a company-developed search engine to streamline venture capital investments.
+            <br /><br />
+            Additionally, Eric created a crypto digital asset lending protocol, a DeFi project that has significantly
+            impacted the crypto communities, where he remains an influential figure. 
+        </p>
+        <img
+            class="max-w-3xl w-full aspect-video object-cover rounded-3xl mt-10"
+            src="/static/elements/Team/group_photo.jpg"
+            alt=""
+        />
+        <p class="text-4xl sm:text-7xl max-w-3xl mt-10 sm:mt-20 font-serif">
+            “Alone we can do so littlem together we can do so much MORE”
+        </p>
+        <p class="text-pretty text-start max-w-3xl text-xl leading-8 mt-10 sm:mt-20 font-light">
+            With an academic foundation from Simon Fraser University and specialized training in entrepreneurship, leadership, and innovation from Draper University and Hong Kong Poly University, he possesses a diverse skill set that spans from tech development to strategic business growth. 
+            <br /><br />
+           At Manulife, he honed his statistical and analytical skills in assessing financial risks, laying the groundwork for his later achievements in leading a 100-person team at On Hing Metal, demonstrating adeptness in operational excellence and team leadership. His experience is a unique blend of technical expertise, corporate strategy, and entrepreneurial acumen, enabling him to drive innovation and growth in rapidly evolving tech markets.
+        </p>
+        <p class="text-4xl sm:text-7xl max-w-3xl mt-10 sm:mt-20 font-medium">Bringing ideas to life, one search at a time—welcome to Globalify</p>
+        <a
+            class="text-7xl bg-sky-400 text-white rounded-3xl py-20 font-medium w-full mt-5 mb-10 hover:scale-105 transition-all ease-in-out duration-500"
+            href="/login"
+            >Go</a
+        >
+    </section>
+</main>
+{% endblock %}

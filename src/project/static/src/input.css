@@ -235,6 +235,28 @@
     }
 }
 
+@keyframes scroll {
+    0% {
+        transform: translateY(0);
+    }
+    25% {
+        transform: translateY(-100%);
+    }
+    50% {
+        transform: translateY(-200%);
+    }
+    75% {
+        transform: translateY(-300%);
+    }
+    100% {
+        transform: translateY(-400%);
+    }
+}
+
+.scroll {
+    animation: scroll 5s ease-in-out forwards;
+}
+
 .fade-out-right {
     animation: fadeOutRight 1s ease-in-out forwards;
 }
@@ -320,4 +342,16 @@
 
 .slider-track {
     pointer-events: none;
+}
+
+.view-eric {
+    view-transition-name: view-eric;
+}
+
+.view-jennifer {
+    view-transition-name: view-jennifer;
+}
+
+.view-arstan {
+    view-transition-name: view-arstan;
 }

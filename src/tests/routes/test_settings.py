@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import url_for
+from flask_login import login_user
 
 from src.project import db
 from src.project.extensions import oauth
@@ -133,14 +134,10 @@ def test_settings_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_unverified_get(client, unverified_user, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+def test_settings_unverified_get(client, app, unverified_user, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
         response = client.get("/settings/general", follow_redirects=True)
         assert response.status_code == 200
@@ -152,14 +149,10 @@ def test_settings_unverified_get(client, unverified_user, app, monkeypatch):
         assert b"Verify" in response.data
 
 
-def test_settings_verified_get(client, verified_user, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+def test_settings_verified_get(client, app, verified_user, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
         response = client.get("/settings/general")
         assert response.status_code == 200
@@ -175,8 +168,8 @@ def test_settings_security_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_security_unverified_get(client, unverified_user, app, monkeypatch):
-    with app.app_context():
+def test_settings_security_unverified_get(client, app, unverified_user, monkeypatch):
+    with app.test_request_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
         )
@@ -193,14 +186,10 @@ def test_settings_security_unverified_get(client, unverified_user, app, monkeypa
         assert b"Verify" in response.data
 
 
-def test_settings_security_verified_get(client, verified_user, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+def test_settings_security_verified_get(client, app, verified_user, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
         response = client.get("/settings/security")
         assert response.status_code == 200
@@ -220,14 +209,10 @@ def test_settings_plan_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_plan_unverified_get(client, unverified_user, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+def test_settings_plan_unverified_get(client, app, unverified_user, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
         response = client.get("/settings/plan", follow_redirects=True)
         assert response.status_code == 200
@@ -239,14 +224,10 @@ def test_settings_plan_unverified_get(client, unverified_user, app, monkeypatch)
         assert b"Verify" in response.data
 
 
-def test_settings_plan_verified_get(client, verified_user, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+def test_settings_plan_verified_get(client, app, verified_user, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
         response = client.get("/settings/plan")
         assert response.status_code == 200
@@ -262,7 +243,7 @@ def test_settings_billing_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_billing_unverified_get(client, unverified_user, app, monkeypatch):
+def test_settings_billing_unverified_get(client, app, unverified_user, monkeypatch):
     with patch("stripe.Invoice.list") as mock_invoice_list:
         mock_invoice_list.return_value = [
             {
@@ -275,13 +256,9 @@ def test_settings_billing_unverified_get(client, unverified_user, app, monkeypat
                 "hosted_invoice_url": "https://example.com/invoice/123",
             }
         ]
-        with app.app_context():
-            mock_authorize = MagicMock(
-                return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
-            )
-            monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-            response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+        with app.test_request_context():
+            user = User.get_by_id(1)
+            login_user(user)
 
             response = client.get("/settings/billing", follow_redirects=True)
 
@@ -294,7 +271,7 @@ def test_settings_billing_unverified_get(client, unverified_user, app, monkeypat
             assert b"Verify" in response.data
 
 
-def test_settings_billing_verified_get(client, verified_user, app, monkeypatch):
+def test_settings_billing_verified_get(client, app, verified_user, monkeypatch):
     with patch("stripe.Invoice.list") as mock_invoice_list:
         mock_invoice_list.return_value = [
             {
@@ -307,13 +284,9 @@ def test_settings_billing_verified_get(client, verified_user, app, monkeypatch):
                 "hosted_invoice_url": "https://example.com/invoice/123",
             }
         ]
-        with app.app_context():
-            mock_authorize = MagicMock(
-                return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
-            )
-            monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-            response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+        with app.test_request_context():
+            user = User.get_by_id(1)
+            login_user(user)
 
             response = client.get("/settings/billing", follow_redirects=True)
 
@@ -342,14 +315,10 @@ def test_anonymous_user_change_personal_info(client, app, monkeypatch):
         assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_unverified_user_change_personal_info(client, unverified_user, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+def test_unverified_user_change_personal_info(client, app, unverified_user, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
         response = client.post(
             "/settings/personal-info",
@@ -371,7 +340,7 @@ def test_unverified_user_change_personal_info(client, unverified_user, app, monk
         assert b"Verify" in response.data
 
 
-def test_verified_user_change_personal_info(client, verified_user, app, monkeypatch):
+def test_verified_user_change_personal_info(client, app, verified_user, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -403,7 +372,7 @@ def test_verified_user_change_personal_info(client, verified_user, app, monkeypa
         assert updated_user.user_info.bio == "New bio"  # type: ignore
 
 
-def test_verified_user_change_personal_info_empty_first_name(client, verified_user, app, monkeypatch):
+def test_verified_user_change_personal_info_empty_first_name(client, app, verified_user, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -424,7 +393,7 @@ def test_verified_user_change_personal_info_empty_first_name(client, verified_us
         assert b"First name cannot be empty." in response.data
 
 
-def test_verified_user_change_personal_info_empty_last_name(client, verified_user, app, monkeypatch):
+def test_verified_user_change_personal_info_empty_last_name(client, app, verified_user, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -445,7 +414,7 @@ def test_verified_user_change_personal_info_empty_last_name(client, verified_use
         assert b"Last name cannot be empty." in response.data
 
 
-def test_verified_user_change_personal_info_empty_bio(client, verified_user, app, monkeypatch):
+def test_verified_user_change_personal_info_empty_bio(client, app, verified_user, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -453,8 +422,6 @@ def test_verified_user_change_personal_info_empty_bio(client, verified_user, app
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
         response = client.post(
             "/settings/personal-info",
@@ -468,7 +435,7 @@ def test_verified_user_change_personal_info_empty_bio(client, verified_user, app
         assert b"Bio cannot be empty." in response.data
 
 
-def test_verified_user_change_personal_info_empty_username(client, verified_user, app, monkeypatch):
+def test_verified_user_change_personal_info_empty_username(client, app, verified_user, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -476,8 +443,6 @@ def test_verified_user_change_personal_info_empty_username(client, verified_user
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
         response = client.post(
             "/settings/personal-info",
@@ -492,7 +457,7 @@ def test_verified_user_change_personal_info_empty_username(client, verified_user
 
 
 def test_verified_user_change_personal_info_taken_username(
-    client, verified_user, username_taken_user, app, monkeypatch
+    client, app, verified_user, username_taken_user, monkeypatch
 ):
     with app.app_context():
         mock_authorize = MagicMock(
@@ -501,8 +466,6 @@ def test_verified_user_change_personal_info_taken_username(
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
         response = client.post(
             "/settings/personal-info",
@@ -516,7 +479,7 @@ def test_verified_user_change_personal_info_taken_username(
         assert b"Username is taken." in response.data
 
 
-def test_google_callback(app, client, monkeypatch, verified_user):
+def test_google_callback(client, app, monkeypatch, verified_user):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -529,7 +492,7 @@ def test_google_callback(app, client, monkeypatch, verified_user):
         assert b"Search" in response.data
 
 
-def test_delete_account(client, verified_user, app, monkeypatch):
+def test_delete_account(client, app, verified_user, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -537,8 +500,6 @@ def test_delete_account(client, verified_user, app, monkeypatch):
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
 
         response = client.get(url_for("settings.delete_account"), follow_redirects=True)
         assert response.status_code == 200
@@ -561,16 +522,10 @@ def test_settings_company_anonymous_get(client):
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_company_unverified_get(client, unverified_user, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
+def test_settings_company_unverified_get(client, app, unverified_user, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
         response = client.get("/settings/company", follow_redirects=True)
         assert response.status_code == 200
@@ -582,16 +537,10 @@ def test_settings_company_unverified_get(client, unverified_user, app, monkeypat
         assert b"Verify" in response.data
 
 
-def test_settings_company_verified_get(client, new_user_with_company, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+def test_settings_company_verified_get(client, app, new_user_with_company, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
         response = client.get("/settings/company", follow_redirects=True)
         assert response.status_code == 200
@@ -599,33 +548,19 @@ def test_settings_company_verified_get(client, new_user_with_company, app, monke
         assert b"Update your company information here." in response.data
 
 
-def test_verified_user_without_company_get(client, verified_user, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post(
-            "/login", data=dict(email="margarjohndoeita@example.com", password="password"), follow_redirects=True
-        )
+def test_verified_user_without_company_get(client, app, verified_user, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
         response = client.get("/settings/company")
         assert response.status_code == 404
 
 
-def test_verified_user_change_company_empty_name(client, new_user_with_company, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+def test_verified_user_change_company_empty_name(client, app, new_user_with_company, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
         response = client.post(
             url_for("settings.change_company_info"),
@@ -639,16 +574,10 @@ def test_verified_user_change_company_empty_name(client, new_user_with_company, 
         assert b"Company name cannot be empty." in response.data
 
 
-def test_verified_user_change_company_empty_industry_and_round(client, new_user_with_company, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
-
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
+def test_verified_user_change_company_empty_industry_and_round(client, app, new_user_with_company, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
         response = client.post(
             url_for("settings.change_company_info"),
@@ -663,16 +592,11 @@ def test_verified_user_change_company_empty_industry_and_round(client, new_user_
         assert b"Please select rounds and industries." in response.data
 
 
-def test_verified_user_change_company_empty_country(client, new_user_with_company, app, monkeypatch):
-    with app.app_context():
-        mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
-        )
-        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+def test_verified_user_change_company_empty_country(client, app, new_user_with_company, monkeypatch):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
 
-        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
-
-        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
         response = client.post(
             url_for("settings.change_company_info"),
             data={
@@ -687,7 +611,7 @@ def test_verified_user_change_company_empty_country(client, new_user_with_compan
         assert b"Country ID is required." in response.data
 
 
-def test_verified_user_change_company_valid_data(client, new_user_with_company, app, monkeypatch):
+def test_verified_user_change_company_valid_data(client, app, new_user_with_company, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
@@ -697,7 +621,6 @@ def test_verified_user_change_company_valid_data(client, new_user_with_company, 
 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
-        client.post("/login", data=dict(email="margarita@example.com", password="password"), follow_redirects=True)
         response = client.post(
             url_for("settings.change_company_info"),
             data={

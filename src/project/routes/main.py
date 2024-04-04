@@ -399,6 +399,11 @@ def about():
     return render_template("about.html")
 
 
+@main.route("/superconnect")
+def superconnect():
+    return render_template("superconnect.html")
+
+
 @main.route("/docs")
 @main.route("/jobs")
 @main.route("/partners")

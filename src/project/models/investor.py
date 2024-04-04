@@ -14,6 +14,7 @@ from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
 from thefuzz import fuzz
 
 from ..extensions import db
+from ..models.user import Company
 from ..utils.fake_data import (
     get_abouts,
     get_companies,
@@ -25,7 +26,14 @@ from ..utils.fake_data import (
     get_websites,
 )
 from ..utils.info_lists import notable_investment_list
-from ..utils.suggestion import geocode_location
+from ..utils.scraper import populate_blockchain, populate_demo
+from ..utils.scraper_helpers.population import (
+    get_industries,
+    get_min_max_investment,
+    get_notable_investments,
+    get_rounds,
+)
+from ..utils.suggestion import WEIGHTS, geocode_location
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
     create_schema,
@@ -34,6 +42,100 @@ from ..utils.typesense_helpers.typesense_search import (
     upsert_documents,
 )
 from .helpers import Industry, Round
+
+
+class SuggestionBuilder:
+    def __init__(self, investor_list: list[dict], company: Company | None):
+        self.investor_list = investor_list
+        self.company = company
+
+    def calculate_all_scores(self):
+        for investor in self.investor_list:
+            # Calculate bias score
+            try:
+                bias_score = (investor["bias"] / 100) if investor["bias"] else 0
+            except Exception as e:
+                print(f"An error occurred while calculating bias score: {e}")
+                bias_score = 0
+
+            # Calculate location score
+            try:
+                if self.company.coordinates and investor["coordinates"]:  # type: ignore
+                    distance = float(geodesic(self.company.coordinates, investor["coordinates"]).kilometers)  # type: ignore
+                    location_score = 1 - (distance / 20038)
+                else:
+                    location_score = 0
+            except Exception as e:
+                print(f"An error occurred while calculating location score: {e}")
+                location_score = 0
+
+            # Calculate exits score
+            try:
+                if investor["n_investments"] and investor["n_exits"]:
+                    exits_score = 1 if (investor["n_exits"] / investor["n_investments"]) >= 0.5 else 0
+                else:
+                    exits_score = 0
+            except Exception as e:
+                print(f"An error occurred while calculating exits score: {e}")
+                exits_score = 0
+
+            # Calculate industry score
+            try:
+                if self.company.industry.name in investor["industries"] and len(investor["industries"]) == 1:  # type: ignore
+                    industry_score = 1
+                elif self.company.industry.name in investor["industries"]:  # type: ignore
+                    industry_score = 0.8
+                else:
+                    industry_score = 0
+            except Exception as e:
+                print(f"An error occurred while calculating industry score: {e}")
+                industry_score = 0
+
+            # Calculate round score
+            try:
+                if self.company.preferred_round.name in investor["rounds"] and len(investor["rounds"]) == 1:  # type: ignore
+                    round_score = 1
+                elif self.company.preferred_round.name in investor["rounds"]:  # type: ignore
+                    round_score = 0.8
+                else:
+                    round_score = 0
+            except Exception as e:
+                print(f"An error occurred while calculating round score: {e}")
+                round_score = 0
+
+            # Calculate completeness score
+            try:
+                completeness_score = 1
+                for value in investor.values():
+                    if not value:
+                        completeness_score -= 0.1
+                if completeness_score < 0:
+                    completeness_score = 0
+            except Exception as e:
+                print(f"An error occurred while calculating completeness score: {e}")
+                completeness_score = 0
+
+            try:
+                total_score = (
+                    WEIGHTS["bias"] * bias_score
+                    + WEIGHTS["location"] * location_score
+                    + WEIGHTS["exits"] * exits_score
+                    + WEIGHTS["industry"] * industry_score
+                    + WEIGHTS["round"] * round_score
+                    + WEIGHTS["completeness"] * completeness_score
+                )
+                investor["total_score"] = total_score
+            except Exception as e:
+                print(f"An error occurred while calculating total score: {e}")
+                investor["total_score"] = 0
+        return self
+
+    def sort_by_score(self):
+        self.investor_list = sorted(self.investor_list, key=lambda x: x["total_score"], reverse=True)
+        return self
+
+    def get_id_list(self, quantity: int):
+        return [investor["id"] for investor in self.investor_list[:quantity]]
 
 
 class NotableInvestment(db.Model):
@@ -238,6 +340,33 @@ class Investor(db.Model):
             print(investors)
             yield investors
 
+    @staticmethod
+    def get_suggestions(company: Company | None, quantity: int) -> Sequence[Investor] | None:
+        investor_list = []
+        for investor in Investor.get_all():
+            investor_info = {
+                "id": investor.id,
+                "bias": investor.bias,
+                "n_investments": investor.n_investments,
+                "n_exits": investor.n_exits,
+                "coordinates": investor.coordinates,
+                "rounds": [round.name for round in investor.rounds],
+                "industries": [industry.name for industry in investor.industries],
+                "min_investment": investor.min_investment,
+                "max_investment": investor.max_investment,
+                "about": investor.about,
+            }
+            investor_list.append(investor_info)
+        investor_ids = (
+            SuggestionBuilder(investor_list, company).calculate_all_scores().sort_by_score().get_id_list(quantity)
+        )
+        suggestions = Investor.get_by_id_list(investor_ids)
+        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}  # type: ignore
+        sorted_suggestions = [
+            suggestions_dict[investor_id] for investor_id in investor_ids if investor_id in suggestions_dict
+        ]
+        return sorted_suggestions
+
     @classmethod
     def get_search(
         cls,
@@ -369,6 +498,36 @@ class Investor(db.Model):
         db.session.commit()
 
     @staticmethod
+    def populate_all():
+        investors_list = []
+        investors_list += populate_demo(NotableInvestment, Industry)
+        investors_list += populate_blockchain(NotableInvestment, Industry)
+        count = 0
+        for investor in investors_list:
+            item = Investor(
+                first_name=investor.get("first_name"),
+                last_name=investor.get("last_name"),
+                firm_name=investor.get("firm_name"),
+                position=investor.get("position"),
+                about=investor.get("about"),
+                email=investor.get("email"),
+                location=investor.get("location"),
+                coordinates=investor.get("location"),
+                industries=investor.get("industries"),
+                linkedin=investor.get("linkedin"),
+                twitter=investor.get("twitter"),
+                min_investment=investor.get("min_investment"),
+                max_investment=investor.get("max_investment"),
+                rounds=investor.get("rounds"),
+                notable_investments=investor.get("notable_investments"),
+            )
+            db.session.add(item)
+            count += 1
+            print("Added investor:", item)
+        print(f"Added {count} investors")
+        db.session.commit()
+
+    @staticmethod
     def populate_demo(file_name="investor.csv"):
         with open(file_name, newline="") as file:
             existing_notable_investments = NotableInvestment.get_all()
@@ -456,115 +615,37 @@ class Investor(db.Model):
         db.session.commit()
 
     @staticmethod
-    def populate_blockchain(file_name="globalify - blockchain.csv"):
-        with open(file_name, newline="") as file:
-            reader = csv.reader(file, delimiter=";")
-            existing_notable_investments = NotableInvestment.get_all()
-            existing_industry_list = Industry.get_industry_list()
-            for row in islice(reader, 1, None):
-                first_name = row[0].split(" ")[0]
-                if len(row[0].split(" ")) == 1:
-                    last_name = None
-                else:
-                    last_name = row[0].split(" ")[1]
-                firm_name = row[1]
-                firm_name = firm_name.replace('"', "")
-
-                email = row[4]
-                if email == "":
-                    email = None
-
-                industries = row[7].split(",")
-                industry_list = []
-                for industry in industries:
-                    if "—" in industry:
-                        industry = industry.split(" — ")[1]
-                    industry = (
-                        industry.replace(")", "")
-                        .replace("(", "")
-                        .replace(" Commerce", " ")
-                        .replace("Smart Tech", " ")
-                        .replace("Money Tech", "")
-                        .replace("Health Tech", "")
-                        .strip()
-                    )
-                    for i in existing_industry_list:
-                        if i and fuzz.ratio(industry, i.name) > 80:
-                            industry = i
-                            industry_list.append(industry)
-                            break
-
-                round_list = []
-                for round_ in row[14].split(","):
-                    for r in Round.get_all():
-                        if round_ == "Series B+":
-                            round_list.append(Round.get_by_name("Series B"))
-                            round_list.append(Round.get_by_name("Series C"))
-                            break
-                        if r and fuzz.ratio(round_.lower(), r.name.lower()) > 90:
-                            round_ = r
-                            round_list.append(round_)
-                            break
-
-                notable_investment_list = []
-                for notable_investment in row[15].split(","):
-                    existing = None
-                    for eni in existing_notable_investments:
-                        if fuzz.ratio(notable_investment, eni.name) > 90:
-                            existing = eni
-                            break
-                    if existing:
-                        notable_investment_list.append(existing)
-                    else:
-                        ni = NotableInvestment(name=notable_investment)
-                        db.session.add(ni)
-                        notable_investment_list.append(ni)
-
-                check_size_string = row[13]
-                range_set = set()
-                for range_ in check_size_string.split(","):
-                    sanitized_range = (
-                        range_.replace("$", "")
-                        .replace(",", " ")
-                        .replace(" ", "")
-                        .replace("K", "000")
-                        .replace("M", "000000")
-                        .replace("B", "000000000")
-                        .replace("+", "")
-                    )
-                    if "-" in sanitized_range:
-                        min_investment, max_investment = sanitized_range.split("-")
-                        range_set.add(int(min_investment))
-                        range_set.add(int(max_investment))
-                    else:
-                        if sanitized_range in ["", " "]:
-                            continue
-                        range_set.add(int(sanitized_range))
-                min_investment, max_investment = None, None
-                if len(range_set) > 1:
-                    min_investment, max_investment = min(range_set), max(range_set)
-                elif len(range_set) == 1:
-                    min_investment = range_set.pop()
+    def populate_cli():
+        notable_investment_list = NotableInvestment.get_all()
+        industry_list = Industry.get_industry_list()
+        with open("investor_list.json", encoding="utf-8-sig") as file:
+            investors = json.load(file)
+            for investor in investors:
+                industries = get_industries(investor.get("industry"), industry_list)
+                min_investment, max_investment = get_min_max_investment(investor.get("investment_range"))
+                rounds = get_rounds(investor.get("rounds"))
+                notable_investments = get_notable_investments(
+                    investor.get("notable_investments"), notable_investment_list, NotableInvestment
+                )
                 investor = Investor(
-                    first_name=first_name,
-                    last_name=last_name,
-                    firm_name=row[1],
-                    position=row[2],
-                    about=row[22],
-                    email=email,
-                    location=row[6],
-                    coordinates=row[6],
-                    industries=list(set(industry_list)),
-                    linkedin=row[9],
-                    twitter=row[11],
+                    first_name=investor.get("first_name"),
+                    last_name=investor.get("last_name"),
+                    firm_name=investor.get("firm_name"),
+                    position=investor.get("position"),
+                    about=investor.get("about"),
+                    email=investor.get("email"),
+                    linkedin=investor.get("linkedin"),
+                    twitter=investor.get("twitter"),
+                    location=investor.get("location"),
+                    coordinates=investor.get("location"),
                     min_investment=min_investment,
                     max_investment=max_investment,
-                    rounds=list(set(round_list)),
-                    notable_investments=list(set(notable_investment_list)),
+                    industries=industries,
+                    rounds=rounds,
+                    notable_investments=notable_investments,
                 )
                 db.session.add(investor)
-                print("Added investor:", investor)
-        db.session.commit()
+            db.session.commit()
 
     @staticmethod
     def populate_vcsheet(file_name="investors_vc.csv"):

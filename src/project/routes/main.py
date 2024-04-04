@@ -32,7 +32,7 @@ from ..models import (
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
-from ..utils.suggestion import WEIGHTS
+from ..utils.suggestion import WEIGHTS, check_weights
 
 main = Blueprint("main", __name__)
 
@@ -157,39 +157,12 @@ def get_suggestions():
 
     company = Company.get_by_user_id(current_user.id)
 
-    investors = Investor.get_all()
-
-    scored_investors = []
-
-    for investor in investors:
-        bias_score = investor.calculate_bias_score()
-        location_score = investor.calculate_location_score(company)
-        exits_score = investor.calculate_exits_score()
-        industry_score = investor.calculate_industry_score(company)
-        round_score = investor.calculate_round_score(company)
-        completeness_score = investor.calculate_completeness_score()
-
-        total_score = (
-            WEIGHTS["bias"] * bias_score
-            + WEIGHTS["location"] * location_score
-            + WEIGHTS["exits"] * exits_score
-            + WEIGHTS["industry"] * industry_score
-            + WEIGHTS["round"] * round_score
-            + WEIGHTS["completeness"] * completeness_score
-        )
-        scored_investors.append((investor, total_score))
-
-    suggested_investors = sorted(
-        (investor for investor in scored_investors),
-        key=lambda investor: investor[1],
-        reverse=True,
-    )
-
-    sorted_investors = [investor[0] for investor in suggested_investors][:15]
+    check_weights(WEIGHTS)
+    suggested_investors = Investor.get_suggestions(company=company, quantity=15)
 
     return render_template(
         "suggestions.html",
-        investors=sorted_investors,
+        investors=suggested_investors,
         access=access,
     )
 

@@ -303,6 +303,7 @@ def investor(investor_id):
 @check_verification
 def investment_firm(firm_id):
     investment_firm = InvestmentFirm.get_by_id(int(firm_id))
+    print(InvestmentFirm.get_all())
     if not investment_firm:
         return redirect(url_for("main.search"))
 

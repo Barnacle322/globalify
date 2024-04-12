@@ -1,0 +1,100 @@
+{% extends "layouts/layout_app.html" %} {% block title %} {{ investment_firm.name }} {% endblock %} {% block head %}
+{{super() }} {% endblock %} {% block content %}
+<main class="mx-auto mb-40 mt-28 flex h-full flex-wrap justify-center gap-5 pb-16">
+    <section class="flex max-w-[40rem] flex-col gap-3 px-8">
+        <div class="flex flex-wrap items-baseline justify-start gap-3">
+            <h1 class="text-5xl font-medium">{{ investment_firm.name }}</h1>
+        </div>
+        {% if investment_firm.about %}
+        <p class="">{{ investment_firm.about }}</p>
+        {% endif %}
+        <div class="flex items-center justify-start gap-1 text-slate-700">
+            <svg
+                data-darkreader-inline-stroke=""
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                class="h-5 w-5"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+                ></path>
+            </svg>
+            <span>{{ investment_firm.location }}</span>
+        </div>
+        <h2 class="mt-4 text-4xl font-medium">Contacts</h2>
+        {% if investment_firm.website %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Website</h2>
+            <div class="flex flex-wrap gap-1">
+                <a href="{{ investment_firm.website }}" class="underline" target="_blank">
+                    {{ investment_firm.website }}
+                </a>
+            </div>
+        </div>
+        {% endif %} {% if investment_firm.phone_number %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Phone Number</h2>
+            <div class="flex flex-wrap gap-1">
+                <a href="tel:{{ investment_firm.phone_number }}" class="underline">
+                    {{ investment_firm.phone_number }}
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </section>
+    <section class="flex max-w-[40rem] flex-col items-start justify-start gap-3 px-8">
+        <h2 class="text-4xl font-medium">General Info</h2>
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Industries</h2>
+            <div class="flex flex-wrap gap-1">
+                {% for industry in investment_firm.industries %}
+                <span class="inline-flex items-center justify-center rounded-xl bg-sky-500 p-2 leading-none text-white">
+                    {{ industry.name }}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Rounds</h2>
+            <div class="flex flex-wrap gap-1">
+                {% for round in investment_firm.rounds %}
+                <span class="inline-flex items-center justify-center rounded-xl bg-sky-500 p-2 leading-none text-white">
+                    {{ round.name }}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <h2 class="mt-4 text-4xl font-medium">Investments</h2>
+        {% if investment_firm.n_investments and investment_firm.n_exits %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Number of investments/exits</h2>
+            <div class="flex flex-wrap gap-1">
+                <span>{{ investment_firm.n_investments }}/{{ investment_firm.n_exits }}</span>
+            </div>
+        </div>
+        {% elif investment_firm.n_investments %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Number of investments</h2>
+            <div class="flex flex-wrap gap-1">
+                <span>{{ investment_firm.n_investments }}</span>
+            </div>
+        </div>
+        {% elif investment_firm.n_exits %}
+        <div class="flex flex-col gap-1">
+            <h2 class="font-medium">Number of exits</h2>
+            <div class="flex flex-wrap gap-1">
+                <span>{{ investment_firm.n_exits }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </section>
+</main>
+{% endblock %}

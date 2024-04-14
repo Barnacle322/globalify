@@ -355,3 +355,7 @@
 .view-arstan {
     view-transition-name: view-arstan;
 }
+
+.text-overflow-wrap {
+    overflow-wrap: break-word;
+}

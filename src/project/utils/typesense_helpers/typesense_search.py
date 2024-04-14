@@ -170,7 +170,12 @@ class SearchBuilder:
         if os.getenv("FLASK_ENV") == "testing":
             return {"found": 0, "page": 1, "per_page": 9, "hits": []}
         self.parameters["prefix"] = False
-        self.parameters["filter_by"] = " && ".join(self.filters)
+        # IMPORTANT: Control the weight of the embedding field in the search with the distance_threshold parameter
+        self.parameters["vector_query"] = "embedding:([], distance_threshold:0.50)"
+        self.parameters["exclude_fields"] = "embedding"
+        if self.filters:
+            self.parameters["filter_by"] = " && ".join(self.filters)
+
         return client.collections[self.collection].documents.search(self.parameters)
 
 

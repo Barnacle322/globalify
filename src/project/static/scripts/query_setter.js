@@ -1,3 +1,5 @@
+let openAdvanced = false;
+
 window.onload = function () {
     const paramsArray = [
         "filter_field",
@@ -15,6 +17,7 @@ window.onload = function () {
     setSearchValueFromParams();
     setSliderValuesFromParams("min_investment");
     setSliderValuesFromParams("max_investment");
+    if (openAdvanced) toggleAdvanced();
 };
 
 function setCheckedValuesFromParams(inputName) {
@@ -22,6 +25,7 @@ function setCheckedValuesFromParams(inputName) {
     const values = urlParams.getAll(inputName);
 
     values.forEach((value) => {
+        openAdvanced = true;
         const checkbox = document.querySelector(`input[name="${inputName}"][value="${value}"]`);
         if (checkbox) checkbox.checked = true;
     });
@@ -32,6 +36,7 @@ function setSliderValuesFromParams(sliderId) {
     const value = urlParams.get(sliderId);
 
     if (value !== null) {
+        openAdvanced = true;
         const percentage = (value / 50000000) * 100;
         document.getElementById(sliderId).value = percentage;
     }
@@ -42,6 +47,31 @@ function setSearchValueFromParams() {
     const value = urlParams.get("search");
 
     if (value !== null) {
+        openAdvanced = true;
         document.getElementById("search").value = value;
+    }
+}
+
+function toggleAdvanced() {
+    const advancedMenu = document.getElementById("advanced-menu");
+    const pickForMe = document.getElementById("cool-button");
+
+    const openedAdvanced = document.getElementById("opened-advanced");
+    const closedAdvanced = document.getElementById("closed-advanced");
+
+    if (advancedMenu.classList.contains("hidden")) {
+        advancedMenu.classList.remove("hidden");
+        advancedMenu.classList.add("flex");
+        pickForMe.classList.add("hidden");
+
+        openedAdvanced.classList.remove("hidden");
+        closedAdvanced.classList.add("hidden");
+    } else {
+        advancedMenu.classList.add("hidden");
+        advancedMenu.classList.remove("flex");
+        pickForMe.classList.remove("hidden");
+
+        openedAdvanced.classList.add("hidden");
+        closedAdvanced.classList.remove("hidden");
     }
 }

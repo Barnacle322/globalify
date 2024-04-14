@@ -5,16 +5,16 @@
 <script src="/static/scripts/query_param_handler.js" defer></script>
 <script src="/static/scripts/notificationHandler.js" defer></script>
 {% endblock %} {% block content %}
-<main class="mx-auto h-full min-h-screen w-full overflow-x-visible pt-24">
-    <section class="bg-slate-100 p-5">
-        <div class="mx-auto w-full max-w-7xl">
-            <div class="flex gap-2 rounded-sm bg-white py-4 pr-5 shadow-xl">
+<main class="mx-auto h-full min-h-screen w-full overflow-x-hidden bg-[#EAEDF6]">
+    <section class="bg-[#231645] p-5 py-10">
+        <div class="mx-auto w-full max-w-3xl">
+            <div class="flex gap-2 rounded-full bg-white py-2 pr-3 max-w-3xl mx-auto">
                 <div class="relative w-full">
                     <input
                         type="search"
                         name="search"
                         id="search"
-                        class="w-full border-0 p-3 pl-12 text-sm focus:ring-0"
+                        class="w-full border-0 p-3 pl-12 text-sm focus:ring-0 bg-transparent"
                         placeholder="Search"
                         value="{{ query }}"
                         required
@@ -36,44 +36,56 @@
                         </svg>
                     </div>
                 </div>
-                <div class="my-auto hidden h-7 w-px border border-gray-500 bg-gray-500 sm:block"></div>
-                <div class="relative hidden w-full sm:block">
-                    <div class="group relative ml-5 inline-block text-left">
-                        <button
-                            type="button"
-                            class="flex gap-1 rounded-lg bg-white px-3 py-3 text-sm"
-                            id="country-options"
-                            aria-haspopup="true"
-                            aria-expanded="true"
-                        >
-                            Country
-                        </button>
-                        <div
-                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
-                            id="country-options-menu"
-                            role="menu"
-                            aria-orientation="vertical"
-                            aria-labelledby="country-options-menu"
-                        >
-                            <div class="py-1" role="none">
-                                {% for country in countries %}
-                                <label
-                                    class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                    role="menuitem"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        name="country"
-                                        value="{{ country.name }}"
-                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                    />
-                                    {{ country.name }}
-                                </label>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
+                <button
+                    id="search-btn"
+                    class="w-fit text-nowrap rounded-full bg-blue-500 px-4 text-sm font-medium text-white transition-colors ease-in-out"
+                    type="submit"
+                >
+                    Search
+                </button>
+            </div>
+            <div class="text-white w-full flex text-xs justify-end mt-3">
+                <button
+                    id="open-advanced-button"
+                    class="flex gap-1 justify-center items-center text-gray-300 underline"
+                    onclick="toggleAdvanced()"
+                >
+                    Advanced
+                    <svg
+                        id="opened-advanced"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-4 hidden"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                    </svg>
+
+                    <svg
+                        id="closed-advanced"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-4"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </button>
+            </div>
+            <div id="advanced-menu" class="mt-5 flex-col flex-wrap gap-x-5 gap-y-3 sm:flex-row hidden">
+                <div class="group relative text-left">
+                    <label class="text-sm font-semibold text-white" for="country-options">Country</label>
+                    <button
+                        type="button"
+                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
+                        id="country-options"
+                        aria-haspopup="true"
+                        aria-expanded="true"
+                    >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -93,19 +105,37 @@
                                 d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
                             />
                         </svg>
+
+                        Country
+                    </button>
+                    <div
+                        class="pointer-events-none max-w-full absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                        id="country-options-menu"
+                        role="menu"
+                        aria-orientation="vertical"
+                        aria-labelledby="country-options-menu"
+                    >
+                        <div class="py-1" role="none">
+                            {% for country in countries %}
+                            <label
+                                class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 text-overflow-wrap overflow-clip"
+                                role="menuitem"
+                            >
+                                <input
+                                    type="checkbox"
+                                    name="country"
+                                    value="{{ country.name }}"
+                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                />
+                                {{ country.name }}
+                            </label>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
-                <button
-                    id="search-btn"
-                    class="w-fit text-nowrap rounded-lg bg-blue-500 px-4 py-3 text-sm font-medium text-white transition-colors ease-in-out"
-                    type="submit"
-                >
-                    Search
-                </button>
-            </div>
-            <div class="mt-5 flex flex-col flex-wrap gap-x-5 gap-y-3 sm:flex-row">
+
                 <div class="group relative text-left">
-                    <label class="text-sm font-semibold" for="round-options">Rounds</label>
+                    <label class="text-sm font-semibold text-white" for="round-options">Rounds</label>
                     <button
                         type="button"
                         class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
@@ -130,7 +160,7 @@
                         Rounds
                     </button>
                     <div
-                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 overflow-x-hidden origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                         id="round-options-menu"
                         role="menu"
                         aria-orientation="vertical"
@@ -169,7 +199,7 @@
                     </div>
                 </div>
                 <div class="group relative text-left">
-                    <label class="text-sm font-semibold" for="industry-options">Industry</label>
+                    <label class="text-sm font-semibold text-white" for="industry-options">Industry</label>
                     <button
                         type="button"
                         class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
@@ -239,7 +269,7 @@
                     </div>
                 </div>
                 <div class="group relative text-left">
-                    <label class="text-sm font-semibold" for="sorting-options">Sorting</label>
+                    <label class="text-sm font-semibold text-white" for="sorting-options">Sorting</label>
                     <button
                         type="button"
                         class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
@@ -304,11 +334,11 @@
                     </div>
                 </div>
                 <div class="group relative w-full text-left sm:w-52">
-                    <label class="text-sm font-semibold" for="sorting-options">Investment Range</label>
+                    <label class="text-sm font-semibold text-white" for="sorting-options">Investment Range</label>
                     <div class="relative mt-2 w-full text-left">
                         <input
                             type="range"
-                            class="absolute h-0 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 [&::-webkit-slider-runnable-track]:h-0"
+                            class="absolute h-0 w-full cursor-pointer appearance-none rounded-lg [&::-webkit-slider-runnable-track]:h-0"
                             id="min_investment"
                             min="0"
                             max="100"
@@ -316,23 +346,23 @@
                         />
                         <input
                             type="range"
-                            class="absolute h-0 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 [&::-webkit-slider-runnable-track]:h-0"
+                            class="absolute h-0 w-full cursor-pointer appearance-none rounded-lg [&::-webkit-slider-runnable-track]:h-0"
                             id="max_investment"
                             min="0"
                             max="100"
                             value="100"
                         />
                         <div class="h-4 w-full rounded-full bg-gray-200"></div>
-                        <div class="mt-2 flex justify-between text-sm">
+                        <div class="mt-2 flex justify-between text-sm text-white">
                             <span>$0&nbsp;&nbsp;</span>
                             <span>$25M</span>
                             <span>$50M</span>
                         </div>
                     </div>
                 </div>
-                <a class="my-3 ml-auto self-end text-sm text-gray-500 underline" href="./search">Clear all</a>
+                <a class="mt-3 ml-auto self-end text-sm text-gray-200 underline" href="./search">Clear all</a>
             </div>
-            <div id="cool-button" class="mt-8 flex w-full items-center justify-center gap-5 rounded-xl">
+            <div id="cool-button" class="mt-5 flex w-full items-center justify-center gap-5 rounded-xl">
                 <div class="w-fit items-start justify-center">
                     <div class="group relative w-full">
                         <div
@@ -349,102 +379,279 @@
             </div>
         </div>
     </section>
-    <section class="mx-auto max-w-7xl px-4 py-12 sm:mt-10">
-        <div class="relative grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {% if investors %} {% for investor in investors %}
-            <article class="flex flex-col rounded-lg p-6 shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px]">
-                <div class="flex flex-row items-center gap-2">
-                    <a href="/investor/{{ investor.id }}" class="text-xl font-bold leading-none">
-                        {{ investor.name }}
-                        <span class="text-base font-normal text-gray-500">@ {{ investor.firm_name }}</span>
-                    </a>
-                </div>
-
-                <div class="mt-2 flex flex-col gap-2">
-                    <p class="text-gray-500">{{ investor.location }}</p>
-
-                    <p class="text-sm text-gray-500">{{ ", ".join(investor.industries) }}</p>
-                    <p class="flex flex-wrap gap-1">
-                        {% for round in investor.rounds %}
-                        <a class="text-nowrap rounded-lg bg-blue-600 px-2 py-1 text-sm text-white">{{ round }}</a>
-                        {% endfor %}
-                    </p>
-                </div>
-            </article>
-            {% endfor %} {% else %} {% for _ in range(9) %}
+    <section class="mx-auto max-w-7xl px-4 py-12 bg-[#EAEDF6]">
+        <div class="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {% if investors and not unpaid %} {% for investor in investors %}
             <article
-                class="pointer-events-none flex select-none flex-col rounded-lg p-6 shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px] blur-[10px]"
+                class="flex flex-col rounded-lg p-6 shadow-lg hover:shadow-2xl transition-shadow ease-in-out bg-white"
             >
-                <div class="flex flex-row items-center gap-2">
-                    <a class="text-xl font-bold leading-none">
-                        Investor name
-                        <span class="text-base font-normal text-gray-500">@ Firm name</span>
-                    </a>
-                </div>
-
-                <div class="mt-2 flex flex-col gap-2">
-                    <p class="text-gray-500">Location</p>
-
-                    <p class="text-sm text-gray-500">Industry list</p>
-                    <p class="flex flex-wrap gap-1">
-                        <a class="text-nowrap rounded-lg bg-blue-600 px-2 py-1 text-sm text-white">Round 1</a>
-                        <a class="text-nowrap rounded-lg bg-blue-600 px-2 py-1 text-sm text-white">Round 2</a>
-                    </p>
+                <a href="/investor/{{ investor.id }}" class="text-xl font-bold leading-none"> {{ investor.name }} </a>
+                <div class="flex flex-col gap-2 text-sm mt-5">
+                    <div class="grid grid-cols-2">
+                        <span class="inline-flex items-center gap-1 text-gray-700">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-5"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                                />
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                                />
+                            </svg>
+                            Location
+                        </span>
+                        <span>{{ investor.location }}</span>
+                    </div>
+                    <div class="grid grid-cols-2 text-sm">
+                        <span class="inline-flex items-center gap-1 text-gray-700">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-5"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z"
+                                />
+                            </svg>
+                            Company
+                        </span>
+                        <span>{{ investor.firm_name }}</span>
+                    </div>
+                    <div class="flex flex-col gap-2 mt-5">
+                        <span class="flex text-gray-700 gap-1 text-sm"
+                            ><svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-5"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"
+                                />
+                            </svg>
+                            Series:
+                        </span>
+                        <div class="flex flex-wrap gap-1">
+                            {% for round in investor.rounds %}
+                            <a
+                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
+                                >{{ round }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500">{{ ", ".join(investor.industries) }}</p>
                 </div>
             </article>
-            {% endfor %}
-
-            <p
-                class="absolute right-1/2 top-1/2 flex -translate-y-[50%] translate-x-[50%] flex-col items-center justify-center"
-            >
-                <span class="text-3xl font-bold">View more</span>
-                <span class="mt-2 max-w-sm text-center text-slate-800"
-                    >Sign up for our Early Bird tier to get full access to the database of investors!</span
-                >
+            {% endfor %} {% endif %} {% if unpaid %}
+            <div class="absolute lg:top-1/3 lg:w-auto w-full right-1/2 translate-x-1/2 z-50 flex flex-col">
+                <h2 class="font-medium text-3xl">Want to see more results?</h2>
+                <span class="text-gray-700">Subscribe to Globalify Premium to get unlimited search results</span>
                 <a
-                    class="mt-3 rounded-lg bg-blue-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-blue-400"
                     href="/expanded-onboarding"
-                    >Get access</a
+                    class="py-2 px-3 bg-gradient-to-r from-[#897BE6] to-[#E87BC3] text-white w-fit rounded-lg font-medium mt-5 hover:scale-105 transition-transform ease-in-out"
+                    >Try out</a
                 >
-            </p>
-            {% endif %}
+            </div>
+            {% for _ in range(9) %}
+            <article class="flex flex-col rounded-lg p-6 shadow-lg bg-white blur pointer-events-none select-none">
+                <a class="text-xl font-bold leading-none">Investor Name </a>
+                <div class="flex flex-col gap-2 text-sm mt-5">
+                    <div class="grid grid-cols-2">
+                        <span class="inline-flex items-center gap-1 text-gray-700">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-5"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                                />
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                                />
+                            </svg>
+                            Location
+                        </span>
+                        <span>Earth</span>
+                    </div>
+                    <div class="grid grid-cols-2 text-sm">
+                        <span class="inline-flex items-center gap-1 text-gray-700">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-5"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z"
+                                />
+                            </svg>
+                            Company
+                        </span>
+                        <span>Firm Name</span>
+                    </div>
+                    <div class="flex flex-col gap-2 mt-5">
+                        <span class="flex text-gray-700 gap-1 text-sm"
+                            ><svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-5"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"
+                                />
+                            </svg>
+                            Series:
+                        </span>
+                        <div class="flex flex-wrap gap-1">
+                            <a
+                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
+                                >Seed
+                            </a>
+                            <a
+                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
+                                >Seed
+                            </a>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500">Industry One, Industry Two</p>
+                </div>
+            </article>
+            {% endfor %} {% endif %}
         </div>
 
         <nav class="mt-10 flex w-full items-center justify-center gap-2">
-            {% if pagination and pagination.has_other_pages %} {% if pagination.has_prev %}
+            <!-- prettier-ignore -->
+            {% if pagination and pagination.has_other_pages %} 
+            {% if pagination.has_prev %}
+            <a class="inline-flex items-center justify-center rounded-lg border size-10 bg-white" href="/search?page=1">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-4"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
+                    />
+                </svg>
+            </a>
+            <!-- prettier-ignore -->
             <a
                 id="prev"
-                class="inline-flex items-center justify-center rounded border px-3 py-2 text-black"
+                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
                 href="/search?page={{ pagination.prev }}"
             >
-                Previous
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
             </a>
-            {% endif %} {% for page in pagination.pages %} {% if page == pagination.current_page %}
+            <!-- prettier-ignore -->
+            {% endif %} 
+            {% for page in pagination.pages %} 
+            {% if page == pagination.current_page %}
             <a
                 id="current"
-                class="inline-flex size-11 items-center justify-center rounded-lg border bg-blue-500 text-sm font-medium text-white transition-opacity duration-200 ease-in-out hover:opacity-90"
+                class="inline-flex size-10 items-center justify-center rounded-lg border bg-white border-sky-500 text-sm text-sky-500 font-bold transition-opacity duration-200 ease-in-out hover:opacity-90"
                 href="/search?page={{ pagination.current_page }}"
                 >{{ pagination.current_page }}</a
             >
-            {% elif not page %}
-            <div id="inbetween" class="inline-flex size-11 items-center justify-center">...</div>
-
             {% else %}
             <a
                 id="page"
-                class="inline-flex size-11 items-center justify-center rounded-lg border text-sm font-medium"
+                class="inline-flex size-10 items-center justify-center rounded-lg border text-sm font-medium bg-white"
                 href="/search?page={{ page }}"
                 >{{ page }}</a
             >
-            {% endif %} {% endfor %} {% if pagination.has_next %}
+            <!-- prettier-ignore -->
+            {% endif %} 
+            {% endfor %} 
+            {% if pagination.has_next %}
             <a
                 id="next"
-                class="inline-flex items-center justify-center rounded border px-3 py-2 text-black"
+                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
                 href="/search?page={{ pagination.next }}"
             >
-                Next
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                </svg>
             </a>
-            {% endif %} {% endif %}
+            <a
+                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+                href="/search?page={{ pagination.last_page }}"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-4"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
+                    />
+                </svg>
+            </a>
+            <!-- prettier-ignore -->
+            {% endif %} 
+            {% endif %}
         </nav>
     </section>
 

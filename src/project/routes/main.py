@@ -103,8 +103,9 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
         "current_page": current_page,
         "prev": max(1, current_page - 1),
         "next": min(current_page + 1, total_pages),
-        "pages": pages,
-        "has_other_pages": bool(len(pages) > 1),
+        "last_page": total_pages,
+        "pages": around_pages,
+        "has_other_pages": bool(len(around_pages) > 1),
         "has_prev": bool(current_page > 1),
         "has_next": bool(current_page < total_pages),
     }
@@ -232,12 +233,13 @@ def search():
     investors = result.get("investors")
 
     user_payment = UserPayment.get_by_user_id(current_user.id)
+    unpaid = False
     if current_user.is_admin:
         pass
     elif not user_payment and page > 1:
-        investors = []
+        unpaid = True
     elif user_payment and not user_payment.is_active and page > 1:
-        investors = []
+        unpaid = True
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
@@ -259,6 +261,7 @@ def search():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
+        unpaid=unpaid,
     )
 
 

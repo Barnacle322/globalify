@@ -263,7 +263,6 @@ def test_logout_endpoint(client, app, verified_user, monkeypatch):
         login_user(user)
 
         response = client.get("/logout", follow_redirects=True)
-        print(response.data)
         assert response.status_code == 200
         assert b"Globalify" in response.data
         assert b"Your Gateway to Investors" in response.data

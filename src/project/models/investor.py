@@ -322,12 +322,9 @@ class Investor(db.Model):
 
     @staticmethod
     def get_batches(batch_size: int = 100) -> Generator[Sequence["Investor"], None, None]:
-        # Fetch the investor IDs
         ids_query = db.session.execute(db.select(Investor.id)).scalars().all()
 
-        # Iterate over the IDs in batches
         for ids in chunked(ids_query, batch_size):
-            # Fetch the full Investor objects with their related rounds and industries
             investors = (
                 db.session.scalars(
                     db.select(Investor)
@@ -337,7 +334,6 @@ class Investor(db.Model):
                 .unique()
                 .all()
             )
-            print(investors)
             yield investors
 
     @staticmethod
@@ -411,22 +407,23 @@ class Investor(db.Model):
 
         investor_list = []
         for hit in results.get("hits", []):
+            hit = hit.get("document", {})
             investor_list.append(
                 {
-                    "id": hit.get("document", {}).get("db_id", 0),
-                    "name": hit.get("document", {}).get("name", ""),
-                    "firm_name": hit.get("document", {}).get("firm_name", ""),
-                    "about": hit.get("document", {}).get("about", ""),
-                    "position": hit.get("document", {}).get("position", ""),
-                    "n_investments": hit.get("document", {}).get("n_investments", 0),
-                    "n_exits": hit.get("document", {}).get("n_exits", 0),
-                    "min_investment": hit.get("document", {}).get("min_investment", 0),
-                    "max_investment": hit.get("document", {}).get("max_investment", 0),
-                    "location": hit.get("document", {}).get("location", ""),
-                    "_country": hit.get("document", {}).get("country", ""),
-                    "rounds": hit.get("document", {}).get("rounds", []),
-                    "industries": hit.get("document", {}).get("industries", []),
-                    "notable_investments": hit.get("document", {}).get("notable_investments", []),
+                    "id": hit.get("db_id", 0),
+                    "name": hit.get("name", ""),
+                    "firm_name": hit.get("firm_name", ""),
+                    "about": hit.get("about", ""),
+                    "position": hit.get("position", ""),
+                    "n_investments": hit.get("n_investments", 0),
+                    "n_exits": hit.get("n_exits", 0),
+                    "min_investment": hit.get("min_investment", 0),
+                    "max_investment": hit.get("max_investment", 0),
+                    "location": hit.get("location", ""),
+                    "_country": hit.get("country", ""),
+                    "rounds": hit.get("rounds", []),
+                    "industries": hit.get("industries", []),
+                    "notable_investments": hit.get("notable_investments", []),
                 }
             )
         return {"investors": investor_list, "found": found, "pages": pages, "page": page}
@@ -655,8 +652,6 @@ class Investor(db.Model):
             existing_industry_list = Industry.get_industry_list()
             existing_round_list = Round.get_all()
             for row in islice(reader, 1, None):
-                print("\n")
-                print(row)
                 first_name = row[0]
                 last_name = row[1]
                 firm_name = row[2]
@@ -686,7 +681,6 @@ class Investor(db.Model):
                             industry = i
                             industry_list.append(industry)
                             break
-                print(f"INDUSTRIES: {industry_list}")
 
                 rounds = literal_eval(row[15])
                 round_list = []
@@ -700,7 +694,6 @@ class Investor(db.Model):
                             round_ = r
                             round_list.append(round_)
                             break
-                print(f"ROUNDS: {round_list}")
 
                 notable_investments = literal_eval(row[17])
                 notable_investment_list = []
@@ -716,10 +709,6 @@ class Investor(db.Model):
                         ni = NotableInvestment(name=notable_investment)
                         db.session.add(ni)
                         notable_investment_list.append(ni)
-
-                print(f"NOTABLE INVESTMENTS: {notable_investment_list}")
-
-                print(f"MINMAX: {min_investment, max_investment}")
 
                 investor = Investor(
                     first_name=first_name,
@@ -741,7 +730,6 @@ class Investor(db.Model):
                     n_exits=n_exits,
                 )
                 db.session.add(investor)
-                print("Added investor:", investor)
         db.session.commit()
 
     def calculate_bias_score(self):

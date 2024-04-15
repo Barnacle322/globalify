@@ -178,7 +178,7 @@ def create_checkout_session():
     #     return redirect(url_for("payment.index", _external=False, **status))
 
     tier = request.form.get("tier", "premium_monthly")
-    print(tier)
+
     if tier not in ["premium_monthly", "premium_yearly"]:
         status = Status(StatusType.ERROR, "Invalid tier").get_status()
         return redirect(url_for("payment.index", _external=False, **status))

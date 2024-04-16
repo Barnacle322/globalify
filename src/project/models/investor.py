@@ -308,7 +308,7 @@ class Investor(db.Model):
     def min_max_investment(self):
         if self.min_investment is None or self.max_investment is None:
             return None
-        return f"{self.min_investment:,} - {self.max_investment:,}"
+        return f"${self.min_investment:,} - ${self.max_investment:,}"
 
     @staticmethod
     def get_all() -> Sequence[Investor]:

@@ -1170,7 +1170,7 @@ class InvestmentFirm(db.Model):
                         industries=list(set(industries)),
                         min_investment=min_investment,
                         max_investment=max_investment,
-                        notable_investments=list(set(notable_investments)),
+                        # notable_investments=list(set(notable_investments)),
                     )
                 )
             db.session.add_all(investment_firms_list)

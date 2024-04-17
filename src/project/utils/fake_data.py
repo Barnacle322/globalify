@@ -46,3 +46,7 @@ def get_countrys(amount: int):
 def get_locations(amount: int):
     locations = [fake.city() for _ in range(amount)]
     return locations
+
+def get_phone_numbers(amount: int):
+    phone_numbers = [fake.phone_number() for _ in range(amount)]
+    return phone_numbers

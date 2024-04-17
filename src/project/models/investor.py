@@ -23,6 +23,7 @@ from ..utils.fake_data import (
     get_job_positions,
     get_last_names,
     get_names,
+    get_phone_numbers,
     get_websites,
 )
 from ..utils.info_lists import notable_investment_list
@@ -206,6 +207,12 @@ investor_notable_investment = db.Table(
     Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
 )
 
+investment_firm_notable_investment = db.Table(
+    "investment_firm_notable_investment",
+    Column("investment_firm_id", Integer, ForeignKey("investment_firm.id"), primary_key=True),
+    Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
+)
+
 investment_firm_round = db.Table(
     "investment_firm_round",
     Column(
@@ -321,7 +328,7 @@ class Investor(db.Model):
         )
 
     @staticmethod
-    def get_batches(batch_size: int = 100) -> Generator[Sequence["Investor"], None, None]:
+    def get_batches(batch_size: int = 100) -> Generator[Sequence[Investor], None, None]:
         ids_query = db.session.execute(db.select(Investor.id)).scalars().all()
 
         for ids in chunked(ids_query, batch_size):
@@ -945,8 +952,12 @@ class InvestmentFirm(db.Model):
     min_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
     location: Mapped[str] = mapped_column(String, nullable=True)
+    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
     _country: Mapped[str] = mapped_column(String, nullable=True)
+    bias: Mapped[int] = mapped_column(Integer, nullable=True)
+    search_index: Mapped[str] = mapped_column(String, nullable=True)
 
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investment_firm_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investment_firm_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investment_firm_industry)
 
@@ -976,6 +987,149 @@ class InvestmentFirm(db.Model):
     def get_by_email(email: str) -> InvestmentFirm | None:
         return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.email == email))
 
+    @property
+    def coordinates(self):
+        return self._coordinates
+
+    @property
+    def min_max_investment(self):
+        if self.min_investment is None or self.max_investment is None:
+            return None
+        return f"${self.min_investment:,} - ${self.max_investment:,}"
+
+    @coordinates.setter
+    def coordinates(self, location: str) -> None:
+        geo_data = geocode_location(location)
+        if geo_data is not None:
+            self._coordinates = geo_data["coordinates"]  # type: ignore
+            self._country = geo_data["country_name"]  # type: ignore
+
+    @staticmethod
+    def get_batches(batch_size: int = 100) -> Generator[Sequence[InvestmentFirm], None, None]:
+        ids_query = db.session.execute(db.select(InvestmentFirm.id)).scalars().all()
+
+        for ids in chunked(ids_query, batch_size):
+            investment_firm = (
+                db.session.scalars(
+                    db.select(InvestmentFirm)
+                    .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
+                    .where(InvestmentFirm.id.in_(ids))
+                )
+                .unique()
+                .all()
+            )
+            yield investment_firm
+
+    @staticmethod
+    def get_by_id_list(ids: list[int]) -> Sequence[InvestmentFirm] | None:
+        return (
+            db.session.scalars(
+                db.select(InvestmentFirm)
+                .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
+                .where(InvestmentFirm.id.in_(ids))
+            )
+            .unique()
+            .all()
+        )
+
+    @staticmethod
+    def get_suggestions(company: Company | None, quantity: int) -> Sequence[InvestmentFirm] | None:
+        investment_firm_list = []
+        for investment_firm in InvestmentFirm.get_all():
+            investment_firm_info = {
+                "id": investment_firm.id,
+                "bias": investment_firm.bias,
+                "n_investments": investment_firm.n_investments,
+                "n_exits": investment_firm.n_exits,
+                "n_employees": investment_firm.n_employees,
+                "coordinates": investment_firm.coordinates,
+                "rounds": [round.name for round in investment_firm.rounds],
+                "industries": [industry.name for industry in investment_firm.industries],
+                "min_investment": investment_firm.min_investment,
+                "max_investment": investment_firm.max_investment,
+                "about": investment_firm.about,
+            }
+            investment_firm_list.append(investment_firm_info)
+        investment_firm_ids = (
+            SuggestionBuilder(investment_firm_list, company)
+            .calculate_all_scores()
+            .sort_by_score()
+            .get_id_list(quantity)
+        )
+        suggestions = InvestmentFirm.get_by_id_list(investment_firm_ids)
+        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}  # type: ignore
+        sorted_suggestions = [
+            suggestions_dict[investment_firm_id]
+            for investment_firm_id in investment_firm_ids
+            if investment_firm_id in suggestions_dict
+        ]
+        return sorted_suggestions
+
+    @classmethod
+    def get_search(
+        cls,
+        query_string: str,
+        query_by: list[str],
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        rounds_exclusive: bool = False,
+        industries_exclusive: bool = False,
+        min_investment: int | None = None,
+        max_investment: int | None = None,
+        countries: list[str] | None = None,
+        rounds: list[str] | None = None,
+        industries: list[str] | None = None,
+        per_page: int = 12,
+        page: int = 1,
+    ):
+        try:
+            results = (
+                SearchBuilder("investment_firms")
+                .query(query_string)
+                .query_by(query_by)
+                .filter_by_investment_range(min_investment, max_investment)
+                .filter_by_rounds(rounds, rounds_exclusive)
+                .filter_by_industries(industries, industries_exclusive)
+                .filter_by_countries(countries)
+                .sort_by(sort_by, sort_desc)
+                .page(page, per_page)
+                .search()
+            )
+
+        except Exception as e:
+            print("An error occurred while searching for investment firms. Error:", e)
+            results = {"found": 0, "page": page, "per_page": per_page, "hits": []}
+            return results
+
+        found = results.get("found", 0)
+        page = results.get("page", 1)
+
+        pages = found // per_page
+        if found % per_page > 0:
+            pages += 1
+
+        investment_firm_list = []
+        for hit in results.get("hits", []):
+            hit = hit.get("document", {})
+            investment_firm_list.append(
+                {
+                    "id": hit.get("db_id", 0),
+                    "name": hit.get("name", ""),
+                    "about": hit.get("about", ""),
+                    "n_investments": hit.get("n_investments", 0),
+                    "n_exits": hit.get("n_exits", 0),
+                    "n_employees": hit.get("n_employees", 0),
+                    "min_investment": hit.get("min_investment", 0),
+                    "max_investment": hit.get("max_investment", 0),
+                    "location": hit.get("location", ""),
+                    "_country": hit.get("country", ""),
+                    "rounds": hit.get("rounds", []),
+                    "industries": hit.get("industries", []),
+                    "notable_investments": hit.get("notable_investments", []),
+                }
+            )
+        return {"investment_firms": investment_firm_list, "found": found, "pages": pages, "page": page}
+
     @staticmethod
     def populate():
         try:
@@ -984,11 +1138,20 @@ class InvestmentFirm(db.Model):
             abouts = get_abouts(50)
             websites = get_websites(50)
             emails = get_emails(50)
+            phone_numbers = get_phone_numbers(50)
+            locations = get_countrys(50)
             for i in range(1, 50):
                 num_rounds = random.randint(1, 5)
                 rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
                 num_industries = random.randint(1, 6)
                 industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
+                notable_investments = [
+                    NotableInvestment.get_by_id(random.randint(1, len(NotableInvestment.get_all())))
+                    for _ in range(random.randint(1, 10))
+                ]
+                n_investments = random.randint(100, 200)
+                n_exits = random.randint(1, 100)
+                n_employees = random.randint(1, 300)
                 min_investment = random.randrange(100000, 50000001, 100000)
                 max_investment = random.randrange(min_investment, 50000001, 100000)
                 investment_firms_list.append(
@@ -997,13 +1160,170 @@ class InvestmentFirm(db.Model):
                         about=f"{abouts[i]}",
                         website=f"{websites[i]}",
                         email=f"{str(i) + emails[i]}",
+                        phone_number=f"{phone_numbers[i]}",
+                        n_investments=n_investments,
+                        n_exits=n_exits,
+                        n_employees=n_employees,
+                        location=locations[i],
+                        coordinates=locations[i],
                         rounds=list(set(rounds)),
                         industries=list(set(industries)),
                         min_investment=min_investment,
                         max_investment=max_investment,
+                        # notable_investments=list(set(notable_investments)),
                     )
                 )
             db.session.add_all(investment_firms_list)
             db.session.commit()
-        except Exception:
+        except Exception as e:
             db.session.rollback()
+            return f"An error occurred: {e}"
+
+    def calculate_bias_score(self):
+        try:
+            bias_score = (self.bias / 100) if self.bias else 0
+        except (AttributeError, TypeError, ZeroDivisionError) as e:
+            print(f"An error occurred while calculating the score: {e}")
+            bias_score = 0
+        return bias_score
+
+    def calculate_location_score(self, company):
+        try:
+            if company.coordinates and self.coordinates:
+                distance = float(geodesic(company.coordinates, self.coordinates).kilometers)
+                location_score = 1 - (distance / 20038)
+            else:
+                location_score = 0
+        except (AttributeError, TypeError, ZeroDivisionError) as e:
+            print(f"An error occurred while calculating the score: {e}")
+            location_score = 0
+        return location_score
+
+    def calculate_exits_score(self):
+        try:
+            if self.n_investments:
+                successful_exits = 1 if (self.n_exits / self.n_investments) >= 0.5 else 0
+            else:
+                successful_exits = 0
+        except (AttributeError, TypeError, ZeroDivisionError) as e:
+            print(f"An error occurred while calculating the score: {e}")
+            successful_exits = 0
+        return successful_exits
+
+    def calculate_industry_score(self, company):
+        if company.industry in self.industries and len(self.industries) == 1:
+            industry_score = 1
+        elif company.industry in self.industries:
+            industry_score = 0.8
+        else:
+            industry_score = 0
+        return industry_score
+
+    def calculate_round_score(self, company):
+        if company.preferred_round in self.rounds and len(self.rounds) == 1:
+            round_score = 1
+        elif company.preferred_round in self.rounds:
+            round_score = 0.8
+        else:
+            round_score = 0
+        return round_score
+
+    def calculate_completeness_score(self):
+        attributes_dict = vars(self)
+        completeness_score = 1
+        for value in attributes_dict.values():
+            if not value:
+                completeness_score -= 0.1
+        if completeness_score < 0:
+            completeness_score = 0
+        return completeness_score
+
+    @staticmethod
+    def sync_search_index(recreate: bool = False):
+        if recreate:
+            investment_firm_schema = {
+                "name": "investment_firms",
+                "fields": [
+                    {"name": "name", "type": "string"},
+                    {
+                        "name": "db_id",
+                        "type": "int32",
+                        "facet": True,
+                    },
+                    {"name": "about", "type": "string", "optional": True},
+                    {"name": "n_investments", "type": "int32", "optional": True, "sort": True},
+                    {"name": "n_exits", "type": "int32", "optional": True, "sort": True},
+                    {"name": "n_employees", "type": "int32", "optional": True, "sort": True},
+                    {"name": "min_investment", "type": "int32", "optional": True, "sort": True},
+                    {"name": "max_investment", "type": "int32", "optional": True, "sort": True},
+                    {"name": "location", "type": "string", "facet": True, "optional": True},
+                    {"name": "country", "type": "string", "facet": True, "optional": True},
+                    {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
+                    {"name": "industries", "type": "string[]", "facet": True, "optional": True},
+                    {"name": "notable_investments", "type": "string[]", "optional": True},
+                    {
+                        "name": "embedding",
+                        "type": "float[]",
+                        "embed": {
+                            "from": [
+                                "about",
+                                "location",
+                                "industries",
+                            ],
+                            "model_config": {"model_name": "ts/all-MiniLM-L12-v2"},
+                        },
+                    },
+                ],
+                "primary_key": "db_id",
+            }
+            try:
+                delete_schema("investment_firms")
+            except Exception:
+                print("Schema does not exist")
+            print("Creating schema")
+            create_schema(investment_firm_schema)
+            create_synonyms("investment_firms")
+
+        batch_count = 1
+        for investment_firms in InvestmentFirm.get_batches(batch_size=100):
+            print(f"Processing batch {batch_count} of investment firms...")
+            data = []
+            for investment_firm in investment_firms:
+                investment_firm_object = {}
+                if investment_firm.search_index and not recreate:
+                    investment_firm_object["id"] = investment_firm.search_index
+                investment_firm_object["db_id"] = investment_firm.id
+                investment_firm_object["name"] = investment_firm.name
+                investment_firm_object["about"] = investment_firm.about
+                investment_firm_object["n_investments"] = investment_firm.n_investments
+                investment_firm_object["n_exits"] = investment_firm.n_exits
+                investment_firm_object["n_employees"] = investment_firm.n_employees
+                investment_firm_object["min_investment"] = investment_firm.min_investment
+                investment_firm_object["min_investment"] = investment_firm.min_investment
+                investment_firm_object["location"] = investment_firm.location
+                investment_firm_object["country"] = investment_firm._country
+                investment_firm_object["rounds"] = [round_.name for round_ in investment_firm.rounds]
+                investment_firm_object["industries"] = [industry.name for industry in investment_firm.industries]
+                investment_firm_object["notable_investments"] = [
+                    notable_investment.name for notable_investment in investment_firm.notable_investments
+                ]
+                data.append(investment_firm_object)
+
+            print("Upserting documents")
+            result = upsert_documents("investment_firms", data)
+
+            objects = []
+            for index, obj in enumerate(result):
+                if obj.get("id"):
+                    objects.append((investment_firms[index].id, obj.get("id", 0)))
+                else:
+                    continue
+
+            query = "UPDATE investment_firm SET search_index = CASE id "
+            for db_id, search_index in objects:
+                query += f"WHEN {db_id} THEN '{search_index}' "
+            query += "END WHERE id IN (" + ",".join(str(t[0]) for t in objects) + ")"
+
+            db.session.execute(db.text(query))
+            db.session.commit()
+            batch_count += 1

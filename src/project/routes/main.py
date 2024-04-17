@@ -168,6 +168,128 @@ def get_suggestions():
     )
 
 
+@main.route("/suggestions/investment-firms")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_suggestion_investment_firms():
+    access = True
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+    if current_user.is_admin:
+        access = True
+    elif not user_payment:
+        access = False
+    elif user_payment and not user_payment.is_active:
+        access = False
+
+    company = Company.get_by_user_id(current_user.id)
+
+    check_weights(WEIGHTS)
+    suggested_investment_firms = InvestmentFirm.get_suggestions(company=company, quantity=15)
+
+    return render_template(
+        "suggestions_investment_firms.html",
+        investment_firms=suggested_investment_firms,
+        access=access,
+    )
+
+
+@main.route("/search/investment-firms", methods=["GET", "POST"])
+@login_required
+@check_user_info_complete
+@check_verification
+def search_investment_firms():
+    notifications = Notification.get_unread(
+        current_user.id,
+        NotificationDestination.SEARCH,
+        is_read=False,
+    )
+
+    search_string = request.args.get("search", "")
+    sort_by = request.args.get("sort_field", "")
+    sort_desc = request.args.get("descending", False, type=bool)
+    min_investment = request.args.get("min_investment", type=int)
+    max_investment = request.args.get("max_investment", type=int)
+    page = request.args.get("page", 1, type=int)
+
+    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
+    rounds = []
+    for round_name in request.args.getlist("round"):
+        if round_object := Round.get_by_name(round_name):
+            rounds.append(round_object.name)
+
+    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
+    industries = []
+    for industry_name in request.args.getlist("industry"):
+        if industry_object := Industry.get_by_name(industry_name):
+            industries.append(industry_object.name)
+
+    countries = []
+    for country_name in request.args.getlist("country"):
+        if country_object := Country.get_by_name(country_name):
+            countries.append(country_object.name)
+
+    query_by = [
+        "location",
+        "country",
+        "rounds",
+        "industries",
+        "embedding",
+        "notable_investments",
+        "name",
+    ]
+
+    result = InvestmentFirm.get_search(
+        query_string=search_string,
+        query_by=query_by,
+        sort_by=sort_by,
+        sort_desc=sort_desc,
+        rounds=rounds,
+        industries=industries,
+        rounds_exclusive=rounds_exclusive,
+        industries_exclusive=industries_exclusive,
+        min_investment=min_investment,
+        max_investment=max_investment,
+        page=page,
+        per_page=9,
+        countries=countries,
+    )
+    investment_firms = result.get("investment_firms")
+
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+    unpaid = False
+    if current_user.is_admin:
+        pass
+    elif not user_payment and page > 1:
+        unpaid = True
+    elif user_payment and not user_payment.is_active and page > 1:
+        unpaid = True
+
+    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+
+    fields = {
+        "n_investments": "Number of Investments",
+        "n_exits": "Number of Exits",
+        "min_investment": "Minimum Investment",
+        "max_investment": "Maximum Investment",
+        "n_employees": "Number of Employees",
+    }
+
+    return render_template(
+        "search_investment_firms.html",
+        investment_firms=investment_firms,
+        query=search_string,
+        fields=fields,
+        pagination=pagination,
+        total_pages=len(pagination.get("pages", [])),
+        notifications=notifications,
+        industry_list=Industry.get_all(),
+        round_list=Round.get_all(),
+        countries=Country.get_all(),
+        unpaid=unpaid,
+    )
+
+
 @main.route("/search", methods=["GET", "POST"])
 @login_required
 @check_user_info_complete
@@ -306,6 +428,7 @@ def investor(investor_id):
 @check_verification
 def investment_firm(firm_id):
     investment_firm = InvestmentFirm.get_by_id(int(firm_id))
+    print(InvestmentFirm.get_all())
     if not investment_firm:
         return redirect(url_for("main.search"))
 

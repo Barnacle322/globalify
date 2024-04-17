@@ -251,7 +251,7 @@ def search_investment_firms():
         min_investment=min_investment,
         max_investment=max_investment,
         page=page,
-        per_page=12,
+        per_page=9,
         countries=countries,
     )
     investment_firms = result.get("investment_firms")
@@ -349,7 +349,7 @@ def search():
         min_investment=min_investment,
         max_investment=max_investment,
         page=page,
-        per_page=3,
+        per_page=9,
         countries=countries,
     )
     investors = result.get("investors")

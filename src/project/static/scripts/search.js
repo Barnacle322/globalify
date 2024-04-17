@@ -44,8 +44,6 @@ function search() {
 
     handleInvestmentRange(minValue, "min_investment", paramsArray);
     handleInvestmentRange(maxValue, "max_investment", paramsArray);
-    handleEmployeesRange(minValueEmployees, "min_employees", paramsArray);
-    handleEmployeesRange(maxValueEmployees, "max_employees", paramsArray);
 
     handleBooleans(roundsExclusive, "rounds_exclusive", paramsArray);
     handleBooleans(industriesExclusive, "industries_exclusive", paramsArray);
@@ -86,13 +84,6 @@ function handleInvestmentRange(value, paramName, paramsArray) {
     }
 }
 
-function handleEmployeesRange(value, paramName, paramsArray) {
-    if (value == 0 || value == 100) return;
-    if (value !== "") {
-        paramsArray.push(`${paramName}=${encodeURIComponent(value)}`);
-    }
-}
-
 function handleBooleans(value, paramName, paramsArray) {
     if (value) {
         paramsArray.push(`${paramName}=${value ? 1 : ""}`);
@@ -109,8 +100,6 @@ function addParamsToUrl(paramsArray) {
 
 const lowerSlider = document.getElementById("min_investment");
 const upperSlider = document.getElementById("max_investment");
-const lowerEmployeesSlider = document.getElementById("min_employees");
-const upperEmployeesSlider = document.getElementById("max_employees");
 
 lowerSlider.oninput = function () {
     if (parseInt(lowerSlider.value) >= parseInt(upperSlider.value)) {
@@ -121,17 +110,5 @@ lowerSlider.oninput = function () {
 upperSlider.oninput = function () {
     if (parseInt(upperSlider.value) <= parseInt(lowerSlider.value)) {
         upperSlider.value = parseInt(lowerSlider.value) + 9;
-    }
-};
-
-lowerEmployeesSlider.oninput = function () {
-    if (parseInt(lowerEmployeesSlider.value) >= parseInt(upperEmployeesSlider.value)) {
-        lowerEmployeesSlider.value = parseInt(upperEmployeesSlider.value);
-    }
-};
-
-upperEmployeesSlider.oninput = function () {
-    if (parseInt(upperEmployeesSlider.value) <= parseInt(lowerEmployeesSlider.value)) {
-        upperEmployeesSlider.value = parseInt(lowerEmployeesSlider.value);
     }
 };

@@ -210,8 +210,6 @@ def search_investment_firms():
     sort_desc = request.args.get("descending", False, type=bool)
     min_investment = request.args.get("min_investment", type=int)
     max_investment = request.args.get("max_investment", type=int)
-    min_employees = request.args.get("min_employees", type=int)
-    max_employees = request.args.get("max_employees", type=int)
     page = request.args.get("page", 1, type=int)
 
     rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
@@ -252,8 +250,6 @@ def search_investment_firms():
         industries_exclusive=industries_exclusive,
         min_investment=min_investment,
         max_investment=max_investment,
-        min_employees=min_employees,
-        max_employees=max_employees,
         page=page,
         per_page=12,
         countries=countries,

@@ -17,8 +17,6 @@ window.onload = function () {
     setSearchValueFromParams();
     setSliderValuesFromParams("min_investment");
     setSliderValuesFromParams("max_investment");
-    setSliderValuesFromParamsEmployees("min_employees");
-    setSliderValuesFromParamsEmployees("max_employees");
     if (openAdvanced) toggleAdvanced();
 };
 
@@ -41,16 +39,6 @@ function setSliderValuesFromParams(sliderId) {
         openAdvanced = true;
         const percentage = (value / 50000000) * 100;
         document.getElementById(sliderId).value = percentage;
-    }
-}
-
-function setSliderValuesFromParamsEmployees(sliderId) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const value = urlParams.get(sliderId);
-
-    if (value !== null) {
-        openAdvanced = true;
-        document.getElementById(sliderId).value = value;
     }
 }
 

@@ -1070,8 +1070,6 @@ class InvestmentFirm(db.Model):
         industries_exclusive: bool = False,
         min_investment: int | None = None,
         max_investment: int | None = None,
-        min_employees: int | None = None,
-        max_employees: int | None = None,
         countries: list[str] | None = None,
         rounds: list[str] | None = None,
         industries: list[str] | None = None,
@@ -1084,7 +1082,6 @@ class InvestmentFirm(db.Model):
                 .query(query_string)
                 .query_by(query_by)
                 .filter_by_investment_range(min_investment, max_investment)
-                .filter_by_employee_range(min_employees, max_employees)
                 .filter_by_rounds(rounds, rounds_exclusive)
                 .filter_by_industries(industries, industries_exclusive)
                 .filter_by_countries(countries)

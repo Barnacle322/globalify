@@ -85,15 +85,6 @@ class SearchBuilder:
             self.filters.append(f"min_investment:<={max_investment}")
         return self
 
-    def filter_by_employee_range(self, min_employees: int | None, max_employees: int | None):
-        if min_employees and max_employees:
-            self.filters.append(f"n_employees:<={max_employees} && n_employees:>={min_employees}")
-        elif min_employees is not None:
-            self.filters.append(f"n_employees:>={min_employees}")
-        elif max_employees is not None:
-            self.filters.append(f"n_employees:<={max_employees}")
-        return self
-
     def filter_by_countries(self, countries: list[str] | None):
         if countries:
             if len(countries) > 1:

@@ -1179,6 +1179,83 @@ class InvestmentFirm(db.Model):
             db.session.rollback()
             return f"An error occurred: {e}"
 
+    @staticmethod
+    def populate_vcsheet(file_name="funds_vc.csv"):
+        with open(file_name, newline="", encoding="utf-8") as file:
+            reader = csv.reader(file, delimiter=",", quotechar='"')
+            existing_notable_investments = NotableInvestment.get_all()
+            existing_industry_list = Industry.get_industry_list()
+            existing_round_list = Round.get_all()
+            for row in islice(reader, 1, None):
+                name = row[0]
+                about = row[1]
+                website = row[2]
+                email = row[3]
+                location = row[7]
+                n_exits = row[9] if row[9] else None
+                min_investment = int(row[10]) if row[10] else None
+                max_investment = int(row[11]) if row[11] else None
+
+                industries = row[13]
+
+                if email == "":
+                    email = None
+
+                industries = literal_eval(row[13])
+                industry_list = []
+                for industry in industries:
+                    for i in existing_industry_list:
+                        if i and fuzz.ratio(industry, i.name) > 80:
+                            industry = i
+                            industry_list.append(industry)
+                            break
+
+                rounds = literal_eval(row[12])
+                round_list = []
+                for round_ in rounds:
+                    for r in existing_round_list:
+                        if round_ == "Series B+":
+                            round_list.append(Round.get_by_name("Series B"))
+                            round_list.append(Round.get_by_name("Series C"))
+                            break
+                        if r and fuzz.ratio(round_.lower(), r.name.lower()) > 90:
+                            round_ = r
+                            round_list.append(round_)
+                            break
+
+                notable_investments = literal_eval(row[14])
+                notable_investment_list = []
+                for notable_investment in notable_investments:
+                    existing = None
+                    for eni in existing_notable_investments:
+                        if fuzz.ratio(notable_investment, eni.name) > 90:
+                            existing = eni
+                            break
+                    if existing:
+                        notable_investment_list.append(existing)
+                    else:
+                        ni = NotableInvestment(name=notable_investment)
+                        db.session.add(ni)
+                        notable_investment_list.append(ni)
+
+                investment_firm = InvestmentFirm(
+                    name=name,
+                    about=about,
+                    email=email,
+                    location=location,
+                    coordinates=location,
+                    industries=list(set(industry_list)),
+                    rounds=list(set(round_list)),
+                    notable_investments=list(set(notable_investment_list)),
+                    website=website,
+                    min_investment=min_investment,
+                    max_investment=max_investment,
+                    n_exits=n_exits,
+                )
+                db.session.add(investment_firm)
+                print(name)
+        db.session.commit()
+
     def calculate_bias_score(self):
         try:
             bias_score = (self.bias / 100) if self.bias else 0

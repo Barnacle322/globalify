@@ -12,8 +12,6 @@ function search() {
     const searchQuery = document.getElementById("search").value;
     const minValue = document.getElementById("min_investment").value;
     const maxValue = document.getElementById("max_investment").value;
-    const minValueEmployees = document.getElementById("min_employees").value;
-    const maxValueEmployees = document.getElementById("max_employees").value;
 
     const descending = document.getElementById("descending").checked;
     const roundsExclusive = document.getElementById("rounds_exclusive").checked;
@@ -32,8 +30,6 @@ function search() {
         "page",
         "min_investment",
         "max_investment",
-        "min_employees",
-        "max_employees",
     ]);
 
     handleLists(roundValues, "round", paramsArray);

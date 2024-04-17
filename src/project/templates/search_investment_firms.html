@@ -565,7 +565,7 @@
             <!-- prettier-ignore -->
             {% if pagination and pagination.has_other_pages %} 
             {% if pagination.has_prev %}
-            <a class="inline-flex items-center justify-center rounded-lg border size-10 bg-white" href="/search?page=1">
+            <a class="inline-flex items-center justify-center rounded-lg border size-10 bg-white" href="/search/investment-firms?page=1">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -585,7 +585,7 @@
             <a
                 id="prev"
                 class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search?page={{ pagination.prev }}"
+                href="/search/investment-firms?page={{ pagination.prev }}"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -605,14 +605,14 @@
             <a
                 id="current"
                 class="inline-flex size-10 items-center justify-center rounded-lg border bg-white border-sky-500 text-sm text-sky-500 font-bold transition-opacity duration-200 ease-in-out hover:opacity-90"
-                href="/search?page={{ pagination.current_page }}"
+                href="/search/investment-firms?page={{ pagination.current_page }}"
                 >{{ pagination.current_page }}</a
             >
             {% else %}
             <a
                 id="page"
                 class="inline-flex size-10 items-center justify-center rounded-lg border text-sm font-medium bg-white"
-                href="/search?page={{ page }}"
+                href="/search/investment-firms?page={{ page }}"
                 >{{ page }}</a
             >
             <!-- prettier-ignore -->
@@ -622,7 +622,7 @@
             <a
                 id="next"
                 class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search?page={{ pagination.next }}"
+                href="/search/investment-firms?page={{ pagination.next }}"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -637,7 +637,7 @@
             </a>
             <a
                 class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search?page={{ pagination.last_page }}"
+                href="/search/investment-firms?page={{ pagination.last_page }}"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

@@ -991,6 +991,12 @@ class InvestmentFirm(db.Model):
     def coordinates(self):
         return self._coordinates
 
+    @property
+    def min_max_investment(self):
+        if self.min_investment is None or self.max_investment is None:
+            return None
+        return f"${self.min_investment:,} - ${self.max_investment:,}"
+
     @coordinates.setter
     def coordinates(self, location: str) -> None:
         geo_data = geocode_location(location)

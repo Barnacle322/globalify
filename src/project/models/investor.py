@@ -3,9 +3,11 @@ from __future__ import annotations
 import csv
 import json
 import random
+import uuid
 from ast import literal_eval
 from collections.abc import Generator, Sequence
 from itertools import islice
+from typing import Any
 
 from geopy.distance import geodesic
 from more_itertools import chunked
@@ -291,13 +293,6 @@ class Investor(db.Model):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.slug = slugify(self.first_name)
-        try:
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            self.slug = slugify(f"{self.first_name}-{self.id}")
-            db.session.commit()
 
     def __repr__(self):
         return f"<Investor {self.first_name} {self.last_name}>"
@@ -305,6 +300,16 @@ class Investor(db.Model):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
+
+    @full_name.setter
+    def full_name(self, add_slug: bool = True) -> None:
+        try:
+            self.slug = slugify(f"{self.first_name} {self.last_name}")
+        except IntegrityError:
+            db.session.rollback()
+            self.slug = slugify(f"{self.first_name} {self.last_name} {uuid.uuid4().hex[:4]}")
+
+        db.session.commit()
 
     @property
     def coordinates(self):
@@ -342,8 +347,10 @@ class Investor(db.Model):
         return db.session.scalar(db.select(Investor).where(Investor.slug == slug))
 
     @staticmethod
-    def get_batches(batch_size: int = 100) -> Generator[Sequence[Investor], None, None]:
-        ids_query = db.session.execute(db.select(Investor.id)).scalars().all()
+    def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[Investor], None, None]:
+        stmt = db.select(Investor.id) if isinstance(stmt, bool) else stmt
+
+        ids_query = db.session.scalars(stmt).all()
 
         for ids in chunked(ids_query, batch_size):
             investors = (
@@ -433,6 +440,7 @@ class Investor(db.Model):
                 {
                     "id": hit.get("db_id", 0),
                     "name": hit.get("name", ""),
+                    "slug": hit.get("slug", ""),
                     "firm_name": hit.get("firm_name", ""),
                     "about": hit.get("about", ""),
                     "position": hit.get("position", ""),
@@ -471,15 +479,20 @@ class Investor(db.Model):
 
     @staticmethod
     def slugify_existing():
-        investors = db.session.scalars(db.select(Investor).where(Investor.slug.is_(None)))
-        for investor in investors:
-            try:
-                investor.slug = slugify(investor.first_name)
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
-                investor.slug = slugify(f"{investor.first_name}-{investor.id}")
-                db.session.commit()
+        batch_count = 1
+        stmt = db.select(Investor.id).where(Investor.slug.is_(None))
+        for investors in Investor.get_batches(batch_size=100, stmt=stmt):
+            print(f"Processing batch {batch_count}")
+            for investor in investors:
+                try:
+                    investor.slug = slugify(f"{investor.first_name} {investor.last_name}")
+                    db.session.commit()
+                except IntegrityError:
+                    db.session.rollback()
+                    investor.slug = slugify(f"{investor.first_name} {investor.last_name} {uuid.uuid4().hex[:4]}")
+                    db.session.commit()
+
+            batch_count += 1
 
     @staticmethod
     def populate() -> None:
@@ -501,29 +514,29 @@ class Investor(db.Model):
                 for _ in range(random.randint(1, 10))
             ]
             min_investment = random.randrange(100000, 50000001, 100000)
-            investor_list.append(
-                Investor(
-                    first_name=f"{firstnames[i]}",
-                    last_name=f"{lastnames[i]}",
-                    about=f"{firstnames[i]} is a {job_positions[i]} at {companies[i]}. {get_abouts(1)[0]}",
-                    firm_name=f"{companies[i]}",
-                    position=f"{job_positions[i]}",
-                    website=f"{websites[i]}",
-                    linkedin=f"https://www.linkedin.com/in/{firstnames[i]}-{lastnames[i]}",
-                    twitter=f"https://twitter.com/{firstnames[i]}{lastnames[i]}",
-                    email=f"{str(i) + emails[i]}",
-                    phone_number=f"+1{random.randrange(1000000000, 9999999999)}",
-                    n_investments=random.randint(100, 200),
-                    n_exits=random.randint(1, 100),
-                    location=locations[i],
-                    coordinates=locations[i],
-                    rounds=list(set(rounds)),
-                    industries=list(set(industries)),
-                    min_investment=min_investment,
-                    max_investment=random.randrange(min_investment, 50000001, 100000),
-                    notable_investments=list(set(notable_investments)),
-                )
+            investor_populate = Investor(
+                first_name=f"{firstnames[i]}",
+                last_name=f"{lastnames[i]}",
+                about=f"{firstnames[i]} is a {job_positions[i]} at {companies[i]}. {get_abouts(1)[0]}",
+                firm_name=f"{companies[i]}",
+                position=f"{job_positions[i]}",
+                website=f"{websites[i]}",
+                linkedin=f"https://www.linkedin.com/in/{firstnames[i]}-{lastnames[i]}",
+                twitter=f"https://twitter.com/{firstnames[i]}{lastnames[i]}",
+                email=f"{str(i) + emails[i]}",
+                phone_number=f"+1{random.randrange(1000000000, 9999999999)}",
+                n_investments=random.randint(100, 200),
+                n_exits=random.randint(1, 100),
+                location=locations[i],
+                coordinates=locations[i],
+                rounds=list(set(rounds)),
+                industries=list(set(industries)),
+                min_investment=min_investment,
+                max_investment=random.randrange(min_investment, 50000001, 100000),
+                notable_investments=list(set(notable_investments)),
             )
+            investor_populate.full_name = True
+            investor_list.append(investor_populate)
         db.session.add_all(investor_list)
         db.session.commit()
 
@@ -864,6 +877,7 @@ class Investor(db.Model):
                         "type": "int32",
                         "facet": True,
                     },
+                    {"name": "slug", "type": "string", "optional": True},
                     {"name": "firm_name", "type": "string", "optional": True},
                     {"name": "about", "type": "string", "optional": True},
                     {"name": "position", "type": "string", "facet": True, "optional": True},
@@ -910,6 +924,7 @@ class Investor(db.Model):
                     investor_object["id"] = investor.search_index
                 investor_object["db_id"] = investor.id
                 investor_object["name"] = investor.full_name
+                investor_object["slug"] = investor.slug
                 investor_object["firm_name"] = investor.firm_name
                 investor_object["about"] = investor.about
                 investor_object["position"] = investor.position
@@ -968,6 +983,7 @@ class InvestmentFirm(db.Model):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=True)
+    slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
     about: Mapped[str] = mapped_column(String, nullable=True)
     website: Mapped[str] = mapped_column(String, nullable=True)
     email: Mapped[str] = mapped_column(String, nullable=True, unique=True)
@@ -1006,12 +1022,25 @@ class InvestmentFirm(db.Model):
         )
 
     @staticmethod
+    def get_by_slug(slug: str) -> InvestmentFirm | None:
+        return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.slug == slug))
+
+    @staticmethod
     def get_by_id(id: int) -> InvestmentFirm | None:
         return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.id == id))
 
     @staticmethod
     def get_by_email(email: str) -> InvestmentFirm | None:
         return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.email == email))
+
+    def set_slug(self):
+        try:
+            self.slug = slugify(self.name)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            self.slug = slugify(f"{self.name} {uuid.uuid4().hex[:4]}")
+            db.session.commit()
 
     @property
     def coordinates(self):
@@ -1031,8 +1060,9 @@ class InvestmentFirm(db.Model):
             self._country = geo_data["country_name"]  # type: ignore
 
     @staticmethod
-    def get_batches(batch_size: int = 100) -> Generator[Sequence[InvestmentFirm], None, None]:
-        ids_query = db.session.execute(db.select(InvestmentFirm.id)).scalars().all()
+    def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[InvestmentFirm], None, None]:
+        stmt = db.select(InvestmentFirm.id) if isinstance(stmt, bool) else stmt
+        ids_query = db.session.scalars(stmt).all()
 
         for ids in chunked(ids_query, batch_size):
             investment_firm = (
@@ -1141,6 +1171,7 @@ class InvestmentFirm(db.Model):
                 {
                     "id": hit.get("db_id", 0),
                     "name": hit.get("name", ""),
+                    "slug": hit.get("slug", ""),
                     "about": hit.get("about", ""),
                     "n_investments": hit.get("n_investments", 0),
                     "n_exits": hit.get("n_exits", 0),
@@ -1180,30 +1211,40 @@ class InvestmentFirm(db.Model):
                 n_employees = random.randint(1, 300)
                 min_investment = random.randrange(100000, 50000001, 100000)
                 max_investment = random.randrange(min_investment, 50000001, 100000)
-                investment_firms_list.append(
-                    InvestmentFirm(
-                        name=f"{names[i]}",
-                        about=f"{abouts[i]}",
-                        website=f"{websites[i]}",
-                        email=f"{str(i) + emails[i]}",
-                        phone_number=f"{phone_numbers[i]}",
-                        n_investments=n_investments,
-                        n_exits=n_exits,
-                        n_employees=n_employees,
-                        location=locations[i],
-                        coordinates=locations[i],
-                        rounds=list(set(rounds)),
-                        industries=list(set(industries)),
-                        min_investment=min_investment,
-                        max_investment=max_investment,
-                        # notable_investments=list(set(notable_investments)),
-                    )
+                investment_firm = InvestmentFirm(
+                    name=f"{names[i]}",
+                    about=f"{abouts[i]}",
+                    website=f"{websites[i]}",
+                    email=f"{str(i) + emails[i]}",
+                    phone_number=f"{phone_numbers[i]}",
+                    n_investments=n_investments,
+                    n_exits=n_exits,
+                    n_employees=n_employees,
+                    location=locations[i],
+                    coordinates=locations[i],
+                    rounds=list(set(rounds)),
+                    industries=list(set(industries)),
+                    min_investment=min_investment,
+                    max_investment=max_investment,
+                    # notable_investments=list(set(notable_investments)),
                 )
+                investment_firm.set_slug()
+
+                investment_firms_list.append(investment_firm)
             db.session.add_all(investment_firms_list)
             db.session.commit()
         except Exception as e:
             db.session.rollback()
             return f"An error occurred: {e}"
+
+    @staticmethod
+    def slugify_existing():
+        batch_count = 1
+        stmt = db.select(InvestmentFirm.id).where(InvestmentFirm.slug.is_(None))
+        for investment_firms in InvestmentFirm.get_batches(batch_size=100, stmt=stmt):
+            for investment_firm in investment_firms:
+                investment_firm.set_slug()
+            batch_count += 1
 
     def calculate_bias_score(self):
         try:
@@ -1276,6 +1317,7 @@ class InvestmentFirm(db.Model):
                         "type": "int32",
                         "facet": True,
                     },
+                    {"name": "slug", "type": "string", "optional": True},
                     {"name": "about", "type": "string", "optional": True},
                     {"name": "n_investments", "type": "int32", "optional": True, "sort": True},
                     {"name": "n_exits", "type": "int32", "optional": True, "sort": True},
@@ -1320,6 +1362,7 @@ class InvestmentFirm(db.Model):
                     investment_firm_object["id"] = investment_firm.search_index
                 investment_firm_object["db_id"] = investment_firm.id
                 investment_firm_object["name"] = investment_firm.name
+                investment_firm_object["slug"] = investment_firm.slug
                 investment_firm_object["about"] = investment_firm.about
                 investment_firm_object["n_investments"] = investment_firm.n_investments
                 investment_firm_object["n_exits"] = investment_firm.n_exits

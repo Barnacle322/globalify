@@ -422,6 +422,18 @@ def investor(investor_id):
     return render_template("investor.html", investor=investor, user=current_user)
 
 
+@main.route("/investor/<slug>")
+@login_required
+@check_user_info_complete
+@check_verification
+def investor_slug(slug):
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    return render_template("investor.html", investor=investor, user=current_user)
+
+
 @main.route("/investment-firm/<int:firm_id>")
 @login_required
 @check_user_info_complete

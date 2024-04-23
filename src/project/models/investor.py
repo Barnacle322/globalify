@@ -9,7 +9,9 @@ from itertools import islice
 
 from geopy.distance import geodesic
 from more_itertools import chunked
+from slugify import slugify
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
 from thefuzz import fuzz
 
@@ -264,6 +266,7 @@ class Investor(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
     last_name: Mapped[str] = mapped_column(String, nullable=True)
+    slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
     firm_name: Mapped[str] = mapped_column(String, nullable=True)
     about: Mapped[str] = mapped_column(String, nullable=True)
     position: Mapped[str] = mapped_column(String, nullable=True)
@@ -288,6 +291,13 @@ class Investor(db.Model):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.slug = slugify(self.first_name)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            self.slug = slugify(f"{self.first_name}-{self.id}")
+            db.session.commit()
 
     def __repr__(self):
         return f"<Investor {self.first_name} {self.last_name}>"
@@ -326,6 +336,10 @@ class Investor(db.Model):
             .unique()
             .all()
         )
+
+    @staticmethod
+    def get_by_slug(slug: str) -> Investor | None:
+        return db.session.scalar(db.select(Investor).where(Investor.slug == slug))
 
     @staticmethod
     def get_batches(batch_size: int = 100) -> Generator[Sequence[Investor], None, None]:
@@ -454,6 +468,18 @@ class Investor(db.Model):
     @staticmethod
     def get_by_email(email: str) -> Investor | None:
         return db.session.scalar(db.select(Investor).where(Investor.email == email))
+
+    @staticmethod
+    def slugify_existing():
+        investors = db.session.scalars(db.select(Investor).where(Investor.slug.is_(None)))
+        for investor in investors:
+            try:
+                investor.slug = slugify(investor.first_name)
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                investor.slug = slugify(f"{investor.first_name}-{investor.id}")
+                db.session.commit()
 
     @staticmethod
     def populate() -> None:

@@ -1,7 +1,7 @@
-from flask import Blueprint, abort, render_template
+from flask import Blueprint, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
-from ..models import Company, User, UserInfo
+from ..models import Company, User
 from .main import check_verification
 
 profile = Blueprint("profile", __name__)
@@ -15,32 +15,15 @@ def user_profile(user_id):
 
     user = User.get_by_id(user_id)
     if not user:
-        abort(404)
-
-    user_info = UserInfo.get_by_user_id(user_id)
-    if not user_info:
-        abort(404)
-
-    if user:
-        return render_template(
-            "profile/user_profile.html", user=user, user_info=user_info, authenticated_user=authenticated_user
-        )
-    else:
-        abort(404)
-
-
-@profile.route("/company/<int:user_id>/", methods=["GET", "POST"])
-@login_required
-@check_verification
-def company(user_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+        return redirect(url_for("main.search"))
 
     company = Company.get_by_user_id(user_id)
     if not company:
-        abort(404)
+        return redirect(url_for("main.search"))
 
     return render_template(
-        "profile/company_profile.html",
+        "user_profile.html",
+        user=user,
+        authenticated_user=authenticated_user,
         company=company,
-        user=authenticated_user,
     )

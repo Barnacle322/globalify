@@ -135,9 +135,13 @@ def change_personal_info():
         try:
             picture_url = upload_picture(picture)
             if user_info.picture_url:
-                delete_blob_from_url(user_info.picture_url)
+                try:
+                    delete_blob_from_url(user_info.picture_url)
+                except Exception as e:
+                    print(e)
             user_info.picture_url = picture_url
-        except Exception:
+        except Exception as e:
+            print(e)
             status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
@@ -220,9 +224,13 @@ def change_company_info():
             try:
                 picture_url = upload_picture(picture)
                 if company.picture_url:
-                    delete_blob_from_url(company.picture_url)
+                    try:
+                        delete_blob_from_url(company.picture_url)
+                    except Exception as e:
+                        print(e)
                 company.picture_url = picture_url
-            except Exception:
+            except Exception as e:
+                print(e)
                 status = Status(
                     StatusType.ERROR, "Error loading image. Please reach out to our support team!"
                 ).get_status()

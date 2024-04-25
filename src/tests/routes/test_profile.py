@@ -101,7 +101,7 @@ def verified_user_with_company(app):
 
 
 def test_user_profile_anonymous_get(client):
-    response = client.get("/profile/user/1", follow_redirects=True)
+    response = client.get("/profile/1", follow_redirects=True)
     assert response.status_code == 200
     assert b"Welcome!" in response.data
     assert b"Sign in with your social media" in response.data
@@ -113,7 +113,7 @@ def test_user_profile_unverified_get(client, app, unverified_user, monkeypatch):
         user = User.get_by_id(1)
         login_user(user)
 
-        response = client.get("/profile/user/1", follow_redirects=True)
+        response = client.get("/profile/1", follow_redirects=True)
 
         assert response.status_code == 200
         assert b"Email Verification" in response.data
@@ -129,7 +129,7 @@ def test_user_profile_verified_get(client, app, verified_user, monkeypatch):
         user = User.get_by_id(1)
         login_user(user)
 
-        response = client.get("/profile/user/1", follow_redirects=True)
+        response = client.get("/profile/1", follow_redirects=True)
         assert b"User Profile" in response.data
         assert b"Company Profile" in response.data
         assert b"johndoe@example.com" in response.data

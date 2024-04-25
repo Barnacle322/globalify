@@ -541,7 +541,7 @@ def expanded_onboarding():
     If user_info.is_complete is False, it redirects to the onboarding route.
     If the request method is POST, it processes the expanded onboarding form data and updates the user's information.
     """
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    current_user._get_current_object()  # type: ignore
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")

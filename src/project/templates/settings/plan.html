@@ -118,11 +118,11 @@
                 <h2 class="font-medium leading-7">Your subscription</h2>
                 <p class="mt-1 leading-6 text-slate-700">Manage your subscription and billing information</p>
                 {% if status_type %} {% if status_type == '3' %}
-                <div class="rounded-xl text-red-500 text-sm mt-2">{{ msg }}</div>
+                <div class="mt-2 rounded-xl text-sm text-red-500">{{ msg }}</div>
                 {% endif %} {% if status_type == '2' %}
-                <div class="rounded-xl text-orange-400 text-sm mt-2">{{ msg }}</div>
+                <div class="mt-2 rounded-xl text-sm text-orange-400">{{ msg }}</div>
                 {% endif %} {% if status_type == '1' %}
-                <div class="rounded-xl text-lime-500 text-sm mt-2">{{ msg }}</div>
+                <div class="mt-2 rounded-xl text-sm text-lime-500">{{ msg }}</div>
                 {% endif %} {% endif %}
             </div>
             <div

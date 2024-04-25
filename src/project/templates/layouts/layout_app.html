@@ -43,7 +43,7 @@
         <nav class="flex h-20 w-full items-center justify-center bg-white">
             <div class="flex w-full max-w-7xl items-center gap-7 px-9">
                 <a href="/search"><img class="h-6" src="/static/elements/logo-black.png" /></a>
-                <div class="hidden gap-7 sm:flex text-sm">
+                <div class="hidden gap-7 text-sm sm:flex">
                     <a href="/search">Search</a>
                     <a target="_blank" href="https://hub.globalify.xyz">Hub</a>
                     <a target="_blank" href="https://blog.globalify.xyz">Blog</a>
@@ -83,7 +83,7 @@
                         tabindex="-1"
                     >
                         <a
-                            href="/profile/user/{{ current_user.id }}"
+                            href="/profile/{{ current_user.id }}"
                             class="block px-4 py-2 text-sm text-gray-700 transition-colors duration-100 ease-in hover:bg-gray-100"
                             role="menuitem"
                             tabindex="-1"

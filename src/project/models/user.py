@@ -407,7 +407,7 @@ class Waitlist(db.Model):
         return db.session.scalar(db.select(Waitlist).where(Waitlist.email == email))
 
 
-class Company(db.Model):
+class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     """
     SQLAlchemy model representing a company.
 
@@ -428,28 +428,22 @@ class Company(db.Model):
         industry (Mapped[Industry]): Relationship to the Industry model.
     """
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[str | None] = mapped_column(String, nullable=True)
-    number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    website_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    country_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("country.id"), nullable=True)
-    preferred_round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
-    industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True)
-    _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
+    description: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
+    number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True, init=False)
+    website_url: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
+    picture_url: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
+    country_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("country.id"), nullable=True, init=False)
+    preferred_round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("round.id"), nullable=True, init=False)
+    industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True, init=False)
+    _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
 
-    user: Mapped[User] = relationship(User, backref=backref("company", passive_deletes=True), lazy=True)
-    country: Mapped[Country] = relationship()
-    preferred_round: Mapped[Round] = relationship()
-    industry: Mapped[Industry] = relationship()
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<Company {self.name}>"
+    user: Mapped[User] = relationship(User, backref=backref("company", passive_deletes=True), lazy=True, init=False)
+    country: Mapped[Country] = relationship(init=False)
+    preferred_round: Mapped[Round] = relationship(init=False)
+    industry: Mapped[Industry] = relationship(init=False)
 
     @property
     def coordinates(self):

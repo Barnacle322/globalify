@@ -1145,7 +1145,7 @@ class InvestmentFirm(db.Model):
                 rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
                 num_industries = random.randint(1, 6)
                 industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
-                notable_investments = [
+                [
                     NotableInvestment.get_by_id(random.randint(1, len(NotableInvestment.get_all())))
                     for _ in range(random.randint(1, 10))
                 ]

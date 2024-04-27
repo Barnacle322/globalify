@@ -23,6 +23,7 @@ from ..models import (
     Industry,
     InvestmentFirm,
     Investor,
+    InvestorBookmark,
     Notification,
     Round,
     UserPayment,
@@ -354,6 +355,12 @@ def search():
     )
     investors = result.get("investors")
 
+    print(investors)
+
+
+    for i in investors:
+        print(isinstance(i, Investor))
+
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False
     if current_user.is_admin:
@@ -384,6 +391,7 @@ def search():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         unpaid=unpaid,
+        user=current_user,
     )
 
 
@@ -422,13 +430,45 @@ def investor(investor_id):
     return render_template("investor.html", investor=investor, user=current_user)
 
 
+@main.post("/investor/<int:investor_id>/bookmark")
+@login_required
+@check_user_info_complete
+@check_verification
+def toggle_bookmark_investor(investor_id):
+    investor = Investor.get_by_id(int(investor_id))
+    if not investor:
+        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+
+    bookmark = InvestorBookmark.get_by_investor_id(investor.id, current_user.id)
+
+    if bookmark:
+        db.session.delete(bookmark)
+        db.session.commit()
+        return jsonify({"bookmarked": False}, 200)
+
+    new_bookmark = InvestorBookmark(investor_id=investor.id, user_id=current_user.id)
+
+    db.session.add(new_bookmark)
+    db.session.commit()
+
+    return jsonify({"bookmarked": True}, 200)
+
+
+@main.get("/investors/bookmarks")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investor_bookmarks():
+    bookmarks = InvestorBookmark.get_by_user_id(current_user.id)
+    return render_template("bookmarks.html", bookmarks=bookmarks, user=current_user)
+
+
 @main.route("/investment-firm/<int:firm_id>")
 @login_required
 @check_user_info_complete
 @check_verification
 def investment_firm(firm_id):
     investment_firm = InvestmentFirm.get_by_id(int(firm_id))
-    print(InvestmentFirm.get_all())
     if not investment_firm:
         return redirect(url_for("main.search"))
 

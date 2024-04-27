@@ -1,5 +1,5 @@
 from .helpers import Country, Industry, Round
-from .investor import InvestmentFirm, Investor, NotableInvestment
+from .investor import InvestmentFirm, Investor, InvestorBookmark, NotableInvestment
 from .user import (
     Company,
     EmailVerification,
@@ -18,6 +18,7 @@ __all__ = [
     "InvestmentFirm",
     "EmailVerification",
     "Investor",
+    "InvestorBookmark",
     "Company",
     "User",
     "UserInfo",

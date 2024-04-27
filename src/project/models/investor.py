@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import datetime
 import json
 import random
 from ast import literal_eval
@@ -9,12 +10,12 @@ from itertools import islice
 
 from geopy.distance import geodesic
 from more_itertools import chunked
-from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship
 from thefuzz import fuzz
 
 from ..extensions import db
-from ..models.user import Company
+from ..models.user import Company, User
 from ..utils.fake_data import (
     get_abouts,
     get_companies,
@@ -291,6 +292,9 @@ class Investor(db.Model):
 
     def __repr__(self):
         return f"<Investor {self.first_name} {self.last_name}>"
+
+    def is_bookmarked(self, user_id: int) -> bool:
+        return bool(InvestorBookmark.get_by_investor_id(self.id, user_id))
 
     @property
     def full_name(self) -> str:
@@ -918,6 +922,36 @@ class Investor(db.Model):
             db.session.execute(db.text(query))
             db.session.commit()
             batch_count += 1
+
+
+class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
+
+    user: Mapped[User] = relationship(
+        User, backref=backref("investor_bookmarks", passive_deletes=True), lazy=True, init=False
+    )
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> Sequence[InvestorBookmark]:
+        return db.session.scalars(
+            db.select(InvestorBookmark).where(InvestorBookmark.user_id == user_id).order_by(InvestorBookmark.created_at)
+        ).all()
+
+    @staticmethod
+    def get_by_investor_id(investor_id: int, user_id: int) -> InvestorBookmark | None:
+        return db.session.scalars(
+            db.select(InvestorBookmark).where(
+                InvestorBookmark.investor_id == investor_id, InvestorBookmark.user_id == user_id
+            )
+        ).first()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 
 class InvestmentFirm(db.Model):

@@ -393,8 +393,9 @@
                     </a>
                     <button id="bookmark-icon-{{ investor.id }}" onclick="toggleInvestorBookmark('{{investor.id}}')">
                         <svg
+                            id="bookmark-svg-{{ investor.id }}"
                             xmlns="http://www.w3.org/2000/svg"
-                            fill="'#FF4500' if investor.is_bookmarked({{user.id}}) else 'none'"
+                            fill="{{'#FF4500' if investor.id in bookmarks else 'none'}}"
                             viewBox="0 0 24 24"
                             stroke-width="1.5"
                             stroke="currentColor"

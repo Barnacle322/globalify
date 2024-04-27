@@ -936,11 +936,31 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
         User, backref=backref("investor_bookmarks", passive_deletes=True), lazy=True, init=False
     )
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     @staticmethod
-    def get_by_user_id(user_id: int) -> Sequence[InvestorBookmark]:
-        return db.session.scalars(
-            db.select(InvestorBookmark).where(InvestorBookmark.user_id == user_id).order_by(InvestorBookmark.created_at)
-        ).all()
+    def get_investors_by_user_id(user_id: int, get_only_with_id: bool = False) -> Sequence[int] | Sequence[Investor]:
+        if get_only_with_id:
+            return (
+                db.session.execute(
+                    db.select(Investor.id)
+                    .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
+                    .where(InvestorBookmark.user_id == user_id)
+                )
+                .scalars()
+                .all()
+            )
+        return (
+            db.session.scalars(
+                db.select(Investor)
+                .options(joinedload(Investor.rounds), joinedload(Investor.industries))
+                .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
+                .where(InvestorBookmark.user_id == user_id)
+            )
+            .unique()
+            .all()
+        )
 
     @staticmethod
     def get_by_investor_id(investor_id: int, user_id: int) -> InvestorBookmark | None:
@@ -949,9 +969,6 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
                 InvestorBookmark.investor_id == investor_id, InvestorBookmark.user_id == user_id
             )
         ).first()
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
 
 class InvestmentFirm(db.Model):
@@ -1361,3 +1378,53 @@ class InvestmentFirm(db.Model):
             db.session.execute(db.text(query))
             db.session.commit()
             batch_count += 1
+
+
+class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    investment_firm_id: Mapped[int] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=False)
+
+    user: Mapped[User] = relationship(
+        User, backref=backref("investment_firm_bookmarks", passive_deletes=True), lazy=True, init=False
+    )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def get_investment_frims_by_user_id(
+        user_id: int, get_only_with_id: bool = False
+    ) -> Sequence[int] | Sequence[InvestmentFirmBookmark]:
+        if get_only_with_id:
+            return (
+                db.session.execute(
+                    db.select(InvestmentFirm.id)
+                    .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
+                    .where(InvestmentFirmBookmark.user_id == user_id)
+                )
+                .scalars()
+                .all()
+            )
+        return (
+            db.session.scalars(
+                db.select(InvestmentFirm)
+                .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
+                .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
+                .where(InvestmentFirmBookmark.user_id == user_id)
+            )
+            .unique()
+            .all()
+        )
+
+    @staticmethod
+    def get_by_investment_firm_id(investment_firm_id: int, user_id: int) -> InvestmentFirmBookmark | None:
+        return db.session.scalars(
+            db.select(InvestmentFirmBookmark).where(
+                InvestmentFirmBookmark.investment_firm_id == investment_firm_id,
+                InvestmentFirmBookmark.user_id == user_id,
+            )
+        ).first()

@@ -164,6 +164,7 @@ technology_innovation = [
     "5G & Telecommunications",
     "Web3 & Blockchain",
     "Cloud",
+    "AudioTech",
 ]
 
 business_commerce = [
@@ -204,6 +205,9 @@ healthcare_wellness = [
     "Beauty",
     "Biotech & Genetech",
     "MedTech & Healthcare",
+    "Diagnostics",
+    "Therapeutics",
+    "Cosmetics",
 ]
 
 agriculture_food = [
@@ -606,6 +610,17 @@ synonyms = [
         },
     },
     {
+        "name": "AudioTech-synonyms",
+        "item": {
+            "synonyms": [
+                "AudioTech",
+                "Audio Technology",
+                "Sound Technology",
+                "Acoustic Solutions",
+            ]
+        },
+    },
+    {
         "name": "Advertising-synonyms",
         "item": {"synonyms": ["Advertising", "Marketing", "Promotion", "Ad Campaigns"]},
     },
@@ -884,14 +899,13 @@ synonyms = [
             "synonyms": [
                 "Beauty & wellness",
                 "Beauty and Wellbeing",
-                "Cosmetics and Wellness",
                 "Aesthetic Health",
             ]
         },
     },
     {
         "name": "Beauty-synonyms",
-        "item": {"synonyms": ["Beauty", "Aesthetics", "Cosmetics", "Personal Care"]},
+        "item": {"synonyms": ["Beauty", "Aesthetics"]},
     },
     {
         "name": "Biotech&Genetech-synonyms",
@@ -912,6 +926,37 @@ synonyms = [
                 "Medical Technology and Healthcare",
                 "Health Tech",
                 "Clinical Innovations",
+            ]
+        },
+    },
+    {
+        "name": "Diagnostics-synonyms",
+        "item": {
+            "synonyms": [
+                "Diagnostics",
+                "Medical Diagnostics",
+                "Diagnostic Testing",
+                "Health Screening",
+            ]
+        },
+    },
+    {
+        "name": "Therapeutics-synonyms",
+        "item": {
+            "synonyms": [
+                "Therapeutics",
+                "Health Therapies",
+            ]
+        },
+    },
+    {
+        "name": "Cosmetics-synonyms",
+        "item": {
+            "synonyms": [
+                "Cosmetics",
+                "Beauty Products",
+                "Makeup",
+                "Skincare",
             ]
         },
     },

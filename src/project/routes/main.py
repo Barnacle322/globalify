@@ -258,7 +258,7 @@ def search_investment_firms():
     )
     investment_firms = result.get("investment_firms")
 
-    bookmarks = InvestmentFirmBookmark.get_investment_frims_by_user_id(current_user.id, get_only_with_id=True)
+    bookmarks = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id, get_only_with_id=True)
 
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False
@@ -460,17 +460,9 @@ def toggle_bookmark_investor(investor_id):
 @check_user_info_complete
 @check_verification
 def get_investor_bookmarks():
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-    unpaid = False
-    if current_user.is_admin:
-        pass
-    elif not user_payment:
-        unpaid = True
-    elif user_payment and not user_payment.is_active:
-        unpaid = True
     investors = InvestorBookmark.get_investors_by_user_id(current_user.id)
 
-    return render_template("investors_bookmarks.html", investors=investors, user=current_user, unpaid=unpaid)
+    return render_template("investors_bookmarks.html", investors=investors, user=current_user)
 
 
 @main.route("/investment-firm/<int:firm_id>")
@@ -522,8 +514,10 @@ def get_investment_firm_bookmarks():
         unpaid = True
     elif user_payment and not user_payment.is_active:
         unpaid = True
-    bookmarks = InvestmentFirmBookmark.get_investment_frims_by_user_id(current_user.id)
-    return render_template("investment_firms_bookmarks.html", bookmarks=bookmarks, user=current_user, unpaid=unpaid)
+    investment_firms = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id)
+    return render_template(
+        "investment_firms_bookmarks.html", investment_firms=investment_firms, user=current_user, unpaid=unpaid
+    )
 
 
 @main.get("/notification/edit/<int:notification_id>")

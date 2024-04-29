@@ -8,6 +8,12 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from ..extensions import db
 from ..utils.info_lists import aggregate as industry_aggregate
+from ..utils.typesense_helpers.typesense_search import (
+    create_schema,
+    create_synonyms,
+    delete_schema,
+    upsert_documents,
+)
 
 
 class Industry(db.Model):
@@ -63,13 +69,56 @@ class Industry(db.Model):
     @staticmethod
     def populate_if_not_exists() -> None:
         try:
+            print(Industry.get_industry_list(), "Here")
             for category, industries in industry_aggregate.items():
                 for industry in industries:
                     if not Industry.get_by_name(industry):
                         db.session.add(Industry(name=industry, category=category))
             db.session.commit()
+
         except Exception:
             db.session.rollback()
+
+    @staticmethod
+    def sync_industry_index(recreate: bool = False):
+        if recreate:
+            industry_schema = {
+                "name": "industries",
+                "fields": [
+                    {
+                        "name": "db_id",
+                        "type": "int32",
+                        "facet": True,
+                    },
+                    {"name": "name", "type": "string"},
+                    {
+                        "name": "embedding",
+                        "type": "float[]",
+                        "embed": {
+                            "from": ["name"],
+                            "model_config": {"model_name": "ts/all-MiniLM-L12-v2"},
+                        },
+                    },
+                ],
+                "primary_key": "db_id",
+            }
+            try:
+                delete_schema("industries")
+            except Exception:
+                print("Schema does not exist")
+            create_schema(industry_schema)
+            create_synonyms("industries")
+        data = []
+        for industry in Industry.get_industry_list():
+            industry_object = {}
+
+            industry_object["db_id"] = industry.id
+            industry_object["name"] = industry.name
+
+            data.append(industry_object)
+
+        print("Upserting documents")
+        upsert_documents("industries", data)
 
 
 class Round(db.Model):

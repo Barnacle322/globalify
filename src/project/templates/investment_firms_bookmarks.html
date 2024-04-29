@@ -1,22 +1,25 @@
-{% extends "layouts/layout_app.html" %} {% block title %}Investors{% endblock %} {% block head %} {{ super() }}
-<script src="/static/scripts/dashboard.js" defer></script>
+{% extends "layouts/layout_app.html" %} {% block title %}Investment firms{% endblock %} {% block head %} {{ super() }}
 <script src="/static/scripts/bookmark.js" defer></script>
+<script src="/static/scripts/dashboard.js" defer></script>
 {% endblock %} {% block content %}
 <main class="mx-auto h-full min-h-screen w-full overflow-x-hidden bg-[#EAEDF6]">
     <section class="mx-auto max-w-7xl px-4 py-12 bg-[#EAEDF6]">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {% if investors and not unpaid %} {% for investor in investors %}
+            {% if investment_firms and not unpaid %} {% for investment_firm in investment_firms %}
             <article
                 class="flex flex-col rounded-lg p-6 shadow-lg hover:shadow-2xl transition-shadow ease-in-out bg-white"
             >
                 <div class="flex justify-between">
-                    <a href="/investor/{{ investor.id }}" class="text-xl font-bold leading-none">
-                        {{ investor.full_name }}
+                    <a href="/investment-firm/{{ investment_firm.id }}" class="text-xl font-bold leading-none">
+                        {{ investment_firm.name }}
                     </a>
-                    <button id="bookmark-icon-{{ investor.id }}" onclick="toggleInvestorBookmark('{{investor.id}}')">
+                    <button
+                        id="bookmark-icon-{{ investment_firm.id }}"
+                        onclick="toggleInvestmentFirmBookmark('{{investment_firm.id}}')"
+                    >
                         <svg
-                            id="bookmark-svg-{{ investor.id }}"
+                            id="bookmark-svg-{{ investment_firm.id }}"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="#FF4500"
                             viewBox="0 0 24 24"
@@ -33,7 +36,6 @@
                     </button>
                 </div>
                 <div class="flex flex-col gap-2 text-sm mt-5">
-                    {% if investor.location %}
                     <div class="grid grid-cols-2">
                         <span class="inline-flex items-center gap-1 text-gray-700">
                             <svg
@@ -57,30 +59,8 @@
                             </svg>
                             Location
                         </span>
-                        <span>{{ investor.location }}</span>
+                        <span>{{ investment_firm.location }}</span>
                     </div>
-                    {% endif %} {% if investor.firm_name %}
-                    <div class="grid grid-cols-2 text-sm">
-                        <span class="inline-flex items-center gap-1 text-gray-700">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                                class="size-5"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z"
-                                />
-                            </svg>
-                            Company
-                        </span>
-                        <span>{{ investor.firm_name }}</span>
-                    </div>
-                    {% endif %} {% if investor.rounds %}
                     <div class="flex flex-col gap-2 mt-5">
                         <span class="flex text-gray-700 gap-1 text-sm"
                             ><svg
@@ -100,18 +80,18 @@
                             Series:
                         </span>
                         <div class="flex flex-wrap gap-1">
-                            {% for round in investor.rounds %}
+                            {% for round in investment_firm.rounds %}
                             <a
                                 class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
-                                >{{ round.name }}
+                                >{{ round }}
                             </a>
                             {% endfor %}
                         </div>
                     </div>
-                    {% endif %} {% if investor.industries %}
+                    {% if investment_firm.industries %}
                     <p class="text-sm text-gray-500">
-                        {% for industry in investor.industries %} {% if loop.index > 1 %}, {% endif %} {{ industry.name
-                        }} {% endfor %}
+                        {% for industry in investment_firm.industries %} {% if loop.index > 1 %}, {% endif %} {{
+                        industry.name }} {% endfor %}
                     </p>
                     {% endif %}
                 </div>
@@ -128,7 +108,7 @@
             </div>
             {% for _ in range(9) %}
             <article class="flex flex-col rounded-lg p-6 shadow-lg bg-white blur pointer-events-none select-none">
-                <a class="text-xl font-bold leading-none">Investor Name </a>
+                <a class="text-xl font-bold leading-none">Investment Firm Name </a>
                 <div class="flex flex-col gap-2 text-sm mt-5">
                     <div class="grid grid-cols-2">
                         <span class="inline-flex items-center gap-1 text-gray-700">
@@ -214,7 +194,10 @@
             <!-- prettier-ignore -->
             {% if pagination and pagination.has_other_pages %} 
             {% if pagination.has_prev %}
-            <a class="inline-flex items-center justify-center rounded-lg border size-10 bg-white" href="/search?page=1">
+            <a
+                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+                href="/search/investment-firms?page=1"
+            >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -234,7 +217,7 @@
             <a
                 id="prev"
                 class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search?page={{ pagination.prev }}"
+                href="/search/investment-firms?page={{ pagination.prev }}"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -254,14 +237,14 @@
             <a
                 id="current"
                 class="inline-flex size-10 items-center justify-center rounded-lg border bg-white border-sky-500 text-sm text-sky-500 font-bold transition-opacity duration-200 ease-in-out hover:opacity-90"
-                href="/search?page={{ pagination.current_page }}"
+                href="/search/investment-firms?page={{ pagination.current_page }}"
                 >{{ pagination.current_page }}</a
             >
             {% else %}
             <a
                 id="page"
                 class="inline-flex size-10 items-center justify-center rounded-lg border text-sm font-medium bg-white"
-                href="/search?page={{ page }}"
+                href="/search/investment-firms?page={{ page }}"
                 >{{ page }}</a
             >
             <!-- prettier-ignore -->
@@ -271,7 +254,7 @@
             <a
                 id="next"
                 class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search?page={{ pagination.next }}"
+                href="/search/investment-firms?page={{ pagination.next }}"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -286,7 +269,7 @@
             </a>
             <a
                 class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search?page={{ pagination.last_page }}"
+                href="/search/investment-firms?page={{ pagination.last_page }}"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

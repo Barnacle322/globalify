@@ -293,9 +293,6 @@ class Investor(db.Model):
     def __repr__(self):
         return f"<Investor {self.first_name} {self.last_name}>"
 
-    def is_bookmarked(self, user_id: int) -> bool:
-        return bool(InvestorBookmark.get_by_investor_id(self.id, user_id))
-
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
@@ -625,16 +622,41 @@ class Investor(db.Model):
     @staticmethod
     def populate_cli():
         notable_investment_list = NotableInvestment.get_all()
-        industry_list = Industry.get_industry_list()
-        with open("investor_list.json", encoding="utf-8-sig") as file:
-            investors = json.load(file)
+        with open("signal_investors.jsonl", encoding="utf-8-sig") as file:
+            investors = file.readlines()
+
             for investor in investors:
-                industries = get_industries(investor.get("industry"), industry_list)
-                min_investment, max_investment = get_min_max_investment(investor.get("investment_range"))
+                investor = json.loads(investor)
+                min_investment, max_investment = (
+                    int(investor.get("min_investment") or 0),
+                    int(investor.get("max_investment") or 0),
+                )
                 rounds = get_rounds(investor.get("rounds"))
                 notable_investments = get_notable_investments(
                     investor.get("notable_investments"), notable_investment_list, NotableInvestment
                 )
+
+                industry_list = Industry.get_industry_list()
+
+                cached_results = {}
+
+                industries = []
+
+                for i in investor.get("industry").split(","):
+                    if i not in cached_results:
+                        result = SearchBuilder("industries").query(i).query_by(["embedding"]).search()
+
+                        hit = result.get("hits", [])[0] if result.get("hits") else None
+
+                        for industry in industry_list:
+                            if hit and int(industry.id) == int(hit.get("document").get("db_id")):
+                                industries.append(industry)
+                                cached_results[i] = industry
+                    else:
+                        industries.append(cached_results[i])
+
+                industries = list(set(industries))
+
                 investor = Investor(
                     first_name=investor.get("first_name"),
                     last_name=investor.get("last_name"),
@@ -1396,7 +1418,7 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
         super().__init__(**kwargs)
 
     @staticmethod
-    def get_investment_frims_by_user_id(
+    def get_investment_firms_by_user_id(
         user_id: int, get_only_with_id: bool = False
     ) -> Sequence[int] | Sequence[InvestmentFirmBookmark]:
         if get_only_with_id:

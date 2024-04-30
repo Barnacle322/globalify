@@ -160,6 +160,8 @@ def get_suggestions():
 
     company = Company.get_by_user_id(current_user.id)
 
+    bookmarks = InvestorBookmark.get_investors_by_user_id(current_user.id, get_only_with_id=True)
+
     check_weights(WEIGHTS)
     suggested_investors = Investor.get_suggestions(company=company, quantity=15)
 
@@ -167,6 +169,7 @@ def get_suggestions():
         "suggestions.html",
         investors=suggested_investors,
         access=access,
+        bookmarks=bookmarks,
     )
 
 
@@ -186,6 +189,8 @@ def get_suggestion_investment_firms():
 
     company = Company.get_by_user_id(current_user.id)
 
+    bookmarks = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id, get_only_with_id=True)
+
     check_weights(WEIGHTS)
     suggested_investment_firms = InvestmentFirm.get_suggestions(company=company, quantity=15)
 
@@ -193,6 +198,7 @@ def get_suggestion_investment_firms():
         "suggestions_investment_firms.html",
         investment_firms=suggested_investment_firms,
         access=access,
+        bookmarks=bookmarks,
     )
 
 
@@ -259,8 +265,6 @@ def search_investment_firms():
     investment_firms = result.get("investment_firms")
 
     bookmarks = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id, get_only_with_id=True)
-
-    print(bookmarks)
 
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False

@@ -3,7 +3,7 @@
 <script src="/static/scripts/bookmark.js" defer></script>
 {% endblock %} {% block content %}
 <main class="mx-auto h-full min-h-screen w-full overflow-x-hidden bg-[#EAEDF6]">
-    <section class="mx-auto max-w-7xl px-4 bg-[#EAEDF6]">
+    <section class="mx-auto max-w-7xl px-4 bg-[#EAEDF6] mb-4">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <h1 class="text-2xl font-bold text-center my-4">Investors</h1>
         <div class="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -117,7 +117,11 @@
                     {% endif %}
                 </div>
             </article>
-            {% endfor %} {% endif %}
+            {% endfor %} {%else%}
+            <div class="flex justify-start h-full">
+                <div class="text-gray-600">No investors in bookmark</div>
+            </div>
+            {% endif %}
         </div>
         <h1 class="text-2xl font-bold text-center my-4">Investment Firms</h1>
         <div class="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -131,7 +135,7 @@
                     </a>
                     <button onclick="toggleInvestmentFirmBookmark('{{investment_firm.id}}')">
                         <svg
-                            id="bookmark-svg-{{ investment_firm.id }}"
+                            id="bookmark-svg-firm-{{ investment_firm.id }}"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="#FFC9FC"
                             viewBox="0 0 24 24"
@@ -195,7 +199,7 @@
                             {% for round in investment_firm.rounds %}
                             <a
                                 class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
-                                >{{ round }}
+                                >{{ round.name }}
                             </a>
                             {% endfor %}
                         </div>
@@ -208,109 +212,12 @@
                     {% endif %}
                 </div>
             </article>
-            {% endfor %} {% endif %}
-        </div>
-
-        <nav class="mt-10 flex w-full items-center justify-center gap-2">
-            <!-- prettier-ignore -->
-            {% if pagination and pagination.has_other_pages %} 
-            {% if pagination.has_prev %}
-            <a class="inline-flex items-center justify-center rounded-lg border size-10 bg-white" href="/search?page=1">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-4"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
-                    />
-                </svg>
-            </a>
-            <!-- prettier-ignore -->
-            <a
-                id="prev"
-                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search?page={{ pagination.prev }}"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-5"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
-            </a>
-            <!-- prettier-ignore -->
-            {% endif %} 
-            {% for page in pagination.pages %} 
-            {% if page == pagination.current_page %}
-            <a
-                id="current"
-                class="inline-flex size-10 items-center justify-center rounded-lg border bg-white border-sky-500 text-sm text-sky-500 font-bold transition-opacity duration-200 ease-in-out hover:opacity-90"
-                href="/search?page={{ pagination.current_page }}"
-                >{{ pagination.current_page }}</a
-            >
-            {% else %}
-            <a
-                id="page"
-                class="inline-flex size-10 items-center justify-center rounded-lg border text-sm font-medium bg-white"
-                href="/search?page={{ page }}"
-                >{{ page }}</a
-            >
-            <!-- prettier-ignore -->
-            {% endif %} 
-            {% endfor %} 
-            {% if pagination.has_next %}
-            <a
-                id="next"
-                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search?page={{ pagination.next }}"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-5"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-            </a>
-            <a
-                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search?page={{ pagination.last_page }}"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-4"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
-                    />
-                </svg>
-            </a>
-            <!-- prettier-ignore -->
-            {% endif %} 
+            {% endfor %}{%else%}
+            <div class="flex justify-start h-full">
+                <div class="text-gray-600">No investment firms in bookmark</div>
+            </div>
             {% endif %}
-        </nav>
+        </div>
     </section>
-
-    {% import "macros/notification_macros.html" as notification_macros %} {{
-    notification_macros.render_notifications(notifications) }}
 </main>
 {% endblock %}

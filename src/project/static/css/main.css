@@ -1393,6 +1393,10 @@ select {
   margin-top: 2rem;
   margin-bottom: 2rem;
 }
+.my-4 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
 .mb-1 {
   margin-bottom: 0.25rem;
 }
@@ -2794,6 +2798,10 @@ select {
 }
 .text-white\/30 {
   color: rgb(255 255 255 / 0.3);
+}
+.text-blue-500 {
+  --tw-text-opacity: 1;
+  color: rgb(59 130 246 / var(--tw-text-opacity));
 }
 .underline {
   text-decoration-line: underline;

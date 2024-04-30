@@ -10,10 +10,10 @@ async function toggleInvestorBookmark(investorId) {
         });
         if (response.ok) {
             const data = await response.json();
-            var svg = document.getElementById(`bookmark-svg-${investorId}`);
+            var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
             if (data[0].bookmarked) {
                 console.log("Here");
-                svg.style.fill = "#FF4500";
+                svg.style.fill = "#FFC9FC";
             } else {
                 svg.style.fill = "none";
             }
@@ -34,10 +34,12 @@ async function toggleInvestmentFirmBookmark(firmId) {
             },
         });
         if (response.ok) {
+            console.log("Here");
             const data = await response.json();
             var svg = document.getElementById(`bookmark-svg-${firmId}`);
+            console.log(data);
             if (data[0].bookmarked) {
-                svg.style.fill = "#FF4500";
+                svg.style.fill = "#FFC9FC";
             } else {
                 svg.style.fill = "none";
             }

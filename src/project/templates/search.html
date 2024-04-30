@@ -387,15 +387,15 @@
             <article
                 class="flex flex-col rounded-lg p-6 shadow-lg hover:shadow-2xl transition-shadow ease-in-out bg-white"
             >
-                <div class="flex justify-between">
+                <div class="flex justify-between items-center">
                     <a href="/investor/{{ investor.id }}" class="text-xl font-bold leading-none">
                         {{ investor.name }}
                     </a>
                     <button id="bookmark-icon-{{ investor.id }}" onclick="toggleInvestorBookmark('{{investor.id}}')">
                         <svg
-                            id="bookmark-svg-{{ investor.id }}"
+                            id="bookmark-svg-investor-{{ investor.id }}"
                             xmlns="http://www.w3.org/2000/svg"
-                            fill="{{'#FF4500' if investor.id in bookmarks else 'none'}}"
+                            fill="{{'#FFC9FC' if investor.id in bookmarks else 'none'}}"
                             viewBox="0 0 24 24"
                             stroke-width="1.5"
                             stroke="currentColor"

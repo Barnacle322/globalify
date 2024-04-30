@@ -260,6 +260,8 @@ def search_investment_firms():
 
     bookmarks = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id, get_only_with_id=True)
 
+    print(bookmarks)
+
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False
     if current_user.is_admin:
@@ -455,14 +457,16 @@ def toggle_bookmark_investor(investor_id):
     return jsonify({"bookmarked": True}, 200)
 
 
-@main.get("/investors/bookmarks")
+@main.get("/bookmarks")
 @login_required
 @check_user_info_complete
 @check_verification
 def get_investor_bookmarks():
     investors = InvestorBookmark.get_investors_by_user_id(current_user.id)
 
-    return render_template("investors_bookmarks.html", investors=investors, user=current_user)
+    investment_firms = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id)
+
+    return render_template("bookmarks.html", investors=investors, user=current_user, investment_firms=investment_firms)
 
 
 @main.route("/investment-firm/<int:firm_id>")
@@ -483,6 +487,7 @@ def investment_firm(firm_id):
 @check_verification
 def toggle_bookmark_investment_firm(firm_id):
     investment_firm = InvestmentFirm.get_by_id(int(firm_id))
+
     if not investment_firm:
         return jsonify({"status": "error", "message": "Investment Firm not found."}, 404)
 
@@ -499,25 +504,6 @@ def toggle_bookmark_investment_firm(firm_id):
     db.session.commit()
 
     return jsonify({"bookmarked": True}, 200)
-
-
-@main.get("/investment-firms/bookmarks")
-@login_required
-@check_user_info_complete
-@check_verification
-def get_investment_firm_bookmarks():
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-    unpaid = False
-    if current_user.is_admin:
-        pass
-    elif not user_payment:
-        unpaid = True
-    elif user_payment and not user_payment.is_active:
-        unpaid = True
-    investment_firms = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id)
-    return render_template(
-        "investment_firms_bookmarks.html", investment_firms=investment_firms, user=current_user, unpaid=unpaid
-    )
 
 
 @main.get("/notification/edit/<int:notification_id>")

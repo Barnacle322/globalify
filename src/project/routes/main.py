@@ -466,11 +466,12 @@ def toggle_bookmark_investor(investor_id):
 @check_user_info_complete
 @check_verification
 def get_investor_bookmarks():
-    investors = InvestorBookmark.get_investors_by_user_id(current_user.id)
+    user_id = current_user.id
+    investors = InvestorBookmark.get_investors_by_user_id(user_id)
 
-    investment_firms = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id)
+    investment_firms = InvestmentFirmBookmark.get_investment_firms_by_user_id(user_id)
 
-    return render_template("bookmarks.html", investors=investors, user=current_user, investment_firms=investment_firms)
+    return render_template("bookmarks.html", investors=investors, investment_firms=investment_firms)
 
 
 @main.route("/investment-firm/<int:firm_id>")

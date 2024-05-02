@@ -2504,6 +2504,10 @@ select {
   padding-top: 7px;
   padding-bottom: 7px;
 }
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
 .pb-16 {
   padding-bottom: 4rem;
 }
@@ -2631,6 +2635,9 @@ select {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+.text-\[8px\] {
+  font-size: 8px;
 }
 .font-bold {
   font-weight: 700;
@@ -4103,6 +4110,14 @@ select {
     --tw-content: '';
     content: var(--tw-content);
   }
+
+  .min-\[640px\]\:block {
+    display: block;
+  }
+
+  .min-\[640px\]\:flex {
+    display: flex;
+  }
 }
 
 @media (min-width: 768px) {
@@ -4125,6 +4140,10 @@ select {
 
   .md\:block {
     display: block;
+  }
+
+  .md\:flex {
+    display: flex;
   }
 
   .md\:grid {

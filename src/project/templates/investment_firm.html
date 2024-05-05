@@ -1,5 +1,7 @@
 {% extends "layouts/layout_app.html" %} {% block title %} {{ investment_firm.name }} {% endblock %} {% block head %}
-{{super() }} {% endblock %} {% block content %}
+{{super() }}
+<script src="/static/scripts/dashboard.js" defer></script>
+{% endblock %} {% block content %}
 <main class="mx-auto pt-5 flex flex-col min-h-screen items-center gap-5 pb-16 bg-[#EAEDF6] px-4 sm:px-9">
     <section class="w-full max-w-7xl mx-auto flex gap-4 items-center">
         <h1 class="text-4xl font-semibold">{{ investment_firm.name }}</h1>

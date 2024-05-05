@@ -35,6 +35,8 @@
         <meta name="view-transition" content="same-origin" />
         <link rel="stylesheet" href="/static/css/main.css" />
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+        <script src="/static/scripts/menu.js" defer></script>
+
         {% block additional_scripts %}{% endblock %}
         <title>{% block title %}{% endblock %} | Globalify</title>
         {% endblock %}
@@ -42,13 +44,37 @@
     <body class="h-full">
         <nav class="flex h-20 w-full items-center justify-center bg-white">
             <div class="flex w-full max-w-7xl items-center gap-7 px-9">
-                <a href="/search"><img class="h-6" src="/static/elements/logo-black.png" /></a>
-                <div class="hidden gap-7 sm:flex text-sm">
+                <button class="block sm:hidden" onclick="openMenu()">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="h-7 w-7"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                        />
+                    </svg>
+                </button>
+                <a href="/search" class="relative flex gap-1 items-center"
+                    ><img class="hidden min-[640px]:block h-6" src="/static/elements/logo-black.png" />
+                    <div
+                        class="hidden min-[640px]:block text-[8px] py-1 px-1 tracking-tight h-fit w-fit leading-none font-medium bg-sky-500 text-white rounded-full"
+                    >
+                        BETA
+                    </div></a
+                >
+                <div class="hidden gap-7 text-sm min-[640px]:flex">
                     <a href="/search">Search</a>
                     <a target="_blank" href="https://hub.globalify.xyz">Hub</a>
                     <a target="_blank" href="https://blog.globalify.xyz">Blog</a>
                 </div>
             </div>
+
             <div class="pr-9">
                 <!-- <a href="/logout">Logout</a> -->
                 <div class="relative ml-3">
@@ -83,7 +109,7 @@
                         tabindex="-1"
                     >
                         <a
-                            href="/profile/user/{{ current_user.id }}"
+                            href="/profile/{{ current_user.id }}"
                             class="block px-4 py-2 text-sm text-gray-700 transition-colors duration-100 ease-in hover:bg-gray-100"
                             role="menuitem"
                             tabindex="-1"
@@ -112,6 +138,57 @@
                 </div>
             </div>
         </nav>
+        <div id="menu" class="hidden sm:hidden" role="dialog" aria-modal="true">
+            <div
+                class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-9 py-8 sm:max-w-sm sm:ring-gray-900/10"
+            >
+                <div class="flex items-center justify-between">
+                    <a href="/search" class="-m-1.5 p-1.5 relative flex gap-1 items-center">
+                        <span class="sr-only">Globalify</span>
+                        <img class="h-8 w-auto" src="/static/elements/logo-black.png" alt="" />
+                        <div
+                            class="text-[8px] py-1 px-1 tracking-tight h-fit w-fit leading-none font-medium bg-sky-500 text-white rounded-full"
+                        >
+                            BETA
+                        </div>
+                    </a>
+                    <button type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700" onclick="closeMenu()">
+                        <span class="sr-only">Close menu</span>
+                        <svg
+                            class="h-6 w-6"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="mt-6 flow-root">
+                    <div class="-my-6 divide-y divide-gray-500/10">
+                        <div class="space-y-2 py-6">
+                            <a
+                                href="/search"
+                                class="-mx-3 block rounded-lg px-3 py-2 text-base leading-7 text-gray-900 hover:bg-slate-100"
+                                >Search</a
+                            >
+                            <a
+                                href="https://hub.globalify.xyz"
+                                class="-mx-3 block rounded-lg px-3 py-2 text-base leading-7 text-gray-900 hover:bg-slate-100"
+                                >Hub</a
+                            >
+                            <a
+                                href="https://blog.globalify.xyz"
+                                class="-mx-3 block rounded-lg px-3 py-2 text-base leading-7 text-gray-900 hover:bg-slate-100"
+                                >Blog</a
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         {% block content %} {% endblock %}
     </body>

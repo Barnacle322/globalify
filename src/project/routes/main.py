@@ -425,19 +425,18 @@ def demo_search():
     return jsonify(investors)
 
 
-@main.route("/investor/<int:investor_id>")
+@main.route("/investor/<slug>")
 @login_required
 @check_user_info_complete
 @check_verification
-def investor(investor_id):
-    investor = Investor.get_by_id(int(investor_id))
+def investor_slug(slug):
+    investor = Investor.get_by_slug(slug)
     if not investor:
         return redirect(url_for("main.search"))
 
     return render_template("investor.html", investor=investor, user=current_user)
 
 
-@main.post("/investor/<int:investor_id>/bookmark")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -474,12 +473,12 @@ def get_investor_bookmarks():
     return render_template("bookmarks.html", investors=investors, investment_firms=investment_firms)
 
 
-@main.route("/investment-firm/<int:firm_id>")
+@main.route("/investment-firm/<slug>")
 @login_required
 @check_user_info_complete
 @check_verification
-def investment_firm(firm_id):
-    investment_firm = InvestmentFirm.get_by_id(int(firm_id))
+def investment_firm_slug(slug):
+    investment_firm = InvestmentFirm.get_by_slug(slug)
     if not investment_firm:
         return redirect(url_for("main.search"))
 

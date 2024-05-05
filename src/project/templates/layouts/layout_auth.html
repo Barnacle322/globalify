@@ -40,7 +40,14 @@
     </head>
     <body class="h-full w-full overflow-y-auto xl:overflow-hidden">
         <nav class="left-0 top-0 flex h-24 w-full items-center justify-start px-9">
-            <a href="/"><img class="h-[30px] w-[113px]" src="/static/elements/logo-black.png" /></a>
+            <a href="/" class="relative flex gap-1 items-center"
+                ><img class="h-[30px] w-[113px]" src="/static/elements/logo-black.png" />
+                <div
+                    class="text-[8px] py-1 px-1 tracking-tight h-fit w-fit leading-none font-medium bg-sky-500 text-white rounded-full"
+                >
+                    BETA
+                </div></a
+            >
         </nav>
         {% block content %} {% endblock %}
     </body>

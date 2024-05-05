@@ -26,7 +26,7 @@
                 class="flex flex-col rounded-lg p-6 shadow-lg hover:shadow-2xl transition-shadow ease-in-out bg-white"
             >
                 <div class="flex justify-between items-center">
-                    <a href="/investor/{{ investor.id }}" class="text-xl font-bold leading-none">
+                    <a href="/investor/{{ investor.slug }}" class="text-xl font-bold leading-none">
                         {{ investor.full_name }}
                     </a>
                     <button onclick="toggleInvestorBookmark('{{investor.id}}')">

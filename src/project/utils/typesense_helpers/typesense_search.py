@@ -240,6 +240,7 @@ def setup():
                 "type": "int32",
                 "facet": True,
             },
+            {"name": "slug", "type": "string", "optional": True},
             {"name": "firm_name", "type": "string", "optional": True},
             {"name": "about", "type": "string", "optional": True},
             {"name": "position", "type": "string", "facet": True, "optional": True},

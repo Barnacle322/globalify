@@ -296,6 +296,13 @@ def setup():
         ],
     }
 
+    industry_schema = {
+        "name": "industries",
+        "fields": [
+            {"name": "industry", "type": "string"},
+        ],
+    }
+
     try:
         delete_schema("cities")
     except Exception as e:

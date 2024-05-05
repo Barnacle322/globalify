@@ -22,7 +22,9 @@ from ..models import (
     Country,
     Industry,
     InvestmentFirm,
+    InvestmentFirmBookmark,
     Investor,
+    InvestorBookmark,
     Notification,
     Round,
     UserPayment,
@@ -158,6 +160,8 @@ def get_suggestions():
 
     company = Company.get_by_user_id(current_user.id)
 
+    bookmarks = InvestorBookmark.get_investors_by_user_id(current_user.id, get_only_with_id=True)
+
     check_weights(WEIGHTS)
     suggested_investors = Investor.get_suggestions(company=company, quantity=15)
 
@@ -165,6 +169,7 @@ def get_suggestions():
         "suggestions.html",
         investors=suggested_investors,
         access=access,
+        bookmarks=bookmarks,
     )
 
 
@@ -184,6 +189,8 @@ def get_suggestion_investment_firms():
 
     company = Company.get_by_user_id(current_user.id)
 
+    bookmarks = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id, get_only_with_id=True)
+
     check_weights(WEIGHTS)
     suggested_investment_firms = InvestmentFirm.get_suggestions(company=company, quantity=15)
 
@@ -191,6 +198,7 @@ def get_suggestion_investment_firms():
         "suggestions_investment_firms.html",
         investment_firms=suggested_investment_firms,
         access=access,
+        bookmarks=bookmarks,
     )
 
 
@@ -256,6 +264,8 @@ def search_investment_firms():
     )
     investment_firms = result.get("investment_firms")
 
+    bookmarks = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id, get_only_with_id=True)
+
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False
     if current_user.is_admin:
@@ -287,6 +297,7 @@ def search_investment_firms():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         unpaid=unpaid,
+        bookmarks=bookmarks,
     )
 
 
@@ -354,6 +365,8 @@ def search():
     )
     investors = result.get("investors")
 
+    bookmarks = InvestorBookmark.get_investors_by_user_id(current_user.id, get_only_with_id=True)
+
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False
     if current_user.is_admin:
@@ -384,6 +397,8 @@ def search():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         unpaid=unpaid,
+        user=current_user,
+        bookmarks=bookmarks,
     )
 
 
@@ -422,6 +437,42 @@ def investor_slug(slug):
     return render_template("investor.html", investor=investor, user=current_user)
 
 
+@login_required
+@check_user_info_complete
+@check_verification
+def toggle_bookmark_investor(investor_id):
+    investor = Investor.get_by_id(int(investor_id))
+    if not investor:
+        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+
+    bookmark = InvestorBookmark.get_by_investor_id(investor.id, current_user.id)
+
+    if bookmark:
+        db.session.delete(bookmark)
+        db.session.commit()
+        return jsonify({"bookmarked": False}, 200)
+
+    new_bookmark = InvestorBookmark(investor_id=investor.id, user_id=current_user.id)
+
+    db.session.add(new_bookmark)
+    db.session.commit()
+
+    return jsonify({"bookmarked": True}, 200)
+
+
+@main.get("/bookmarks")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investor_bookmarks():
+    user_id = current_user.id
+    investors = InvestorBookmark.get_investors_by_user_id(user_id)
+
+    investment_firms = InvestmentFirmBookmark.get_investment_firms_by_user_id(user_id)
+
+    return render_template("bookmarks.html", investors=investors, investment_firms=investment_firms)
+
+
 @main.route("/investment-firm/<slug>")
 @login_required
 @check_user_info_complete
@@ -432,6 +483,31 @@ def investment_firm_slug(slug):
         return redirect(url_for("main.search"))
 
     return render_template("investment_firm.html", investment_firm=investment_firm, user=current_user)
+
+
+@main.post("/investment-firm/<int:firm_id>/bookmark")
+@login_required
+@check_user_info_complete
+@check_verification
+def toggle_bookmark_investment_firm(firm_id):
+    investment_firm = InvestmentFirm.get_by_id(int(firm_id))
+
+    if not investment_firm:
+        return jsonify({"status": "error", "message": "Investment Firm not found."}, 404)
+
+    bookmark = InvestmentFirmBookmark.get_by_investment_firm_id(investment_firm.id, current_user.id)
+
+    if bookmark:
+        db.session.delete(bookmark)
+        db.session.commit()
+        return jsonify({"bookmarked": False}, 200)
+
+    new_bookmark = InvestmentFirmBookmark(investment_firm_id=investment_firm.id, user_id=current_user.id)
+
+    db.session.add(new_bookmark)
+    db.session.commit()
+
+    return jsonify({"bookmarked": True}, 200)
 
 
 @main.get("/notification/edit/<int:notification_id>")

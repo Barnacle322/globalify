@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import datetime
 import json
 import random
 import uuid
@@ -11,14 +12,19 @@ from typing import Any
 
 from geopy.distance import geodesic
 from more_itertools import chunked
+
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship
+
 from slugify import slugify
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
+
 from thefuzz import fuzz
 
 from ..extensions import db
-from ..models.user import Company
+from ..models.user import Company, User
 from ..utils.fake_data import (
     get_abouts,
     get_companies,
@@ -660,16 +666,41 @@ class Investor(db.Model):
     @staticmethod
     def populate_cli():
         notable_investment_list = NotableInvestment.get_all()
-        industry_list = Industry.get_industry_list()
-        with open("investor_list.json", encoding="utf-8-sig") as file:
-            investors = json.load(file)
+        with open("signal_investors.jsonl", encoding="utf-8-sig") as file:
+            investors = file.readlines()
+
             for investor in investors:
-                industries = get_industries(investor.get("industry"), industry_list)
-                min_investment, max_investment = get_min_max_investment(investor.get("investment_range"))
+                investor = json.loads(investor)
+                min_investment, max_investment = (
+                    int(investor.get("min_investment") or 0),
+                    int(investor.get("max_investment") or 0),
+                )
                 rounds = get_rounds(investor.get("rounds"))
                 notable_investments = get_notable_investments(
                     investor.get("notable_investments"), notable_investment_list, NotableInvestment
                 )
+
+                industry_list = Industry.get_industry_list()
+
+                cached_results = {}
+
+                industries = []
+
+                for i in investor.get("industry").split(","):
+                    if i not in cached_results:
+                        result = SearchBuilder("industries").query(i).query_by(["embedding"]).search()
+
+                        hit = result.get("hits", [])[0] if result.get("hits") else None
+
+                        for industry in industry_list:
+                            if hit and int(industry.id) == int(hit.get("document").get("db_id")):
+                                industries.append(industry)
+                                cached_results[i] = industry
+                    else:
+                        industries.append(cached_results[i])
+
+                industries = list(set(industries))
+
                 investor = Investor(
                     first_name=investor.get("first_name"),
                     last_name=investor.get("last_name"),
@@ -959,6 +990,53 @@ class Investor(db.Model):
             db.session.execute(db.text(query))
             db.session.commit()
             batch_count += 1
+
+
+class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
+
+    user: Mapped[User] = relationship(
+        User, backref=backref("investor_bookmarks", passive_deletes=True), lazy=True, init=False
+    )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def get_investors_by_user_id(user_id: int, get_only_with_id: bool = False) -> Sequence[int] | Sequence[Investor]:
+        if get_only_with_id:
+            return (
+                db.session.execute(
+                    db.select(Investor.id)
+                    .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
+                    .where(InvestorBookmark.user_id == user_id)
+                )
+                .scalars()
+                .all()
+            )
+        return (
+            db.session.scalars(
+                db.select(Investor)
+                .options(joinedload(Investor.rounds), joinedload(Investor.industries))
+                .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
+                .where(InvestorBookmark.user_id == user_id)
+            )
+            .unique()
+            .all()
+        )
+
+    @staticmethod
+    def get_by_investor_id(investor_id: int, user_id: int) -> InvestorBookmark | None:
+        return db.session.scalars(
+            db.select(InvestorBookmark).where(
+                InvestorBookmark.investor_id == investor_id, InvestorBookmark.user_id == user_id
+            )
+        ).first()
 
 
 class InvestmentFirm(db.Model):
@@ -1473,3 +1551,53 @@ class InvestmentFirm(db.Model):
             db.session.execute(db.text(query))
             db.session.commit()
             batch_count += 1
+
+
+class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    investment_firm_id: Mapped[int] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=False)
+
+    user: Mapped[User] = relationship(
+        User, backref=backref("investment_firm_bookmarks", passive_deletes=True), lazy=True, init=False
+    )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def get_investment_firms_by_user_id(
+        user_id: int, get_only_with_id: bool = False
+    ) -> Sequence[int] | Sequence[InvestmentFirmBookmark]:
+        if get_only_with_id:
+            return (
+                db.session.execute(
+                    db.select(InvestmentFirm.id)
+                    .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
+                    .where(InvestmentFirmBookmark.user_id == user_id)
+                )
+                .scalars()
+                .all()
+            )
+        return (
+            db.session.scalars(
+                db.select(InvestmentFirm)
+                .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
+                .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
+                .where(InvestmentFirmBookmark.user_id == user_id)
+            )
+            .unique()
+            .all()
+        )
+
+    @staticmethod
+    def get_by_investment_firm_id(investment_firm_id: int, user_id: int) -> InvestmentFirmBookmark | None:
+        return db.session.scalars(
+            db.select(InvestmentFirmBookmark).where(
+                InvestmentFirmBookmark.investment_firm_id == investment_firm_id,
+                InvestmentFirmBookmark.user_id == user_id,
+            )
+        ).first()

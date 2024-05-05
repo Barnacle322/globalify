@@ -1393,6 +1393,10 @@ select {
   margin-top: 2rem;
   margin-bottom: 2rem;
 }
+.my-4 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
 .mb-1 {
   margin-bottom: 0.25rem;
 }
@@ -1488,6 +1492,9 @@ select {
 }
 .mt-8 {
   margin-top: 2rem;
+}
+.mb-9 {
+  margin-bottom: 2.25rem;
 }
 .line-clamp-3 {
   overflow: hidden;
@@ -2801,6 +2808,10 @@ select {
 }
 .text-white\/30 {
   color: rgb(255 255 255 / 0.3);
+}
+.text-blue-500 {
+  --tw-text-opacity: 1;
+  color: rgb(59 130 246 / var(--tw-text-opacity));
 }
 .underline {
   text-decoration-line: underline;

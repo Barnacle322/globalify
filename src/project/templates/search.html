@@ -7,6 +7,17 @@
 <script src="/static/scripts/bookmark.js" defer></script>
 {% endblock %} {% block content %}
 <main class="mx-auto h-full min-h-screen w-full overflow-x-hidden bg-[#EAEDF6]">
+    <section class="bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white">
+        <div class="max-w-7xl mx-auto py-3 px-4 flex sm:flex-row flex-col justify-center items-center gap-2">
+            <span class="font-semibold text-lg">Globalify Knowledge Hub is here!</span>
+            <a
+                href="https://hub.globalify.xyz"
+                target="_blank"
+                class="bg-white py-2 px-3 font-medium rounded-full text-black text-xs hover:scale-105 transition-transform ease-in-out shrink-0"
+                >Check out</a
+            >
+        </div>
+    </section>
     <section class="bg-[#231645] p-5 py-10">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mx-auto w-full max-w-3xl">
@@ -409,7 +420,6 @@
                         </svg>
                     </button>
                 </div>
-                <a href="/investor/{{ investor.slug }}" class="text-xl font-bold leading-none"> {{ investor.name }} </a>
                 <div class="flex flex-col gap-2 text-sm mt-5">
                     {% if investor.location %}
                     <div class="grid grid-cols-2">

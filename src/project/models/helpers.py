@@ -80,7 +80,7 @@ class Industry(db.Model):
             db.session.rollback()
 
     @staticmethod
-    def sync_industry_index(recreate: bool = False):
+    def sync_typesense(recreate: bool = False):
         if recreate:
             industry_schema = {
                 "name": "industries",

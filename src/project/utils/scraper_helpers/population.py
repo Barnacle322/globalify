@@ -36,7 +36,7 @@ def get_min_max_investment(
 
 def get_rounds(rounds: str) -> list[Round]:
     round_list = []
-    for round_ in rounds.split(","):
+    for round_ in rounds:
         for r in Round.get_all():
             if round_ == "Series B+":
                 round_list.append(Round.get_by_name("Series B"))
@@ -54,15 +54,16 @@ def get_notable_investments(notable_investments: str, existing_notable_investmen
     for notable_investment in notable_investments.split(","):
         existing = None
         for eni in existing_notable_investments:
-            if fuzz.ratio(notable_investment, eni.name) > 90:
+            if fuzz.ratio(notable_investment, eni.name) > 99:
                 existing = eni
                 break
-        if existing:
+        if existing and existing != "":
             notable_investment_list.append(existing)
         else:
-            ni = notable_investments_cls(name=notable_investment)
-            db.session.add(ni)
-            notable_investment_list.append(ni)
+            if notable_investment != "":
+                ni = notable_investments_cls(name=notable_investment)
+                db.session.add(ni)
+                notable_investment_list.append(ni)
     return list(set(notable_investment_list))
 
 

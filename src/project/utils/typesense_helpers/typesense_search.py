@@ -15,7 +15,7 @@ client = Client(
             }
         ],
         "api_key": os.getenv("_TYPESENSE_API_KEY", "xyz"),
-        "connection_timeout_seconds": 100,
+        "connection_timeout_seconds": 1000,
     }
 )
 

@@ -12,15 +12,10 @@ from typing import Any
 
 from geopy.distance import geodesic
 from more_itertools import chunked
-
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, func
-from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship
-
 from slugify import slugify
-from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
-
+from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship
 from thefuzz import fuzz
 
 from ..extensions import db
@@ -665,28 +660,16 @@ class Investor(db.Model):
 
     @staticmethod
     def populate_cli():
-        notable_investment_list = NotableInvestment.get_all()
-        with open("signal_investors.jsonl", encoding="utf-8-sig") as file:
+        with open("signal_investor_urls.jsonl", encoding="utf-8-sig") as file:
             investors = file.readlines()
-
+            existing_nis = list(NotableInvestment.get_all())
             for investor in investors:
                 investor = json.loads(investor)
-                min_investment, max_investment = (
-                    int(investor.get("min_investment") or 0),
-                    int(investor.get("max_investment") or 0),
-                )
-                rounds = get_rounds(investor.get("rounds"))
-                notable_investments = get_notable_investments(
-                    investor.get("notable_investments"), notable_investment_list, NotableInvestment
-                )
 
                 industry_list = Industry.get_industry_list()
-
                 cached_results = {}
-
                 industries = []
-
-                for i in investor.get("industry").split(","):
+                for i in investor.get("industries"):
                     if i not in cached_results:
                         result = SearchBuilder("industries").query(i).query_by(["embedding"]).search()
 
@@ -699,7 +682,17 @@ class Investor(db.Model):
                     else:
                         industries.append(cached_results[i])
 
-                industries = list(set(industries))
+                nis_to_add = []
+                for ni_name_to_add in investor.get("notable_investments"):
+                    existing_ni_name_list = map(lambda x: x.name, existing_nis)
+                    if ni_name_to_add not in existing_ni_name_list:
+                        ni = NotableInvestment(name=ni_name_to_add)
+                        db.session.add(ni)
+                        existing_nis.append(ni)
+                    else:
+                        ni = next(filter(lambda x: x.name == ni_name_to_add, existing_nis))
+
+                    nis_to_add.append(ni)
 
                 investor = Investor(
                     first_name=investor.get("first_name"),
@@ -710,13 +703,15 @@ class Investor(db.Model):
                     email=investor.get("email"),
                     linkedin=investor.get("linkedin"),
                     twitter=investor.get("twitter"),
+                    website=investor.get("website"),
                     location=investor.get("location"),
                     coordinates=investor.get("location"),
-                    min_investment=min_investment,
-                    max_investment=max_investment,
-                    industries=industries,
-                    rounds=rounds,
-                    notable_investments=notable_investments,
+                    min_investment=int(investor.get("min_investment") or 0),
+                    max_investment=int(investor.get("max_investment") or 0),
+                    n_investments=int(investor.get("n_investments") or 0),
+                    industries=list(set(industries)),
+                    rounds=get_rounds(investor.get("rounds")),
+                    notable_investments=nis_to_add,
                 )
                 db.session.add(investor)
             db.session.commit()
@@ -972,13 +967,14 @@ class Investor(db.Model):
                 ]
                 data.append(investor_object)
 
-            print("Upserting documents")
             result = upsert_documents("investors", data)
 
             objects = []
             for index, obj in enumerate(result):
-                if obj.get("id"):
-                    objects.append((investors[index].id, obj.get("id", 0)))
+                if json.loads(obj.get("document", "{}")).get("id"):
+                    objects.append((investors[index].id, json.loads(obj.get("document", "{}")).get("id")))
+                elif obj.get("id"):
+                    objects.append((investors[index].id, obj.get("id")))
                 else:
                     continue
 

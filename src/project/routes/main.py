@@ -214,7 +214,7 @@ def search_investment_firms():
     )
 
     search_string = request.args.get("search", "")
-    sort_by = request.args.get("sort_field", "")
+    sort_by = request.args.get("sort_field", "db_id")
     sort_desc = request.args.get("descending", False, type=bool)
     min_investment = request.args.get("min_investment", type=int)
     max_investment = request.args.get("max_investment", type=int)
@@ -313,7 +313,7 @@ def search():
     )
 
     search_string = request.args.get("search", "")
-    sort_by = request.args.get("sort_field", "")
+    sort_by = request.args.get("sort_field", "db_id")
     sort_desc = request.args.get("descending", False, type=bool)
     min_investment = request.args.get("min_investment", type=int)
     max_investment = request.args.get("max_investment", type=int)
@@ -437,6 +437,7 @@ def investor_slug(slug):
     return render_template("investor.html", investor=investor, user=current_user)
 
 
+@main.post("/investor/<int:investor_id>/bookmark")
 @login_required
 @check_user_info_complete
 @check_verification

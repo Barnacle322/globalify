@@ -233,6 +233,48 @@
                             >
                         </div>
                     </div>
+                    <div class="col-span-full">
+                        <label for="linkedin" class="block text-sm font-medium leading-6">Linkedin</label>
+                        <div class="mt-2">
+                            <textarea
+                                id="linkedin"
+                                name="linkedin"
+                                rows="4"
+                                cols="50"
+                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                            >
+{{ user.user_info.linkedin_url if user.user_info.linkedin_url else '' }}</textarea
+                            >
+                        </div>
+                    </div>
+                    <div class="col-span-full">
+                        <label for="instagram" class="block text-sm font-medium leading-6">Instagram</label>
+                        <div class="mt-2">
+                            <textarea
+                                id="instagram"
+                                name="instagram"
+                                rows="4"
+                                cols="50"
+                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                            >
+{{ user.user_info.instagram_url if user.user_info.instagram_url else '' }}</textarea
+                            >
+                        </div>
+                    </div>
+                    <div class="col-span-full">
+                        <label for="twitter" class="block text-sm font-medium leading-6">Twitter</label>
+                        <div class="mt-2">
+                            <textarea
+                                id="twitter"
+                                name="twitter"
+                                rows="4"
+                                cols="50"
+                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                            >
+{{ user.user_info.twitter_url if user.user_info.twitter_url else '' }}</textarea
+                            >
+                        </div>
+                    </div>
                 </div>
                 <div class="mt-8 flex gap-5">
                     <button

@@ -10,6 +10,7 @@
         <h1 class="text-4xl font-semibold">{{ investor.full_name }}</h1>
     </section>
     <section class="w-wull max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
+        {% if investor.location or investor.firm_name or investor.about %}
         <article class="bg-white shadow-xl p-5 rounded-xl w-full">
             <h2 class="text-xl font-medium">General</h2>
             <div class="flex flex-col gap-3 text-sm mt-5">
@@ -65,6 +66,7 @@
                 {% endif %}
             </div>
         </article>
+        {% endif %}
         <article class="bg-white shadow-xl p-5 rounded-xl w-full">
             <h2 class="text-xl font-medium">Investment</h2>
             {% if investor.rounds|length != 0 %}

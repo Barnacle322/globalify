@@ -16,9 +16,9 @@ def user_profile(user_id):
 
     data = db.session.execute(
         db.select(UserInfo, Company, Round, Industry, Country)
-        .join(Industry, Industry.id == Company.industry_id)
-        .join(Round, Round.id == Company.preferred_round_id)
-        .join(Country, Country.id == Company.country_id)
+        .outerjoin(Industry, Industry.id == Company.industry_id)
+        .outerjoin(Round, Round.id == Company.preferred_round_id)
+        .outerjoin(Country, Country.id == Company.country_id)
         .where(UserInfo.user_id == user_id, Company.user_id == user_id)
     ).all()
 

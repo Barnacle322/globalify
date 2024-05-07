@@ -1,4 +1,5 @@
 import re
+
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
@@ -90,8 +91,8 @@ def billing():
 
 
 def add_https_prefix(url):
-    if not url.startswith(('http://', 'https://')):
-        return 'https://' + url
+    if not url.startswith(("http://", "https://")):
+        return "https://" + url
     return url
 
 
@@ -154,31 +155,37 @@ def change_personal_info():
             print(e)
             status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
-        
+
     if linkedin_url:
         linkedin_url = add_https_prefix(linkedin_url)
-        if re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin_url, re.IGNORECASE):
+        try:
             user_info.linkedin_url = linkedin_url
-        else:
-            status = Status(StatusType.ERROR, "Invalid LinkedIn URL.").get_status()
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
+    else:
+        user_info.linkedin_url = None
 
     if instagram_url:
         instagram_url = add_https_prefix(instagram_url)
-        if re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram_url, re.IGNORECASE):
+        try:
             user_info.instagram_url = instagram_url
-        else:
-            status = Status(StatusType.ERROR, "Invalid Instagram URL.").get_status()
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
+    else:
+        user_info.instagram_url = None
 
     if twitter_url:
         twitter_url = add_https_prefix(twitter_url)
-        if re.match(r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter_url, re.IGNORECASE):
+        try:
             user_info.twitter_url = twitter_url
-        else:
-            status = Status(StatusType.ERROR, "Invalid Twitter URL.").get_status()
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
-                            
+    else:
+        user_info.twitter_url = None
+
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Personal info successfully changed.").get_status()
@@ -209,24 +216,6 @@ def delete_account():
         return redirect(url_for("main.index", _external=False))
 
     return render_template("settings/delete_oauth_account.html")
-
-
-def is_valid_url(url):
-    pattern = re.compile(
-        r'^(?:http|ftp)s?://'  # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
-        r'(?::\d+)?'  # optional port
-        r'(?:/)?$', re.IGNORECASE)
-
-    if pattern.match(url):
-        return url
-    elif pattern.match('https://' + url):
-        return 'https://' + url
-    elif pattern.match('http://' + url):
-        return 'http://' + url
-    else:
-        return None
 
 
 @settings.route("/company", methods=["GET", "POST"])
@@ -292,20 +281,23 @@ def change_company_info():
         if not country_id:
             status = Status(StatusType.ERROR, "Country ID is required.").get_status()
             return redirect(url_for("settings.change_company_info", _external=False, **status))
-        
+
         website_url = request.form.get("website", "")
-        validated_url = is_valid_url(website_url)
-        if validated_url is None:
-            status = Status(StatusType.ERROR, "Invalid URL. Please enter a valid website URL.").get_status()
-            return redirect(url_for("settings.change_company_info", _external=False, **status))
-        website_url = validated_url
+        if website_url:
+            website_url = add_https_prefix(website_url)
+            try:
+                company.website_url = website_url
+            except Exception as e:
+                status = Status(StatusType.ERROR, str(e)).get_status()
+                return redirect(url_for("settings.change_company_info", _external=False, **status))
+        else:
+            company.website_url = None
 
         company.description = request.form.get("description", "").strip()
         company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
         company.country_id = country_id
         company.preferred_round_id = preferred_round_id
         company.industry_id = industry_id
-        company.website_url = website_url
         company.coordinates = Country.get_by_id(country_id).name  # type: ignore
         db.session.commit()
 

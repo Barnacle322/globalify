@@ -266,6 +266,7 @@
                                     id="website"
                                     autocomplete="website"
                                     class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                    pattern="^(https?:\/\/)?(www{1}\.)?[\w\d]*\.([a-zA-Z]*\.)?([a-zA-Z]*)?(\/[a-zA-Z\/?=#&]*)?"
                                     value="{{ company.website_url if company.website_url else ''}}"
                                 />
                             </div>

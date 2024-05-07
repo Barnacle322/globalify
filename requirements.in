@@ -119,7 +119,7 @@ pyasn1-modules==0.3.0
 pycountry==23.12.11
 pycparser==2.21
     # via cffi
-python-dateutil==2.8.2
+python-dateutil==2.9.0.post0
     # via faker
 rapidfuzz==3.6.1
     # via thefuzz

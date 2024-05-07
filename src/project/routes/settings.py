@@ -1,3 +1,5 @@
+import re
+
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
@@ -88,6 +90,12 @@ def billing():
     )
 
 
+def add_https_prefix(url):
+    if not url.startswith(("http://", "https://")):
+        return "https://" + url
+    return url
+
+
 @settings.post("/personal-info")
 @login_required
 @check_user_info_complete
@@ -100,6 +108,9 @@ def change_personal_info():
     last_name = request.form.get("last-name")
     username = request.form.get("username")
     bio = request.form.get("bio")
+    linkedin_url = request.form.get("linkedin")
+    instagram_url = request.form.get("instagram")
+    twitter_url = request.form.get("twitter")
     picture = request.files.get("picture")
 
     user_info = authenticated_user.user_info  # type: ignore
@@ -144,6 +155,36 @@ def change_personal_info():
             print(e)
             status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
+
+    if linkedin_url:
+        linkedin_url = add_https_prefix(linkedin_url)
+        try:
+            user_info.linkedin_url = linkedin_url
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
+    else:
+        user_info.linkedin_url = None
+
+    if instagram_url:
+        instagram_url = add_https_prefix(instagram_url)
+        try:
+            user_info.instagram_url = instagram_url
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
+    else:
+        user_info.instagram_url = None
+
+    if twitter_url:
+        twitter_url = add_https_prefix(twitter_url)
+        try:
+            user_info.twitter_url = twitter_url
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.index", _external=False, **status))
+    else:
+        user_info.twitter_url = None
 
     db.session.commit()
 
@@ -241,12 +282,22 @@ def change_company_info():
             status = Status(StatusType.ERROR, "Country ID is required.").get_status()
             return redirect(url_for("settings.change_company_info", _external=False, **status))
 
+        website_url = request.form.get("website", "")
+        if website_url:
+            website_url = add_https_prefix(website_url)
+            try:
+                company.website_url = website_url
+            except Exception as e:
+                status = Status(StatusType.ERROR, str(e)).get_status()
+                return redirect(url_for("settings.change_company_info", _external=False, **status))
+        else:
+            company.website_url = None
+
         company.description = request.form.get("description", "").strip()
         company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
         company.country_id = country_id
         company.preferred_round_id = preferred_round_id
         company.industry_id = industry_id
-        company.website_url = request.form.get("website", "")
         company.coordinates = Country.get_by_id(country_id).name  # type: ignore
         db.session.commit()
 

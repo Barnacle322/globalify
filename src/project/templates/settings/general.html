@@ -233,6 +233,42 @@
                             >
                         </div>
                     </div>
+                    <div class="col-span-full">
+                        <label for="linkedin" class="block text-sm font-medium leading-6">Linkedin</label>
+                        <div class="mt-2">
+                            <input
+                                id="linkedin"
+                                name="linkedin"
+                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                pattern="^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$"
+                                value="{{ user.user_info.linkedin_url if user.user_info.linkedin_url else '' }}"
+                            />
+                        </div>
+                    </div>
+                    <div class="col-span-full">
+                        <label for="instagram" class="block text-sm font-medium leading-6">Instagram</label>
+                        <div class="mt-2">
+                            <input
+                                id="instagram"
+                                name="instagram"
+                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                pattern="^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$"
+                                value="{{ user.user_info.instagram_url if user.user_info.instagram_url else '' }}"
+                            />
+                        </div>
+                    </div>
+                    <div class="col-span-full">
+                        <label for="twitter" class="block text-sm font-medium leading-6">Twitter</label>
+                        <div class="mt-2">
+                            <input
+                                id="twitter"
+                                name="twitter"
+                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
+                                value="{{ user.user_info.twitter_url if user.user_info.twitter_url else '' }}"
+                            />
+                        </div>
+                    </div>
                 </div>
                 <div class="mt-8 flex gap-5">
                     <button

@@ -329,9 +329,19 @@ class Investor(db.Model):
 
     @property
     def min_max_investment(self):
-        if self.min_investment is None or self.max_investment is None:
-            return None
-        return f"${self.min_investment:,} - ${self.max_investment:,}"
+        min_investment, max_investment = None, None
+        if self.min_investment is not None and self.min_investment != 0:
+            min_investment = f"${self.min_investment:,}"
+
+        if self.max_investment is not None and self.max_investment != 0:
+            max_investment = f"${self.max_investment:,}"
+
+        if min_investment and max_investment:
+            return f"{min_investment} - {max_investment}"
+        elif min_investment:
+            return f"{min_investment}+"
+        elif max_investment:
+            return f"Up to {max_investment}"
 
     @staticmethod
     def get_all() -> Sequence[Investor]:

@@ -192,6 +192,7 @@
                                     name="description"
                                     rows="3"
                                     class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                                    placeholder="Describe your company here."
                                 >
 {{ company.description if company.description else ''}}</textarea
                                 >
@@ -208,6 +209,7 @@
                                     class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                     required
                                 >
+                                    <option value="" disabled selected>Select a country</option>
                                     {% if countries %} {% for country in countries %} {% if
                                     company.country_id==country.id %}
                                     <option value="{{ country.id }}" selected>{{ country.name }}</option>
@@ -217,7 +219,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="sm:col-span-full">
+                        <div class="sm:col-span-3">
                             <label for="round" class="input-label">Preferred round*</label>
                             <div class="mt-2">
                                 <select
@@ -226,6 +228,7 @@
                                     class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                     required
                                 >
+                                    <option value="" disabled selected>Select a round</option>
                                     {% if rounds %} {% for round in rounds %} {% if company.preferred_round_id==round.id
                                     %}
                                     <option value="{{ round.id }}" selected>{{ round.name }}</option>
@@ -235,7 +238,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="sm:col-span-full">
+                        <div class="sm:col-span-3">
                             <label for="industry" class="block text-sm font-medium leading-6 text-gray-900"
                                 >Industry*</label
                             >
@@ -243,9 +246,10 @@
                                 <select
                                     id="industry"
                                     name="industry"
-                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                    class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 pr-8"
                                     required
                                 >
+                                    <option value="" disabled selected>Select an industry</option>
                                     {% for category, industry in industries.items() %}
                                     <optgroup label="{{ category }}">
                                         {% for ind in industry %} {% if company.industry_id==ind.id %}
@@ -262,12 +266,14 @@
                             <label for="website" class="input-label">Website</label>
                             <div class="mt-2">
                                 <input
-                                    type="url"
+                                    type="text"
                                     name="website"
                                     id="website"
                                     autocomplete="website"
                                     class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                    value="{{ company.website_url if company.website_url else ''}}"
+                                    value="{{ company.website_url if company.website_url else '' }}"
+                                    pattern="^(https?:\/\/)?(www{1}\.)?[\w\d]*\.([a-zA-Z]*\.)?([a-zA-Z]*)?(\/[a-zA-Z\/?=#&]*)?"
+                                    placeholder="example.com"
                                 />
                             </div>
                         </div>

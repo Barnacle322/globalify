@@ -121,7 +121,7 @@ pycparser==2.21
     # via cffi
 python-dateutil==2.8.2
     # via faker
-rapidfuzz==3.6.1
+rapidfuzz==3.9.0
     # via thefuzz
 requests==2.31.0
     # via

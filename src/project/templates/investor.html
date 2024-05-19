@@ -2,16 +2,16 @@
 {{super() }}
 <script src="/static/scripts/dashboard.js" defer></script>
 {% endblock %} {% block content %}
-<main class="mx-auto pt-5 flex flex-col min-h-screen items-center gap-5 pb-16 bg-[#EAEDF6] px-4 sm:px-9">
-    <section class="w-full max-w-7xl mx-auto flex gap-4 items-center">
+<main class="mx-auto pt-5 flex flex-col min-h-screen items-center gap-5 pb-16 px-4 sm:px-9">
+    <section class="w-full max-w-7xl flex gap-4 items-center">
         {% if investor.twitter %} {% set twitter = investor.twitter.split("/")[-1] %}
-        <img class="h-20 rounded-lg" src="https://unavatar.io/twitter/{{ twitter }}" alt="" loading="lazy" />
+        <img class="h-20 rounded-lg shadow-card" src="https://unavatar.io/twitter/{{ twitter }}" alt="" loading="lazy" />
         {% endif %}
         <h1 class="text-4xl font-semibold">{{ investor.full_name }}</h1>
     </section>
     <section class="w-wull max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
         {% if investor.location or investor.firm_name or investor.about %}
-        <article class="bg-white shadow-xl p-5 rounded-xl w-full">
+        <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <h2 class="text-xl font-medium">General</h2>
             <div class="flex flex-col gap-3 text-sm mt-5">
                 {% if investor.location %}
@@ -67,7 +67,7 @@
             </div>
         </article>
         {% endif %}
-        <article class="bg-white shadow-xl p-5 rounded-xl w-full">
+        <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <h2 class="text-xl font-medium">Investment</h2>
             {% if investor.rounds|length != 0 %}
             <div class="flex flex-col gap-2 mt-5">
@@ -222,7 +222,7 @@
             </div>
             {% endif %}
         </article>
-        <article class="bg-white shadow-xl p-5 rounded-xl w-full">
+        <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <h2 class="text-xl font-medium">Contacts</h2>
             <div class="flex flex-col gap-2 text-sm mt-5">
                 {% if investor.twitter %}

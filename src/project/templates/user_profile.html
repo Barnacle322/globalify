@@ -1,8 +1,14 @@
-{% extends "layouts/layout_app.html" %} {% block additional_scripts %}
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %} 
+{% block additional_scripts %}
 <script src="/static/scripts/dashboard.js" defer></script>
-{% endblock %} {% block title %} User Profile {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
-content %}
-<main class="mx-auto pt-5 flex flex-col min-h-screen items-center gap-5 pb-16 bg-[#EAEDF6] px-4 sm:px-9">
+<!-- prettier-ignore -->
+{% endblock %} 
+{% block title %} {{user.full_name }} {% endblock %} 
+{% block head %} {{ super() }} {% endblock %} 
+{% block content %}
+
+<main class="pt-5 flex flex-col min-h-screen items-center gap-5 pb-16 px-4 sm:px-9 w-full">
     <section class="w-wull max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
         <article class="bg-white shadow-xl p-5 rounded-xl w-full">
             <h2 class="text-2xl font-medium flex gap-4 items-center">

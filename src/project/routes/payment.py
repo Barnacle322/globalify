@@ -133,7 +133,7 @@ def create_checkout(
         "mode": "subscription",
         "success_url": success_url,
         "cancel_url": cancel_url,
-        "allow_promotion_codes": True
+        "allow_promotion_codes": True,
     }
     if trial_period_days:
         checkout_data["subscription_data"] = {"trial_period_days": trial_period}

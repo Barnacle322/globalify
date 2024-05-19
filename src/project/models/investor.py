@@ -34,9 +34,6 @@ from ..utils.fake_data import (
 from ..utils.info_lists import notable_investment_list
 from ..utils.scraper import populate_blockchain, populate_demo
 from ..utils.scraper_helpers.population import (
-    get_industries,
-    get_min_max_investment,
-    get_notable_investments,
     get_rounds,
 )
 from ..utils.suggestion import WEIGHTS, geocode_location

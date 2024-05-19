@@ -12,12 +12,16 @@ mkdir typesense-data
 
 Then, run the following command to pull the Typesense image and run it:
 
-```bash
-docker run --name typesense -p 8108:8108 -v $pwd\typesense-data:/data typesense/typesense:0.25.2 --data-dir /data --api-key=xyz --enable-cors
+### Windows
+
+```ps1
+docker run --name typesense -p 8108:8108 -v $pwd\typesense-data:/data typesense/typesense:26.0 --data-dir /data --api-key=xyz --enable-cors
 ```
 
+### MacOS/Linux
+
 ```bash
-docker run --name typesense -p 8108:8108 -v $(pwd)/typesense-data:/data typesense/typesense:0.25.2 --data-dir /data --api-key=xyz --enable-cors
+docker run --name typesense -p 8108:8108 -v $(pwd)/typesense-data:/data typesense/typesense:26.0 --data-dir /data --api-key=xyz --enable-cors
 ```
 
 This was only tested on Windows. If you are using a different OS, you may need to change the volume mount.
@@ -53,5 +57,5 @@ docker rm typesense
 To perform DDL operations, we have a CLI tool that can be used to create collections and define their schemas. The CLI tool is located in the `typesense-cli` directory. To use the CLI tool, run the following command:
 
 ```bash
-python -m src.project.utils.typesense.typesense_cli setup
+python -m src.project.utils.typesense_helpers.typesense_cli setup
 ```

@@ -575,9 +575,10 @@ def linkedin_user_oauth(app):
 
 def test_linkedin_callback(client, app, linkedin_user_oauth):
     with app.app_context():
-        with patch("src.project.routes.auth.oauth.linkedin") as mock_oauth, patch(
-            "src.project.routes.auth.api_call"
-        ) as mock_api_call:
+        with (
+            patch("src.project.routes.auth.oauth.linkedin") as mock_oauth,
+            patch("src.project.routes.auth.api_call") as mock_api_call,
+        ):
             mock_oauth.authorize_access_token.return_value = {"access_token": "mock_token"}
             mock_api_call.return_value = {
                 "elements": [{"handle~": {"emailAddress": "linkedinuseroauth@example.com"}}],
@@ -594,9 +595,10 @@ def test_linkedin_callback(client, app, linkedin_user_oauth):
 
 def test_linkedin_callback_authorization_failure(client, app):
     with app.app_context():
-        with patch("src.project.routes.auth.oauth.linkedin") as mock_oauth, patch(
-            "src.project.routes.auth.api_call"
-        ) as mock_api_call:
+        with (
+            patch("src.project.routes.auth.oauth.linkedin") as mock_oauth,
+            patch("src.project.routes.auth.api_call") as mock_api_call,
+        ):
             mock_oauth.authorize_access_token.return_value = {"access_token": "mock_token"}
             mock_api_call.return_value = {
                 "elements": [{"handle~": {"emailAddress": None}}],
@@ -612,9 +614,10 @@ def test_linkedin_callback_authorization_failure(client, app):
 
 def test_linkedin_with_existing_google_oauth_user(client, app, verified_user):
     with app.app_context():
-        with patch("src.project.routes.auth.oauth.linkedin") as mock_oauth, patch(
-            "src.project.routes.auth.api_call"
-        ) as mock_api_call:
+        with (
+            patch("src.project.routes.auth.oauth.linkedin") as mock_oauth,
+            patch("src.project.routes.auth.api_call") as mock_api_call,
+        ):
             mock_oauth.authorize_access_token.return_value = {"access_token": "mock_token"}
             mock_api_call.return_value = {
                 "elements": [{"handle~": {"emailAddress": "johndoe@example.com"}}],

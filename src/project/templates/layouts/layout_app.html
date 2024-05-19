@@ -32,17 +32,39 @@
         />
         <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
 
-        <meta name="view-transition" content="same-origin" />
         <link rel="stylesheet" href="/static/css/main.css" />
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="/static/vue/base.js"></script>
+        <script defer src="/static/vue/main.js"></script>
+
         <script src="/static/scripts/menu.js" defer></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
 
         {% block additional_scripts %}{% endblock %}
         <title>{% block title %}{% endblock %} | Globalify</title>
         {% endblock %}
     </head>
-    <body class="h-full">
-        <nav class="mx-auto flex h-20 w-full max-w-7xl items-center justify-center bg-white px-4">
+
+    <!-- prettier-ignore -->
+    {% import "components/aside.html" as aside %} 
+    {{ aside.render(current_user) }} 
+    {% import "components/aside_mobile.html" as aside_mobile %} 
+    {{ aside_mobile.render(current_user) }}
+    {% import "components/navbar.html" as navbar %} 
+    {{ navbar.render(current_user) }}
+
+    <body class="h-full" id="app">
+        <!-- <nav class="mx-auto flex h-20 w-full max-w-7xl items-center justify-center bg-white px-4">
             <div class="flex w-full max-w-7xl items-center gap-7">
                 <button class="block sm:hidden" onclick="openMenu()">
                     <svg
@@ -191,8 +213,25 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
 
-        {% block content %} {% endblock %}
+        <navbar-component @open-aside="asideExpanded = true, asideMinified=!asideMinified"></navbar-component>
+        <div class="mx-auto flex h-full min-h-screen w-full max-w-8xl">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component
+                    v-if="asideExpanded"
+                    @close-aside="asideExpanded = false"
+                ></aside-mobile-component>
+            </transition>
+            {% block content %} {% endblock %}
+        </div>
     </body>
 </html>

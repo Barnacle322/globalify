@@ -1,3 +1,4 @@
+import json
 import re
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
@@ -31,6 +32,7 @@ from ..models import (
     Waitlist,
     WaitlistCharge,
 )
+from ..schemas.investor import InvestorBookmarkSchema
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
@@ -169,7 +171,7 @@ def get_suggestions():
         "suggestions.html",
         investors=suggested_investors,
         access=access,
-        bookmarks=bookmarks,
+        bookmark_ids=bookmarks,
     )
 
 
@@ -198,7 +200,7 @@ def get_suggestion_investment_firms():
         "suggestions_investment_firms.html",
         investment_firms=suggested_investment_firms,
         access=access,
-        bookmarks=bookmarks,
+        bookmark_ids=bookmarks,
     )
 
 
@@ -398,7 +400,7 @@ def search():
         countries=Country.get_all(),
         unpaid=unpaid,
         user=current_user,
-        bookmarks=bookmarks,
+        bookmark_ids=bookmarks,
     )
 
 
@@ -422,6 +424,7 @@ def demo_search():
         per_page=9,
     )
     investors = result.get("investors")
+
     return jsonify(investors)
 
 
@@ -461,17 +464,53 @@ def toggle_bookmark_investor(investor_id):
     return jsonify({"bookmarked": True}, 200)
 
 
-@main.get("/bookmarks")
+@main.get("/investors/bookmarks")
 @login_required
 @check_user_info_complete
 @check_verification
 def get_investor_bookmarks():
     user_id = current_user.id
-    investors = InvestorBookmark.get_investors_by_user_id(user_id)
 
-    investment_firms = InvestmentFirmBookmark.get_investment_firms_by_user_id(user_id)
+    page = request.args.get("page", default=1, type=int)
+    page_size = 10
+    offset = (page - 1) * page_size
 
-    return render_template("bookmarks.html", investors=investors, investment_firms=investment_firms)
+    bookmarks = InvestorBookmark.get_investors_by_user_id(user_id, offset=offset, limit=page_size)
+
+    investors = []
+    for db_investor in bookmarks:
+        if not isinstance(db_investor, Investor):
+            return jsonify({"status": "error", "message": "Investors not found."}, 404)
+
+        investor = InvestorBookmarkSchema(
+            id=db_investor.id,
+            name=db_investor.first_name + " " + db_investor.last_name,
+            position=db_investor.position,
+            firm_name=db_investor.firm_name,
+        )
+        investors.append(json.loads(investor.model_dump_json()))
+
+    return jsonify({"bookmarks": investors})
+
+
+# @main.get("/investment-firms/bookmarks")
+# @login_required
+# @check_user_info_complete
+# @check_verification
+# def get_investment_firms_bookmarks():
+#     user_id = current_user.id
+
+#     page = request.args.get("page", default=1, type=int)
+#     page_size = 1
+#     offset = (page - 1) * page_size
+
+#     investment_firms = InvestmentFirmBookmark.get_investment_firms_by_user_id(user_id)
+
+#     investments = InvestorBookmarkSchema().dump(investment_firms, many=True)
+
+#     print("=====================================")
+
+#     return jsonify({"bookmarks": investment_firms})
 
 
 @main.route("/investment-firm/<slug>")

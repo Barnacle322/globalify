@@ -1011,7 +1011,9 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
         super().__init__(**kwargs)
 
     @staticmethod
-    def get_investors_by_user_id(user_id: int, get_only_with_id: bool = False) -> Sequence[int] | Sequence[Investor]:
+    def get_investors_by_user_id(
+        user_id: int, offset: int = 1, limit: int = 10, get_only_with_id: bool = False
+    ) -> Sequence[int] | Sequence[Investor]:
         if get_only_with_id:
             return (
                 db.session.execute(
@@ -1028,6 +1030,8 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
                 .options(joinedload(Investor.rounds), joinedload(Investor.industries))
                 .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
                 .where(InvestorBookmark.user_id == user_id)
+                .offset(offset)
+                .limit(limit)
             )
             .unique()
             .all()

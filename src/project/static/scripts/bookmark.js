@@ -34,10 +34,8 @@ async function toggleInvestmentFirmBookmark(firmId) {
             },
         });
         if (response.ok) {
-            console.log("Here");
             const data = await response.json();
             var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
-            console.log(data);
             if (data[0].bookmarked) {
                 svg.style.fill = "#FFC9FC";
             } else {

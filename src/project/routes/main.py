@@ -32,7 +32,7 @@ from ..models import (
     Waitlist,
     WaitlistCharge,
 )
-from ..schemas.investor import InvestorBookmarkSchema
+from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
@@ -299,7 +299,7 @@ def search_investment_firms():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         unpaid=unpaid,
-        bookmarks=bookmarks,
+        bookmark_ids=bookmarks,
     )
 
 
@@ -487,30 +487,44 @@ def get_investor_bookmarks():
             name=db_investor.first_name + " " + db_investor.last_name,
             position=db_investor.position,
             firm_name=db_investor.firm_name,
+            about=db_investor.about,
+            twitter=db_investor.twitter,
+            slug=db_investor.slug,
         )
         investors.append(json.loads(investor.model_dump_json()))
 
     return jsonify({"bookmarks": investors})
 
 
-# @main.get("/investment-firms/bookmarks")
-# @login_required
-# @check_user_info_complete
-# @check_verification
-# def get_investment_firms_bookmarks():
-#     user_id = current_user.id
+@main.get("/investment-firms/bookmarks")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investment_firms_bookmarks():
+    user_id = current_user.id
 
-#     page = request.args.get("page", default=1, type=int)
-#     page_size = 1
-#     offset = (page - 1) * page_size
+    page = request.args.get("page", default=1, type=int)
+    page_size = 3
+    offset = (page - 1) * page_size
 
-#     investment_firms = InvestmentFirmBookmark.get_investment_firms_by_user_id(user_id)
+    bookmarks = InvestmentFirmBookmark.get_investment_firms_by_user_id(user_id, offset=offset, limit=page_size)
 
-#     investments = InvestorBookmarkSchema().dump(investment_firms, many=True)
+    investment_firms = []
 
-#     print("=====================================")
+    for db_investment_firm in bookmarks:
+        if not isinstance(db_investment_firm, InvestmentFirm):
+            return jsonify({"status": "error", "message": "Investment Firms not found."}, 404)
 
-#     return jsonify({"bookmarks": investment_firms})
+        investment_firm = InvestmentFirmBookmarkSchema(
+            id=db_investment_firm.id,
+            name=db_investment_firm.name,
+            location=db_investment_firm.location,
+            about=db_investment_firm.about,
+            slug=db_investment_firm.slug,
+        )
+        investment_firms.append(json.loads(investment_firm.model_dump_json()))
+
+    return jsonify({"bookmarks": investment_firms})
 
 
 @main.route("/investment-firm/<slug>")

@@ -141,7 +141,7 @@ const Bookmark = defineComponent({
             }
         },
 
-        async toggleInvestorBookmark(investorId) {
+        async UnbookmarkInvestor(investorId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
                 const response = await fetch(`/investor/${investorId}/bookmark`, {
@@ -154,7 +154,6 @@ const Bookmark = defineComponent({
 
                 if (response.ok) {
                     this.bookmarks = this.bookmarks.filter((investor) => investor.id !== investorId);
-                    console.log("Bookmarked investor removed");
 
                     this.$emit("bookmarked", { investorId: investorId, status: false });
                 } else {
@@ -164,7 +163,9 @@ const Bookmark = defineComponent({
                 console.error("Error removing bookmark:", error.message);
             }
         },
-        async toggleInvestmentFirmBookmark(firmId) {
+
+        async UnbookmarkInvestmentFirm(firmId) {
+            const csrfToken = document.getElementById("csrf_token").value;
             try {
                 const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
                     method: "POST",
@@ -191,6 +192,9 @@ const Bookmark = defineComponent({
             } else {
                 return "#";
             }
+        },
+        getTwitterHandle(url) {
+            return url.split("/").pop();
         },
     },
     async mounted() {

@@ -43,12 +43,34 @@
                     class="transition-color relative flex items-center gap-4 rounded-lg p-2 ease-in-out hover:bg-gray-50"
                 >
                     <a class="flex" :href="computedHref(bookmark)">
+                        <img
+                            v-if="bookmark.twitter && selectedTab === 'investor'"
+                            :src="'https://unavatar.io/twitter/' + getTwitterHandle(bookmark.twitter)"
+                            class="size-10 rounded-md bg-black"
+                            loading="lazy"
+                        />
+                        <img
+                            v-else-if="selectedTab === 'investor'"
+                            src="/static/elements/pfp_placeholder.jpeg"
+                            class="size-10 rounded-md bg-black"
+                        />
                         <div class="flex-col items-center px-2 text-sm">
                             <div class="flex items-baseline gap-1">
-                                <span v-text="bookmark.name" class="font-semibold"></span>
+                                <span v-if="bookmark.name" v-text="bookmark.name" class="font-semibold"></span>
                                 <span class="font-semibold">·</span>
+                                <span
+                                    v-if="bookmark.firm_name && selectedTab === 'investor'"
+                                    class="text-xs text-gray-500"
+                                    v-text="bookmark.firm_name"
+                                ></span>
+                                <span
+                                    v-if="selectedTab === 'investment_firm'"
+                                    class="text-xs text-gray-500"
+                                    v-text="bookmark.location"
+                                ></span>
                             </div>
-                            <p v-text="bookmark.position"></p>
+
+                            <p v-text="bookmark.about"></p>
                         </div>
                     </a>
                     <div class="absolute right-0 top-0">
@@ -76,7 +98,7 @@
                             >
                                 <button
                                     ref="removebookmark"
-                                    @click="selectedTab === 'investor' ? toggleInvestorBookmark(bookmark.id) : selectedTab === 'investment_firm' ? toggleInvestmentFirmBookmark(bookmark.id) : null; openedDropdownId = null;"
+                                    @click="selectedTab === 'investor' ? UnbookmarkInvestor(bookmark.id) : selectedTab === 'investment_firm' ? UnbookmarkInvestmentFirm(bookmark.id) : null; openedDropdownId = null;"
                                     class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-gray-200"
                                 >
                                     Unbookmark

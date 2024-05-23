@@ -1577,7 +1577,7 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_investment_firms_by_user_id(
-        user_id: int, get_only_with_id: bool = False
+        user_id: int, offset: int = 1, limit: int = 10, get_only_with_id: bool = False
     ) -> Sequence[int] | Sequence[InvestmentFirmBookmark]:
         if get_only_with_id:
             return (
@@ -1595,6 +1595,8 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
                 .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
                 .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
                 .where(InvestmentFirmBookmark.user_id == user_id)
+                .offset(offset)
+                .limit(limit)
             )
             .unique()
             .all()

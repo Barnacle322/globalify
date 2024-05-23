@@ -141,7 +141,7 @@ const Bookmark = defineComponent({
             }
         },
 
-        async UnbookmarkInvestor(investorId) {
+        async unbookmarkInvestor(investorId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
                 const response = await fetch(`/investor/${investorId}/bookmark`, {

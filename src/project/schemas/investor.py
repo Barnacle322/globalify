@@ -14,6 +14,5 @@ class InvestorBookmarkSchema(BaseModel):
 class InvestmentFirmBookmarkSchema(BaseModel):
     id: int
     name: str
-    location: str
     about: str
     slug: str

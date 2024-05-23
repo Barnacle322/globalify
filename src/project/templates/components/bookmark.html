@@ -55,22 +55,17 @@
                             class="size-10 rounded-md bg-black"
                         />
                         <div class="flex-col items-center px-2 text-sm">
-                            <div class="flex items-baseline gap-1">
-                                <span v-if="bookmark.name" v-text="bookmark.name" class="font-semibold"></span>
-                                <span class="font-semibold">·</span>
+                            <div class="flex flex-wrap items-baseline gap-x-1">
+                                <span v-if="bookmark.name" v-text="bookmark.name" class="font-semibold w-max"></span>
+                                <span v-if="selectedTab === 'investor'" class="font-semibold">·</span>
                                 <span
                                     v-if="bookmark.firm_name && selectedTab === 'investor'"
-                                    class="text-xs text-gray-500"
+                                    class="text-xs text-gray-500 w-max"
                                     v-text="bookmark.firm_name"
-                                ></span>
-                                <span
-                                    v-if="selectedTab === 'investment_firm'"
-                                    class="text-xs text-gray-500"
-                                    v-text="bookmark.location"
                                 ></span>
                             </div>
 
-                            <p v-text="bookmark.about"></p>
+                            <p class="line-clamp-3" v-text="bookmark.about"></p>
                         </div>
                     </a>
                     <div class="absolute right-0 top-0">
@@ -98,7 +93,7 @@
                             >
                                 <button
                                     ref="removebookmark"
-                                    @click="selectedTab === 'investor' ? UnbookmarkInvestor(bookmark.id) : selectedTab === 'investment_firm' ? UnbookmarkInvestmentFirm(bookmark.id) : null; openedDropdownId = null;"
+                                    @click="selectedTab === 'investor' ? unbookmarkInvestor(bookmark.id) : selectedTab === 'investment_firm' ? UnbookmarkInvestmentFirm(bookmark.id) : null; openedDropdownId = null;"
                                     class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-gray-200"
                                 >
                                     Unbookmark
@@ -108,7 +103,7 @@
                     </div>
                 </div>
             </div>
-            <div v-else class="w-full py-5 text-center text-sm text-gray-700">
+            <div v-else-if="!loading" class="w-full py-5 text-center text-sm text-gray-700">
                 <span class="flex items-center justify-center gap-1"
                     >Try adding your first bookmark by clicking (
                     <svg
@@ -129,7 +124,7 @@
                 </span>
             </div>
             <div class="h-2" id="bookmark-sentinel"></div>
-            <div class="m-3 flex items-center justify-center" v-show="loading && reachedEnd">
+            <div class="m-3 flex items-center justify-center" v-if="loading && reachedEnd">
                 <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path

@@ -518,7 +518,6 @@ def get_investment_firms_bookmarks():
         investment_firm = InvestmentFirmBookmarkSchema(
             id=db_investment_firm.id,
             name=db_investment_firm.name,
-            location=db_investment_firm.location,
             about=db_investment_firm.about,
             slug=db_investment_firm.slug,
         )

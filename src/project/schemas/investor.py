@@ -6,7 +6,7 @@ class InvestorBookmarkSchema(BaseModel):
     name: str
     position: str | None
     firm_name: str | None
-    about: str
+    about: str | None
     twitter: str | None
     slug: str
 
@@ -14,5 +14,5 @@ class InvestorBookmarkSchema(BaseModel):
 class InvestmentFirmBookmarkSchema(BaseModel):
     id: int
     name: str
-    about: str
+    about: str | None
     slug: str

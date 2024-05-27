@@ -35,7 +35,7 @@ const AsideMobileComponent = defineComponent({
 
 const Bookmark = defineComponent({
     template: "#bookmark-template",
-    emits: ["bookmarked"],
+    emits: ["bookmarked", "closebookmarks"],
     data() {
         return {
             bookmarks: [],

@@ -1014,24 +1014,18 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_investors_by_user_id(
         user_id: int, offset: int = 1, limit: int = 10, get_only_with_id: bool = False
     ) -> Sequence[int] | Sequence[Investor]:
+        query = (
+            db.select(Investor)
+            .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
+            .where(InvestorBookmark.user_id == user_id)
+        )
+
         if get_only_with_id:
-            return (
-                db.session.execute(
-                    db.select(Investor.id)
-                    .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
-                    .where(InvestorBookmark.user_id == user_id)
-                )
-                .scalars()
-                .all()
-            )
+            return db.session.execute(query.with_only_columns(Investor.id)).scalars().all()
+
         return (
             db.session.scalars(
-                db.select(Investor)
-                .options(joinedload(Investor.rounds), joinedload(Investor.industries))
-                .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
-                .where(InvestorBookmark.user_id == user_id)
-                .offset(offset)
-                .limit(limit)
+                query.options(joinedload(Investor.rounds), joinedload(Investor.industries)).offset(offset).limit(limit)
             )
             .unique()
             .all()
@@ -1579,22 +1573,18 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_investment_firms_by_user_id(
         user_id: int, offset: int = 1, limit: int = 10, get_only_with_id: bool = False
     ) -> Sequence[int] | Sequence[InvestmentFirmBookmark]:
+        query = (
+            db.select(InvestmentFirm)
+            .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
+            .where(InvestmentFirmBookmark.user_id == user_id)
+        )
+
         if get_only_with_id:
-            return (
-                db.session.execute(
-                    db.select(InvestmentFirm.id)
-                    .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
-                    .where(InvestmentFirmBookmark.user_id == user_id)
-                )
-                .scalars()
-                .all()
-            )
+            return db.session.execute(query.with_only_columns(InvestmentFirm.id)).scalars().all()
+
         return (
             db.session.scalars(
-                db.select(InvestmentFirm)
-                .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
-                .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
-                .where(InvestmentFirmBookmark.user_id == user_id)
+                query.options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
                 .offset(offset)
                 .limit(limit)
             )

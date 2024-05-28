@@ -1,0 +1,140 @@
+{% macro render(user) %}
+<template id="bookmark-template">
+    <div
+        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col divide-y border bg-white shadow-xl sm:absolute sm:right-0 sm:top-7 sm:h-auto sm:max-h-96 sm:w-96 sm:rounded-xl"
+    >
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="p-5 pb-0">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-semibold">Bookmarks</h3>
+                <svg
+                    @click="$emit('closebookmarks')"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-7 cursor-pointer rounded-md p-1 hover:bg-gray-50"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </div>
+            <ul class="mt-2 flex gap-3 text-sm">
+                <li
+                    @click="selectedTab = 'investor'"
+                    data-selected="true"
+                    ref="investor"
+                    class="border-gray-300 py-2 transition-all ease-in-out hover:border-b-[3px] data-[selected=true]:border-b-[3px] data-[selected=true]:border-gray-800"
+                >
+                    <button>Investor</button>
+                </li>
+                <li
+                    @click="selectedTab = 'investment_firm'"
+                    ref="investment_firm"
+                    class="border-gray-300 py-2 transition-all ease-in-out hover:border-b-[3px] data-[selected=true]:border-b-[3px] data-[selected=true]:border-gray-800"
+                >
+                    <button>Investment Firm</button>
+                </li>
+            </ul>
+        </div>
+        <div class="flex flex-col gap-1 overflow-y-auto p-5 pt-3">
+            <div v-if="bookmarks.length > 0" v-for="bookmark in bookmarks" :key="bookmark.id">
+                <div
+                    class="transition-color relative flex items-center gap-4 rounded-lg p-2 ease-in-out hover:bg-gray-50"
+                >
+                    <a class="flex" :href="computedHref(bookmark)">
+                        <img
+                            v-if="bookmark.twitter && selectedTab === 'investor'"
+                            :src="'https://unavatar.io/twitter/' + getTwitterHandle(bookmark.twitter)"
+                            class="size-10 rounded-md bg-black"
+                            loading="lazy"
+                        />
+                        <img
+                            v-else-if="selectedTab === 'investor'"
+                            src="/static/elements/pfp_placeholder.jpeg"
+                            class="size-10 rounded-md bg-black"
+                        />
+                        <div class="flex-col items-center px-2 text-sm">
+                            <div class="flex flex-wrap items-baseline gap-x-1">
+                                <span v-if="bookmark.name" v-text="bookmark.name" class="font-semibold w-max"></span>
+                                <span v-if="selectedTab === 'investor'" class="font-semibold">·</span>
+                                <span
+                                    v-if="bookmark.firm_name && selectedTab === 'investor'"
+                                    class="text-xs text-gray-500 w-max"
+                                    v-text="bookmark.firm_name"
+                                ></span>
+                            </div>
+
+                            <p class="line-clamp-3" v-text="bookmark.about"></p>
+                        </div>
+                    </a>
+                    <div class="absolute right-0 top-0">
+                        <button @click="openedDropdownId = openedDropdownId === bookmark.id ? null : bookmark.id">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="m-1 size-5"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+                                />
+                            </svg>
+                        </button>
+                        <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
+                            <div
+                                v-if="openedDropdownId === bookmark.id"
+                                @click
+                                class="absolute right-0 top-8 z-50 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1"
+                            >
+                                <button
+                                    ref="removebookmark"
+                                    @click="selectedTab === 'investor' ? unbookmarkInvestor(bookmark.id) : selectedTab === 'investment_firm' ? UnbookmarkInvestmentFirm(bookmark.id) : null; openedDropdownId = null;"
+                                    class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-gray-200"
+                                >
+                                    Unbookmark
+                                </button>
+                            </div>
+                        </transition>
+                    </div>
+                </div>
+            </div>
+            <div v-else-if="!loading" class="w-full py-5 text-center text-sm text-gray-700">
+                <span class="flex items-center justify-center gap-1"
+                    >Try adding your first bookmark by clicking (
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-4"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
+                        ></path>
+                    </svg>
+                    )
+                </span>
+            </div>
+            <div class="h-2" id="bookmark-sentinel"></div>
+            <div class="m-3 flex items-center justify-center" v-if="loading && reachedEnd">
+                <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+</template>
+{% endmacro %}

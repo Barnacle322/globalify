@@ -12,7 +12,6 @@ async function toggleInvestorBookmark(investorId) {
             const data = await response.json();
             var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
             if (data[0].bookmarked) {
-                console.log("Here");
                 svg.style.fill = "#FFC9FC";
             } else {
                 svg.style.fill = "none";
@@ -34,10 +33,8 @@ async function toggleInvestmentFirmBookmark(firmId) {
             },
         });
         if (response.ok) {
-            console.log("Here");
             const data = await response.json();
             var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
-            console.log(data);
             if (data[0].bookmarked) {
                 svg.style.fill = "#FFC9FC";
             } else {

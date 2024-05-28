@@ -1011,30 +1011,34 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
         super().__init__(**kwargs)
 
     @staticmethod
-    def get_investors_by_user_id(user_id: int, get_only_with_id: bool = False) -> Sequence[int] | Sequence[Investor]:
-        if get_only_with_id:
-            return (
-                db.session.execute(
-                    db.select(Investor.id)
-                    .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
-                    .where(InvestorBookmark.user_id == user_id)
-                )
-                .scalars()
-                .all()
-            )
+    def get_by_user_id(user_id: int, offset: int = 1, limit: int = 10) -> Sequence[Investor]:
         return (
             db.session.scalars(
                 db.select(Investor)
-                .options(joinedload(Investor.rounds), joinedload(Investor.industries))
                 .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
                 .where(InvestorBookmark.user_id == user_id)
+                .options(joinedload(Investor.rounds), joinedload(Investor.industries))
+                .offset(offset)
+                .limit(limit)
             )
             .unique()
             .all()
         )
 
     @staticmethod
-    def get_by_investor_id(investor_id: int, user_id: int) -> InvestorBookmark | None:
+    def get_id_list(user_id: int) -> Sequence[int]:
+        return (
+            db.session.execute(
+                db.select(Investor.id)
+                .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
+                .where(InvestorBookmark.user_id == user_id)
+            )
+            .scalars()
+            .all()
+        )
+
+    @staticmethod
+    def get_by_id(investor_id: int, user_id: int) -> InvestorBookmark | None:
         return db.session.scalars(
             db.select(InvestorBookmark).where(
                 InvestorBookmark.investor_id == investor_id, InvestorBookmark.user_id == user_id
@@ -1572,32 +1576,34 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
         super().__init__(**kwargs)
 
     @staticmethod
-    def get_investment_firms_by_user_id(
-        user_id: int, get_only_with_id: bool = False
-    ) -> Sequence[int] | Sequence[InvestmentFirmBookmark]:
-        if get_only_with_id:
-            return (
-                db.session.execute(
-                    db.select(InvestmentFirm.id)
-                    .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
-                    .where(InvestmentFirmBookmark.user_id == user_id)
-                )
-                .scalars()
-                .all()
-            )
+    def get_by_user_id(user_id: int, offset: int = 1, limit: int = 10) -> Sequence[InvestmentFirmBookmark]:
         return (
             db.session.scalars(
                 db.select(InvestmentFirm)
-                .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
                 .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
                 .where(InvestmentFirmBookmark.user_id == user_id)
+                .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
+                .offset(offset)
+                .limit(limit)
             )
             .unique()
             .all()
         )
 
     @staticmethod
-    def get_by_investment_firm_id(investment_firm_id: int, user_id: int) -> InvestmentFirmBookmark | None:
+    def get_id_list(user_id: int) -> Sequence[int]:
+        return (
+            db.session.execute(
+                db.select(InvestmentFirm.id)
+                .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
+                .where(InvestmentFirmBookmark.user_id == user_id)
+            )
+            .scalars()
+            .all()
+        )
+
+    @staticmethod
+    def get_by_id(investment_firm_id: int, user_id: int) -> InvestmentFirmBookmark | None:
         return db.session.scalars(
             db.select(InvestmentFirmBookmark).where(
                 InvestmentFirmBookmark.investment_firm_id == investment_firm_id,

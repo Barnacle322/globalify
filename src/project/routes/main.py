@@ -1,3 +1,4 @@
+import json
 import re
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
@@ -31,6 +32,7 @@ from ..models import (
     Waitlist,
     WaitlistCharge,
 )
+from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
@@ -160,7 +162,7 @@ def get_suggestions():
 
     company = Company.get_by_user_id(current_user.id)
 
-    bookmarks = InvestorBookmark.get_investors_by_user_id(current_user.id, get_only_with_id=True)
+    bookmarks = InvestorBookmark.get_id_list(current_user.id)
 
     check_weights(WEIGHTS)
     suggested_investors = Investor.get_suggestions(company=company, quantity=15)
@@ -169,7 +171,7 @@ def get_suggestions():
         "suggestions.html",
         investors=suggested_investors,
         access=access,
-        bookmarks=bookmarks,
+        bookmark_ids=bookmarks,
     )
 
 
@@ -189,7 +191,7 @@ def get_suggestion_investment_firms():
 
     company = Company.get_by_user_id(current_user.id)
 
-    bookmarks = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id, get_only_with_id=True)
+    bookmarks = InvestmentFirmBookmark.get_id_list(current_user.id)
 
     check_weights(WEIGHTS)
     suggested_investment_firms = InvestmentFirm.get_suggestions(company=company, quantity=15)
@@ -198,7 +200,7 @@ def get_suggestion_investment_firms():
         "suggestions_investment_firms.html",
         investment_firms=suggested_investment_firms,
         access=access,
-        bookmarks=bookmarks,
+        bookmark_ids=bookmarks,
     )
 
 
@@ -264,7 +266,7 @@ def search_investment_firms():
     )
     investment_firms = result.get("investment_firms")
 
-    bookmarks = InvestmentFirmBookmark.get_investment_firms_by_user_id(current_user.id, get_only_with_id=True)
+    bookmarks = InvestmentFirmBookmark.get_id_list(current_user.id)
 
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False
@@ -297,7 +299,7 @@ def search_investment_firms():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         unpaid=unpaid,
-        bookmarks=bookmarks,
+        bookmark_ids=bookmarks,
     )
 
 
@@ -365,7 +367,7 @@ def search():
     )
     investors = result.get("investors")
 
-    bookmarks = InvestorBookmark.get_investors_by_user_id(current_user.id, get_only_with_id=True)
+    bookmarks = InvestorBookmark.get_id_list(current_user.id)
 
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False
@@ -398,7 +400,7 @@ def search():
         countries=Country.get_all(),
         unpaid=unpaid,
         user=current_user,
-        bookmarks=bookmarks,
+        bookmark_ids=bookmarks,
     )
 
 
@@ -422,6 +424,7 @@ def demo_search():
         per_page=9,
     )
     investors = result.get("investors")
+
     return jsonify(investors)
 
 
@@ -446,7 +449,7 @@ def toggle_bookmark_investor(investor_id):
     if not investor:
         return jsonify({"status": "error", "message": "Investor not found."}, 404)
 
-    bookmark = InvestorBookmark.get_by_investor_id(investor.id, current_user.id)
+    bookmark = InvestorBookmark.get_by_id(investor.id, current_user.id)
 
     if bookmark:
         db.session.delete(bookmark)
@@ -461,17 +464,66 @@ def toggle_bookmark_investor(investor_id):
     return jsonify({"bookmarked": True}, 200)
 
 
-@main.get("/bookmarks")
+@main.get("/investors/bookmarks")
 @login_required
 @check_user_info_complete
 @check_verification
 def get_investor_bookmarks():
     user_id = current_user.id
-    investors = InvestorBookmark.get_investors_by_user_id(user_id)
 
-    investment_firms = InvestmentFirmBookmark.get_investment_firms_by_user_id(user_id)
+    page = request.args.get("page", default=1, type=int)
+    limit = 10
+    offset = (page - 1) * limit
 
-    return render_template("bookmarks.html", investors=investors, investment_firms=investment_firms)
+    bookmarks = InvestorBookmark.get_by_user_id(user_id, offset=offset, limit=limit)
+
+    investors = []
+    for db_investor in bookmarks:
+        if not isinstance(db_investor, Investor):
+            return jsonify({"status": "error", "message": "Investors not found."}, 404)
+
+        investor = InvestorBookmarkSchema(
+            id=db_investor.id,
+            name=db_investor.first_name + " " + db_investor.last_name,
+            position=db_investor.position,
+            firm_name=db_investor.firm_name,
+            about=db_investor.about,
+            twitter=db_investor.twitter,
+            slug=db_investor.slug,
+        )
+        investors.append(json.loads(investor.model_dump_json()))
+
+    return jsonify({"bookmarks": investors})
+
+
+@main.get("/investment-firms/bookmarks")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investment_firms_bookmarks():
+    user_id = current_user.id
+
+    page = request.args.get("page", default=1, type=int)
+    limit = 10
+    offset = (page - 1) * limit
+
+    bookmarks = InvestmentFirmBookmark.get_by_user_id(user_id, offset=offset, limit=limit)
+
+    investment_firms = []
+
+    for db_investment_firm in bookmarks:
+        if not isinstance(db_investment_firm, InvestmentFirm):
+            return jsonify({"status": "error", "message": "Investment Firms not found."}, 404)
+
+        investment_firm = InvestmentFirmBookmarkSchema(
+            id=db_investment_firm.id,
+            name=db_investment_firm.name,
+            about=db_investment_firm.about,
+            slug=db_investment_firm.slug,
+        )
+        investment_firms.append(json.loads(investment_firm.model_dump_json()))
+
+    return jsonify({"bookmarks": investment_firms})
 
 
 @main.route("/investment-firm/<slug>")
@@ -496,7 +548,7 @@ def toggle_bookmark_investment_firm(firm_id):
     if not investment_firm:
         return jsonify({"status": "error", "message": "Investment Firm not found."}, 404)
 
-    bookmark = InvestmentFirmBookmark.get_by_investment_firm_id(investment_firm.id, current_user.id)
+    bookmark = InvestmentFirmBookmark.get_by_id(investment_firm.id, current_user.id)
 
     if bookmark:
         db.session.delete(bookmark)

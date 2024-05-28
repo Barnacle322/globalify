@@ -3,6 +3,7 @@ createApp({
         AsideComponent,
         AsideMobileComponent,
         NavbarComponent,
+        Bookmark,
     },
     watch: {
         asideMinified(value) {

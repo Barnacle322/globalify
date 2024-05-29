@@ -16,6 +16,7 @@ def user_profile(user_id):
 
     data = db.session.execute(
         db.select(UserInfo, User, Company, Round, Industry, Country)
+        .select_from(UserInfo, User, Company, Round, Industry, Country)
         .outerjoin(Industry, Industry.id == Company.industry_id)
         .outerjoin(Round, Round.id == Company.preferred_round_id)
         .outerjoin(Country, Country.id == Company.country_id)

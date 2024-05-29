@@ -103,6 +103,10 @@ def change_personal_info():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     first_name = request.form.get("first-name")
+    email_public = request.form.get("email_public")
+    linkedin_public = request.form.get("linkedin_public")
+    instagram_public = request.form.get("instagram_public")
+    twitter_public = request.form.get("twitter_public")
     last_name = request.form.get("last-name")
     username = request.form.get("username")
     bio = request.form.get("bio")
@@ -183,6 +187,11 @@ def change_personal_info():
             return redirect(url_for("settings.index", _external=False, **status))
     else:
         user_info.twitter_url = None
+
+    user_info.email_public = bool(email_public)
+    user_info.linkedin_public = bool(linkedin_public)
+    user_info.instagram_public = bool(instagram_public)
+    user_info.twitter_public = bool(twitter_public)
 
     db.session.commit()
 

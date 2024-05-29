@@ -197,6 +197,21 @@
                             />
                         </div>
                         <span class="text-xs text-slate-700">Logged in with OAuth</span>
+                        <div class="mt-2">
+                            <label class="inline-flex items-center cursor-pointer">
+                                {% if user.user_info.email_public %}
+                                <input type="checkbox" name="email_public" value="True" class="sr-only peer" checked />
+                                {% else %}
+                                <input type="checkbox" name="email_public" value="True" class="sr-only peer" />
+                                {% endif %}
+                                <div
+                                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sky-500"
+                                ></div>
+                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+                                    >Show in profile</span
+                                >
+                            </label>
+                        </div>
                         {% endif %}
                     </div>
                     <div class="col-span-full">
@@ -211,7 +226,7 @@
                                 id="username"
                                 autocomplete="username"
                                 pattern="[a-zA-Z0-9_]{3,20}"
-                                class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2 sm:pl-[168px]"
+                                class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2 sm:pl-[148px]"
                                 minlength="4"
                                 placeholder="janesmith"
                                 required
@@ -244,6 +259,27 @@
                                 value="{{ user.user_info.linkedin_url if user.user_info.linkedin_url else '' }}"
                             />
                         </div>
+                        <div class="mt-2">
+                            <label class="inline-flex items-center cursor-pointer">
+                                {% if user.user_info.linkedin_public %}
+                                <input
+                                    type="checkbox"
+                                    name="linkedin_public"
+                                    value="True"
+                                    class="sr-only peer"
+                                    checked
+                                />
+                                {% else %}
+                                <input type="checkbox" name="linkedin_public" value="True" class="sr-only peer" />
+                                {% endif %}
+                                <div
+                                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sky-500"
+                                ></div>
+                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+                                    >Show in profile</span
+                                >
+                            </label>
+                        </div>
                     </div>
                     <div class="col-span-full">
                         <label for="instagram" class="block text-sm font-medium leading-6">Instagram</label>
@@ -256,6 +292,27 @@
                                 value="{{ user.user_info.instagram_url if user.user_info.instagram_url else '' }}"
                             />
                         </div>
+                        <div class="mt-2">
+                            <label class="inline-flex items-center cursor-pointer">
+                                {% if user.user_info.instagram_public %}
+                                <input
+                                    type="checkbox"
+                                    name="instagram_public"
+                                    value="True"
+                                    class="sr-only peer"
+                                    checked
+                                />
+                                {% else %}
+                                <input type="checkbox" name="instagram_public" value="True" class="sr-only peer" />
+                                {% endif %}
+                                <div
+                                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sky-500"
+                                ></div>
+                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+                                    >Show in profile</span
+                                >
+                            </label>
+                        </div>
                     </div>
                     <div class="col-span-full">
                         <label for="twitter" class="block text-sm font-medium leading-6">Twitter</label>
@@ -267,6 +324,27 @@
                                 pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
                                 value="{{ user.user_info.twitter_url if user.user_info.twitter_url else '' }}"
                             />
+                        </div>
+                        <div class="mt-2">
+                            <label class="inline-flex items-center cursor-pointer">
+                                {% if user.user_info.twitter_public %}
+                                <input
+                                    type="checkbox"
+                                    name="twitter_public"
+                                    value="True"
+                                    class="sr-only peer"
+                                    checked
+                                />
+                                {% else %}
+                                <input type="checkbox" name="twitter_public" value="True" class="sr-only peer" />
+                                {% endif %}
+                                <div
+                                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sky-500"
+                                ></div>
+                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+                                    >Show in profile</span
+                                >
+                            </label>
                         </div>
                     </div>
                 </div>

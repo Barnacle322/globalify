@@ -4,7 +4,7 @@
 <script src="/static/scripts/dashboard.js" defer></script>
 <!-- prettier-ignore -->
 {% endblock %} 
-{% block title %} {{user.full_name }} {% endblock %} 
+{% block title %} {{user_info.full_name }} {% endblock %} 
 {% block head %} {{ super() }} {% endblock %} 
 {% block content %}
 
@@ -12,15 +12,15 @@
     <section class="w-wull max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
         <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <h2 class="text-2xl font-medium flex gap-4 items-center">
-                {% if user.picture_url %}
-                <img class="h-20 rounded-lg" src="{{ user.picture_url }}" alt="" loading="lazy" />
-                {% endif %}{{ user.full_name }}
+                {% if user_info.picture_url %}
+                <img class="h-20 rounded-lg" src="{{ user_info.picture_url }}" alt="" loading="lazy" />
+                {% endif %}{{ user_info.full_name }}
             </h2>
-            {% if user.bio %}
-            <p class="mt-4 text-sm">{{ user.bio }}</p>
+            {% if user_info.bio %}
+            <p class="mt-4 text-sm">{{ user_info.bio }}</p>
             {% endif %}
             <div class="flex flex-col gap-3 text-sm mt-5">
-                {% if user.twitter_url %}
+                {% if user_info.twitter_url and user_info.twitter_public %}
                 <div class="flex gap-3 justify-between">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="size-5">
@@ -31,7 +31,7 @@
                         Twitter
                     </span>
                     <a
-                        href="{{ user.twitter_url }}"
+                        href="{{ user_info.twitter_url }}"
                         target="_blank"
                         class="text-gray-700 underline select-text flex gap-1 items-center"
                     >
@@ -46,7 +46,7 @@
                         <span>twitter.com</span>
                     </a>
                 </div>
-                {% endif %} {% if user.linkedin_url %}
+                {% endif %} {% if user_info.linkedin_url and user_info.linkedin_public %}
                 <div class="flex gap-3 justify-between">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
@@ -57,7 +57,7 @@
                         LinkedIn
                     </span>
                     <a
-                        href="{{ user.linkedin_url }}"
+                        href="{{ user_info.linkedin_url }}"
                         target="_blank"
                         class="text-gray-700 underline select-text flex gap-1 items-center"
                     >
@@ -72,7 +72,7 @@
                         <span>linkedin.com</span>
                     </a>
                 </div>
-                {% endif %} {% if user.instagram_url %}
+                {% endif %} {% if user_info.instagram_url and user_info.instagram_public %}
                 <div class="flex gap-3 justify-between">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
@@ -83,7 +83,7 @@
                         Instagram
                     </span>
                     <a
-                        href="{{ user.linkedin_url }}"
+                        href="{{ user_info.linkedin_url }}"
                         target="_blank"
                         class="text-gray-700 underline select-text flex gap-1 items-center"
                     >
@@ -98,7 +98,7 @@
                         <span>instagram.com</span>
                     </a>
                 </div>
-                {% endif %} {% if user.email %}
+                {% endif %} {% if user.email and user_info.email_public%}
                 <div class="flex gap-3 justify-between">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg

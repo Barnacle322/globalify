@@ -7,7 +7,7 @@ from sqlite3 import Connection as SQLite3Connection
 from uuid import uuid4
 
 from flask_login import UserMixin
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func, or_
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func, or_, text
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, mapped_column, relationship, validates
@@ -100,6 +100,11 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     twitter_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    email_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
+    linkedin_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
+    instagram_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
+    twitter_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
 
     @property
     def full_name(self) -> str:

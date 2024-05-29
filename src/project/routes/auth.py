@@ -12,7 +12,17 @@ from flask_login import (
 )
 
 from ..extensions import db, login_manager, oauth
-from ..models import Company, Country, EmailVerification, Industry, Notification, Round, User, UserInfo, UserPayment
+from ..models import (
+    Company,
+    Country,
+    EmailVerification,
+    Industry,
+    Notification,
+    Round,
+    User,
+    UserInfo,
+    UserPayment,
+)
 
 # from ..utils.email_verification import create_verification_token
 from ..utils.enums import (

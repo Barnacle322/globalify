@@ -56,11 +56,11 @@
                         />
                         <div class="flex-col items-center px-2 text-sm">
                             <div class="flex flex-wrap items-baseline gap-x-1">
-                                <span v-if="bookmark.name" v-text="bookmark.name" class="font-semibold w-max"></span>
+                                <span v-if="bookmark.name" v-text="bookmark.name" class="w-max font-semibold"></span>
                                 <span v-if="selectedTab === 'investor'" class="font-semibold">·</span>
                                 <span
                                     v-if="bookmark.firm_name && selectedTab === 'investor'"
-                                    class="text-xs text-gray-500 w-max"
+                                    class="w-max text-xs text-gray-500"
                                     v-text="bookmark.firm_name"
                                 ></span>
                             </div>

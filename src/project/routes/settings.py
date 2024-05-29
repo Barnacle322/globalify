@@ -2,7 +2,7 @@ from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Round, User, UserInfo, UserPayment
+from ..models import Company, Country, Industry, PrivacySettings, Round, User, UserInfo, UserPayment
 from ..utils.enums import Status, StatusType, Tier
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
@@ -24,11 +24,14 @@ def index():
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
+    privacy_settings = PrivacySettings.get_by_user_id(authenticated_user.id)
+
     return render_template(
         "settings/general.html",
         user=authenticated_user,
         status_type=status_type,
         msg=msg,
+        privacy_settings=privacy_settings,
     )
 
 
@@ -102,7 +105,16 @@ def add_https_prefix(url):
 def change_personal_info():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
+    privacy_settings = PrivacySettings.get_by_user_id(authenticated_user.id)
+
+    if not privacy_settings:
+        abort(404)
+
     first_name = request.form.get("first-name")
+    hide_email = request.form.get("hide_email")
+    hide_linkedin = request.form.get("hide_linkedin")
+    hide_instagram = request.form.get("hide_instagram")
+    hide_twitter = request.form.get("hide_twitter")
     last_name = request.form.get("last-name")
     username = request.form.get("username")
     bio = request.form.get("bio")
@@ -124,6 +136,11 @@ def change_personal_info():
             status = Status(StatusType.ERROR, "Last name cannot be empty.").get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.last_name = last_name.strip()
+
+    privacy_settings.hide_email = bool(hide_email)
+    privacy_settings.hide_linkedin = bool(hide_linkedin)
+    privacy_settings.hide_instagram = bool(hide_instagram)
+    privacy_settings.hide_twitter = bool(hide_twitter)
 
     if bio and bio.strip() != user_info.bio:
         if bio == " ":

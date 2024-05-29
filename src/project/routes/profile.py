@@ -2,7 +2,7 @@ from flask import Blueprint, render_template
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Round, User, UserInfo
+from ..models import Company, Country, Industry, PrivacySettings, Round, User, UserInfo
 from .main import check_verification
 
 profile = Blueprint("profile", __name__)
@@ -13,6 +13,8 @@ profile = Blueprint("profile", __name__)
 @check_verification
 def user_profile(user_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    privacy_settings = PrivacySettings.get_by_user_id(user_id)
 
     data = db.session.execute(
         db.select(UserInfo, Company, Round, Industry, Country)
@@ -27,4 +29,5 @@ def user_profile(user_id):
         user=data[0][0],
         company=data[0][1],
         authenticated_user=authenticated_user,
+        privacy_settings=privacy_settings,
     )

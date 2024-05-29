@@ -12,7 +12,18 @@ from flask_login import (
 )
 
 from ..extensions import db, login_manager, oauth
-from ..models import Company, Country, EmailVerification, Industry, Notification, Round, User, UserInfo, UserPayment
+from ..models import (
+    Company,
+    Country,
+    EmailVerification,
+    Industry,
+    Notification,
+    PrivacySettings,
+    Round,
+    User,
+    UserInfo,
+    UserPayment,
+)
 
 # from ..utils.email_verification import create_verification_token
 from ..utils.enums import (
@@ -396,6 +407,12 @@ def google_callback():
     if not user_payment:
         user_payment = UserPayment(user=user)
         db.session.add(user_payment)
+        db.session.commit()
+
+    privacy_settings = PrivacySettings.get_by_user_id(user.id)
+    if not privacy_settings:
+        privacy_settings = PrivacySettings(user=user)
+        db.session.add(privacy_settings)
         db.session.commit()
 
     login_user(user, remember=True)

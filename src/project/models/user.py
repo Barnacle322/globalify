@@ -238,6 +238,36 @@ class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
         return subscription
 
 
+class PrivacySettings(MappedAsDataclass, db.Model, unsafe_hash=True):
+    """
+
+    Represents privacy settings for a user.
+
+    Attributes:
+        id (int): The privacy settings ID.
+        user_id (int): The ID of the user associated with the privacy settings.
+        hide_linkedin (bool): Indicates whether the user has chosen to hide their LinkedIn profile.
+        hide_instagram (bool): Indicates whether the user has chosen to hide their Instagram profile.
+        hide_twitter (bool): Indicates whether the user has chosen to hide their Twitter profile.
+        hide_email (bool): Indicates whether the user has chosen to hide their email address.
+    """
+
+    user: Mapped[User] = relationship(User, backref=backref("privacy_settings", passive_deletes=True, uselist=False))
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True, init=False
+    )
+    hide_linkedin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    hide_instagram: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    hide_twitter: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    hide_email: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> PrivacySettings | None:
+        return db.session.scalar(db.select(PrivacySettings).where(PrivacySettings.user_id == user_id))
+
+
 class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
     user: Mapped[User] = relationship(User, backref=backref("notifications", passive_deletes=True))
 

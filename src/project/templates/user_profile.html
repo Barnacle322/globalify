@@ -20,7 +20,7 @@
             <p class="mt-4 text-sm">{{ user.bio }}</p>
             {% endif %}
             <div class="flex flex-col gap-3 text-sm mt-5">
-                {% if user.twitter_url %}
+                {% if user.twitter_url and not privacy_settings.hide_twitter %}
                 <div class="flex gap-3 justify-between">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="size-5">
@@ -46,7 +46,7 @@
                         <span>twitter.com</span>
                     </a>
                 </div>
-                {% endif %} {% if user.linkedin_url %}
+                {% endif %} {% if user.linkedin_url and not privacy_settings.hide_linkedin %}
                 <div class="flex gap-3 justify-between">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
@@ -72,7 +72,7 @@
                         <span>linkedin.com</span>
                     </a>
                 </div>
-                {% endif %} {% if user.instagram_url %}
+                {% endif %} {% if user.instagram_url and not privacy_settings.hide_instagram %}
                 <div class="flex gap-3 justify-between">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">

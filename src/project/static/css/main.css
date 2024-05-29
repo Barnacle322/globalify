@@ -4502,6 +4502,26 @@ textarea {
     padding-top: 6rem;
   }
 
+  .sm\:pl-\[px\] {
+    padding-left: px;
+  }
+
+  .sm\:pl-\[1px\] {
+    padding-left: 1px;
+  }
+
+  .sm\:pl-\[130px\] {
+    padding-left: 130px;
+  }
+
+  .sm\:pl-\[148px\] {
+    padding-left: 148px;
+  }
+
+  .sm\:pl-\[1\] {
+    padding-left: 1;
+  }
+
   .sm\:text-2xl {
     font-size: 1.5rem;
     line-height: 2rem;

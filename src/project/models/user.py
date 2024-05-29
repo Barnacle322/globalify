@@ -7,7 +7,7 @@ from sqlite3 import Connection as SQLite3Connection
 from uuid import uuid4
 
 from flask_login import UserMixin
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func, or_
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func, or_, text
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, mapped_column, relationship, validates
@@ -100,6 +100,11 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     twitter_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     is_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    email_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
+    linkedin_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
+    instagram_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
+    twitter_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
 
     @property
     def full_name(self) -> str:
@@ -236,36 +241,6 @@ class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
             "subscription_id": self.subscription_id,
         }
         return subscription
-
-
-class PrivacySettings(MappedAsDataclass, db.Model, unsafe_hash=True):
-    """
-
-    Represents privacy settings for a user.
-
-    Attributes:
-        id (int): The privacy settings ID.
-        user_id (int): The ID of the user associated with the privacy settings.
-        hide_linkedin (bool): Indicates whether the user has chosen to hide their LinkedIn profile.
-        hide_instagram (bool): Indicates whether the user has chosen to hide their Instagram profile.
-        hide_twitter (bool): Indicates whether the user has chosen to hide their Twitter profile.
-        hide_email (bool): Indicates whether the user has chosen to hide their email address.
-    """
-
-    user: Mapped[User] = relationship(User, backref=backref("privacy_settings", passive_deletes=True, uselist=False))
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    user_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True, init=False
-    )
-    hide_linkedin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    hide_instagram: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    hide_twitter: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    hide_email: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-
-    @staticmethod
-    def get_by_user_id(user_id: int) -> PrivacySettings | None:
-        return db.session.scalar(db.select(PrivacySettings).where(PrivacySettings.user_id == user_id))
 
 
 class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):

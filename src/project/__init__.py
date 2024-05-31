@@ -5,6 +5,7 @@ from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
+from .routes.admin import admin
 from .routes.auth import auth
 from .routes.main import (
     bad_request,
@@ -50,6 +51,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.register_blueprint(payment, url_prefix="/payment")
     app.register_blueprint(settings, url_prefix="/settings")
     app.register_blueprint(profile, url_prefix="/profile")
+    app.register_blueprint(admin, url_prefix="/admin")
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

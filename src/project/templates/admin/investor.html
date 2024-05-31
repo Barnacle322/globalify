@@ -1,0 +1,40 @@
+{% extends "layouts/layout_app.html" %} {% block title %}Investors{% endblock %} {% block head %} {{ super() }}
+<script src="/static/scripts/search.js" defer></script>
+<script src="/static/scripts/dashboard.js" defer></script>
+<script src="/static/scripts/query_setter.js" defer></script>
+<script src="/static/scripts/query_param_handler.js" defer></script>
+<script src="/static/scripts/notificationHandler.js" defer></script>
+<script src="/static/scripts/bookmark.js" defer></script>
+{% endblock %} {% block content %}
+
+<main id="app" class="mx-auto mt-14 flex w-full max-w-3xl flex-col gap-5 p-4 sm:p-9">
+    {% if investors %}
+    <h1 class="text-3xl font-bold sm:text-5xl">Post</h1>
+    <div class="flex flex-col gap-3 p-4">
+        {% for investor in investors %}
+        <div
+            class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-3 sm:flex-row"
+        >
+            <div class="flex w-full flex-col gap-2">
+                <div class="relative flex items-center justify-between gap-3">
+                    <div class="flex gap-3">
+                        {% if investor.twitter %} {% set twitter = investor.twitter.split("/")[-1] %}
+                        <img
+                            src="https://unavatar.io/twitter/{{ twitter }}"
+                            class="size-12 rounded-full bg-slate-50"
+                            loading="lazy"
+                        />
+                        {% endif %}
+                        <div class="flex flex-col">
+                            <span class="font-medium">{{ investor.full_name }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</main>
+
+{% endblock %}

@@ -1321,11 +1321,17 @@ select {
 .top-10 {
   top: 2.5rem;
 }
+.top-20 {
+  top: 5rem;
+}
 .top-24 {
   top: 6rem;
 }
 .top-8 {
   top: 2rem;
+}
+.top-5 {
+  top: 1.25rem;
 }
 .isolate {
   isolation: isolate;
@@ -2240,6 +2246,10 @@ select {
   border-top-right-radius: 0.75rem;
   border-bottom-right-radius: 0.75rem;
 }
+.rounded-t-lg {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
 .rounded-tl-3xl {
   border-top-left-radius: 1.5rem;
 }
@@ -2269,6 +2279,10 @@ select {
   --tw-border-opacity: 1;
   border-color: rgb(209 213 219 / var(--tw-border-opacity));
 }
+.border-gray-500 {
+  --tw-border-opacity: 1;
+  border-color: rgb(107 114 128 / var(--tw-border-opacity));
+}
 .border-gray-900\/10 {
   border-color: rgb(17 24 39 / 0.1);
 }
@@ -2291,30 +2305,6 @@ select {
 .border-white {
   --tw-border-opacity: 1;
   border-color: rgb(255 255 255 / var(--tw-border-opacity));
-}
-.border-black {
-  --tw-border-opacity: 1;
-  border-color: rgb(0 0 0 / var(--tw-border-opacity));
-}
-.border-gray-900 {
-  --tw-border-opacity: 1;
-  border-color: rgb(17 24 39 / var(--tw-border-opacity));
-}
-.border-gray-800 {
-  --tw-border-opacity: 1;
-  border-color: rgb(31 41 55 / var(--tw-border-opacity));
-}
-.border-gray-700 {
-  --tw-border-opacity: 1;
-  border-color: rgb(55 65 81 / var(--tw-border-opacity));
-}
-.border-gray-600 {
-  --tw-border-opacity: 1;
-  border-color: rgb(75 85 99 / var(--tw-border-opacity));
-}
-.border-gray-500 {
-  --tw-border-opacity: 1;
-  border-color: rgb(107 114 128 / var(--tw-border-opacity));
 }
 .bg-\[\#181747\] {
   --tw-bg-opacity: 1;
@@ -2625,6 +2615,9 @@ select {
 }
 .p-8 {
   padding: 2rem;
+}
+.p-7 {
+  padding: 1.75rem;
 }
 .px-1 {
   padding-left: 0.25rem;
@@ -4043,21 +4036,6 @@ textarea {
   border-bottom-width: 3px;
 }
 
-.hover\:border-slate-300:hover {
-  --tw-border-opacity: 1;
-  border-color: rgb(203 213 225 / var(--tw-border-opacity));
-}
-
-.hover\:border-slate-700:hover {
-  --tw-border-opacity: 1;
-  border-color: rgb(51 65 85 / var(--tw-border-opacity));
-}
-
-.hover\:border-gray-700:hover {
-  --tw-border-opacity: 1;
-  border-color: rgb(55 65 81 / var(--tw-border-opacity));
-}
-
 .hover\:bg-\[\#181747ea\]:hover {
   background-color: #181747ea;
 }
@@ -4534,6 +4512,10 @@ textarea {
     padding-left: 148px;
   }
 
+  .sm\:pr-9 {
+    padding-right: 2.25rem;
+  }
+
   .sm\:pt-16 {
     padding-top: 4rem;
   }
@@ -4839,6 +4821,10 @@ textarea {
   .lg\:py-4 {
     padding-top: 1rem;
     padding-bottom: 1rem;
+  }
+
+  .lg\:pl-64 {
+    padding-left: 16rem;
   }
 
   .lg\:pt-24 {

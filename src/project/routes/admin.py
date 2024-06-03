@@ -23,21 +23,20 @@ from ..models import (
     Investor,
     Round,
 )
-from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.suggestion import WEIGHTS, check_weights
 
 admin = Blueprint("admin", __name__)
 
 
-@admin.route("/dashboard")
+@admin.route("/investors")
 def admin_investor_view():
     investors = Investor.get_all()
 
-    return render_template("admin/investor.html", investors=investors)
+    return render_template("admin/investors.html", investors=investors)
 
 
-@admin.route("/dashboard/investor/<int:id>")
+@admin.route("/investor/<int:id>")
 def edit_investor_view(id):
     investor = Investor.get_by_id(id)
 
@@ -47,7 +46,7 @@ def edit_investor_view(id):
     return render_template("admin/edit_investor.html", investor=investor, rounds=rounds, industries=industries)
 
 
-@admin.route("/dashboard/investor/<int:id>", methods=["POST"])
+@admin.route("/investor/<int:id>", methods=["POST"])
 def update_investor(id):
     data = request.get_json()
 
@@ -92,4 +91,69 @@ def update_investor(id):
 
     db.session.commit()
 
-    return redirect("/admin/dashboard", code=302)
+    return redirect("/admin/investors", code=302)
+
+
+@admin.route("/investor/<int:id>/delete", methods=["POST"])
+def delete_investor(id):
+    investor = Investor.get_by_id(id)
+
+    if not investor:
+        return jsonify({"message": "Investor not found"}), 404
+
+    db.session.delete(investor)
+    db.session.commit()
+
+    return redirect("/admin", code=302)
+
+
+@admin.route("/investment-firms")
+def admin_investment_firm_view():
+    investment_firms = InvestmentFirm.get_all()
+
+    return render_template("admin/investment_firms.html", investment_firms=investment_firms)
+
+
+@admin.route("/investment-firm/<int:id>")
+def edit_investment_firm_view(id):
+    investment_firm = InvestmentFirm.get_by_id(id)
+
+    return render_template("admin/edit_investment_firm.html", investment_firm=investment_firm)
+
+
+@admin.route("/investment-firm/<int:id>", methods=["POST"])
+def update_investment_firm(id):
+    data = request.get_json()
+
+    investment_firm = InvestmentFirm.get_by_id(id)
+
+    if not investment_firm:
+        return jsonify({"message": "Investment Firm not found"}), 404
+
+    name = data.get("name", investment_firm.name)
+    about = data.get("about", investment_firm.about)
+    website = data.get("website", investment_firm.website)
+    email = data.get("email", investment_firm.email)
+    phone_number = data.get("phone_number", investment_firm.phone_number)
+    n_investments = data.get("n_investments", investment_firm.n_investments)
+    n_exits = data.get("n_exits", investment_firm.n_exits)
+    n_employees = data.get("n_employees", investment_firm.n_employees)
+    min_investment = data.get("min_investment", investment_firm.min_investment)
+    max_investment = data.get("max_investment", investment_firm.max_investment)
+    location = data.get("location", investment_firm.location)
+
+    investment_firm.name = name
+    investment_firm.about = about
+    investment_firm.website = website
+    investment_firm.email = email
+    investment_firm.phone_number = phone_number
+    investment_firm.n_investments = n_investments
+    investment_firm.n_exits = n_exits
+    investment_firm.n_employees = n_employees
+    investment_firm.min_investment = min_investment
+    investment_firm.max_investment = max_investment
+    investment_firm.location = location
+
+    db.session.commit()
+
+    return redirect("/admin/investment-firms", code=302)

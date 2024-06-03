@@ -5,12 +5,12 @@
 <script src="/static/scripts/query_param_handler.js" defer></script>
 <script src="/static/scripts/notificationHandler.js" defer></script>
 <script src="/static/scripts/bookmark.js" defer></script>
-<script src="/static/scripts/admin/editInvestor.js" defer></script>
+<script src="/static/scripts/admin/investor.js" defer></script>
 {% endblock %} {% block content %}
 
 <main id="app" class="mx-auto flex w-full max-w-3xl flex-col gap-5 p-4 sm:p-9">
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-    <a href="/admin/dashboard" class="group flex items-center gap-1 text-gray-500">
+    <a href="/admin/investors" class="group flex items-center gap-1 text-gray-500">
         <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 16 16"

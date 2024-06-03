@@ -67,6 +67,15 @@ class Industry(db.Model):
             db.session.rollback()
 
     @staticmethod
+    def get_by_id_list(id_list) -> Sequence[Industry]:
+        if len(id_list) == 0:
+            return []
+        valid_id_list = [i for i in id_list if isinstance(i, int)]
+        stmt = db.select(Industry).where(Industry.id.in_(valid_id_list))
+        industries = db.session.execute(stmt).scalars().all()
+        return industries
+
+    @staticmethod
     def populate_if_not_exists() -> None:
         try:
             print(Industry.get_industry_list(), "Here")
@@ -150,6 +159,15 @@ class Round(db.Model):
     @staticmethod
     def get_by_name(name: str) -> Round | None:
         return db.session.scalar(db.select(Round).where(Round.name == name))
+
+    @staticmethod
+    def get_by_id_list(id_list) -> Sequence[Round]:
+        if len(id_list) == 0:
+            return []
+        valid_id_list = [i for i in id_list if isinstance(i, int)]
+        stmt = db.select(Round).where(Round.id.in_(valid_id_list))
+        investment_rounds = db.session.execute(stmt).scalars().all()
+        return investment_rounds
 
     @staticmethod
     def populate() -> None:

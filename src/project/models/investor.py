@@ -284,7 +284,9 @@ class Investor(db.Model):
     _country: Mapped[str] = mapped_column(String, nullable=True)
     bias: Mapped[int] = mapped_column(Integer, nullable=True)
     search_index: Mapped[str] = mapped_column(String, nullable=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
 
+    user: Mapped[User] = relationship(User, backref=backref("investor", uselist=False))
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investor_industry)

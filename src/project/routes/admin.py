@@ -23,6 +23,7 @@ from ..models import (
     Investor,
     Round,
 )
+from ..models.user import User
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.suggestion import WEIGHTS, check_weights
@@ -72,6 +73,8 @@ def update_investor(id):
     location = data.get("location", investor.location)
     selected_round_ids = data.get("round", investor.rounds)
     selected_industry_ids = data.get("industry", investor.industries)
+    user_email = data.get("user_email")
+    user = User.get_by_email(user_email)
 
     investor.first_name = first_name
     investor.last_name = last_name
@@ -89,7 +92,23 @@ def update_investor(id):
     investor.location = location
     investor.rounds = list(Round.get_by_id_list(selected_round_ids))
     investor.industries = list(Industry.get_by_id_list(selected_industry_ids))
+    if user:
+        investor.user = user
 
     db.session.commit()
 
     return redirect("/admin/dashboard", code=302)
+
+
+@admin.route("/search_users/<search_input>", methods=["GET"])
+def search_user(search_input):
+    users = (
+        db.session.execute(
+            User.query.filter(
+                User.email.contains(search_input),
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return jsonify(users=[user.email for user in users])

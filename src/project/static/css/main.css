@@ -1330,9 +1330,6 @@ select {
 .top-8 {
   top: 2rem;
 }
-.top-5 {
-  top: 1.25rem;
-}
 .isolate {
   isolation: isolate;
 }
@@ -2615,9 +2612,6 @@ select {
 }
 .p-8 {
   padding: 2rem;
-}
-.p-7 {
-  padding: 1.75rem;
 }
 .px-1 {
   padding-left: 0.25rem;
@@ -4821,10 +4815,6 @@ textarea {
   .lg\:py-4 {
     padding-top: 1rem;
     padding-bottom: 1rem;
-  }
-
-  .lg\:pl-64 {
-    padding-left: 16rem;
   }
 
   .lg\:pt-24 {

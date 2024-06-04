@@ -1,0 +1,135 @@
+{% extends "layouts/layout_app.html" %} {% block title %}Investors{% endblock %} {% block head %} {{ super() }}
+<script src="/static/scripts/search.js" defer></script>
+<script src="/static/scripts/dashboard.js" defer></script>
+<script src="/static/scripts/query_setter.js" defer></script>
+<script src="/static/scripts/query_param_handler.js" defer></script>
+<script src="/static/scripts/notificationHandler.js" defer></script>
+<script src="/static/scripts/bookmark.js" defer></script>
+<script src="/static/scripts/admin/investmentFirm.js" defer></script>
+{% endblock %} {% block content %}
+
+<main id="app" class="mx-auto flex w-full max-w-3xl flex-col gap-5 p-4 sm:p-9">
+    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+    <a href="/admin/investors" class="group flex items-center gap-1 text-gray-500">
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            class="size-4 transition-colors ease-in-out group-hover:text-gray-700"
+        >
+            <path
+                fill-rule="evenodd"
+                d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
+                clip-rule="evenodd"
+            />
+        </svg>
+        <div class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Admin</div>
+    </a>
+    <h2 class="text-2xl font-medium">General info</h2>
+    {% if investment_firm %}
+    <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700" for="name">Name</label>
+        <input
+            class="w-full rounded-lg bg-transparent bg-white"
+            type="text"
+            id="name"
+            value="{{ investment_firm.name }}"
+            oninput="enableButton()"
+        />
+        <label class="text-sm font-medium text-gray-700" for="about">About</label>
+        <textarea
+            class="w-full rounded-lg"
+            type="text"
+            id="about"
+            oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'; enableButton();"
+        >
+{{investment_firm.about}}</textarea
+        >
+        <label class="text-sm font-medium text-gray-700" for="website">Website</label>
+        <input
+            class="w-full rounded-lg bg-transparent bg-white"
+            type="text"
+            id="website"
+            value="{{ investment_firm.website }}"
+            oninput="enableButton()"
+        />
+        <label class="text-sm font-medium text-gray-700" for="email">Email</label>
+        <input
+            class="w-full rounded-lg bg-transparent bg-white"
+            type="text"
+            id="email"
+            value="{{ investment_firm.email }}"
+            oninput="enableButton()"
+        />
+        <label class="text-sm font-medium text-gray-700" for="phone_number">Phone Number</label>
+        <input
+            class="w-full rounded-lg bg-transparent bg-white"
+            type="text"
+            id="phone_number"
+            value="{{ investment_firm.phone_number }}"
+            oninput="enableButton()"
+        />
+        <label class="text-sm font-medium text-gray-700" for="n_investments">N Investments</label>
+        <input
+            class="w-full rounded-lg bg-transparent bg-white"
+            type="number"
+            id="n_investments"
+            value="{{ investment_firm.n_investments }}"
+            oninput="enableButton()"
+        />
+        <label class="text-sm font-medium text-gray-700" for="n_exits">N Exits</label>
+        <input
+            class="w-full rounded-lg bg-transparent bg-white"
+            type="number"
+            id="n_exits"
+            value="{{ investment_firm.n_exits }}"
+            oninput="enableButton()"
+        />
+        <label class="text-sm font-medium text-gray-700" for="n_employees">N Employees</label>
+        <input
+            class="w-full rounded-lg bg-transparent bg-white"
+            type="number"
+            id="n_employees"
+            value="{{ investment_firm.n_employees }}"
+            oninput="enableButton()"
+        />
+        <label class="text-sm font-medium text-gray-700" for="min_investment">Min Investment</label>
+        <input
+            class="w-full rounded-lg bg-transparent bg-white"
+            type="number"
+            id="min_investment"
+            value="{{ investment_firm.min_investment }}"
+            oninput="enableButton()"
+        />
+        <label class="text-sm font-medium text-gray-700" for="max_investment">Max Investment</label>
+        <input
+            class="w-full rounded-lg bg-transparent bg-white"
+            type="number"
+            id="max_investment"
+            value="{{ investment_firm.max_investment }}"
+            oninput="enableButton()"
+        />
+        <label class="text-sm font-medium text-gray-700" for="location">Location</label>
+        <input
+            class="w-full rounded-lg bg-transparent bg-white"
+            type="text"
+            id="location"
+            value="{{ investment_firm.location }}"
+            oninput="enableButton()"
+        />
+    </div>
+    <button
+        disabled
+        id="saveButton"
+        onclick="updateInvestmentFirm()"
+        class="w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"
+    >
+        Submit
+    </button>
+    {% endif %}
+    <!-- prettier-ignore -->
+    {% import "macros/notification_macros.html" as notification_macros %} 
+       {{ notification_macros.render_notifications(notifications) }}
+</main>
+
+{% endblock %}

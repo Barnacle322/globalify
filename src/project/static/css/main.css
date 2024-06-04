@@ -1321,6 +1321,9 @@ select {
 .top-10 {
   top: 2.5rem;
 }
+.top-20 {
+  top: 5rem;
+}
 .top-24 {
   top: 6rem;
 }
@@ -2242,6 +2245,10 @@ select {
 .rounded-r-xl {
   border-top-right-radius: 0.75rem;
   border-bottom-right-radius: 0.75rem;
+}
+.rounded-t-lg {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
 }
 .rounded-tl-3xl {
   border-top-left-radius: 1.5rem;
@@ -4500,6 +4507,10 @@ textarea {
 
   .sm\:pl-\[148px\] {
     padding-left: 148px;
+  }
+
+  .sm\:pr-9 {
+    padding-right: 2.25rem;
   }
 
   .sm\:pt-16 {

@@ -24,6 +24,7 @@ async function updateInvestor() {
         (input) => parseInt(input.value, 10),
     );
     const user_email = document.getElementById("searchInput").value;
+
     const csrfToken = document.getElementById("csrf_token").value;
 
     const dataString = JSON.stringify({
@@ -59,6 +60,25 @@ async function updateInvestor() {
         }
     } catch (error) {
         console.error("Error:", error);
+    }
+}
+
+async function deleteInvestor(id) {
+    const csrfToken = document.getElementById("csrf_token").value;
+
+    if (!confirm("Are you sure you want to delete this investor?")) {
+        return;
+    }
+
+    const response = await fetch(`/admin/dashboard/investor/${id}/delete`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+        },
+    });
+    if (response.ok) {
+        window.location.reload();
     }
 }
 

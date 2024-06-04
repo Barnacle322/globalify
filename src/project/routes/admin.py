@@ -1,35 +1,50 @@
-import re
-from datetime import datetime, timedelta
 from functools import wraps
 
 from flask import (
     Blueprint,
-    current_app,
     jsonify,
-    make_response,
     redirect,
     render_template,
     request,
-    send_from_directory,
-    url_for,
 )
-from flask_login import current_user, login_required
+from flask_login import current_user
 
 from ..extensions import db
 from ..models import (
-    Company,
     Industry,
     InvestmentFirm,
     Investor,
+    Notification,
     Round,
+    User,
 )
-from ..utils.errors.error_messages import NOT_AUTHORIZED
-from ..utils.suggestion import WEIGHTS, check_weights
+from ..utils.enums import (
+    NotificationDestination,
+    NotificationLayout,
+)
+from ..utils.errors.error_messages import (
+    AUTH_FIELDS_INCOMPLETE,
+)
 
 admin = Blueprint("admin", __name__)
 
 
+def check_admin(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect("/login", code=302)
+
+        if not current_user.is_admin:
+            return redirect("/", code=302)
+
+        return func(*args, **kwargs)
+
+    return decorated_function
+
+
 @admin.route("/investors")
+@check_admin
 def admin_investor_view():
     investors = Investor.get_all()
 
@@ -37,17 +52,29 @@ def admin_investor_view():
 
 
 @admin.route("/investor/<int:id>")
+@check_admin
 def edit_investor_view(id):
+    notifications = Notification.get_unread(
+        current_user.id,
+        NotificationDestination.ADMIN,
+        is_read=False,
+    )
+
     investor = Investor.get_by_id(id)
 
     rounds = Round.get_all()
     industries = Industry.get_all()
 
-    return render_template("admin/edit_investor.html", investor=investor, rounds=rounds, industries=industries)
+    return render_template(
+        "admin/edit_investor.html", investor=investor, rounds=rounds, industries=industries, notifications=notifications
+    )
 
 
 @admin.route("/investor/<int:id>", methods=["POST"])
+@check_admin
 def update_investor(id):
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
     data = request.get_json()
 
     investor = Investor.get_by_id(id)
@@ -72,12 +99,48 @@ def update_investor(id):
     selected_round_ids = data.get("round", investor.rounds)
     selected_industry_ids = data.get("industry", investor.industries)
 
+    if (
+        not first_name
+        or not last_name
+        or not firm_name
+        or not about
+        or not email
+        or not phone_number
+        or not n_investments
+        or not n_exits
+        or not min_investment
+        or not max_investment
+        or not location
+        or not selected_round_ids
+        or not selected_industry_ids
+    ):
+        notification = Notification(
+            user=authenticated_user,
+            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
+            destination=NotificationDestination.ADMIN,
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return redirect(f"/admin/investor/{id}", code=302)
+
     investor.first_name = first_name
     investor.last_name = last_name
     investor.firm_name = firm_name
     investor.about = about
     investor.website = website
-    investor.linkedin = linkedin
+    try:
+        investor.linkedin = linkedin
+    except Exception as e:
+        msg = e
+        notification = Notification(
+            user=authenticated_user,
+            json_data=NotificationLayout(title="Error!", msg=str(msg)).get_json(),
+            destination=NotificationDestination.ADMIN,
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return redirect(f"/admin/investor/{id}", code=302)
+
     investor.twitter = twitter
     investor.email = email
     investor.phone_number = phone_number
@@ -95,6 +158,7 @@ def update_investor(id):
 
 
 @admin.route("/investor/<int:id>/delete", methods=["POST"])
+@check_admin
 def delete_investor(id):
     investor = Investor.get_by_id(id)
 
@@ -108,6 +172,7 @@ def delete_investor(id):
 
 
 @admin.route("/investment-firms")
+@check_admin
 def admin_investment_firm_view():
     investment_firms = InvestmentFirm.get_all()
 
@@ -115,6 +180,7 @@ def admin_investment_firm_view():
 
 
 @admin.route("/investment-firm/<int:id>")
+@check_admin
 def edit_investment_firm_view(id):
     investment_firm = InvestmentFirm.get_by_id(id)
 
@@ -122,7 +188,10 @@ def edit_investment_firm_view(id):
 
 
 @admin.route("/investment-firm/<int:id>", methods=["POST"])
+@check_admin
 def update_investment_firm(id):
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
     data = request.get_json()
 
     investment_firm = InvestmentFirm.get_by_id(id)
@@ -141,6 +210,27 @@ def update_investment_firm(id):
     min_investment = data.get("min_investment", investment_firm.min_investment)
     max_investment = data.get("max_investment", investment_firm.max_investment)
     location = data.get("location", investment_firm.location)
+
+    if (
+        not name
+        or not about
+        or not email
+        or not phone_number
+        or not n_investments
+        or not n_exits
+        or not n_employees
+        or not min_investment
+        or not max_investment
+        or not location
+    ):
+        notification = Notification(
+            user=authenticated_user,
+            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
+            destination=NotificationDestination.ADMIN,
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return redirect(f"/admin/investment-firm/{id}", code=302)
 
     investment_firm.name = name
     investment_firm.about = about

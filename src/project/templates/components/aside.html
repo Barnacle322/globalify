@@ -95,6 +95,7 @@
                     <span v-if="!minified" class="min-w-max">SuperConnect</span>
                 </transition>
             </a>
+            {% if user.is_admin %}
             <a
                 ref="admin"
                 href="/admin/investors"
@@ -119,6 +120,7 @@
                     <span v-if="!minified" class="min-w-max">Admin Panel</span>
                 </transition>
             </a>
+            {% endif %}
             <hr class="mx-3 my-2" />
             <a
                 ref="search"

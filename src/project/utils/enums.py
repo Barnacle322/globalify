@@ -10,6 +10,7 @@ class NotificationDestination(Enum):
     VERIFICATION = "email_verification"
     INDEX = "index"
     EXPANDED_ONBOARDING = "expanded_onboarding"
+    ADMIN = "admin"
 
 
 class StatusType(Enum):

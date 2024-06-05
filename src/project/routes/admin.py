@@ -2,6 +2,7 @@ from functools import wraps
 
 from flask import (
     Blueprint,
+    abort,
     jsonify,
     redirect,
     render_template,
@@ -53,7 +54,7 @@ def admin_investor_view():
 
 @admin.route("/investor/<int:id>")
 @check_admin
-def edit_investor_view(id):
+def update_investor_view(id):
     notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.ADMIN,
@@ -66,7 +67,11 @@ def edit_investor_view(id):
     industries = Industry.get_all()
 
     return render_template(
-        "admin/edit_investor.html", investor=investor, rounds=rounds, industries=industries, notifications=notifications
+        "admin/update_investor.html",
+        investor=investor,
+        rounds=rounds,
+        industries=industries,
+        notifications=notifications,
     )
 
 
@@ -80,7 +85,7 @@ def update_investor(id):
     investor = Investor.get_by_id(id)
 
     if not investor:
-        return jsonify({"message": "Investor not found"}), 404
+        abort(404)
 
     first_name = data.get("first_name", investor.first_name)
     last_name = data.get("last_name", investor.last_name)
@@ -91,10 +96,10 @@ def update_investor(id):
     twitter = data.get("twitter", investor.twitter)
     email = data.get("email", investor.email)
     phone_number = data.get("phone_number", investor.phone_number)
-    n_investments = data.get("n_investments", investor.n_investments)
-    n_exits = data.get("n_exits", investor.n_exits)
-    min_investment = data.get("min_investment", investor.min_investment)
-    max_investment = data.get("max_investment", investor.max_investment)
+    n_investments = int(data.get("n_investments", investor.n_investments) or 0)
+    n_exits = int(data.get("n_exits", investor.n_exits) or 0)
+    min_investment = int(data.get("min_investment", investor.min_investment) or 0)
+    max_investment = int(data.get("max_investment", investor.max_investment) or 0)
     location = data.get("location", investor.location)
     selected_round_ids = data.get("round", investor.rounds)
     selected_industry_ids = data.get("industry", investor.industries)
@@ -120,6 +125,7 @@ def update_investor(id):
             destination=NotificationDestination.ADMIN,
         )
         db.session.add(notification)
+
         db.session.commit()
         return redirect(f"/admin/investor/{id}", code=302)
 
@@ -128,19 +134,7 @@ def update_investor(id):
     investor.firm_name = firm_name
     investor.about = about
     investor.website = website
-    try:
-        investor.linkedin = linkedin
-    except Exception as e:
-        msg = e
-        notification = Notification(
-            user=authenticated_user,
-            json_data=NotificationLayout(title="Error!", msg=str(msg)).get_json(),
-            destination=NotificationDestination.ADMIN,
-        )
-        db.session.add(notification)
-        db.session.commit()
-        return redirect(f"/admin/investor/{id}", code=302)
-
+    investor.linkedin = linkedin
     investor.twitter = twitter
     investor.email = email
     investor.phone_number = phone_number
@@ -151,7 +145,96 @@ def update_investor(id):
     investor.location = location
     investor.rounds = list(Round.get_by_id_list(selected_round_ids))
     investor.industries = list(Industry.get_by_id_list(selected_industry_ids))
+    db.session.commit()
 
+    return redirect("/admin/investors", code=302)
+
+
+@admin.route("/investor/create", methods=["GET"])
+@check_admin
+def create_investor_view():
+    notifications = Notification.get_unread(
+        current_user.id,
+        NotificationDestination.ADMIN,
+        is_read=False,
+    )
+
+    rounds = Round.get_all()
+    industries = Industry.get_all()
+
+    return render_template(
+        "admin/create_investor.html", rounds=rounds, industries=industries, notifications=notifications
+    )
+
+
+@admin.route("/investor/create", methods=["POST"])
+@check_admin
+def create_investor():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    data = request.get_json()
+
+    first_name = data.get("first_name")
+    last_name = data.get("last_name")
+    firm_name = data.get("firm_name")
+    about = data.get("about")
+    website = data.get("website")
+    linkedin = data.get("linkedin")
+    twitter = data.get("twitter")
+    email = data.get("email")
+    phone_number = data.get("phone_number")
+    n_investments = int(data.get("n_investments") or 0)
+    n_exits = int(data.get("n_exits") or 0)
+    min_investment = int(data.get("min_investment") or 0)
+    max_investment = int(data.get("max_investment") or 0)
+    location = data.get("location")
+    selected_round_names = data.get("round")
+    selected_industry_names = data.get("industry")
+
+    if (
+        not first_name
+        or not last_name
+        or not firm_name
+        or not about
+        or not email
+        or not phone_number
+        or not n_investments
+        or not n_exits
+        or not min_investment
+        or not max_investment
+        or not location
+        or not selected_round_names
+        or not selected_industry_names
+    ):
+        notification = Notification(
+            user=authenticated_user,
+            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
+            destination=NotificationDestination.ADMIN,
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return redirect("/admin/investor/create", code=302)
+
+    investor = Investor(
+        first_name=first_name,
+        last_name=last_name,
+        firm_name=firm_name,
+        about=about,
+        website=website,
+        linkedin=linkedin,
+        twitter=twitter,
+        email=email,
+        phone_number=phone_number,
+        n_investments=n_investments,
+        n_exits=n_exits,
+        min_investment=min_investment,
+        max_investment=max_investment,
+        location=location,
+        rounds=[Round.get_by_name(name) for name in selected_round_names],
+        industries=[Industry.get_by_name(name) for name in selected_industry_names],
+    )
+
+    db.session.add(investor)
     db.session.commit()
 
     return redirect("/admin/investors", code=302)
@@ -181,10 +264,10 @@ def admin_investment_firm_view():
 
 @admin.route("/investment-firm/<int:id>")
 @check_admin
-def edit_investment_firm_view(id):
+def update_investment_firm_view(id):
     investment_firm = InvestmentFirm.get_by_id(id)
 
-    return render_template("admin/edit_investment_firm.html", investment_firm=investment_firm)
+    return render_template("admin/update_investment_firm.html", investment_firm=investment_firm)
 
 
 @admin.route("/investment-firm/<int:id>", methods=["POST"])
@@ -204,11 +287,11 @@ def update_investment_firm(id):
     website = data.get("website", investment_firm.website)
     email = data.get("email", investment_firm.email)
     phone_number = data.get("phone_number", investment_firm.phone_number)
-    n_investments = data.get("n_investments", investment_firm.n_investments)
-    n_exits = data.get("n_exits", investment_firm.n_exits)
-    n_employees = data.get("n_employees", investment_firm.n_employees)
-    min_investment = data.get("min_investment", investment_firm.min_investment)
-    max_investment = data.get("max_investment", investment_firm.max_investment)
+    n_investments = int(data.get("n_investments", investment_firm.n_investments) or 0)
+    n_exits = int(data.get("n_exits", investment_firm.n_exits) or 0)
+    n_employees = int(data.get("n_employees", investment_firm.n_employees) or 0)
+    min_investment = int(data.get("min_investment", investment_firm.min_investment) or 0)
+    max_investment = int(data.get("max_investment", investment_firm.max_investment) or 0)
     location = data.get("location", investment_firm.location)
 
     if (
@@ -244,6 +327,83 @@ def update_investment_firm(id):
     investment_firm.max_investment = max_investment
     investment_firm.location = location
 
+    db.session.commit()
+
+    return redirect("/admin/investment-firms", code=302)
+
+
+@admin.route("/investment-firm/create", methods=["GET"])
+@check_admin
+def create_investment_firm_view():
+    notifications = Notification.get_unread(
+        current_user.id,
+        NotificationDestination.ADMIN,
+        is_read=False,
+    )
+
+    rounds = Round.get_all()
+    industries = Industry.get_all()
+
+    return render_template(
+        "admin/create_investment_firm.html", rounds=rounds, industries=industries, notifications=notifications
+    )
+
+
+@admin.route("/investment-firm/create", methods=["POST"])
+@check_admin
+def create_investment_firm():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    data = request.get_json()
+
+    name = data.get("name")
+    about = data.get("about")
+    website = data.get("website")
+    email = data.get("email")
+    phone_number = data.get("phone_number")
+    n_investments = int(data.get("n_investments") or 0)
+    n_exits = int(data.get("n_exits") or 0)
+    n_employees = int(data.get("n_employees") or 0)
+    min_investment = int(data.get("min_investment") or 0)
+    max_investment = int(data.get("max_investment") or 0)
+    location = data.get("location")
+
+    if (
+        not name
+        or not about
+        or not email
+        or not phone_number
+        or not n_investments
+        or not n_exits
+        or not n_employees
+        or not min_investment
+        or not max_investment
+        or not location
+    ):
+        notification = Notification(
+            user=authenticated_user,
+            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
+            destination=NotificationDestination.ADMIN,
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return redirect("/admin/investor/create", code=302)
+
+    investor = InvestmentFirm(
+        name=name,
+        about=about,
+        website=website,
+        email=email,
+        phone_number=phone_number,
+        n_investments=n_investments,
+        n_exits=n_exits,
+        n_employees=n_employees,
+        min_investment=min_investment,
+        max_investment=max_investment,
+        location=location,
+    )
+
+    db.session.add(investor)
     db.session.commit()
 
     return redirect("/admin/investment-firms", code=302)

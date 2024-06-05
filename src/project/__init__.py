@@ -29,6 +29,8 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.config["SQLALCHEMY_POOL_RECYCLE"] = int(os.getenv("SQLALCHEMY_POOL_RECYCLE", 1800))
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
+    app.config["SQLALCHEMY_ECHO"] = True
+
     app.secret_key = os.getenv("SECRET_KEY", "18c2ff95-83a1-4998-8bee-0c6a2170497c")
 
     if os.getenv("FLASK_ENV") == "testing":

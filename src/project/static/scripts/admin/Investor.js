@@ -3,6 +3,8 @@ function enableButton() {
 }
 
 async function updateInvestor() {
+    const csrfToken = document.getElementById("csrf_token").value;
+
     const first_name = document.getElementById("first_name").value;
     const last_name = document.getElementById("last_name").value;
     const firm_name = document.getElementById("firm_name").value;
@@ -24,8 +26,6 @@ async function updateInvestor() {
         (input) => parseInt(input.value, 10),
     );
 
-    const csrfToken = document.getElementById("csrf_token").value;
-
     const dataString = JSON.stringify({
         first_name: first_name,
         last_name: last_name,
@@ -44,6 +44,7 @@ async function updateInvestor() {
         round: selectedRounds,
         industry: selectedIndustries,
     });
+
     try {
         const response = await fetch("", {
             method: "POST",
@@ -77,5 +78,67 @@ async function deleteInvestor(id) {
     });
     if (response.ok) {
         window.location.reload();
+    }
+}
+
+async function createInvestor() {
+    const csrf_token = document.getElementById("csrf_token").value;
+
+    const first_name = document.getElementById("first_name").value;
+    const last_name = document.getElementById("last_name").value;
+    const firm_name = document.getElementById("firm_name").value;
+    const about = document.getElementById("about").value;
+    const website = document.getElementById("website").value;
+    const linkedin = document.getElementById("linkedin").value;
+    const twitter = document.getElementById("twitter").value;
+    const email = document.getElementById("email").value;
+    const phone_number = document.getElementById("phone_number").value;
+    const n_investments = document.getElementById("n_investments").value;
+    const n_exits = document.getElementById("n_exits").value;
+    const min_investment = document.getElementById("min_investment").value;
+    const max_investment = document.getElementById("max_investment").value;
+    const location = document.getElementById("location").value;
+
+    let roundCheckboxes = document.querySelectorAll('input[name="selected_rounds"]:checked');
+    const selectedRounds = Array.from(roundCheckboxes).map((checkbox) => checkbox.parentElement.textContent.trim());
+
+    let industryCheckboxes = document.querySelectorAll('input[name="selected_industries"]:checked');
+    const selectedIndustries = Array.from(industryCheckboxes).map((checkbox) =>
+        checkbox.parentElement.textContent.trim(),
+    );
+
+    const dataString = JSON.stringify({
+        first_name: first_name,
+        last_name: last_name,
+        firm_name: firm_name,
+        about: about,
+        website: website,
+        linkedin: linkedin,
+        twitter: twitter,
+        email: email,
+        phone_number: phone_number,
+        n_investments: n_investments,
+        n_exits: n_exits,
+        min_investment: min_investment,
+        max_investment: max_investment,
+        location: location,
+        round: selectedRounds,
+        industry: selectedIndustries,
+    });
+
+    try {
+        const response = await fetch("", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrf_token,
+            },
+            body: dataString,
+        });
+        if (response.redirected) {
+            window.location.href = response.url;
+        }
+    } catch (error) {
+        console.error("Error:", error);
     }
 }

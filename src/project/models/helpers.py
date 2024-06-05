@@ -4,11 +4,10 @@ import datetime
 from collections.abc import Sequence
 
 import pycountry
-from sqlalchemy import DateTime, Integer, String, event
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, ForeignKey, Integer, String, event
+from sqlalchemy.orm import Mapped, backref, joinedload, mapped_column, relationship
 
 from ..extensions import db
-from ..utils.enums import RequestStatus
 from ..utils.info_lists import aggregate as industry_aggregate
 from ..utils.typesense_helpers.typesense_search import (
     create_schema,
@@ -227,48 +226,6 @@ class Country(db.Model):
             db.session.commit()
         except Exception:
             db.session.rollback()
-
-
-class ClaimRequest(db.Model):
-    """
-    Represents a claim request.
-
-    Attributes:
-        id (int): The claim request ID.
-        user_id (int): The ID of the user who made the claim request.
-        company_id (int): The ID of the company being claimed.
-        status (str): The status of the claim request.
-    """
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
-    investor_id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
-    status: Mapped[RequestStatus] = mapped_column(String, nullable=False, default=RequestStatus.PENDING)
-    status_info: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
-    approved_by: Mapped[int] = mapped_column(Integer, nullable=False)
-    approved_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, default=None)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<ClaimRequest {self.id}>"
-
-    @staticmethod
-    def get_by_id(id: int) -> ClaimRequest | None:
-        return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.id == id))
-
-    @staticmethod
-    def get_by_user_id(user_id: int) -> ClaimRequest | None:
-        return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.user_id == user_id))
-
-    @staticmethod
-    def get_by_investor_id(investor_id: int) -> ClaimRequest | None:
-        return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.investor_id == investor_id))
-
-    @staticmethod
-    def get_all() -> Sequence[ClaimRequest]:
-        return db.session.scalars(db.select(ClaimRequest)).all()
 
 
 @event.listens_for(Country.__table__, "after_create")  # type: ignore

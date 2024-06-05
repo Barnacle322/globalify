@@ -93,5 +93,5 @@ class NotificationLayout:
 
 class RequestStatus(Enum):
     PENDING = "pending"
-    ACCEPTED = "accepted"
+    APPROVED = "approved"
     REJECTED = "rejected"

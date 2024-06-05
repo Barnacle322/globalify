@@ -19,6 +19,7 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import (
+    ClaimRequest,
     Company,
     Country,
     Industry,
@@ -35,6 +36,7 @@ from ..models import (
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
+from ..utils.google_helpers import google_pubsub
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import WEIGHTS, check_weights
 
@@ -438,6 +440,37 @@ def investor_slug(slug):
         return redirect(url_for("main.search"))
 
     return render_template("investor.html", investor=investor, user=current_user)
+
+
+@main.post("/claim-investor/<int:id>")
+@login_required
+@check_user_info_complete
+@check_verification
+def claim_investor(id):
+    user_id = current_user.id
+    claim_request = ClaimRequest.get_by_user_id(user_id)
+    if claim_request:
+        return redirect(url_for("main.search"))
+    data = request.get_json()
+    email = data.get("email")
+    link = url_for("main.claim_request", investor_id=id, user_id=user_id, _external=True)
+    print(email)
+    print("\n\n")
+    google_pubsub.send_event(msg=f"Create request to claim investor page by link: {link}", email=email)
+
+    return jsonify({"status": "success"}, 200)
+
+
+@main.get("/claim-request/<int:investor_id>/<int:user_id>")
+@login_required
+@check_user_info_complete
+@check_verification
+def claim_request(investor_id, user_id):
+    claim_request = ClaimRequest(user_id=user_id, investor_id=investor_id)
+    db.session.add(claim_request)
+    db.session.commit()
+
+    return redirect(url_for("main.search"))
 
 
 @main.post("/investor/<int:investor_id>/bookmark")

@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timezone
 from functools import wraps
 
 from flask import (
@@ -8,19 +9,14 @@ from flask import (
     request,
 )
 from flask_login import current_user
+from sqlalchemy import select
 
 from ..extensions import db
-from ..models import (
-    Industry,
-    InvestmentFirm,
-    Investor,
-    Notification,
-    Round,
-    User,
-)
+from ..models import ClaimRequest, Industry, InvestmentFirm, Investor, Notification, Round, User
 from ..utils.enums import (
     NotificationDestination,
     NotificationLayout,
+    RequestStatus,
 )
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
@@ -254,14 +250,46 @@ def update_investment_firm(id):
 
 
 @admin.route("/search_users/<search_input>", methods=["GET"])
+@check_admin
 def search_user(search_input):
-    users = (
-        db.session.execute(
-            User.query.filter(
-                User.email.contains(search_input),
-            )
-        )
-        .scalars()
-        .all()
-    )
+    users = db.session.execute(select(User).where(User.email.contains(search_input))).scalars().all()
+
     return jsonify(users=[user.email for user in users])
+
+
+@admin.route("/claim-requests")
+@check_admin
+def admin_claim_request_view():
+    claim_requests = ClaimRequest.get_all()
+
+    return render_template("admin/claim_requests.html", claim_requests=claim_requests)
+
+
+@admin.route("/claim-request/<int:id>", methods=["POST"])
+@check_admin
+def edit_claim_request_view(id):
+    claim_request = ClaimRequest.get_by_id(id)
+
+    if not claim_request:
+        return jsonify({"message": "Claim request not found"}), 404
+
+    investor = Investor.get_by_id(claim_request.investor_id)
+    if not investor:
+        return jsonify({"message": "Investor not found"}), 404
+
+    data = request.get_json()
+    status = data.get("status")
+
+    if status not in ["approved", "rejected"]:
+        return jsonify({"message": "Invalid status"}), 400
+    elif status == "approved":
+        claim_request.status = RequestStatus.APPROVED.name  # type: ignore
+        claim_request.approved_at = datetime.now(UTC)
+        claim_request.approved_by = current_user.user_info.username
+        investor.user = claim_request.user
+    elif status == "rejected":
+        claim_request.status = RequestStatus.REJECTED.name  # type: ignore
+        investor.user = None
+    db.session.commit()
+
+    return jsonify({"message": "Claim request updated"}), 200

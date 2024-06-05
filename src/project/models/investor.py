@@ -299,36 +299,6 @@ class Investor(db.Model):
     def __repr__(self):
         return f"<Investor {self.first_name} {self.last_name}>"
 
-    @validates("linkedin")
-    def validate_linkedin(self, key, linkedin):
-        if not linkedin:
-            return None
-        if not re.match(r"^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$", linkedin, re.IGNORECASE):
-            raise ValueError(
-                "Invalid LinkedIn URL format. Ensure it follows the pattern: https://www.linkedin.com/in/username."
-            )
-        return linkedin
-
-    @validates("instagram")
-    def validate_instagram(self, key, instagram):
-        if not instagram:
-            return None
-        if not re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
-            raise ValueError(
-                "Invalid Instagram URL format. Ensure it follows the pattern: https://www.instagram.com/username."
-            )
-        return instagram
-
-    @validates("twitter")
-    def validate_twitter(self, key, twitter):
-        if not twitter:
-            return None
-        if not re.match(
-            r"^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$", twitter, re.IGNORECASE
-        ):
-            raise ValueError("Invalid Twitter URL format. Ensure it follows the pattern: https://twitter.com/username.")
-        return twitter
-
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"

@@ -1537,6 +1537,15 @@ select {
 .mt-auto {
   margin-top: auto;
 }
+.mt-\[2\.5\] {
+  margin-top: 2.5;
+}
+.mt-\[10px\] {
+  margin-top: 10px;
+}
+.mt-\[10\] {
+  margin-top: 10;
+}
 .line-clamp-3 {
   overflow: hidden;
   display: -webkit-box;

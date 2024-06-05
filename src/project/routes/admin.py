@@ -132,6 +132,10 @@ def update_investor(id):
     email = form_data.get("email", investor.email)
     phone_number = form_data.get("phone_number", investor.phone_number)
 
+    user = User.get_by_email(form_data.get("user_email"))
+    if user:
+        investor.user = user
+
     if not all(
         (
             first_name,

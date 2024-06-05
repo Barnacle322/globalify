@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import datetime
 from collections.abc import Sequence
 
 import pycountry
-from sqlalchemy import DateTime, ForeignKey, Integer, String, event
-from sqlalchemy.orm import Mapped, backref, joinedload, mapped_column, relationship
+from sqlalchemy import Integer, String, event
+from sqlalchemy.orm import Mapped, mapped_column
 
 from ..extensions import db
 from ..utils.info_lists import aggregate as industry_aggregate
@@ -72,8 +71,7 @@ class Industry(db.Model):
         if len(id_list) == 0:
             return []
         valid_id_list = [i for i in id_list if isinstance(i, int)]
-        stmt = db.select(Industry).where(Industry.id.in_(valid_id_list))
-        industries = db.session.execute(stmt).scalars().all()
+        industries = db.session.execute(db.select(Industry).where(Industry.id.in_(valid_id_list))).scalars().all()
         return industries
 
     @staticmethod
@@ -166,9 +164,8 @@ class Round(db.Model):
         if len(id_list) == 0:
             return []
         valid_id_list = [i for i in id_list if isinstance(i, int)]
-        stmt = db.select(Round).where(Round.id.in_(valid_id_list))
-        investment_rounds = db.session.execute(stmt).scalars().all()
-        return investment_rounds
+        rounds = db.session.execute(db.select(Round).where(Round.id.in_(valid_id_list))).scalars().all()
+        return rounds
 
     @staticmethod
     def populate() -> None:

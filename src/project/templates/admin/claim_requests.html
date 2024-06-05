@@ -1,15 +1,15 @@
-{% extends "layouts/layout_app.html" %} {% block title %}Claim Requests{% endblock %} {% block head %} {{ super() }}
-<script src="/static/scripts/search.js" defer></script>
-<script src="/static/scripts/dashboard.js" defer></script>
-<script src="/static/scripts/query_setter.js" defer></script>
-<script src="/static/scripts/query_param_handler.js" defer></script>
-<script src="/static/scripts/notificationHandler.js" defer></script>
-<script src="/static/scripts/bookmark.js" defer></script>
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %} 
+{% block additional_scripts %}
 <script src="/static/scripts/admin/claim_request.js" defer></script>
+{% endblock %}
+<!-- prettier-ignore -->
+{% block title %}Claim Requests{% endblock %} 
+{% block head %} {{ super() }} {% endblock %} 
+{% block content %}
 
-{% endblock %} {% block content %}
 <div class="relative flex items-start">
-    <nav class="fixed z-50 top-20 h-12 border bg-white w-full">
+    <nav class="fixed top-20 z-50 h-12 w-full border bg-white">
         <!-- 74rem == the max width of the content(8xl or 90rem) - width of the aside element(64 or 16rem) -->
         <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">
             <a href="/admin/investors" class="flex rounded-t-lg px-3 py-2 hover:bg-gray-50">Investor</a>
@@ -31,24 +31,20 @@
                 <div class="relative flex items-start justify-between gap-3">
                     <div class="flex gap-3">
                         <div class="flex flex-col gap-2">
-                            <p class=""></p>
-                                User: {{ claim_request.user.user_info.first_name }} {{
-                                claim_request.user.user_info.last_name }}
-                            </p>
+                            <span class=""> User: {{ claim_request.user.user_info.full_name }} </span>
                             <a href="/investor/{{claim_request.investor.slug}}" class="font-medium"
-                                >Investor: {{ claim_request.investor.first_name }} {{ claim_request.investor.last_name
-                                }}</a
+                                >Investor: {{ claim_request.investor.full_name }}</a
                             >
-                            <p class="font-medium">Status: {{ claim_request.status.capitalize() }}</p>
+                            <span class="font-medium">Status: {{ claim_request.status.capitalize() }}</span>
                             {% if claim_request.status == 'APPROVED' %}
-                            <p class="">Approved by: {{ claim_request.approved_by }}</p>
-                            <p class="">Approved at: {{ claim_request.approved_at }}</p>
+                            <span class="">Approved by: {{ claim_request.approved_by }}</span>
+                            <span class="">Approved at: {{ claim_request.approved_at }}</span>
                             {% endif %}
                         </div>
                     </div>
-                    <div class="ml-auto flex flex-col h-full gap-2">
+                    <div class="ml-auto flex h-full flex-col gap-2">
                         <button
-                            class="flex items-center justify-center rounded-md bg-sky-500 text-white p-2 px-4 transition-colors ease-in-out hover:bg-sky-400"
+                            class="flex items-center justify-center rounded-md bg-sky-500 p-2 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
                             onclick="approveClaimRequest('{{claim_request.id}}')"
                         >
                             Approve
@@ -67,5 +63,4 @@
     </div>
     {% endif %}
 </main>
-
 {% endblock %}

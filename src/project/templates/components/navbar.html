@@ -1,4 +1,12 @@
 {% macro render(user) %}
+<!-- prettier-ignore -->
+{% import "components/aside.html" as aside %} 
+{{ aside.render(user) }} 
+{% import "components/aside_mobile.html" as aside_mobile %} 
+{{ aside_mobile.render(user) }}
+{% import "components/bookmark.html" as bookmark %} 
+{{ bookmark.render(user) }}
+
 <template id="navbar-template">
     <header class="sticky top-0 z-20 w-full border-b border-gray-200 bg-white">
         <nav class="mx-auto grid h-20 w-full max-w-8xl grid-cols-2 items-center px-6 sm:grid-cols-2">

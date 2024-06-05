@@ -4,7 +4,6 @@ import csv
 import datetime
 import json
 import random
-import re
 import uuid
 from ast import literal_eval
 from collections.abc import Generator, Sequence
@@ -16,7 +15,7 @@ from more_itertools import chunked
 from slugify import slugify
 from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship, validates
+from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship
 from thefuzz import fuzz
 
 from ..extensions import db

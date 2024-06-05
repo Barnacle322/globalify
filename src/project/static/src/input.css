@@ -421,3 +421,7 @@ textarea {
 .pop-out {
     animation: pop-out 0.2s;
 }
+
+textarea {
+    field-sizing: content;
+}

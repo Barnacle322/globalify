@@ -64,25 +64,6 @@ async function updateInvestor() {
     }
 }
 
-async function deleteInvestor(id) {
-    const csrfToken = document.getElementById("csrf_token").value;
-
-    if (!confirm("Are you sure you want to delete this investor?")) {
-        return;
-    }
-
-    const response = await fetch(`/admin/dashboard/investor/${id}/delete`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken,
-        },
-    });
-    if (response.ok) {
-        window.location.reload();
-    }
-}
-
 document.getElementById("searchInput").addEventListener("input", function () {
     var searchInput = this.value;
     if (searchInput.length > 1) {
@@ -169,3 +150,35 @@ async function createInvestor() {
         console.error("Error:", error);
     }
 }
+
+const menus = [
+    { menu: "industry-options", button: "industry-options-menu" },
+    { menu: "round-options", button: "round-options-menu" },
+];
+
+const showClasses = ["transform", "opacity-100", "scale-100"];
+const hideClasses = ["opacity-0", "scale-95", "pointer-events-none"];
+
+menus.forEach(({ menu, button }) => {
+    const menuElement = document.getElementById(menu);
+    const buttonElement = document.getElementById(button);
+
+    if (!menuElement || !buttonElement) return;
+
+    document.addEventListener("click", (event) => {
+        if (!menuElement.contains(event.target) && !buttonElement.contains(event.target)) {
+            menuElement.classList.remove(...showClasses);
+            menuElement.classList.add(...hideClasses);
+        }
+    });
+
+    buttonElement.onclick = () => {
+        if (menuElement.classList.contains(hideClasses[0])) {
+            menuElement.classList.add(...showClasses);
+            menuElement.classList.remove(...hideClasses);
+        } else {
+            menuElement.classList.remove(...showClasses);
+            menuElement.classList.add(...hideClasses);
+        }
+    };
+});

@@ -16,6 +16,15 @@ async function updateInvestmentFirm() {
     const min_investment = document.getElementById("min_investment").value;
     const max_investment = document.getElementById("max_investment").value;
     const location = document.getElementById("location").value;
+    const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map((input) =>
+        parseInt(input.value, 10),
+    );
+    const selectedIndustries = Array.from(document.querySelectorAll('input[name="selected_industries"]:checked')).map(
+        (input) => parseInt(input.value, 10),
+    );
+    const selectedNotableInvestments = Array.from(
+        document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
+    ).map((input) => parseInt(input.value, 10));
 
     const dataString = JSON.stringify({
         name: name,
@@ -29,6 +38,9 @@ async function updateInvestmentFirm() {
         min_investment: min_investment,
         max_investment: max_investment,
         location: location,
+        round: selectedRounds,
+        industry: selectedIndustries,
+        notable_investment: selectedNotableInvestments,
     });
 
     try {
@@ -82,6 +94,19 @@ async function createInvestmentFirm() {
     const max_investment = document.getElementById("max_investment").value;
     const location = document.getElementById("location").value;
 
+    let roundCheckboxes = document.querySelectorAll('input[name="selected_rounds"]:checked');
+    const selectedRounds = Array.from(roundCheckboxes).map((checkbox) => checkbox.parentElement.textContent.trim());
+
+    let industryCheckboxes = document.querySelectorAll('input[name="selected_industries"]:checked');
+    const selectedIndustries = Array.from(industryCheckboxes).map((checkbox) =>
+        checkbox.parentElement.textContent.trim(),
+    );
+
+    let notableInvestmentsCheckboxes = document.querySelectorAll('input[name="selected_notable_investments"]:checked');
+    const selectedNotableInvestments = Array.from(notableInvestmentsCheckboxes).map((checkbox) =>
+        checkbox.parentElement.textContent.trim(),
+    );
+
     const dataString = JSON.stringify({
         name: name,
         about: about,
@@ -94,6 +119,9 @@ async function createInvestmentFirm() {
         min_investment: min_investment,
         max_investment: max_investment,
         location: location,
+        round: selectedRounds,
+        industry: selectedIndustries,
+        notable_investment: selectedNotableInvestments,
     });
 
     try {
@@ -111,4 +139,39 @@ async function createInvestmentFirm() {
     } catch (error) {
         console.error("Error:", error);
     }
+}
+
+document.getElementById("search-btn").addEventListener("click", function (event) {
+    search();
+});
+
+function search() {
+    const searchQuery = document.getElementById("search").value;
+
+    const paramsArray = getExistingParams(["search", "page"]);
+
+    if (searchQuery !== "") paramsArray.unshift(`search=${encodeURIComponent(searchQuery)}`);
+
+    addParamsToUrl(paramsArray);
+}
+
+function getExistingParams(excludedParams) {
+    const urlParams = new URLSearchParams(window.location.search);
+    let paramsArray = [];
+
+    for (let param of urlParams) {
+        if (!excludedParams.includes(param[0])) {
+            paramsArray.push(`${param[0]}=${encodeURIComponent(param[1])}`);
+        }
+    }
+
+    return paramsArray;
+}
+
+function addParamsToUrl(paramsArray) {
+    const paramsString = paramsArray.length > 0 ? "?" + paramsArray.join("&") : "";
+    const baseUrl = window.location.href.split("?")[0];
+    const newUrl = baseUrl + paramsString;
+
+    window.location.href = newUrl;
 }

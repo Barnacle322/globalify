@@ -1,7 +1,8 @@
 <!-- prettier-ignore -->
 {% extends "layouts/layout_app.html" %} 
 {% block additional_scripts %}
-<script src="/static/scripts/admin/investors.js"></script>
+<script src="/static/scripts/admin/investors.js" defer></script>
+
 {% endblock %}
 <!-- prettier-ignore -->
 {% block title %}Investors {% endblock %} 
@@ -20,7 +21,44 @@
 </div>
 <main id="app" class="mx-auto mt-14 flex w-full max-w-3xl flex-col gap-5 p-4 sm:p-9">
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+
     <h1 class="text-3xl font-bold sm:text-5xl">Investors</h1>
+    <div class="flex gap-2 rounded-full border bg-white py-2 pr-3 w-full mx-auto">
+        <div class="relative w-full">
+            <input
+                type="search"
+                name="search"
+                id="search"
+                class="w-full border-0 p-3 pl-12 text-sm focus:ring-0 bg-transparent"
+                placeholder="Search"
+                value="{{ query }}"
+                required
+            />
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                    />
+                </svg>
+            </div>
+        </div>
+        <button
+            id="search-btn"
+            class="w-fit text-nowrap rounded-full bg-blue-500 px-4 text-sm font-medium text-white transition-colors ease-in-out"
+            type="submit"
+        >
+            Search
+        </button>
+    </div>
     <a
         href="/admin/investor/create"
         class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium transition-shadow ease-in-out hover:shadow-md sm:text-base"
@@ -49,18 +87,19 @@
             class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 sm:flex-row"
         >
             <div class="flex flex-col gap-2">
-                <span class="font-medium">{{ investor.full_name }}</span>
+                <span class="font-medium">{{ investor.name }}</span>
+                <p class="line-clamp-3">{{investor.about}}</p>
                 {% if investor.rounds %}
                 <div class="flex flex-wrap gap-1">
                     {% for round in investor.rounds %}
                     <a class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
-                        >{{ round.name }}
+                        >{{ round }}
                     </a>
                     {% endfor %}
                 </div>
                 {% endif %} {% if investor.industries %}
                 <p class="text-sm text-gray-500">
-                    {% for industry in investor.industries %} {{ industry.name }}{% if not loop.last %}, {% endif %} {%
+                    {% for industry in investor.industries %} {{ industry }}{% if not loop.last %}, {% endif %} {%
                     endfor %}
                 </p>
                 {% endif %}
@@ -129,6 +168,106 @@
         {% endfor %}
     </div>
     {% endif %}
+    <nav class="mt-10 flex w-full items-center justify-center gap-2">
+        <!-- prettier-ignore -->
+        {% if pagination and pagination.has_other_pages %} 
+        {% if pagination.has_prev %}
+        <a
+            class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+            href="/admin/investors?page=1"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-4"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
+                />
+            </svg>
+        </a>
+        <!-- prettier-ignore -->
+        <a
+            id="prev"
+            class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+            href="/admin/investors?page={{ pagination.prev }}"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+        </a>
+        <!-- prettier-ignore -->
+        {% endif %} 
+        {% for page in pagination.pages %} 
+        {% if page == pagination.current_page %}
+        <a
+            id="current"
+            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white border-sky-500 text-sm text-sky-500 font-bold transition-opacity duration-200 ease-in-out hover:opacity-90"
+            href="/admin/investors?page={{ pagination.current_page }}"
+            >{{ pagination.current_page }}</a
+        >
+        {% else %}
+        <a
+            id="page"
+            class="inline-flex size-10 items-center justify-center rounded-lg border text-sm font-medium bg-white"
+            href="/admin/investors?page={{ page }}"
+            >{{ page }}</a
+        >
+        <!-- prettier-ignore -->
+        {% endif %} 
+        {% endfor %} 
+        {% if pagination.has_next %}
+        <a
+            id="next"
+            class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+            href="/admin/investors?page={{ pagination.next }}"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+        </a>
+        <a
+            class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+            href="/admin/investors?page={{ pagination.last_page }}"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-4"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
+                />
+            </svg>
+        </a>
+        <!-- prettier-ignore -->
+        {% endif %} 
+        {% endif %}
+    </nav>
 </main>
 
 {% endblock %}

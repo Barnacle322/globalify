@@ -173,6 +173,15 @@ class NotableInvestment(db.Model):
         return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.name == name))
 
     @staticmethod
+    def get_by_id_list(id_list) -> Sequence[NotableInvestment]:
+        if len(id_list) == 0:
+            return []
+        valid_id_list = [i for i in id_list if isinstance(i, int)]
+        stmt = db.select(NotableInvestment).where(NotableInvestment.id.in_(valid_id_list))
+        industries = db.session.execute(stmt).scalars().all()
+        return industries
+
+    @staticmethod
     def populate() -> None:
         """
         Populates the notable investments.

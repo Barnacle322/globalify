@@ -1,21 +1,28 @@
 from datetime import UTC, datetime
 from functools import wraps
 
-from flask import (
-    Blueprint,
-    abort,
-    jsonify,
-    redirect,
-    render_template,
-    request,
-)
+from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
 from sqlalchemy import select
 
 from ..extensions import db
-from ..models import ClaimRequest, Industry, InvestmentFirm, Investor, Round, User
+from ..models import (
+    ClaimRequest,
+    Industry,
+    InvestmentFirm,
+    Investor,
+    NotableInvestment,
+    Round,
+    User,
+)
+from ..routes.main import generate_pagination
 from ..utils.enums import (
     RequestStatus,
+    Status,
+    StatusType,
+)
+from ..utils.errors.error_messages import (
+    AUTH_FIELDS_INCOMPLETE,
 )
 
 admin = Blueprint("admin", __name__)
@@ -35,17 +42,53 @@ def admin_only(func):
     return decorated_function
 
 
-@admin.get("/investors")
+@admin.route("/investors")
 @admin_only
 def admin_investor_view():
-    investors = Investor.get_all()
-    return render_template("admin/investors.html", investors=investors)
+    search_string = request.args.get("search", "")
+    page = request.args.get("page", 1, type=int)
+
+    query_by = [
+        "location",
+        "country",
+        "rounds",
+        "industries",
+        "notable_investments",
+        "name",
+        "firm_name",
+        "position",
+    ]
+
+    result = Investor.get_search(
+        query_string=search_string,
+        query_by=query_by,
+        page=page,
+        per_page=9,
+    )
+    investors = result.get("investors")
+
+    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+
+    return render_template(
+        "admin/investors.html",
+        investors=investors,
+        query=search_string,
+        pagination=pagination,
+        total_pages=len(pagination.get("pages", [])),
+    )
 
 
 @admin.get("/investor/<int:id>")
 @admin_only
 def update_investor_view(id):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     investor = Investor.get_by_id(id)
+
+    notable_investments = NotableInvestment.get_all()
     rounds = Round.get_all()
     industries = Industry.get_all()
 
@@ -54,6 +97,9 @@ def update_investor_view(id):
         investor=investor,
         rounds=rounds,
         industries=industries,
+        notable_investments=notable_investments,
+        status_type=status_type,
+        msg=msg,
     )
 
 
@@ -78,6 +124,7 @@ def update_investor(id):
     max_investment = int(form_data.get("max_investment", investor.max_investment) or 0)
     selected_round_ids = form_data.get("round", investor.rounds)
     selected_industry_ids = form_data.get("industry", investor.industries)
+    selected_notable_investment_ids = form_data.get("notable_investment", investor.notable_investments)
 
     website = form_data.get("website", investor.website)
     linkedin = form_data.get("linkedin", investor.linkedin)
@@ -85,26 +132,25 @@ def update_investor(id):
     email = form_data.get("email", investor.email)
     phone_number = form_data.get("phone_number", investor.phone_number)
 
-    user_email = form_data.get("user_email")
-    user = User.get_by_email(user_email)
-
     if not all(
-        first_name,
-        last_name,
-        firm_name,
-        about,
-        email,
-        phone_number,
-        n_investments,
-        n_exits,
-        min_investment,
-        max_investment,
-        location,
-        selected_round_ids,
-        selected_industry_ids,
+        (
+            first_name,
+            last_name,
+            firm_name,
+            about,
+            email,
+            phone_number,
+            n_investments,
+            n_exits,
+            min_investment,
+            max_investment,
+            location,
+            selected_round_ids,
+            selected_industry_ids,
+        )
     ):
-        status = ...
-        return redirect(f"/admin/investor/{id}", code=302)
+        status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
+        return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
 
     investor.first_name = first_name
     investor.last_name = last_name
@@ -122,6 +168,8 @@ def update_investor(id):
     investor.location = location
     investor.rounds = list(Round.get_by_id_list(selected_round_ids))
     investor.industries = list(Industry.get_by_id_list(selected_industry_ids))
+    investor.notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
+
     db.session.commit()
 
     return redirect("/admin/investors", code=302)
@@ -130,7 +178,23 @@ def update_investor(id):
 @admin.get("/investor/create")
 @admin_only
 def create_investor_view():
-    return render_template("admin/create_investor.html", rounds=Round.get_all(), industries=Industry.get_all())
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    notable_investments = NotableInvestment.get_all()
+    rounds = Round.get_all()
+    industries = Industry.get_all()
+
+    return render_template(
+        "admin/create_investor.html",
+        rounds=rounds,
+        industries=industries,
+        notable_investments=notable_investments,
+        status_type=status_type,
+        msg=msg,
+    )
 
 
 @admin.post("/investor/create")
@@ -154,24 +218,27 @@ def create_investor():
     location = form_data.get("location")
     selected_round_names = form_data.get("round")
     selected_industry_names = form_data.get("industry")
+    selected_notable_investment_names = form_data.get("notable_investment")
 
     if not all(
-        first_name,
-        last_name,
-        firm_name,
-        about,
-        email,
-        phone_number,
-        n_investments,
-        n_exits,
-        min_investment,
-        max_investment,
-        location,
-        selected_round_names,
-        selected_industry_names,
+        (
+            first_name,
+            last_name,
+            firm_name,
+            about,
+            email,
+            phone_number,
+            n_investments,
+            n_exits,
+            min_investment,
+            max_investment,
+            location,
+            selected_round_names,
+            selected_industry_names,
+        )
     ):
-        status = ...
-        return redirect("/admin/investor/create", code=302)
+        status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
+        return redirect(url_for("admin.create_investor_view", _external=True, **status))
 
     investor = Investor(
         first_name=first_name,
@@ -190,6 +257,7 @@ def create_investor():
         location=location,
         rounds=[Round.get_by_name(name) for name in selected_round_names],
         industries=[Industry.get_by_name(name) for name in selected_industry_names],
+        notable_investments=[NotableInvestment.get_by_name(name) for name in selected_notable_investment_names],
     )
     db.session.add(investor)
     db.session.commit()
@@ -214,22 +282,67 @@ def delete_investor(id):
 @admin.route("/investment-firms")
 @admin_only
 def admin_investment_firm_view():
-    investment_firms = InvestmentFirm.get_all()
+    search_string = request.args.get("search", "")
+    page = request.args.get("page", 1, type=int)
 
-    return render_template("admin/investment_firms.html", investment_firms=investment_firms)
+    query_by = [
+        "location",
+        "country",
+        "rounds",
+        "industries",
+        "embedding",
+        "notable_investments",
+        "name",
+    ]
+
+    result = InvestmentFirm.get_search(
+        query_string=search_string,
+        query_by=query_by,
+        page=page,
+        per_page=9,
+    )
+    investment_firms = result.get("investment_firms")
+
+    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+
+    return render_template(
+        "admin/investment_firms.html",
+        investment_firms=investment_firms,
+        query=search_string,
+        pagination=pagination,
+        total_pages=len(pagination.get("pages", [])),
+    )
 
 
 @admin.route("/investment-firm/<int:id>")
 @admin_only
 def update_investment_firm_view(id):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     investment_firm = InvestmentFirm.get_by_id(id)
 
-    return render_template("admin/update_investment_firm.html", investment_firm=investment_firm)
+    notable_investments = NotableInvestment.get_all()
+    rounds = Round.get_all()
+    industries = Industry.get_all()
+
+    return render_template(
+        "admin/update_investment_firm.html",
+        investment_firm=investment_firm,
+        rounds=rounds,
+        industries=industries,
+        notable_investments=notable_investments,
+        status_type=status_type,
+        msg=msg,
+    )
 
 
 @admin.post("/investment-firm/<int:id>")
 @admin_only
 def update_investment_firm(id):
+    data = request.get_json()
     form_data = request.get_json()
 
     investment_firm = InvestmentFirm.get_by_id(id)
@@ -248,21 +361,26 @@ def update_investment_firm(id):
     min_investment = int(form_data.get("min_investment", investment_firm.min_investment) or 0)
     max_investment = int(form_data.get("max_investment", investment_firm.max_investment) or 0)
     location = form_data.get("location", investment_firm.location)
+    selected_round_ids = form_data.get("round", investment_firm.rounds)
+    selected_industry_ids = form_data.get("industry", investment_firm.industries)
+    selected_notable_investment_ids = form_data.get("notable_investment", investment_firm.notable_investments)
 
     if not all(
-        name,
-        about,
-        email,
-        phone_number,
-        n_investments,
-        n_exits,
-        n_employees,
-        min_investment,
-        max_investment,
-        location,
+        (
+            name,
+            about,
+            email,
+            phone_number,
+            n_investments,
+            n_exits,
+            n_employees,
+            min_investment,
+            max_investment,
+            location,
+        )
     ):
-        status = ...
-        return redirect(f"/admin/investment-firm/{id}", code=302)
+        status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
+        return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
 
     investment_firm.name = name
     investment_firm.about = about
@@ -275,6 +393,9 @@ def update_investment_firm(id):
     investment_firm.min_investment = min_investment
     investment_firm.max_investment = max_investment
     investment_firm.location = location
+    investment_firm.rounds = list(Round.get_by_id_list(selected_round_ids))
+    investment_firm.industries = list(Industry.get_by_id_list(selected_industry_ids))
+    investment_firm.notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
 
     db.session.commit()
 
@@ -330,10 +451,22 @@ def edit_claim_request_view(id):
 @admin.get("/investment-firm/create")
 @admin_only
 def create_investment_firm_view():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    notable_investments = NotableInvestment.get_all()
+    rounds = Round.get_all()
+    industries = Industry.get_all()
+
     return render_template(
         "admin/create_investment_firm.html",
-        rounds=Round.get_all(),
-        industries=Round.get_all(),
+        rounds=rounds,
+        industries=industries,
+        notable_investments=notable_investments,
+        status_type=status_type,
+        msg=msg,
     )
 
 
@@ -353,21 +486,26 @@ def create_investment_firm():
     min_investment = int(form_data.get("min_investment") or 0)
     max_investment = int(form_data.get("max_investment") or 0)
     location = form_data.get("location")
+    selected_round_names = form_data.get("round")
+    selected_industry_names = form_data.get("industry")
+    selected_notable_investment_names = form_data.get("notable_investment")
 
     if not all(
-        name,
-        about,
-        email,
-        phone_number,
-        n_investments,
-        n_exits,
-        n_employees,
-        min_investment,
-        max_investment,
-        location,
+        (
+            name,
+            about,
+            email,
+            phone_number,
+            n_investments,
+            n_exits,
+            n_employees,
+            min_investment,
+            max_investment,
+            location,
+        )
     ):
-        status = ...
-        return redirect("/admin/investor/create", code=302)
+        status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
+        return redirect(url_for("admin.create_investment_firm_view", _external=True, **status))
 
     investor = InvestmentFirm(
         name=name,
@@ -381,6 +519,9 @@ def create_investment_firm():
         min_investment=min_investment,
         max_investment=max_investment,
         location=location,
+        rounds=[Round.get_by_name(name) for name in selected_round_names],
+        industries=[Industry.get_by_name(name) for name in selected_industry_names],
+        notable_investments=[NotableInvestment.get_by_name(name) for name in selected_notable_investment_names],
     )
 
     db.session.add(investor)

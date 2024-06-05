@@ -26,6 +26,13 @@
         <div class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Admin</div>
     </a>
     <h2 class="text-2xl font-medium">General info</h2>
+    {% if status_type %} {% if status_type == '3' %}
+    <div class="rounded-xl text-red-500">{{ msg }}</div>
+    {% endif %} {% if status_type == '2' %}
+    <div class="rounded-xl text-orange-400">{{ msg }}</div>
+    {% endif %} {% if status_type == '1' %}
+    <div class="rounded-xl text-lime-500">{{ msg }}</div>
+    {% endif %} {% endif %}
     <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-gray-700" for="first_name">First Name</label>
         <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="first_name" />
@@ -60,7 +67,7 @@
         <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="max_investment" />
         <label class="text-sm font-medium text-gray-700" for="location">Location</label>
         <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="location" />
-        <label class="text-sm font-medium text-gray-700" for="location">Rounds</label>
+        <label class="text-sm font-medium text-gray-700" for="rounds">Rounds</label>
         <button
             class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
             id="round-options-menu"
@@ -108,7 +115,7 @@
                 </div>
             </div>
         </div>
-        <label class="text-sm font-medium text-gray-700" for="location">Industries</label>
+        <label class="text-sm font-medium text-gray-700" for="industries">Industries</label>
         <button
             class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
             id="industry-options-menu"
@@ -162,6 +169,59 @@
                 </div>
             </div>
         </div>
+        <label class="text-sm font-medium text-gray-700" for="rounds">Notable Investments</label>
+        <button
+            class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+            id="notable-investment-options-menu"
+            aria-haspopup="true"
+            aria-expanded="true"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"
+                />
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z"
+                />
+            </svg>
+            Notable Investments
+        </button>
+        <div class="relative">
+            <div
+                class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                id="notable-investment-options"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="notable-investment-options-menu"
+            >
+                <div class="py-1" role="none">
+                    {% for notable_investment in notable_investments %}
+                    <label
+                        class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        role="menuitem"
+                    >
+                        <input
+                            type="checkbox"
+                            name="selected_notable_investments"
+                            class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                        />
+                        {{ notable_investment.name }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
     </div>
     <button
         id="saveButton"
@@ -170,10 +230,6 @@
     >
         Submit
     </button>
-
-    <!-- prettier-ignore -->
-    {% import "macros/notification_macros.html" as notification_macros %} 
-     {{ notification_macros.render_notifications(notifications) }}
 </main>
 
 {% endblock %}

@@ -89,3 +89,9 @@ class NotificationLayout:
             json_dict["icon_url"] = self.icon_url
 
         return json_dict
+
+
+class RequestStatus(Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"

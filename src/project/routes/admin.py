@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timezone
 from functools import wraps
 
 from flask import (
@@ -9,19 +10,14 @@ from flask import (
     request,
 )
 from flask_login import current_user
+from sqlalchemy import select
 
 from ..extensions import db
-from ..models import (
-    Industry,
-    InvestmentFirm,
-    Investor,
-    Notification,
-    Round,
-    User,
-)
+from ..models import ClaimRequest, Industry, InvestmentFirm, Investor, Notification, Round, User
 from ..utils.enums import (
     NotificationDestination,
     NotificationLayout,
+    RequestStatus,
 )
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
@@ -103,6 +99,8 @@ def update_investor(id):
     location = data.get("location", investor.location)
     selected_round_ids = data.get("round", investor.rounds)
     selected_industry_ids = data.get("industry", investor.industries)
+    user_email = data.get("user_email")
+    user = User.get_by_email(user_email)
 
     if (
         not first_name
@@ -233,11 +231,27 @@ def create_investor():
         rounds=[Round.get_by_name(name) for name in selected_round_names],
         industries=[Industry.get_by_name(name) for name in selected_industry_names],
     )
-
     db.session.add(investor)
     db.session.commit()
 
     return redirect("/admin/investors", code=302)
+
+
+@admin.route("/investor/create", methods=["GET"])
+@check_admin
+def create_investor_view():
+    notifications = Notification.get_unread(
+        current_user.id,
+        NotificationDestination.ADMIN,
+        is_read=False,
+    )
+
+    rounds = Round.get_all()
+    industries = Industry.get_all()
+
+    return render_template(
+        "admin/create_investor.html", rounds=rounds, industries=industries, notifications=notifications
+    )
 
 
 @admin.route("/investor/<int:id>/delete", methods=["POST"])
@@ -330,6 +344,52 @@ def update_investment_firm(id):
     db.session.commit()
 
     return redirect("/admin/investment-firms", code=302)
+
+
+@admin.route("/search_users/<search_input>", methods=["GET"])
+@check_admin
+def search_user(search_input):
+    users = db.session.execute(select(User).where(User.email.contains(search_input))).scalars().all()
+
+    return jsonify(users=[user.email for user in users])
+
+
+@admin.route("/claim-requests")
+@check_admin
+def admin_claim_request_view():
+    claim_requests = ClaimRequest.get_all()
+
+    return render_template("admin/claim_requests.html", claim_requests=claim_requests)
+
+
+@admin.route("/claim-request/<int:id>", methods=["POST"])
+@check_admin
+def edit_claim_request_view(id):
+    claim_request = ClaimRequest.get_by_id(id)
+
+    if not claim_request:
+        return jsonify({"message": "Claim request not found"}), 404
+
+    investor = Investor.get_by_id(claim_request.investor_id)
+    if not investor:
+        return jsonify({"message": "Investor not found"}), 404
+
+    data = request.get_json()
+    status = data.get("status")
+
+    if status not in ["approved", "rejected"]:
+        return jsonify({"message": "Invalid status"}), 400
+    elif status == "approved":
+        claim_request.status = RequestStatus.APPROVED.name  # type: ignore
+        claim_request.approved_at = datetime.now(UTC)
+        claim_request.approved_by = current_user.user_info.username
+        investor.user = claim_request.user
+    elif status == "rejected":
+        claim_request.status = RequestStatus.REJECTED.name  # type: ignore
+        investor.user = None
+    db.session.commit()
+
+    return jsonify({"message": "Claim request updated"}), 200
 
 
 @admin.route("/investment-firm/create", methods=["GET"])

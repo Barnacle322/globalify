@@ -4,6 +4,7 @@ function enableButton() {
 
 async function updateInvestor() {
     const csrfToken = document.getElementById("csrf_token").value;
+    const user_email = document.getElementById("searchInput").value;
 
     const first_name = document.getElementById("first_name").value;
     const last_name = document.getElementById("last_name").value;
@@ -43,6 +44,7 @@ async function updateInvestor() {
         location: location,
         round: selectedRounds,
         industry: selectedIndustries,
+        user_email: user_email,
     });
 
     try {
@@ -80,6 +82,31 @@ async function deleteInvestor(id) {
         window.location.reload();
     }
 }
+
+document.getElementById("searchInput").addEventListener("input", function () {
+    var searchInput = this.value;
+    if (searchInput.length > 1) {
+        fetch(`/admin/search_users/${searchInput}`)
+            .then((response) => response.json())
+            .then((data) => {
+                var userList = document.getElementById("userList");
+                userList.innerHTML = "";
+                data.users.forEach((email) => {
+                    var li = document.createElement("li");
+                    li.textContent = email;
+                    li.style.cursor = "pointer";
+                    li.addEventListener("click", function () {
+                        document.getElementById("searchInput").value = this.textContent;
+                        userList.innerHTML = "";
+                    });
+                    userList.appendChild(li);
+                });
+            })
+            .catch((error) => console.error("Error searching users:", error));
+    } else {
+        document.getElementById("userList").innerHTML = "";
+    }
+});
 
 async function createInvestor() {
     const csrf_token = document.getElementById("csrf_token").value;

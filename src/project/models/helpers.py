@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import datetime
 from collections.abc import Sequence
 
 import pycountry
-from sqlalchemy import Integer, String, event
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, ForeignKey, Integer, String, event
+from sqlalchemy.orm import Mapped, backref, joinedload, mapped_column, relationship
 
 from ..extensions import db
 from ..utils.info_lists import aggregate as industry_aggregate

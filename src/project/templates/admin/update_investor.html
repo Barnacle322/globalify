@@ -224,6 +224,18 @@
             </svg>
             Industries
         </button>
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">User</label>
+            <input
+                oninput="enableButton()"
+                type="text"
+                id="searchInput"
+                placeholder="Search users..."
+                value="{{ investor.user.email }}"
+                class="rounded-lg"
+            />
+            <ul id="userList" class="flex flex-col gap-1"></ul>
+        </div>
         <div class="relative">
             <div
                 class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"

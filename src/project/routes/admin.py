@@ -231,11 +231,27 @@ def create_investor():
         rounds=[Round.get_by_name(name) for name in selected_round_names],
         industries=[Industry.get_by_name(name) for name in selected_industry_names],
     )
-
     db.session.add(investor)
     db.session.commit()
 
     return redirect("/admin/investors", code=302)
+
+
+@admin.route("/investor/create", methods=["GET"])
+@check_admin
+def create_investor_view():
+    notifications = Notification.get_unread(
+        current_user.id,
+        NotificationDestination.ADMIN,
+        is_read=False,
+    )
+
+    rounds = Round.get_all()
+    industries = Industry.get_all()
+
+    return render_template(
+        "admin/create_investor.html", rounds=rounds, industries=industries, notifications=notifications
+    )
 
 
 @admin.route("/investor/<int:id>/delete", methods=["POST"])
@@ -374,6 +390,7 @@ def edit_claim_request_view(id):
     db.session.commit()
 
     return jsonify({"message": "Claim request updated"}), 200
+
 
 @admin.route("/investment-firm/create", methods=["GET"])
 @check_admin

@@ -410,7 +410,7 @@ def search_user(search_input):
     return jsonify(users=[user.email for user in users])
 
 
-@admin.route("/claim-requests")
+@admin.get("/claim-requests")
 @admin_only
 def admin_claim_request_view():
     claim_requests = ClaimRequest.get_all()
@@ -418,7 +418,7 @@ def admin_claim_request_view():
     return render_template("admin/claim_requests.html", claim_requests=claim_requests)
 
 
-@admin.get("/claim-request/<int:id>")
+@admin.post("/claim-request/<int:id>")
 @admin_only
 def edit_claim_request_view(id):
     claim_request = ClaimRequest.get_by_id(id)
@@ -436,12 +436,12 @@ def edit_claim_request_view(id):
     if status not in ["approved", "rejected"]:
         return jsonify({"message": "Invalid status"}), 400
     elif status == "approved":
-        claim_request.status = RequestStatus.APPROVED.name  # type: ignore
+        claim_request.status = RequestStatus.APPROVED.value  # type: ignore
         claim_request.approved_at = datetime.now(UTC)
         claim_request.approved_by = current_user.user_info.username
         investor.user = claim_request.user
     elif status == "rejected":
-        claim_request.status = RequestStatus.REJECTED.name  # type: ignore
+        claim_request.status = RequestStatus.REJECTED.value  # type: ignore
         investor.user = None
     db.session.commit()
 

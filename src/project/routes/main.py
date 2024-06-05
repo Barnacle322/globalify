@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
@@ -442,35 +443,58 @@ def investor_slug(slug):
     return render_template("investor.html", investor=investor, user=current_user)
 
 
-@main.post("/claim-investor/<int:id>")
+@main.get("/investor/<slug>/claiming-types")
 @login_required
 @check_user_info_complete
 @check_verification
-def claim_investor(id):
-    user_id = current_user.id
-    claim_request = ClaimRequest.get_by_user_id(user_id)
-    if claim_request:
+def claim_types_view(slug):
+    investor = Investor.get_by_slug(slug)
+    if not investor:
         return redirect(url_for("main.search"))
-    data = request.get_json()
-    email = data.get("email")
-    link = url_for("main.claim_request", investor_id=id, user_id=user_id, _external=True)
-    print(email)
-    print("\n\n")
-    google_pubsub.send_event(msg=f"Create request to claim investor page by link: {link}", email=email)
 
-    return jsonify({"status": "success"}, 200)
+    return render_template("claiming/claiming_types.html", investor=investor)
 
 
-@main.get("/claim-request/<int:investor_id>/<int:user_id>")
+@main.get("/investor/<slug>/claiming-manual")
 @login_required
 @check_user_info_complete
 @check_verification
-def claim_request(investor_id, user_id):
-    claim_request = ClaimRequest(user_id=user_id, investor_id=investor_id)
+def claim_manual_view(slug):
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
+
+    return render_template("claiming/claiming_manual.html", investor=investor, captcha_site_key=captcha_site_key)
+
+
+@main.post("/investor/<slug>/claiming-manual")
+@login_required
+@check_user_info_complete
+@check_verification
+def claim_manual(slug):
+    form_data = request.get_json()
+    email = form_data.get("email")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+
+    claim_request = ClaimRequest.get_by_user_id(current_user.id)
+    if claim_request:
+        status = Status(StatusType.ERROR, "You have already submitted a claim request.").get_status()
+        return redirect(url_for("main.investor_slug", _external=False, **status, slug=slug))
+
+    claim_request = ClaimRequest(
+        user_id=current_user.id,
+        investor_id=investor.id,
+        email=email,
+    )
     db.session.add(claim_request)
     db.session.commit()
 
-    return redirect(url_for("main.search"))
+    return redirect(url_for("main.investor_slug", slug=slug))
 
 
 @main.post("/investor/<int:investor_id>/bookmark")

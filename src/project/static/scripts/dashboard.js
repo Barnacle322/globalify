@@ -32,24 +32,3 @@ menus.forEach(({ menu, button }) => {
         }
     };
 });
-
-async function claimInvestor(email, id) {
-    const csrfToken = document.getElementById("csrf_token").value;
-    try {
-        const response = await fetch(`/claim-investor/${id}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrfToken,
-            },
-            body: JSON.stringify({ email: email }),
-        });
-        if (!response.ok) {
-            console.log("Error:", response.statusText);
-        } else {
-            window.location.reload();
-        }
-    } catch (error) {
-        console.error("Error:", error);
-    }
-}

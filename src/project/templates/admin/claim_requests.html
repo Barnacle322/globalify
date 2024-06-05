@@ -32,11 +32,13 @@
                     <div class="flex gap-3">
                         <div class="flex flex-col gap-2">
                             <span class=""> User: {{ claim_request.user.user_info.full_name }} </span>
+                            <span class=""> Requested at: {{ claim_request.requested_at }} </span>
+                            <span class=""> Contact email: {{ claim_request.email }} </span>
                             <a href="/investor/{{claim_request.investor.slug}}" class="font-medium"
                                 >Investor: {{ claim_request.investor.full_name }}</a
                             >
                             <span class="font-medium">Status: {{ claim_request.status.capitalize() }}</span>
-                            {% if claim_request.status == 'APPROVED' %}
+                            {% if claim_request.status == 'approved' %}
                             <span class="">Approved by: {{ claim_request.approved_by }}</span>
                             <span class="">Approved at: {{ claim_request.approved_at }}</span>
                             {% endif %}

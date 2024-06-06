@@ -1,11 +1,11 @@
-function deleteInvestor(id) {
+async function deleteInvestmentFirm(id) {
     const csrfToken = document.getElementById("csrf_token").value;
 
-    if (!confirm("Are you sure you want to delete this investor?")) {
+    if (!confirm("Are you sure you want to delete this investment firm?")) {
         return;
     }
 
-    const response = fetch(`/admin/investor/${id}/delete`, {
+    const response = await fetch(`/admin/investment-firm/${id}/delete`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

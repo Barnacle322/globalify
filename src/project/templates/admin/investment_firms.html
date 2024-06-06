@@ -1,7 +1,8 @@
 <!-- prettier-ignore -->
 {% extends "layouts/layout_app.html" %} 
 {% block additional_scripts %}
-<script src="/static/scripts/admin/investmentFirm.js" defer></script>
+<script src="/static/scripts/admin/investmentFirms.js" defer></script>
+<script src="/static/scripts/admin/base.js" defer></script>
 {% endblock %}
 <!-- prettier-ignore -->
 {% block title %}Investors{% endblock %} 
@@ -19,6 +20,7 @@
 </div>
 <main id="app" class="mx-auto mt-14 flex w-full max-w-3xl flex-col gap-5 p-4 sm:p-9">
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+    <h1 class="text-3xl font-bold sm:text-5xl">Investment Firms</h1>
     <div class="flex gap-2 rounded-full border bg-white py-2 pr-3 w-full mx-auto">
         <div class="relative w-full">
             <input
@@ -55,7 +57,6 @@
             Search
         </button>
     </div>
-    <h1 class="text-3xl font-bold sm:text-5xl">Investment Firms</h1>
     <a
         href="/admin/investment-firm/create"
         class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium transition-shadow ease-in-out hover:shadow-md sm:text-base"

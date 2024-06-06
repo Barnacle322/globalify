@@ -115,6 +115,7 @@ def update_investor(id):
     first_name = form_data.get("first_name", investor.first_name)
     last_name = form_data.get("last_name", investor.last_name)
     firm_name = form_data.get("firm_name", investor.firm_name)
+    position = form_data.get("position", investor.position)
     about = form_data.get("about", investor.about)
     location = form_data.get("location", investor.location)
 
@@ -122,9 +123,9 @@ def update_investor(id):
     n_exits = int(form_data.get("n_exits", investor.n_exits) or 0)
     min_investment = int(form_data.get("min_investment", investor.min_investment) or 0)
     max_investment = int(form_data.get("max_investment", investor.max_investment) or 0)
-    selected_round_ids = form_data.get("round", investor.rounds)
-    selected_industry_ids = form_data.get("industry", investor.industries)
-    selected_notable_investment_ids = form_data.get("notable_investment", investor.notable_investments)
+    selected_round_ids = form_data.get("rounds", investor.rounds)
+    selected_industry_ids = form_data.get("industries", investor.industries)
+    selected_notable_investment_ids = form_data.get("notable_investments", investor.notable_investments)
 
     website = form_data.get("website", investor.website)
     linkedin = form_data.get("linkedin", investor.linkedin)
@@ -136,11 +137,17 @@ def update_investor(id):
     if user:
         investor.user = user
 
+    existing_email = User.get_by_email(email)
+    if existing_email and existing_email.id != investor.user_id:
+        status = Status(StatusType.ERROR, "Email already exists").get_status()
+        return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
+
     if not all(
         (
             first_name,
             last_name,
             firm_name,
+            position,
             about,
             email,
             phone_number,
@@ -151,6 +158,7 @@ def update_investor(id):
             location,
             selected_round_ids,
             selected_industry_ids,
+            selected_notable_investment_ids,
         )
     ):
         status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
@@ -159,6 +167,7 @@ def update_investor(id):
     investor.first_name = first_name
     investor.last_name = last_name
     investor.firm_name = firm_name
+    investor.position = position
     investor.about = about
     investor.website = website
     investor.linkedin = linkedin
@@ -209,26 +218,35 @@ def create_investor():
     first_name = form_data.get("first_name")
     last_name = form_data.get("last_name")
     firm_name = form_data.get("firm_name")
+    position = form_data.get("position")
     about = form_data.get("about")
+    location = form_data.get("location")
+
+    n_investments = int(form_data.get("n_investments") or 0)
+    n_exits = int(form_data.get("n_exits") or 0)
+    min_investment = int(form_data.get("min_investment") or 0)
+    max_investment = int(form_data.get("max_investment") or 0)
+    selected_round_names = form_data.get("rounds")
+    selected_industry_names = form_data.get("industries")
+    selected_notable_investment_names = form_data.get("notable_investments")
+
     website = form_data.get("website")
     linkedin = form_data.get("linkedin")
     twitter = form_data.get("twitter")
     email = form_data.get("email")
     phone_number = form_data.get("phone_number")
-    n_investments = int(form_data.get("n_investments") or 0)
-    n_exits = int(form_data.get("n_exits") or 0)
-    min_investment = int(form_data.get("min_investment") or 0)
-    max_investment = int(form_data.get("max_investment") or 0)
-    location = form_data.get("location")
-    selected_round_names = form_data.get("round")
-    selected_industry_names = form_data.get("industry")
-    selected_notable_investment_names = form_data.get("notable_investment")
+
+    existing_email = Investor.get_by_email(email)
+    if existing_email:
+        status = Status(StatusType.ERROR, "Email already exists").get_status()
+        return redirect(url_for("admin.create_investor_view", _external=True, **status))
 
     if not all(
         (
             first_name,
             last_name,
             firm_name,
+            position,
             about,
             email,
             phone_number,
@@ -239,6 +257,7 @@ def create_investor():
             location,
             selected_round_names,
             selected_industry_names,
+            selected_notable_investment_names,
         )
     ):
         status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
@@ -248,6 +267,7 @@ def create_investor():
         first_name=first_name,
         last_name=last_name,
         firm_name=firm_name,
+        position=position,
         about=about,
         website=website,
         linkedin=linkedin,
@@ -275,12 +295,12 @@ def delete_investor(id):
     investor = Investor.get_by_id(id)
 
     if not investor:
-        return jsonify({"message": "Investor not found"}), 404
+        abort(404)
 
     db.session.delete(investor)
     db.session.commit()
 
-    return redirect("/admin", code=302)
+    return redirect("/admin/investors", code=302)
 
 
 @admin.route("/investment-firms")
@@ -346,7 +366,6 @@ def update_investment_firm_view(id):
 @admin.post("/investment-firm/<int:id>")
 @admin_only
 def update_investment_firm(id):
-    data = request.get_json()
     form_data = request.get_json()
 
     investment_firm = InvestmentFirm.get_by_id(id)
@@ -356,18 +375,25 @@ def update_investment_firm(id):
 
     name = form_data.get("name", investment_firm.name)
     about = form_data.get("about", investment_firm.about)
-    website = form_data.get("website", investment_firm.website)
-    email = form_data.get("email", investment_firm.email)
-    phone_number = form_data.get("phone_number", investment_firm.phone_number)
+    location = form_data.get("location", investment_firm.location)
+
+    selected_round_ids = form_data.get("rounds", investment_firm.rounds)
+    selected_industry_ids = form_data.get("industries", investment_firm.industries)
+    selected_notable_investment_ids = form_data.get("notable_investments", investment_firm.notable_investments)
     n_investments = int(form_data.get("n_investments", investment_firm.n_investments) or 0)
     n_exits = int(form_data.get("n_exits", investment_firm.n_exits) or 0)
     n_employees = int(form_data.get("n_employees", investment_firm.n_employees) or 0)
     min_investment = int(form_data.get("min_investment", investment_firm.min_investment) or 0)
     max_investment = int(form_data.get("max_investment", investment_firm.max_investment) or 0)
-    location = form_data.get("location", investment_firm.location)
-    selected_round_ids = form_data.get("round", investment_firm.rounds)
-    selected_industry_ids = form_data.get("industry", investment_firm.industries)
-    selected_notable_investment_ids = form_data.get("notable_investment", investment_firm.notable_investments)
+
+    website = form_data.get("website", investment_firm.website)
+    email = form_data.get("email", investment_firm.email)
+    phone_number = form_data.get("phone_number", investment_firm.phone_number)
+
+    existing_email = InvestmentFirm.get_by_email(email)
+    if existing_email and existing_email.id != investment_firm.id:
+        status = Status(StatusType.ERROR, "Email already exists").get_status()
+        return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
 
     if not all(
         (
@@ -406,52 +432,6 @@ def update_investment_firm(id):
     return redirect("/admin/investment-firms", code=302)
 
 
-@admin.get("/search_users/<search_input>")
-@admin_only
-def search_user(search_input):
-    users = db.session.execute(select(User).where(User.email.contains(search_input))).scalars().all()
-
-    return jsonify(users=[user.email for user in users])
-
-
-@admin.get("/claim-requests")
-@admin_only
-def admin_claim_request_view():
-    claim_requests = ClaimRequest.get_all()
-
-    return render_template("admin/claim_requests.html", claim_requests=claim_requests)
-
-
-@admin.post("/claim-request/<int:id>")
-@admin_only
-def edit_claim_request_view(id):
-    claim_request = ClaimRequest.get_by_id(id)
-
-    if not claim_request:
-        return jsonify({"message": "Claim request not found"}), 404
-
-    investor = Investor.get_by_id(claim_request.investor_id)
-    if not investor:
-        return jsonify({"message": "Investor not found"}), 404
-
-    form_data = request.get_json()
-    status = form_data.get("status")
-
-    if status not in ["approved", "rejected"]:
-        return jsonify({"message": "Invalid status"}), 400
-    elif status == "approved":
-        claim_request.status = RequestStatus.APPROVED.value  # type: ignore
-        claim_request.approved_at = datetime.now(UTC)
-        claim_request.approved_by = current_user.user_info.username
-        investor.user = claim_request.user
-    elif status == "rejected":
-        claim_request.status = RequestStatus.REJECTED.value  # type: ignore
-        investor.user = None
-    db.session.commit()
-
-    return jsonify({"message": "Claim request updated"}), 200
-
-
 @admin.get("/investment-firm/create")
 @admin_only
 def create_investment_firm_view():
@@ -480,19 +460,26 @@ def create_investment_firm():
     form_data = request.get_json()
 
     name = form_data.get("name")
+    location = form_data.get("location")
     about = form_data.get("about")
-    website = form_data.get("website")
-    email = form_data.get("email")
-    phone_number = form_data.get("phone_number")
+
+    selected_round_names = form_data.get("rounds")
+    selected_industry_names = form_data.get("industries")
+    selected_notable_investment_names = form_data.get("notable_investments")
     n_investments = int(form_data.get("n_investments") or 0)
     n_exits = int(form_data.get("n_exits") or 0)
     n_employees = int(form_data.get("n_employees") or 0)
     min_investment = int(form_data.get("min_investment") or 0)
     max_investment = int(form_data.get("max_investment") or 0)
-    location = form_data.get("location")
-    selected_round_names = form_data.get("round")
-    selected_industry_names = form_data.get("industry")
-    selected_notable_investment_names = form_data.get("notable_investment")
+
+    website = form_data.get("website")
+    email = form_data.get("email")
+    phone_number = form_data.get("phone_number")
+
+    existing_email = InvestmentFirm.get_by_email(email)
+    if existing_email:
+        status = Status(StatusType.ERROR, "Email already exists").get_status()
+        return redirect(url_for("admin.create_investment_firm_view", _external=True, **status))
 
     if not all(
         (
@@ -532,3 +519,63 @@ def create_investment_firm():
     db.session.commit()
 
     return redirect("/admin/investment-firms", code=302)
+
+
+@admin.post("/investment-firm/<int:id>/delete")
+@admin_only
+def delete_investment_firm(id):
+    investment_firm = InvestmentFirm.get_by_id(id)
+
+    if not investment_firm:
+        abort(404)
+
+    db.session.delete(investment_firm)
+    db.session.commit()
+
+    return redirect("/admin/investment-firms", code=302)
+
+
+@admin.get("/search_users/<search_input>")
+@admin_only
+def search_user(search_input):
+    users = db.session.execute(select(User).where(User.email.contains(search_input))).scalars().all()
+
+    return jsonify(users=[user.email for user in users])
+
+
+@admin.route("/claim-requests")
+@admin_only
+def admin_claim_request_view():
+    claim_requests = ClaimRequest.get_all()
+
+    return render_template("admin/claim_requests.html", claim_requests=claim_requests)
+
+
+@admin.get("/claim-request/<int:id>")
+@admin_only
+def edit_claim_request_view(id):
+    claim_request = ClaimRequest.get_by_id(id)
+
+    if not claim_request:
+        return jsonify({"message": "Claim request not found"}), 404
+
+    investor = Investor.get_by_id(claim_request.investor_id)
+    if not investor:
+        return jsonify({"message": "Investor not found"}), 404
+
+    form_data = request.get_json()
+    status = form_data.get("status")
+
+    if status not in ["approved", "rejected"]:
+        return jsonify({"message": "Invalid status"}), 400
+    elif status == "approved":
+        claim_request.status = RequestStatus.APPROVED.name  # type: ignore
+        claim_request.approved_at = datetime.now(UTC)
+        claim_request.approved_by = current_user.user_info.username
+        investor.user = claim_request.user
+    elif status == "rejected":
+        claim_request.status = RequestStatus.REJECTED.name  # type: ignore
+        investor.user = None
+    db.session.commit()
+
+    return jsonify({"message": "Claim request updated"}), 200

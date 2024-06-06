@@ -1,14 +1,16 @@
-{% extends "layouts/layout_app.html" %} {% block title %}Investors{% endblock %} {% block head %} {{ super() }}
-<script src="/static/scripts/search.js" defer></script>
-<script src="/static/scripts/dashboard.js" defer></script>
-<script src="/static/scripts/query_setter.js" defer></script>
-<script src="/static/scripts/query_param_handler.js" defer></script>
-<script src="/static/scripts/notificationHandler.js" defer></script>
-<script src="/static/scripts/bookmark.js" defer></script>
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %} 
+{% block additional_scripts %}
 <script src="/static/scripts/admin/investor.js" defer></script>
-{% endblock %} {% block content %}
+<script src="/static/scripts/admin/base.js" defer></script>
+{% endblock %}
+<!-- prettier-ignore -->
+{% block title %}Investors{% endblock %} 
+{% block head %} {{ super() }}
+{% endblock %} 
+{% block content %}
 
-<main id="app" class="mx-auto flex w-full max-w-3xl flex-col gap-5 p-4 sm:p-9">
+<main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
     <a href="/admin/investors" class="group flex items-center gap-1 text-gray-500">
         <svg
@@ -25,210 +27,265 @@
         </svg>
         <div class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Admin</div>
     </a>
-    <h2 class="text-2xl font-medium">General info</h2>
-    {% if status_type %} {% if status_type == '3' %}
-    <div class="rounded-xl text-red-500">{{ msg }}</div>
-    {% endif %} {% if status_type == '2' %}
-    <div class="rounded-xl text-orange-400">{{ msg }}</div>
-    {% endif %} {% if status_type == '1' %}
-    <div class="rounded-xl text-lime-500">{{ msg }}</div>
-    {% endif %} {% endif %}
-    <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-gray-700" for="first_name">First Name</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="first_name" />
-        <label class="text-sm font-medium text-gray-700" for="last_name">Last Name</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="last_name" />
-        <label class="text-sm font-medium text-gray-700" for="firm_name">Firm Name</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="firm_name" />
-        <label class="text-sm font-medium text-gray-700" for="about">About</label>
-        <textarea
-            class="w-full rounded-lg"
-            type="text"
-            id="about"
-            oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'; "
-        ></textarea>
-        <label class="text-sm font-medium text-gray-700" for="website">Website</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="website" />
-        <label class="text-sm font-medium text-gray-700" for="linkedin">Linkedin</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="linkedin" />
-        <label class="text-sm font-medium text-gray-700" for="twitter">Twitter</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="twitter" />
-        <label class="text-sm font-medium text-gray-700" for="email">Email</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="email" />
-        <label class="text-sm font-medium text-gray-700" for="phone_number">Phone Number</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="phone_number" />
-        <label class="text-sm font-medium text-gray-700" for="n_investments">N Investments</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="n_investments" />
-        <label class="text-sm font-medium text-gray-700" for="n_exits">N Exits</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="n_exits" />
-        <label class="text-sm font-medium text-gray-700" for="min_investment">Min Investment</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="min_investment" />
-        <label class="text-sm font-medium text-gray-700" for="max_investment">Max Investment</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="max_investment" />
-        <label class="text-sm font-medium text-gray-700" for="location">Location</label>
-        <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="location" />
-        <label class="text-sm font-medium text-gray-700" for="rounds">Rounds</label>
-        <button
-            class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
-            id="round-options-menu"
-            aria-haspopup="true"
-            aria-expanded="true"
-        >
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="h-5 w-5"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
-                />
-            </svg>
-            Rounds
-        </button>
-        <div class="relative">
-            <div
-                class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+
+    <div class="grid grid-cols-6 gap-x-2 gap-y-1">
+        <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
+        <div class="col-span-full pt-4 pb-4">
+            {% if status_type %} {% if status_type == '3' %}
+            <div class="rounded-xl text-red-500">{{ msg }}</div>
+            {% endif %} {% if status_type == '2' %}
+            <div class="rounded-xl text-orange-400">{{ msg }}</div>
+            {% endif %} {% if status_type == '1' %}
+            <div class="rounded-xl text-lime-500">{{ msg }}</div>
+            {% endif %} {% endif %}
+        </div>
+
+        <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="first_name">First Name</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="first_name" required />
+        </div>
+        <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="last_name">Last Name</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="last_name" required />
+        </div>
+        <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="firm_name">Firm Name</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="firm_name" />
+        </div>
+        <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="position">Position</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="position" required />
+        </div>
+        <div class="col-span-full">
+            <label class="text-sm font-medium text-gray-700" for="location">Location</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="location" />
+        </div>
+        <div class="col-span-full">
+            <label class="text-sm font-medium text-gray-700" for="about">About</label>
+            <textarea
+                class="w-full rounded-lg"
+                type="text"
+                id="about"
+                oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px';"
+            ></textarea>
+        </div>
+        <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
+        <div class="relative col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="rounds">Rounds</label>
+            <button
+                class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                 id="round-options"
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="round-options-menu"
+                aria-haspopup="true"
+                aria-expanded="true"
             >
-                <div class="py-1" role="none">
-                    {% for round in rounds %}
-                    <label
-                        class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                        role="menuitem"
-                    >
-                        <input
-                            type="checkbox"
-                            name="selected_rounds"
-                            class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                        />
-                        {{ round.name }}
-                    </label>
-                    {% endfor %}
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-5 w-5"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
+                    />
+                </svg>
+                Rounds
+            </button>
+            <div class="relative">
+                <div
+                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                    id="round-options-menu"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="round-options-menu"
+                >
+                    <div class="py-1" role="none">
+                        {% for round in rounds %}
+                        <label
+                            class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            role="menuitem"
+                        >
+                            <input
+                                type="checkbox"
+                                name="selected_rounds"
+                                class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                            />
+                            {{ round.name }}
+                        </label>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
-        <label class="text-sm font-medium text-gray-700" for="industries">Industries</label>
-        <button
-            class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
-            id="industry-options-menu"
-            aria-haspopup="true"
-            aria-expanded="true"
-        >
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="h-5 w-5"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z"
-                />
-            </svg>
-            Industries
-        </button>
-        <div class="relative">
-            <div
-                class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+        <div class="relative col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="industries">Industries</label>
+            <button
+                class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                 id="industry-options"
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="industry-options-menu"
+                aria-haspopup="true"
+                aria-expanded="true"
             >
-                <div class="py-1" role="none">
-                    {% for category, industries_list in industries.items() %}
-                    <label
-                        class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                    >
-                        {{ category }}
-                    </label>
-                    {% for industry in industries_list %}
-                    <label
-                        class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                        role="menuitem"
-                    >
-                        <input
-                            type="checkbox"
-                            name="selected_industries"
-                            class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                        />
-                        {{ industry.name }}
-                    </label>
-                    {% endfor %} {% endfor %}
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-5 w-5"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z"
+                    />
+                </svg>
+                Industries
+            </button>
+            <div class="relative">
+                <div
+                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                    id="industry-options-menu"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="industry-options-menu"
+                >
+                    <div class="py-1" role="none">
+                        {% for category, industries_list in industries.items() %}
+                        <label
+                            class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        >
+                            {{ category }}
+                        </label>
+                        {% for industry in industries_list %}
+                        <label
+                            class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            role="menuitem"
+                        >
+                            <input
+                                type="checkbox"
+                                name="selected_industries"
+                                class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                            />
+                            {{ industry.name }}
+                        </label>
+                        {% endfor %} {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
-        <label class="text-sm font-medium text-gray-700" for="rounds">Notable Investments</label>
-        <button
-            class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
-            id="notable-investment-options-menu"
-            aria-haspopup="true"
-            aria-expanded="true"
-        >
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="size-5"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"
-                />
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z"
-                />
-            </svg>
-            Notable Investments
-        </button>
-        <div class="relative">
-            <div
-                class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+        <div class="relative col-span-full">
+            <label class="text-sm font-medium text-gray-700" for="rounds">Notable Investments</label>
+            <button
+                class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                 id="notable-investment-options"
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="notable-investment-options-menu"
+                aria-haspopup="true"
+                aria-expanded="true"
             >
-                <div class="py-1" role="none">
-                    {% for notable_investment in notable_investments %}
-                    <label
-                        class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                        role="menuitem"
-                    >
-                        <input
-                            type="checkbox"
-                            name="selected_notable_investments"
-                            class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                        />
-                        {{ notable_investment.name }}
-                    </label>
-                    {% endfor %}
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"
+                    />
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z"
+                    />
+                </svg>
+                Notable Investments
+            </button>
+            <div class="relative">
+                <div
+                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                    id="notable-investment-options-menu"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="notable-investment-options-menu"
+                >
+                    <div class="py-1" role="none">
+                        {% for notable_investment in notable_investments %}
+                        <label
+                            class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            role="menuitem"
+                        >
+                            <input
+                                type="checkbox"
+                                name="selected_notable_investments"
+                                class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                            />
+                            {{ notable_investment.name }}
+                        </label>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
+        </div>
+        <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="n_investments">№ Investments</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="n_investments" />
+        </div>
+        <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="n_exits">№ Exits</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="n_exits" />
+        </div>
+        <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="min_investment">Min Investment</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="min_investment" />
+        </div>
+        <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="max_investment">Max Investment</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="max_investment" />
+        </div>
+        <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
+
+        <div class="col-span-full">
+            <label class="text-sm font-medium text-gray-700" for="website">Website</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="website" />
+        </div>
+        <div class="col-span-full">
+            <label class="text-sm font-medium text-gray-700" for="linkedin">Linkedin</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="linkedin" />
+        </div>
+        <div class="col-span-full">
+            <label class="text-sm font-medium text-gray-700" for="twitter">Twitter</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="twitter" />
+        </div>
+        <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="email">Email</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="email" />
+        </div>
+        <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="phone_number">Phone Number</label>
+            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="phone_number" />
+        </div>
+        <div class="relative col-span-full">
+            <label class="text-sm font-medium text-gray-700">User</label>
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search users..."
+                class="w-full rounded-lg bg-transparent bg-white"
+            />
+            <ul id="userList" class="flex flex-col gap-1"></ul>
         </div>
     </div>
     <button
         id="saveButton"
         onclick="createInvestor()"
-        class="w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"
+        class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"
     >
-        Submit
+        Save
     </button>
 </main>
 

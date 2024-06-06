@@ -2803,6 +2803,12 @@ select {
 .pt-8 {
   padding-top: 2rem;
 }
+.pt-4 {
+  padding-top: 1rem;
+}
+.pb-4 {
+  padding-bottom: 1rem;
+}
 .text-left {
   text-align: left;
 }

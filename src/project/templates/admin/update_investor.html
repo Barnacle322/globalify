@@ -2,6 +2,7 @@
 {% extends "layouts/layout_app.html" %} 
 {% block additional_scripts %}
 <script src="/static/scripts/admin/investor.js" defer></script>
+<script src="/static/scripts/admin/base.js" defer></script>
 {% endblock %}
 <!-- prettier-ignore -->
 {% block title %}Investors{% endblock %} 
@@ -29,6 +30,15 @@
     {% if investor %}
     <div class="grid grid-cols-6 gap-x-2 gap-y-1">
         <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
+        <div class="col-span-full pt-4 pb-4">
+            {% if status_type %} {% if status_type == '3' %}
+            <div class="rounded-xl text-red-500">{{ msg }}</div>
+            {% endif %} {% if status_type == '2' %}
+            <div class="rounded-xl text-orange-400">{{ msg }}</div>
+            {% endif %} {% if status_type == '1' %}
+            <div class="rounded-xl text-lime-500">{{ msg }}</div>
+            {% endif %} {% endif %}
+        </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="first_name">First Name</label>
             <input
@@ -62,6 +72,16 @@
             />
         </div>
         <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="position">Position</label>
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="position"
+                value="{{ investor.position }}"
+                oninput="enableButton()"
+            />
+        </div>
+        <div class="col-span-full">
             <label class="text-sm font-medium text-gray-700" for="location">Location</label>
             <input
                 class="w-full rounded-lg bg-transparent bg-white"

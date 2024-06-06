@@ -1,11 +1,11 @@
-function deleteInvestor(id) {
+async function deleteInvestmentFirm(id) {
     const csrfToken = document.getElementById("csrf_token").value;
 
-    if (!confirm("Are you sure you want to delete this investor?")) {
+    if (!confirm("Are you sure you want to delete this investment firm?")) {
         return;
     }
 
-    const response = fetch(`/admin/investor/${id}/delete`, {
+    const response = await fetch(`/admin/investment-firm/${id}/delete`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -51,25 +51,3 @@ function addParamsToUrl(paramsArray) {
 
     window.location.href = newUrl;
 }
-
-function getQueryParams() {
-    return new URLSearchParams(window.location.search);
-}
-
-function removePageParam(params) {
-    params.delete("page");
-    return params;
-}
-
-function applyQueryParams(url) {
-    const params = removePageParam(getQueryParams());
-    if (params.toString()) {
-        return `${url}${url.includes("?") ? "&" : "?"}${params.toString()}`;
-    }
-    return url;
-}
-
-document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
-    if (!link.getAttribute("href").includes("admin")) return;
-    link.setAttribute("href", applyQueryParams(link.getAttribute("href")));
-});

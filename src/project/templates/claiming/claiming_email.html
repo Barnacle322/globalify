@@ -1,7 +1,7 @@
 <!-- prettier-ignore -->
 {% extends "layouts/layout_app.html" %}
 {% block additional_scripts %}
-<script src="/static/scripts/claiming/claiming_manual.js" defer></script>
+<script src="/static/scripts/claiming/claiming_email.js" defer></script>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 {% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
 content %}
@@ -11,27 +11,20 @@ content %}
         <article class="flex flex-col gap-2 text-center">
             <h1 class="text-3xl font-bold md:text-5xl">Disclamer</h1>
             <p class="max-w-xl text-base text-slate-600 md:text-lg">
-                You are about to request a manual verification. Please enter your personal email and our team will reach
-                out to you shortly.
+                We will send a letter to <span class="font-bold">{{ investor.email }}</span>. After you have
+                received the email, please confirm the verification.
             </p>
         </article>
         <form id="claimForm" class="flex w-full flex-col items-center" data-slug="{{investor.slug}}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-            <input
-                id="email"
-                type="email"
-                name="email"
-                placeholder="Enter your email"
-                class="mb-4 w-full rounded-md border border-gray-300 px-4 py-2"
-                required
-            />
+            <input type="hidden" id="email" name="email" value="{{ investor.email }}" />
             <div class="g-recaptcha" data-sitekey="{{captcha_site_key}}"></div>
             <br />
             <button
                 type="submit"
                 class="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 py-2 font-semibold text-white"
             >
-                Submit
+                Send an email
             </button>
         </form>
     </section>

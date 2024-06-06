@@ -34,6 +34,7 @@ from ..models import (
     Waitlist,
     WaitlistCharge,
 )
+from ..models.user import EmailVerification
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
@@ -447,7 +448,7 @@ def investor_slug(slug):
 @login_required
 @check_user_info_complete
 @check_verification
-def claim_types_view(slug):
+def claiming_types_view(slug):
     investor = Investor.get_by_slug(slug)
     if not investor:
         return redirect(url_for("main.search"))
@@ -459,7 +460,7 @@ def claim_types_view(slug):
 @login_required
 @check_user_info_complete
 @check_verification
-def claim_manual_view(slug):
+def claiming_manual_view(slug):
     investor = Investor.get_by_slug(slug)
     if not investor:
         return redirect(url_for("main.search"))
@@ -473,7 +474,7 @@ def claim_manual_view(slug):
 @login_required
 @check_user_info_complete
 @check_verification
-def claim_manual(slug):
+def claiming_manual(slug):
     form_data = request.get_json()
     email = form_data.get("email")
 
@@ -492,6 +493,97 @@ def claim_manual(slug):
         email=email,
     )
     db.session.add(claim_request)
+    db.session.commit()
+
+    return redirect(url_for("main.investor_slug", slug=slug))
+
+
+@main.get("/investor/<slug>/claiming-email")
+@login_required
+@check_user_info_complete
+@check_verification
+def claiming_email_view(slug):
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
+
+    return render_template("claiming/claiming_email.html", investor=investor, captcha_site_key=captcha_site_key)
+
+
+@main.post("/investor/<slug>/claiming-email")
+@login_required
+@check_user_info_complete
+@check_verification
+def claiming_email(slug):
+    form_data = request.get_json()
+    email = form_data.get("email")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+    elif investor.user:
+        return jsonify({"status": "error", "message": "Investor already claimed."}, 400)
+
+    verification = EmailVerification(user_id=current_user.id)
+    db.session.add(verification)
+    db.session.commit()
+
+    ### Claiming verification ###
+
+    # url = f"https://globalify.xyz/claim?code={verification.token}"
+
+    # google_pubsub.send_event(
+    #     "User wants to claim investor!",
+    #     email=investor.email,
+    #     random_key=verification.token,
+    # )
+
+    return redirect(url_for("main.investor_slug", slug=slug))
+
+
+@main.get("/investor/<slug>/claim")
+@login_required
+@check_user_info_complete
+@check_verification
+def claim_verification_view(slug):
+    verification_code = request.args.get("code")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    return render_template(
+        "claiming/claiming_email_verification.html", investor=investor, verification_code=verification_code
+    )
+
+
+@main.post("/investor/<slug>/claim")
+@login_required
+@check_user_info_complete
+@check_verification
+def claim_verification(slug):
+    form_data = request.get_json()
+    verification_code = form_data.get("code")
+    user_email = form_data.get("email")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+
+    email_verification = EmailVerification.get_by_token(verification_code)
+    if not email_verification:
+        return jsonify({"status": "error", "message": "Invalid verification code."}, 400)
+
+    if email_verification.is_expired:
+        return jsonify({"status": "error", "message": "Verification code has expired."}, 400)
+
+    if user_email != current_user.email:
+        return jsonify({"status": "error", "message": "Email does not match."}, 400)
+
+    investor.user = current_user  # type: ignore
+    email_verification.is_used = True
     db.session.commit()
 
     return redirect(url_for("main.investor_slug", slug=slug))

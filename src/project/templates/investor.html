@@ -3,9 +3,17 @@
 <script src="/static/scripts/dashboard.js" defer></script>
 {% endblock %} {% block content %}
 <main class="mx-auto pt-5 flex flex-col min-h-screen items-center gap-5 pb-16 px-4 sm:px-9">
+    {% if investor.twitter %} {% set twitter = investor.twitter.split("/")[-1] %} {% if status_type %} {% if status_type
+    == '3' %}
+    <div class="rounded-xl text-red-500 flex w-full">{{ msg }}</div>
+    {% endif %} {% if status_type == '2' %}
+    <div class="rounded-xl text-orange-400 flex w-full">{{ msg }}</div>
+    {% endif %} {% if status_type == '1' %}
+    <div class="rounded-xl text-lime-500 flex w-full">{{ msg }}</div>
+    {% endif %} {% endif %}
     <section class="w-full max-w-7xl flex gap-4 items-center">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-        {% if investor.twitter %} {% set twitter = investor.twitter.split("/")[-1] %}
+
         <img
             class="h-20 rounded-lg shadow-card"
             src="https://unavatar.io/twitter/{{ twitter }}"
@@ -13,6 +21,7 @@
             loading="lazy"
         />
         {% endif %}
+
         <h1 class="text-4xl font-semibold">{{ investor.full_name }}</h1>
         <div class="flex col">
             {% if not investor.user_id %}

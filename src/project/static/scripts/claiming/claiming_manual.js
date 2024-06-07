@@ -19,15 +19,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 "X-CSRFToken": csrfToken,
             },
             body: JSON.stringify({ email: emailInput.value }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
-                window.location.href = `/investor/${slug}`;
-            })
-            .catch((error) => {
-                console.error("There has been a problem with your fetch operation:", error);
-            });
+        }).then((response) => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else if (!response.ok) {
+                alert("There has been a problem with your request.");
+            }
+        });
     });
 });

@@ -21,10 +21,9 @@ document.addEventListener("DOMContentLoaded", function () {
             body: JSON.stringify({ email: email.value }),
         })
             .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
+                if (response.redirected) {
+                    window.location.href = response.url;
                 }
-                window.location.href = `/investor/${slug}`;
             })
             .catch((error) => {
                 console.error("There has been a problem with your fetch operation:", error);
@@ -49,10 +48,11 @@ document.addEventListener("DOMContentLoaded", function () {
             body: JSON.stringify({ code: code.value, email: email.value }),
         })
             .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (!response.ok) {
+                    alert("There has been a problem with your request.");
                 }
-                window.location.href = `/investor/${slug}`;
             })
             .catch((error) => {
                 console.error("There has been a problem with your fetch operation:", error);

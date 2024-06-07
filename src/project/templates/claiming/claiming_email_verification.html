@@ -13,6 +13,13 @@ content %}
                 Input your email, that you've used to sign up with Globalify.
             </p>
         </article>
+        {% if status_type %} {% if status_type == '3' %}
+        <div class="rounded-xl text-red-500">{{ msg }}</div>
+        {% endif %} {% if status_type == '2' %}
+        <div class="rounded-xl text-orange-400">{{ msg }}</div>
+        {% endif %} {% if status_type == '1' %}
+        <div class="rounded-xl text-lime-500">{{ msg }}</div>
+        {% endif %} {% endif %}
         <form id="verifyForm" class="flex w-full flex-col items-center" data-slug="{{investor.slug}}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input

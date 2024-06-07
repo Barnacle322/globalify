@@ -9,13 +9,25 @@
 {% block head %} {{ super() }} {% endblock %} 
 {% block content %}
 
-<div class="relative flex items-start">
+<div class="relative">
     <nav class="fixed top-20 z-10 h-12 w-full border-b bg-white">
         <!-- 74rem == the max width of the content(8xl or 90rem) - width of the aside element(64 or 16rem) -->
         <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">
-            <a href="/admin/investors" class="flex rounded-t-lg bg-gray-50 px-3 py-2">Investor</a>
-            <a href="/admin/investment-firms" class="flex rounded-t-lg px-3 py-2 hover:bg-gray-50">Investment Firm</a>
-            <a href="/admin/claim-requests" class="flex rounded-t-lg px-3 py-2 hover:bg-gray-50">Claim Requests</a>
+            <a
+                href="/admin/investors"
+                class="px-3 py-2 border-solid border-b-2 border-sky-500 transition-colors ease-in-out"
+                >Investor
+            </a>
+            <a
+                href="/admin/investment-firms"
+                class="px-3 py-2 border-solid border-b-2 border-transparent hover:border-sky-500 transition-colors ease-in-out"
+                >Investment Firm
+            </a>
+            <a
+                href="/admin/claim-requests"
+                class="px-3 py-2 border-solid border-b-2 border-transparent hover:border-sky-500 transition-colors ease-in-out"
+                >Claim Requests
+            </a>
         </div>
     </nav>
 </div>
@@ -98,10 +110,7 @@
                     {% endfor %}
                 </div>
                 {% endif %} {% if investor.industries %}
-                <p class="text-sm text-gray-500">
-                    {% for industry in investor.industries %} {{ industry }}{% if not loop.last %}, {% endif %} {%
-                    endfor %}
-                </p>
+                <p class="text-sm text-gray-500">{{ ", ".join(investor.industries) }}</p>
                 {% endif %}
             </div>
             <div class="ml-auto flex h-full flex-col gap-2">

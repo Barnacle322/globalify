@@ -368,5 +368,11 @@
             </div>
         </article>
     </section>
+    {% if investor.twitter %}
+    <section class="w-full">
+        <a class="twitter-timeline" data-dnt="true" href="{{ investor.twitter }}"></a>
+        <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    </section>
+    {% endif %}
 </main>
 {% endblock %}

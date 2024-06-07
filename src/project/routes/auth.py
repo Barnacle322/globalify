@@ -261,6 +261,8 @@ def email_verification_required():
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("main.search"))
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")

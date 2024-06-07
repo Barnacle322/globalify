@@ -1534,17 +1534,11 @@ select {
 .mt-8 {
   margin-top: 2rem;
 }
-.mt-auto {
-  margin-top: auto;
-}
-.mt-\[2\.5\] {
-  margin-top: 2.5;
-}
 .mt-\[10px\] {
   margin-top: 10px;
 }
-.mt-\[10\] {
-  margin-top: 10;
+.mt-auto {
+  margin-top: auto;
 }
 .line-clamp-3 {
   overflow: hidden;
@@ -1782,9 +1776,6 @@ select {
 }
 .w-screen {
   width: 100vw;
-}
-.w-96 {
-  width: 24rem;
 }
 .min-w-64 {
   min-width: 16rem;
@@ -2758,6 +2749,9 @@ select {
 .pb-24 {
   padding-bottom: 6rem;
 }
+.pb-4 {
+  padding-bottom: 1rem;
+}
 .pb-5 {
   padding-bottom: 1.25rem;
 }
@@ -2812,17 +2806,14 @@ select {
 .pt-3 {
   padding-top: 0.75rem;
 }
+.pt-4 {
+  padding-top: 1rem;
+}
 .pt-5 {
   padding-top: 1.25rem;
 }
 .pt-8 {
   padding-top: 2rem;
-}
-.pt-4 {
-  padding-top: 1rem;
-}
-.pb-4 {
-  padding-bottom: 1rem;
 }
 .text-left {
   text-align: left;
@@ -4661,16 +4652,12 @@ textarea {
     width: 50%;
   }
 
-  .md\:w-full {
-    width: 100%;
-  }
-
-  .md\:w-64 {
-    width: 16rem;
-  }
-
   .md\:w-96 {
     width: 24rem;
+  }
+
+  .md\:w-full {
+    width: 100%;
   }
 
   .md\:grid-cols-2 {

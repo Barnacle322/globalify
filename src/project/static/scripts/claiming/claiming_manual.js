@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch(`/investor/${slug}/claiming-manual`, {
+        fetch(`/investor/${slug}/claim/manual`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

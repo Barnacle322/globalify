@@ -6,16 +6,16 @@
 {% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
 content %}
 
-<main class="pt-5 flex flex-col min-h-screen items-center gap-5 pb-16 px-4 sm:px-9 w-full">
-    <section class="mt-36 flex max-w-md flex-col items-center justify-center gap-8 md:mt-48">
-        <article class="flex flex-col gap-2 text-center">
-            <h1 class="text-3xl font-bold md:text-5xl">Disclamer</h1>
+<main class="flex min-h-screen w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+    <section class="mt-36 flex max-w-md flex-col gap-8 md:mt-48">
+        <article class="flex flex-col gap-2">
+            <h1 class="text-3xl font-semibold md:text-5xl">Email Verification</h1>
             <p class="max-w-xl text-base text-slate-600 md:text-lg">
-                We will send a letter to <span class="font-bold">{{ investor.email }}</span>. After you have
-                received the email, please confirm the verification.
+                We will send a letter to <b>{{ investor.email }}</b>. After you've received the email, please confirm
+                the verification.
             </p>
         </article>
-        <form id="claimForm" class="flex w-full flex-col items-center" data-slug="{{investor.slug}}">
+        <form id="claimForm" class="flex w-full flex-col" data-slug="{{investor.slug}}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="hidden" id="email" name="email" value="{{ investor.email }}" />
             <div class="g-recaptcha" data-sitekey="{{captcha_site_key}}"></div>

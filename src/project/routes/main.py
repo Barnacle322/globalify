@@ -449,7 +449,7 @@ def investor_slug(slug):
     return render_template("investor.html", investor=investor, user=current_user, status_type=status_type, msg=msg)
 
 
-@main.get("/investor/<slug>/claiming-types")
+@main.get("/investor/<slug>/claim")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -458,10 +458,10 @@ def claiming_types_view(slug):
     if not investor:
         return redirect(url_for("main.search"))
 
-    return render_template("claiming/claiming_types.html", investor=investor)
+    return render_template("claiming/index.html", investor=investor)
 
 
-@main.get("/investor/<slug>/claiming-manual")
+@main.get("/investor/<slug>/claim/manual")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -478,7 +478,7 @@ def claiming_manual_view(slug):
     captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
 
     return render_template(
-        "claiming/claiming_manual.html",
+        "claiming/manual.html",
         investor=investor,
         captcha_site_key=captcha_site_key,
         status_type=status_type,
@@ -486,7 +486,7 @@ def claiming_manual_view(slug):
     )
 
 
-@main.post("/investor/<slug>/claiming-manual")
+@main.post("/investor/<slug>/claim/manual")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -520,7 +520,7 @@ def claiming_manual(slug):
     return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
 
 
-@main.get("/investor/<slug>/claiming-email")
+@main.get("/investor/<slug>/claim/email")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -531,10 +531,10 @@ def claiming_email_view(slug):
 
     captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
 
-    return render_template("claiming/claiming_email.html", investor=investor, captcha_site_key=captcha_site_key)
+    return render_template("claiming/email.html", investor=investor, captcha_site_key=captcha_site_key)
 
 
-@main.post("/investor/<slug>/claiming-email")
+@main.post("/investor/<slug>/claim/email")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -582,7 +582,7 @@ def claim_verification_view(slug):
         return redirect(url_for("main.search"))
 
     return render_template(
-        "claiming/claiming_email_verification.html",
+        "claiming/email_verification.html",
         investor=investor,
         verification_code=verification_code,
         status_type=status_type,

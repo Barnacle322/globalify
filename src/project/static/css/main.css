@@ -1777,6 +1777,9 @@ select {
 .w-screen {
   width: 100vw;
 }
+.w-2\/3 {
+  width: 66.666667%;
+}
 .min-w-64 {
   min-width: 16rem;
 }
@@ -2252,9 +2255,16 @@ select {
 .rounded-xl {
   border-radius: 0.75rem;
 }
+.rounded {
+  border-radius: 0.25rem;
+}
 .rounded-r-xl {
   border-top-right-radius: 0.75rem;
   border-bottom-right-radius: 0.75rem;
+}
+.rounded-t-lg {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
 }
 .rounded-tl-3xl {
   border-top-left-radius: 1.5rem;
@@ -2582,6 +2592,9 @@ select {
 .fill-white {
   fill: #fff;
 }
+.fill-sky-600 {
+  fill: #0284c7;
+}
 .object-contain {
   -o-object-fit: contain;
      object-fit: contain;
@@ -2826,6 +2839,9 @@ select {
 .text-center {
   text-align: center;
 }
+.text-justify {
+  text-align: justify;
+}
 .text-start {
   text-align: start;
 }
@@ -3057,8 +3073,19 @@ select {
 .text-white\/30 {
   color: rgb(255 255 255 / 0.3);
 }
+.text-sky-700 {
+  --tw-text-opacity: 1;
+  color: rgb(3 105 161 / var(--tw-text-opacity));
+}
+.text-sky-600 {
+  --tw-text-opacity: 1;
+  color: rgb(2 132 199 / var(--tw-text-opacity));
+}
 .underline {
   text-decoration-line: underline;
+}
+.overline {
+  text-decoration-line: overline;
 }
 .opacity-0 {
   opacity: 0;
@@ -4604,6 +4631,11 @@ textarea {
     line-height: 1.75rem;
   }
 
+  .sm\:text-3xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+
   .sm\:leading-9 {
     line-height: 2.25rem;
   }
@@ -4678,6 +4710,10 @@ textarea {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .md\:flex-row {
+    flex-direction: row;
+  }
+
   .md\:justify-start {
     justify-content: flex-start;
   }
@@ -4718,6 +4754,11 @@ textarea {
   .md\:text-xl {
     font-size: 1.25rem;
     line-height: 1.75rem;
+  }
+
+  .md\:text-4xl {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
   }
 }
 

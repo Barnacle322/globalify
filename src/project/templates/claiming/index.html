@@ -1,51 +1,60 @@
-{% extends "layouts/layout_app.html" %} {% block title %} {{ investor.full_name }} {% endblock %} {% block head %}
-{{super() }}
-<script src="/static/scripts/dashboard.js" defer></script>
-{% endblock %} {% block content %}
-<main class="mx-auto pt-5 flex flex-col min-h-screen items-center gap-5 pb-16 px-4 sm:px-9">
-    {% if status_type %} {% if status_type == '3' %}
-    <div class="rounded-xl text-red-500 flex w-full">{{ msg }}</div>
-    {% elif status_type == '2' %}
-    <div class="rounded-xl text-orange-400 flex w-full">{{ msg }}</div>
-    {% elif status_type == '1' %}
-    <div class="rounded-xl text-lime-500 flex w-full">{{ msg }}</div>
-    {% endif %} {% endif %}
-    <section class="w-full max-w-7xl flex gap-4 items-center">
-        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-        {% if investor.twitter %}
-        <img
-            class="h-20 rounded-lg shadow-card"
-            src="https://unavatar.io/twitter/{{ investor.twitter.split('/')[-1] }}"
-            alt=""
-            loading="lazy"
-        />
-        {% endif %}
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %} 
+{% block title %} Claim Profile {% endblock %} 
+{% block head %} {{ super() }} {% endblock %} 
+{% block content %}
 
-        <h1 class="text-4xl font-semibold">{{ investor.full_name }}</h1>
-        <div class="flex col">
-            {% if not investor.user_id %}
-            <a
-                href="/investor/{{ investor.slug }}/claim"
-                class="rounded-lg bg-sky-500 px-2 py-1 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
+<main class="mb-20 flex min-h-screen w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+    <section class="flex w-full flex-col gap-4">
+        <a href="/investor/{{ investor.slug }}" class="group flex items-center gap-1 text-gray-500"
+            ><svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                class="size-4 transition-colors ease-in-out group-hover:text-gray-700"
             >
-                Claim
-            </a>
-            {% else %}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="rgb(14 165 233)" class="size-5 mt-[10px]">
                 <path
                     fill-rule="evenodd"
-                    d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.883l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
+                    d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
                     clip-rule="evenodd"
-                />
+                ></path>
             </svg>
-            {% endif %}
-        </div>
+            <span class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Go Back</span>
+        </a>
+        <h1 class="text-3xl font-semibold sm:text-4xl">Claim the profile</h1>
+        <p class="max-w-xl text-pretty text-gray-700">
+            You are about to request a claim for the following investor profile. Please make sure that you are claiming
+            your own profile. We will make sure to verify your claim as soon as possible. After the verification, you
+            will be able to make edits, delete or add new information to the profile.
+        </p>
     </section>
-    <section class="w-wull max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
+    <h2 class="mt-2 w-full text-2xl font-semibold sm:text-3xl">Overview</h2>
+    <section class="w-wull grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2">
         {% if investor.location or investor.firm_name or investor.about %}
-        <article class="bg-white shadow-card p-5 rounded-xl w-full">
+        <article class="shadow-card w-full rounded-xl bg-white p-5">
             <h2 class="text-xl font-medium">General</h2>
-            <div class="flex flex-col gap-2 text-sm mt-5">
+            <div class="mt-5 flex flex-col gap-2 text-sm">
+                <div class="grid grid-cols-2">
+                    <span class="inline-flex items-center gap-1 font-medium">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                            />
+                        </svg>
+
+                        Name:
+                    </span>
+                    <span class="text-gray-700">{{ investor.full_name }}</span>
+                </div>
                 {% if investor.location %}
                 <div class="grid grid-cols-2">
                     <span class="inline-flex items-center gap-1 font-medium">
@@ -99,11 +108,11 @@
             </div>
         </article>
         {% endif %}
-        <article class="bg-white shadow-card p-5 rounded-xl w-full">
+        <article class="shadow-card w-full rounded-xl bg-white p-5">
             <h2 class="text-xl font-medium">Investment</h2>
             {% if investor.rounds|length != 0 %}
-            <div class="flex flex-col gap-2 mt-5">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-5 flex flex-col gap-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -122,15 +131,15 @@
                 </span>
                 <div class="flex flex-wrap gap-1">
                     {% for round in investor.rounds %}
-                    <a class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
+                    <a class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
                         >{{ round.name }}
                     </a>
                     {% endfor %}
                 </div>
             </div>
             {% endif %} {% if investor.industries|length != 0 %}
-            <div class="flex flex-col gap-2 mt-2">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-2 flex flex-col gap-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -149,15 +158,15 @@
                 </span>
                 <div class="flex flex-wrap gap-1">
                     {% for industry in investor.industries %}
-                    <a class="text-nowrap rounded-lg bg-[#B9E5FF] px-2 font-medium py-1.5 text-xs text-[#3EB5FD]"
+                    <a class="text-nowrap rounded-lg bg-[#B9E5FF] px-2 py-1.5 text-xs font-medium text-[#3EB5FD]"
                         >{{ industry.name }}</a
                     >
                     {% endfor %}
                 </div>
             </div>
             {% endif %} {% if investor.min_max_investment %}
-            <div class="grid grid-cols-2 mt-5">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-5 grid grid-cols-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -177,8 +186,8 @@
                 <span class="text-sm text-gray-700">{{ investor.min_max_investment }}</span>
             </div>
             {% endif %} {% if investor.n_investments and investor.n_exits %}
-            <div class="grid grid-cols-2 mt-5">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-5 grid grid-cols-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -199,8 +208,8 @@
                 <span class="text-sm text-gray-700">{{ investor.n_investments }}/{{ investor.n_exits }}</span>
             </div>
             {% elif investor.n_investments %}
-            <div class="grid grid-cols-2 mt-5">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-5 grid grid-cols-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -220,8 +229,8 @@
                 <span class="text-sm text-gray-700">{{ investor.n_investments }}</span>
             </div>
             {% elif investor.n_exits %}
-            <div class="grid grid-cols-2 mt-5">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-5 grid grid-cols-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -243,10 +252,10 @@
             </div>
             {% endif %} {% if investor.notable_investments %}
             <div>
-                <h2 class="font-medium mt-5">Notable Investments</h2>
-                <div class="flex flex-wrap gap-1 mt-2">
+                <h2 class="mt-5 font-medium">Notable Investments</h2>
+                <div class="mt-2 flex flex-wrap gap-1">
                     {% for investment in investor.notable_investments %}
-                    <a class="text-nowrap rounded-lg bg-violet-300 px-2 font-medium py-1.5 text-xs text-violet-500"
+                    <a class="text-nowrap rounded-lg bg-violet-300 px-2 py-1.5 text-xs font-medium text-violet-500"
                         >{{ investment.name }}</a
                     >
                     {% endfor %}
@@ -254,11 +263,11 @@
             </div>
             {% endif %}
         </article>
-        <article class="bg-white shadow-card p-5 rounded-xl w-full">
+        <article class="shadow-card w-full rounded-xl bg-white p-5">
             <h2 class="text-xl font-medium">Contacts</h2>
-            <div class="flex flex-col gap-2 text-sm mt-5">
+            <div class="mt-5 flex flex-col gap-2 text-sm">
                 {% if investor.twitter %}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="size-5">
                             <path
@@ -270,9 +279,9 @@
                     <a
                         href="{{ investor.twitter }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                        class="flex select-text items-center gap-1 text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -284,7 +293,7 @@
                     </a>
                 </div>
                 {% endif %} {% if investor.linkedin %}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
                             <path
@@ -296,9 +305,9 @@
                     <a
                         href="{{ investor.linkedin }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                        class="flex select-text items-center gap-1 text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -310,7 +319,7 @@
                     </a>
                 </div>
                 {% endif %} {% if investor.website %}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -332,9 +341,9 @@
                     <a
                         href="{{ investor.website }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                        class="flex select-text items-center gap-1 text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -346,7 +355,7 @@
                     </a>
                 </div>
                 {% endif %} {% if investor.email %}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -354,7 +363,7 @@
                             viewBox="0 0 24 24"
                             stroke-width="1.5"
                             stroke="currentColor"
-                            class="size-5"
+                            class="size-5 text-sky-600"
                         >
                             <path
                                 stroke-linecap="round"
@@ -363,24 +372,46 @@
                             />
                         </svg>
 
-                        Email:
+                        <b class="text-sky-600">Email:</b>
                     </span>
-                    <a
-                        href="mailto:{{ investor.email }}"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
-                    >
-                        <span>{{ investor.email }}</span>
-                    </a>
+                    <b class="text-sky-600">{{ investor.email }}</b>
                 </div>
                 {% endif %}
             </div>
         </article>
     </section>
-    {% if investor.twitter %}
-    <section class="w-full">
-        <a class="twitter-timeline" data-dnt="true" href="{{ investor.twitter }}"></a>
-        <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    <section class="mt-2 flex w-full flex-col gap-3">
+        <h2 class="text-2xl font-semibold sm:text-3xl">Methods</h2>
+        <div class="flex flex-col gap-4 md:flex-row">
+            <div class="flex flex-col gap-10 text-pretty md:w-1/2">
+                <p class="text-gray-700">
+                    During manual verification we will get in contact with you to determine your identity. This process
+                    can take several days.
+                </p>
+                <p>
+                    Email verification is a faster way to claim your profile. We will send you an email with a link to
+                    verify your identity. This process is instant.
+                </p>
+            </div>
+            <div></div>
+            <div class="flex flex-col items-center justify-center gap-5 md:w-1/2">
+                <a
+                    href="/investor/{{ investor.slug }}/claim/manual"
+                    class="inline-flex w-full items-center justify-center rounded-xl bg-sky-500 px-3 py-2 font-semibold text-white transition-colors ease-in-out hover:bg-sky-400"
+                >
+                    Request a manual verification
+                </a>
+                {% if investor.email %}
+                <span class="font-medium">or</span>
+                <a
+                    href="/investor/{{ investor.slug }}/claim/email"
+                    class="inline-flex w-full items-center justify-center rounded-xl bg-sky-500 px-3 py-2 font-semibold text-white transition-colors ease-in-out hover:bg-sky-400"
+                >
+                    Verify with an email
+                </a>
+                {% endif %}
+            </div>
+        </div>
     </section>
-    {% endif %}
 </main>
 {% endblock %}

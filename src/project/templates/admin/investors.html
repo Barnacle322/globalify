@@ -15,17 +15,17 @@
         <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">
             <a
                 href="/admin/investors"
-                class="px-3 py-2 border-solid border-b-2 border-sky-500 transition-colors ease-in-out"
+                class="border-b-2 border-solid border-sky-500 px-3 py-2 transition-colors ease-in-out"
                 >Investor
             </a>
             <a
                 href="/admin/investment-firms"
-                class="px-3 py-2 border-solid border-b-2 border-transparent hover:border-sky-500 transition-colors ease-in-out"
+                class="border-b-2 border-solid border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
                 >Investment Firm
             </a>
             <a
                 href="/admin/claim-requests"
-                class="px-3 py-2 border-solid border-b-2 border-transparent hover:border-sky-500 transition-colors ease-in-out"
+                class="border-b-2 border-solid border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
                 >Claim Requests
             </a>
         </div>
@@ -35,13 +35,13 @@
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
 
     <h1 class="text-3xl font-bold sm:text-5xl">Investors</h1>
-    <div class="flex gap-2 rounded-full border bg-white py-2 pr-3 w-full mx-auto">
+    <div class="mx-auto flex w-full gap-2 rounded-full border bg-white py-2 pr-3">
         <div class="relative w-full">
             <input
                 type="search"
                 name="search"
                 id="search"
-                class="w-full border-0 p-3 pl-12 text-sm focus:ring-0 bg-transparent"
+                class="w-full border-0 bg-transparent p-3 pl-12 text-sm focus:ring-0"
                 placeholder="Search"
                 value="{{ query }}"
                 required
@@ -182,7 +182,7 @@
         {% if pagination and pagination.has_other_pages %} 
         {% if pagination.has_prev %}
         <a
-            class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
             href="/admin/investors?page=1"
         >
             <svg
@@ -223,14 +223,14 @@
         {% if page == pagination.current_page %}
         <a
             id="current"
-            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white border-sky-500 text-sm text-sky-500 font-bold transition-opacity duration-200 ease-in-out hover:opacity-90"
+            class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500 transition-opacity duration-200 ease-in-out hover:opacity-90"
             href="/admin/investors?page={{ pagination.current_page }}"
             >{{ pagination.current_page }}</a
         >
         {% else %}
         <a
             id="page"
-            class="inline-flex size-10 items-center justify-center rounded-lg border text-sm font-medium bg-white"
+            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white text-sm font-medium"
             href="/admin/investors?page={{ page }}"
             >{{ page }}</a
         >
@@ -240,7 +240,7 @@
         {% if pagination.has_next %}
         <a
             id="next"
-            class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
             href="/admin/investors?page={{ pagination.next }}"
         >
             <svg
@@ -255,7 +255,7 @@
             </svg>
         </a>
         <a
-            class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
             href="/admin/investors?page={{ pagination.last_page }}"
         >
             <svg

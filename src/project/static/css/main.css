@@ -1534,6 +1534,9 @@ select {
 .mt-8 {
   margin-top: 2rem;
 }
+.mt-\[10px\] {
+  margin-top: 10px;
+}
 .mt-auto {
   margin-top: auto;
 }
@@ -2024,6 +2027,9 @@ select {
 .flex-wrap {
   flex-wrap: wrap;
 }
+.place-content-start {
+  place-content: start;
+}
 .items-start {
   align-items: flex-start;
 }
@@ -2250,10 +2256,6 @@ select {
   border-top-right-radius: 0.75rem;
   border-bottom-right-radius: 0.75rem;
 }
-.rounded-t-lg {
-  border-top-left-radius: 0.5rem;
-  border-top-right-radius: 0.5rem;
-}
 .rounded-tl-3xl {
   border-top-left-radius: 1.5rem;
 }
@@ -2269,11 +2271,17 @@ select {
 .border-b {
   border-bottom-width: 1px;
 }
+.border-b-2 {
+  border-bottom-width: 2px;
+}
 .border-r {
   border-right-width: 1px;
 }
 .border-t {
   border-top-width: 1px;
+}
+.border-solid {
+  border-style: solid;
 }
 .border-gray-200 {
   --tw-border-opacity: 1;
@@ -2305,6 +2313,9 @@ select {
 .border-stone-300 {
   --tw-border-opacity: 1;
   border-color: rgb(214 211 209 / var(--tw-border-opacity));
+}
+.border-transparent {
+  border-color: transparent;
 }
 .border-white {
   --tw-border-opacity: 1;
@@ -2743,6 +2754,9 @@ select {
 .pb-24 {
   padding-bottom: 6rem;
 }
+.pb-4 {
+  padding-bottom: 1rem;
+}
 .pb-5 {
   padding-bottom: 1.25rem;
 }
@@ -2797,17 +2811,14 @@ select {
 .pt-3 {
   padding-top: 0.75rem;
 }
+.pt-4 {
+  padding-top: 1rem;
+}
 .pt-5 {
   padding-top: 1.25rem;
 }
 .pt-8 {
   padding-top: 2rem;
-}
-.pt-4 {
-  padding-top: 1rem;
-}
-.pb-4 {
-  padding-bottom: 1rem;
 }
 .text-left {
   text-align: left;
@@ -4050,6 +4061,11 @@ textarea {
   border-bottom-width: 3px;
 }
 
+.hover\:border-sky-500:hover {
+  --tw-border-opacity: 1;
+  border-color: rgb(14 165 233 / var(--tw-border-opacity));
+}
+
 .hover\:bg-\[\#181747ea\]:hover {
   background-color: #181747ea;
 }
@@ -4646,6 +4662,10 @@ textarea {
     width: 50%;
   }
 
+  .md\:w-96 {
+    width: 24rem;
+  }
+
   .md\:w-full {
     width: 100%;
   }
@@ -4673,6 +4693,11 @@ textarea {
 
   .md\:text-center {
     text-align: center;
+  }
+
+  .md\:text-3xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
   }
 
   .md\:text-5xl {

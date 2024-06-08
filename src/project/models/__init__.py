@@ -1,6 +1,5 @@
 from .helpers import Country, Industry, Round
 from .investor import (
-    ClaimRequest,
     InvestmentFirm,
     InvestmentFirmBookmark,
     Investor,
@@ -8,6 +7,7 @@ from .investor import (
     NotableInvestment,
 )
 from .user import (
+    ClaimRequest,
     Company,
     EmailVerification,
     Notification,

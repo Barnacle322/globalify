@@ -10,11 +10,11 @@ from flask_login import UserMixin
 from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func, or_, text
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, mapped_column, relationship, validates
+from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship, validates
 
 from ..extensions import db
 from ..utils import suggestion
-from ..utils.enums import NotificationDestination, OauthProvider, Tier
+from ..utils.enums import NotificationDestination, OauthProvider, RequestStatus, Tier
 from .helpers import Country, Industry, Round
 
 
@@ -503,6 +503,45 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_by_user_id(user_id: int) -> Company | None:
         return db.session.scalar(db.select(Company).where(Company.user_id == user_id))
+
+
+class ClaimRequest(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    user: Mapped[User] = relationship(User, backref=backref("claim_request", uselist=False))
+
+    investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
+    investor: Mapped["Investor"] = relationship("Investor", backref=backref("claim_request", uselist=False))  # type: ignore # noqa: F821
+    status: Mapped[RequestStatus] = mapped_column(String, nullable=False, default=RequestStatus.PENDING.value)
+    status_info: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    approved_by: Mapped[int] = mapped_column(Integer, nullable=True, default=None)
+    approved_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    email: Mapped[str] = mapped_column(String, nullable=True, default=None)
+    requested_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<ClaimRequest {self.id}>"
+
+    @staticmethod
+    def get_by_id(id: int) -> ClaimRequest | None:
+        return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.id == id))
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> ClaimRequest | None:
+        return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.user_id == user_id))
+
+    @staticmethod
+    def get_by_investor_id(investor_id: int) -> ClaimRequest | None:
+        return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.investor_id == investor_id))
+
+    @staticmethod
+    def get_all() -> Sequence[ClaimRequest]:
+        return db.session.scalars(
+            db.select(ClaimRequest).options(joinedload(ClaimRequest.user), joinedload(ClaimRequest.investor))
+        ).all()
 
 
 @event.listens_for(Engine, "connect")

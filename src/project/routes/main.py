@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
@@ -33,6 +34,7 @@ from ..models import (
     Waitlist,
     WaitlistCharge,
 )
+from ..models.user import EmailVerification
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
 from ..utils.enums import NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
@@ -435,42 +437,192 @@ def demo_search():
 @check_user_info_complete
 @check_verification
 def investor_slug(slug):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     investor = Investor.get_by_slug(slug)
     if not investor:
         return redirect(url_for("main.search"))
 
-    return render_template("investor.html", investor=investor, user=current_user)
+    return render_template("investor.html", investor=investor, user=current_user, status_type=status_type, msg=msg)
 
 
-@main.post("/claim-investor/<int:id>")
+@main.get("/investor/<slug>/claiming-types")
 @login_required
 @check_user_info_complete
 @check_verification
-def claim_investor(id):
-    user_id = current_user.id
-    claim_request = ClaimRequest.get_by_user_id(user_id)
-    if claim_request:
+def claiming_types_view(slug):
+    investor = Investor.get_by_slug(slug)
+    if not investor:
         return redirect(url_for("main.search"))
-    data = request.get_json()
-    email = data.get("email")
-    link = url_for("main.claim_request", investor_id=id, user_id=user_id, _external=True)
-    print(email)
-    print("\n\n")
-    google_pubsub.send_event(msg=f"Create request to claim investor page by link: {link}", email=email)
 
-    return jsonify({"status": "success"}, 200)
+    return render_template("claiming/claiming_types.html", investor=investor)
 
 
-@main.get("/claim-request/<int:investor_id>/<int:user_id>")
+@main.get("/investor/<slug>/claiming-manual")
 @login_required
 @check_user_info_complete
 @check_verification
-def claim_request(investor_id, user_id):
-    claim_request = ClaimRequest(user_id=user_id, investor_id=investor_id)
+def claiming_manual_view(slug):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
+
+    return render_template(
+        "claiming/claiming_manual.html",
+        investor=investor,
+        captcha_site_key=captcha_site_key,
+        status_type=status_type,
+        msg=msg,
+    )
+
+
+@main.post("/investor/<slug>/claiming-manual")
+@login_required
+@check_user_info_complete
+@check_verification
+def claiming_manual(slug):
+    form_data = request.get_json()
+    email = form_data.get("email")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+
+    claim_request = ClaimRequest.get_by_user_id(current_user.id)
+    if claim_request:
+        if claim_request.status == "pending":
+            status = Status(StatusType.ERROR, "You have already submitted a claim request.").get_status()
+            return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
+        elif claim_request.status == "approved":
+            status = Status(StatusType.ERROR, "You already have claimed investor.").get_status()
+            return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
+
+    claim_request = ClaimRequest(
+        user_id=current_user.id,
+        investor_id=investor.id,
+        email=email,
+    )
     db.session.add(claim_request)
     db.session.commit()
 
-    return redirect(url_for("main.search"))
+    status = Status(StatusType.SUCCESS, "Claim request submitted.").get_status()
+
+    return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
+
+
+@main.get("/investor/<slug>/claiming-email")
+@login_required
+@check_user_info_complete
+@check_verification
+def claiming_email_view(slug):
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
+
+    return render_template("claiming/claiming_email.html", investor=investor, captcha_site_key=captcha_site_key)
+
+
+@main.post("/investor/<slug>/claiming-email")
+@login_required
+@check_user_info_complete
+@check_verification
+def claiming_email(slug):
+    form_data = request.get_json()
+    email = form_data.get("email")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    verification = EmailVerification(user_id=current_user.id)
+    db.session.add(verification)
+    db.session.commit()
+
+    ### Claiming verification ###
+
+    # url = f"https://globalify.xyz/claim?code={verification.token}"
+
+    # google_pubsub.send_event(
+    #     "User wants to claim investor!",
+    #     email=investor.email,
+    #     random_key=verification.token,
+    # )
+
+    status = Status(StatusType.SUCCESS, "Verification email sent.").get_status()
+
+    return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
+
+
+@main.get("/investor/<slug>/claim")
+@login_required
+@check_user_info_complete
+@check_verification
+def claim_verification_view(slug):
+    verification_code = request.args.get("code")
+
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    return render_template(
+        "claiming/claiming_email_verification.html",
+        investor=investor,
+        verification_code=verification_code,
+        status_type=status_type,
+        msg=msg,
+    )
+
+
+@main.post("/investor/<slug>/claim")
+@login_required
+@check_user_info_complete
+@check_verification
+def claim_verification(slug):
+    form_data = request.get_json()
+    verification_code = form_data.get("code")
+    user_email = form_data.get("email")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    email_verification = EmailVerification.get_by_token(verification_code)
+    if not email_verification:
+        status = Status(StatusType.ERROR, "Verification code is invalid.").get_status()
+        return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
+
+    if email_verification.is_expired:
+        status = Status(StatusType.ERROR, "Verification code is expired. Please request a new one").get_status()
+        return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
+
+    if user_email != current_user.email:
+        status = Status(StatusType.ERROR, "Email is invalid. Please enter email that you registered with.").get_status()
+        return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
+
+    investor.user = current_user  # type: ignore
+    email_verification.is_used = True
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Investor claimed.").get_status()
+
+    return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
 
 
 @main.post("/investor/<int:investor_id>/bookmark")

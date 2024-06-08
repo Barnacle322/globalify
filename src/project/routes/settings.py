@@ -98,7 +98,6 @@ def add_https_prefix(url):
 @login_required
 @check_user_info_complete
 @check_verification
-@fresh_login_required
 def change_personal_info():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
@@ -203,7 +202,6 @@ def change_personal_info():
 @login_required
 @check_user_info_complete
 @check_verification
-@fresh_login_required
 def delete_account():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 

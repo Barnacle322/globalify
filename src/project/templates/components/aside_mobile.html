@@ -158,7 +158,7 @@
             </a>
             <a
                 ref="profile"
-                href="/profile/{{ user.id }}"
+                href="/profile/{{ user.user_info.username }}"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
                 :class="currentPath == 'profile' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
             >

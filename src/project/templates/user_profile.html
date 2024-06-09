@@ -1,15 +1,13 @@
 <!-- prettier-ignore -->
 {% extends "layouts/layout_app.html" %} 
-{% block additional_scripts %}
-<script src="/static/scripts/dashboard.js" defer></script>
-<!-- prettier-ignore -->
-{% endblock %} 
-{% block title %} {{user_info.full_name }} {% endblock %} 
+{% block title %} {{ user_info.full_name }} {% endblock %} 
 {% block head %} {{ super() }} {% endblock %} 
 {% block content %}
 
 <main class="pt-5 flex flex-col min-h-screen items-center gap-5 pb-16 px-4 sm:px-9 w-full">
     <section class="w-wull max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
+        <!-- prettier-ignore -->
+        {% if user_info.bio or (user_info.twitter_public and user_info.twitter_url) or (user_info.linkedin_public and user_info.linkedin_url) or (user_info.instagram_public and user_info.instagram_url) or user_info.email_public %}
         <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <h2 class="text-2xl font-medium flex gap-4 items-center">
                 {% if user_info.picture_url %}
@@ -128,6 +126,8 @@
                 {% endif %}
             </div>
         </article>
+        {% endif %} {% if company.preferred_round or company_indutry or company.description or company.website_url or
+        company.country or company.number_of_employees %}
         <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <div class="flex gap-2 items-center flex-wrap">
                 <h2 class="text-2xl font-medium flex gap-4 items-center">
@@ -236,6 +236,7 @@
             </ul>
             {% endif %}
         </article>
+        {% endif %}
     </section>
 </main>
 {% endblock %}

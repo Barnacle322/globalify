@@ -15,7 +15,7 @@ from more_itertools import chunked
 from slugify import slugify
 from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship
+from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship, validates
 from thefuzz import fuzz
 
 from ..extensions import db
@@ -276,23 +276,23 @@ class Investor(db.Model):
     first_name: Mapped[str] = mapped_column(String, nullable=False)
     last_name: Mapped[str] = mapped_column(String, nullable=True)
     slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
-    firm_name: Mapped[str] = mapped_column(String, nullable=True)
-    about: Mapped[str] = mapped_column(String, nullable=True)
-    position: Mapped[str] = mapped_column(String, nullable=True)
-    website: Mapped[str] = mapped_column(String, nullable=True)
-    linkedin: Mapped[str] = mapped_column(String, nullable=True)
-    twitter: Mapped[str] = mapped_column(String, nullable=True)
-    email: Mapped[str] = mapped_column(String, nullable=True, unique=False)
-    phone_number: Mapped[str] = mapped_column(String, nullable=True)
-    n_investments: Mapped[int] = mapped_column(Integer, nullable=True)
+    firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    about: Mapped[str | None] = mapped_column(String, nullable=True)
+    position: Mapped[str | None] = mapped_column(String, nullable=True)
+    website: Mapped[str | None] = mapped_column(String, nullable=True)
+    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
+    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True, unique=False)
+    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
     n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
-    min_investment: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    max_investment: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    location: Mapped[str] = mapped_column(String, nullable=True)
-    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
-    _country: Mapped[str] = mapped_column(String, nullable=True)
-    bias: Mapped[int] = mapped_column(Integer, nullable=True)
-    search_index: Mapped[str] = mapped_column(String, nullable=True)
+    min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
+    _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
+    _country: Mapped[str | None] = mapped_column(String, nullable=True)
+    bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    search_index: Mapped[str | None] = mapped_column(String, nullable=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
 
     user: Mapped[User | None] = relationship(User, backref=backref("investor", uselist=False))
@@ -350,6 +350,14 @@ class Investor(db.Model):
             return f"{min_investment}+"
         elif max_investment:
             return f"Up to {max_investment}"
+
+    @validates("location")
+    def on_location_change(self, key, value):
+        geo_data = geocode_location(value)
+        if geo_data is not None:
+            self._coordinates = geo_data["coordinates"]  # type: ignore
+            self._country = geo_data["country_name"]  # type: ignore
+        return value
 
     @staticmethod
     def get_all() -> Sequence[Investor]:

@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const slug = form.getAttribute("data-slug");
 
     form.addEventListener("submit", function () {
-        fetch(`/investor/${slug}/claim`, {
+        fetch(`/investor/${slug}/claim/mail/verify`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

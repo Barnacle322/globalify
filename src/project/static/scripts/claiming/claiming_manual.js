@@ -4,11 +4,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const emailInput = document.getElementById("email");
     const slug = form.getAttribute("data-slug");
 
-    form.addEventListener("submit", function (event) {
+    function checkCaptcha() {
         const recaptchaValue = grecaptcha.getResponse();
         if (recaptchaValue.length === 0) {
-            event.preventDefault();
             alert("Please verify that you are not a robot.");
+            return false;
+        }
+        return true;
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        if (!checkCaptcha()) {
             return;
         }
 
@@ -19,12 +27,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 "X-CSRFToken": csrfToken,
             },
             body: JSON.stringify({ email: emailInput.value }),
-        }).then((response) => {
-            if (response.redirected) {
-                window.location.href = response.url;
-            } else if (!response.ok) {
-                alert("There has been a problem with your request.");
-            }
-        });
+        })
+            .then((response) => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+            });
     });
 });

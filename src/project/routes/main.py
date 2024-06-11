@@ -678,7 +678,7 @@ def claiming_email(slug):
     return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
 
 
-@main.get("/investor/<slug>/claim/mail/verify")
+@main.get("/investor/<slug>/claim/email/verify")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -703,7 +703,7 @@ def claim_verification_view(slug):
     )
 
 
-@main.post("/investor/<slug>/claim/mail/verify")
+@main.post("/investor/<slug>/claim/email/verify")
 @login_required
 @check_user_info_complete
 @check_verification

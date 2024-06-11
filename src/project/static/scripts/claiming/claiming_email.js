@@ -50,8 +50,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .then((response) => {
                 if (response.redirected) {
                     window.location.href = response.url;
-                } else if (!response.ok) {
-                    alert("There has been a problem with your request.");
                 }
             })
             .catch((error) => {

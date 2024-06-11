@@ -1,8 +1,9 @@
-from flask import Blueprint, abort, redirect, render_template, request, url_for
+from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
 from ..models import Company, Country, Industry, Round, User, UserInfo, UserPayment
+from ..models.investor import Investor, NotableInvestment
 from ..utils.enums import Status, StatusType, Tier
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
@@ -324,3 +325,115 @@ def change_company_info():
         status_type=status_type,
         msg=msg,
     )
+
+
+@settings.get("/investor-profile/edit")
+@login_required
+@check_user_info_complete
+@check_verification
+def edit_investor_view():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    investor = Investor.get_by_user_id(current_user.id)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    if investor.user_id != current_user.id:
+        return redirect(url_for("main.search"))
+
+    notable_investments = NotableInvestment.get_all()
+    rounds = Round.get_all()
+    industries = Industry.get_all()
+
+    return render_template(
+        "settings/edit_investor_profile.html",
+        investor=investor,
+        rounds=rounds,
+        industries=industries,
+        notable_investments=notable_investments,
+        status_type=status_type,
+        msg=msg,
+    )
+
+
+@settings.post("/investor-profile/edit")
+@login_required
+@check_user_info_complete
+@check_verification
+def edit_investor():
+    investor = Investor.get_by_user_id(current_user.id)
+    if not investor:
+        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+
+    if investor.user_id != current_user.id:
+        return jsonify({"status": "error", "message": "Not authorized."}, 401)
+
+    form_data = request.get_json()
+
+    first_name = form_data.get("first_name")
+    last_name = form_data.get("last_name")
+    firm_name = form_data.get("firm_name") or None
+    position = form_data.get("position") or None
+    about = form_data.get("about") or None
+    location = form_data.get("location") or None
+
+    n_investments = form_data.get("n_investments") or 0
+    n_exits = form_data.get("n_exits") or 0
+    min_investment = form_data.get("min_investment") or 0
+    max_investment = form_data.get("max_investment") or 0
+    selected_round_ids = form_data.get("rounds") or None
+    selected_industry_ids = form_data.get("industries") or None
+    selected_notable_investment_ids = form_data.get("notable_investments") or None
+
+    website = form_data.get("website") or None
+    linkedin = form_data.get("linkedin") or None
+    twitter = form_data.get("twitter") or None
+    email = form_data.get("email") or None
+    phone_number = form_data.get("phone_number") or None
+
+    existing_email = User.get_by_email(email) if email else None
+    if existing_email and existing_email.id != investor.user_id:
+        status = Status(StatusType.ERROR, "Email already exists").get_status()
+        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+
+    if not all(
+        (
+            first_name,
+            last_name,
+            selected_round_ids,
+            selected_industry_ids,
+            selected_notable_investment_ids,
+        )
+    ):
+        status = Status(
+            StatusType.ERROR, "First name, last name, rounds, industries and notable investments shouldn't be empty"
+        ).get_status()
+        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+
+    investor.first_name = first_name
+    investor.last_name = last_name
+    investor.firm_name = firm_name
+    investor.position = position
+    investor.about = about
+    investor.website = website
+    investor.linkedin = linkedin
+    investor.twitter = twitter
+    investor.email = email
+    investor.phone_number = phone_number
+    investor.n_investments = n_investments
+    investor.n_exits = n_exits
+    investor.min_investment = min_investment
+    investor.max_investment = max_investment
+    investor.location = location
+    investor.rounds = list(Round.get_by_id_list(selected_round_ids))
+    investor.industries = list(Industry.get_by_id_list(selected_industry_ids))
+    investor.notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
+
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Investor updated.").get_status()
+
+    return redirect(url_for("settings.edit_investor_view", _external=False, **status))

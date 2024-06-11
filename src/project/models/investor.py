@@ -374,6 +374,10 @@ class Investor(db.Model):
         return db.session.scalar(db.select(Investor).where(Investor.slug == slug))
 
     @staticmethod
+    def get_by_user_id(user_id: int) -> Investor | None:
+        return db.session.scalar(db.select(Investor).where(Investor.user_id == user_id))
+
+    @staticmethod
     def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[Investor], None, None]:
         stmt = db.select(Investor.id) if isinstance(stmt, bool) else stmt
 

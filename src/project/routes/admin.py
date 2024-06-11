@@ -42,6 +42,11 @@ def admin_only(func):
 @admin.route("/investors")
 @admin_only
 def admin_investor_view():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     search_string = request.args.get("search", "")
     page = request.args.get("page", 1, type=int)
 
@@ -72,6 +77,8 @@ def admin_investor_view():
         query=search_string,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
+        status_type=status_type,
+        msg=msg,
     )
 
 
@@ -185,7 +192,8 @@ def update_investor(id):
 
     Investor.sync_search_index(recreate=True)
 
-    return redirect("/admin/investors", code=302)
+    status = Status(StatusType.SUCCESS, "Investor updated successfully!").get_status()
+    return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
 
 
 @admin.get("/investor/create")
@@ -295,7 +303,8 @@ def create_investor():
 
     Investor.sync_search_index(recreate=True)
 
-    return redirect("/admin/investors", code=302)
+    status = Status(StatusType.SUCCESS, "Investor created successfully!").get_status()
+    return redirect(url_for("admin.admin_investor_view", _external=True, **status))
 
 
 @admin.post("/investor/<int:id>/delete")
@@ -317,6 +326,11 @@ def delete_investor(id):
 @admin.route("/investment-firms")
 @admin_only
 def admin_investment_firm_view():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     search_string = request.args.get("search", "")
     page = request.args.get("page", 1, type=int)
 
@@ -346,6 +360,8 @@ def admin_investment_firm_view():
         query=search_string,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
+        status_type=status_type,
+        msg=msg,
     )
 
 
@@ -453,7 +469,8 @@ def update_investment_firm(id):
 
     InvestmentFirm.sync_search_index(recreate=True)
 
-    return redirect("/admin/investment-firms", code=302)
+    status = Status(StatusType.SUCCESS, "Investment Firm updated successfully!").get_status()
+    return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
 
 
 @admin.get("/investment-firm/create")
@@ -551,7 +568,8 @@ def create_investment_firm():
 
     InvestmentFirm.sync_search_index(recreate=True)
 
-    return redirect("/admin/investment-firms", code=302)
+    status = Status(StatusType.SUCCESS, "Investment Firm created successfully!").get_status()
+    return redirect(url_for("admin.admin_investment_firm_view", _external=True, **status))
 
 
 @admin.post("/investment-firm/<int:id>/delete")

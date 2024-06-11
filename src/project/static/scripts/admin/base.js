@@ -54,7 +54,6 @@ function getExistingParams(excludedParams) {
             paramsArray.push(`${param[0]}=${encodeURIComponent(param[1])}`);
         }
     }
-
     return paramsArray;
 }
 
@@ -62,12 +61,14 @@ function addParamsToUrl(paramsArray) {
     const paramsString = paramsArray.length > 0 ? "?" + paramsArray.join("&") : "";
     const baseUrl = window.location.href.split("?")[0];
     const newUrl = baseUrl + paramsString;
-
     window.location.href = newUrl;
 }
 
 function getQueryParams() {
-    return new URLSearchParams(window.location.search);
+    params = new URLSearchParams(window.location.search);
+    params.delete("type");
+    params.delete("msg");
+    return params;
 }
 
 function removePageParam(params) {

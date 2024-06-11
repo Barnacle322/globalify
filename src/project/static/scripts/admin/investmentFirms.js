@@ -12,7 +12,7 @@ async function deleteInvestmentFirm(id) {
             "X-CSRFToken": csrfToken,
         },
     });
-    if (response.ok) {
-        window.location.reload();
+    if (response.redirected) {
+        window.location.href = response.url;
     }
 }

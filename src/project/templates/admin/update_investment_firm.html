@@ -51,6 +51,17 @@
             />
         </div>
         <div class="col-span-full sm:col-span-3">
+            <label class="text-sm font-medium text-gray-700" for="slug">Slug</label>
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="slug"
+                value="{{ investment_firm.slug }}"
+                oninput="enableButton()"
+                required
+            />
+        </div>
+        <div class="col-span-full">
             <label class="text-sm font-medium text-gray-700" for="location">Location</label>
             <input
                 class="w-full rounded-lg bg-transparent bg-white"

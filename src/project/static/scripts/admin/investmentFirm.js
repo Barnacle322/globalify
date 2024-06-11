@@ -4,6 +4,7 @@ function enableButton() {
 
 function getValues(selectedRounds, selectedIndustries, selectedNotableInvestments) {
     const name = document.getElementById("name").value;
+    const slug = document.getElementById("slug").value;
     const about = document.getElementById("about").value;
     const website = document.getElementById("website").value;
     const email = document.getElementById("email").value;
@@ -17,6 +18,7 @@ function getValues(selectedRounds, selectedIndustries, selectedNotableInvestment
 
     const dataString = JSON.stringify({
         name: name,
+        slug: slug,
         about: about,
         website: website,
         email: email,
@@ -101,4 +103,3 @@ async function createInvestmentFirm() {
         console.error("Error:", error);
     }
 }
-

@@ -339,10 +339,10 @@ def edit_investor_view():
 
     investor = Investor.get_by_user_id(current_user.id)
     if not investor:
-        return redirect(url_for("main.search"))
+        return redirect(url_for("settings.general"))
 
     if investor.user_id != current_user.id:
-        return redirect(url_for("main.search"))
+        return redirect(url_for("settings.general"))
 
     notable_investments = NotableInvestment.get_all()
     rounds = Round.get_all()
@@ -384,9 +384,9 @@ def edit_investor():
     n_exits = form_data.get("n_exits") or 0
     min_investment = form_data.get("min_investment") or 0
     max_investment = form_data.get("max_investment") or 0
-    selected_round_ids = form_data.get("rounds") or None
-    selected_industry_ids = form_data.get("industries") or None
-    selected_notable_investment_ids = form_data.get("notable_investments") or None
+    selected_round_ids = form_data.get("rounds") or []
+    selected_industry_ids = form_data.get("industries") or []
+    selected_notable_investment_ids = form_data.get("notable_investments") or []
 
     website = form_data.get("website") or None
     linkedin = form_data.get("linkedin") or None
@@ -403,9 +403,6 @@ def edit_investor():
         (
             first_name,
             last_name,
-            selected_round_ids,
-            selected_industry_ids,
-            selected_notable_investment_ids,
         )
     ):
         status = Status(

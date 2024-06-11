@@ -4,11 +4,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const email = document.getElementById("email");
     const slug = form.getAttribute("data-slug");
 
-    form.addEventListener("submit", function (event) {
+    function checkCaptcha() {
         const recaptchaValue = grecaptcha.getResponse();
         if (recaptchaValue.length === 0) {
-            event.preventDefault();
             alert("Please verify that you are not a robot.");
+            return false;
+        }
+        return true;
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        if (!checkCaptcha()) {
             return;
         }
 
@@ -38,8 +46,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const code = document.getElementById("code");
     const slug = form.getAttribute("data-slug");
 
-    form.addEventListener("submit", function () {
-        fetch(`/investor/${slug}/claim/mail/verify`, {
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        fetch(`/investor/${slug}/claim/email/verify`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

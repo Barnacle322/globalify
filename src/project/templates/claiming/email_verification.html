@@ -7,8 +7,8 @@ content %}
 
 <main class="flex min-h-screen w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
     <section class="mt-36 flex max-w-md flex-col items-center justify-center gap-8 md:mt-48">
-        <article class="flex flex-col gap-2 text-center">
-            <h1 class="text-3xl font-bold md:text-5xl">Claim your profile</h1>
+        <article class="flex flex-col gap-2">
+            <h1 class="text-3xl font-semibold md:text-5xl">Claim your profile</h1>
             <p class="max-w-xl text-base text-slate-600 md:text-lg">
                 Input your email, that you've used to sign up with Globalify.
             </p>
@@ -20,14 +20,14 @@ content %}
         {% endif %} {% if status_type == '1' %}
         <div class="rounded-xl text-lime-500">{{ msg }}</div>
         {% endif %} {% endif %}
-        <form id="verifyForm" class="flex w-full flex-col items-center" data-slug="{{investor.slug}}">
+        <form id="verifyForm" class="flex w-full flex-col gap-3" data-slug="{{investor.slug}}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input
                 id="code"
                 type="text"
                 name="code"
                 placeholder="Code"
-                class="mb-4 w-full rounded-md border border-gray-300 px-4 py-2"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2"
                 value="{{ verification_code if verification_code else '' }}"
                 required
             />
@@ -36,14 +36,14 @@ content %}
                 type="email"
                 name="email"
                 placeholder="Enter your email"
-                class="mb-4 w-full rounded-md border border-gray-300 px-4 py-2"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2"
                 required
             />
             <button
                 type="submit"
-                class="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 py-2 font-semibold text-white"
+                class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 py-2 font-semibold text-white"
             >
-                Claim
+                Claim profile
             </button>
         </form>
     </section>

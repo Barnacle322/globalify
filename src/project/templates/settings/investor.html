@@ -304,6 +304,12 @@ block content %}
                     aria-orientation="vertical"
                     aria-labelledby="industry-options-menu"
                 >
+                    <input
+                        type="text"
+                        id="search-industries"
+                        placeholder="Search industries..."
+                        class="w-full px-3 py-2 border rounded-md sticky top-0 bg-white"
+                    />
                     <div class="py-1" role="none">
                         {% for category, industries_list in industries.items() %}
                         <label
@@ -369,6 +375,12 @@ block content %}
                     aria-orientation="vertical"
                     aria-labelledby="notable-investment-options-menu"
                 >
+                    <input
+                        type="text"
+                        id="search-notable-investments"
+                        placeholder="Search notable investments..."
+                        class="w-full px-3 py-2 border rounded-md sticky top-0 bg-white"
+                    />
                     <div class="py-1" role="none">
                         {% for notable_investment in notable_investments %}
                         <label

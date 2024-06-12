@@ -405,9 +405,7 @@ def edit_investor():
             last_name,
         )
     ):
-        status = Status(
-            StatusType.ERROR, "First name, last name, rounds, industries and notable investments shouldn't be empty"
-        ).get_status()
+        status = Status(StatusType.ERROR, "First name and last name shouldn't be empty").get_status()
         return redirect(url_for("settings.edit_investor_view", _external=True, **status))
 
     investor.first_name = first_name

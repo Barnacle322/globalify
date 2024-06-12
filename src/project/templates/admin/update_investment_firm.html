@@ -29,12 +29,12 @@
     {% if investment_firm %}
     <div class="grid grid-cols-6 gap-x-2 gap-y-1">
         <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
-        <div class="col-span-full pb-4 pt-4">
+        <div class="col-span-full empty:hidden">
             {% if status_type %} {% if status_type == '3' %}
             <div class="rounded-xl text-red-500">{{ msg }}</div>
-            {% endif %} {% if status_type == '2' %}
+            {% elif status_type == '2' %}
             <div class="rounded-xl text-orange-400">{{ msg }}</div>
-            {% endif %} {% if status_type == '1' %}
+            {% elif status_type == '1' %}
             <div class="rounded-xl text-lime-500">{{ msg }}</div>
             {% endif %} {% endif %}
         </div>
@@ -45,7 +45,6 @@
                 type="text"
                 id="name"
                 value="{{ investment_firm.name }}"
-                oninput="enableButton()"
                 required
             />
         </div>
@@ -56,7 +55,6 @@
                 type="text"
                 id="slug"
                 value="{{ investment_firm.slug }}"
-                oninput="enableButton()"
                 required
             />
         </div>
@@ -67,19 +65,11 @@
                 type="text"
                 id="location"
                 value="{{ investment_firm.location }}"
-                oninput="enableButton()"
             />
         </div>
         <div class="col-span-full">
             <label class="text-sm font-medium text-gray-700" for="about">About</label>
-            <textarea
-                class="w-full rounded-lg"
-                type="text"
-                id="about"
-                oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'; enableButton();"
-            >
-{{investment_firm.about}}</textarea
-            >
+            <textarea class="w-full rounded-lg" type="text" id="about">{{investment_firm.about}}</textarea>
         </div>
         <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
         <div class="relative col-span-full sm:col-span-3">
@@ -125,7 +115,6 @@
                             name="selected_rounds"
                             value="{{ round.id }}"
                             class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                            oninput="enableButton()"
                             checked
                         />
                         {% else %}
@@ -134,7 +123,6 @@
                             name="selected_rounds"
                             value="{{ round.id }}"
                             class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                            oninput="enableButton()"
                         />
                         {% endif %} {{ round.name }}
                     </label>
@@ -191,7 +179,6 @@
                             name="selected_industries"
                             value="{{ industry.id }}"
                             class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                            oninput="enableButton()"
                             checked
                         />
                         {% else %}
@@ -200,7 +187,6 @@
                             name="selected_industries"
                             value="{{ industry.id }}"
                             class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                            oninput="enableButton()"
                         />
                         {% endif %} {{ industry.name }}
                     </label>
@@ -252,7 +238,6 @@
                             name="selected_notable_investments"
                             value="{{ notable_investment.id }}"
                             class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                            oninput="enableButton()"
                             checked
                         />
                         {% else %}
@@ -261,7 +246,6 @@
                             name="selected_notable_investments"
                             value="{{ notable_investment.id }}"
                             class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                            oninput="enableButton()"
                         />
                         {% endif %} {{ notable_investment.name }}
                     </label>
@@ -276,7 +260,6 @@
                 type="number"
                 id="n_investments"
                 value="{{ investment_firm.n_investments }}"
-                oninput="enableButton()"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -286,7 +269,6 @@
                 type="number"
                 id="n_exits"
                 value="{{ investment_firm.n_exits }}"
-                oninput="enableButton()"
             />
         </div>
         <div class="relative col-span-full">
@@ -296,7 +278,6 @@
                 type="number"
                 id="n_employees"
                 value="{{ investment_firm.n_employees }}"
-                oninput="enableButton()"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -306,7 +287,6 @@
                 type="number"
                 id="min_investment"
                 value="{{ investment_firm.min_investment }}"
-                oninput="enableButton()"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -316,7 +296,6 @@
                 type="number"
                 id="max_investment"
                 value="{{ investment_firm.max_investment }}"
-                oninput="enableButton()"
             />
         </div>
         <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
@@ -328,7 +307,6 @@
                 type="text"
                 id="website"
                 value="{{ investment_firm.website }}"
-                oninput="enableButton()"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -338,7 +316,6 @@
                 type="text"
                 id="email"
                 value="{{ investment_firm.email }}"
-                oninput="enableButton()"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -348,12 +325,10 @@
                 type="text"
                 id="phone_number"
                 value="{{ investment_firm.phone_number }}"
-                oninput="enableButton()"
             />
         </div>
     </div>
     <button
-        disabled
         id="saveButton"
         onclick="updateInvestmentFirm()"
         class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"

@@ -31,10 +31,6 @@ menus.forEach(({ menu, button }) => {
     };
 });
 
-function enableButton() {
-    document.getElementById("saveButton").disabled = false;
-}
-
 function getValues(selectedRounds, selectedIndustries, selectedNotableInvestments) {
     const first_name = document.getElementById("first_name").value;
     const last_name = document.getElementById("last_name").value;

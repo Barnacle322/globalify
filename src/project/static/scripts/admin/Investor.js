@@ -31,10 +31,6 @@ menus.forEach(({ menu, button }) => {
     };
 });
 
-function enableButton() {
-    document.getElementById("saveButton").disabled = false;
-}
-
 document.getElementById("searchInput").addEventListener("input", function () {
     var searchInput = this.value;
     if (searchInput.length > 1) {
@@ -60,52 +56,6 @@ document.getElementById("searchInput").addEventListener("input", function () {
     }
 });
 
-function getValues(selectedRounds, selectedIndustries, selectedNotableInvestments) {
-    const user_email = document.getElementById("searchInput").value;
-
-    const first_name = document.getElementById("first_name").value;
-    const last_name = document.getElementById("last_name").value;
-    const slug = document.getElementById("slug").value;
-    const firm_name = document.getElementById("firm_name").value;
-    const position = document.getElementById("position").value;
-    const about = document.getElementById("about").value;
-    const website = document.getElementById("website").value;
-    const linkedin = document.getElementById("linkedin").value;
-    const twitter = document.getElementById("twitter").value;
-    const email = document.getElementById("email").value;
-    const phone_number = document.getElementById("phone_number").value;
-    const n_investments = document.getElementById("n_investments").value;
-    const n_exits = document.getElementById("n_exits").value;
-    const min_investment = document.getElementById("min_investment").value;
-    const max_investment = document.getElementById("max_investment").value;
-    const location = document.getElementById("location").value;
-
-    const dataString = JSON.stringify({
-        first_name: first_name,
-        last_name: last_name,
-        slug: slug,
-        firm_name: firm_name,
-        position: position,
-        about: about,
-        website: website,
-        linkedin: linkedin,
-        twitter: twitter,
-        email: email,
-        phone_number: phone_number,
-        n_investments: n_investments,
-        n_exits: n_exits,
-        min_investment: min_investment,
-        max_investment: max_investment,
-        location: location,
-        user_email: user_email,
-        rounds: selectedRounds,
-        industries: selectedIndustries,
-        notable_investments: selectedNotableInvestments,
-    });
-
-    return dataString;
-}
-
 async function updateInvestor() {
     const csrfToken = document.getElementById("csrf_token").value;
 
@@ -119,7 +69,28 @@ async function updateInvestor() {
         document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
     ).map((input) => parseInt(input.value, 10));
 
-    const dataString = getValues(selectedRounds, selectedIndustries, selectedNotableInvestments);
+    let dataString = JSON.stringify({
+        first_name: document.getElementById("first_name").value,
+        last_name: document.getElementById("last_name").value,
+        slug: document.getElementById("slug").value,
+        firm_name: document.getElementById("firm_name").value,
+        position: document.getElementById("position").value,
+        about: (about = document.getElementById("about").value),
+        website: document.getElementById("website").value,
+        linkedin: document.getElementById("linkedin").value,
+        twitter: document.getElementById("twitter").value,
+        email: document.getElementById("email").value,
+        phone_number: document.getElementById("phone_number").value,
+        n_investments: document.getElementById("n_investments").value,
+        n_exits: document.getElementById("n_exits").value,
+        min_investment: document.getElementById("min_investment").value,
+        max_investment: document.getElementById("max_investment").value,
+        location: document.getElementById("location").value,
+        user_email: document.getElementById("searchInput").value,
+        rounds: selectedRounds,
+        industries: selectedIndustries,
+        notable_investments: selectedNotableInvestments,
+    });
 
     try {
         const response = await fetch("", {
@@ -154,7 +125,28 @@ async function createInvestor() {
         checkbox.parentElement.textContent.trim(),
     );
 
-    const dataString = getValues(selectedRounds, selectedIndustries, selectedNotableInvestments);
+    let dataString = JSON.stringify({
+        first_name: document.getElementById("first_name").value,
+        last_name: document.getElementById("last_name").value,
+        slug: document.getElementById("slug").value,
+        firm_name: document.getElementById("firm_name").value,
+        position: document.getElementById("position").value,
+        about: (about = document.getElementById("about").value),
+        website: document.getElementById("website").value,
+        linkedin: document.getElementById("linkedin").value,
+        twitter: document.getElementById("twitter").value,
+        email: document.getElementById("email").value,
+        phone_number: document.getElementById("phone_number").value,
+        n_investments: document.getElementById("n_investments").value,
+        n_exits: document.getElementById("n_exits").value,
+        min_investment: document.getElementById("min_investment").value,
+        max_investment: document.getElementById("max_investment").value,
+        location: document.getElementById("location").value,
+        user_email: document.getElementById("searchInput").value,
+        rounds: selectedRounds,
+        industries: selectedIndustries,
+        notable_investments: selectedNotableInvestments,
+    });
 
     try {
         const response = await fetch("", {

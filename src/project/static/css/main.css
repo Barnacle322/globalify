@@ -4019,6 +4019,10 @@ textarea {
   content: var(--tw-content);
 }
 
+.empty\:hidden:empty {
+  display: none;
+}
+
 .hover\:pointer-events-auto:hover {
   pointer-events: auto;
 }

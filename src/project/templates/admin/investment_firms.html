@@ -34,9 +34,9 @@
         <h1 class="text-3xl font-bold sm:text-5xl">Investment Firms</h1>
         {% if status_type %} {% if status_type == '3' %}
         <div class="rounded-xl text-red-500">{{ msg }}</div>
-        {% endif %} {% if status_type == '2' %}
+        {% elif status_type == '2' %}
         <div class="rounded-xl text-orange-400">{{ msg }}</div>
-        {% endif %} {% if status_type == '1' %}
+        {% elif status_type == '1' %}
         <div class="rounded-xl text-lime-500">{{ msg }}</div>
         {% endif %} {% endif %}
         <div class="mx-auto flex w-full gap-2 rounded-full border bg-white py-2 pr-3">

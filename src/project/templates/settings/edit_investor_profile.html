@@ -133,13 +133,13 @@ block content %}
 
     <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
         {% if status_type %} {% if status_type == '3' %}
-        <div class="rounded-xl text-red-500 flex w-full">{{ msg }}</div>
+        <div class="rounded-xl text-red-500">{{ msg }}</div>
         {% elif status_type == '2' %}
-        <div class="rounded-xl text-orange-400 flex w-full">{{ msg }}</div>
+        <div class="rounded-xl text-orange-400">{{ msg }}</div>
         {% elif status_type == '1' %}
-        <div class="rounded-xl text-lime-500 flex w-full">{{ msg }}</div>
+        <div class="rounded-xl text-lime-500">{{ msg }}</div>
         {% endif %} {% endif %}
-        <a href="/investor/{{investor.slug}}" class="group flex items-center gap-1 text-gray-500 mt-3">
+        <a href="/investor/{{investor.slug}}" class="group mt-3 flex items-center gap-1 text-gray-500">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 16 16"
@@ -166,7 +166,6 @@ block content %}
                     type="text"
                     id="first_name"
                     value="{{ investor.first_name }}"
-                    oninput="enableButton()"
                     required
                 />
             </div>
@@ -177,7 +176,6 @@ block content %}
                     type="text"
                     id="last_name"
                     value="{{ investor.last_name }}"
-                    oninput="enableButton()"
                     required
                 />
             </div>
@@ -188,7 +186,6 @@ block content %}
                     type="text"
                     id="firm_name"
                     value="{{ investor.firm_name if investor.firm_name else '' }}"
-                    oninput="enableButton()"
                 />
             </div>
             <div class="col-span-full sm:col-span-3">
@@ -198,7 +195,6 @@ block content %}
                     type="text"
                     id="position"
                     value="{{ investor.position if investor.position else '' }}"
-                    oninput="enableButton()"
                 />
             </div>
             <div class="col-span-full">
@@ -208,7 +204,6 @@ block content %}
                     type="text"
                     id="location"
                     value="{{ investor.location if investor.location else '' }}"
-                    oninput="enableButton()"
                 />
             </div>
             <div class="col-span-full">
@@ -261,7 +256,6 @@ block content %}
                                 name="selected_rounds"
                                 value="{{ round.id }}"
                                 class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                oninput="enableButton()"
                                 checked
                             />
                             {% else %}
@@ -270,7 +264,6 @@ block content %}
                                 name="selected_rounds"
                                 value="{{ round.id }}"
                                 class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                oninput="enableButton()"
                             />
                             {% endif %} {{ round.name }}
                         </label>
@@ -327,7 +320,6 @@ block content %}
                                 name="selected_industries"
                                 value="{{ industry.id }}"
                                 class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                oninput="enableButton()"
                                 checked
                             />
                             {% else %}
@@ -336,7 +328,6 @@ block content %}
                                 name="selected_industries"
                                 value="{{ industry.id }}"
                                 class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                oninput="enableButton()"
                             />
                             {% endif %} {{ industry.name }}
                         </label>
@@ -388,7 +379,6 @@ block content %}
                                 name="selected_notable_investments"
                                 value="{{ notable_investment.id }}"
                                 class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                oninput="enableButton()"
                                 checked
                             />
                             {% else %}
@@ -397,7 +387,6 @@ block content %}
                                 name="selected_notable_investments"
                                 value="{{ notable_investment.id }}"
                                 class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                oninput="enableButton()"
                             />
                             {% endif %} {{ notable_investment.name }}
                         </label>
@@ -412,7 +401,6 @@ block content %}
                     type="number"
                     id="n_investments"
                     value="{{ investor.n_investments }}"
-                    oninput="enableButton()"
                 />
             </div>
             <div class="col-span-full sm:col-span-3">
@@ -422,7 +410,6 @@ block content %}
                     type="number"
                     id="n_exits"
                     value="{{ investor.n_exits }}"
-                    oninput="enableButton()"
                 />
             </div>
             <div class="col-span-full sm:col-span-3">
@@ -432,7 +419,6 @@ block content %}
                     type="number"
                     id="min_investment"
                     value="{{ investor.min_investment}}"
-                    oninput="enableButton()"
                 />
             </div>
             <div class="col-span-full sm:col-span-3">
@@ -442,7 +428,6 @@ block content %}
                     type="number"
                     id="max_investment"
                     value="{{ investor.max_investment }}"
-                    oninput="enableButton()"
                 />
             </div>
             <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
@@ -454,7 +439,6 @@ block content %}
                     type="text"
                     id="website"
                     value="{{ investor.website if investor.website else '' }}"
-                    oninput="enableButton()"
                 />
             </div>
             <div class="col-span-full">
@@ -464,7 +448,6 @@ block content %}
                     type="text"
                     id="linkedin"
                     value="{{ investor.linkedin if investor.linkedin else '' }}"
-                    oninput="enableButton()"
                 />
             </div>
             <div class="col-span-full">
@@ -474,7 +457,6 @@ block content %}
                     type="text"
                     id="twitter"
                     value="{{ investor.twitter if investor.twitter else '' }}"
-                    oninput="enableButton()"
                 />
             </div>
             <div class="col-span-full sm:col-span-3">
@@ -484,7 +466,6 @@ block content %}
                     type="text"
                     id="email"
                     value="{{ investor.email if investor.email else ''}}"
-                    oninput="enableButton()"
                 />
             </div>
             <div class="col-span-full sm:col-span-3">
@@ -494,7 +475,6 @@ block content %}
                     type="text"
                     id="phone_number"
                     value="{{ investor.phone_number if investor.phone_number else ''}}"
-                    oninput="enableButton()"
                 />
             </div>
         </div>

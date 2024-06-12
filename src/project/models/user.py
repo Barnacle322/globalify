@@ -510,7 +510,7 @@ class ClaimRequest(db.Model):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
 
     investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
-    status: Mapped[RequestStatus] = mapped_column(String, nullable=False, default=RequestStatus.PENDING.value)
+    status: Mapped[RequestStatus] = mapped_column(SQLEnum(RequestStatus), nullable=False, default=RequestStatus.PENDING)
     status_info: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     approved_by: Mapped[int] = mapped_column(Integer, nullable=True, default=None)
     approved_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, default=None)

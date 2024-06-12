@@ -327,7 +327,7 @@ def change_company_info():
     )
 
 
-@settings.get("/investor-profile/edit")
+@settings.get("/investor")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -349,7 +349,7 @@ def edit_investor_view():
     industries = Industry.get_all()
 
     return render_template(
-        "settings/edit_investor_profile.html",
+        "settings/investor.html",
         investor=investor,
         rounds=rounds,
         industries=industries,
@@ -359,7 +359,7 @@ def edit_investor_view():
     )
 
 
-@settings.post("/investor-profile/edit")
+@settings.post("/investor")
 @login_required
 @check_user_info_complete
 @check_verification

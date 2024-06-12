@@ -1,7 +1,7 @@
 <!-- prettier-ignore -->
 {% extends "layouts/layout_app.html" %}
 {% block additional_scripts %}
-<script src="/static/scripts/claiming/claiming_email.js" defer></script>
+<script src="/static/scripts/claiming/email.js" defer></script>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 {% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
 content %}
@@ -15,7 +15,7 @@ content %}
                 the verification.
             </p>
         </article>
-        <form id="claimForm" class="flex w-full flex-col" data-slug="{{investor.slug}}">
+        <form id="claimForm" class="flex w-full flex-col" slug="{{investor.slug}}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="hidden" id="email" name="email" value="{{ investor.email }}" />
             <div class="g-recaptcha" data-sitekey="{{captcha_site_key}}"></div>

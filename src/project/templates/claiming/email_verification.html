@@ -1,7 +1,7 @@
 <!-- prettier-ignore -->
 {% extends "layouts/layout_app.html" %}
 {% block additional_scripts %}
-<script src="/static/scripts/claiming/claiming_email.js" defer></script>
+<script src="/static/scripts/claiming/email_verification.js" defer></script>
 {% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
 content %}
 
@@ -13,14 +13,16 @@ content %}
                 Input your email, that you've used to sign up with Globalify.
             </p>
         </article>
-        {% if status_type %} {% if status_type == '3' %}
-        <div class="rounded-xl text-red-500">{{ msg }}</div>
-        {% endif %} {% if status_type == '2' %}
-        <div class="rounded-xl text-orange-400">{{ msg }}</div>
-        {% endif %} {% if status_type == '1' %}
-        <div class="rounded-xl text-lime-500">{{ msg }}</div>
-        {% endif %} {% endif %}
-        <form id="verifyForm" class="flex w-full flex-col gap-3" data-slug="{{investor.slug}}">
+        <div class="col-span-full empty:hidden">
+            {% if status_type %} {% if status_type == '3' %}
+            <div class="rounded-xl text-red-500">{{ msg }}</div>
+            {% elif status_type == '2' %}
+            <div class="rounded-xl text-orange-400">{{ msg }}</div>
+            {% elif status_type == '1' %}
+            <div class="rounded-xl text-lime-500">{{ msg }}</div>
+            {% endif %} {% endif %}
+        </div>
+        <form id="verifyForm" class="flex w-full flex-col gap-3" slug="{{investor.slug}}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input
                 id="code"

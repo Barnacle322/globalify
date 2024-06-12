@@ -1,7 +1,7 @@
 <!-- prettier-ignore -->
 {% extends "layouts/layout_app.html" %}
 {% block additional_scripts %}
-<script src="/static/scripts/claiming/claiming_manual.js" defer></script>
+<script src="/static/scripts/claiming/manual.js" defer></script>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <!-- prettier-ignore -->
 {% endblock %} 
@@ -18,14 +18,16 @@
                 out to you shortly. Keep in mind that this process may take some time.
             </p>
         </article>
-        {% if status_type %} {% if status_type == '3' %}
-        <div class="rounded-xl text-red-500">{{ msg }}</div>
-        {% endif %} {% if status_type == '2' %}
-        <div class="rounded-xl text-orange-400">{{ msg }}</div>
-        {% endif %} {% if status_type == '1' %}
-        <div class="rounded-xl text-lime-500">{{ msg }}</div>
-        {% endif %} {% endif %}
-        <form id="claimForm" class="flex w-full flex-col gap-3" data-slug="{{ investor.slug }}">
+        <div class="col-span-full empty:hidden">
+            {% if status_type %} {% if status_type == '3' %}
+            <div class="rounded-xl text-red-500">{{ msg }}</div>
+            {% elif status_type == '2' %}
+            <div class="rounded-xl text-orange-400">{{ msg }}</div>
+            {% elif status_type == '1' %}
+            <div class="rounded-xl text-lime-500">{{ msg }}</div>
+            {% endif %} {% endif %}
+        </div>
+        <form id="claimForm" class="flex w-full flex-col gap-3" slug="{{ investor.slug }}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input
                 id="email"

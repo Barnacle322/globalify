@@ -47,7 +47,7 @@
                                 <a href="/investor/{{claim_request.investor.slug}}" class="font-medium"
                                     >Investor: {{ claim_request.investor.full_name }}</a
                                 >
-                                <span class="font-medium">Status: {{ claim_request.status.capitalize() }}</span>
+                                <span class="font-medium">Status: {{ claim_request.status.value.capitalize() }}</span>
                                 {% if claim_request.status == 'approved' %}
                                 <span class="">Approved by: {{ claim_request.approved_by }}</span>
                                 <span class="">Approved at: {{ claim_request.approved_at }}</span>

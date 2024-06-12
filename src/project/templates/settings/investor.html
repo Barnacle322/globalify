@@ -108,7 +108,7 @@ block content %}
                 Billing
             </a>
             <a
-                href="/settings/investor-profile/edit"
+                href="/settings/investor"
                 class="flex items-center justify-center gap-2 border-b-2 border-sky-500 px-3 py-2 font-medium transition-colors ease-in-out"
             >
                 <svg
@@ -132,13 +132,15 @@ block content %}
     </nav>
 
     <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
-        {% if status_type %} {% if status_type == '3' %}
-        <div class="rounded-xl text-red-500">{{ msg }}</div>
-        {% elif status_type == '2' %}
-        <div class="rounded-xl text-orange-400">{{ msg }}</div>
-        {% elif status_type == '1' %}
-        <div class="rounded-xl text-lime-500">{{ msg }}</div>
-        {% endif %} {% endif %}
+        <div class="col-span-full empty:hidden">
+            {% if status_type %} {% if status_type == '3' %}
+            <div class="rounded-xl text-red-500">{{ msg }}</div>
+            {% elif status_type == '2' %}
+            <div class="rounded-xl text-orange-400">{{ msg }}</div>
+            {% elif status_type == '1' %}
+            <div class="rounded-xl text-lime-500">{{ msg }}</div>
+            {% endif %} {% endif %}
+        </div>
         <a href="/investor/{{investor.slug}}" class="group mt-3 flex items-center gap-1 text-gray-500">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -479,7 +481,6 @@ block content %}
             </div>
         </div>
         <button
-            disabled
             id="saveButton"
             onclick="updateInvestor()"
             class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"

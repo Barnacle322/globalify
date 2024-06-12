@@ -508,6 +508,15 @@ class Investor(db.Model):
     def get_by_email(email: str) -> Investor | None:
         return db.session.scalar(db.select(Investor).where(Investor.email == email))
 
+    def set_slug(self):
+        try:
+            self.slug = slugify(f"{self.first_name} {self.last_name}")
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            self.slug = slugify(f"{self.first_name} {self.last_name} {uuid.uuid4().hex[:4]}")
+            db.session.commit()
+
     @staticmethod
     def slugify_existing():
         batch_count = 1
@@ -920,6 +929,39 @@ class Investor(db.Model):
                 file.write(json.dumps(investor_json) + "\n")
 
         return investors
+
+    def upsert_data(self):
+        data = [
+            {
+                "db_id": self.id,
+                "name": self.full_name,
+                "slug": self.slug,
+                "firm_name": self.firm_name,
+                "about": self.about,
+                "position": self.position,
+                "n_investments": self.n_investments,
+                "n_exits": self.n_exits,
+                "min_investment": self.min_investment,
+                "max_investment": self.max_investment,
+                "location": self.location,
+                "country": self._country,
+                "rounds": [round_.name for round_ in self.rounds],
+                "industries": [industry.name for industry in self.industries],
+                "notable_investments": [notable_investment.name for notable_investment in self.notable_investments],
+            }
+        ]
+
+        if self.search_index:
+            data[0]["id"] = self.search_index
+
+        result = upsert_documents("investors", data)
+        if json.loads(result[0].get("document", "{}")).get("id"):
+            search_index = json.loads(result[0].get("document", "{}")).get("id")
+        elif result[0].get("id"):
+            search_index = result[0].get("id")
+
+        self.search_index = search_index
+        db.session.commit()
 
     @staticmethod
     def sync_search_index(recreate: bool = False):
@@ -1489,6 +1531,36 @@ class InvestmentFirm(db.Model):
         if completeness_score < 0:
             completeness_score = 0
         return completeness_score
+
+    def upsert_data(self):
+        data = [
+            {
+                "db_id": self.id,
+                "name": self.name,
+                "slug": self.slug,
+                "about": self.about,
+                "n_investments": self.n_investments,
+                "n_exits": self.n_exits,
+                "n_employees": self.n_employees,
+                "min_investment": self.min_investment,
+                "max_investment": self.max_investment,
+                "location": self.location,
+                "country": self._country,
+                "rounds": [round_.name for round_ in self.rounds],
+                "industries": [industry.name for industry in self.industries],
+                "notable_investments": [notable_investment.name for notable_investment in self.notable_investments],
+            }
+        ]
+
+        if self.search_index:
+            data[0]["id"] = self.search_index
+
+        result = upsert_documents("investment_firms", data)
+        if result[0].get("id"):
+            search_index = result[0].get("id")
+
+        self.search_index = search_index  # type: ignore
+        db.session.commit()
 
     @staticmethod
     def sync_search_index(recreate: bool = False):

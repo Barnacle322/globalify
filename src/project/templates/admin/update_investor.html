@@ -2,7 +2,6 @@
 {% extends "layouts/layout_app.html" %} 
 {% block additional_scripts %}
 <script src="/static/scripts/admin/investor.js" defer></script>
-<script src="/static/scripts/admin/base.js" defer></script>
 {% endblock %}
 <!-- prettier-ignore -->
 {% block title %}Investors{% endblock %} 
@@ -115,7 +114,7 @@
         </div>
         <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
         <div class="relative col-span-full sm:col-span-3">
-            <label class="text-sm font-medium text-gray-700" for="location">Rounds*</label>
+            <label class="text-sm font-medium text-gray-700" for="location">Rounds</label>
             <button
                 class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                 id="round-options"
@@ -175,7 +174,7 @@
             </div>
         </div>
         <div class="relative col-span-full sm:col-span-3">
-            <label class="text-sm font-medium text-gray-700" for="location">Industries*</label>
+            <label class="text-sm font-medium text-gray-700" for="location">Industries</label>
             <button
                 class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                 id="industry-options"
@@ -241,7 +240,7 @@
             </div>
         </div>
         <div class="relative col-span-full">
-            <label class="text-sm font-medium text-gray-700" for="rounds">Notable Investments*</label>
+            <label class="text-sm font-medium text-gray-700" for="rounds">Notable Investments</label>
             <button
                 class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                 id="notable-investment-options"
@@ -374,7 +373,7 @@
             />
         </div>
         <div class="col-span-full sm:col-span-3">
-            <label class="text-sm font-medium text-gray-700" for="email">Email*</label>
+            <label class="text-sm font-medium text-gray-700" for="email">Email</label>
             <input
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"

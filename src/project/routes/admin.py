@@ -118,7 +118,7 @@ def update_investor(id):
 
     first_name = form_data.get("first_name", investor.first_name)
     last_name = form_data.get("last_name", investor.last_name)
-    slug = form_data.get("slug", investor.slug)
+    slug = form_data.get("slug", investor.slug) or None
     firm_name = form_data.get("firm_name", investor.firm_name)
     position = form_data.get("position", investor.position)
     about = form_data.get("about", investor.about)
@@ -128,46 +128,35 @@ def update_investor(id):
     n_exits = int(form_data.get("n_exits", investor.n_exits) or 0)
     min_investment = int(form_data.get("min_investment", investor.min_investment) or 0)
     max_investment = int(form_data.get("max_investment", investor.max_investment) or 0)
-    selected_round_ids = form_data.get("rounds", investor.rounds)
-    selected_industry_ids = form_data.get("industries", investor.industries)
-    selected_notable_investment_ids = form_data.get("notable_investments", investor.notable_investments)
+
+    selected_round_ids = form_data.get("rounds", investor.rounds) or []
+    selected_industry_ids = form_data.get("industries", investor.industries) or []
+    selected_notable_investment_ids = form_data.get("notable_investments", investor.notable_investments) or []
 
     website = form_data.get("website", investor.website)
     linkedin = form_data.get("linkedin", investor.linkedin)
     twitter = form_data.get("twitter", investor.twitter)
-    email = form_data.get("email", investor.email)
+    email = form_data.get("email", investor.email) or None
     phone_number = form_data.get("phone_number", investor.phone_number)
 
     user = User.get_by_email(form_data.get("user_email"))
     if user:
         investor.user = user
 
-    if not slug:
-        Investor.slugify_existing()
-    else:
-        investor.slug = slug
-
     if not first_name:
         status = Status(StatusType.ERROR, "First name cannot be empty!").get_status()
         return redirect(url_for("admin.create_investor_view", _external=True, **status))
 
-    if not all(
-        (
-            selected_round_ids,
-            selected_industry_ids,
-            selected_notable_investment_ids,
-        )
-    ):
-        status = Status(
-            StatusType.ERROR,
-            "All of the following fields must be provided: rounds, industries, notable investments.",
-        ).get_status()
-        return redirect(url_for("admin.create_investor_view", _external=True, **status))
+    if not slug:
+        investor.set_slug()
+    else:
+        investor.slug = slug
 
-    existing_email = User.get_by_email(email)
-    if existing_email and existing_email.id != investor.user_id:
-        status = Status(StatusType.ERROR, "Email already exists").get_status()
-        return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
+    if email:
+        existing_email = User.get_by_email(email)
+        if existing_email and existing_email.id != investor.user_id:
+            status = Status(StatusType.ERROR, "Email already exists").get_status()
+            return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
 
     investor.first_name = first_name
     investor.last_name = last_name
@@ -190,7 +179,7 @@ def update_investor(id):
 
     db.session.commit()
 
-    Investor.sync_search_index(recreate=True)
+    investor.upsert_data()
 
     status = Status(StatusType.SUCCESS, "Investor updated successfully!").get_status()
     return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
@@ -223,56 +212,38 @@ def create_investor_view():
 def create_investor():
     form_data = request.get_json()
 
-    first_name = form_data.get("first_name", "")
-    last_name = form_data.get("last_name", "")
-    slug = form_data.get("slug", "")
-    firm_name = form_data.get("firm_name", "")
-    position = form_data.get("position", "")
-    about = form_data.get("about", "")
-    location = form_data.get("location", "")
+    first_name = form_data.get("first_name")
+    last_name = form_data.get("last_name")
+    slug = form_data.get("slug") or None
+    firm_name = form_data.get("firm_name")
+    position = form_data.get("position")
+    about = form_data.get("about")
+    location = form_data.get("location")
 
     n_investments = int(form_data.get("n_investments") or 0)
     n_exits = int(form_data.get("n_exits") or 0)
     min_investment = int(form_data.get("min_investment") or 0)
     max_investment = int(form_data.get("max_investment") or 0)
-    selected_round_names = form_data.get("rounds")
-    selected_industry_names = form_data.get("industries")
-    selected_notable_investment_names = form_data.get("notable_investments")
 
-    website = form_data.get("website", "")
-    linkedin = form_data.get("linkedin", "")
-    twitter = form_data.get("twitter", "")
-    email = form_data.get("email")
-    phone_number = form_data.get("phone_number", "")
+    selected_round_names = form_data.get("rounds") or []
+    selected_industry_names = form_data.get("industries") or []
+    selected_notable_investment_names = form_data.get("notable_investments") or []
 
-    if not email:
-        status = Status(StatusType.ERROR, "Email cannot be empty!").get_status()
-        return redirect(url_for("admin.create_investor_view", _external=True, **status))
+    website = form_data.get("website")
+    linkedin = form_data.get("linkedin")
+    twitter = form_data.get("twitter")
+    email = form_data.get("email") or None
+    phone_number = form_data.get("phone_number")
 
     if not first_name:
         status = Status(StatusType.ERROR, "First name cannot be empty!").get_status()
         return redirect(url_for("admin.create_investor_view", _external=True, **status))
 
-    if not all(
-        (
-            selected_round_names,
-            selected_industry_names,
-            selected_notable_investment_names,
-        )
-    ):
-        status = Status(
-            StatusType.ERROR,
-            "All of the following fields must be provided: rounds, industries, notable investments.",
-        ).get_status()
-        return redirect(url_for("admin.create_investor_view", _external=True, **status))
-
-    if not slug:
-        slug = None
-
-    existing_email = Investor.get_by_email(email)
-    if existing_email:
-        status = Status(StatusType.ERROR, "Email already exists").get_status()
-        return redirect(url_for("admin.create_investor_view", _external=True, **status))
+    if email:
+        existing_email = Investor.get_by_email(email)
+        if existing_email:
+            status = Status(StatusType.ERROR, "Email already exists").get_status()
+            return redirect(url_for("admin.create_investor_view", _external=True, **status))
 
     investor = Investor(
         first_name=first_name,
@@ -299,9 +270,9 @@ def create_investor():
     db.session.commit()
 
     if not investor.slug:
-        Investor.slugify_existing()
+        investor.set_slug()
 
-    Investor.sync_search_index(recreate=True)
+    investor.upsert_data()
 
     status = Status(StatusType.SUCCESS, "Investor created successfully!").get_status()
     return redirect(url_for("admin.admin_investor_view", _external=True, **status))
@@ -318,7 +289,7 @@ def delete_investor(id):
     db.session.delete(investor)
     db.session.commit()
 
-    Investor.sync_search_index(recreate=True)
+    investor.upsert_data()
 
     return redirect("/admin/investors", code=302)
 
@@ -406,9 +377,10 @@ def update_investment_firm(id):
     about = form_data.get("about", investment_firm.about)
     location = form_data.get("location", investment_firm.location)
 
-    selected_round_ids = form_data.get("rounds", investment_firm.rounds)
-    selected_industry_ids = form_data.get("industries", investment_firm.industries)
-    selected_notable_investment_ids = form_data.get("notable_investments", investment_firm.notable_investments)
+    selected_round_ids = form_data.get("rounds", investment_firm.rounds) or []
+    selected_industry_ids = form_data.get("industries", investment_firm.industries) or []
+    selected_notable_investment_ids = form_data.get("notable_investments", investment_firm.notable_investments) or []
+
     n_investments = int(form_data.get("n_investments", investment_firm.n_investments) or 0)
     n_exits = int(form_data.get("n_exits", investment_firm.n_exits) or 0)
     n_employees = int(form_data.get("n_employees", investment_firm.n_employees) or 0)
@@ -424,31 +396,11 @@ def update_investment_firm(id):
     else:
         investment_firm.slug = slug
 
-    if not email:
-        status = Status(StatusType.ERROR, "Email cannot be empty!").get_status()
-        return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
-
-    if not name:
-        status = Status(StatusType.ERROR, "Name cannot be empty!").get_status()
-        return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
-
-    if not all(
-        (
-            selected_round_ids,
-            selected_industry_ids,
-            selected_notable_investment_ids,
-        )
-    ):
-        status = Status(
-            StatusType.ERROR,
-            "All of the following fields must be provided: rounds, industries, notable investments.",
-        ).get_status()
-        return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
-
-    existing_email = InvestmentFirm.get_by_email(email)
-    if existing_email and existing_email.id != investment_firm.id:
-        status = Status(StatusType.ERROR, "Email already exists").get_status()
-        return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
+    if email:
+        existing_email = InvestmentFirm.get_by_email(email)
+        if existing_email and existing_email.id != investment_firm.id:
+            status = Status(StatusType.ERROR, "Email already exists").get_status()
+            return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
 
     investment_firm.name = name
     investment_firm.about = about
@@ -467,7 +419,7 @@ def update_investment_firm(id):
 
     db.session.commit()
 
-    InvestmentFirm.sync_search_index(recreate=True)
+    investment_firm.upsert_data()
 
     status = Status(StatusType.SUCCESS, "Investment Firm updated successfully!").get_status()
     return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
@@ -500,48 +452,33 @@ def create_investment_firm_view():
 def create_investment_firm():
     form_data = request.get_json()
 
-    name = form_data.get("name", "")
-    location = form_data.get("location", "")
-    about = form_data.get("about", "")
+    name = form_data.get("name")
+    location = form_data.get("location")
+    about = form_data.get("about")
 
-    selected_round_names = form_data.get("rounds")
-    selected_industry_names = form_data.get("industries")
-    selected_notable_investment_names = form_data.get("notable_investments")
+    selected_round_names = form_data.get("rounds") or []
+    selected_industry_names = form_data.get("industries") or []
+    selected_notable_investment_names = form_data.get("notable_investments") or []
+
     n_investments = int(form_data.get("n_investments") or 0)
     n_exits = int(form_data.get("n_exits") or 0)
     n_employees = int(form_data.get("n_employees") or 0)
     min_investment = int(form_data.get("min_investment") or 0)
     max_investment = int(form_data.get("max_investment") or 0)
 
-    website = form_data.get("website", "")
-    email = form_data.get("email", "")
-    phone_number = form_data.get("phone_number", "")
+    website = form_data.get("website")
+    email = form_data.get("email") or None
+    phone_number = form_data.get("phone_number")
 
     if not name:
         status = Status(StatusType.ERROR, "Name cannot be empty!").get_status()
         return redirect(url_for("admin.create_investment_firm_view", _external=True, **status))
 
-    if not email:
-        status = Status(StatusType.ERROR, "Email cannot be empty!").get_status()
-        return redirect(url_for("admin.create_investment_firm_view", _external=True, **status))
-
-    if not all(
-        (
-            selected_round_names,
-            selected_industry_names,
-            selected_notable_investment_names,
-        )
-    ):
-        status = Status(
-            StatusType.ERROR,
-            "All of the following fields must be provided: rounds, industries, notable investments.",
-        ).get_status()
-        return redirect(url_for("admin.create_investment_firm_view", _external=True, **status))
-
-    existing_email = InvestmentFirm.get_by_email(email)
-    if existing_email:
-        status = Status(StatusType.ERROR, "Email already exists").get_status()
-        return redirect(url_for("admin.create_investment_firm_view", _external=True, **status))
+    if email:
+        existing_email = InvestmentFirm.get_by_email(email)
+        if existing_email:
+            status = Status(StatusType.ERROR, "Email already exists").get_status()
+            return redirect(url_for("admin.create_investment_firm_view", _external=True, **status))
 
     investment_firm = InvestmentFirm(
         name=name,
@@ -566,7 +503,7 @@ def create_investment_firm():
     if not investment_firm.slug:
         investment_firm.set_slug()
 
-    InvestmentFirm.sync_search_index(recreate=True)
+    investment_firm.upsert_data()
 
     status = Status(StatusType.SUCCESS, "Investment Firm created successfully!").get_status()
     return redirect(url_for("admin.admin_investment_firm_view", _external=True, **status))
@@ -581,9 +518,10 @@ def delete_investment_firm(id):
         abort(404)
 
     db.session.delete(investment_firm)
-    db.session.commit()
 
-    InvestmentFirm.sync_search_index(recreate=True)
+    investment_firm.upsert_data()
+
+    db.session.commit()
 
     return redirect("/admin/investment-firms", code=302)
 

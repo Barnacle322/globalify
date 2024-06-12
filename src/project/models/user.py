@@ -508,16 +508,17 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
 class ClaimRequest(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-    user: Mapped[User] = relationship(User, backref=backref("claim_request", uselist=False))
 
     investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
-    investor: Mapped["Investor"] = relationship("Investor", backref=backref("claim_request", uselist=False))  # type: ignore # noqa: F821
     status: Mapped[RequestStatus] = mapped_column(String, nullable=False, default=RequestStatus.PENDING.value)
     status_info: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     approved_by: Mapped[int] = mapped_column(Integer, nullable=True, default=None)
     approved_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, default=None)
     email: Mapped[str] = mapped_column(String, nullable=True, default=None)
     requested_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+
+    user: Mapped[User] = relationship(User, backref=backref("claim_request", uselist=False))
+    investor: Mapped[Investor] = relationship("Investor", backref=backref("claim_request", uselist=False))  # type: ignore # noqa: F821
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

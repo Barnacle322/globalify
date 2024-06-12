@@ -286,10 +286,10 @@ def delete_investor(id):
     if not investor:
         abort(404)
 
+    investor.delete_data()
+
     db.session.delete(investor)
     db.session.commit()
-
-    investor.upsert_data()
 
     return redirect("/admin/investors", code=302)
 
@@ -517,10 +517,9 @@ def delete_investment_firm(id):
     if not investment_firm:
         abort(404)
 
+    investment_firm.delete_data()
+
     db.session.delete(investment_firm)
-
-    investment_firm.upsert_data()
-
     db.session.commit()
 
     return redirect("/admin/investment-firms", code=302)

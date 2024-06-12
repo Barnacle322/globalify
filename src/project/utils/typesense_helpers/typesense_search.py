@@ -2,6 +2,7 @@ import os
 from typing import Any
 
 from typesense.client import Client
+from typesense.exceptions import ObjectNotFound
 
 from ..info_lists import synonyms
 
@@ -221,6 +222,18 @@ def upsert_documents(schema_name: str, data: list[dict]) -> list[dict[str, Any]]
         return import_return
     else:
         raise ValueError("Schema name and file path are required")
+
+
+def delete_documents(schema_name: str, document_id: str) -> None:
+    if schema_name and document_id:
+        print(f"Deleting document from {schema_name} schema")
+        try:
+            client.collections[schema_name].documents.delete({"filter_by": f"db_id:={document_id}"})
+            print(f"Deleted document from {schema_name} schema")
+        except ObjectNotFound:
+            print(f"Document with id {document_id} not found in {schema_name} schema")
+    else:
+        raise ValueError("Schema name and document id are required")
 
 
 def delete_schema(schema_name: str) -> None:

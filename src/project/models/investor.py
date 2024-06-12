@@ -41,6 +41,7 @@ from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
     create_schema,
     create_synonyms,
+    delete_documents,
     delete_schema,
     upsert_documents,
 )
@@ -963,6 +964,9 @@ class Investor(db.Model):
         self.search_index = search_index
         db.session.commit()
 
+    def delete_data(self):
+        delete_documents("investors", str(self.id))
+
     @staticmethod
     def sync_search_index(recreate: bool = False):
         if recreate:
@@ -1561,6 +1565,9 @@ class InvestmentFirm(db.Model):
 
         self.search_index = search_index  # type: ignore
         db.session.commit()
+
+    def delete_data(self):
+        delete_documents("investment_firms", str(self.id))
 
     @staticmethod
     def sync_search_index(recreate: bool = False):

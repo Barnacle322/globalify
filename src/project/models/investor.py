@@ -932,30 +932,48 @@ class Investor(db.Model):
         return investors
 
     def upsert_data(self):
-        data = [
-            {
-                "db_id": self.id,
-                "name": self.full_name,
-                "slug": self.slug,
-                "firm_name": self.firm_name,
-                "about": self.about,
-                "position": self.position,
-                "n_investments": self.n_investments,
-                "n_exits": self.n_exits,
-                "min_investment": self.min_investment,
-                "max_investment": self.max_investment,
-                "location": self.location,
-                "country": self._country,
-                "rounds": [round_.name for round_ in self.rounds],
-                "industries": [industry.name for industry in self.industries],
-                "notable_investments": [notable_investment.name for notable_investment in self.notable_investments],
-            }
-        ]
+        investor_object = {}
+        if self.search_index:
+            investor_object["id"] = self.search_index
+        investor_object["db_id"] = self.id
+        if self.full_name:
+            investor_object["name"] = self.full_name
+        if self.slug:
+            investor_object["slug"] = self.slug
+        if self.firm_name:
+            investor_object["firm_name"] = self.firm_name
+        if self.about:
+            investor_object["about"] = self.about
+        if self.position:
+            investor_object["position"] = self.position
+        if self.n_investments:
+            investor_object["n_investments"] = self.n_investments
+        if self.n_exits:
+            investor_object["n_exits"] = self.n_exits
+        if self.min_investment:
+            investor_object["min_investment"] = self.min_investment
+        if self.max_investment:
+            investor_object["max_investment"] = self.max_investment
+        if self.location:
+            investor_object["location"] = self.location
+        if self._country:
+            investor_object["country"] = self._country
+        if self.rounds:
+            investor_object["rounds"] = [round_.name for round_ in self.rounds]
+        if self.industries:
+            investor_object["industries"] = [industry.name for industry in self.industries]
+        if self.notable_investments:
+            investor_object["notable_investments"] = [
+                notable_investment.name for notable_investment in self.notable_investments
+            ]
+
+        data = [investor_object]
 
         if self.search_index:
             data[0]["id"] = self.search_index
 
         result = upsert_documents("investors", data)
+
         if json.loads(result[0].get("document", "{}")).get("id"):
             search_index = json.loads(result[0].get("document", "{}")).get("id")
         elif result[0].get("id"):
@@ -1025,22 +1043,36 @@ class Investor(db.Model):
                 if investor.search_index and not recreate:
                     investor_object["id"] = investor.search_index
                 investor_object["db_id"] = investor.id
-                investor_object["name"] = investor.full_name
-                investor_object["slug"] = investor.slug
-                investor_object["firm_name"] = investor.firm_name
-                investor_object["about"] = investor.about
-                investor_object["position"] = investor.position
-                investor_object["n_investments"] = investor.n_investments
-                investor_object["n_exits"] = investor.n_exits
-                investor_object["min_investment"] = investor.min_investment
-                investor_object["max_investment"] = investor.max_investment
-                investor_object["location"] = investor.location
-                investor_object["country"] = investor._country
-                investor_object["rounds"] = [round_.name for round_ in investor.rounds]
-                investor_object["industries"] = [industry.name for industry in investor.industries]
-                investor_object["notable_investments"] = [
-                    notable_investment.name for notable_investment in investor.notable_investments
-                ]
+                if investor.full_name:
+                    investor_object["name"] = investor.full_name
+                if investor.slug:
+                    investor_object["slug"] = investor.slug
+                if investor.firm_name:
+                    investor_object["firm_name"] = investor.firm_name
+                if investor.about:
+                    investor_object["about"] = investor.about
+                if investor.position:
+                    investor_object["position"] = investor.position
+                if investor.n_investments:
+                    investor_object["n_investments"] = investor.n_investments
+                if investor.n_exits:
+                    investor_object["n_exits"] = investor.n_exits
+                if investor.min_investment:
+                    investor_object["min_investment"] = investor.min_investment
+                if investor.max_investment:
+                    investor_object["max_investment"] = investor.max_investment
+                if investor.location:
+                    investor_object["location"] = investor.location
+                if investor._country:
+                    investor_object["country"] = investor._country
+                if investor.rounds:
+                    investor_object["rounds"] = [round_.name for round_ in investor.rounds]
+                if investor.industries:
+                    investor_object["industries"] = [industry.name for industry in investor.industries]
+                if investor.notable_investments:
+                    investor_object["notable_investments"] = [
+                        notable_investment.name for notable_investment in investor.notable_investments
+                    ]
                 data.append(investor_object)
 
             result = upsert_documents("investors", data)

@@ -429,6 +429,8 @@ def edit_investor():
 
     db.session.commit()
 
+    investor.upsert_data()
+
     status = Status(StatusType.SUCCESS, "Investor updated.").get_status()
 
     return redirect(url_for("settings.edit_investor_view", _external=False, **status))

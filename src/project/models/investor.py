@@ -700,7 +700,7 @@ class Investor(db.Model):
 
     @staticmethod
     def populate_cli():
-        with open("signal_investor_urls.jsonl", encoding="utf-8-sig") as file:
+        with open("mercury_investor.jsonl", encoding="utf-8-sig") as file:
             investors = file.readlines()
             existing_nis = list(NotableInvestment.get_all())
             for investor in investors:

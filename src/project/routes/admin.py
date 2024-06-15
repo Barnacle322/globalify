@@ -39,7 +39,7 @@ def admin_only(func):
     return decorated_function
 
 
-@admin.route("/investors")
+@admin.get("/investors")
 @admin_only
 def admin_investor_view():
     status_type, msg = None, None
@@ -91,6 +91,9 @@ def update_investor_view(id):
         msg = query.get("msg")
 
     investor = Investor.get_by_id(id)
+    if not investor:
+        status = Status(StatusType.ERROR, "Investor not found").get_status()
+        return redirect(url_for("admin.admin_investor_view", _external=True, **status))
 
     notable_investments = NotableInvestment.get_all()
     rounds = Round.get_all()
@@ -114,7 +117,8 @@ def update_investor(id):
 
     investor = Investor.get_by_id(id)
     if not investor:
-        abort(404)
+        status = Status(StatusType.ERROR, "Investor not found").get_status()
+        return redirect(url_for("admin.admin_investor_view", _external=True, **status))
 
     first_name = form_data.get("first_name", investor.first_name)
     last_name = form_data.get("last_name", investor.last_name)
@@ -179,7 +183,11 @@ def update_investor(id):
 
     db.session.commit()
 
-    investor.upsert_data()
+    try:
+        investor.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investor updated successfully!").get_status()
     return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
@@ -272,7 +280,11 @@ def create_investor():
     if not investor.slug:
         investor.set_slug()
 
-    investor.upsert_data()
+    try:
+        investor.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.create_investor_view", _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investor created successfully!").get_status()
     return redirect(url_for("admin.admin_investor_view", _external=True, **status))
@@ -283,18 +295,28 @@ def create_investor():
 def delete_investor(id):
     investor = Investor.get_by_id(id)
 
+    investor = Investor.get_by_id(id)
     if not investor:
-        abort(404)
+        status = Status(StatusType.ERROR, "Investor not found").get_status()
+        return redirect(url_for("admin.admin_investor_view", _external=True, **status))
 
-    investor.delete_data()
+    try:
+        investor.delete_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.admin_investor_view", _external=True, **status))
 
-    db.session.delete(investor)
-    db.session.commit()
+    try:
+        db.session.delete(investor)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.admin_investor_view", _external=True, **status))
 
     return redirect("/admin/investors", code=302)
 
 
-@admin.route("/investment-firms")
+@admin.get("/investment-firms")
 @admin_only
 def admin_investment_firm_view():
     status_type, msg = None, None
@@ -336,7 +358,7 @@ def admin_investment_firm_view():
     )
 
 
-@admin.route("/investment-firm/<int:id>")
+@admin.get("/investment-firm/<int:id>")
 @admin_only
 def update_investment_firm_view(id):
     status_type, msg = None, None
@@ -345,6 +367,9 @@ def update_investment_firm_view(id):
         msg = query.get("msg")
 
     investment_firm = InvestmentFirm.get_by_id(id)
+    if not investment_firm:
+        status = Status(StatusType.ERROR, "Investment Firm not found").get_status()
+        return redirect(url_for("admin.admin_investment_firm_view", _external=True, **status))
 
     notable_investments = NotableInvestment.get_all()
     rounds = Round.get_all()
@@ -369,7 +394,8 @@ def update_investment_firm(id):
     investment_firm = InvestmentFirm.get_by_id(id)
 
     if not investment_firm:
-        return jsonify({"message": "Investment Firm not found"}), 404
+        status = Status(StatusType.ERROR, "Investment Firm not found").get_status()
+        return redirect(url_for("admin.admin_investment_firm_view", _external=True, **status))
 
     name = form_data.get("name", investment_firm.name)
     slug = form_data.get("slug", investment_firm.slug)
@@ -419,7 +445,11 @@ def update_investment_firm(id):
 
     db.session.commit()
 
-    investment_firm.upsert_data()
+    try:
+        investment_firm.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investment Firm updated successfully!").get_status()
     return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
@@ -503,7 +533,11 @@ def create_investment_firm():
     if not investment_firm.slug:
         investment_firm.set_slug()
 
-    investment_firm.upsert_data()
+    try:
+        investment_firm.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.create_investment_firm_view", _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investment Firm created successfully!").get_status()
     return redirect(url_for("admin.admin_investment_firm_view", _external=True, **status))
@@ -515,12 +549,21 @@ def delete_investment_firm(id):
     investment_firm = InvestmentFirm.get_by_id(id)
 
     if not investment_firm:
-        abort(404)
+        status = Status(StatusType.ERROR, "Investment Firm not found").get_status()
+        return redirect(url_for("admin.admin_investment_firm_view", _external=True, **status))
 
-    investment_firm.delete_data()
+    try:
+        investment_firm.delete_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.admin_investment_firm_view", _external=True, **status))
 
-    db.session.delete(investment_firm)
-    db.session.commit()
+    try:
+        db.session.delete(investment_firm)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.admin_investment_firm_view", _external=True, **status))
 
     return redirect("/admin/investment-firms", code=302)
 
@@ -547,17 +590,20 @@ def edit_claim_request(id):
     claim_request = ClaimRequest.get_by_id(id)
 
     if not claim_request:
-        return jsonify({"message": "Claim request not found"}), 404
+        status = Status(StatusType.ERROR, "Claim request not found").get_status()
+        return redirect(url_for("admin.claim_requests_view", _external=True, **status))
 
     investor = Investor.get_by_id(claim_request.investor_id)
     if not investor:
-        return jsonify({"message": "Investor not found"}), 404
+        status = Status(StatusType.ERROR, "Investor not found").get_status()
+        return redirect(url_for("admin.claim_requests_view", _external=True, **status))
 
     form_data = request.get_json()
     claim_status = form_data.get("status")
 
     if claim_status not in ["approved", "rejected"]:
-        return jsonify({"message": "Invalid claim status"}), 400
+        status = Status(StatusType.ERROR, "Invalid claim status").get_status()
+        return redirect(url_for("admin.claim_requests_view", _external=True, **status))
     elif claim_status == "approved":
         claim_request.status = RequestStatus.APPROVED
         claim_request.approved_at = datetime.now(UTC)

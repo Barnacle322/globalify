@@ -514,7 +514,6 @@ class Investor(db.Model):
             self.slug = slugify(f"{self.first_name} {self.last_name}")
             db.session.commit()
         except IntegrityError:
-            db.session.rollback()
             self.slug = slugify(f"{self.first_name} {self.last_name} {uuid.uuid4().hex[:4]}")
             db.session.commit()
 
@@ -529,7 +528,6 @@ class Investor(db.Model):
                     investor.slug = slugify(f"{investor.first_name} {investor.last_name}")
                     db.session.commit()
                 except IntegrityError:
-                    db.session.rollback()
                     investor.slug = slugify(f"{investor.first_name} {investor.last_name} {uuid.uuid4().hex[:4]}")
                     db.session.commit()
 
@@ -962,6 +960,8 @@ class Investor(db.Model):
             investor_object["rounds"] = [round_.name for round_ in self.rounds]
         if self.industries:
             investor_object["industries"] = [industry.name for industry in self.industries]
+        else:
+            investor_object["industries"] = []
         if self.notable_investments:
             investor_object["notable_investments"] = [
                 notable_investment.name for notable_investment in self.notable_investments
@@ -1224,7 +1224,6 @@ class InvestmentFirm(db.Model):
             self.slug = slugify(self.name)
             db.session.commit()
         except IntegrityError:
-            db.session.rollback()
             self.slug = slugify(f"{self.name} {uuid.uuid4().hex[:4]}")
             db.session.commit()
 
@@ -1592,10 +1591,15 @@ class InvestmentFirm(db.Model):
             data[0]["id"] = self.search_index
 
         result = upsert_documents("investment_firms", data)
+        print("\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        print(result)
         if result[0].get("id"):
             search_index = result[0].get("id")
 
-        self.search_index = search_index  # type: ignore
+        if not search_index:
+            raise Exception("Search index not found")
+
+        self.search_index = search_index
         db.session.commit()
 
     def delete_data(self):

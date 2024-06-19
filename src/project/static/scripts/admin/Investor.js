@@ -112,18 +112,16 @@ async function updateInvestor() {
 async function createInvestor() {
     const csrf_token = document.getElementById("csrf_token").value;
 
-    let roundCheckboxes = document.querySelectorAll('input[name="selected_rounds"]:checked');
-    const selectedRounds = Array.from(roundCheckboxes).map((checkbox) => checkbox.parentElement.textContent.trim());
-
-    let industryCheckboxes = document.querySelectorAll('input[name="selected_industries"]:checked');
-    const selectedIndustries = Array.from(industryCheckboxes).map((checkbox) =>
-        checkbox.parentElement.textContent.trim(),
+    const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map((input) =>
+        parseInt(input.value, 10),
     );
 
-    let notableInvestmentsCheckboxes = document.querySelectorAll('input[name="selected_notable_investments"]:checked');
-    const selectedNotableInvestments = Array.from(notableInvestmentsCheckboxes).map((checkbox) =>
-        checkbox.parentElement.textContent.trim(),
+    const selectedIndustries = Array.from(document.querySelectorAll('input[name="selected_industries"]:checked')).map(
+        (input) => parseInt(input.value, 10),
     );
+    const selectedNotableInvestments = Array.from(
+        document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
+    ).map((input) => parseInt(input.value, 10));
 
     let dataString = JSON.stringify({
         first_name: document.getElementById("first_name").value,

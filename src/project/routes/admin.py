@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from functools import wraps
 
-from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
 from sqlalchemy import select
 
@@ -123,10 +123,10 @@ def update_investor(id):
     first_name = form_data.get("first_name", investor.first_name)
     last_name = form_data.get("last_name", investor.last_name)
     slug = form_data.get("slug", investor.slug) or None
-    firm_name = form_data.get("firm_name", investor.firm_name)
-    position = form_data.get("position", investor.position)
-    about = form_data.get("about", investor.about)
-    location = form_data.get("location", investor.location)
+    firm_name = form_data.get("firm_name", investor.firm_name) or None
+    position = form_data.get("position", investor.position) or None
+    about = form_data.get("about", investor.about) or None
+    location = form_data.get("location", investor.location) or None
 
     n_investments = int(form_data.get("n_investments", investor.n_investments) or 0)
     n_exits = int(form_data.get("n_exits", investor.n_exits) or 0)
@@ -137,11 +137,11 @@ def update_investor(id):
     selected_industry_ids = form_data.get("industries", investor.industries) or []
     selected_notable_investment_ids = form_data.get("notable_investments", investor.notable_investments) or []
 
-    website = form_data.get("website", investor.website)
-    linkedin = form_data.get("linkedin", investor.linkedin)
-    twitter = form_data.get("twitter", investor.twitter)
+    website = form_data.get("website", investor.website) or None
+    linkedin = form_data.get("linkedin", investor.linkedin) or None
+    twitter = form_data.get("twitter", investor.twitter) or None
     email = form_data.get("email", investor.email) or None
-    phone_number = form_data.get("phone_number", investor.phone_number)
+    phone_number = form_data.get("phone_number", investor.phone_number) or None
 
     user = User.get_by_email(form_data.get("user_email"))
     if user:
@@ -181,7 +181,11 @@ def update_investor(id):
     investor.industries = list(Industry.get_by_id_list(selected_industry_ids))
     investor.notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
 
     try:
         investor.upsert_data()
@@ -223,25 +227,25 @@ def create_investor():
     first_name = form_data.get("first_name")
     last_name = form_data.get("last_name")
     slug = form_data.get("slug") or None
-    firm_name = form_data.get("firm_name")
-    position = form_data.get("position")
-    about = form_data.get("about")
-    location = form_data.get("location")
+    firm_name = form_data.get("firm_name") or None
+    position = form_data.get("position") or None
+    about = form_data.get("about") or None
+    location = form_data.get("location") or None
 
     n_investments = int(form_data.get("n_investments") or 0)
     n_exits = int(form_data.get("n_exits") or 0)
     min_investment = int(form_data.get("min_investment") or 0)
     max_investment = int(form_data.get("max_investment") or 0)
 
-    selected_round_names = form_data.get("rounds") or []
-    selected_industry_names = form_data.get("industries") or []
-    selected_notable_investment_names = form_data.get("notable_investments") or []
+    selected_round_ids = form_data.get("rounds") or []
+    selected_industry_ids = form_data.get("industries") or [""]
+    selected_notable_investment_ids = form_data.get("notable_investments") or []
 
-    website = form_data.get("website")
-    linkedin = form_data.get("linkedin")
-    twitter = form_data.get("twitter")
+    website = form_data.get("website") or None
+    linkedin = form_data.get("linkedin") or None
+    twitter = form_data.get("twitter") or None
     email = form_data.get("email") or None
-    phone_number = form_data.get("phone_number")
+    phone_number = form_data.get("phone_number") or None
 
     if not first_name:
         status = Status(StatusType.ERROR, "First name cannot be empty!").get_status()
@@ -270,12 +274,17 @@ def create_investor():
         min_investment=min_investment,
         max_investment=max_investment,
         location=location,
-        rounds=[Round.get_by_name(name) for name in selected_round_names],
-        industries=[Industry.get_by_name(name) for name in selected_industry_names],
-        notable_investments=[NotableInvestment.get_by_name(name) for name in selected_notable_investment_names],
+        rounds=list(Round.get_by_id_list(selected_round_ids)),
+        industries=list(Industry.get_by_id_list(selected_industry_ids)),
+        notable_investments=list(NotableInvestment.get_by_id_list(selected_notable_investment_ids)),
     )
-    db.session.add(investor)
-    db.session.commit()
+
+    try:
+        db.session.add(investor)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.create_investor_view", _external=True, **status))
 
     if not investor.slug:
         investor.set_slug()
@@ -398,7 +407,7 @@ def update_investment_firm(id):
         return redirect(url_for("admin.admin_investment_firm_view", _external=True, **status))
 
     name = form_data.get("name", investment_firm.name)
-    slug = form_data.get("slug", investment_firm.slug)
+    slug = form_data.get("slug", investment_firm.slug) or None
 
     about = form_data.get("about", investment_firm.about)
     location = form_data.get("location", investment_firm.location)
@@ -443,7 +452,11 @@ def update_investment_firm(id):
     investment_firm.industries = list(Industry.get_by_id_list(selected_industry_ids))
     investment_firm.notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
 
     try:
         investment_firm.upsert_data()
@@ -483,12 +496,12 @@ def create_investment_firm():
     form_data = request.get_json()
 
     name = form_data.get("name")
-    location = form_data.get("location")
-    about = form_data.get("about")
+    location = form_data.get("location") or None
+    about = form_data.get("about") or None
 
-    selected_round_names = form_data.get("rounds") or []
-    selected_industry_names = form_data.get("industries") or []
-    selected_notable_investment_names = form_data.get("notable_investments") or []
+    selected_round_ids = form_data.get("rounds") or []
+    selected_industry_ids = form_data.get("industries") or []
+    selected_notable_investment_ids = form_data.get("notable_investments") or []
 
     n_investments = int(form_data.get("n_investments") or 0)
     n_exits = int(form_data.get("n_exits") or 0)
@@ -496,9 +509,9 @@ def create_investment_firm():
     min_investment = int(form_data.get("min_investment") or 0)
     max_investment = int(form_data.get("max_investment") or 0)
 
-    website = form_data.get("website")
+    website = form_data.get("website") or None
     email = form_data.get("email") or None
-    phone_number = form_data.get("phone_number")
+    phone_number = form_data.get("phone_number") or None
 
     if not name:
         status = Status(StatusType.ERROR, "Name cannot be empty!").get_status()
@@ -522,13 +535,17 @@ def create_investment_firm():
         min_investment=min_investment,
         max_investment=max_investment,
         location=location,
-        rounds=[Round.get_by_name(name) for name in selected_round_names],
-        industries=[Industry.get_by_name(name) for name in selected_industry_names],
-        notable_investments=[NotableInvestment.get_by_name(name) for name in selected_notable_investment_names],
+        rounds=list(Round.get_by_id_list(selected_round_ids)),
+        industries=list(Industry.get_by_id_list(selected_industry_ids)),
+        notable_investments=list(NotableInvestment.get_by_id_list(selected_notable_investment_ids)),
     )
 
-    db.session.add(investment_firm)
-    db.session.commit()
+    try:
+        db.session.add(investment_firm)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.create_investment_firm_view", _external=True, **status))
 
     if not investment_firm.slug:
         investment_firm.set_slug()

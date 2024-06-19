@@ -23,6 +23,7 @@ from ..models import (
     ClaimRequest,
     Company,
     Country,
+    EmailVerification,
     Industry,
     InvestmentFirm,
     InvestmentFirmBookmark,
@@ -34,12 +35,9 @@ from ..models import (
     Waitlist,
     WaitlistCharge,
 )
-from ..models.investor import NotableInvestment
-from ..models.user import EmailVerification, User
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
 from ..utils.enums import NotificationDestination, Status, StatusType
-from ..utils.errors.error_messages import AUTH_FIELDS_INCOMPLETE, NOT_AUTHORIZED
-from ..utils.google_helpers import google_pubsub
+from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import WEIGHTS, check_weights
 

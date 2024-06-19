@@ -979,6 +979,9 @@ class Investor(db.Model):
         elif result[0].get("id"):
             search_index = result[0].get("id")
 
+        if not search_index:
+            raise Exception("Search index not found")
+
         self.search_index = search_index
         db.session.commit()
 
@@ -1591,8 +1594,7 @@ class InvestmentFirm(db.Model):
             data[0]["id"] = self.search_index
 
         result = upsert_documents("investment_firms", data)
-        print("\n\n\n\n\n\n\n\n\n\n\n\n\n")
-        print(result)
+
         if result[0].get("id"):
             search_index = result[0].get("id")
 

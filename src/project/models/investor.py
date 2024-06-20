@@ -511,10 +511,10 @@ class Investor(db.Model):
 
     def set_slug(self):
         try:
-            self.slug = slugify(f"{self.first_name} {self.last_name}")
+            self.slug = slugify(f"{self.first_name} {self.last_name or ''}")
             db.session.commit()
         except IntegrityError:
-            self.slug = slugify(f"{self.first_name} {self.last_name} {uuid.uuid4().hex[:4]}")
+            self.slug = slugify(f"{self.first_name} {self.last_name or ''} {uuid.uuid4().hex[:4]}")
             db.session.commit()
 
     @staticmethod

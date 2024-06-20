@@ -374,7 +374,7 @@ def edit_investor():
     form_data = request.get_json()
 
     first_name = form_data.get("first_name")
-    last_name = form_data.get("last_name")
+    last_name = form_data.get("last_name") or None
     firm_name = form_data.get("firm_name") or None
     position = form_data.get("position") or None
     about = form_data.get("about") or None
@@ -399,13 +399,8 @@ def edit_investor():
         status = Status(StatusType.ERROR, "Email already exists").get_status()
         return redirect(url_for("settings.edit_investor_view", _external=True, **status))
 
-    if not all(
-        (
-            first_name,
-            last_name,
-        )
-    ):
-        status = Status(StatusType.ERROR, "First name and last name shouldn't be empty").get_status()
+    if not first_name:
+        status = Status(StatusType.ERROR, "First name shouldn't be empty").get_status()
         return redirect(url_for("settings.edit_investor_view", _external=True, **status))
 
     investor.first_name = first_name

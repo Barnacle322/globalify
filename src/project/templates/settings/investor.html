@@ -177,7 +177,7 @@ block content %}
                     class="w-full rounded-lg bg-transparent bg-white"
                     type="text"
                     id="last_name"
-                    value="{{ investor.last_name }}"
+                    value="{{ investor.last_name if investor.last_name else '' }}"
                     required
                 />
             </div>

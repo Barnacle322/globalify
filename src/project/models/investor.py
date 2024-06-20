@@ -275,7 +275,7 @@ class Investor(db.Model):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
-    last_name: Mapped[str] = mapped_column(String, nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
     slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
     firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
     about: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -309,7 +309,7 @@ class Investor(db.Model):
 
     @property
     def full_name(self) -> str:
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name} {self.last_name or ''}"
 
     @full_name.setter
     def full_name(self, add_slug: bool = True) -> None:

@@ -409,8 +409,8 @@ def update_investment_firm(id):
     name = form_data.get("name", investment_firm.name)
     slug = form_data.get("slug", investment_firm.slug) or None
 
-    about = form_data.get("about", investment_firm.about)
-    location = form_data.get("location", investment_firm.location)
+    about = form_data.get("about", investment_firm.about) or None
+    location = form_data.get("location", investment_firm.location) or None
 
     selected_round_ids = form_data.get("rounds", investment_firm.rounds) or []
     selected_industry_ids = form_data.get("industries", investment_firm.industries) or []
@@ -422,9 +422,13 @@ def update_investment_firm(id):
     min_investment = int(form_data.get("min_investment", investment_firm.min_investment) or 0)
     max_investment = int(form_data.get("max_investment", investment_firm.max_investment) or 0)
 
-    website = form_data.get("website", investment_firm.website)
-    email = form_data.get("email", investment_firm.email)
-    phone_number = form_data.get("phone_number", investment_firm.phone_number)
+    website = form_data.get("website", investment_firm.website) or None
+    email = form_data.get("email", investment_firm.email) or None
+    phone_number = form_data.get("phone_number", investment_firm.phone_number) or None
+
+    if not name:
+        status = Status(StatusType.ERROR, "Name cannot be empty!").get_status()
+        return redirect(url_for("admin.update_investment_firm_view", id=id, _external=True, **status))
 
     if not slug:
         investment_firm.set_slug()
@@ -496,6 +500,7 @@ def create_investment_firm():
     form_data = request.get_json()
 
     name = form_data.get("name")
+    slug = form_data.get("slug") or None
     location = form_data.get("location") or None
     about = form_data.get("about") or None
 
@@ -525,6 +530,7 @@ def create_investment_firm():
 
     investment_firm = InvestmentFirm(
         name=name,
+        slug=slug,
         about=about,
         website=website,
         email=email,

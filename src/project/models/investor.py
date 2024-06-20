@@ -1173,20 +1173,20 @@ class InvestmentFirm(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=True)
     slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
-    about: Mapped[str] = mapped_column(String, nullable=True)
-    website: Mapped[str] = mapped_column(String, nullable=True)
-    email: Mapped[str] = mapped_column(String, nullable=True, unique=True)
-    phone_number: Mapped[str] = mapped_column(String, nullable=True)
-    n_investments: Mapped[int] = mapped_column(Integer, nullable=True)
+    about: Mapped[str | None] = mapped_column(String, nullable=True)
+    website: Mapped[str | None] = mapped_column(String, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
     n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
-    n_employees: Mapped[int] = mapped_column(Integer, nullable=True)
-    min_investment: Mapped[int] = mapped_column(Integer, nullable=True)
-    max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
-    location: Mapped[str] = mapped_column(String, nullable=True)
-    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
-    _country: Mapped[str] = mapped_column(String, nullable=True)
-    bias: Mapped[int] = mapped_column(Integer, nullable=True)
-    search_index: Mapped[str] = mapped_column(String, nullable=True)
+    n_employees: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    min_investment: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_investment: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
+    _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
+    _country: Mapped[str | None] = mapped_column(String, nullable=True)
+    bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    search_index: Mapped[str | None] = mapped_column(String, nullable=True)
 
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investment_firm_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investment_firm_round)
@@ -1571,24 +1571,43 @@ class InvestmentFirm(db.Model):
         return completeness_score
 
     def upsert_data(self):
-        data = [
-            {
-                "db_id": self.id,
-                "name": self.name,
-                "slug": self.slug,
-                "about": self.about,
-                "n_investments": self.n_investments,
-                "n_exits": self.n_exits,
-                "n_employees": self.n_employees,
-                "min_investment": self.min_investment,
-                "max_investment": self.max_investment,
-                "location": self.location,
-                "country": self._country,
-                "rounds": [round_.name for round_ in self.rounds],
-                "industries": [industry.name for industry in self.industries],
-                "notable_investments": [notable_investment.name for notable_investment in self.notable_investments],
-            }
-        ]
+        investment_firm_object = {}
+
+        if self.search_index:
+            investment_firm_object["id"] = self.search_index
+        investment_firm_object["db_id"] = self.id
+        if self.name:
+            investment_firm_object["name"] = self.name
+        if self.slug:
+            investment_firm_object["slug"] = self.slug
+        if self.about:
+            investment_firm_object["about"] = self.about
+        if self.n_investments:
+            investment_firm_object["n_investments"] = self.n_investments
+        if self.n_exits:
+            investment_firm_object["n_exits"] = self.n_exits
+        if self.n_employees:
+            investment_firm_object["n_employees"] = self.n_employees
+        if self.min_investment:
+            investment_firm_object["min_investment"] = self.min_investment
+        if self.max_investment:
+            investment_firm_object["max_investment"] = self.max_investment
+        if self.location:
+            investment_firm_object["location"] = self.location
+        if self._country:
+            investment_firm_object["country"] = self._country
+        if self.rounds:
+            investment_firm_object["rounds"] = [round_.name for round_ in self.rounds]
+        if self.industries:
+            investment_firm_object["industries"] = [industry.name for industry in self.industries]
+        else:
+            investment_firm_object["industries"] = []
+        if self.notable_investments:
+            investment_firm_object["notable_investments"] = [
+                notable_investment.name for notable_investment in self.notable_investments
+            ]
+
+        data = [investment_firm_object]
 
         if self.search_index:
             data[0]["id"] = self.search_index

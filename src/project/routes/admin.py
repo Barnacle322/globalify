@@ -11,6 +11,7 @@ from ..models import (
     Industry,
     InvestmentFirm,
     Investor,
+    InvestorBackup,
     NotableInvestment,
     Round,
     User,
@@ -143,18 +144,9 @@ def update_investor(id):
     email = form_data.get("email", investor.email) or None
     phone_number = form_data.get("phone_number", investor.phone_number) or None
 
-    user = User.get_by_email(form_data.get("user_email"))
-    if user:
-        investor.user = user
-
     if not first_name:
         status = Status(StatusType.ERROR, "First name cannot be empty!").get_status()
         return redirect(url_for("admin.create_investor_view", _external=True, **status))
-
-    if not slug:
-        investor.set_slug()
-    else:
-        investor.slug = slug
 
     if email:
         existing_email = User.get_by_email(email)
@@ -162,8 +154,43 @@ def update_investor(id):
             status = Status(StatusType.ERROR, "Email already exists").get_status()
             return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
 
+    investor_backup = InvestorBackup.get_by_investor_id(investor.id)
+    if not investor_backup:
+        investor_backup = InvestorBackup(investor=investor)
+    investor_backup.first_name = investor.first_name
+    investor_backup.last_name = investor.last_name
+    investor_backup.slug = investor.slug
+    investor_backup.firm_name = investor.firm_name
+    investor_backup.about = investor.about
+    investor_backup.position = investor.position
+    investor_backup.website = investor.website
+    investor_backup.linkedin = investor.linkedin
+    investor_backup.twitter = investor.twitter
+    investor_backup.email = investor.email
+    investor_backup.phone_number = investor.phone_number
+    investor_backup.n_investments = investor.n_investments
+    investor_backup.n_exits = investor.n_exits
+    investor_backup.min_investment = investor.min_investment
+    investor_backup.max_investment = investor.max_investment
+    investor_backup.location = investor.location
+    investor_backup.notable_investments = investor.notable_investments
+    investor_backup.rounds = investor.rounds
+    investor_backup.industries = investor.industries
+    investor_backup.user = investor.user
+
+    db.session.add(investor_backup)
+
+    user = User.get_by_email(form_data.get("user_email"))
+    investor.user = user if user else None
+
     investor.first_name = first_name
     investor.last_name = last_name
+
+    if not slug:
+        investor.set_slug()
+    else:
+        investor.slug = slug
+
     investor.firm_name = firm_name
     investor.position = position
     investor.about = about
@@ -194,6 +221,49 @@ def update_investor(id):
         return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investor updated successfully!").get_status()
+    return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
+
+
+@admin.post("/investor/<int:id>/restore")
+@admin_only
+def restore_investor_backup(id):
+    investor = Investor.get_by_id(id)
+    if not investor:
+        status = Status(StatusType.ERROR, "Investor not found").get_status()
+        return redirect(url_for("admin.admin_investor_view", _external=True, **status))
+
+    investor_backup = InvestorBackup.get_by_investor_id(investor.id)
+    if not investor_backup:
+        status = Status(StatusType.ERROR, "Investor backup not found").get_status()
+        return redirect(url_for("admin.admin_investor_view", _external=True, **status))
+
+    investor.first_name = investor_backup.first_name
+    investor.last_name = investor_backup.last_name
+    investor.slug = investor_backup.slug
+    investor.firm_name = investor_backup.firm_name
+    investor.position = investor_backup.position
+    investor.about = investor_backup.about
+    investor.website = investor_backup.website
+    investor.linkedin = investor_backup.linkedin
+    investor.twitter = investor_backup.twitter
+    investor.email = investor_backup.email
+    investor.phone_number = investor_backup.phone_number
+    investor.n_investments = investor_backup.n_investments
+    investor.n_exits = investor_backup.n_exits
+    investor.min_investment = investor_backup.min_investment
+    investor.max_investment = investor_backup.max_investment
+    investor.location = investor_backup.location
+    investor.rounds = investor_backup.rounds
+    investor.industries = investor_backup.industries
+    investor.notable_investments = investor_backup.notable_investments
+    investor.user = investor_backup.user
+
+    db.session.commit()
+
+    investor.upsert_data()
+
+    status = Status(StatusType.SUCCESS, "Investor backup restored successfully!").get_status()
+
     return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
 
 

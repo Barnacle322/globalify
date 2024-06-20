@@ -349,10 +349,12 @@ def edit_investor_view():
 
     investor = Investor.get_by_user_id(current_user.id)
     if not investor:
-        return redirect(url_for("settings.general"))
+        status = Status(StatusType.ERROR, "You don't have claimed investor profile yet.").get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
 
     if investor.user_id != current_user.id:
-        return redirect(url_for("settings.general"))
+        status = Status(StatusType.ERROR, "Not authorized.").get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
 
     notable_investments = NotableInvestment.get_all()
     rounds = Round.get_all()
@@ -417,31 +419,6 @@ def edit_investor():
         status = Status(StatusType.ERROR, "First name shouldn't be empty").get_status()
         return redirect(url_for("settings.edit_investor_view", _external=True, **status))
 
-    investor_backup = InvestorBackup.get_by_investor_id(investor.id)
-    if not investor_backup:
-        investor_backup = InvestorBackup(investor=investor)
-    investor_backup.first_name = investor.first_name
-    investor_backup.last_name = investor.last_name
-    investor_backup.slug = investor.slug
-    investor_backup.firm_name = investor.firm_name
-    investor_backup.about = investor.about
-    investor_backup.position = investor.position
-    investor_backup.website = investor.website
-    investor_backup.linkedin = investor.linkedin
-    investor_backup.twitter = investor.twitter
-    investor_backup.email = investor.email
-    investor_backup.phone_number = investor.phone_number
-    investor_backup.n_investments = investor.n_investments
-    investor_backup.n_exits = investor.n_exits
-    investor_backup.min_investment = investor.min_investment
-    investor_backup.max_investment = investor.max_investment
-    investor_backup.location = investor.location
-    investor_backup.notable_investments = investor.notable_investments
-    investor_backup.rounds = investor.rounds
-    investor_backup.industries = investor.industries
-
-    db.session.add(investor_backup)
-
     investor.first_name = first_name
     investor.last_name = last_name
     investor.set_slug()
@@ -461,6 +438,29 @@ def edit_investor():
     investor.rounds = selected_rounds
     investor.industries = selected_industries
     investor.notable_investments = selected_notable_investments
+
+    investor_backup = InvestorBackup.get_by_investor_id(investor.id)
+    if not investor_backup:
+        investor_backup = InvestorBackup(investor_id=investor.id)
+    investor_backup.first_name = first_name
+    investor_backup.last_name = last_name
+    investor_backup.slug = investor.slug
+    investor_backup.firm_name = firm_name
+    investor_backup.position = position
+    investor_backup.about = about
+    investor_backup.website = website
+    investor_backup.linkedin = linkedin
+    investor_backup.twitter = twitter
+    investor_backup.email = email
+    investor_backup.phone_number = phone_number
+    investor_backup.n_investments = n_investments
+    investor_backup.n_exits = n_exits
+    investor_backup.min_investment = min_investment
+    investor_backup.max_investment = max_investment
+    investor_backup.location = location
+    investor_backup.rounds = selected_rounds
+    investor_backup.industries = selected_industries
+    investor_backup.notable_investments = selected_notable_investments
 
     db.session.commit()
 

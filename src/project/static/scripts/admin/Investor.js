@@ -126,3 +126,22 @@ async function submitData() {
         console.error("Error:", error);
     }
 }
+
+async function restoreInvestorData(investorId) {
+    const csrfToken = document.getElementById("csrf_token").value;
+
+    try {
+        const response = await fetch(`/admin/investor/${investorId}/restore`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken,
+            },
+        });
+        if (response.redirected) {
+            window.location.href = response.url;
+        }
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}

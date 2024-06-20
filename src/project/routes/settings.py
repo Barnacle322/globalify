@@ -444,6 +444,7 @@ def edit_investor():
 
     investor.first_name = first_name
     investor.last_name = last_name
+    investor.set_slug()
     investor.firm_name = firm_name
     investor.position = position
     investor.about = about

@@ -9,7 +9,7 @@
 {% block head %} {{ super() }} {% endblock %} 
 {% block content %}
 
-<main id="app" class="w-full">
+<main id="app" class="relative w-full overflow-x-clip">
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
     <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
         <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">

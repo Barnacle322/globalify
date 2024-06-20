@@ -41,27 +41,61 @@
 
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="first_name">First Name*</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="first_name" required />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="first_name"
+                placeholder="John"
+                required
+            />
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="last_name">Last Name</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="last_name" required />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="last_name"
+                placeholder="Doe"
+                required
+            />
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="slug">Slug</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="slug" required />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="slug"
+                placeholder="john-doe"
+                required
+            />
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="firm_name">Firm Name</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="firm_name" />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="firm_name"
+                placeholder="ACME Inc."
+            />
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="position">Position</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="position" required />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="position"
+                placeholder="CEO"
+                required
+            />
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="location">Location</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="location" />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="location"
+                placeholder="New York, NY"
+            />
         </div>
         <div class="col-span-full">
             <label class="text-sm font-medium text-gray-700" for="about">About</label>
@@ -70,6 +104,7 @@
                 type="text"
                 id="about"
                 oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px';"
+                placeholder="John Doe is good person."
             ></textarea>
         </div>
         <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
@@ -239,41 +274,81 @@
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="n_investments">№ Investments</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="n_investments" />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="number"
+                id="n_investments"
+                placeholder="14"
+            />
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="n_exits">№ Exits</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="n_exits" />
+            <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="n_exits" placeholder="5" />
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="min_investment">Min Investment</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="min_investment" />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="number"
+                id="min_investment"
+                placeholder="10000"
+            />
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="max_investment">Max Investment</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="max_investment" />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="number"
+                id="max_investment"
+                placeholder="1000000"
+            />
         </div>
         <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
 
         <div class="col-span-full">
             <label class="text-sm font-medium text-gray-700" for="website">Website</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="website" />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="website"
+                placeholder="https://www.acme.com"
+            />
         </div>
         <div class="col-span-full">
             <label class="text-sm font-medium text-gray-700" for="linkedin">Linkedin</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="linkedin" />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="linkedin"
+                placeholder="https://www.linkedin.com/in/johndoe"
+            />
         </div>
         <div class="col-span-full">
             <label class="text-sm font-medium text-gray-700" for="twitter">Twitter</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="twitter" />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="twitter"
+                placeholder="https://twitter.com/johndoe"
+            />
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="email">Email</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="email" />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="email"
+                placeholder="johndoe@gmail.com"
+            />
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="phone_number">Phone Number</label>
-            <input class="w-full rounded-lg bg-transparent bg-white" type="text" id="phone_number" />
+            <input
+                class="w-full rounded-lg bg-transparent bg-white"
+                type="text"
+                id="phone_number"
+                placeholder="+1 123 456 7890"
+            />
         </div>
         <div class="relative col-span-full">
             <label class="text-sm font-medium text-gray-700">User</label>

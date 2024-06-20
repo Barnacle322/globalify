@@ -45,6 +45,7 @@
                 type="text"
                 id="first_name"
                 value="{{ investor.first_name }}"
+                placeholder="John"
                 required
             />
         </div>
@@ -54,7 +55,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="last_name"
-                value="{{ investor.last_name }}"
+                value="{{ investor.last_name if investor.last_name else ''}}"
+                placeholder="Doe"
                 required
             />
         </div>
@@ -64,7 +66,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="slug"
-                value="{{ investor.slug }}"
+                value="{{ investor.slug if investor.slug else ''}}"
+                placeholder="john-doe"
                 required
             />
         </div>
@@ -74,7 +77,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="firm_name"
-                value="{{ investor.firm_name }}"
+                value="{{ investor.firm_name if investor.firm_name else '' }}"
+                placeholder="ACME Inc."
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -83,7 +87,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="position"
-                value="{{ investor.position }}"
+                value="{{ investor.position if investor.position else ''}}"
+                placeholder="CEO"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -92,12 +97,15 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="location"
-                value="{{ investor.location }}"
+                value="{{ investor.location if investor.location else ''}}"
+                placeholder="New York, NY"
             />
         </div>
         <div class="col-span-full">
             <label class="text-sm font-medium text-gray-700" for="about">About</label>
-            <textarea class="w-full rounded-lg" type="text" id="about">{{investor.about}}</textarea>
+            <textarea class="w-full rounded-lg" type="text" id="about" placeholder="John Doe is good person.">
+{{investor.about if investor.about else ''}}</textarea
+            >
         </div>
         <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
         <div class="relative col-span-full sm:col-span-3">
@@ -260,23 +268,22 @@
                         class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                         role="menuitem"
                     >
+                        {% if notable_investment in investor.notable_investments %}
                         <input
                             type="checkbox"
                             name="selected_notable_investments"
                             value="{{ notable_investment.id }}"
                             class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                            {%
-                            if
-                            notable_investment
-                            in
-                            investor.notable_investments
-                            %}
                             checked
-                            {%
-                            endif
-                            %}
                         />
-                        {{ notable_investment.name }}
+                        {% else %}
+                        <input
+                            type="checkbox"
+                            name="selected_notable_investments"
+                            value="{{ notable_investment.id }}"
+                            class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                        />
+                        {% endif %} {{ notable_investment.name }}
                     </label>
                     {% endfor %}
                 </div>
@@ -289,6 +296,7 @@
                 type="number"
                 id="n_investments"
                 value="{{ investor.n_investments }}"
+                placeholder="14"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -298,6 +306,7 @@
                 type="number"
                 id="n_exits"
                 value="{{ investor.n_exits }}"
+                placeholder="5"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -307,6 +316,7 @@
                 type="number"
                 id="min_investment"
                 value="{{ investor.min_investment }}"
+                placeholder="10000"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -316,6 +326,7 @@
                 type="number"
                 id="max_investment"
                 value="{{ investor.max_investment }}"
+                placeholder="1000000"
             />
         </div>
         <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
@@ -326,7 +337,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="website"
-                value="{{ investor.website }}"
+                value="{{ investor.website if investor.website else '' }}"
+                placeholder="https://www.acme.com"
             />
         </div>
         <div class="col-span-full">
@@ -335,7 +347,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="linkedin"
-                value="{{ investor.linkedin }}"
+                value="{{ investor.linkedin if investor.linkedin else ''}}"
+                placeholder="https://www.linkedin.com/in/johndoe"
             />
         </div>
         <div class="col-span-full">
@@ -344,7 +357,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="twitter"
-                value="{{ investor.twitter }}"
+                value="{{ investor.twitter if investor.twitter else '' }}"
+                placeholder="https://twitter.com/johndoe"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -353,7 +367,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="email"
-                value="{{ investor.email }}"
+                value="{{ investor.email if investor.email else '' }}"
+                placeholder="johndoe@gmail.com"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -362,7 +377,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="phone_number"
-                value="{{ investor.phone_number }}"
+                value="{{ investor.phone_number if investor.phone_number else ''}}"
+                placeholder="+1 123 456 7890"
             />
         </div>
         <div class="relative col-span-full">
@@ -373,6 +389,7 @@
                 placeholder="Search users..."
                 value="{{ investor.user.email }}"
                 class="w-full rounded-lg bg-transparent bg-white"
+                placeholder="jennifer@gmail.com"
             />
             <ul id="userList" class="flex flex-col gap-1"></ul>
         </div>

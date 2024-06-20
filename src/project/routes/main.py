@@ -668,7 +668,7 @@ def get_investor_bookmarks():
 
         investor = InvestorBookmarkSchema(
             id=db_investor.id,
-            name=db_investor.first_name + " " + db_investor.last_name,
+            name=f"{db_investor.first_name} {db_investor.last_name}",
             position=db_investor.position,
             firm_name=db_investor.firm_name,
             about=db_investor.about,

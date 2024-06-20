@@ -3,6 +3,7 @@ from .investor import (
     InvestmentFirm,
     InvestmentFirmBookmark,
     Investor,
+    InvestorBackup,
     InvestorBookmark,
     NotableInvestment,
 )
@@ -36,4 +37,5 @@ __all__ = [
     "WaitlistCharge",
     "NotableInvestment",
     "ClaimRequest",
+    "InvestorBackup",
 ]

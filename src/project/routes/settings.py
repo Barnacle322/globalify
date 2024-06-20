@@ -2,8 +2,18 @@ from flask import Blueprint, abort, jsonify, redirect, render_template, request,
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Round, User, UserInfo, UserPayment
-from ..models.investor import Investor, NotableInvestment
+from ..models import (
+    Company,
+    Country,
+    Industry,
+    Investor,
+    InvestorBackup,
+    NotableInvestment,
+    Round,
+    User,
+    UserInfo,
+    UserPayment,
+)
 from ..utils.enums import Status, StatusType, Tier
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
@@ -394,6 +404,10 @@ def edit_investor():
     email = form_data.get("email") or None
     phone_number = form_data.get("phone_number") or None
 
+    selected_rounds = list(Round.get_by_id_list(selected_round_ids))
+    selected_industries = list(Industry.get_by_id_list(selected_industry_ids))
+    selected_notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
+
     existing_email = User.get_by_email(email) if email else None
     if existing_email and existing_email.id != investor.user_id:
         status = Status(StatusType.ERROR, "Email already exists").get_status()
@@ -402,6 +416,31 @@ def edit_investor():
     if not first_name:
         status = Status(StatusType.ERROR, "First name shouldn't be empty").get_status()
         return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+
+    investor_backup = InvestorBackup.get_by_investor_id(investor.id)
+    if not investor_backup:
+        investor_backup = InvestorBackup(investor=investor)
+    investor_backup.first_name = investor.first_name
+    investor_backup.last_name = investor.last_name
+    investor_backup.slug = investor.slug
+    investor_backup.firm_name = investor.firm_name
+    investor_backup.about = investor.about
+    investor_backup.position = investor.position
+    investor_backup.website = investor.website
+    investor_backup.linkedin = investor.linkedin
+    investor_backup.twitter = investor.twitter
+    investor_backup.email = investor.email
+    investor_backup.phone_number = investor.phone_number
+    investor_backup.n_investments = investor.n_investments
+    investor_backup.n_exits = investor.n_exits
+    investor_backup.min_investment = investor.min_investment
+    investor_backup.max_investment = investor.max_investment
+    investor_backup.location = investor.location
+    investor_backup.notable_investments = investor.notable_investments
+    investor_backup.rounds = investor.rounds
+    investor_backup.industries = investor.industries
+
+    db.session.add(investor_backup)
 
     investor.first_name = first_name
     investor.last_name = last_name
@@ -418,9 +457,9 @@ def edit_investor():
     investor.min_investment = min_investment
     investor.max_investment = max_investment
     investor.location = location
-    investor.rounds = list(Round.get_by_id_list(selected_round_ids))
-    investor.industries = list(Industry.get_by_id_list(selected_industry_ids))
-    investor.notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
+    investor.rounds = selected_rounds
+    investor.industries = selected_industries
+    investor.notable_investments = selected_notable_investments
 
     db.session.commit()
 

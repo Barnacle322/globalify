@@ -31,7 +31,9 @@ menus.forEach(({ menu, button }) => {
     };
 });
 
-function getValues(selectedRounds, selectedIndustries, selectedNotableInvestments) {
+async function submitData() {
+    const csrfToken = document.getElementById("csrf_token").value;
+
     const name = document.getElementById("name").value;
     const slug = document.getElementById("slug").value;
     const about = document.getElementById("about").value;
@@ -44,6 +46,16 @@ function getValues(selectedRounds, selectedIndustries, selectedNotableInvestment
     const min_investment = document.getElementById("min_investment").value;
     const max_investment = document.getElementById("max_investment").value;
     const location = document.getElementById("location").value;
+
+    const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map((input) =>
+        parseInt(input.value, 10),
+    );
+    const selectedIndustries = Array.from(document.querySelectorAll('input[name="selected_industries"]:checked')).map(
+        (input) => parseInt(input.value, 10),
+    );
+    const selectedNotableInvestments = Array.from(
+        document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
+    ).map((input) => parseInt(input.value, 10));
 
     const dataString = JSON.stringify({
         name: name,
@@ -63,62 +75,12 @@ function getValues(selectedRounds, selectedIndustries, selectedNotableInvestment
         notable_investments: selectedNotableInvestments,
     });
 
-    return dataString;
-}
-
-async function updateInvestmentFirm() {
-    const csrfToken = document.getElementById("csrf_token").value;
-
-    const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map((input) =>
-        parseInt(input.value, 10),
-    );
-    const selectedIndustries = Array.from(document.querySelectorAll('input[name="selected_industries"]:checked')).map(
-        (input) => parseInt(input.value, 10),
-    );
-    const selectedNotableInvestments = Array.from(
-        document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
-    ).map((input) => parseInt(input.value, 10));
-
-    const dataString = getValues(selectedRounds, selectedIndustries, selectedNotableInvestments);
-
     try {
         const response = await fetch("", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrfToken,
-            },
-            body: dataString,
-        });
-        if (response.redirected) {
-            window.location.href = response.url;
-        }
-    } catch (error) {
-        console.error("Error:", error);
-    }
-}
-
-async function createInvestmentFirm() {
-    const csrf_token = document.getElementById("csrf_token").value;
-
-    const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map((input) =>
-        parseInt(input.value, 10),
-    );
-    const selectedIndustries = Array.from(document.querySelectorAll('input[name="selected_industries"]:checked')).map(
-        (input) => parseInt(input.value, 10),
-    );
-    const selectedNotableInvestments = Array.from(
-        document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
-    ).map((input) => parseInt(input.value, 10));
-
-    const dataString = getValues(selectedRounds, selectedIndustries, selectedNotableInvestments);
-
-    try {
-        const response = await fetch("/admin/investment-firm/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrf_token,
             },
             body: dataString,
         });

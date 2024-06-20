@@ -56,8 +56,26 @@ document.getElementById("searchInput").addEventListener("input", function () {
     }
 });
 
-async function updateInvestor() {
+async function submitData() {
     const csrfToken = document.getElementById("csrf_token").value;
+
+    const first_name = document.getElementById("first_name").value;
+    const last_name = document.getElementById("last_name").value;
+    const slug = document.getElementById("slug").value;
+    const firm_name = document.getElementById("firm_name").value;
+    const position = document.getElementById("position").value;
+    const about = document.getElementById("about").value;
+    const website = document.getElementById("website").value;
+    const linkedin = document.getElementById("linkedin").value;
+    const twitter = document.getElementById("twitter").value;
+    const email = document.getElementById("email").value;
+    const phone_number = document.getElementById("phone_number").value;
+    const n_investments = document.getElementById("n_investments").value;
+    const n_exits = document.getElementById("n_exits").value;
+    const min_investment = document.getElementById("min_investment").value;
+    const max_investment = document.getElementById("max_investment").value;
+    const location = document.getElementById("location").value;
+    const user_email = document.getElementById("searchInput").value;
 
     const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map((input) =>
         parseInt(input.value, 10),
@@ -70,23 +88,23 @@ async function updateInvestor() {
     ).map((input) => parseInt(input.value, 10));
 
     let dataString = JSON.stringify({
-        first_name: document.getElementById("first_name").value,
-        last_name: document.getElementById("last_name").value,
-        slug: document.getElementById("slug").value,
-        firm_name: document.getElementById("firm_name").value,
-        position: document.getElementById("position").value,
-        about: (about = document.getElementById("about").value),
-        website: document.getElementById("website").value,
-        linkedin: document.getElementById("linkedin").value,
-        twitter: document.getElementById("twitter").value,
-        email: document.getElementById("email").value,
-        phone_number: document.getElementById("phone_number").value,
-        n_investments: document.getElementById("n_investments").value,
-        n_exits: document.getElementById("n_exits").value,
-        min_investment: document.getElementById("min_investment").value,
-        max_investment: document.getElementById("max_investment").value,
-        location: document.getElementById("location").value,
-        user_email: document.getElementById("searchInput").value,
+        first_name: first_name,
+        last_name: last_name,
+        slug: slug,
+        firm_name: firm_name,
+        position: position,
+        about: about,
+        website: website,
+        linkedin: linkedin,
+        twitter: twitter,
+        email: email,
+        phone_number: phone_number,
+        n_investments: n_investments,
+        n_exits: n_exits,
+        min_investment: min_investment,
+        max_investment: max_investment,
+        location: location,
+        user_email: user_email,
         rounds: selectedRounds,
         industries: selectedIndustries,
         notable_investments: selectedNotableInvestments,
@@ -98,60 +116,6 @@ async function updateInvestor() {
             headers: {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrfToken,
-            },
-            body: dataString,
-        });
-        if (response.redirected) {
-            window.location.href = response.url;
-        }
-    } catch (error) {
-        console.error("Error:", error);
-    }
-}
-
-async function createInvestor() {
-    const csrf_token = document.getElementById("csrf_token").value;
-
-    const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map((input) =>
-        parseInt(input.value, 10),
-    );
-
-    const selectedIndustries = Array.from(document.querySelectorAll('input[name="selected_industries"]:checked')).map(
-        (input) => parseInt(input.value, 10),
-    );
-    const selectedNotableInvestments = Array.from(
-        document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
-    ).map((input) => parseInt(input.value, 10));
-
-    let dataString = JSON.stringify({
-        first_name: document.getElementById("first_name").value,
-        last_name: document.getElementById("last_name").value,
-        slug: document.getElementById("slug").value,
-        firm_name: document.getElementById("firm_name").value,
-        position: document.getElementById("position").value,
-        about: (about = document.getElementById("about").value),
-        website: document.getElementById("website").value,
-        linkedin: document.getElementById("linkedin").value,
-        twitter: document.getElementById("twitter").value,
-        email: document.getElementById("email").value,
-        phone_number: document.getElementById("phone_number").value,
-        n_investments: document.getElementById("n_investments").value,
-        n_exits: document.getElementById("n_exits").value,
-        min_investment: document.getElementById("min_investment").value,
-        max_investment: document.getElementById("max_investment").value,
-        location: document.getElementById("location").value,
-        user_email: document.getElementById("searchInput").value,
-        rounds: selectedRounds,
-        industries: selectedIndustries,
-        notable_investments: selectedNotableInvestments,
-    });
-
-    try {
-        const response = await fetch("", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrf_token,
             },
             body: dataString,
         });

@@ -40,11 +40,13 @@
         </div>
         <div class="col-span-full sm:col-span-3">
             <label class="text-sm font-medium text-gray-700" for="name">Name</label>
+
             <input
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="name"
-                value="{{ investment_firm.name }}"
+                value="{{ investment_firm.name if investment_firm.name else ''}}"
+                placeholder="ACME Inc."
                 required
             />
         </div>
@@ -54,7 +56,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="slug"
-                value="{{ investment_firm.slug }}"
+                value="{{ investment_firm.slug if investment_firm.slug else ''}}"
+                placeholder="acme-inc"
                 required
             />
         </div>
@@ -64,12 +67,15 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="location"
-                value="{{ investment_firm.location }}"
+                value="{{ investment_firm.location if investment_firm.location else ''}}"
+                placeholder="San Francisco, CA"
             />
         </div>
         <div class="col-span-full">
             <label class="text-sm font-medium text-gray-700" for="about">About</label>
-            <textarea class="w-full rounded-lg" type="text" id="about">{{investment_firm.about}}</textarea>
+            <textarea class="w-full rounded-lg" type="text" id="about" placeholder="ACME Inc. is very good company.">
+{{investment_firm.about if investment_firm.about else ''}}</textarea
+            >
         </div>
         <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
         <div class="relative col-span-full sm:col-span-3">
@@ -260,6 +266,7 @@
                 type="number"
                 id="n_investments"
                 value="{{ investment_firm.n_investments }}"
+                placeholder="14"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -269,6 +276,7 @@
                 type="number"
                 id="n_exits"
                 value="{{ investment_firm.n_exits }}"
+                placeholder="5"
             />
         </div>
         <div class="relative col-span-full">
@@ -278,6 +286,7 @@
                 type="number"
                 id="n_employees"
                 value="{{ investment_firm.n_employees }}"
+                placeholder="100"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -287,6 +296,7 @@
                 type="number"
                 id="min_investment"
                 value="{{ investment_firm.min_investment }}"
+                placeholder="1000"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -296,6 +306,7 @@
                 type="number"
                 id="max_investment"
                 value="{{ investment_firm.max_investment }}"
+                placeholder="10000"
             />
         </div>
         <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
@@ -306,7 +317,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="website"
-                value="{{ investment_firm.website }}"
+                value="{{ investment_firm.website if investment_firm.website else ''}}"
+                placeholder="https://acme-inc.com"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -315,7 +327,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="email"
-                value="{{ investment_firm.email }}"
+                value="{{ investment_firm.email if investment_firm.email else ''}}"
+                placeholder="acme-inc@gmail.com"
             />
         </div>
         <div class="col-span-full sm:col-span-3">
@@ -324,7 +337,8 @@
                 class="w-full rounded-lg bg-transparent bg-white"
                 type="text"
                 id="phone_number"
-                value="{{ investment_firm.phone_number }}"
+                value="{{ investment_firm.phone_number if investment_firm.phone_number else ''}}"
+                placeholder="+1 123 456 7890"
             />
         </div>
     </div>

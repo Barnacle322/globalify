@@ -54,7 +54,7 @@ def parse_medium_html() -> list:
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
     }
-    response = requests.get("https://blog.globalify.xyz/feed", verify=False, headers=headers)
+    response = requests.get("https://blog.globalify.xyz/feed", verify=False, headers=headers, allow_redirects=True)
     feed = feedparser.parse(response.text)
     posts = []
 

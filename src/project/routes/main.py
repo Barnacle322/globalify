@@ -906,6 +906,11 @@ def robots():
     return response
 
 
+@main.route("/health")
+def health():
+    return jsonify({"status": "ok"})
+
+
 @main.errorhandler(400)
 def bad_request(e):
     return render_template("errors/400.html"), 400

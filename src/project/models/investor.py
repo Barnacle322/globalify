@@ -1808,20 +1808,20 @@ investor_point_origin_notable_investment = db.Table(
 )
 
 
-class InvestorBase(db.Model):
+class InvestorPointBase(db.Model):
     __abstract__ = True
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
+    slug: Mapped[str] = mapped_column(String, nullable=True)
     firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
     about: Mapped[str | None] = mapped_column(String, nullable=True)
     position: Mapped[str | None] = mapped_column(String, nullable=True)
     website: Mapped[str | None] = mapped_column(String, nullable=True)
     linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
     twitter: Mapped[str | None] = mapped_column(String, nullable=True)
-    email: Mapped[str | None] = mapped_column(String, nullable=True, unique=False)
+    email: Mapped[str | None] = mapped_column(String, nullable=True)
     phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
     n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
     n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
@@ -1831,7 +1831,7 @@ class InvestorBase(db.Model):
     investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
 
 
-class InvestorBackup(InvestorBase):
+class InvestorBackup(InvestorPointBase):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
 
     user: Mapped[User | None] = relationship(User, backref=backref("investor_backup", uselist=False))
@@ -1867,7 +1867,7 @@ class InvestorBackup(InvestorBase):
         )
 
 
-class InvestorPointOrigin(InvestorBase):
+class InvestorPointOrigin(InvestorPointBase):
     investor: Mapped[Investor] = relationship(Investor, backref=backref("point_origin", uselist=False))
     notable_investments: Mapped[list[NotableInvestment]] = relationship(
         secondary=investor_point_origin_notable_investment

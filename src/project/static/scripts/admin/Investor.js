@@ -127,11 +127,11 @@ async function submitData() {
     }
 }
 
-async function restoreInvestorData(investorId) {
+async function undoInvestorData(investorId) {
     const csrfToken = document.getElementById("csrf_token").value;
 
     try {
-        const response = await fetch(`/admin/investor/${investorId}/restore`, {
+        const response = await fetch(`/admin/investor/${investorId}/undo`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

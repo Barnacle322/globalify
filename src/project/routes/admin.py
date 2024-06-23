@@ -12,6 +12,7 @@ from ..models import (
     InvestmentFirm,
     Investor,
     InvestorBackup,
+    InvestorPointOrigin,
     NotableInvestment,
     Round,
     User,
@@ -180,8 +181,39 @@ def update_investor(id):
 
     db.session.add(investor_backup)
 
+    # Claim investor profile to specific user and initiate point origin
+    # if we delete user, point origin will be deleted as well
     user = User.get_by_email(form_data.get("user_email"))
-    investor.user = user if user else None
+    if user:
+        investor.user = user
+        investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+        if not investor_point_origin:
+            investor_point_origin = InvestorPointOrigin(investor_id=investor.id)
+            investor_point_origin.first_name = investor.first_name
+            investor_point_origin.last_name = investor.last_name
+            investor_point_origin.slug = investor.slug
+            investor_point_origin.firm_name = investor.firm_name
+            investor_point_origin.about = investor.about
+            investor_point_origin.position = investor.position
+            investor_point_origin.website = investor.website
+            investor_point_origin.linkedin = investor.linkedin
+            investor_point_origin.twitter = investor.twitter
+            investor_point_origin.email = investor.email
+            investor_point_origin.phone_number = investor.phone_number
+            investor_point_origin.n_investments = investor.n_investments
+            investor_point_origin.n_exits = investor.n_exits
+            investor_point_origin.min_investment = investor.min_investment
+            investor_point_origin.max_investment = investor.max_investment
+            investor_point_origin.location = investor.location
+            investor_point_origin.notable_investments = investor.notable_investments
+            investor_point_origin.rounds = investor.rounds
+            investor_point_origin.industries = investor.industries
+            db.session.add(investor_point_origin)
+    else:
+        investor.user = None
+        investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+        if investor_point_origin:
+            db.session.delete(investor_point_origin)
 
     investor.first_name = first_name
     investor.last_name = last_name
@@ -224,9 +256,9 @@ def update_investor(id):
     return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
 
 
-@admin.post("/investor/<int:id>/restore")
+@admin.post("/investor/<int:id>/undo")
 @admin_only
-def restore_investor_backup(id):
+def undo_investor_data(id):
     investor = Investor.get_by_id(id)
     if not investor:
         status = Status(StatusType.ERROR, "Investor not found").get_status()
@@ -262,7 +294,7 @@ def restore_investor_backup(id):
 
     investor.upsert_data()
 
-    status = Status(StatusType.SUCCESS, "Investor backup restored successfully!").get_status()
+    status = Status(StatusType.SUCCESS, "Investor backed up successfully!").get_status()
 
     return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
 

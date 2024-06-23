@@ -29,6 +29,7 @@ from ..models import (
     InvestmentFirmBookmark,
     Investor,
     InvestorBookmark,
+    InvestorPointOrigin,
     Notification,
     Round,
     UserPayment,
@@ -512,6 +513,31 @@ def claiming_manual(slug):
         email=email,
     )
     db.session.add(claim_request)
+
+    investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+    if not investor_point_origin:
+        investor_point_origin = InvestorPointOrigin(investor=investor)
+        investor_point_origin.first_name = investor.first_name
+        investor_point_origin.last_name = investor.last_name
+        investor_point_origin.slug = investor.slug
+        investor_point_origin.firm_name = investor.firm_name
+        investor_point_origin.about = investor.about
+        investor_point_origin.position = investor.position
+        investor_point_origin.website = investor.website
+        investor_point_origin.linkedin = investor.linkedin
+        investor_point_origin.twitter = investor.twitter
+        investor_point_origin.email = investor.email
+        investor_point_origin.phone_number = investor.phone_number
+        investor_point_origin.n_investments = investor.n_investments
+        investor_point_origin.n_exits = investor.n_exits
+        investor_point_origin.min_investment = investor.min_investment
+        investor_point_origin.max_investment = investor.max_investment
+        investor_point_origin.location = investor.location
+        investor_point_origin.notable_investments = investor.notable_investments
+        investor_point_origin.rounds = investor.rounds
+        investor_point_origin.industries = investor.industries
+        db.session.add(investor_point_origin)
+
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Claim request submitted.").get_status()
@@ -617,6 +643,31 @@ def claim_verification(slug):
 
     investor.user = current_user  # type: ignore
     email_verification.is_used = True
+
+    investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+    if not investor_point_origin:
+        investor_point_origin = InvestorPointOrigin(investor=investor)
+        investor_point_origin.first_name = investor.first_name
+        investor_point_origin.last_name = investor.last_name
+        investor_point_origin.slug = investor.slug
+        investor_point_origin.firm_name = investor.firm_name
+        investor_point_origin.about = investor.about
+        investor_point_origin.position = investor.position
+        investor_point_origin.website = investor.website
+        investor_point_origin.linkedin = investor.linkedin
+        investor_point_origin.twitter = investor.twitter
+        investor_point_origin.email = investor.email
+        investor_point_origin.phone_number = investor.phone_number
+        investor_point_origin.n_investments = investor.n_investments
+        investor_point_origin.n_exits = investor.n_exits
+        investor_point_origin.min_investment = investor.min_investment
+        investor_point_origin.max_investment = investor.max_investment
+        investor_point_origin.location = investor.location
+        investor_point_origin.notable_investments = investor.notable_investments
+        investor_point_origin.rounds = investor.rounds
+        investor_point_origin.industries = investor.industries
+        db.session.add(investor_point_origin)
+
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Investor claimed.").get_status()

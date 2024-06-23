@@ -1,0 +1,91 @@
+{% macro render(user) %}
+<template id="confirm-restore-template">
+    <article
+        class="fixed right-1/2 top-1/2 z-50 flex w-10/12 -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
+    >
+        <div class="flex items-center justify-between">
+            <span class="text-dark text-xl font-medium"
+                >Are you sure that you want to restore initial investor profile?</span
+            >
+        </div>
+
+        <div>
+            <span class="font-semibold">First name: </span>
+            <span v-text="investor_point_origin.first_name"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Last name: </span>
+            <span v-text="investor_point_origin.last_name"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Firm name: </span>
+            <span v-text="investor_point_origin.firm_name"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Position: </span>
+            <span v-text="investor_point_origin.position"></span>
+        </div>
+        <div>
+            <span class="font-semibold">About: </span>
+            <span v-text="investor_point_origin.about"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Website: </span>
+            <span v-text="investor_point_origin.website"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Linkedin: </span>
+            <span v-text="investor_point_origin.linkedin"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Twitter: </span>
+            <span v-text="investor_point_origin.twitter"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Email: </span>
+            <span v-text="investor_point_origin.email"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Phone number: </span>
+            <span v-text="investor_point_origin.phone_number"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Number of investments: </span>
+            <span v-text="investor_point_origin.n_investments"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Number of exits: </span>
+            <span v-text="investor_point_origin.n_exits"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Min investment: </span>
+            <span v-text="investor_point_origin.min_investment"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Max investment: </span>
+            <span v-text="investor_point_origin.max_investment"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Location: </span>
+            <span v-text="investor_point_origin.location"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Notable investments: </span>
+            <span v-text="notableInvestmentsTitles"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Rounds: </span>
+            <span v-text="roundsTitles"></span>
+        </div>
+        <div>
+            <span class="font-semibold">Industries: </span>
+            <span v-text="industriesTitles"></span>
+        </div>
+
+        <div class="flex justify-end gap-5">
+            <button @click="closeConfirmRestore" class="rounded-lg border border-gray-300 px-3 py-2">Cancel</button>
+            <button @click="restorePointOrigin" class="bg-sky-400 rounded-lg px-3 py-2 text-white">Confirm</button>
+        </div>
+    </article>
+</template>
+{% endmacro %}

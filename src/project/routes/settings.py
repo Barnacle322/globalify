@@ -8,12 +8,14 @@ from ..models import (
     Industry,
     Investor,
     InvestorBackup,
+    InvestorPointOrigin,
     NotableInvestment,
     Round,
     User,
     UserInfo,
     UserPayment,
 )
+from ..schemas.investor import IndustrySchema, InvestorPointOriginSchema, NotableInvestmentSchema, RoundSchema
 from ..utils.enums import Status, StatusType, Tier
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
@@ -440,27 +442,27 @@ def edit_investor():
     investor.notable_investments = selected_notable_investments
 
     investor_backup = InvestorBackup.get_by_investor_id(investor.id)
-    if not investor_backup:
-        investor_backup = InvestorBackup(investor_id=investor.id)
-    investor_backup.first_name = first_name
-    investor_backup.last_name = last_name
-    investor_backup.slug = investor.slug
-    investor_backup.firm_name = firm_name
-    investor_backup.position = position
-    investor_backup.about = about
-    investor_backup.website = website
-    investor_backup.linkedin = linkedin
-    investor_backup.twitter = twitter
-    investor_backup.email = email
-    investor_backup.phone_number = phone_number
-    investor_backup.n_investments = n_investments
-    investor_backup.n_exits = n_exits
-    investor_backup.min_investment = min_investment
-    investor_backup.max_investment = max_investment
-    investor_backup.location = location
-    investor_backup.rounds = selected_rounds
-    investor_backup.industries = selected_industries
-    investor_backup.notable_investments = selected_notable_investments
+    if investor_backup:
+        investor_backup.first_name = first_name
+        investor_backup.last_name = last_name
+        investor_backup.slug = investor.slug
+        investor_backup.firm_name = firm_name
+        investor_backup.position = position
+        investor_backup.about = about
+        investor_backup.website = website
+        investor_backup.linkedin = linkedin
+        investor_backup.twitter = twitter
+        investor_backup.email = email
+        investor_backup.phone_number = phone_number
+        investor_backup.n_investments = n_investments
+        investor_backup.n_exits = n_exits
+        investor_backup.min_investment = min_investment
+        investor_backup.max_investment = max_investment
+        investor_backup.location = location
+        investor_backup.rounds = selected_rounds
+        investor_backup.industries = selected_industries
+        investor_backup.notable_investments = selected_notable_investments
+        db.session.add(investor_backup)
 
     db.session.commit()
 
@@ -468,4 +470,93 @@ def edit_investor():
 
     status = Status(StatusType.SUCCESS, "Investor updated.").get_status()
 
+    return redirect(url_for("settings.edit_investor_view", _external=False, **status))
+
+
+@settings.get("/investor/point-origin")
+@login_required
+@check_user_info_complete
+@check_verification
+def investor_point_origin_data():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    investor = Investor.get_by_user_id(authenticated_user.id)
+    if not investor:
+        status = Status(StatusType.ERROR, "You don't have claimed investor profile yet.").get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
+
+    investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+    if not investor_point_origin:
+        status = Status(StatusType.ERROR, "No backup data found.").get_status()
+        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+
+    data = InvestorPointOriginSchema(
+        first_name=investor_point_origin.first_name,
+        last_name=investor_point_origin.last_name,
+        slug=investor_point_origin.slug,
+        firm_name=investor_point_origin.firm_name,
+        position=investor_point_origin.position,
+        about=investor_point_origin.about,
+        website=investor_point_origin.website,
+        linkedin=investor_point_origin.linkedin,
+        twitter=investor_point_origin.twitter,
+        email=investor_point_origin.email,
+        phone_number=investor_point_origin.phone_number,
+        n_investments=investor_point_origin.n_investments,
+        n_exits=investor_point_origin.n_exits,
+        min_investment=investor_point_origin.min_investment,
+        max_investment=investor_point_origin.max_investment,
+        location=investor_point_origin.location,
+        notable_investments=[
+            NotableInvestmentSchema(title=ni.name) for ni in investor_point_origin.notable_investments
+        ],
+        rounds=[RoundSchema(title=r.name) for r in investor_point_origin.rounds],
+        industries=[IndustrySchema(title=i.name) for i in investor_point_origin.industries],
+    )
+
+    return data.model_dump()
+
+
+@settings.get("/investor/restore")
+@login_required
+@check_user_info_complete
+@check_verification
+def restore_investor_data():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    investor = Investor.get_by_user_id(authenticated_user.id)
+    if not investor:
+        status = Status(StatusType.ERROR, "You don't have claimed investor profile yet.").get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
+
+    investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+    if investor_point_origin:
+        investor.first_name = investor_point_origin.first_name
+        investor.last_name = investor_point_origin.last_name
+        investor.slug = investor_point_origin.slug
+        investor.firm_name = investor_point_origin.firm_name
+        investor.position = investor_point_origin.position
+        investor.about = investor_point_origin.about
+        investor.website = investor_point_origin.website
+        investor.linkedin = investor_point_origin.linkedin
+        investor.twitter = investor_point_origin.twitter
+        investor.email = investor_point_origin.email
+        investor.phone_number = investor_point_origin.phone_number
+        investor.n_investments = investor_point_origin.n_investments
+        investor.n_exits = investor_point_origin.n_exits
+        investor.min_investment = investor_point_origin.min_investment
+        investor.max_investment = investor_point_origin.max_investment
+        investor.location = investor_point_origin.location
+        investor.rounds = investor_point_origin.rounds
+        investor.industries = investor_point_origin.industries
+        investor.notable_investments = investor_point_origin.notable_investments
+
+        db.session.commit()
+
+        investor.upsert_data()
+    else:
+        status = Status(StatusType.ERROR, "No backup data found.").get_status()
+        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Investor data restored.").get_status()
     return redirect(url_for("settings.edit_investor_view", _external=False, **status))

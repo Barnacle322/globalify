@@ -58,6 +58,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <div :class="{'bg-black/70 fixed top-0 left-0 h-full w-full z-50': confirmRestoreOpened}"></div>
         <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
@@ -74,7 +75,7 @@
                 ></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed top-0 z-50 h-full w-full bg-black/70" v-if="confirmRestoreOpened"></div>
+                <div class="fixed top-0 z-50 h-full w-full" v-if="confirmRestoreOpened"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <confirm-restore-component

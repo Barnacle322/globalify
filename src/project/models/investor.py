@@ -248,7 +248,29 @@ investment_firm_industry = db.Table(
 )
 
 
-class Investor(db.Model):
+class InvestorBase(db.Model):
+    __abstract__ = True
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    first_name: Mapped[str] = mapped_column(String, nullable=False)
+    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
+    firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    about: Mapped[str | None] = mapped_column(String, nullable=True)
+    position: Mapped[str | None] = mapped_column(String, nullable=True)
+    website: Mapped[str | None] = mapped_column(String, nullable=True)
+    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
+    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True, unique=False)
+    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
+    min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
+
+
+class Investor(InvestorBase):
     """
     Class representing an investor in the database.
 
@@ -273,23 +295,6 @@ class Investor(db.Model):
         industries (List[Industry]): List of Industry objects associated with the investor.
     """
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    first_name: Mapped[str] = mapped_column(String, nullable=False)
-    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
-    firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    about: Mapped[str | None] = mapped_column(String, nullable=True)
-    position: Mapped[str | None] = mapped_column(String, nullable=True)
-    website: Mapped[str | None] = mapped_column(String, nullable=True)
-    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
-    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
-    email: Mapped[str | None] = mapped_column(String, nullable=True, unique=False)
-    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
-    n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
-    min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    location: Mapped[str | None] = mapped_column(String, nullable=True)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
     _country: Mapped[str | None] = mapped_column(String, nullable=True)
     bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -1808,31 +1813,9 @@ investor_point_origin_notable_investment = db.Table(
 )
 
 
-class InvestorPointBase(db.Model):
-    __abstract__ = True
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    first_name: Mapped[str] = mapped_column(String, nullable=False)
-    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    slug: Mapped[str] = mapped_column(String, nullable=True)
-    firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    about: Mapped[str | None] = mapped_column(String, nullable=True)
-    position: Mapped[str | None] = mapped_column(String, nullable=True)
-    website: Mapped[str | None] = mapped_column(String, nullable=True)
-    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
-    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
-    email: Mapped[str | None] = mapped_column(String, nullable=True)
-    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
-    n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
-    min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    location: Mapped[str | None] = mapped_column(String, nullable=True)
-    investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
-
-
-class InvestorBackup(InvestorPointBase):
+class InvestorBackup(InvestorBase):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
 
     user: Mapped[User | None] = relationship(User, backref=backref("investor_backup", uselist=False))
     investor: Mapped[Investor] = relationship(Investor, backref=backref("backup", uselist=False))
@@ -1867,7 +1850,8 @@ class InvestorBackup(InvestorPointBase):
         )
 
 
-class InvestorPointOrigin(InvestorPointBase):
+class InvestorPointOrigin(InvestorBase):
+    investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
     investor: Mapped[Investor] = relationship(Investor, backref=backref("point_origin", uselist=False))
     notable_investments: Mapped[list[NotableInvestment]] = relationship(
         secondary=investor_point_origin_notable_investment

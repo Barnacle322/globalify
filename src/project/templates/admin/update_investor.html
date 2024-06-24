@@ -30,13 +30,21 @@
     <div class="grid grid-cols-6 gap-x-2 gap-y-1">
         <div class="flex justify-between col-span-full">
             <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
-            <button
-                id="undoButton"
-                onclick="undoInvestorData('{{investor.id}}')"
-                class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
-            >
-                Undo
-            </button>
+            <div>
+                <button
+                    id="undoButton"
+                    onclick="undoInvestorData('{{investor.id}}')"
+                    class="mt-5 mr-2 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
+                >
+                    Undo
+                </button>
+                <button
+                    onclick="restoreOriginData('{{investor.id}}' )"
+                    class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
+                >
+                    Restore
+                </button>
+            </div>
         </div>
         <div class="col-span-full empty:hidden">
             {% if status_type %} {% if status_type == '3' %}

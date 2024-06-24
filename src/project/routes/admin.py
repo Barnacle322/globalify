@@ -299,6 +299,47 @@ def undo_investor_data(id):
     return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))
 
 
+@admin.get("/investor/<int:id>/restore")
+@admin_only
+def restore_investor_data_by_admin(id):
+    investor = Investor.get_by_id(id)
+    if not investor:
+        status = Status(StatusType.ERROR, "There is no such investor").get_status()
+        return redirect(url_for("admin.admin_investor_view", _external=True, **status))
+
+    investor_point_origin = InvestorPointOrigin.get_by_investor_id(id)
+    if investor_point_origin:
+        investor.first_name = investor_point_origin.first_name
+        investor.last_name = investor_point_origin.last_name
+        investor.slug = investor_point_origin.slug
+        investor.firm_name = investor_point_origin.firm_name
+        investor.position = investor_point_origin.position
+        investor.about = investor_point_origin.about
+        investor.website = investor_point_origin.website
+        investor.linkedin = investor_point_origin.linkedin
+        investor.twitter = investor_point_origin.twitter
+        investor.email = investor_point_origin.email
+        investor.phone_number = investor_point_origin.phone_number
+        investor.n_investments = investor_point_origin.n_investments
+        investor.n_exits = investor_point_origin.n_exits
+        investor.min_investment = investor_point_origin.min_investment
+        investor.max_investment = investor_point_origin.max_investment
+        investor.location = investor_point_origin.location
+        investor.rounds = investor_point_origin.rounds
+        investor.industries = investor_point_origin.industries
+        investor.notable_investments = investor_point_origin.notable_investments
+
+        db.session.commit()
+
+        investor.upsert_data()
+    else:
+        status = Status(StatusType.ERROR, "No backup data found.").get_status()
+        return redirect(url_for("admin.admin_investor_view", id=id, _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Investor data restored.").get_status()
+    return redirect(url_for("admin.update_investor_view", id=id, _external=False, **status))
+
+
 @admin.get("/investor/create")
 @admin_only
 def create_investor_view():

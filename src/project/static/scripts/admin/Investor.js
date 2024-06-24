@@ -145,3 +145,16 @@ async function undoInvestorData(investorId) {
         console.error("Error:", error);
     }
 }
+
+async function restoreOriginData(investorId) {
+    try {
+        const response = await fetch(`/admin/investor/${investorId}/restore`, {
+            method: "GET",
+        });
+        if (response.redirected) {
+            window.location.href = response.url;
+        }
+    } catch (error) {
+        console.error("There has been a problem with your fetch operation:", error);
+    }
+}

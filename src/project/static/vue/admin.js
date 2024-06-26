@@ -351,8 +351,6 @@ createApp({
                 if (response.ok) {
                     const data = await response.json();
                     this.userList = data.users;
-
-                    console.log(this.userList);
                 }
             } else {
                 this.userList = [];

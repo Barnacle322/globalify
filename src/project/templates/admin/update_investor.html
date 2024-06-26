@@ -189,7 +189,7 @@
                             id="about"
                             placeholder="John Doe is good person."
                         >
-            {{investor.about if investor.about else ''}}</textarea
+{{investor.about if investor.about else ''}}</textarea
                         >
                     </div>
                     <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
@@ -483,15 +483,25 @@
                         <input
                             type="text"
                             id="searchInput"
-                            placeholder="Search users..."
                             value="{{ investor.user.email }}"
+                            v-model="selectedEmail"
                             class="w-full rounded-lg bg-transparent bg-white"
                             placeholder="jennifer@gmail.com"
+                            @input="getUserList"
                         />
-                        <ul
+                        <div
                             id="userList"
-                            class="flex flex-col gap-1 overscroll-y-contain w-full overflow-y-auto max-h-60 origin-top-right transition duration-100 ease-in-out border empty:hidden"
-                        ></ul>
+                            v-show="userList.length > 0"
+                            class="flex flex-col gap-1 overscroll-y-contain w-full overflow-y-auto max-h-60 origin-top-right transition duration-100 ease-in-out border border-gray-200 rounded-md shadow-lg bg-white"
+                        >
+                            <p
+                                v-for="(email, index) in userList"
+                                :key="index"
+                                class="cursor-pointer px-3 py-2 hover:bg-gray-100 hover:text-gray-900 transition-colors ease-in-out"
+                                @click="selectUser(email)"
+                                v-text="email"
+                            ></p>
+                        </div>
                     </div>
                 </div>
                 <button

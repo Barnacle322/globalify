@@ -21,6 +21,8 @@ createApp({
             selectedRounds: [],
             selectedIndustries: [],
             selectedNotableInvestments: [],
+            selectedEmail: "",
+            userList: [],
             dataString: "",
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
@@ -228,6 +230,10 @@ createApp({
                 window.location.href = response.url;
             }
         },
+        selectUser(email) {
+            this.selectedEmail = email;
+            this.userList = [];
+        },
         setupMenuToggle() {
             this.menus.forEach(({ menu, button }) => {
                 const menuElement = document.getElementById(menu);
@@ -337,6 +343,20 @@ createApp({
                 return `${url}${url.includes("?") ? "&" : "?"}${params.toString()}`;
             }
             return url;
+        },
+        async getUserList() {
+            const searchInput = document.getElementById("searchInput").value;
+            if (searchInput.length > 0) {
+                const response = await fetch(`/admin/search_users/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.userList = data.users;
+
+                    console.log(this.userList);
+                }
+            } else {
+                this.userList = [];
+            }
         },
     },
     mounted() {

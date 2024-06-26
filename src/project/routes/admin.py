@@ -301,7 +301,7 @@ def undo_investor_data(id):
 
 @admin.get("/investor/<int:id>/restore")
 @admin_only
-def restore_investor_data_by_admin(id):
+def restore_investor_data(id):
     investor = Investor.get_by_id(id)
     if not investor:
         status = Status(StatusType.ERROR, "There is no such investor").get_status()

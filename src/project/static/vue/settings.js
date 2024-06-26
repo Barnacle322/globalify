@@ -18,7 +18,7 @@ const ConfirmRestoreComponent = defineComponent({
             try {
                 const response = await fetch("/settings/investor/point-origin");
                 if (!response.ok) {
-                    throw new Error("Network response was not ok");
+                    console.error("Network response was not ok");
                 }
                 this.investor_point_origin = await response.json();
             } catch (error) {
@@ -113,7 +113,7 @@ createApp({
         };
     },
     methods: {
-        getValues(selectedRounds, selectedIndustries, selectedNotableInvestments) {
+        getValues() {
             const first_name = document.getElementById("first_name").value;
             const last_name = document.getElementById("last_name").value;
             const firm_name = document.getElementById("firm_name").value;
@@ -129,6 +129,16 @@ createApp({
             const min_investment = document.getElementById("min_investment").value;
             const max_investment = document.getElementById("max_investment").value;
             const location = document.getElementById("location").value;
+
+            const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map(
+                (input) => parseInt(input.value, 10),
+            );
+            const selectedIndustries = Array.from(
+                document.querySelectorAll('input[name="selected_industries"]:checked'),
+            ).map((input) => parseInt(input.value, 10));
+            const selectedNotableInvestments = Array.from(
+                document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
+            ).map((input) => parseInt(input.value, 10));
 
             const dataString = JSON.stringify({
                 first_name: first_name,
@@ -156,17 +166,7 @@ createApp({
         async updateInvestor() {
             const csrfToken = document.getElementById("csrf_token").value;
 
-            const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map(
-                (input) => parseInt(input.value, 10),
-            );
-            const selectedIndustries = Array.from(
-                document.querySelectorAll('input[name="selected_industries"]:checked'),
-            ).map((input) => parseInt(input.value, 10));
-            const selectedNotableInvestments = Array.from(
-                document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
-            ).map((input) => parseInt(input.value, 10));
-
-            const dataString = this.getValues(selectedRounds, selectedIndustries, selectedNotableInvestments);
+            const dataString = this.getValues();
 
             try {
                 const response = await fetch("", {

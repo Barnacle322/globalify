@@ -38,11 +38,12 @@ document.getElementById("searchInput").addEventListener("input", function () {
             .then((response) => response.json())
             .then((data) => {
                 var userList = document.getElementById("userList");
+                userList.classList.add("rounded-md", "shadow-md", "py-2");
                 userList.innerHTML = "";
                 data.users.forEach((email) => {
                     var li = document.createElement("li");
                     li.textContent = email;
-                    li.style.cursor = "pointer";
+                    li.classList.add("cursor-pointer", "hover:bg-gray-100", "p-2");
                     li.addEventListener("click", function () {
                         document.getElementById("searchInput").value = this.textContent;
                         userList.innerHTML = "";
@@ -52,6 +53,7 @@ document.getElementById("searchInput").addEventListener("input", function () {
             })
             .catch((error) => console.error("Error searching users:", error));
     } else {
+        
         document.getElementById("userList").innerHTML = "";
     }
 });

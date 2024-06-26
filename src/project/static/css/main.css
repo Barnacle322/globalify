@@ -1480,6 +1480,9 @@ select {
 .mr-16 {
   margin-right: 4rem;
 }
+.mr-2 {
+  margin-right: 0.5rem;
+}
 .mr-3 {
   margin-right: 0.75rem;
 }
@@ -1536,9 +1539,6 @@ select {
 }
 .mt-auto {
   margin-top: auto;
-}
-.mr-2 {
-  margin-right: 0.5rem;
 }
 .line-clamp-3 {
   overflow: hidden;
@@ -2150,10 +2150,6 @@ select {
 .gap-y-9 {
   row-gap: 2.25rem;
 }
-.gap-x-3 {
-  -moz-column-gap: 0.75rem;
-       column-gap: 0.75rem;
-}
 .space-x-3 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.75rem * var(--tw-space-x-reverse));
@@ -2233,6 +2229,12 @@ select {
 .overflow-x-visible {
   overflow-x: visible;
 }
+.overscroll-auto {
+  overscroll-behavior: auto;
+}
+.overscroll-y-contain {
+  overscroll-behavior-y: contain;
+}
 .scroll-smooth {
   scroll-behavior: smooth;
 }
@@ -2262,6 +2264,9 @@ select {
 }
 .rounded-xl {
   border-radius: 0.75rem;
+}
+.rounded {
+  border-radius: 0.25rem;
 }
 .rounded-r-xl {
   border-top-right-radius: 0.75rem;

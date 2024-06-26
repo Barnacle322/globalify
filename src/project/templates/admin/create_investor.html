@@ -134,7 +134,7 @@
             </button>
             <div class="relative">
                 <div
-                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto overscroll-y-contain rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                     id="round-options-menu"
                     role="menu"
                     aria-orientation="vertical"
@@ -185,7 +185,7 @@
             </button>
             <div class="relative">
                 <div
-                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto overscroll-y-contain rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                     id="industry-options-menu"
                     role="menu"
                     aria-orientation="vertical"
@@ -247,7 +247,7 @@
             </button>
             <div class="relative">
                 <div
-                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                    class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto overscroll-y-contain rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                     id="notable-investment-options-menu"
                     role="menu"
                     aria-orientation="vertical"
@@ -358,7 +358,10 @@
                 placeholder="Search users..."
                 class="w-full rounded-lg bg-transparent bg-white"
             />
-            <ul id="userList" class="flex flex-col gap-1"></ul>
+            <ul
+                id="userList"
+                class="flex flex-col gap-1 overscroll-y-contain w-full overflow-y-auto max-h-60 origin-top-right transition duration-100 ease-in-out border empty:hidden"
+            ></ul>
         </div>
     </div>
     <button

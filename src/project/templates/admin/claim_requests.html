@@ -1,79 +1,147 @@
-<!-- prettier-ignore -->
-{% extends "layouts/layout_app.html" %} 
-{% block additional_scripts %}
-<script src="/static/scripts/admin/claim_request.js" defer></script>
-{% endblock %}
-<!-- prettier-ignore -->
-{% block title %}Claim Requests{% endblock %} 
-{% block head %} {{ super() }} {% endblock %} 
-{% block content %}
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<main id="app" class="relative w-full">
-    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-    <nav class="sticky top-20 z-10 h-12 w-full border-b bg-white">
-        <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">
-            <a
-                href="/admin/investors"
-                class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
-                >Investor
-            </a>
-            <a
-                href="/admin/investment-firms"
-                class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
-                >Investment Firm
-            </a>
-            <a
-                href="/admin/claim-requests"
-                class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
-                >Claim Requests
-            </a>
-        </div>
-    </nav>
-    <section class="mx-auto my-10 flex max-w-3xl flex-col gap-5 px-4 sm:my-14">
-        <h1 class="text-3xl font-bold sm:text-5xl">Claim Requests</h1>
-        {% if claim_requests %}
-        <div class="flex flex-col gap-3 p-4">
-            {% for claim_request in claim_requests %}
-            <div
-                class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 sm:flex-row"
-            >
-                <div class="flex w-full flex-col gap-2">
-                    <div class="relative flex items-start justify-between gap-3">
-                        <div class="flex gap-3">
-                            <div class="flex flex-col gap-2">
-                                <span class=""> User: {{ claim_request.user.user_info.full_name }} </span>
-                                <span class=""> Requested at: {{ claim_request.requested_at }} </span>
-                                <span class=""> Contact email: {{ claim_request.email }} </span>
-                                <a href="/investor/{{claim_request.investor.slug}}" class="font-medium"
-                                    >Investor: {{ claim_request.investor.full_name }}</a
-                                >
-                                <span class="font-medium">Status: {{ claim_request.status.value.capitalize() }}</span>
-                                {% if claim_request.status == 'approved' %}
-                                <span class="">Approved by: {{ claim_request.approved_by }}</span>
-                                <span class="">Approved at: {{ claim_request.approved_at }}</span>
-                                {% endif %}
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            name="description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="og:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="twitter:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="/static/vue/base.js"></script>
+        <script src="/static/scripts/menu.js" defer></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+        <script src="/static/vue/admin.js" defer></script>
+        <title>Claim Requests</title>
+    </head>
+
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %} 
+    {{ navbar.render(current_user) }}
+
+    <body class="h-full overflow-x-clip" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component
+                    v-if="asideExpanded"
+                    @close-aside="asideExpanded = false"
+                ></aside-mobile-component>
+            </transition>
+
+            <main id="app" class="relative w-full">
+                <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                <nav class="sticky top-20 z-10 h-12 w-full border-b bg-white">
+                    <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">
+                        <a
+                            href="/admin/investors"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            >Investor
+                        </a>
+                        <a
+                            href="/admin/investment-firms"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            >Investment Firm
+                        </a>
+                        <a
+                            href="/admin/claim-requests"
+                            class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
+                            >Claim Requests
+                        </a>
+                    </div>
+                </nav>
+                <section class="mx-auto my-10 flex max-w-3xl flex-col gap-5 px-4 sm:my-14">
+                    <h1 class="text-3xl font-bold sm:text-5xl">Claim Requests</h1>
+                    {% if claim_requests %}
+                    <div class="flex flex-col gap-3 p-4">
+                        {% for claim_request in claim_requests %}
+                        <div
+                            class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 sm:flex-row"
+                        >
+                            <div class="flex w-full flex-col gap-2">
+                                <div class="relative flex items-start justify-between gap-3">
+                                    <div class="flex gap-3">
+                                        <div class="flex flex-col gap-2">
+                                            <span class=""> User: {{ claim_request.user.user_info.full_name }} </span>
+                                            <span class=""> Requested at: {{ claim_request.requested_at }} </span>
+                                            <span class=""> Contact email: {{ claim_request.email }} </span>
+                                            <a href="/investor/{{claim_request.investor.slug}}" class="font-medium"
+                                                >Investor: {{ claim_request.investor.full_name }}</a
+                                            >
+                                            <span class="font-medium"
+                                                >Status: {{ claim_request.status.value.capitalize() }}</span
+                                            >
+                                            {% if claim_request.status == 'approved' %}
+                                            <span class="">Approved by: {{ claim_request.approved_by }}</span>
+                                            <span class="">Approved at: {{ claim_request.approved_at }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="ml-auto flex h-full flex-col gap-2">
+                                        <button
+                                            class="flex items-center justify-center rounded-md bg-sky-500 p-2 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
+                                            @click="approveClaimRequest('{{claim_request.id}}')"
+                                        >
+                                            Approve
+                                        </button>
+                                        <button
+                                            class="flex items-center justify-center rounded-md bg-gray-200 p-2 px-4 transition-colors ease-in-out hover:bg-gray-100"
+                                            @click="rejectClaimRequest('{{claim_request.id}}')"
+                                        >
+                                            Reject
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="ml-auto flex h-full flex-col gap-2">
-                            <button
-                                class="flex items-center justify-center rounded-md bg-sky-500 p-2 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
-                                onclick="approveClaimRequest('{{claim_request.id}}')"
-                            >
-                                Approve
-                            </button>
-                            <button
-                                class="flex items-center justify-center rounded-md bg-gray-200 p-2 px-4 transition-colors ease-in-out hover:bg-gray-100"
-                                onclick="rejectClaimRequest('{{claim_request.id}}')"
-                            >
-                                Reject
-                            </button>
-                        </div>
+                        {% endfor %}
                     </div>
-                </div>
-            </div>
-            {% endfor %}
+                    {% endif %}
+                </section>
+            </main>
         </div>
-        {% endif %}
-    </section>
-</main>
-{% endblock %}
+    </body>
+</html>

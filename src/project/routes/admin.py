@@ -67,7 +67,7 @@ def admin_investor_view():
         query_string=search_string,
         query_by=query_by,
         page=page,
-        per_page=9,
+        per_page=1,
     )
     investors = result.get("investors")
 

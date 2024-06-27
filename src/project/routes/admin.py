@@ -144,6 +144,7 @@ def update_investor(id):
     twitter = form_data.get("twitter", investor.twitter) or None
     email = form_data.get("email", investor.email) or None
     phone_number = form_data.get("phone_number", investor.phone_number) or None
+    user_email = form_data.get("user_email", investor.user_id) or None
 
     if not first_name:
         status = Status(StatusType.ERROR, "First name cannot be empty!").get_status()

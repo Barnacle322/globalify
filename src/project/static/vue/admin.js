@@ -317,26 +317,22 @@ createApp({
             }
             return paramsArray;
         },
-
         addParamsToUrl(paramsArray) {
             const paramsString = paramsArray.length > 0 ? "?" + paramsArray.join("&") : "";
             const baseUrl = window.location.href.split("?")[0];
             const newUrl = baseUrl + paramsString;
             window.location.href = newUrl;
         },
-
         getQueryParams() {
             params = new URLSearchParams(window.location.search);
             params.delete("type");
             params.delete("msg");
             return params;
         },
-
         removePageParam(params) {
             params.delete("page");
             return params;
         },
-
         applyQueryParams(url) {
             const params = this.removePageParam(this.getQueryParams());
             if (params.toString()) {
@@ -344,8 +340,7 @@ createApp({
             }
             return url;
         },
-        async getUserList() {
-            const searchInput = document.getElementById("searchInput").value;
+        async getUserList(searchInput) {
             if (searchInput.length > 0) {
                 const response = await fetch(`/admin/search_users/${searchInput}`);
                 if (response.ok) {
@@ -363,6 +358,7 @@ createApp({
         var industryList = document.querySelector("#industry-options-menu .py-1");
 
         if (industryList) {
+            // redo via Vue
             var industryItems = Array.from(industryList.children);
             industryItems.sort(function (a, b) {
                 var aChecked = a.querySelector("input") ? a.querySelector("input").checked : false;

@@ -3,7 +3,9 @@ from .investor import (
     InvestmentFirm,
     InvestmentFirmBookmark,
     Investor,
+    InvestorBackup,
     InvestorBookmark,
+    InvestorPointOrigin,
     NotableInvestment,
 )
 from .user import (
@@ -36,4 +38,6 @@ __all__ = [
     "WaitlistCharge",
     "NotableInvestment",
     "ClaimRequest",
+    "InvestorBackup",
+    "InvestorPointOrigin",
 ]

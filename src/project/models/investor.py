@@ -248,7 +248,29 @@ investment_firm_industry = db.Table(
 )
 
 
-class Investor(db.Model):
+class InvestorBase(db.Model):
+    __abstract__ = True
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    first_name: Mapped[str] = mapped_column(String, nullable=False)
+    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
+    firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    about: Mapped[str | None] = mapped_column(String, nullable=True)
+    position: Mapped[str | None] = mapped_column(String, nullable=True)
+    website: Mapped[str | None] = mapped_column(String, nullable=True)
+    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
+    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True, unique=False)
+    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
+    min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
+
+
+class Investor(InvestorBase):
     """
     Class representing an investor in the database.
 
@@ -273,23 +295,6 @@ class Investor(db.Model):
         industries (List[Industry]): List of Industry objects associated with the investor.
     """
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    first_name: Mapped[str] = mapped_column(String, nullable=False)
-    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
-    firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    about: Mapped[str | None] = mapped_column(String, nullable=True)
-    position: Mapped[str | None] = mapped_column(String, nullable=True)
-    website: Mapped[str | None] = mapped_column(String, nullable=True)
-    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
-    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
-    email: Mapped[str | None] = mapped_column(String, nullable=True, unique=False)
-    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
-    n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
-    min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    location: Mapped[str | None] = mapped_column(String, nullable=True)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
     _country: Mapped[str | None] = mapped_column(String, nullable=True)
     bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -1769,3 +1774,113 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
                 InvestmentFirmBookmark.user_id == user_id,
             )
         ).first()
+
+
+investor_backup_round = db.Table(
+    "investor_backup_round",
+    Column("investor_backup_id", Integer, ForeignKey("investor_backup.id"), primary_key=True),
+    Column("round_id", Integer, ForeignKey("round.id"), primary_key=True),
+)
+
+investor_backup_industry = db.Table(
+    "investor_backup_industry",
+    Column("investor_backup_id", Integer, ForeignKey("investor_backup.id"), primary_key=True),
+    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+)
+
+investor_backup_notable_investment = db.Table(
+    "investor_backup_notable_investment",
+    Column("investor_backup_id", Integer, ForeignKey("investor_backup.id"), primary_key=True),
+    Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
+)
+
+investor_point_origin_round = db.Table(
+    "investor_point_origin_round",
+    Column("investor_point_origin_id", Integer, ForeignKey("investor_point_origin.id"), primary_key=True),
+    Column("round_id", Integer, ForeignKey("round.id"), primary_key=True),
+)
+
+investor_point_origin_industry = db.Table(
+    "investor_point_origin_industry",
+    Column("investor_point_origin_id", Integer, ForeignKey("investor_point_origin.id"), primary_key=True),
+    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+)
+
+investor_point_origin_notable_investment = db.Table(
+    "investor_point_origin_notable_investment",
+    Column("investor_point_origin_id", Integer, ForeignKey("investor_point_origin.id"), primary_key=True),
+    Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
+)
+
+
+class InvestorBackup(InvestorBase):
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
+
+    user: Mapped[User | None] = relationship(User, backref=backref("investor_backup", uselist=False))
+    investor: Mapped[Investor] = relationship(Investor, backref=backref("backup", uselist=False))
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_backup_notable_investment)
+    rounds: Mapped[list[Round]] = relationship(secondary=investor_backup_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=investor_backup_industry)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self) -> str:
+        return f"<InvestorBackup {self.first_name} {self.last_name}>"
+
+    @staticmethod
+    def get_by_id(id: int) -> InvestorBackup | None:
+        return db.session.scalar(db.select(InvestorBackup).where(InvestorBackup.id == id))
+
+    @staticmethod
+    def get_by_investor_id(investor_id: int) -> InvestorBackup | None:
+        return db.session.scalar(db.select(InvestorBackup).where(InvestorBackup.investor_id == investor_id))
+
+    @staticmethod
+    def get_all() -> Sequence[InvestorBackup]:
+        return (
+            db.session.scalars(
+                db.select(InvestorBackup).options(
+                    joinedload(InvestorBackup.rounds), joinedload(InvestorBackup.industries)
+                )
+            )
+            .unique()
+            .all()
+        )
+
+
+class InvestorPointOrigin(InvestorBase):
+    investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
+    investor: Mapped[Investor] = relationship(Investor, backref=backref("point_origin", uselist=False))
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(
+        secondary=investor_point_origin_notable_investment
+    )
+    rounds: Mapped[list[Round]] = relationship(secondary=investor_point_origin_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=investor_point_origin_industry)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self) -> str:
+        return f"<InvestorPointOrigin {self.first_name} {self.last_name}>"
+
+    @staticmethod
+    def get_by_id(id: int) -> InvestorPointOrigin | None:
+        return db.session.scalar(db.select(InvestorPointOrigin).where(InvestorPointOrigin.id == id))
+
+    @staticmethod
+    def get_by_investor_id(investor_id: int) -> InvestorPointOrigin | None:
+        return db.session.scalar(db.select(InvestorPointOrigin).where(InvestorPointOrigin.investor_id == investor_id))
+
+    @staticmethod
+    def get_all() -> Sequence[InvestorPointOrigin]:
+        return (
+            db.session.scalars(
+                db.select(InvestorPointOrigin).options(
+                    joinedload(InvestorPointOrigin.rounds), joinedload(InvestorPointOrigin.industries)
+                )
+            )
+            .unique()
+            .all()
+        )

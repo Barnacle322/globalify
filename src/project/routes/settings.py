@@ -2,8 +2,20 @@ from flask import Blueprint, abort, jsonify, redirect, render_template, request,
 from flask_login import current_user, fresh_login_required, login_required, logout_user
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Round, User, UserInfo, UserPayment
-from ..models.investor import Investor, NotableInvestment
+from ..models import (
+    Company,
+    Country,
+    Industry,
+    Investor,
+    InvestorBackup,
+    InvestorPointOrigin,
+    NotableInvestment,
+    Round,
+    User,
+    UserInfo,
+    UserPayment,
+)
+from ..schemas.investor import IndustrySchema, InvestorPointOriginSchema, NotableInvestmentSchema, RoundSchema
 from ..utils.enums import Status, StatusType, Tier
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
@@ -339,10 +351,12 @@ def edit_investor_view():
 
     investor = Investor.get_by_user_id(current_user.id)
     if not investor:
-        return redirect(url_for("settings.general"))
+        status = Status(StatusType.ERROR, "You don't have claimed investor profile yet.").get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
 
     if investor.user_id != current_user.id:
-        return redirect(url_for("settings.general"))
+        status = Status(StatusType.ERROR, "Not authorized.").get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
 
     notable_investments = NotableInvestment.get_all()
     rounds = Round.get_all()
@@ -394,6 +408,10 @@ def edit_investor():
     email = form_data.get("email") or None
     phone_number = form_data.get("phone_number") or None
 
+    selected_rounds = list(Round.get_by_id_list(selected_round_ids))
+    selected_industries = list(Industry.get_by_id_list(selected_industry_ids))
+    selected_notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
+
     existing_email = User.get_by_email(email) if email else None
     if existing_email and existing_email.id != investor.user_id:
         status = Status(StatusType.ERROR, "Email already exists").get_status()
@@ -419,9 +437,32 @@ def edit_investor():
     investor.min_investment = min_investment
     investor.max_investment = max_investment
     investor.location = location
-    investor.rounds = list(Round.get_by_id_list(selected_round_ids))
-    investor.industries = list(Industry.get_by_id_list(selected_industry_ids))
-    investor.notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
+    investor.rounds = selected_rounds
+    investor.industries = selected_industries
+    investor.notable_investments = selected_notable_investments
+
+    investor_backup = InvestorBackup.get_by_investor_id(investor.id)
+    if investor_backup:
+        investor_backup.first_name = first_name
+        investor_backup.last_name = last_name
+        investor_backup.slug = investor.slug
+        investor_backup.firm_name = firm_name
+        investor_backup.position = position
+        investor_backup.about = about
+        investor_backup.website = website
+        investor_backup.linkedin = linkedin
+        investor_backup.twitter = twitter
+        investor_backup.email = email
+        investor_backup.phone_number = phone_number
+        investor_backup.n_investments = n_investments
+        investor_backup.n_exits = n_exits
+        investor_backup.min_investment = min_investment
+        investor_backup.max_investment = max_investment
+        investor_backup.location = location
+        investor_backup.rounds = selected_rounds
+        investor_backup.industries = selected_industries
+        investor_backup.notable_investments = selected_notable_investments
+        db.session.add(investor_backup)
 
     db.session.commit()
 
@@ -429,4 +470,93 @@ def edit_investor():
 
     status = Status(StatusType.SUCCESS, "Investor updated.").get_status()
 
+    return redirect(url_for("settings.edit_investor_view", _external=False, **status))
+
+
+@settings.get("/investor/point-origin")
+@login_required
+@check_user_info_complete
+@check_verification
+def investor_point_origin_data():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    investor = Investor.get_by_user_id(authenticated_user.id)
+    if not investor:
+        status = Status(StatusType.ERROR, "You don't have claimed investor profile yet.").get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
+
+    investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+    if not investor_point_origin:
+        status = Status(StatusType.ERROR, "No backup data found.").get_status()
+        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+
+    data = InvestorPointOriginSchema(
+        first_name=investor_point_origin.first_name,
+        last_name=investor_point_origin.last_name,
+        slug=investor_point_origin.slug,
+        firm_name=investor_point_origin.firm_name,
+        position=investor_point_origin.position,
+        about=investor_point_origin.about,
+        website=investor_point_origin.website,
+        linkedin=investor_point_origin.linkedin,
+        twitter=investor_point_origin.twitter,
+        email=investor_point_origin.email,
+        phone_number=investor_point_origin.phone_number,
+        n_investments=investor_point_origin.n_investments,
+        n_exits=investor_point_origin.n_exits,
+        min_investment=investor_point_origin.min_investment,
+        max_investment=investor_point_origin.max_investment,
+        location=investor_point_origin.location,
+        notable_investments=[
+            NotableInvestmentSchema(title=ni.name) for ni in investor_point_origin.notable_investments
+        ],
+        rounds=[RoundSchema(title=r.name) for r in investor_point_origin.rounds],
+        industries=[IndustrySchema(title=i.name) for i in investor_point_origin.industries],
+    )
+
+    return data.model_dump()
+
+
+@settings.get("/investor/restore")
+@login_required
+@check_user_info_complete
+@check_verification
+def restore_investor_data():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    investor = Investor.get_by_user_id(authenticated_user.id)
+    if not investor:
+        status = Status(StatusType.ERROR, "You don't have claimed investor profile yet.").get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
+
+    investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+    if investor_point_origin:
+        investor.first_name = investor_point_origin.first_name
+        investor.last_name = investor_point_origin.last_name
+        investor.slug = investor_point_origin.slug
+        investor.firm_name = investor_point_origin.firm_name
+        investor.position = investor_point_origin.position
+        investor.about = investor_point_origin.about
+        investor.website = investor_point_origin.website
+        investor.linkedin = investor_point_origin.linkedin
+        investor.twitter = investor_point_origin.twitter
+        investor.email = investor_point_origin.email
+        investor.phone_number = investor_point_origin.phone_number
+        investor.n_investments = investor_point_origin.n_investments
+        investor.n_exits = investor_point_origin.n_exits
+        investor.min_investment = investor_point_origin.min_investment
+        investor.max_investment = investor_point_origin.max_investment
+        investor.location = investor_point_origin.location
+        investor.rounds = investor_point_origin.rounds
+        investor.industries = investor_point_origin.industries
+        investor.notable_investments = investor_point_origin.notable_investments
+
+        db.session.commit()
+
+        investor.upsert_data()
+    else:
+        status = Status(StatusType.ERROR, "No backup data found.").get_status()
+        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Investor data restored.").get_status()
     return redirect(url_for("settings.edit_investor_view", _external=False, **status))

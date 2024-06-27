@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Round, User, UserInfo
+from ..models import Company, Country, Industry, Investor, Round, User, UserInfo
 from .main import check_verification
 
 profile = Blueprint("profile", __name__)
@@ -27,10 +27,13 @@ def user_profile(username):
     if len(data) == 0:
         return redirect(url_for("main.search"))
 
+    investor = Investor.get_by_user_id(authenticated_user.id)
+
     return render_template(
         "user_profile.html",
         user_info=data[0][0],
         user=data[0][1],
         company=data[0][2],
         authenticated_user=authenticated_user,
+        investor=investor,
     )

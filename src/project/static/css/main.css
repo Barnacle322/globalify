@@ -2229,9 +2229,6 @@ select {
 .overflow-x-visible {
   overflow-x: visible;
 }
-.overscroll-auto {
-  overscroll-behavior: auto;
-}
 .overscroll-y-contain {
   overscroll-behavior-y: contain;
 }
@@ -2264,9 +2261,6 @@ select {
 }
 .rounded-xl {
   border-radius: 0.75rem;
-}
-.rounded {
-  border-radius: 0.25rem;
 }
 .rounded-r-xl {
   border-top-right-radius: 0.75rem;

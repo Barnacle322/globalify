@@ -257,7 +257,7 @@
                                 type="text"
                                 id="search-industries"
                                 placeholder="Search industries..."
-                                class="w-full px-3 py-2 border rounded-md sticky top-0 bg-white"
+                                class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
                             />
                             <div class="py-1" role="none">
                                 {% for category, industries_list in industries.items() %}
@@ -320,7 +320,7 @@
                                 type="text"
                                 id="search-notable-investments"
                                 placeholder="Search notable investments..."
-                                class="w-full px-3 py-2 border rounded-md sticky top-0 bg-white"
+                                class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
                             />
                             <div class="py-1" role="none">
                                 {% for notable_investment in notable_investments %}
@@ -433,7 +433,7 @@
                         />
                         <ul
                             id="userList"
-                            class="flex flex-col gap-1 overscroll-y-contain w-full overflow-y-auto max-h-60 origin-top-right transition duration-100 ease-in-out border empty:hidden"
+                            class="flex max-h-60 w-full origin-top-right flex-col gap-1 overflow-y-auto overscroll-y-contain border transition duration-100 ease-in-out empty:hidden"
                         ></ul>
                     </div>
                 </div>

@@ -91,13 +91,13 @@
                 </a>
                 {% if investor %}
                 <div class="grid grid-cols-6 gap-x-2 gap-y-1">
-                    <div class="flex justify-between col-span-full">
+                    <div class="col-span-full flex justify-between">
                         <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
                         <div>
                             <button
                                 id="undoButton"
                                 @click="undoInvestorData('{{investor.id}}')"
-                                class="mt-5 mr-2 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
+                                class="mr-2 mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
                             >
                                 Undo
                             </button>
@@ -286,7 +286,7 @@
                                 type="text"
                                 id="search-industries"
                                 placeholder="Search industries..."
-                                class="w-full px-3 py-2 border rounded-md sticky top-0 bg-white"
+                                class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
                             />
                             <div class="py-1" role="none">
                                 {% for category, industries_list in industries.items() %}
@@ -357,7 +357,7 @@
                                 type="text"
                                 id="search-notable-investments"
                                 placeholder="Search notable investments..."
-                                class="w-full px-3 py-2 border rounded-md sticky top-0 bg-white"
+                                class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
                             />
                             <div class="py-1" role="none">
                                 {% for notable_investment in notable_investments %}
@@ -492,12 +492,12 @@
                         <div
                             id="userList"
                             v-show="userList.length > 0"
-                            class="flex flex-col gap-1 overscroll-y-contain w-full overflow-y-auto max-h-60 origin-top-right transition duration-100 ease-in-out border border-gray-200 rounded-md shadow-lg bg-white"
+                            class="flex max-h-60 w-full origin-top-right flex-col gap-1 overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
                         >
                             <p
                                 v-for="(email, index) in userList"
                                 :key="index"
-                                class="cursor-pointer px-3 py-2 hover:bg-gray-100 hover:text-gray-900 transition-colors ease-in-out"
+                                class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
                                 @click="selectUser(email)"
                                 v-text="email"
                             ></p>

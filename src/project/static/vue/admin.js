@@ -384,29 +384,6 @@ createApp({
     mounted() {
         this.setupMenuToggle();
 
-        // var notableInvestmentList = document.querySelector("#notable-investment-options-menu .py-1");
-
-        // if (notableInvestmentList) {
-        //     var notableInvestmentItems = Array.from(notableInvestmentList.children);
-        //     notableInvestmentItems.sort(function (a, b) {
-        //         var aChecked = a.querySelector("input") ? a.querySelector("input").checked : false;
-        //         var bChecked = b.querySelector("input") ? b.querySelector("input").checked : false;
-        //         return aChecked === bChecked ? 0 : aChecked ? -1 : 1;
-        //     });
-        //     notableInvestmentItems.forEach(function (item) {
-        //         notableInvestmentList.appendChild(item);
-        //     });
-
-        //     var searchInputNotableInvestments = document.getElementById("search-notable-investments");
-        //     searchInputNotableInvestments.addEventListener("keyup", function () {
-        //         var filter = searchInputNotableInvestments.value.toUpperCase();
-        //         notableInvestmentItems.forEach(function (item) {
-        //             var text = item.textContent || item.innerText;
-        //             item.style.display = text.toUpperCase().indexOf(filter) > -1 ? "" : "none";
-        //         });
-        //     });
-        // }
-
         // search
         document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
             if (!link.getAttribute("href").includes("admin")) return;

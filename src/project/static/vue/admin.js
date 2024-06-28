@@ -18,6 +18,7 @@ createApp({
             asideExpanded: false,
             asideMinified: false,
             csrfToken: "",
+            searchQuery: localStorage.getItem("searchQuery") || "",
             selectedRounds: [],
             selectedIndustries: [],
             selectedNotableInvestments: [],
@@ -303,49 +304,27 @@ createApp({
                 .catch((error) => console.error("Error approving claim request:", error));
         },
 
-        // search section
         search() {
-            const searchQuery = document.getElementById("search").value;
+            const searchQuery = this.searchQuery;
+            const params = new URLSearchParams(window.location.search);
 
-            const paramsArray = this.getExistingParams(["search", "page"]);
-
-            if (searchQuery !== "") paramsArray.unshift(`search=${encodeURIComponent(searchQuery)}`);
-
-            this.addParamsToUrl(paramsArray);
-        },
-        getExistingParams(excludedParams) {
-            const urlParams = new URLSearchParams(window.location.search);
-            let paramsArray = [];
-
-            for (let param of urlParams) {
-                if (!excludedParams.includes(param[0])) {
-                    paramsArray.push(`${param[0]}=${encodeURIComponent(param[1])}`);
-                }
-            }
-            return paramsArray;
-        },
-        addParamsToUrl(paramsArray) {
-            const paramsString = paramsArray.length > 0 ? "?" + paramsArray.join("&") : "";
-            const baseUrl = window.location.href.split("?")[0];
-            const newUrl = baseUrl + paramsString;
-            window.location.href = newUrl;
-        },
-        getQueryParams() {
-            params = new URLSearchParams(window.location.search);
+            params.delete("page");
             params.delete("type");
             params.delete("msg");
-            return params;
-        },
-        removePageParam(params) {
-            params.delete("page");
-            return params;
-        },
-        applyQueryParams(url) {
-            const params = this.removePageParam(this.getQueryParams());
-            if (params.toString()) {
-                return `${url}${url.includes("?") ? "&" : "?"}${params.toString()}`;
+
+            if (searchQuery) {
+                params.set("search", searchQuery);
+            } else {
+                params.delete("search");
             }
-            return url;
+
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.location.href = newUrl;
+            localStorage.setItem("searchQuery", this.searchQuery);
+        },
+        resetSearchQuery() {
+            this.searchQuery = "";
+            localStorage.removeItem("searchQuery");
         },
         async getUserList(searchInput) {
             if (searchInput.length > 0) {
@@ -383,11 +362,5 @@ createApp({
     },
     mounted() {
         this.setupMenuToggle();
-
-        // search
-        document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
-            if (!link.getAttribute("href").includes("admin")) return;
-            link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
-        });
     },
 }).mount("#app");

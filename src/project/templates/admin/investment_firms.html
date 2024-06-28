@@ -79,6 +79,7 @@
                         <a
                             href="/admin/investors"
                             class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            @click="resetSearchQuery"
                             >Investor
                         </a>
                         <a
@@ -110,7 +111,7 @@
                                 id="search"
                                 class="w-full border-0 bg-transparent p-3 pl-12 text-sm focus:ring-0"
                                 placeholder="Search"
-                                value="{{ query }}"
+                                v-model="searchQuery"
                                 required
                             />
                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
@@ -250,13 +251,11 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-                    <nav class="mt-10 flex w-full items-center justify-center gap-2">
-                        <!-- prettier-ignore -->
-                        {% if pagination and pagination.has_other_pages %} 
-                    {% if pagination.has_prev %}
+                    <nav class="flex w-full items-center justify-center gap-2">
+                        {% if pagination and pagination.has_other_pages %} {% if pagination.has_prev %}
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investment-firms?page=1"
+                            href="/admin/investment-firms?page=1&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -273,48 +272,43 @@
                                 />
                             </svg>
                         </a>
-                        <!-- prettier-ignore -->
                         <a
-                        id="prev"
-                        class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                        href="/admin/investment-firms?page={{ pagination.prev }}"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="size-5"
+                            id="prev"
+                            class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+                            href="/admin/investment-firms?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
                         >
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                        </svg>
-                    </a>
-                        <!-- prettier-ignore -->
-                        {% endif %} 
-                    {% for page in pagination.pages %} 
-                    {% if page == pagination.current_page %}
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-5"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                            </svg>
+                        </a>
+                        {% endif %} {% for page in pagination.pages %} {% if page == pagination.current_page %}
                         <a
                             id="current"
                             class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500 transition-opacity duration-200 ease-in-out hover:opacity-90"
-                            href="/admin/investment-firms?page={{ pagination.current_page }}"
-                            >{{ pagination.current_page }}</a
+                            href="/admin/investment-firms?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
                         >
+                            {{ pagination.current_page }}
+                        </a>
                         {% else %}
                         <a
                             id="page"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white text-sm font-medium"
-                            href="/admin/investment-firms?page={{ page }}"
-                            >{{ page }}</a
+                            href="/admin/investment-firms?page={{ page }}&search={{ request.args.get('search', '') }}"
                         >
-                        <!-- prettier-ignore -->
-                        {% endif %} 
-                    {% endfor %} 
-                    {% if pagination.has_next %}
+                            {{ page }}
+                        </a>
+                        {% endif %} {% endfor %} {% if pagination.has_next %}
                         <a
                             id="next"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investment-firms?page={{ pagination.next }}"
+                            href="/admin/investment-firms?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -329,7 +323,7 @@
                         </a>
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investment-firms?page={{ pagination.last_page }}"
+                            href="/admin/investment-firms?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -346,9 +340,7 @@
                                 />
                             </svg>
                         </a>
-                        <!-- prettier-ignore -->
-                        {% endif %} 
-                    {% endif %}
+                        {% endif %} {% endif %}
                     </nav>
                 </section>
             </main>

@@ -144,7 +144,15 @@ def update_investor(id):
     twitter = form_data.get("twitter", investor.twitter) or None
     email = form_data.get("email", investor.email) or None
     phone_number = form_data.get("phone_number", investor.phone_number) or None
-    user_email = form_data.get("user_email", investor.user_id) or None
+    user_email = form_data.get("user_email", investor.user) or None
+
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    print(user_email)
+
+    if user_email:
+        investor_user = User.get_by_email(user_email)
+    else:
+        investor_user = None
 
     if not first_name:
         status = Status(StatusType.ERROR, "First name cannot be empty!").get_status()
@@ -237,6 +245,7 @@ def update_investor(id):
     investor.min_investment = min_investment
     investor.max_investment = max_investment
     investor.location = location
+    investor.user = investor_user
     investor.rounds = list(Round.get_by_id_list(selected_round_ids))
     investor.industries = list(Industry.get_by_id_list(selected_industry_ids))
     investor.notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
@@ -741,6 +750,26 @@ def search_user(search_input):
     users = db.session.execute(select(User).where(User.email.contains(search_input))).scalars().all()
 
     return jsonify(users=[user.email for user in users])
+
+
+@admin.get("/search_industries/<search_input>")
+@admin_only
+def search_industry(search_input):
+    industries = db.session.execute(select(Industry).where(Industry.name.contains(search_input))).scalars().all()
+
+    return jsonify(industries=[industry.name for industry in industries])
+
+
+@admin.get("/search_notable_investments/<search_input>")
+@admin_only
+def search_notable_investment(search_input):
+    notable_investments = (
+        db.session.execute(select(NotableInvestment).where(NotableInvestment.name.contains(search_input)))
+        .scalars()
+        .all()
+    )
+
+    return jsonify(notable_investments=[notable_investment.name for notable_investment in notable_investments])
 
 
 @admin.get("/claim-requests")

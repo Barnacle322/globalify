@@ -230,7 +230,7 @@
                             Industries
                         </button>
                         <div
-                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto overscroll-y-contain rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                             id="industry-options-menu"
                             role="menu"
                             aria-orientation="vertical"
@@ -240,21 +240,21 @@
                                 type="text"
                                 id="search-industries"
                                 placeholder="Search industries..."
-                                class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
+                                class="w-full px-3 py-2 border rounded-md sticky top-0 bg-white"
+                                v-model="selectedIndustry"
+                                @input="getIndustryList(selectedIndustry)"
                             />
-                            <div class="py-1" role="none">
-                                {% for category, industries_list in industries.items() %}
+                            <div class="py-1" role="none" ref="industryListElement">
                                 <label
                                     class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                 >
-                                    {{ category }}
+                                    Selected
                                 </label>
-                                {% for industry in industries_list %}
+                                {% for industry in investment_firm.industries %}
                                 <label
                                     class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
                                 >
-                                    {% if industry in investment_firm.industries %}
                                     <input
                                         type="checkbox"
                                         name="selected_industries"
@@ -262,16 +262,29 @@
                                         class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
                                         checked
                                     />
-                                    {% else %}
+                                    <span>{{ industry.name }}</span>
+                                </label>
+                                {% endfor %} {% for category, industries_list in industries.items() %}
+                                <label
+                                    class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                >
+                                    {{ category }}
+                                </label>
+                                {% for industry in industries_list %} {% if industry not in investment_firm.industries
+                                %}
+                                <label
+                                    class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
                                     <input
                                         type="checkbox"
                                         name="selected_industries"
                                         value="{{ industry.id }}"
                                         class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
                                     />
-                                    {% endif %} {{ industry.name }}
+                                    <span>{{ industry.name }}</span>
                                 </label>
-                                {% endfor %} {% endfor %}
+                                {% endif %}{% endfor %} {% endfor %}
                             </div>
                         </div>
                     </div>
@@ -313,14 +326,15 @@
                                 id="search-notable-investments"
                                 placeholder="Search notable investments..."
                                 class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
+                                v-model="selectedNotableInvestment"
+                                @input="getNotableInvestmentList(selectedNotableInvestment)"
                             />
-                            <div class="py-1" role="none">
-                                {% for notable_investment in notable_investments %}
+                            <div class="py-1" role="none" ref="notableInvestmentListElement">
+                                {% for notable_investment in investment_firm.notable_investments %}
                                 <label
                                     class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
                                 >
-                                    {% if notable_investment in investment_firm.notable_investments %}
                                     <input
                                         type="checkbox"
                                         name="selected_notable_investments"
@@ -328,16 +342,22 @@
                                         class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
                                         checked
                                     />
-                                    {% else %}
+                                    {{ notable_investment.name }}
+                                </label>
+                                {% endfor %} {% for notable_investment in notable_investments %} {% if
+                                notable_investment not in investment_firm.notable_investments %}
+                                <label
+                                    class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
                                     <input
                                         type="checkbox"
                                         name="selected_notable_investments"
                                         value="{{ notable_investment.id }}"
                                         class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
                                     />
-                                    {% endif %} {{ notable_investment.name }}
-                                </label>
-                                {% endfor %}
+                                    <span>{{ notable_investment.name }} </span> </label
+                                >{% endif %}{% endfor %}
                             </div>
                         </div>
                     </div>

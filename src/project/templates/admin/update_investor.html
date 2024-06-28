@@ -502,10 +502,11 @@
                         <input
                             type="text"
                             id="searchInput"
-                            v-model="selectedEmail"
+                            ref="searchInput"
+                            value="{{ investor.user.email }}"
                             class="w-full rounded-lg bg-transparent bg-white"
                             placeholder="jennifer@gmail.com"
-                            @input="getUserList(selectedEmail)"
+                            @input="getUserList"
                         />
                         <div
                             id="userList"

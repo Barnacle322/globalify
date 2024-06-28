@@ -22,7 +22,6 @@ createApp({
             selectedRounds: [],
             selectedIndustries: [],
             selectedNotableInvestments: [],
-            selectedEmail: "",
             selectedIndustry: "",
             selectedNotableInvestment: "",
             userList: [],
@@ -235,7 +234,7 @@ createApp({
             }
         },
         selectUser(email) {
-            this.selectedEmail = email;
+            this.$refs.searchInput.value = email;
             this.userList = [];
         },
         selectIndustry(industry) {
@@ -303,7 +302,6 @@ createApp({
                 })
                 .catch((error) => console.error("Error approving claim request:", error));
         },
-
         search() {
             const searchQuery = this.searchQuery;
             const params = new URLSearchParams(window.location.search);
@@ -326,7 +324,8 @@ createApp({
             this.searchQuery = "";
             localStorage.removeItem("searchQuery");
         },
-        async getUserList(searchInput) {
+        async getUserList(event) {
+            const searchInput = event.target.value;
             if (searchInput.length > 0) {
                 const response = await fetch(`/admin/search_users/${searchInput}`);
                 if (response.ok) {

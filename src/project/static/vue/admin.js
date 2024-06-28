@@ -24,7 +24,7 @@ createApp({
             selectedNotableInvestments: [],
             selectedEmail: "",
             selectedIndustry: "",
-            selectedNotableInvestments: "",
+            selectedNotableInvestment: "",
             userList: [],
             industryList: [],
             dataString: "",

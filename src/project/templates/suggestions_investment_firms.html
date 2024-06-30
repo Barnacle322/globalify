@@ -3,18 +3,15 @@
 <script src="/static/scripts/bookmark.js" defer></script>
 {% endblock %} {% block title %}Investment firms{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
 content %}
-<main
-    class="mx-auto flex h-full min-h-screen w-full flex-col items-start justify-center overflow-x-visible bg-[#EAEDF6]"
->
-    <section class="lex flex-col bg-[#231645] justify-evenly gap-10 px-4 text-center w-full mx-auto text-white py-24">
-        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+<main class="mx-auto h-full min-h-screen w-full overflow-x-visible">
+    <section class="bg-[#231645] px-4 text-white py-24 rounded-3xl mt-4 mx-4">
         <div class="flex flex-col gap-4">
             <h1
                 class="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] w-fit mx-auto bg-clip-text text-transparent"
             >
                 Best Picks
             </h1>
-            <p class="max-w-[600px] md:text-xl mx-auto">
+            <p class="max-w-[600px] md:text-xl mx-auto text-center">
                 Based on your preferences, here are some of the best investment firms for your startup.
             </p>
         </div>

@@ -88,7 +88,7 @@
                     <div class="flex h-full gap-2 px-4 text-sm">
                         <a
                             href="/settings/general"
-                            class="flex items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500 shrink-0"
+                            class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
                             ><svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -108,7 +108,7 @@
                         </a>
                         <a
                             href="/settings/company"
-                            class="flex items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500 shrink-0"
+                            class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
                             ><svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -127,7 +127,7 @@
                         </a>
                         <a
                             href="/settings/security"
-                            class="flex items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500 shrink-0"
+                            class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -148,7 +148,7 @@
                         </a>
                         <a
                             href="/settings/plan"
-                            class="flex items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500 shrink-0"
+                            class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -169,7 +169,7 @@
                         </a>
                         <a
                             href="/settings/billing"
-                            class="flex items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500 shrink-0"
+                            class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -190,7 +190,7 @@
                         </a>
                         <a
                             href="/settings/investor"
-                            class="shrink-0 flex items-center justify-center gap-2 border-b-2 border-sky-500 px-3 py-2 font-medium transition-colors ease-in-out"
+                            class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-sky-500 px-3 py-2 font-medium transition-colors ease-in-out"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -211,7 +211,7 @@
                     </div>
                 </nav>
                 <main id="app" class="mt-10 w-fit p-4">
-                    <div class="grid sm:grid-cols-6 gap-x-8 gap-y-10 px-4">
+                    <div class="grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
                         <div class="col-span-2">
                             <h2 class="font-medium leading-7">Investor Information</h2>
                             <p class="mb-2 mt-1 leading-6 text-slate-700">
@@ -234,15 +234,15 @@
                                     <button
                                         id="openConfirmRestore"
                                         @click="confirmRestoreOpened = true"
-                                        class="w-fit h-fit rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
+                                        class="h-fit w-fit rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
                                     >
                                         Restore
                                     </button>
                                 </div>
-                                <div class="col-span-full sm:col-span-3 space-y-1">
+                                <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="first_name">First Name</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="first_name"
                                         value="{{ investor.first_name }}"
@@ -250,10 +250,10 @@
                                         required
                                     />
                                 </div>
-                                <div class="col-span-full sm:col-span-3 space-y-1">
+                                <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="last_name">Last Name</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="last_name"
                                         value="{{ investor.last_name if investor.last_name else '' }}"
@@ -261,20 +261,20 @@
                                         required
                                     />
                                 </div>
-                                <div class="col-span-full sm:col-span-3 space-y-1">
+                                <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="firm_name">Firm Name</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="firm_name"
                                         placeholder="ACME Capital"
                                         value="{{ investor.firm_name if investor.firm_name else '' }}"
                                     />
                                 </div>
-                                <div class="col-span-full sm:col-span-3 space-y-1">
+                                <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="position">Position</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="position"
                                         placeholder="Investor"
@@ -284,7 +284,7 @@
                                 <div class="col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="location">Location</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="location"
                                         placeholder="San Francisco, CA"
@@ -294,7 +294,7 @@
                                 <div class="col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="about">About</label>
                                     <textarea
-                                        class="h-44 w-full rounded-xl h-12 border-stone-300 border-2"
+                                        class="h-12 h-44 w-full rounded-xl border-2 border-stone-300"
                                         type="text"
                                         id="about"
                                         placeholder="A very passionate human being!"
@@ -303,10 +303,10 @@
                                     >
                                 </div>
                                 <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
-                                <div class="relative col-span-full sm:col-span-3 space-y-1">
+                                <div class="relative col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="location">Rounds</label>
                                     <button
-                                        class="flex w-full items-center justify-center gap-1 rounded-xl h-12 border-stone-300 border-2 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                                        class="flex h-12 w-full items-center justify-center gap-1 rounded-xl border-2 border-stone-300 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                                         id="round-options"
                                         aria-haspopup="true"
                                         aria-expanded="true"
@@ -361,10 +361,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="relative col-span-full sm:col-span-3 space-y-1">
+                                <div class="relative col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="location">Industries</label>
                                     <button
-                                        class="flex w-full items-center justify-center gap-1 rounded-xl h-12 border-stone-300 border-2 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                                        class="flex h-12 w-full items-center justify-center gap-1 rounded-xl border-2 border-stone-300 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                                         id="industry-options"
                                         aria-haspopup="true"
                                         aria-expanded="true"
@@ -434,7 +434,7 @@
                                 <div class="relative col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="rounds">Notable Investments</label>
                                     <button
-                                        class="flex w-full items-center justify-center gap-1 rounded-xl h-12 border-stone-300 border-2 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                                        class="flex h-12 w-full items-center justify-center gap-1 rounded-xl border-2 border-stone-300 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                                         id="notable-investment-options"
                                         aria-haspopup="true"
                                         aria-expanded="true"
@@ -496,44 +496,44 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-span-full sm:col-span-3 space-y-1">
+                                <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="n_investments">№ Investments</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="number"
                                         id="n_investments"
                                         value="{{ investor.n_investments }}"
                                         placeholder="30"
                                     />
                                 </div>
-                                <div class="col-span-full sm:col-span-3 space-y-1">
+                                <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="n_exits">№ Exits</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="number"
                                         id="n_exits"
                                         value="{{ investor.n_exits }}"
                                         placeholder="10"
                                     />
                                 </div>
-                                <div class="col-span-full sm:col-span-3 space-y-1">
+                                <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="min_investment"
                                         >Minimum Investment ($)</label
                                     >
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="number"
                                         id="min_investment"
                                         value="{{ investor.min_investment}}"
                                         placeholder="1000"
                                     />
                                 </div>
-                                <div class="col-span-full sm:col-span-3 space-y-1">
+                                <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="max_investment"
                                         >Maximum Investment ($)</label
                                     >
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="number"
                                         id="max_investment"
                                         value="{{ investor.max_investment }}"
@@ -544,7 +544,7 @@
                                 <div class="col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="website">Website</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="website"
                                         value="{{ investor.website if investor.website else '' }}"
@@ -554,7 +554,7 @@
                                 <div class="col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="linkedin">Linkedin</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="linkedin"
                                         value="{{ investor.linkedin if investor.linkedin else '' }}"
@@ -564,27 +564,27 @@
                                 <div class="col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="twitter">Twitter</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="twitter"
                                         value="{{ investor.twitter if investor.twitter else '' }}"
                                         placeholder="https://twitter.com/username"
                                     />
                                 </div>
-                                <div class="col-span-full sm:col-span-3 space-y-1">
+                                <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="email">Email</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="email"
                                         value="{{ investor.email if investor.email else ''}}"
                                         placeholder="example@mail.com"
                                     />
                                 </div>
-                                <div class="col-span-full sm:col-span-3 space-y-1">
+                                <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="phone_number">Phone Number</label>
                                     <input
-                                        class="w-full rounded-xl h-12 border-stone-300 border-2 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="phone_number"
                                         value="{{ investor.phone_number if investor.phone_number else ''}}"
@@ -592,16 +592,16 @@
                                     />
                                 </div>
                             </div>
-                            <div class="ml-auto mt-5 flex gap-2 w-fit">
+                            <div class="ml-auto mt-5 flex w-fit gap-2">
                                 <a
                                     href="/settings/investor"
-                                    class="w-fit rounded-md bg-red-500 hover:bg-red-400 transition-colors ease-in-out px-3 py-2 text-sm text-white h-full"
+                                    class="h-full w-fit rounded-md bg-red-500 px-3 py-2 text-sm text-white transition-colors ease-in-out hover:bg-red-400"
                                     >Discard</a
                                 >
                                 <button
                                     id="saveButton"
                                     @click="updateInvestor()"
-                                    class="w-fit rounded-md bg-sky-500 hover:bg-sky-400 transition-colors ease-in-out px-3 py-2 text-sm text-white h-full"
+                                    class="h-full w-fit rounded-md bg-sky-500 px-3 py-2 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
                                 >
                                     Save
                                 </button>

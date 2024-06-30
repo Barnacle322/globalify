@@ -24,11 +24,44 @@
     <section class="bg-[#231645] p-5 pb-10 pt-16 mx-4 rounded-3xl">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mx-auto w-full max-w-3xl">
-            <h1
-                class="text-4xl text-center font-bold tracking-tight sm:text-5xl xl:text-6xl bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] p-1 w-fit mx-auto bg-clip-text text-transparent"
-            >
-                Globalify Investors
-            </h1>
+            <div class="flex justify-evenly items-center">
+                <a href="/search/investment-firms">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="size-6 text-white hover:-translate-x-1 transition-transform ease-in-out"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                </a>
+
+                <h1
+                    class="text-4xl text-center font-bold tracking-tight sm:text-5xl xl:text-6xl bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] p-1 w-fit bg-clip-text text-transparent"
+                >
+                    Globalify Investors
+                </h1>
+
+                <a href="/search/investment-firms">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="size-6 text-white hover:translate-x-1 transition-transform ease-in-out"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                </a>
+            </div>
+
             <div class="flex gap-2 rounded-full bg-white py-2 pr-3 max-w-3xl mx-auto mt-10">
                 <input
                     type="search"

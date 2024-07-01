@@ -250,7 +250,7 @@ def change_company_info():
 
     company = Company.get_by_user_id(authenticated_user.id)
     if not company:
-        abort(404)
+        return render_template("settings/company_not_found.html")
 
     industries = Industry.get_all()
     rounds = Round.get_all()
@@ -337,6 +337,87 @@ def change_company_info():
         status_type=status_type,
         msg=msg,
     )
+
+
+@settings.get("/company/create")
+@login_required
+@check_user_info_complete
+@check_verification
+def create_company_view():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    company = Company.get_by_user_id(authenticated_user.id)
+    if company:
+        status = Status(StatusType.ERROR, "Company already exists.").get_status()
+        return redirect(url_for("settings.change_company_info", _external=True, **status))
+
+    industries = Industry.get_all()
+    rounds = Round.get_all()
+    countries = Country.get_all()
+
+    return render_template(
+        "settings/create_company.html",
+        industries=industries,
+        rounds=rounds,
+        countries=countries,
+    )
+
+
+@settings.post("/company/create")
+@login_required
+@check_user_info_complete
+@check_verification
+def create_company():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    form_data = request.form
+
+    picture = request.files.get("picture")
+    company_name = form_data.get("company_name")
+
+    if not company_name:
+        status = Status(StatusType.ERROR, "Company name shouldn't be empty").get_status()
+        return redirect(url_for("settings.create_company_view", _external=False, **status))
+
+    company = Company(
+        user_id=authenticated_user.id,
+        name=company_name,
+    )
+
+    db.session.add(company)
+    db.session.commit()
+
+    description = form_data.get("description")
+    number_of_employees = form_data.get("number_of_employees", 0, type=int)
+    country = form_data.get("country", type=int)
+    website = form_data.get("website")
+
+    preferred_round_id = form_data.get("round", type=int)
+    industry_id = form_data.get("industry", type=int)
+
+    if picture:
+        try:
+            picture_url = upload_picture(picture)
+        except Exception as e:
+            print(e)
+            status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
+            return redirect(url_for("settings.create_company_view", _external=False, **status))
+
+    company.picture_url = picture_url
+    company.description = description
+    company.number_of_employees = number_of_employees
+    company.country_id = country
+    company.website_url = website
+    company.coordinates = Country.get_by_id(country).name  # type: ignore
+    company.preferred_round_id = preferred_round_id
+    company.industry_id = industry_id
+    company.user_id = authenticated_user.id
+
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Company created.").get_status()
+
+    return redirect(url_for("settings.change_company_info", _external=False, **status))
 
 
 @settings.get("/investor")

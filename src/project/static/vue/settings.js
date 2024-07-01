@@ -102,6 +102,8 @@ createApp({
             selectedRounds: [],
             selectedIndustries: [],
             selectedNotableInvestments: [],
+            selectedIndustry: "",
+            selectedNotableInvestment: "",
             dataString: "",
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
@@ -209,53 +211,65 @@ createApp({
                 };
             });
         },
+        async getIndustryList(searchInput) {
+            let industry_list = this.$refs.industryListElement;
+
+            for (let i = 0; i < industry_list.children.length; i++) {
+                if (industry_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    industry_list.children[i].classList.remove("hidden");
+                } else {
+                    industry_list.children[i].classList.add("hidden");
+                }
+            }
+        },
+        async getNotableInvestmentList(searchInput) {
+            let notable_investment_list = this.$refs.notableInvestmentListElement;
+
+            for (let i = 0; i < notable_investment_list.children.length; i++) {
+                if (notable_investment_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    notable_investment_list.children[i].classList.remove("hidden");
+                } else {
+                    notable_investment_list.children[i].classList.add("hidden");
+                }
+            }
+        },
+        createCompany() {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            const formData = new FormData();
+
+            if (this.$refs.picture && this.$refs.picture.files[0]) {
+                formData.append("picture", this.$refs.picture.files[0]);
+            }
+
+            formData.append("company_name", this.$refs.company_name.value);
+            formData.append("number_of_employees", this.$refs.number_of_employees.value);
+            formData.append("description", this.$refs.description.value);
+            formData.append("country", this.$refs.country.value);
+
+            formData.append("round", this.$refs.round.value);
+            formData.append("industry", this.$refs.industry.value);
+
+            formData.append("website", this.$refs.website.value);
+
+            fetch("/settings/company/create", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                },
+                body: formData,
+            })
+                .then((response) => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                });
+        },
     },
     mounted() {
         this.setupMenuToggle();
-
-        var industryList = document.querySelector("#industry-options-menu .py-1");
-        var industryItems = Array.from(industryList.children);
-        industryItems.sort(function (a, b) {
-            var aChecked = a.querySelector("input") ? a.querySelector("input").checked : false;
-            var bChecked = b.querySelector("input") ? b.querySelector("input").checked : false;
-            return aChecked === bChecked ? 0 : aChecked ? -1 : 1;
-        });
-        industryItems.forEach(function (item) {
-            industryList.appendChild(item);
-        });
-
-        var searchInputIndustries = document.getElementById("search-industries");
-        searchInputIndustries.addEventListener("input", function () {
-            var filter = searchInputIndustries.value.toUpperCase();
-            for (var i = 0; i < industryItems.length; i++) {
-                var item = industryItems[i];
-                var text = item.textContent || item.innerText;
-                if (text.toUpperCase().indexOf(filter) > -1) {
-                    item.style.display = "";
-                } else {
-                    item.style.display = "none";
-                }
-            }
-        });
-
-        var notableInvestmentList = document.querySelector("#notable-investment-options-menu .py-1");
-        var notableInvestmentItems = Array.from(notableInvestmentList.children);
-        notableInvestmentItems.sort(function (a, b) {
-            var aChecked = a.querySelector("input") ? a.querySelector("input").checked : false;
-            var bChecked = b.querySelector("input") ? b.querySelector("input").checked : false;
-            return aChecked === bChecked ? 0 : aChecked ? -1 : 1;
-        });
-        notableInvestmentItems.forEach(function (item) {
-            notableInvestmentList.appendChild(item);
-        });
-
-        var searchInputNotableInvestments = document.getElementById("search-notable-investments");
-        searchInputNotableInvestments.addEventListener("keyup", function () {
-            var filter = searchInputNotableInvestments.value.toUpperCase();
-            notableInvestmentItems.forEach(function (item) {
-                var text = item.textContent || item.innerText;
-                item.style.display = text.toUpperCase().indexOf(filter) > -1 ? "" : "none";
-            });
-        });
     },
 }).mount("#app");

@@ -12,7 +12,7 @@ from ..models import (
     InvestmentFirm,
     Investor,
     InvestorBackup,
-    InvestorPointOrigin,
+    InvestorOriginPoint,
     NotableInvestment,
     Round,
     User,
@@ -186,9 +186,9 @@ def update_investor(id):
     user = User.get_by_email(form_data.get("user_email"))
     if user:
         investor.user = user
-        investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+        investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
         if not investor_point_origin:
-            investor_point_origin = InvestorPointOrigin(investor_id=investor.id)
+            investor_point_origin = InvestorOriginPoint(investor_id=investor.id)
             investor_point_origin.first_name = investor.first_name
             investor_point_origin.last_name = investor.last_name
             investor_point_origin.slug = investor.slug
@@ -211,7 +211,7 @@ def update_investor(id):
             db.session.add(investor_point_origin)
     else:
         investor.user = None
-        investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+        investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
         if investor_point_origin:
             db.session.delete(investor_point_origin)
 
@@ -307,7 +307,7 @@ def restore_investor_data(id):
         status = Status(StatusType.ERROR, "There is no such investor").get_status()
         return redirect(url_for("admin.admin_investor_view", _external=True, **status))
 
-    investor_point_origin = InvestorPointOrigin.get_by_investor_id(id)
+    investor_point_origin = InvestorOriginPoint.get_by_investor_id(id)
     if investor_point_origin:
         investor.first_name = investor_point_origin.first_name
         investor.last_name = investor_point_origin.last_name

@@ -8,14 +8,14 @@ from ..models import (
     Industry,
     Investor,
     InvestorBackup,
-    InvestorPointOrigin,
+    InvestorOriginPoint,
     NotableInvestment,
     Round,
     User,
     UserInfo,
     UserPayment,
 )
-from ..schemas.investor import IndustrySchema, InvestorPointOriginSchema, NotableInvestmentSchema, RoundSchema
+from ..schemas.investor import IndustrySchema, InvestorOriginPointSchema, NotableInvestmentSchema, RoundSchema
 from ..utils.enums import Status, StatusType, Tier
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
@@ -485,12 +485,12 @@ def investor_point_origin_data():
         status = Status(StatusType.ERROR, "You don't have claimed investor profile yet.").get_status()
         return redirect(url_for("settings.index", _external=True, **status))
 
-    investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+    investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
     if not investor_point_origin:
         status = Status(StatusType.ERROR, "No backup data found.").get_status()
         return redirect(url_for("settings.edit_investor_view", _external=True, **status))
 
-    data = InvestorPointOriginSchema(
+    data = InvestorOriginPointSchema(
         first_name=investor_point_origin.first_name,
         last_name=investor_point_origin.last_name,
         slug=investor_point_origin.slug,
@@ -529,7 +529,7 @@ def restore_investor_data():
         status = Status(StatusType.ERROR, "You don't have claimed investor profile yet.").get_status()
         return redirect(url_for("settings.index", _external=True, **status))
 
-    investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+    investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
     if investor_point_origin:
         investor.first_name = investor_point_origin.first_name
         investor.last_name = investor_point_origin.last_name

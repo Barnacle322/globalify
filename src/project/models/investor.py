@@ -1794,21 +1794,21 @@ investor_backup_notable_investment = db.Table(
     Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
 )
 
-investor_point_origin_round = db.Table(
-    "investor_point_origin_round",
-    Column("investor_point_origin_id", Integer, ForeignKey("investor_point_origin.id"), primary_key=True),
+investor_origin_point_round = db.Table(
+    "investor_origin_point_round",
+    Column("investor_origin_point_id", Integer, ForeignKey("investor_origin_point.id"), primary_key=True),
     Column("round_id", Integer, ForeignKey("round.id"), primary_key=True),
 )
 
-investor_point_origin_industry = db.Table(
-    "investor_point_origin_industry",
-    Column("investor_point_origin_id", Integer, ForeignKey("investor_point_origin.id"), primary_key=True),
+investor_origin_point_industry = db.Table(
+    "investor_origin_point_industry",
+    Column("investor_origin_point_id", Integer, ForeignKey("investor_origin_point.id"), primary_key=True),
     Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
 )
 
-investor_point_origin_notable_investment = db.Table(
-    "investor_point_origin_notable_investment",
-    Column("investor_point_origin_id", Integer, ForeignKey("investor_point_origin.id"), primary_key=True),
+investor_origin_point_notable_investment = db.Table(
+    "investor_origin_point_notable_investment",
+    Column("investor_origin_point_id", Integer, ForeignKey("investor_origin_point.id"), primary_key=True),
     Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
 )
 
@@ -1850,35 +1850,35 @@ class InvestorBackup(InvestorBase):
         )
 
 
-class InvestorPointOrigin(InvestorBase):
+class InvestorOriginPoint(InvestorBase):
     investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
-    investor: Mapped[Investor] = relationship(Investor, backref=backref("point_origin", uselist=False))
+    investor: Mapped[Investor] = relationship(Investor, backref=backref("origin_point", uselist=False))
     notable_investments: Mapped[list[NotableInvestment]] = relationship(
-        secondary=investor_point_origin_notable_investment
+        secondary=investor_origin_point_notable_investment
     )
-    rounds: Mapped[list[Round]] = relationship(secondary=investor_point_origin_round)
-    industries: Mapped[list[Industry]] = relationship(secondary=investor_point_origin_industry)
+    rounds: Mapped[list[Round]] = relationship(secondary=investor_origin_point_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=investor_origin_point_industry)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def __repr__(self) -> str:
-        return f"<InvestorPointOrigin {self.first_name} {self.last_name}>"
+        return f"<InvestorOriginPoint {self.first_name} {self.last_name}>"
 
     @staticmethod
-    def get_by_id(id: int) -> InvestorPointOrigin | None:
-        return db.session.scalar(db.select(InvestorPointOrigin).where(InvestorPointOrigin.id == id))
+    def get_by_id(id: int) -> InvestorOriginPoint | None:
+        return db.session.scalar(db.select(InvestorOriginPoint).where(InvestorOriginPoint.id == id))
 
     @staticmethod
-    def get_by_investor_id(investor_id: int) -> InvestorPointOrigin | None:
-        return db.session.scalar(db.select(InvestorPointOrigin).where(InvestorPointOrigin.investor_id == investor_id))
+    def get_by_investor_id(investor_id: int) -> InvestorOriginPoint | None:
+        return db.session.scalar(db.select(InvestorOriginPoint).where(InvestorOriginPoint.investor_id == investor_id))
 
     @staticmethod
-    def get_all() -> Sequence[InvestorPointOrigin]:
+    def get_all() -> Sequence[InvestorOriginPoint]:
         return (
             db.session.scalars(
-                db.select(InvestorPointOrigin).options(
-                    joinedload(InvestorPointOrigin.rounds), joinedload(InvestorPointOrigin.industries)
+                db.select(InvestorOriginPoint).options(
+                    joinedload(InvestorOriginPoint.rounds), joinedload(InvestorOriginPoint.industries)
                 )
             )
             .unique()

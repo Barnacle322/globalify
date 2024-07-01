@@ -445,14 +445,13 @@ def onboarding():
         return redirect(url_for("auth.onboarding"))
 
     if request.method == "POST":
-        first_name, last_name, username, company_name = (
+        first_name, last_name, username = (
             request.form.get("first_name"),
             request.form.get("last_name"),
             request.form.get("username"),
-            request.form.get("company_name"),
         )
 
-        if not first_name or not last_name or not username or not company_name:
+        if not first_name or not last_name or not username:
             notification = Notification(
                 user=authenticated_user,
                 json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
@@ -489,10 +488,6 @@ def onboarding():
         user_info.first_name = first_name
         user_info.last_name = last_name
         user_info.username = username.lower()
-
-        if not Company.get_by_user_id(authenticated_user.id):
-            company = Company(user_id=authenticated_user.id, name=company_name)
-            db.session.add(company)
 
         user_info.is_complete = True
 

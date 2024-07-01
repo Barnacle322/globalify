@@ -29,7 +29,7 @@ from ..models import (
     InvestmentFirmBookmark,
     Investor,
     InvestorBookmark,
-    InvestorPointOrigin,
+    InvestorOriginPoint,
     Notification,
     Round,
     UserPayment,
@@ -514,9 +514,9 @@ def claiming_manual(slug):
     )
     db.session.add(claim_request)
 
-    investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+    investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
     if not investor_point_origin:
-        investor_point_origin = InvestorPointOrigin(investor=investor)
+        investor_point_origin = InvestorOriginPoint(investor=investor)
         investor_point_origin.first_name = investor.first_name
         investor_point_origin.last_name = investor.last_name
         investor_point_origin.slug = investor.slug
@@ -644,9 +644,9 @@ def claim_verification(slug):
     investor.user = current_user  # type: ignore
     email_verification.is_used = True
 
-    investor_point_origin = InvestorPointOrigin.get_by_investor_id(investor.id)
+    investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
     if not investor_point_origin:
-        investor_point_origin = InvestorPointOrigin(investor=investor)
+        investor_point_origin = InvestorOriginPoint(investor=investor)
         investor_point_origin.first_name = investor.first_name
         investor_point_origin.last_name = investor.last_name
         investor_point_origin.slug = investor.slug

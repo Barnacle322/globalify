@@ -30,7 +30,7 @@ class IndustrySchema(BaseModel):
     title: str
 
 
-class InvestorPointOriginSchema(BaseModel):
+class InvestorOriginPointSchema(BaseModel):
     first_name: str
     last_name: str | None
     slug: str | None

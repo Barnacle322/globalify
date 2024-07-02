@@ -69,6 +69,45 @@ const ConfirmRestoreComponent = defineComponent({
     },
 });
 
+const InviteMemberComponent = defineComponent({
+    template: "#invite-member-template",
+    data() {
+        return {
+            email: "",
+            errors: {},
+            loading: false,
+        };
+    },
+    methods: {
+        async inviteMember() {
+            this.loading = true;
+            this.errors = {};
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const response = await fetch("/invite-member", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ email: this.email }),
+                });
+
+                if (response.ok) {
+                    this.$emit("close");
+                } else {
+                    const data = await response.json();
+                    this.errors = data.errors;
+                }
+            } catch (error) {
+                console.error("Error inviting member:", error.message);
+            } finally {
+                this.loading = false;
+            }
+        },
+    },
+});
+
 createApp({
     emits: ["close-confirm-restore"],
     components: {

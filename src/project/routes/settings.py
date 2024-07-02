@@ -370,12 +370,9 @@ def create_company_view():
 @check_verification
 def create_company():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-
     form_data = request.form
 
-    picture = request.files.get("picture")
     company_name = form_data.get("company_name")
-
     if not company_name:
         status = Status(StatusType.ERROR, "Company name shouldn't be empty").get_status()
         return redirect(url_for("settings.create_company_view", _external=False, **status))
@@ -384,33 +381,29 @@ def create_company():
         name=company_name,
     )
 
-    db.session.add(company)
-    db.session.commit()
-
-    description = form_data.get("description")
-    number_of_employees = form_data.get("number_of_employees", 0, type=int)
-    country = form_data.get("country", type=int)
-    website = form_data.get("website")
-
-    preferred_round_id = form_data.get("round", type=int)
-    industry_id = form_data.get("industry", type=int)
-
+    picture = request.files.get("picture") or None
     if picture:
         try:
             picture_url = upload_picture(picture)
+            company.picture_url = picture_url
         except Exception as e:
             print(e)
             status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
             return redirect(url_for("settings.create_company_view", _external=False, **status))
 
-    company.picture_url = picture_url
-    company.description = description
-    company.number_of_employees = number_of_employees
-    company.country_id = country
-    company.website_url = website
-    company.coordinates = Country.get_by_id(country).name  # type: ignore
+    company.description = form_data.get("description") or None
+    company.number_of_employees = form_data.get("number_of_employees", 0, type=int)
+    preferred_round_id = form_data.get("round", type=int) or None
+    company.website_url = form_data.get("website") or None
     company.preferred_round_id = preferred_round_id
-    company.industry_id = industry_id
+    company.industry_id = form_data.get("industry", type=int) or None
+
+    country_id = form_data.get("country", type=int)
+    company.country_id = country_id
+    company.coordinates = Country.get_by_id(country_id).name  # type: ignore
+
+    db.session.add(company)
+    db.session.commit()
 
     user_company = UserCompany(
         user_id=authenticated_user.id,
@@ -422,8 +415,7 @@ def create_company():
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Company created.").get_status()
-
-    return redirect(url_for("settings.change_company_info", _external=False, **status))
+    return redirect(url_for("settings.company_list_view", _external=False, **status))
 
 
 @settings.post("/company/{id}/invite")

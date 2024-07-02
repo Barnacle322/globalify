@@ -2,12 +2,12 @@ let theListElement = document.getElementById("thelist");
 let theListChildren = theListElement.children;
 
 function cycleForward() {
-    theListChildren[0].classList.add("fade-out");
+    theListChildren[0].classList.add("fade-scale-out");
     for (let i = 1; i < theListChildren.length; i++) {
         theListChildren[i].classList.add("slide-left");
     }
     setTimeout(() => {
-        theListChildren[0].classList.remove("fade-out");
+        theListChildren[0].classList.remove("fade-scale-out");
         for (let i = 1; i < theListChildren.length; i++) {
             theListChildren[i].classList.remove("slide-left");
         }
@@ -22,7 +22,7 @@ function cycleForward() {
 
 function cycleBack() {
     let lastChild = theListChildren[theListChildren.length - 1];
-    lastChild.classList.add("fade-out");
+    lastChild.classList.add("fade-scale-out");
     theListChildren[1].classList.add("slide-right");
     theListChildren[0].classList.add("slide-right");
 
@@ -33,7 +33,7 @@ function cycleBack() {
     // Remove the last element from the DOM after the animation is done and put it at the beginning
     setTimeout(() => {
         let lastChild = theListChildren[theListChildren.length - 1];
-        lastChild.classList.remove("fade-out");
+        lastChild.classList.remove("ffade-scale-out");
         for (let i = 0; i < theListChildren.length; i++) {
             theListChildren[i].classList.remove("slide-right");
         }

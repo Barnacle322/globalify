@@ -402,24 +402,24 @@
                             </div>
                         </form>
                     </div>
-                    <div class="grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6 my-10">
+                    <div class="my-10 grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
                         <div class="col-span-2">
                             <h2 class="font-medium leading-7">Member information</h2>
                             <p class="mb-2 mt-1 leading-6 text-slate-700">
                                 Manage member information here. You can add, edit and delete the members here.
                             </p>
                         </div>
-                        <div class="col-span-4 rounded-xl border-2 w-full flex flex-col overflow-hidden">
-                            <header class="border-b p-5 bg-gray-50">
+                        <div class="col-span-4 flex w-full flex-col overflow-hidden rounded-xl border-2">
+                            <header class="border-b bg-gray-50 p-5">
                                 <input
                                     type="search"
-                                    class="w-full n py-2 rounded-lg border-gray-300"
+                                    class="n w-full rounded-lg border-gray-300 py-2"
                                     placeholder="Agahan is Gay"
                                 />
                             </header>
                             <div class="flex flex-col divide-y">
                                 <button
-                                    class="hover:shadow-md transition-shadow flex border rounded-lg mx-5 p-3 justify-center items-center gap-2 my-2"
+                                    class="mx-5 my-2 flex items-center justify-center gap-2 rounded-lg border p-3 transition-shadow hover:shadow-md"
                                     @click="inviteMemberOpened = true"
                                 >
                                     <svg
@@ -436,7 +436,7 @@
                                             d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                                         />
                                     </svg>
-                                    <span class="font-medium text-sm">Invite a member</span>
+                                    <span class="text-sm font-medium">Invite a member</span>
                                 </button>
                                 {% for i in range(5) %}
                                 <div class="flex gap-2 px-5 py-2 even:bg-gray-100">
@@ -451,8 +451,8 @@
                                             <span class="text-sm text-gray-700">Big Gay</span>
                                         </div>
                                     </div>
-                                    <div class="ml-auto flex justify-center items-center">
-                                        <button class="border rounded-lg px-2 py-1 bg-white">
+                                    <div class="ml-auto flex items-center justify-center">
+                                        <button class="rounded-lg border bg-white px-2 py-1">
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 fill="none"

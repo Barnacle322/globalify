@@ -3381,7 +3381,7 @@ select {
     }
 }
 
-@keyframes fade-out {
+@keyframes fade-scale-out {
     0% {
         opacity: 1;
         scale: 1;
@@ -3521,9 +3521,9 @@ select {
     animation: fade-in 0.3s ease-in-out forwards;
 }
 
-.fade-out {
+.fade-scale-out {
     opacity: 1;
-    animation: fade-out 0.3s ease-in-out;
+    animation: fade-scale-out 0.3s ease-in-out;
 }
 
 .slide-left {

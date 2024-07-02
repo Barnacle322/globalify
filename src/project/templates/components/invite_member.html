@@ -1,9 +1,9 @@
 {% macro render(user) %}
 <template id="invite-member-template">
     <article
-        class="fixed right-1/2 top-1/2 z-50 max-w-2xl w-full m-4 flex -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all"
+        class="fixed right-1/2 top-1/2 z-50 m-4 flex w-full max-w-2xl -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all"
     >
-        <div class="flex flex-col gap-2 justify-center items-center">
+        <div class="flex flex-col items-center justify-center gap-2">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -35,7 +35,7 @@
         <div class="flex flex-col gap-2">
             <label class="font-medium" for="email">Search by email</label>
             <input type="text" class="w-full rounded-xl border-2 border-stone-300" />
-            <button class="w-full rounded-xl bg-sky-400 text-white px-3 py-2">Invite</button>
+            <button class="w-full rounded-xl bg-sky-400 px-3 py-2 text-white">Invite</button>
         </div>
     </article>
 </template>

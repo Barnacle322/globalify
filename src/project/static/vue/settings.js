@@ -76,6 +76,7 @@ const InviteMemberComponent = defineComponent({
             email: "",
             errors: {},
             loading: false,
+            userList: [],
         };
     },
     methods: {
@@ -106,6 +107,19 @@ const InviteMemberComponent = defineComponent({
                 console.error("Error inviting member:", error.message);
             } finally {
                 this.loading = false;
+            }
+        },
+        async getUserList(event) {
+            const searchInput = event.target.value;
+            if (searchInput.length > 0) {
+                const response = await fetch(`/settings/search_users/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                    this.userList = data.users;
+                }
+            } else {
+                this.userList = [];
             }
         },
     },

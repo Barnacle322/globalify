@@ -1,5 +1,6 @@
 from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, fresh_login_required, login_required, logout_user
+from sqlalchemy import select
 
 from ..extensions import db
 from ..models import (
@@ -17,6 +18,7 @@ from ..models import (
     UserPayment,
 )
 from ..schemas.investor import IndustrySchema, InvestorOriginPointSchema, NotableInvestmentSchema, RoundSchema
+from ..schemas.user import UserSchema
 from ..utils.enums import CompanyRole, Status, StatusType, Tier
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
@@ -661,3 +663,21 @@ def restore_investor_data():
 
     status = Status(StatusType.SUCCESS, "Investor data restored.").get_status()
     return redirect(url_for("settings.edit_investor_view", _external=False, **status))
+
+
+@settings.get("/search_users/<search_input>")
+@login_required
+@check_user_info_complete
+@check_verification
+def search_user(search_input):
+    users = db.session.scalars(db.select(User).where(User.email.contains(search_input))).all()
+
+    user_list = []
+    for user in users:
+        user_element = UserSchema(
+            id=user.id,
+            email=user.email,
+            picture_url=user.user_info.picture_url,  # type: ignore
+        )
+        user_list.append(user_element.model_dump())
+    return jsonify({"users": user_list})

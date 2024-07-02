@@ -79,6 +79,9 @@ const InviteMemberComponent = defineComponent({
         };
     },
     methods: {
+        closeInviteMember() {
+            this.$emit("close-invite-member");
+        },
         async inviteMember() {
             this.loading = true;
             this.errors = {};
@@ -109,19 +112,27 @@ const InviteMemberComponent = defineComponent({
 });
 
 createApp({
-    emits: ["close-confirm-restore"],
+    emits: ["close-confirm-restore", "close-invite-member"],
     components: {
         AsideComponent,
         AsideMobileComponent,
         NavbarComponent,
         Bookmark,
         ConfirmRestoreComponent,
+        InviteMemberComponent,
     },
     watch: {
         asideMinified(value) {
             localStorage.setItem("asideMinified", value);
         },
         confirmRestoreOpened(value) {
+            if (value) {
+                document.body.classList.add("overflow-hidden");
+            } else {
+                document.body.classList.remove("overflow-hidden");
+            }
+        },
+        inviteMemberOpened(value) {
             if (value) {
                 document.body.classList.add("overflow-hidden");
             } else {
@@ -137,6 +148,7 @@ createApp({
             asideExpanded: false,
             asideMinified: false,
             confirmRestoreOpened: false,
+            inviteMemberOpened: false,
             csrfToken: "",
             selectedRounds: [],
             selectedIndustries: [],

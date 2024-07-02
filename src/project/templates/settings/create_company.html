@@ -53,12 +53,9 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
-    {% import "components/confirm_restore.html" as confirm_restore %} 
-    {{ confirm_restore.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div :class="{'bg-black/70 fixed top-0 left-0 h-full w-full z-50': confirmRestoreOpened}"></div>
         <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">

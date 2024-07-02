@@ -12,11 +12,12 @@ from ..models import (
     NotableInvestment,
     Round,
     User,
+    UserCompany,
     UserInfo,
     UserPayment,
 )
 from ..schemas.investor import IndustrySchema, InvestorOriginPointSchema, NotableInvestmentSchema, RoundSchema
-from ..utils.enums import Status, StatusType, Tier
+from ..utils.enums import CompanyRole, Status, StatusType, Tier
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
@@ -248,9 +249,10 @@ def change_company_info():
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    company = Company.get_by_user_id(authenticated_user.id)
-    if not company:
-        return render_template("settings/company_not_found.html")
+    company = UserCompany.get_by_user_id(authenticated_user.id)
+    if len(company) == 0:
+        return render_template("settings/company_list.html")
+    company = company[0].company
 
     industries = Industry.get_all()
     rounds = Round.get_all()
@@ -344,13 +346,6 @@ def change_company_info():
 @check_user_info_complete
 @check_verification
 def create_company_view():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    company = Company.get_by_user_id(authenticated_user.id)
-    if company:
-        status = Status(StatusType.ERROR, "Company already exists.").get_status()
-        return redirect(url_for("settings.change_company_info", _external=True, **status))
-
     industries = Industry.get_all()
     rounds = Round.get_all()
     countries = Country.get_all()
@@ -380,7 +375,6 @@ def create_company():
         return redirect(url_for("settings.create_company_view", _external=False, **status))
 
     company = Company(
-        user_id=authenticated_user.id,
         name=company_name,
     )
 
@@ -411,13 +405,41 @@ def create_company():
     company.coordinates = Country.get_by_id(country).name  # type: ignore
     company.preferred_round_id = preferred_round_id
     company.industry_id = industry_id
-    company.user_id = authenticated_user.id
 
+    user_company = UserCompany(
+        user_id=authenticated_user.id,
+        company_id=company.id,
+        role=CompanyRole.OWNER,
+    )
+
+    db.session.add(user_company)
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Company created.").get_status()
 
     return redirect(url_for("settings.change_company_info", _external=False, **status))
+
+
+@settings.post("/company/{id}/invite")
+@login_required
+@check_user_info_complete
+@check_verification
+def invite_user():
+    form_data = request.get_json()
+
+    user_email = form_data.get("user_email") or None
+    user_role = form_data.get("user_role") or None
+    invitation_message = form_data.get("invitation_message") or None
+
+    return jsonify({"status": "success", "message": "User invited."})
+
+
+@settings.get("/company/accept/invitation")
+@login_required
+@check_user_info_complete
+@check_verification
+def accept_invitation():
+    return ""
 
 
 @settings.get("/investor")

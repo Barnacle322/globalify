@@ -14,17 +14,17 @@ from flask_login import (
 from ..extensions import db, login_manager, oauth
 from ..models import (
     Company,
+    CompanyInvitation,
     Country,
     EmailVerification,
     Industry,
     Notification,
     Round,
     User,
+    UserCompany,
     UserInfo,
     UserPayment,
 )
-
-# from ..utils.email_verification import create_verification_token
 from ..utils.enums import (
     ButtonLayout,
     Events,
@@ -82,6 +82,25 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
     user = User.get_by_email(email)
     if not user:
         user = User(email=email, oauth_provider=oauth_provider)
+
+        company_invitation = CompanyInvitation.get_by_email(email)
+        if company_invitation:
+            user_company = UserCompany(
+                user_id=user.id,
+                company_id=company_invitation.company_id,
+                role=company_invitation.role,
+            )
+            notification = Notification(
+                user=user,
+                json_data=NotificationLayout(
+                    title="You got invited to a company!",
+                    msg="Click here to accept the invitation.",
+                    buttons=[ButtonLayout(text="Accept", url=url_for("settings.company"))],
+                ).get_json(),
+                destination=NotificationDestination.ALL,
+            )
+            db.session.add_all((user_company, notification))
+
         db.session.add(user)
         db.session.commit()
         return user

@@ -136,22 +136,48 @@
             </a>
         </div>
     </nav>
-    <main class="mt-10 p-4">
-        <div class="grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
-            {% if not company %}
-            <div class="col-span-4 text-center">
-                <p class="text-slate-700"></p>
-                    You have not set up your company information yet. Please create a company to continue.
-                </p>
-                <a
-                    href="/settings/company/create"
-                    class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400 mt-4"
+    <main class="mt-10 flex flex-col items-center justify-center p-4">
+        <h1 class="text-4xl font-semibold">Your Companies</h1>
+        {% if not not companies %}
+        <p class="mx-auto mt-5 max-w-xl text-center text-gray-500">
+            Hmm, it look like you aren't a part of any company. You can create one or ask your colleague to invite you!
+        </p>
+        {% else %}
+        <div class="mt-10 grid w-full grid-cols-3 gap-4">
+            {% for i in range(10) %}
+            <button
+                class="flex w-full items-center justify-between rounded-xl border bg-white p-4 transition-shadow hover:shadow-md"
+            >
+                <div class="flex gap-4 text-start">
+                    <img class="size-12 rounded-lg" src="/static/elements/pfp_placeholder.jpeg" alt="" />
+                    <div>
+                        <h2 class="text-xl font-semibold">Company Name</h2>
+                        <p class="text-gray-500">Company Description</p>
+                    </div>
+                </div>
+            </button>
+            {% endfor %}
+            <button
+                class="flex w-full items-center justify-center gap-2 rounded-xl border bg-white p-4 transition-shadow hover:shadow-md"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-6"
                 >
-                    Create company
-                </a>
-            </div>
-            {% endif %}
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                    />
+                </svg>
+                <a href="company/create" class="font-medium">Create a company</a>
+            </button>
         </div>
+        {% endif %}
     </main>
 </div>
 {% endblock %}

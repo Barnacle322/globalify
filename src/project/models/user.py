@@ -14,7 +14,7 @@ from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mappe
 
 from ..extensions import db
 from ..utils import suggestion
-from ..utils.enums import NotificationDestination, OauthProvider, RequestStatus, Tier
+from ..utils.enums import CompanyRole, NotificationDestination, OauthProvider, RequestStatus, Tier
 from .helpers import Country, Industry, Round
 
 
@@ -413,28 +413,7 @@ class Waitlist(db.Model):
 
 
 class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
-    """
-    SQLAlchemy model representing a company.
-
-    Attributes:
-        id (Mapped[int]): The primary key for the company record.
-        user_id (Mapped[int]): A foreign key that may reference a user associated with the company, nullable.
-        name (Mapped[str]): The name of the company, not nullable.
-        description (Mapped[str]): A brief description of the company, nullable.
-        number_of_employees (Mapped[int]): The number of employees at the company, nullable.
-        website (Mapped[str]): The company's website URL, nullable.
-        picture_url (Mapped[str]): A unique identifier for the company's profile picture, nullable.
-        country_id (Mapped[int]): A foreign key that references the country the company is located in, nullable.
-        preferred_round_id (Mapped[int]): A foreign key that references the company's preferred funding round, nullable.
-        industry_id (Mapped[int]): A foreign key that references the industry the company operates in, nullable.
-
-        country (Mapped[Country]): Relationship to the Country model.
-        preferred_round (Mapped[Round]): Relationship to the Round model.
-        industry (Mapped[Industry]): Relationship to the Industry model.
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True, init=False)
@@ -445,7 +424,6 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True, init=False)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
 
-    user: Mapped[User] = relationship(User, backref=backref("company", passive_deletes=True), lazy=True, init=False)
     country: Mapped[Country] = relationship(init=False)
     preferred_round: Mapped[Round] = relationship(init=False)
     industry: Mapped[Industry] = relationship(init=False)
@@ -500,9 +478,60 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_by_id(id: int) -> Company | None:
         return db.session.scalar(db.select(Company).where(Company.id == id))
 
+
+class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
+    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
+    is_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    user: Mapped[User] = relationship(
+        User, backref=backref("user_company", passive_deletes=True, uselist=True), init=False
+    )
+    company: Mapped[Company] = relationship(
+        Company, backref=backref("user_company", passive_deletes=True, uselist=True), init=False
+    )
+
     @staticmethod
-    def get_by_user_id(user_id: int) -> Company | None:
-        return db.session.scalar(db.select(Company).where(Company.user_id == user_id))
+    def get_by_user_id(user_id: int) -> Sequence[UserCompany]:
+        return db.session.scalars(db.select(UserCompany).where(UserCompany.user_id == user_id)).all()
+
+    @staticmethod
+    def get_by_company_id(company_id: int) -> Sequence[UserCompany]:
+        return db.session.scalars(db.select(UserCompany).where(UserCompany.company_id == company_id)).all()
+
+    @staticmethod
+    def get_all() -> Sequence[UserCompany]:
+        return db.session.scalars(db.select(UserCompany)).all()
+
+
+class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, server_default=func.now(), init=False
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    email: Mapped[str] = mapped_column(String, nullable=False)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
+    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
+    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    def is_expired(self) -> bool:
+        expiration_time = self.created_at + datetime.timedelta(days=7)
+        return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
+
+    @staticmethod
+    def get_by_id(id: int) -> CompanyInvitation | None:
+        return db.session.scalar(db.select(CompanyInvitation).where(CompanyInvitation.id == id))
+
+    @staticmethod
+    def get_by_email(email: str) -> CompanyInvitation | None:
+        return db.session.scalar(db.select(CompanyInvitation).where(CompanyInvitation.email == email))
+
+    @staticmethod
+    def get_by_company_id(company_id: int) -> Sequence[CompanyInvitation]:
+        return db.session.scalars(db.select(CompanyInvitation).where(CompanyInvitation.company_id == company_id)).all()
 
 
 class ClaimRequest(db.Model):

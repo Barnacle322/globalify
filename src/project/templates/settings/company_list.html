@@ -138,24 +138,25 @@
     </nav>
     <main class="mt-10 flex flex-col items-center justify-center p-4">
         <h1 class="text-4xl font-semibold">Your Companies</h1>
-        {% if not not companies %}
+        {% if not companies %}
         <p class="mx-auto mt-5 max-w-xl text-center text-gray-500">
             Hmm, it look like you aren't a part of any company. You can create one or ask your colleague to invite you!
         </p>
         {% else %}
         <div class="mt-10 grid w-full grid-cols-3 gap-4">
-            {% for i in range(10) %}
-            <button
+            {% for company in companies %}
+            <a
+                href="/settings/company/{{ company.company.id }}"
                 class="flex w-full items-center justify-between rounded-xl border bg-white p-4 transition-shadow hover:shadow-md"
             >
                 <div class="flex gap-4 text-start">
                     <img class="size-12 rounded-lg" src="/static/elements/pfp_placeholder.jpeg" alt="" />
                     <div>
-                        <h2 class="text-xl font-semibold">Company Name</h2>
-                        <p class="text-gray-500">Company Description</p>
+                        <h2 class="text-xl font-semibold">{{ company.company.name }}</h2>
+                        <p class="text-gray-500">{{ company.company.description }}</p>
                     </div>
                 </div>
-            </button>
+            </a>
             {% endfor %}
             <button
                 class="flex w-full items-center justify-center gap-2 rounded-xl border bg-white p-4 transition-shadow hover:shadow-md"

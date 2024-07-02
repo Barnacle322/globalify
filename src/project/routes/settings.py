@@ -237,11 +237,22 @@ def delete_account():
     return render_template("settings/delete_oauth_account.html")
 
 
-@settings.route("/company", methods=["GET", "POST"])
+@settings.get("/companies")
 @login_required
 @check_user_info_complete
 @check_verification
-def change_company_info():
+def company_list_view():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    user_companies = UserCompany.get_by_user_id(authenticated_user.id)
+    return render_template("settings/company_list.html", companies=user_companies)
+
+
+@settings.route("/company/<int:company_id>", methods=["GET", "POST"])
+@login_required
+@check_user_info_complete
+@check_verification
+def change_company_info_by_id(company_id):
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -249,14 +260,9 @@ def change_company_info():
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    company = UserCompany.get_by_user_id(authenticated_user.id)
-    if len(company) == 0:
-        return render_template("settings/company_list.html")
-    company = company[0].company
-
-    industries = Industry.get_all()
-    rounds = Round.get_all()
-    countries = Country.get_all()
+    companies = UserCompany.get_by_user_id(authenticated_user.id)
+    print("\n\n\n", companies)
+    company = companies[0].company
 
     if request.method == "POST":
         company_name = request.form.get("company-name", "")
@@ -332,9 +338,9 @@ def change_company_info():
 
     return render_template(
         "settings/company.html",
-        industries=industries,
-        rounds=rounds,
-        countries=countries,
+        industries=Industry.get_all(),
+        rounds=Round.get_all(),
+        countries=Country.get_all(),
         company=company,
         status_type=status_type,
         msg=msg,

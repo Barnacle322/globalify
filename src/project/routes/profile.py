@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Investor, Round, User, UserInfo
+from ..models import Company, Country, Industry, Investor, Round, User, UserCompany, UserInfo
 from .main import check_verification
 
 profile = Blueprint("profile", __name__)
@@ -21,7 +21,7 @@ def user_profile(username):
         .outerjoin(Round, Round.id == Company.preferred_round_id)
         .outerjoin(Country, Country.id == Company.country_id)
         .outerjoin(User, User.id == UserInfo.user_id)
-        .where(UserInfo.username == username, Company.user_id == UserInfo.user_id, User.id == UserInfo.user_id)
+        .where(UserInfo.username == username, User.id == UserInfo.user_id)
     ).all()
 
     if len(data) == 0:

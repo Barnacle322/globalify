@@ -70,17 +70,6 @@ def check_verification(func):
 
 
 def generate_pagination(current_page: int, total_pages: int, around_count: int = 2) -> dict:
-    """
-    Generate a pagination dictionary.
-
-    Args:
-        current_page (int): The current page number.
-        total_pages (int): The total number of pages.
-        around_count (int, optional): The number of pages to show around the current page. Defaults to 4.
-
-    Returns:
-        dict: A dictionary with keys 'current_page', 'prev', 'next', and 'pages'.
-    """
     # Calculate all the page ranges
     start_pages = range(1, min(3, total_pages + 1))
     around_pages = range(max(1, current_page - around_count), min(current_page + around_count + 1, total_pages + 1))

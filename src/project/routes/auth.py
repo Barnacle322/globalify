@@ -112,16 +112,6 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
 
 
 def api_call(url: str, access_token: str):
-    """
-    Performs an API call to the specified URL using the provided access token.
-
-    Args:
-        url (str): The URL to make the API call to.
-        access_token (str): The access token to authenticate the API call.
-
-    Returns:
-        dict: The JSON response from the API call.
-    """
     response = requests.get(
         url,
         headers={"Authorization": f"Bearer {access_token}"},

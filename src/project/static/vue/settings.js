@@ -79,6 +79,7 @@ const InviteMemberComponent = defineComponent({
             errors: {},
             loading: false,
             userList: [],
+
             roles: [],
             debouncedGetUserList: null,
             selectedRole: "",
@@ -223,6 +224,7 @@ createApp({
             selectedRounds: [],
             selectedIndustries: [],
             selectedNotableInvestments: [],
+            members: [],
             selectedIndustry: "",
             selectedNotableInvestment: "",
             dataString: "",
@@ -388,6 +390,25 @@ createApp({
                 .catch((error) => {
                     console.error("Error:", error);
                 });
+        },
+        async acceptInvitation(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/settings/company/${companyId}/accept/invitation`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error("Failed to accept invitation");
+                }
+            } catch (error) {
+                console.error("Error accepting invitation:", error.message);
+            }
         },
     },
     mounted() {

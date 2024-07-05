@@ -20,7 +20,7 @@ from ..models import (
     UserPayment,
 )
 from ..schemas.investor import IndustrySchema, InvestorOriginPointSchema, NotableInvestmentSchema, RoundSchema
-from ..schemas.user import UserSchema
+from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.google_helpers import google_pubsub
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
@@ -250,7 +250,21 @@ def company_list_view():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     user_companies = UserCompany.get_by_user_id(authenticated_user.id)
-    return render_template("settings/company_list.html", companies=user_companies)
+    invitations = CompanyInvitation.get_by_email(authenticated_user.email)
+
+    company_invitations = []
+
+    for company, invitation in invitations:
+        company_invitation = CompanyInvitationSchema(
+            id=invitation.id,
+            name=company.name,
+            picture_url=company.picture_url,
+            role=invitation.role.value,
+            company_id=company.id,
+        )
+        company_invitations.append(company_invitation.model_dump())
+
+    return render_template("settings/company_list.html", companies=user_companies, invitations=company_invitations)
 
 
 @settings.route("/company/<int:company_id>", methods=["GET", "POST"])
@@ -265,8 +279,21 @@ def change_company_info_by_id(company_id):
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
+    company_members = UserCompany.get_members(company_id)
+    members = []
+
+    if company_members:
+        for user, user_company in company_members:
+            user_info = user.user_info
+            user_element = MemberSchema(
+                id=user.id,
+                name=user_info.first_name + " " + user_info.last_name,
+                picture_url=user_info.picture_url,
+                role=user_company.role.value,
+            )
+            members.append(user_element.model_dump())
+
     companies = UserCompany.get_by_user_id(authenticated_user.id)
-    print("\n\n\n", companies)
     company = companies[0].company
 
     if request.method == "POST":
@@ -347,6 +374,7 @@ def change_company_info_by_id(company_id):
         rounds=Round.get_all(),
         countries=Country.get_all(),
         company=company,
+        members=members,
         status_type=status_type,
         msg=msg,
     )
@@ -441,7 +469,7 @@ def invite_user(company_id):
     company_invitation = CompanyInvitation(
         company_id=company_id,
         email=user_email,
-        role=user_role,
+        role=CompanyRole(user_role),
     )
 
     db.session.add(company_invitation)
@@ -457,12 +485,35 @@ def invite_user(company_id):
     return redirect(url_for("settings.company_list_view", _external=False))
 
 
-@settings.get("/company/accept/invitation")
+@settings.post("/company/<int:company_id>/accept/invitation")
 @login_required
 @check_user_info_complete
 @check_verification
-def accept_invitation():
-    return ""
+def accept_invitation(company_id):
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    user_company = UserCompany.get_by_user_id_and_company_id(company_id, authenticated_user.id)
+
+    company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id, authenticated_user.email)
+
+    if not company_invitation:
+        status = Status(StatusType.ERROR, "Invitation not found.").get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+    if not user_company:
+        user_company = UserCompany(
+            user_id=authenticated_user.id,
+            company_id=company_id,
+            role=company_invitation.role,
+        )
+        db.session.add(user_company)
+
+    company_invitation.is_used = True
+    user_company.is_accepted = True
+
+    db.session.commit()
+
+    return redirect(url_for("settings.company_list_view", _external=False))
 
 
 @settings.get("/investor")
@@ -639,7 +690,6 @@ def investor_point_origin_data():
         rounds=[RoundSchema(title=r.name) for r in investor_point_origin.rounds],
         industries=[IndustrySchema(title=i.name) for i in investor_point_origin.industries],
     )
-
     return data.model_dump()
 
 
@@ -693,7 +743,10 @@ def restore_investor_data():
 @check_user_info_complete
 @check_verification
 def search_user(search_input):
-    users = db.session.scalars(db.select(User).where(User.email.contains(search_input))).all()
+    users = db.session.scalars(
+        db.select(User).where(User.email.contains(search_input)).where(User.id != current_user.id)
+    ).all()
+
     if users:
         user_list = []
         for user in users:
@@ -705,11 +758,36 @@ def search_user(search_input):
             user_list.append(user_element.model_dump())
         return jsonify({"users": user_list})
     else:
-        email_regex = r"^[w-.]+@([w-]+.)+[w-]{2,4}$"
+        email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if re.match(email_regex, search_input):
             return jsonify({"search_input": search_input})
         else:
             return jsonify({"users": []})
+
+
+@settings.get("/company/<int:company_id>/members")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_company_members(company_id):
+    company_members = UserCompany.get_members(company_id)
+    members = []
+
+    if company_members:
+        for user, user_company in company_members:
+            user_info = user.user_info
+            user_element = MemberSchema(
+                id=user.id,
+                name=user_info.first_name + " " + user_info.last_name,
+                picture_url=user_info.picture_url,
+                role=user_company.role.value,
+            )
+            members.append(user_element.model_dump())
+        print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        print(company_id)
+        print(members)
+        return jsonify({"members": members})
+    return jsonify({"members": []})
 
 
 @settings.get("/company/roles")

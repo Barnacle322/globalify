@@ -505,6 +505,24 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_all() -> Sequence[UserCompany]:
         return db.session.scalars(db.select(UserCompany)).all()
 
+    @staticmethod
+    def get_members(company_id: int):
+        results = db.session.execute(
+            db.select(User, UserCompany)
+            .join(UserCompany, UserCompany.user_id == User.id)
+            .where(UserCompany.company_id == company_id)
+        ).all()
+
+        return results
+
+    @staticmethod
+    def get_by_user_id_and_company_id(user_id: int, company_id: int) -> UserCompany | None:
+        return db.session.scalar(
+            db.select(UserCompany).where(
+                UserCompany.user_id == user_id, UserCompany.company_id == company_id, UserCompany.is_accepted.is_(False)
+            )
+        )
+
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -517,6 +535,10 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
     role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
+    company: Mapped[Company] = relationship(
+        Company, backref=backref("company_invitation", passive_deletes=True, uselist=True), init=False
+    )
+
     def is_expired(self) -> bool:
         expiration_time = self.created_at + datetime.timedelta(days=7)
         return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
@@ -526,12 +548,25 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalar(db.select(CompanyInvitation).where(CompanyInvitation.id == id))
 
     @staticmethod
-    def get_by_email(email: str) -> CompanyInvitation | None:
-        return db.session.scalar(db.select(CompanyInvitation).where(CompanyInvitation.email == email))
+    def get_by_email(email: str):
+        results = db.session.execute(
+            db.select(Company, CompanyInvitation)
+            .join(CompanyInvitation, CompanyInvitation.company_id == Company.id)
+            .where(CompanyInvitation.email == email, CompanyInvitation.is_used.is_(False))
+        ).all()
+        return results
 
     @staticmethod
     def get_by_company_id(company_id: int) -> Sequence[CompanyInvitation]:
         return db.session.scalars(db.select(CompanyInvitation).where(CompanyInvitation.company_id == company_id)).all()
+
+    @staticmethod
+    def get_by_company_id_and_email(company_id: int, email: str) -> CompanyInvitation | None:
+        return db.session.scalar(
+            db.select(CompanyInvitation).where(
+                CompanyInvitation.company_id == company_id, CompanyInvitation.email == email
+            )
+        )
 
 
 class ClaimRequest(db.Model):

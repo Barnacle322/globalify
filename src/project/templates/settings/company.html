@@ -60,6 +60,7 @@
     {{ invite_member.render(company) }}
 
     <body class="h-full overflow-x-clip" id="app">
+        <input type="hidden" id="company_id" value="{{ company.id }}" />
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
         <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
             <aside-component :minified="asideMinified"></aside-component>
@@ -110,7 +111,7 @@
                             General
                         </a>
                         <a
-                            href="/settings/company"
+                            href="/settings/companies"
                             class="flex items-center justify-center gap-2 border-b-2 border-sky-500 px-3 py-2 font-medium transition-colors ease-in-out"
                             ><svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -414,7 +415,7 @@
                                 <input
                                     type="search"
                                     class="n w-full rounded-lg border-gray-300 py-2"
-                                    placeholder="Agahan is Gay"
+                                    placeholder="Search members"
                                 />
                             </header>
                             <div class="flex flex-col divide-y">
@@ -438,17 +439,19 @@
                                     </svg>
                                     <span class="text-sm font-medium">Invite a member</span>
                                 </button>
-                                {% for i in range(5) %}
+                                {% for user in members %}
                                 <div class="flex gap-2 px-5 py-2 even:bg-gray-100">
                                     <div class="flex gap-2">
+                                        {% if user.id %}
                                         <img
-                                            class="size-12 rounded-full"
-                                            src="/static/elements/pfp_placeholder.jpeg"
+                                            class="size-12 rounded-lg"
+                                            src="{{ user.picture_url if user.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
                                             alt=""
                                         />
+                                        {% endif %}
                                         <div>
-                                            <h3 class="text-md font-medium">Agahan Imamidinov</h3>
-                                            <span class="text-sm text-gray-700">Big Gay</span>
+                                            <h3 class="text-md font-medium">{{ user.name }}</h3>
+                                            <span class="text-sm text-gray-700">{{ user.role }}</span>
                                         </div>
                                     </div>
                                     <div class="ml-auto flex items-center justify-center">

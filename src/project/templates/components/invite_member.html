@@ -34,7 +34,7 @@
         </div>
         <div class="flex flex-col gap-2">
             <label class="font-medium" for="email">Search by email</label>
-            <input type="text" class="w-full rounded-xl border-2 border-stone-300" @input="getUserList" />
+            <input type="text" class="w-full rounded-xl border-2 border-stone-300" @input="debouncedGetUserList" />
             <div
                 class="flex gap-4 text-start w-full rounded-xl border-2 border-stone-300 items-center p-2"
                 v-if="userList.length > 0"
@@ -42,7 +42,7 @@
             >
                 <img
                     class="size-12 rounded-lg"
-                    v-if="user"
+                    v-if="user.id"
                     :src="user.picture_url ? user.picture_url : '/static/elements/pfp_placeholder.jpeg'"
                     alt=""
                 />
@@ -63,7 +63,7 @@
                 </svg>
                 <div>
                     <h2 class="text-xl font-semibold" v-text="user.email"></h2>
-                    <p class="text-gray-500">Invite to group porn</p>
+                    <p class="text-gray-500">Invite to group</p>
                 </div>
             </div>
             <button class="w-full rounded-xl bg-sky-400 px-3 py-2 text-white">Invite</button>

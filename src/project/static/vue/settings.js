@@ -62,6 +62,8 @@ const ConfirmRestoreComponent = defineComponent({
     mounted() {
         this.fetchPointOriginData();
         window.addEventListener("keydown", this.handleKeyDown);
+
+        this.debouncedGetUserList = this.debounce(this.getUserList, 700);
     },
     beforeUnmount() {
         this.investor_point_origin = {};
@@ -77,6 +79,7 @@ const InviteMemberComponent = defineComponent({
             errors: {},
             loading: false,
             userList: [],
+            debouncedGetUserList: null,
         };
     },
     methods: {
@@ -109,6 +112,14 @@ const InviteMemberComponent = defineComponent({
                 this.loading = false;
             }
         },
+        debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        },
         async getUserList(event) {
             const searchInput = event.target.value;
             if (searchInput.length > 0) {
@@ -116,12 +127,22 @@ const InviteMemberComponent = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     console.log(data);
-                    this.userList = data.users;
+
+                    if (data.users && data.users.length > 0) {
+                        this.userList = data.users;
+                    } else if (data.search_input) {
+                        this.userList = [{ email: data.search_input }];
+                    } else {
+                        this.userList = [];
+                    }
                 }
             } else {
                 this.userList = [];
             }
         },
+    },
+    mounted() {
+        this.debouncedGetUserList = this.debounce(this.getUserList, 300);
     },
 });
 

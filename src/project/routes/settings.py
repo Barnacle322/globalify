@@ -671,13 +671,18 @@ def restore_investor_data():
 @check_verification
 def search_user(search_input):
     users = db.session.scalars(db.select(User).where(User.email.contains(search_input))).all()
-
-    user_list = []
-    for user in users:
-        user_element = UserSchema(
-            id=user.id,
-            email=user.email,
-            picture_url=user.user_info.picture_url,  # type: ignore
-        )
-        user_list.append(user_element.model_dump())
-    return jsonify({"users": user_list})
+    if users:
+        user_list = []
+        for user in users:
+            user_element = UserSchema(
+                id=user.id,
+                email=user.email,
+                picture_url=user.user_info.picture_url,  # type: ignore
+            )
+            user_list.append(user_element.model_dump())
+        return jsonify({"users": user_list})
+    else:
+        if "@" in search_input:
+            return jsonify({"search_input": search_input})
+        else:
+            return jsonify({"users": []})

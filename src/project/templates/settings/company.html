@@ -57,7 +57,7 @@
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
     {% import "components/invite_member.html" as invite_member %} 
-    {{ invite_member.render(current_user) }}
+    {{ invite_member.render(company) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>

@@ -5,6 +5,7 @@ from sqlalchemy import select
 from ..extensions import db
 from ..models import (
     Company,
+    CompanyInvitation,
     Country,
     Industry,
     Investor,
@@ -420,18 +421,36 @@ def create_company():
     return redirect(url_for("settings.company_list_view", _external=False, **status))
 
 
-@settings.post("/company/{id}/invite")
+@settings.post("/company/invite/<int:company_id>")
 @login_required
 @check_user_info_complete
 @check_verification
-def invite_user():
+def invite_user(company_id):
     form_data = request.get_json()
 
-    user_email = form_data.get("user_email") or None
-    user_role = form_data.get("user_role") or None
+    user_email = form_data.get("email") or None
+    user_role = form_data.get("role") or None
     invitation_message = form_data.get("invitation_message") or None
 
-    return jsonify({"status": "success", "message": "User invited."})
+    if not all(
+        [
+            user_email,
+            user_role,
+        ]
+    ):
+        status = Status(StatusType.ERROR, "Email and role are required.").get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+    company_invitation = CompanyInvitation(
+        company_id=company_id,
+        email=user_email,
+        role=user_role,
+    )
+
+    db.session.add(company_invitation)
+    db.session.commit()
+
+    return redirect(url_for("settings.company_list_view", _external=False))
 
 
 @settings.get("/company/accept/invitation")
@@ -686,3 +705,11 @@ def search_user(search_input):
             return jsonify({"search_input": search_input})
         else:
             return jsonify({"users": []})
+
+
+@settings.get("/company/roles")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_company_roles():
+    return jsonify({"roles": [role.value for role in CompanyRole]})

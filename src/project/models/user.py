@@ -512,9 +512,9 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    email: Mapped[str] = mapped_column(String, nullable=False)
+    email: Mapped[str | None] = mapped_column(String, nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
-    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
+    role: Mapped[CompanyRole | None] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def is_expired(self) -> bool:

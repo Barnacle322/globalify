@@ -79,32 +79,48 @@ const InviteMemberComponent = defineComponent({
             errors: {},
             loading: false,
             userList: [],
+            roles: [],
             debouncedGetUserList: null,
+            selectedRole: "",
+            invitationMessage: "",
         };
     },
     methods: {
         closeInviteMember() {
             this.$emit("close-invite-member");
         },
-        async inviteMember() {
+        async inviteMember(companyId) {
             this.loading = true;
             this.errors = {};
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
-                const response = await fetch("/invite-member", {
+                const email = this.$refs.searchInput.value;
+                const role = this.selectedRole;
+                const invitationMessage = this.invitationMessage;
+
+                console.log(email, role);
+                console.log(companyId);
+                const response = await fetch(`/settings/company/invite/${companyId}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": csrfToken,
                     },
-                    body: JSON.stringify({ email: this.email }),
+                    body: JSON.stringify({
+                        email: email,
+                        role: role,
+                        invitation_message: invitationMessage,
+                    }),
                 });
 
+                console.log(response);
+
                 if (response.ok) {
-                    this.$emit("close");
+                    this.$emit("close-invite-member");
+                    console.log("Agahan");
                 } else {
                     const data = await response.json();
-                    this.errors = data.errors;
+                    console.log("Aidana", data);
                 }
             } catch (error) {
                 console.error("Error inviting member:", error.message);
@@ -140,9 +156,28 @@ const InviteMemberComponent = defineComponent({
                 this.userList = [];
             }
         },
+        selectUser(email) {
+            this.$refs.searchInput.value = email;
+            this.userList = [];
+        },
+        async fetchRoles() {
+            try {
+                const response = await fetch("/settings/company/roles");
+                console.log(response);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.roles = data.roles;
+                } else {
+                    console.error("Failed to fetch roles");
+                }
+            } catch (error) {
+                console.error("Error fetching roles:", error.message);
+            }
+        },
     },
     mounted() {
         this.debouncedGetUserList = this.debounce(this.getUserList, 300);
+        this.fetchRoles();
     },
 });
 

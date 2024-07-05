@@ -1,6 +1,7 @@
-from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
-from flask_login import current_user, fresh_login_required, login_required, logout_user
-from sqlalchemy import select
+import re
+
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required, logout_user
 
 from ..extensions import db
 from ..models import (
@@ -20,7 +21,8 @@ from ..models import (
 )
 from ..schemas.investor import IndustrySchema, InvestorOriginPointSchema, NotableInvestmentSchema, RoundSchema
 from ..schemas.user import UserSchema
-from ..utils.enums import CompanyRole, Status, StatusType, Tier
+from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
+from ..utils.google_helpers import google_pubsub
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
@@ -432,12 +434,7 @@ def invite_user(company_id):
     user_role = form_data.get("role") or None
     invitation_message = form_data.get("invitation_message") or None
 
-    if not all(
-        [
-            user_email,
-            user_role,
-        ]
-    ):
+    if not user_email or not user_role:
         status = Status(StatusType.ERROR, "Email and role are required.").get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
@@ -449,6 +446,13 @@ def invite_user(company_id):
 
     db.session.add(company_invitation)
     db.session.commit()
+
+    # google_pubsub.send_event(
+    #     "Arstan is gay",
+    #     email=user_email,
+    #     event_type=Events.USER_COMPLETED_ONBOARDING.value,
+    #     message=invitation_message,
+    # )
 
     return redirect(url_for("settings.company_list_view", _external=False))
 
@@ -701,7 +705,8 @@ def search_user(search_input):
             user_list.append(user_element.model_dump())
         return jsonify({"users": user_list})
     else:
-        if "@" in search_input:
+        email_regex = r"^[w-.]+@([w-]+.)+[w-]{2,4}$"
+        if re.match(email_regex, search_input):
             return jsonify({"search_input": search_input})
         else:
             return jsonify({"users": []})

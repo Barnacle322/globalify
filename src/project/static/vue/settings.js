@@ -41,19 +41,19 @@ const ConfirmRestoreComponent = defineComponent({
     computed: {
         notableInvestmentsTitles() {
             if (this.investor_point_origin && this.investor_point_origin.notable_investments) {
-                return this.investor_point_origin.notable_investments.map((ni) => ni.title).join(", ");
+                return this.investor_point_origin.notable_investments.join(", ");
             }
             return "";
         },
         roundsTitles() {
             if (this.investor_point_origin && this.investor_point_origin.rounds) {
-                return this.investor_point_origin.rounds.map((r) => r.title).join(", ");
+                return this.investor_point_origin.rounds.join(", ");
             }
             return "";
         },
         industriesTitles() {
             if (this.investor_point_origin && this.investor_point_origin.industries) {
-                return this.investor_point_origin.industries.map((i) => i.title).join(", ");
+                return this.investor_point_origin.industries.join(", ");
             }
             return "";
         },

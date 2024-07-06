@@ -4,7 +4,7 @@ from datetime import timedelta
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
+from .extensions import csrf, db, login_manager, migrate, oauth
 from .routes.admin import admin
 from .routes.auth import auth
 from .routes.main import (
@@ -41,7 +41,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
         app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
         app.config["SQLALCHEMY_RECORD_QUERIES"] = True
         app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
-        app.config["SQLALCHEMY_ECHO"] = True
+        # app.config["SQLALCHEMY_ECHO"] = True
         # app.config["DEBUG_TB_PROFILER_ENABLED"] = True
         # toolbar.init_app(app)
     else:

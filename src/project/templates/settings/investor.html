@@ -231,13 +231,6 @@
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
                                 <div class="col-span-full flex justify-between">
                                     <h2 class="col-span-full text-2xl font-medium">General info</h2>
-                                    <button
-                                        id="openConfirmRestore"
-                                        @click="confirmRestoreOpened = true"
-                                        class="h-fit w-fit rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
-                                    >
-                                        Restore
-                                    </button>
                                 </div>
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="first_name">First Name</label>
@@ -294,7 +287,7 @@
                                 <div class="col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="about">About</label>
                                     <textarea
-                                        class="h-12 h-44 w-full rounded-xl border-2 border-stone-300"
+                                        class="h-44 w-full rounded-xl border-2 border-stone-300"
                                         type="text"
                                         id="about"
                                         placeholder="A very passionate human being!"
@@ -592,7 +585,14 @@
                                     />
                                 </div>
                             </div>
-                            <div class="ml-auto mt-5 flex w-fit gap-2">
+                            <div class="mt-5 flex gap-2">
+                                <button
+                                    id="openConfirmRestore"
+                                    @click="confirmRestoreOpened = true"
+                                    class="h-fit mr-auto w-fit rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
+                                >
+                                    Restore
+                                </button>
                                 <a
                                     href="/settings/investor"
                                     class="h-full w-fit rounded-md bg-red-500 px-3 py-2 text-sm text-white transition-colors ease-in-out hover:bg-red-400"

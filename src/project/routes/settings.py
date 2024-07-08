@@ -253,9 +253,6 @@ def company_list_view():
 
     invitations = CompanyInvitation.get_by_email(authenticated_user.email)
 
-    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-    print(invitations)
-
     company_invitations = []
 
     for company, invitation in invitations:
@@ -283,9 +280,10 @@ def change_company_info_by_id(company_id):
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
+    company_invitations = CompanyInvitation.get_by_company_id(company_id)
+
     company_members = UserCompany.get_members(company_id)
     members = []
-
     if company_members:
         for user, user_company in company_members:
             user_info = user.user_info
@@ -297,9 +295,15 @@ def change_company_info_by_id(company_id):
             )
             members.append(user_element.model_dump())
 
-    companies = UserCompany.get_by_user_id(authenticated_user.id)
+    user_company = UserCompany.get_by_user_id_and_company_id(
+        user_id=authenticated_user.id, company_id=company_id, get_accepted=True
+    )
+    if not user_company:
+        status = Status(StatusType.ERROR, "Company not found.").get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    company = companies[company_id - 1].company
+    company = user_company.company
+    user_role = user_company.role.value
 
     if request.method == "POST":
         company_name = request.form.get("company-name", "")
@@ -326,7 +330,6 @@ def change_company_info_by_id(company_id):
             )
 
         picture = request.files.get("picture")
-
         if picture:
             try:
                 picture_url = upload_picture(picture)
@@ -388,6 +391,8 @@ def change_company_info_by_id(company_id):
         countries=Country.get_all(),
         company=company,
         members=members,
+        company_invitations=company_invitations,
+        user_role=user_role,
         status_type=status_type,
         msg=msg,
     )
@@ -455,6 +460,7 @@ def create_company():
         user_id=authenticated_user.id,
         company_id=company.id,
         role=CompanyRole.OWNER,
+        is_accepted=True,
     )
 
     db.session.add(user_company)
@@ -480,7 +486,6 @@ def invite_user(company_id):
         return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
 
     existing_company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id, user_email)
-
     if existing_company_invitation:
         status = Status(StatusType.ERROR, "User already invited.").get_status()
         return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
@@ -500,6 +505,24 @@ def invite_user(company_id):
     #     event_type=Events.USER_COMPLETED_ONBOARDING.value,
     #     message=invitation_message,
     # )
+
+    status = Status(StatusType.SUCCESS, "User invited.").get_status()
+    return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+
+
+@settings.post("/company/<int:invitation_id>/cancel/invitation")
+@login_required
+@check_user_info_complete
+@check_verification
+def cancel_invitation(invitation_id):
+    company_invitation = CompanyInvitation.get_by_id(invitation_id)
+
+    if not company_invitation:
+        status = Status(StatusType.ERROR, "Invitation not found.").get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+    db.session.delete(company_invitation)
+    db.session.commit()
 
     return redirect(url_for("settings.company_list_view", _external=False))
 
@@ -529,6 +552,25 @@ def accept_invitation(company_id):
 
     company_invitation.is_used = True
     user_company.is_accepted = True
+
+    db.session.commit()
+
+    return redirect(url_for("settings.company_list_view", _external=False))
+
+
+@settings.post("/company/<int:company_id>/decline/invitation")
+@login_required
+@check_user_info_complete
+@check_verification
+def decline_invitation(company_id):
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id, authenticated_user.email)
+    if not company_invitation:
+        status = Status(StatusType.ERROR, "Invitation not found.").get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+    company_invitation.is_used = True
 
     db.session.commit()
 
@@ -802,9 +844,6 @@ def get_company_members(company_id):
                 role=user_company.role.value,
             )
             members.append(user_element.model_dump())
-        print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-        print(company_id)
-        print(members)
         return jsonify({"members": members})
     return jsonify({"members": []})
 
@@ -827,10 +866,17 @@ def change_company_role(user_id):
     company_id = form_data.get("company_id")
     role = form_data.get("role")
 
+    current_user_company = UserCompany.get_by_user_id_and_company_id(
+        user_id=current_user.id, company_id=company_id, get_accepted=True
+    )
+    if not current_user_company:
+        status = Status(StatusType.ERROR, "You don't have an access!").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+    if current_user_company.role != CompanyRole.OWNER:
+        status = Status(StatusType.ERROR, "Only owner can change role!").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+
     user_company = UserCompany.get_by_user_id_and_company_id(user_id, company_id, True)
-
-    print("Agahan", user_company)
-
     if not user_company:
         status = Status(StatusType.ERROR, "Member not found.").get_status()
         return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
@@ -851,8 +897,17 @@ def remove_company_member(user_id):
 
     company_id = form_data.get("company_id")
 
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id, company_id, True)
+    current_user_company = UserCompany.get_by_user_id_and_company_id(
+        user_id=current_user.id, company_id=company_id, get_accepted=True
+    )
+    if not current_user_company:
+        status = Status(StatusType.ERROR, "You don't have an access!").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+    if current_user_company.role != CompanyRole.OWNER:
+        status = Status(StatusType.ERROR, "Only owner can change role!").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
 
+    user_company = UserCompany.get_by_user_id_and_company_id(user_id=user_id, company_id=company_id, get_accepted=True)
     if not user_company:
         status = Status(StatusType.ERROR, "Member not found.").get_status()
         return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))

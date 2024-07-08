@@ -59,7 +59,9 @@
     {% import "components/invite_member.html" as invite_member %} 
     {{ invite_member.render(company) }}
     {% import "components/change_role.html" as change_role %}
-    {{ change_role.render(company) }}
+    {{ change_role.render(company, current_user) }}
+    {% import "components/cancel_invitation.html" as cancel_invitation %}
+    {{ cancel_invitation.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />
@@ -89,14 +91,24 @@
                 ></invite-member-component
             ></transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left -0 top-0 z-50 h-full w-full bg-black/70" v-if="changeRoleOpened"></div>
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="selectedUser"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <change-role-component
-                    v-if="changeRoleOpened"
-                    :user="activeUser"
-                    @close-change-role="changeRoleOpened = null"
+                    v-if="selectedUser"
+                    :user="selectedUser"
+                    @close-change-role="selectedUser = null"
                 ></change-role-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="selectedInvitationId"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <cancel-invitation-component
+                    v-if="selectedInvitationId"
+                    :invitation="selectedInvitationId"
+                    @close-cancel-invitation="selectedInvitationId = null"
+                ></cancel-invitation-component>
             </transition>
 
             <div class="relative w-full">
@@ -263,7 +275,7 @@
                                             alt="Company picture"
                                         />
                                         {% endif %}
-                                        <div class="w-full">
+                                        <div class="w-full" v-if="'{{ user_role }}' !== 'employee'">
                                             <input
                                                 type="file"
                                                 id="picture"
@@ -287,6 +299,7 @@
                                                 required
                                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                                 value="{{ company.name if company.name else ''}}"
+                                                :disabled="'{{ user_role }}' == 'employee'"
                                             />
                                         </div>
                                     </div>
@@ -303,6 +316,7 @@
                                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                                 value="{{ company.number_of_employees }}"
                                                 min="0"
+                                                :disabled="'{{ user_role }}' == 'employee'"
                                             />
                                         </div>
                                     </div>
@@ -316,8 +330,9 @@
                                                 name="description"
                                                 class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                                                 placeholder="Describe your company here."
+                                                :disabled="'{{ user_role }}' == 'employee'"
                                             >
-            {{ company.description if company.description else ''}}</textarea
+{{ company.description if company.description else ''}}</textarea
                                             >
                                         </div>
                                     </div>
@@ -332,6 +347,7 @@
                                                 autocomplete="country-name"
                                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                                 required
+                                                :disabled="'{{ user_role }}' == 'employee'"
                                             >
                                                 <option value="" disabled selected>Select a country</option>
                                                 {% if countries %} {% for country in countries %} {% if
@@ -353,6 +369,7 @@
                                                 name="round"
                                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                                 required
+                                                :disabled="'{{ user_role }}' == 'employee'"
                                             >
                                                 <option value="" disabled selected>Select a round</option>
                                                 {% if rounds %} {% for round in rounds %} {% if
@@ -374,6 +391,7 @@
                                                 name="industry"
                                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 pr-8"
                                                 required
+                                                :disabled="'{{ user_role }}' == 'employee'"
                                             >
                                                 <option value="" disabled selected>Select an industry</option>
                                                 {% for category, industry in industries.items() %}
@@ -400,12 +418,13 @@
                                                 value="{{ company.website_url if company.website_url else '' }}"
                                                 pattern="^(https?:\/\/)?(www\.)?[\w.\-]+\.[a-z]{2,}\/?[\w.\-]*$"
                                                 placeholder="example.com"
+                                                :disabled="'{{ user_role }}' == 'employee'"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="mt-8 flex gap-5">
+                                <div class="mt-8 flex gap-5" v-if="'{{ user_role }}' !== 'employee'">
                                     <button
                                         type="submit"
                                         class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
@@ -434,9 +453,10 @@
                                     type="search"
                                     class="n w-full rounded-lg border-gray-300 py-2"
                                     placeholder="Search members"
+                                    @input="searchMembers"
                                 />
                             </header>
-                            <div class="flex flex-col divide-y">
+                            <div class="flex flex-col divide-y" ref="memberListElement">
                                 <button
                                     class="mx-5 my-2 flex items-center justify-center gap-2 rounded-lg border p-3 transition-shadow hover:shadow-md"
                                     @click="inviteMemberOpened = true"
@@ -457,7 +477,58 @@
                                     </svg>
                                     <span class="text-sm font-medium">Invite a member</span>
                                 </button>
-                                {% for user in members %}
+                                {% for invitation in company_invitations %}
+                                <div class="flex gap-2 px-5 py-2 even:bg-gray-100">
+                                    <div class="flex gap-2">
+                                        <div class="flex items-center justify-center rounded-lg bg-gray-300 size-12">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke-width="1.5"
+                                                stroke="currentColor"
+                                                class="size-6 text-gray-700"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-md font-medium">
+                                                {{ invitation.email }}
+                                                <span class="text-sm text-gray-500 italic">Pending</span>
+                                            </h3>
+                                            <span class="text-sm text-gray-700"
+                                                >{{ invitation.role.value.title() }}</span
+                                            >
+                                        </div>
+                                    </div>
+                                    <div class="ml-auto flex items-center justify-center">
+                                        <button
+                                            class="rounded-lg border bg-white px-2 py-1"
+                                            @click="selectedInvitationId = {{invitation.id}};"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke-width="1.5"
+                                                stroke="currentColor"
+                                                class="size-4"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M6 18 18 6M6 6l12 12"
+                                                />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %} {% for user in members %}
                                 <div class="flex gap-2 px-5 py-2 even:bg-gray-100">
                                     <div class="flex gap-2">
                                         {% if user.id %}
@@ -469,14 +540,14 @@
                                         {% endif %}
                                         <div>
                                             <h3 class="text-md font-medium">{{ user.name }}</h3>
-                                            <span class="text-sm text-gray-700">{{ user.role }}</span>
+                                            <span class="text-sm text-gray-700">{{ user.role.title() }}</span>
                                         </div>
                                     </div>
-
+                                    {% if user_role == "owner" %}
                                     <div class="ml-auto flex items-center justify-center">
                                         <button
                                             class="rounded-lg border bg-white px-2 py-1"
-                                            @click="changeRoleOpened = true; setActiveUser({{user}});"
+                                            @click="this.selectedUser = {{user}};"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -494,6 +565,7 @@
                                             </svg>
                                         </button>
                                     </div>
+                                    {% endif %}
                                 </div>
                                 {% endfor %}
                             </div>

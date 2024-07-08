@@ -282,7 +282,7 @@
                                     <p class="text-gray-500">{{ invitation.role }}</p>
                                 </div>
                             </div>
-                            <div class="flex gap-4">
+                            <div class="flex flex-col gap-4">
                                 <button
                                     class="flex items-center justify-center gap-2 rounded-xl border bg-white p-2 transition-shadow hover:shadow-md"
                                     @click="acceptInvitation({{invitation.company_id}})"
@@ -303,6 +303,27 @@
                                     </svg>
 
                                     <span class="font-medium">Accept</span>
+                                </button>
+                                <button
+                                    class="flex items-center justify-center gap-2 rounded-xl border bg-white p-2 transition-shadow hover:shadow-md"
+                                    @click="declineInvitation({{invitation.company_id}})"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="size-6"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"
+                                        />
+                                    </svg>
+
+                                    <span class="font-medium">Decline</span>
                                 </button>
                             </div>
                         </div>

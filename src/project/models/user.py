@@ -516,15 +516,14 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
         return results
 
     @staticmethod
-    def get_by_user_id_and_company_id(user_id: int, company_id: int, is_accepted: bool = False) -> UserCompany | None:
-        if is_accepted:
-            return db.session.scalar(
-                db.select(UserCompany).where(
-                    UserCompany.user_id == user_id,
-                    UserCompany.company_id == company_id,
-                    UserCompany.is_accepted.is_(is_accepted),
-                )
+    def get_by_user_id_and_company_id(user_id: int, company_id: int, get_accepted: bool = False) -> UserCompany | None:
+        return db.session.scalar(
+            db.select(UserCompany).where(
+                UserCompany.user_id == user_id,
+                UserCompany.company_id == company_id,
+                UserCompany.is_accepted.is_(get_accepted),
             )
+        )
 
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
@@ -561,7 +560,11 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_by_company_id(company_id: int) -> Sequence[CompanyInvitation]:
-        return db.session.scalars(db.select(CompanyInvitation).where(CompanyInvitation.company_id == company_id)).all()
+        return db.session.scalars(
+            db.select(CompanyInvitation).where(
+                CompanyInvitation.company_id == company_id, CompanyInvitation.is_used.is_(False)
+            )
+        ).all()
 
     @staticmethod
     def get_by_company_id_and_email(company_id: int, email: str) -> CompanyInvitation | None:

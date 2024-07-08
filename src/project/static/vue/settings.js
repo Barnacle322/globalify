@@ -1,6 +1,37 @@
+const CancelInvitationComponent = defineComponent({
+    template: "#cancel-invitation-template",
+    props: ["invitation"],
+    delimiters: ["[[", "]]"],
+    methods: {
+        closeCancelInvitation() {
+            this.$emit("close-cancel-invitation");
+        },
+        async cancelInvitation(invitationId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/settings/company/${invitationId}/cancel/invitation`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error("Failed to cancel invitation");
+                }
+            } catch (error) {
+                console.error("Error cancelling invitation:", error.message);
+            }
+        },
+    },
+});
+
 const ChangeRoleComponent = defineComponent({
     template: "#change-role-template",
     props: ["user"],
+    delimiters: ["[[", "]]"],
     data() {
         return {
             roles: [],
@@ -12,7 +43,6 @@ const ChangeRoleComponent = defineComponent({
         },
         async changeRole(userId) {
             try {
-                console.log("Changing role", userId);
                 const csrfToken = document.getElementById("csrf_token").value;
                 const role = this.$refs.roleChange.value;
                 const companyId = this.$refs.companyId.value;
@@ -142,8 +172,6 @@ const InviteMemberComponent = defineComponent({
     data() {
         return {
             email: "",
-            errors: {},
-            loading: false,
             userList: [],
             roles: [],
             debouncedGetUserList: null,
@@ -156,8 +184,6 @@ const InviteMemberComponent = defineComponent({
             this.$emit("close-invite-member");
         },
         async inviteMember(companyId) {
-            this.loading = true;
-            this.errors = {};
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
                 const email = this.$refs.searchInput.value;
@@ -184,8 +210,6 @@ const InviteMemberComponent = defineComponent({
                 }
             } catch (error) {
                 console.error("Error inviting member:", error.message);
-            } finally {
-                this.loading = false;
             }
         },
         debounce(func, wait) {
@@ -202,8 +226,6 @@ const InviteMemberComponent = defineComponent({
                 const response = await fetch(`/settings/search_users/${searchInput}`);
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(data);
-
                     if (data.users && data.users.length > 0) {
                         this.userList = data.users;
                     } else if (data.search_input) {
@@ -220,11 +242,9 @@ const InviteMemberComponent = defineComponent({
             this.$refs.searchInput.value = email;
             this.userList = [];
         },
-
         async fetchRoles() {
             try {
                 const response = await fetch("/settings/company/roles");
-                console.log(response);
                 if (response.ok) {
                     const data = await response.json();
                     this.roles = data.roles;
@@ -252,7 +272,9 @@ createApp({
         ConfirmRestoreComponent,
         InviteMemberComponent,
         ChangeRoleComponent,
+        CancelInvitationComponent,
     },
+
     watch: {
         asideMinified(value) {
             localStorage.setItem("asideMinified", value);
@@ -288,7 +310,6 @@ createApp({
             asideMinified: false,
             confirmRestoreOpened: false,
             inviteMemberOpened: false,
-            changeRoleOpened: false,
             csrfToken: "",
             selectedRounds: [],
             selectedIndustries: [],
@@ -296,7 +317,8 @@ createApp({
             members: [],
             selectedIndustry: "",
             selectedNotableInvestment: "",
-            activeUser: null,
+            selectedUser: null,
+            selectedInvitationId: null,
             dataString: "",
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
@@ -360,7 +382,6 @@ createApp({
         },
         async updateInvestor() {
             const csrfToken = document.getElementById("csrf_token").value;
-
             const dataString = this.getValues();
 
             try {
@@ -428,7 +449,6 @@ createApp({
         },
         createCompany() {
             const csrfToken = document.getElementById("csrf_token").value;
-
             const formData = new FormData();
 
             if (this.$refs.picture && this.$refs.picture.files[0]) {
@@ -439,10 +459,8 @@ createApp({
             formData.append("number_of_employees", this.$refs.number_of_employees.value);
             formData.append("description", this.$refs.description.value);
             formData.append("country", this.$refs.country.value);
-
             formData.append("round", this.$refs.round.value);
             formData.append("industry", this.$refs.industry.value);
-
             formData.append("website", this.$refs.website.value);
 
             fetch("/settings/company/create", {
@@ -480,9 +498,36 @@ createApp({
                 console.error("Error accepting invitation:", error.message);
             }
         },
-        setActiveUser(user) {
-            this.activeUser = user;
-            console.log(this.activeUser);
+        async declineInvitation(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/settings/company/${companyId}/decline/invitation`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error("Failed to decline invitation");
+                }
+            } catch (error) {
+                console.error("Error declining invitation:", error.message);
+            }
+        },
+        async searchMembers(event) {
+            searchInput = event.target.value;
+            let member_list = this.$refs.memberListElement;
+
+            for (let i = 0; i < member_list.children.length; i++) {
+                if (member_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    member_list.children[i].classList.remove("hidden");
+                } else {
+                    member_list.children[i].classList.add("hidden");
+                }
+            }
         },
     },
     mounted() {

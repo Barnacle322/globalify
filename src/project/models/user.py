@@ -516,12 +516,15 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
         return results
 
     @staticmethod
-    def get_by_user_id_and_company_id(user_id: int, company_id: int) -> UserCompany | None:
-        return db.session.scalar(
-            db.select(UserCompany).where(
-                UserCompany.user_id == user_id, UserCompany.company_id == company_id, UserCompany.is_accepted.is_(False)
+    def get_by_user_id_and_company_id(user_id: int, company_id: int, is_accepted: bool = False) -> UserCompany | None:
+        if is_accepted:
+            return db.session.scalar(
+                db.select(UserCompany).where(
+                    UserCompany.user_id == user_id,
+                    UserCompany.company_id == company_id,
+                    UserCompany.is_accepted.is_(is_accepted),
+                )
             )
-        )
 
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
@@ -572,7 +575,6 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
 class ClaimRequest(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-
     investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
     status: Mapped[RequestStatus] = mapped_column(SQLEnum(RequestStatus), nullable=False, default=RequestStatus.PENDING)
     status_info: Mapped[str | None] = mapped_column(String, nullable=True, default=None)

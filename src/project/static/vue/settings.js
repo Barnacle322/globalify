@@ -1,3 +1,69 @@
+const ChangeRoleComponent = defineComponent({
+    template: "#change-role-template",
+    props: ["user"],
+    data() {
+        return {
+            roles: [],
+        };
+    },
+    methods: {
+        closeChangeRole() {
+            this.$emit("close-change-role");
+        },
+        async changeRole(userId) {
+            try {
+                console.log("Changing role", userId);
+                const csrfToken = document.getElementById("csrf_token").value;
+                const role = this.$refs.roleChange.value;
+                const companyId = this.$refs.companyId.value;
+                const response = await fetch(`/settings/company/${userId}/change-role`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({
+                        role: role,
+                        company_id: companyId,
+                    }),
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-change-role");
+                }
+            } catch (error) {
+                console.error("Error changing role:", error.message);
+            }
+        },
+        async removeMember(userId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const companyId = this.$refs.companyId.value;
+                const response = await fetch(`/settings/company/${userId}/remove`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({
+                        company_id: companyId,
+                    }),
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-change-role");
+                }
+            } catch (error) {
+                console.error("Error removing member:", error.message);
+            }
+        },
+    },
+});
+
 const ConfirmRestoreComponent = defineComponent({
     template: "#confirm-restore-template",
     data() {
@@ -79,7 +145,6 @@ const InviteMemberComponent = defineComponent({
             errors: {},
             loading: false,
             userList: [],
-
             roles: [],
             debouncedGetUserList: null,
             selectedRole: "",
@@ -99,8 +164,6 @@ const InviteMemberComponent = defineComponent({
                 const role = this.selectedRole;
                 const invitationMessage = this.invitationMessage;
 
-                console.log(email, role);
-                console.log(companyId);
                 const response = await fetch(`/settings/company/invite/${companyId}`, {
                     method: "POST",
                     headers: {
@@ -114,14 +177,10 @@ const InviteMemberComponent = defineComponent({
                     }),
                 });
 
-                console.log(response);
-
-                if (response.ok) {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
                     this.$emit("close-invite-member");
-                    console.log("Agahan");
-                } else {
-                    const data = await response.json();
-                    console.log("Aidana", data);
                 }
             } catch (error) {
                 console.error("Error inviting member:", error.message);
@@ -161,6 +220,7 @@ const InviteMemberComponent = defineComponent({
             this.$refs.searchInput.value = email;
             this.userList = [];
         },
+
         async fetchRoles() {
             try {
                 const response = await fetch("/settings/company/roles");
@@ -183,7 +243,7 @@ const InviteMemberComponent = defineComponent({
 });
 
 createApp({
-    emits: ["close-confirm-restore", "close-invite-member"],
+    emits: ["close-confirm-restore", "close-invite-member", "close-change-role"],
     components: {
         AsideComponent,
         AsideMobileComponent,
@@ -191,6 +251,7 @@ createApp({
         Bookmark,
         ConfirmRestoreComponent,
         InviteMemberComponent,
+        ChangeRoleComponent,
     },
     watch: {
         asideMinified(value) {
@@ -210,6 +271,13 @@ createApp({
                 document.body.classList.remove("overflow-hidden");
             }
         },
+        changeRoleOpened(value) {
+            if (value) {
+                document.body.classList.add("overflow-hidden");
+            } else {
+                document.body.classList.remove("overflow-hidden");
+            }
+        },
     },
     created() {
         this.asideMinified = localStorage.getItem("asideMinified") === "true";
@@ -220,6 +288,7 @@ createApp({
             asideMinified: false,
             confirmRestoreOpened: false,
             inviteMemberOpened: false,
+            changeRoleOpened: false,
             csrfToken: "",
             selectedRounds: [],
             selectedIndustries: [],
@@ -227,6 +296,7 @@ createApp({
             members: [],
             selectedIndustry: "",
             selectedNotableInvestment: "",
+            activeUser: null,
             dataString: "",
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
@@ -409,6 +479,10 @@ createApp({
             } catch (error) {
                 console.error("Error accepting invitation:", error.message);
             }
+        },
+        setActiveUser(user) {
+            this.activeUser = user;
+            console.log(this.activeUser);
         },
     },
     mounted() {

@@ -58,6 +58,8 @@
     {{ navbar.render(current_user) }}
     {% import "components/invite_member.html" as invite_member %} 
     {{ invite_member.render(company) }}
+    {% import "components/change_role.html" as change_role %}
+    {{ change_role.render(company) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />
@@ -86,6 +88,17 @@
                     @close-invite-member="inviteMemberOpened = null"
                 ></invite-member-component
             ></transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left -0 top-0 z-50 h-full w-full bg-black/70" v-if="changeRoleOpened"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <change-role-component
+                    v-if="changeRoleOpened"
+                    :user="activeUser"
+                    @close-change-role="changeRoleOpened = null"
+                ></change-role-component>
+            </transition>
+
             <div class="relative w-full">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
@@ -227,7 +240,12 @@
                             <div class="text-lime-500">{{ msg }}</div>
                             {% endif %} {% endif %}
                         </div>
-                        <form class="col-span-4" action="/settings/company" method="POST" enctype="multipart/form-data">
+                        <form
+                            class="col-span-4"
+                            action="/settings/company/{{company.id}}"
+                            method="POST"
+                            enctype="multipart/form-data"
+                        >
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                             <div class="space-y-12">
                                 <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
@@ -454,8 +472,12 @@
                                             <span class="text-sm text-gray-700">{{ user.role }}</span>
                                         </div>
                                     </div>
+
                                     <div class="ml-auto flex items-center justify-center">
-                                        <button class="rounded-lg border bg-white px-2 py-1">
+                                        <button
+                                            class="rounded-lg border bg-white px-2 py-1"
+                                            @click="changeRoleOpened = true; setActiveUser({{user}});"
+                                        >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 fill="none"

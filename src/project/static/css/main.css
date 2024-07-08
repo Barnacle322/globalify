@@ -1559,6 +1559,9 @@ select {
 .mt-auto {
   margin-top: auto;
 }
+.mr-auto {
+  margin-right: auto;
+}
 .line-clamp-3 {
   overflow: hidden;
   display: -webkit-box;
@@ -2361,6 +2364,14 @@ select {
   --tw-border-opacity: 1;
   border-color: rgb(255 255 255 / var(--tw-border-opacity));
 }
+.border-red-300 {
+  --tw-border-opacity: 1;
+  border-color: rgb(252 165 165 / var(--tw-border-opacity));
+}
+.border-red-400 {
+  --tw-border-opacity: 1;
+  border-color: rgb(248 113 113 / var(--tw-border-opacity));
+}
 .bg-\[\#181747\] {
   --tw-bg-opacity: 1;
   background-color: rgb(24 23 71 / var(--tw-bg-opacity));
@@ -2477,6 +2488,10 @@ select {
 .bg-gray-300 {
   --tw-bg-opacity: 1;
   background-color: rgb(209 213 219 / var(--tw-bg-opacity));
+}
+.bg-red-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(248 113 113 / var(--tw-bg-opacity));
 }
 .bg-\[radial-gradient\(45rem_50rem_at_top\2c theme\(colors\.indigo\.100\)\2c white\)\] {
   background-image: radial-gradient(45rem 50rem at top,#e0e7ff,white);

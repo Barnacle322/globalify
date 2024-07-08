@@ -897,6 +897,10 @@ def remove_company_member(user_id):
 
     company_id = form_data.get("company_id")
 
+    if current_user.id == user_id:
+        status = Status(StatusType.ERROR, "You can't remove yourself.").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+
     current_user_company = UserCompany.get_by_user_id_and_company_id(
         user_id=current_user.id, company_id=company_id, get_accepted=True
     )

@@ -6,6 +6,16 @@ const CancelInvitationComponent = defineComponent({
         closeCancelInvitation() {
             this.$emit("close-cancel-invitation");
         },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeCancelInvitation();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeCancelInvitation();
+            }
+        },
         async cancelInvitation(invitationId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
@@ -26,11 +36,22 @@ const CancelInvitationComponent = defineComponent({
             }
         },
     },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
 });
 
 const ChangeRoleComponent = defineComponent({
     template: "#change-role-template",
     props: ["user"],
+    emits: ["close-change-role"],
     delimiters: ["[[", "]]"],
     data() {
         return {
@@ -41,11 +62,21 @@ const ChangeRoleComponent = defineComponent({
         closeChangeRole() {
             this.$emit("close-change-role");
         },
-        async changeRole(userId) {
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeChangeRole();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeChangeRole();
+            }
+        },
+        async changeRole(userId, companyId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
                 const role = this.$refs.roleChange.value;
-                const companyId = this.$refs.companyId.value;
+
                 const response = await fetch(`/settings/company/${userId}/change-role`, {
                     method: "POST",
                     headers: {
@@ -67,10 +98,9 @@ const ChangeRoleComponent = defineComponent({
                 console.error("Error changing role:", error.message);
             }
         },
-        async removeMember(userId) {
+        async removeMember(userId, companyId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
-                const companyId = this.$refs.companyId.value;
                 const response = await fetch(`/settings/company/${userId}/remove`, {
                     method: "POST",
                     headers: {
@@ -92,6 +122,16 @@ const ChangeRoleComponent = defineComponent({
             }
         },
     },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
 });
 
 const ConfirmRestoreComponent = defineComponent({
@@ -107,6 +147,11 @@ const ConfirmRestoreComponent = defineComponent({
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
+                this.closeConfirmRestore();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
                 this.closeConfirmRestore();
             }
         },
@@ -158,12 +203,15 @@ const ConfirmRestoreComponent = defineComponent({
     mounted() {
         this.fetchPointOriginData();
         window.addEventListener("keydown", this.handleKeyDown);
-
         this.debouncedGetUserList = this.debounce(this.getUserList, 700);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
     },
     beforeUnmount() {
         this.investor_point_origin = {};
         window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
     },
 });
 
@@ -182,6 +230,16 @@ const InviteMemberComponent = defineComponent({
     methods: {
         closeInviteMember() {
             this.$emit("close-invite-member");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeInviteMember();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeInviteMember();
+            }
         },
         async inviteMember(companyId) {
             try {
@@ -259,6 +317,14 @@ const InviteMemberComponent = defineComponent({
     mounted() {
         this.debouncedGetUserList = this.debounce(this.getUserList, 300);
         this.fetchRoles();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
     },
 });
 

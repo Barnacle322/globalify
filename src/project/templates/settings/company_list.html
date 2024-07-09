@@ -212,7 +212,7 @@
                     </div>
                 </nav>
                 <main class="mt-10 flex flex-col items-center justify-center p-4">
-                    <h1 class="text-4xl font-semibold">Your Companies</h1>
+                    <h1 class="text-4xl font-semibold w-full">Your Companies</h1>
                     {% if not companies %}
                     <p class="mx-auto mt-5 max-w-xl text-center text-gray-500">
                         Hmm, it look like you aren't a part of any company. You can create one or ask your colleague to
@@ -223,7 +223,7 @@
                         {% for company in companies %}
                         <a
                             href="/settings/company/{{ company.company.id }}"
-                            class="flex w-full justify-between rounded-xl border bg-white p-4 transition-shadow hover:shadow-md"
+                            class="flex w-full justify-between rounded-xl border bg-white p-4"
                         >
                             <div class="flex gap-4 text-start">
                                 {% if company.company.picture_url %}
@@ -238,9 +238,7 @@
                             </div>
                         </a>
                         {% endfor %}
-                        <button
-                            class="flex w-full items-center justify-center gap-2 rounded-xl border bg-white p-4 transition-shadow hover:shadow-md"
-                        >
+                        <button class="flex w-full items-center justify-center gap-2 rounded-xl border bg-white p-4 hover:border-2 transition-all">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -259,7 +257,7 @@
                         </button>
                     </div>
                     {% endif %}
-                    <h1 class="text-4xl font-semibold mt-10">Your Invitation</h1>
+                    <h1 class="text-4xl font-semibold mt-10 w-full">Your Invitation</h1>
                     {% if not invitations %}
                     <p class="mx-auto mt-5 max-w-xl text-center text-gray-500">
                         You don't have any pending invitation. You can create a company or ask your colleague to invite
@@ -268,9 +266,7 @@
                     {% else %}
                     <div class="mt-10 grid w-full grid-cols-3 gap-4">
                         {% for invitation in invitations %}
-                        <div
-                            class="flex w-full justify-between rounded-xl border bg-white p-4 transition-shadow hover:shadow-md"
-                        >
+                        <div class="flex w-full justify-between rounded-xl border bg-white p-4">
                             <div class="flex gap-4 text-start">
                                 <img
                                     class="size-12 rounded-lg"
@@ -278,14 +274,14 @@
                                     alt=""
                                 />
                                 <div>
-                                    <a href=""><h2 class="text-xl font-semibold">{{ invitation.name }}</h2></a>
+                                    <h3 class="text-xl font-semibold">{{ invitation.name }}</h3>
                                     <p class="text-gray-500">{{ invitation.role }}</p>
                                 </div>
                             </div>
-                            <div class="flex flex-col gap-4">
+                            <div class="flex flex-col gap-2">
                                 <button
                                     class="flex items-center justify-center gap-2 rounded-xl border bg-white p-2 transition-shadow hover:shadow-md"
-                                    @click="acceptInvitation({{invitation.company_id}})"
+                                    @click="acceptInvitation({{ invitation.company_id }})"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -293,7 +289,7 @@
                                         viewBox="0 0 24 24"
                                         stroke-width="1.5"
                                         stroke="currentColor"
-                                        class="size-6"
+                                        class="size-4"
                                     >
                                         <path
                                             stroke-linecap="round"
@@ -302,7 +298,7 @@
                                         />
                                     </svg>
 
-                                    <span class="font-medium">Accept</span>
+                                    <span class="font-medium text-sm">Accept</span>
                                 </button>
                                 <button
                                     class="flex items-center justify-center gap-2 rounded-xl border bg-white p-2 transition-shadow hover:shadow-md"
@@ -314,7 +310,7 @@
                                         viewBox="0 0 24 24"
                                         stroke-width="1.5"
                                         stroke="currentColor"
-                                        class="size-6"
+                                        class="size-4"
                                     >
                                         <path
                                             stroke-linecap="round"
@@ -323,7 +319,7 @@
                                         />
                                     </svg>
 
-                                    <span class="font-medium">Decline</span>
+                                    <span class="font-medium text-sm">Decline</span>
                                 </button>
                             </div>
                         </div>

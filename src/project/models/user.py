@@ -530,7 +530,6 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), init=False
     )
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     email: Mapped[str] = mapped_column(String, nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
@@ -541,8 +540,10 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
         Company, backref=backref("company_invitation", passive_deletes=True, uselist=True), init=False
     )
 
+    INVITATION_VALIDITY = 7
+
     def is_expired(self) -> bool:
-        expiration_time = self.created_at + datetime.timedelta(days=7)
+        expiration_time = self.created_at + datetime.timedelta(days=self.INVITATION_VALIDITY)
         return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
 
     @staticmethod
@@ -550,10 +551,10 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalar(db.select(CompanyInvitation).where(CompanyInvitation.id == id))
 
     @staticmethod
-    def get_by_email(email: str):
-        results = db.session.execute(
-            db.select(Company, CompanyInvitation)
-            .join(CompanyInvitation, CompanyInvitation.company_id == Company.id)
+    def get_by_email(email: str) -> Sequence[CompanyInvitation] | None:
+        results = db.session.scalars(
+            db.select(CompanyInvitation)
+            .options(joinedload(CompanyInvitation.company))
             .where(CompanyInvitation.email == email, CompanyInvitation.is_used.is_(False))
         ).all()
         return results

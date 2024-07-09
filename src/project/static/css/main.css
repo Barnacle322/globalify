@@ -1725,6 +1725,9 @@ select {
 .w-10 {
   width: 2.5rem;
 }
+.w-10\/12 {
+  width: 83.333333%;
+}
 .w-11 {
   width: 2.75rem;
 }
@@ -2836,9 +2839,6 @@ select {
 }
 .pr-9 {
   padding-right: 2.25rem;
-}
-.pt-0 {
-  padding-top: 0px;
 }
 .pt-10 {
   padding-top: 2.5rem;
@@ -4124,6 +4124,10 @@ textarea {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.hover\:border-2:hover {
+  border-width: 2px;
+}
+
 .hover\:border-b-\[3px\]:hover {
   border-bottom-width: 3px;
 }
@@ -4206,7 +4210,6 @@ textarea {
   --tw-bg-opacity: 1;
   background-color: rgb(51 65 85 / var(--tw-bg-opacity));
 }
-
 
 .hover\:bg-stone-100:hover {
   --tw-bg-opacity: 1;
@@ -4551,6 +4554,10 @@ textarea {
     max-height: 24rem;
   }
 
+  .sm\:w-1\/2 {
+    width: 50%;
+  }
+
   .sm\:w-4 {
     width: 1rem;
   }
@@ -4734,12 +4741,12 @@ textarea {
     grid-column: span 3 / span 3;
   }
 
-  .md\:col-span-6 {
-    grid-column: span 6 / span 6;
-  }
-
   .md\:col-span-4 {
     grid-column: span 4 / span 4;
+  }
+
+  .md\:col-span-6 {
+    grid-column: span 6 / span 6;
   }
 
   .md\:mt-0 {

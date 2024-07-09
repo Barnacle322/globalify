@@ -567,10 +567,12 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
         ).all()
 
     @staticmethod
-    def get_by_company_id_and_email(company_id: int, email: str) -> CompanyInvitation | None:
+    def get_by_company_id_and_email(company_id: int, email: str, get_used: bool = False) -> CompanyInvitation | None:
         return db.session.scalar(
             db.select(CompanyInvitation).where(
-                CompanyInvitation.company_id == company_id, CompanyInvitation.email == email
+                CompanyInvitation.company_id == company_id,
+                CompanyInvitation.email == email,
+                CompanyInvitation.is_used.is_(get_used),
             )
         )
 

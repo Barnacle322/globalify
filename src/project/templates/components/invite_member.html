@@ -44,7 +44,7 @@
                 class="flex gap-4 text-start w-full rounded-xl border-2 border-stone-300 items-center p-2 cursor-pointer hover:bg-stone-100"
                 v-if="userList.length > 0"
                 v-for="(user, index) in userList"
-                @click="selectUser(user.email)"
+                @click="selectUser(user.email, $event)"
             >
                 <img
                     class="size-12 rounded-lg"

@@ -249,9 +249,9 @@ def delete_account():
 def company_list_view():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    user_companies = UserCompany.get_by_user_id(authenticated_user.id)
+    user_companies = UserCompany.get_by_user_id(user_id=authenticated_user.id)
 
-    invitations = CompanyInvitation.get_by_email(authenticated_user.email)
+    invitations = CompanyInvitation.get_by_email(email=authenticated_user.email)
 
     company_invitations = []
 
@@ -280,9 +280,9 @@ def change_company_info_by_id(company_id):
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    company_invitations = CompanyInvitation.get_by_company_id(company_id)
+    company_invitations = CompanyInvitation.get_by_company_id(company_id=company_id)
 
-    company_members = UserCompany.get_members(company_id)
+    company_members = UserCompany.get_members(company_id=company_id)
     members = []
     if company_members:
         for user, user_company in company_members:
@@ -485,7 +485,7 @@ def invite_user(company_id):
         status = Status(StatusType.ERROR, "Email and role are required.").get_status()
         return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
 
-    existing_company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id, user_email)
+    existing_company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id=company_id, email=user_email)
     if existing_company_invitation:
         status = Status(StatusType.ERROR, "User already invited.").get_status()
         return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
@@ -515,7 +515,7 @@ def invite_user(company_id):
 @check_user_info_complete
 @check_verification
 def cancel_invitation(invitation_id):
-    company_invitation = CompanyInvitation.get_by_id(invitation_id)
+    company_invitation = CompanyInvitation.get_by_id(id=invitation_id)
 
     if not company_invitation:
         status = Status(StatusType.ERROR, "Invitation not found.").get_status()
@@ -534,9 +534,11 @@ def cancel_invitation(invitation_id):
 def accept_invitation(company_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    user_company = UserCompany.get_by_user_id_and_company_id(company_id, authenticated_user.id)
+    user_company = UserCompany.get_by_user_id_and_company_id(company_id=company_id, user_id=authenticated_user.id)
 
-    company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id, authenticated_user.email)
+    company_invitation = CompanyInvitation.get_by_company_id_and_email(
+        company_id=company_id, email=authenticated_user.email
+    )
 
     if not company_invitation:
         status = Status(StatusType.ERROR, "Invitation not found.").get_status()
@@ -565,7 +567,9 @@ def accept_invitation(company_id):
 def decline_invitation(company_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id, authenticated_user.email)
+    company_invitation = CompanyInvitation.get_by_company_id_and_email(
+        company_id=company_id, email=authenticated_user.email
+    )
     if not company_invitation:
         status = Status(StatusType.ERROR, "Invitation not found.").get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
@@ -831,7 +835,7 @@ def search_user(search_input):
 @check_user_info_complete
 @check_verification
 def get_company_members(company_id):
-    company_members = UserCompany.get_members(company_id)
+    company_members = UserCompany.get_members(company_id=company_id)
     members = []
 
     if company_members:
@@ -884,7 +888,7 @@ def change_company_role(user_id):
     user_company.role = CompanyRole(role)
     db.session.commit()
 
-    status = Status(StatusType.SUCCESS, "Role changed.").get_status()
+    status = Status(StatusType.SUCCESS, "Member's role changed.").get_status()
     return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
 
 
@@ -915,6 +919,12 @@ def remove_company_member(user_id):
     if not user_company:
         status = Status(StatusType.ERROR, "Member not found.").get_status()
         return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+
+    company_invitation = CompanyInvitation.get_by_company_id_and_email(
+        company_id=company_id, email=user_company.user.email
+    )
+    if company_invitation:
+        db.session.delete(company_invitation)
 
     db.session.delete(user_company)
     db.session.commit()

@@ -296,7 +296,8 @@ const InviteMemberComponent = defineComponent({
                 this.userList = [];
             }
         },
-        selectUser(email) {
+        selectUser(email, event) {
+            event.stopPropagation();
             this.$refs.searchInput.value = email;
             this.userList = [];
         },

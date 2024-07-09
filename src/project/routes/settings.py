@@ -1,6 +1,7 @@
 import re
 
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, logout_user
 
 from ..extensions import db
@@ -23,6 +24,8 @@ from ..schemas.investor import IndustrySchema, InvestorOriginPointSchema, Notabl
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.google_helpers import google_pubsub
+from ..schemas.investor import InvestorOriginPointSchema
+from ..utils.enums import Status, StatusType, Tier
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
@@ -852,11 +855,9 @@ def investor_point_origin_data():
         min_investment=investor_point_origin.min_investment,
         max_investment=investor_point_origin.max_investment,
         location=investor_point_origin.location,
-        notable_investments=[
-            NotableInvestmentSchema(title=ni.name) for ni in investor_point_origin.notable_investments
-        ],
-        rounds=[RoundSchema(title=r.name) for r in investor_point_origin.rounds],
-        industries=[IndustrySchema(title=i.name) for i in investor_point_origin.industries],
+        notable_investments=[ni.name for ni in investor_point_origin.notable_investments],
+        rounds=[r.name for r in investor_point_origin.rounds],
+        industries=[i.name for i in investor_point_origin.industries],
     )
     return data.model_dump()
 

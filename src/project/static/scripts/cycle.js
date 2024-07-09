@@ -33,7 +33,7 @@ function cycleBack() {
     // Remove the last element from the DOM after the animation is done and put it at the beginning
     setTimeout(() => {
         let lastChild = theListChildren[theListChildren.length - 1];
-        lastChild.classList.remove("ffade-scale-out");
+        lastChild.classList.remove("fade-scale-out");
         for (let i = 0; i < theListChildren.length; i++) {
             theListChildren[i].classList.remove("slide-right");
         }

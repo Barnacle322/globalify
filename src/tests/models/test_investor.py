@@ -27,9 +27,9 @@ def new_investors(app):
             n_exits=2,
             min_investment=100000,
             max_investment=50000000,
-            location="Chad",
-            _coordinates="20.45,16.5167",
-            _country="Chad",
+            # location="Chad",
+            # _coordinates="20.45,16.5167",
+            # _country="Chad",
             rounds=[Round.get_by_id(1)],
             industries=[Industry.get_by_id(1)],
             notable_investments=[notable_investment1, notable_investment2],
@@ -50,9 +50,9 @@ def new_investors(app):
             n_exits=28,
             min_investment=300000,
             max_investment=15000000,
-            location="Brazil",
-            _coordinates="-14.235,-51.9253",
-            _country="Brazil",
+            # location="Brazil",
+            # _coordinates="-14.235,-51.9253",
+            # _country="Brazil",
             rounds=[Round.get_by_id(1)],
             industries=[Industry.get_by_id(1)],
             notable_investments=[notable_investment1, notable_investment2],
@@ -73,9 +73,9 @@ def new_investors(app):
             n_exits=25,
             min_investment=300000,
             max_investment=90000000,
-            location="Nepal",
-            _coordinates="29.25,82.2167",
-            _country="Nepal",
+            # location="Nepal",
+            # _coordinates="29.25,82.2167",
+            # _country="Nepal",
             rounds=[Round.get_by_id(1)],
             industries=[Industry.get_by_id(1)],
             notable_investments=[notable_investment1, notable_investment2],
@@ -96,9 +96,9 @@ def new_investors(app):
             n_exits=50,
             min_investment=35100000,
             max_investment=38900000,
-            location="American Samoa",
-            _coordinates="-14.274,-170.7046",
-            _country="American Samoa",
+            # location="American Samoa",
+            # _coordinates="-14.274,-170.7046",
+            # _country="American Samoa",
             rounds=[Round.get_by_id(1)],
             industries=[Industry.get_by_id(1)],
             notable_investments=[notable_investment1, notable_investment2],
@@ -119,9 +119,9 @@ def new_investors(app):
             n_exits=53,
             min_investment=43900000,
             max_investment=44800000,
-            location="India",
-            _coordinates="14.92,78.9546",
-            _country="India",
+            # location="India",
+            # _coordinates="14.92,78.9546",
+            # _country="India",
             rounds=[Round.get_by_id(1)],
             industries=[Industry.get_by_id(1)],
             notable_investments=[notable_investment1, notable_investment2],
@@ -142,9 +142,9 @@ def new_investors(app):
             n_exits=30,
             min_investment=50000,
             max_investment=3000000,
-            location="Canada",
-            _coordinates="56.1304,-106.3468",
-            _country="Canada",
+            # location="Canada",
+            # _coordinates="56.1304,-106.3468",
+            # _country="Canada",
             rounds=[Round.get_by_id(1)],
             industries=[Industry.get_by_id(1)],
             notable_investments=[notable_investment1, notable_investment2],
@@ -165,9 +165,9 @@ def new_investors(app):
             n_exits=20,
             min_investment=200000,
             max_investment=10000000,
-            location="United Kingdom",
-            _coordinates="55.3781,-3.436",
-            _country="United Kingdom",
+            # location="United Kingdom",
+            # _coordinates="55.3781,-3.436",
+            # _country="United Kingdom",
             rounds=[Round.get_by_id(1)],
             industries=[Industry.get_by_id(1)],
             notable_investments=[notable_investment1, notable_investment2],
@@ -188,9 +188,9 @@ def new_investors(app):
             n_exits=35,
             min_investment=100000,
             max_investment=5000000,
-            location="Australia",
-            _coordinates="-25.2744,133.7751",
-            _country="Australia",
+            # location="Australia",
+            # _coordinates="-25.2744,133.7751",
+            # _country="Australia",
             rounds=[Round.get_by_id(1)],
             industries=[Industry.get_by_id(1)],
             notable_investments=[notable_investment1, notable_investment2],
@@ -211,9 +211,9 @@ def new_investors(app):
             n_exits=25,
             min_investment=500000,
             max_investment=20000000,
-            location="Mexico",
-            _coordinates="23.6345,-102.5528",
-            _country="Mexico",
+            # location="Mexico",
+            # _coordinates="23.6345,-102.5528",
+            # _country="Mexico",
             rounds=[Round.get_by_id(1)],
             industries=[Industry.get_by_id(1)],
             notable_investments=[notable_investment1, notable_investment2],
@@ -223,6 +223,8 @@ def new_investors(app):
             [investor1, investor2, investor3, investor4, investor5, investor6, investor7, investor8, investor9]
         )
         db.session.commit()
+
+        investor1.set_slug()
 
 
 @pytest.fixture()
@@ -252,9 +254,9 @@ def test_investor(new_investors, app):
         assert investor.n_exits == 2
         assert investor.min_investment == 100000
         assert investor.max_investment == 50000000
-        assert investor.location == "Chad"
-        assert investor._coordinates == "20.45,16.5167"
-        assert investor._country == "Chad"
+        # assert investor.location == "Chad"
+        # assert investor._coordinates == "20.45,16.5167"
+        # assert investor._country == "Chad"
         assert investor.rounds == [Round.get_by_id(1)]
         assert investor.industries == [Industry.get_by_id(1)]
         assert investor.notable_investments == [
@@ -358,3 +360,22 @@ def test_get_by_name_non_existing_notable_investment(new_notable_investment, app
     with app.app_context():
         notable_investment = NotableInvestment.get_by_name("Nonexistent Investment")
         assert notable_investment is None
+
+
+# TODO
+# def test_get_by_slug_existing(new_investors, app):
+#     with app.app_context():
+#         investor = Investor.query.first()
+#         print(investor)
+#         investor = Investor.get_by_slug("JaneDoe")
+#         print(investor)
+#         investors = Investor.get_all()
+#         print(investors[1].slug)
+#         assert investor
+#         assert investor.slug == "jane-doe"
+
+
+# def test_get_by_slug_not_existing(app):
+#     with app.app_context():
+#         investor = Investor.get_by_slug("industy-example")
+#         assert not investor

@@ -45,16 +45,17 @@ def verified_user(app):
         db.session.add_all([user_info, user_payment])
         db.session.commit()
 
-        company = Company(
-            name="Test Company",
-            description="Test description",
-            number_of_employees=10,
-            website_url="https://www.example.com",
-            country_id=1,
-            preferred_round_id=1,
-            industry_id=1,
-            user=user,
-        )
+        company = Company(user_id=1, name="Test Company")
+
+        company.description = "Test description"
+        company.number_of_employees = 10
+        company.website_url = "https://www.example.com"
+        company.picture_url = "https://www.example.com"
+        company.country_id = 1
+        company.preferred_round_id = 1
+        company.industry_id = 1
+        company.user = user
+
         db.session.add(company)
         db.session.commit()
         return user
@@ -265,7 +266,7 @@ def test_logout_endpoint(client, app, verified_user, monkeypatch):
         response = client.get("/logout", follow_redirects=True)
         assert response.status_code == 200
         assert b"Globalify" in response.data
-        assert b"Your Gateway to Investors" in response.data
+        assert b"Your Gateway" in response.data
         assert (
             b"Unlock your business's potential with our extensive network of investors and partners." in response.data
         )

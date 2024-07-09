@@ -1,7 +1,7 @@
 import pytest
 
 from ...project import db
-from ...project.models import Industry, InvestmentFirm, Round
+from ...project.models import Industry, InvestmentFirm, Round, NotableInvestment
 
 
 @pytest.fixture()
@@ -30,6 +30,7 @@ def new_investment_firm(app):
 @pytest.fixture()
 def populate_investment_firm(app):
     with app.app_context():
+        NotableInvestment.populate()
         InvestmentFirm.populate()
 
 

@@ -29,7 +29,7 @@ def new_user_oauth(app):
             customer_id="cus_123",
             subscription_id="sub_123",
             is_active=True,
-            tier=Tier.ELEVATE,
+            tier=Tier.FREE,
             user=user,
         )
         user_payment.created_epoch = 1609462861
@@ -42,16 +42,15 @@ def new_user_oauth(app):
 @pytest.fixture()
 def new_company(app):
     with app.app_context():
-        company = Company(
-            name="Globalify",
-            user_id=1,
-            description="A very cool company",
-            number_of_employees=3,
-            website_url="https://globalify.xyz",
-            country_id=235,
-            preferred_round_id=1,
-            industry_id=1,
-        )
+        company = Company(user_id=1, name="Globalify")
+
+        company.description = "A very cool company"
+        company.number_of_employees = 3
+        company.website_url = "https://globalify.xyz"
+        company.picture_url = "https://www.example.com"
+        company.country_id = 235
+        company.preferred_round_id = 1
+        company.industry_id = 1
         db.session.add(company)
         db.session.commit()
 
@@ -132,14 +131,14 @@ def test_user_payment(new_user_oauth, app):
         assert user_payment.created == datetime.datetime(2021, 1, 1, 1, 1, 1)
         assert user_payment.expires_at == datetime.datetime(2021, 2, 1, 1, 1, 1)
         assert user_payment.is_active is True
-        assert user_payment.tier == Tier.ELEVATE
+        assert user_payment.tier == Tier.FREE
 
         assert user_payment.is_expired() is False
         assert user_payment.sanitize() == {
             "created": datetime.datetime(2021, 1, 1, 1, 1, 1),
             "expires_at": datetime.date(2021, 2, 1),
             "is_active": True,
-            "tier": Tier.ELEVATE,
+            "tier": Tier.FREE,
             "subscription_id": "sub_123",
         }
 

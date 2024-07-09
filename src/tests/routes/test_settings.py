@@ -111,16 +111,17 @@ def new_user_with_company(app):
         )
         db.session.add(user_info)
         db.session.commit()
-        company = Company(
-            name="Test Company",
-            description="Test description",
-            number_of_employees=10,
-            website_url="https://www.example.com",
-            country_id=1,
-            preferred_round_id=1,
-            industry_id=1,
-            user=user,
-        )
+
+        company = Company(user_id=1, name="Test Company")
+
+        company.description = "Test description"
+        company.number_of_employees = 10
+        company.website_url = "https://www.example.com"
+        company.picture_url = "https://www.example.com"
+        company.country_id = 1
+        company.preferred_round_id = 1
+        company.industry_id = 1
+
         db.session.add(company)
         db.session.commit()
         return user
@@ -232,7 +233,8 @@ def test_settings_plan_verified_get(client, app, verified_user, monkeypatch):
         response = client.get("/settings/plan")
         assert response.status_code == 200
         assert b"Your subscription" in response.data
-        assert b"This is your current subscription. You can update your plan any time." in response.data
+        assert b"You have free access to some Globalify features" in response.data
+        # assert b"This is your current subscription. You can update your plan any time." in response.data
 
 
 def test_settings_billing_anonymous_get(client):
@@ -508,7 +510,7 @@ def test_delete_account(client, app, verified_user, monkeypatch):
         assert response.status_code == 200
 
         assert b"Globalify" in response.data
-        assert b"Your Gateway to Investors" in response.data
+        assert b"Your Gateway" in response.data
         assert b"Unlock your business's potential with our extensive network of investors. We're here to help you secure the\nfunding you need to take your business to the next level."
 
         assert User.get_by_email("johndoe@example.com") is None

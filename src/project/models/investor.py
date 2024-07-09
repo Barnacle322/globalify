@@ -1414,7 +1414,7 @@ class InvestmentFirm(db.Model):
                     n_exits=n_exits,
                     n_employees=n_employees,
                     location=locations[i],
-                    coordinates=locations[i],
+                    # coordinates=locations[i],
                     rounds=list(set(rounds)),
                     industries=list(set(industries)),
                     min_investment=min_investment,

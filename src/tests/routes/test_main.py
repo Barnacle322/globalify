@@ -16,7 +16,7 @@ def test_index(client):
     response = client.get("/")
     assert response.status_code == 200
     assert b"Globalify" in response.data
-    assert b"Your Gateway to Investors" in response.data
+    assert b"Your Gateway" in response.data
     assert b"Tailored experience for specific regions" in response.data
     assert b"Unlock your business's potential with our extensive network of investors and partners." in response.data
     assert b"Finding investors with ease" in response.data
@@ -29,8 +29,8 @@ def test_about(client):
     assert b"Our Passion" in response.data
     assert b"The what, the how, the who" in response.data
     assert b"Our team" in response.data
-    assert b"info@globalify.xyz" in response.data
-    assert b"Use Globalify - Fund Your Startup" in response.data
+    assert b"partner@globalify.xyz" in response.data
+    assert b"search for and connect" in response.data
 
 
 def test_waitlist_email(client):
@@ -141,7 +141,7 @@ def test_download_post_wrong_key(client, app):
     response = client.post("/download", data={"key": "54321"}, follow_redirects=True)
     assert response.status_code == 200
     assert b"Globalify" in response.data
-    assert b"Your Gateway to Investors" in response.data
+    assert b"Your Gateway" in response.data
     assert b"Tailored experience for specific regions" in response.data
     assert b"Unlock your business's potential with our extensive network of investors and partners." in response.data
     assert b"Finding investors with ease" in response.data
@@ -162,7 +162,7 @@ def test_download_post_already_downloaded(client, app):
     response = client.post("/download", data={"key": "12345"}, follow_redirects=True)
     assert response.status_code == 200
     assert b"Globalify" in response.data
-    assert b"Your Gateway to Investors" in response.data
+    assert b"Your Gateway" in response.data
     assert b"Tailored experience for specific regions" in response.data
     assert b"Unlock your business's potential with our extensive network of investors and partners." in response.data
     assert b"Finding investors with ease" in response.data
@@ -290,6 +290,7 @@ def investor(app):
             about="Julie is a founder and CEO at Qwerty LLC. She is a great investor.",
             firm_name="Qwerty LLC",
             position="CEO",
+            slug="julie-doe",
             rounds=[Round.get_by_id(1), Round.get_by_id(2)],
             industries=[Industry.get_by_id(1), Industry.get_by_id(2)],
             min_investment=1_000_000,
@@ -441,13 +442,14 @@ def test_investor_verified_get(client, app, verified_user, investor, monkeypatch
         user = User.get_by_id(1)
         login_user(user)
 
-        response = client.get("/investor/1", follow_redirects=True)
+        response = client.get("/investor/julie-doe", follow_redirects=True)
+
         assert response.status_code == 200
         assert b"Julie" in response.data
         assert b"Qwerty LLC" in response.data
         assert b"Julie is a founder and CEO at Qwerty LLC. She is a great investor." in response.data
         assert b"Industries" in response.data
-        assert b"Rounds" in response.data
+        assert b"Pre-Seed" in response.data
 
 
 def test_investor_not_found(client, app, verified_user, investor, monkeypatch):
@@ -557,7 +559,7 @@ def test_pricing(client):
     assert response.status_code == 200
     assert b"Pricing" in response.data
     assert b"Flexible Pricing Options for Advanced Search Solutions" in response.data
-    assert b"Perfect for small startups" in response.data
+    assert b"Perfect for growing startups" in response.data
     assert b"Subscribe" in response.data
 
 

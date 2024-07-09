@@ -199,7 +199,6 @@ const ConfirmRestoreComponent = defineComponent({
             return "";
         },
     },
-
     mounted() {
         this.fetchPointOriginData();
         window.addEventListener("keydown", this.handleKeyDown);

@@ -560,6 +560,109 @@ def accept_invitation(company_id):
     return redirect(url_for("settings.company_list_view", _external=False))
 
 
+@settings.get("/company/<int:company_id>/members")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_company_members(company_id):
+    company_members = UserCompany.get_members(company_id=company_id)
+    members = []
+
+    if company_members:
+        for user, user_company in company_members:
+            user_info = user.user_info
+            user_element = MemberSchema(
+                id=user.id,
+                name=user_info.first_name + " " + user_info.last_name,
+                picture_url=user_info.picture_url,
+                role=user_company.role.value,
+            )
+            members.append(user_element.model_dump())
+        return jsonify({"members": members})
+    return jsonify({"members": []})
+
+
+@settings.get("/company/roles")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_company_roles():
+    return jsonify({"roles": [role.value for role in CompanyRole]})
+
+
+@settings.post("/company/<int:user_id>/change-role")
+@login_required
+@check_user_info_complete
+@check_verification
+def change_company_role(user_id):
+    form_data = request.get_json()
+
+    company_id = form_data.get("company_id")
+    role = form_data.get("role")
+
+    current_user_company = UserCompany.get_by_user_id_and_company_id(
+        user_id=current_user.id, company_id=company_id, get_accepted=True
+    )
+    if not current_user_company:
+        status = Status(StatusType.ERROR, "You don't have an access!").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+    if current_user_company.role != CompanyRole.OWNER:
+        status = Status(StatusType.ERROR, "Only owner can change role!").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+
+    user_company = UserCompany.get_by_user_id_and_company_id(user_id, company_id, True)
+    if not user_company:
+        status = Status(StatusType.ERROR, "Member not found.").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+
+    user_company.role = CompanyRole(role)
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Member's role changed.").get_status()
+    return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+
+
+@settings.post("/company/<int:user_id>/remove")
+@login_required
+@check_user_info_complete
+@check_verification
+def remove_company_member(user_id):
+    form_data = request.get_json()
+
+    company_id = form_data.get("company_id")
+
+    if current_user.id == user_id:
+        status = Status(StatusType.ERROR, "You can't remove yourself.").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+
+    current_user_company = UserCompany.get_by_user_id_and_company_id(
+        user_id=current_user.id, company_id=company_id, get_accepted=True
+    )
+    if not current_user_company:
+        status = Status(StatusType.ERROR, "You don't have an access!").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+    if current_user_company.role != CompanyRole.OWNER:
+        status = Status(StatusType.ERROR, "Only owner can change role!").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+
+    user_company = UserCompany.get_by_user_id_and_company_id(user_id=user_id, company_id=company_id, get_accepted=True)
+    if not user_company:
+        status = Status(StatusType.ERROR, "Member not found.").get_status()
+        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+
+    company_invitation = CompanyInvitation.get_by_company_id_and_email(
+        company_id=company_id, email=user_company.user.email
+    )
+    if company_invitation:
+        db.session.delete(company_invitation)
+
+    db.session.delete(user_company)
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Member removed.").get_status()
+    return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
+
+
 @settings.post("/company/<int:company_id>/decline/invitation")
 @login_required
 @check_user_info_complete
@@ -828,106 +931,3 @@ def search_user(search_input):
             return jsonify({"search_input": search_input})
         else:
             return jsonify({"users": []})
-
-
-@settings.get("/company/<int:company_id>/members")
-@login_required
-@check_user_info_complete
-@check_verification
-def get_company_members(company_id):
-    company_members = UserCompany.get_members(company_id=company_id)
-    members = []
-
-    if company_members:
-        for user, user_company in company_members:
-            user_info = user.user_info
-            user_element = MemberSchema(
-                id=user.id,
-                name=user_info.first_name + " " + user_info.last_name,
-                picture_url=user_info.picture_url,
-                role=user_company.role.value,
-            )
-            members.append(user_element.model_dump())
-        return jsonify({"members": members})
-    return jsonify({"members": []})
-
-
-@settings.get("/company/roles")
-@login_required
-@check_user_info_complete
-@check_verification
-def get_company_roles():
-    return jsonify({"roles": [role.value for role in CompanyRole]})
-
-
-@settings.post("/company/<int:user_id>/change-role")
-@login_required
-@check_user_info_complete
-@check_verification
-def change_company_role(user_id):
-    form_data = request.get_json()
-
-    company_id = form_data.get("company_id")
-    role = form_data.get("role")
-
-    current_user_company = UserCompany.get_by_user_id_and_company_id(
-        user_id=current_user.id, company_id=company_id, get_accepted=True
-    )
-    if not current_user_company:
-        status = Status(StatusType.ERROR, "You don't have an access!").get_status()
-        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
-    if current_user_company.role != CompanyRole.OWNER:
-        status = Status(StatusType.ERROR, "Only owner can change role!").get_status()
-        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
-
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id, company_id, True)
-    if not user_company:
-        status = Status(StatusType.ERROR, "Member not found.").get_status()
-        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
-
-    user_company.role = CompanyRole(role)
-    db.session.commit()
-
-    status = Status(StatusType.SUCCESS, "Member's role changed.").get_status()
-    return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
-
-
-@settings.post("/company/<int:user_id>/remove")
-@login_required
-@check_user_info_complete
-@check_verification
-def remove_company_member(user_id):
-    form_data = request.get_json()
-
-    company_id = form_data.get("company_id")
-
-    if current_user.id == user_id:
-        status = Status(StatusType.ERROR, "You can't remove yourself.").get_status()
-        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
-
-    current_user_company = UserCompany.get_by_user_id_and_company_id(
-        user_id=current_user.id, company_id=company_id, get_accepted=True
-    )
-    if not current_user_company:
-        status = Status(StatusType.ERROR, "You don't have an access!").get_status()
-        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
-    if current_user_company.role != CompanyRole.OWNER:
-        status = Status(StatusType.ERROR, "Only owner can change role!").get_status()
-        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
-
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id=user_id, company_id=company_id, get_accepted=True)
-    if not user_company:
-        status = Status(StatusType.ERROR, "Member not found.").get_status()
-        return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))
-
-    company_invitation = CompanyInvitation.get_by_company_id_and_email(
-        company_id=company_id, email=user_company.user.email
-    )
-    if company_invitation:
-        db.session.delete(company_invitation)
-
-    db.session.delete(user_company)
-    db.session.commit()
-
-    status = Status(StatusType.SUCCESS, "Member removed.").get_status()
-    return redirect(url_for("settings.change_company_info_by_id", company_id=company_id, _external=False, **status))

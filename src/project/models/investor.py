@@ -583,7 +583,7 @@ class Investor(InvestorBase):
         db.session.commit()
 
     @staticmethod
-    def populate_demo(file_name="investor.csv"):
+    def populate_demo(file_name="data/investor.csv"):
         with open(file_name, newline="") as file:
             existing_notable_investments = NotableInvestment.get_all()
             existing_industry_list = Industry.get_industry_list()
@@ -671,7 +671,7 @@ class Investor(InvestorBase):
 
     @staticmethod
     def populate_cli():
-        with open("mercury_investor.jsonl", encoding="utf-8-sig") as file:
+        with open("data/mercury_investor.jsonl", encoding="utf-8-sig") as file:
             investors = file.readlines()
             existing_nis = list(NotableInvestment.get_all())
             for investor in investors:
@@ -728,7 +728,7 @@ class Investor(InvestorBase):
             db.session.commit()
 
     @staticmethod
-    def populate_vcsheet(file_name="investors_vc.csv"):
+    def populate_vcsheet(file_name="data/investors_vc.csv"):
         with open(file_name, newline="", encoding="utf-8") as file:
             reader = csv.reader(file, delimiter=",", quotechar='"')
             existing_notable_investments = NotableInvestment.get_all()
@@ -1389,7 +1389,7 @@ class InvestmentFirm(db.Model):
             batch_count += 1
 
     @staticmethod
-    def populate_vcsheet(file_name="funds_vc.csv"):
+    def populate_vcsheet(file_name="data/funds_vc.csv"):
         with open(file_name, newline="", encoding="utf-8") as file:
             reader = csv.reader(file, delimiter=",", quotechar='"')
             existing_notable_investments = NotableInvestment.get_all()

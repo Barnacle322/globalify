@@ -316,7 +316,7 @@ def setup():
     except Exception as e:
         print(f"Error deleting cities schema: {e}")
     create_schema(city_schema)
-    populate_schema_from_file("cities", file_path="./cities_index.jsonl")
+    populate_schema_from_file("cities", file_path="./data/cities_index.jsonl")
 
 
 def update_schema(schema_name: str, file_path: str) -> None:
@@ -346,25 +346,6 @@ def search(
 
     results = client.collections[collection].documents.search(search_parameters)
     return results
-
-
-def create_index(file_name: str):
-    import csv
-    import json
-
-    with open(file_name, newline="", encoding="utf-8") as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            with open("cities_index.jsonl", "a", encoding="utf-8") as jsonl_file:
-                json_row = {}
-                json_row["city"] = row["city"]
-                json_row["city_ascii"] = row["city_ascii"]
-                json_row["country"] = row["country"]
-                json_row["admin_name"] = row["admin_name"]
-                json_row["population"] = int(float(row.get("population", 0))) if row.get("population") != "" else 0
-                json_row["latitude"] = float(row["lat"])
-                json_row["longitude"] = float(row["lng"])
-                jsonl_file.write(json.dumps(json_row) + "\n")
 
 
 def create_synonyms(schema_name: str) -> None:

@@ -1,0 +1,89 @@
+{% macro render(company) %}
+<template id="invite-member-template">
+    <article
+        class="fixed right-1/2 top-1/2 z-50 m-4 flex w-full max-w-2xl -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all"
+    >
+        <div class="flex flex-col items-center justify-center gap-2">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-6"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                />
+            </svg>
+            <span class="font-medium">Invite a member to your company</span>
+            <button class="absolute right-3 top-3" @click="closeInviteMember">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-6"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="font-medium" for="email">Search by email</label>
+            <input
+                type="text"
+                ref="searchInput"
+                class="w-full rounded-xl border-2 border-stone-300"
+                @input="debouncedGetUserList"
+            />
+            <div
+                class="flex gap-4 text-start w-full rounded-xl border-2 border-stone-300 items-center p-2 cursor-pointer hover:bg-stone-100"
+                v-if="userList.length > 0"
+                v-for="(user, index) in userList"
+                @click="selectUser(user.email, $event)"
+            >
+                <img
+                    class="size-12 rounded-lg"
+                    v-if="user.id"
+                    :src="user.picture_url ? user.picture_url : '/static/elements/pfp_placeholder.jpeg'"
+                    alt=""
+                />
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-6"
+                    v-else
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
+                    />
+                </svg>
+                <div>
+                    <h2 class="text-xl font-semibold" v-text="user.email"></h2>
+                    <p class="text-gray-500">Invite to group</p>
+                </div>
+            </div>
+            <label class="font-medium" for="role">Select role</label>
+            <select class="w-full rounded-xl border-2 border-stone-300" v-model="selectedRole">
+                <option v-for="role in roles" v-text="role" :value="role" @click=""></option>
+            </select>
+
+            <label class="font-medium" for="invitationMessage">Invitation Message</label>
+            <textarea class="w-full rounded-xl border-2 border-stone-300" v-model="invitationMessage"></textarea>
+
+            <button class="w-full rounded-xl bg-sky-400 px-3 py-2 text-white" @click="inviteMember({{company.id}})">
+                Invite
+            </button>
+        </div>
+    </article>
+</template>
+{% endmacro %}

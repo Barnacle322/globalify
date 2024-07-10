@@ -55,6 +55,12 @@ class Events(Enum):
     USER_COMPLETED_ONBOARDING = "user.completed_onboarding"
 
 
+class CompanyRole(Enum):
+    OWNER = "owner"
+    ADMIN = "admin"
+    EMPLOYEE = "employee"
+
+
 @dataclass
 class ButtonLayout:
     text: str

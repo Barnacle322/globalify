@@ -214,29 +214,183 @@
                 <main class="mt-10 flex flex-col items-center justify-center p-4">
                     <h1 class="w-full text-4xl font-semibold">Your Companies</h1>
                     {% if not companies %}
-                    <p class="mx-auto mt-5 max-w-xl text-center text-gray-500">
-                        Hmm, it look like you aren't a part of any company. You can create one or ask your colleague to
-                        invite you!
-                    </p>
+                    <div class="flex flex-col gap-2">
+                        <p class="mx-auto mt-5 max-w-xl text-center text-gray-500">
+                            Hmm, it look like you aren't a part of any company. You can create one or ask your colleague
+                            to invite you!
+                        </p>
+                        <a href="company/create" class="font-medium">
+                            <button
+                                class="flex w-full items-center justify-center gap-2 rounded-xl border bg-white p-4 transition-all hover:border-2"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-6"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                    />
+                                </svg>
+                                Create a company
+                            </button></a
+                        >
+                    </div>
                     {% else %}
                     <div class="mt-10 grid w-full grid-cols-3 gap-4">
                         {% for company in companies %}
-                        <a
-                            href="/settings/company/{{ company.company.id }}"
-                            class="flex w-full justify-between rounded-xl border bg-white p-4"
-                        >
-                            <div class="flex gap-4 text-start">
-                                {% if company.company.picture_url %}
-                                <img class="size-12 rounded-lg" src="{{ company.company.picture_url }}" alt="" />
-                                {% else %}
-                                <img class="size-12 rounded-lg" src="/static/elements/pfp_placeholder.jpeg" alt="" />
-                                {% endif %}
-                                <div>
-                                    <h2 class="text-xl font-semibold">{{ company.company.name }}</h2>
-                                    <p class="text-gray-500">{{ company.company.description }}</p>
+                        <div class="relative">
+                            <a
+                                href="/settings/company/{{ company.company.id }}"
+                                class="flex w-full justify-between rounded-xl border bg-white p-4"
+                            >
+                                <div class="flex gap-4 text-start">
+                                    {% if company.company.picture_url %}
+                                    <img class="size-12 rounded-lg" src="{{ company.company.picture_url }}" alt="" />
+                                    {% else %}
+                                    <img
+                                        class="size-12 rounded-lg"
+                                        src="/static/elements/pfp_placeholder.jpeg"
+                                        alt=""
+                                    />
+                                    {% endif %}
+                                    <div>
+                                        <div class="flex text-xl font-semibold items-center">
+                                            <h2 class=""></h2>
+                                            {{ company.company.name }} {% if company.is_primary %}
+                                            <svg
+                                                height="200px"
+                                                width="200px"
+                                                version="1.1"
+                                                id="Layer_1"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                viewBox="0 0 512 512"
+                                                xml:space="preserve"
+                                                fill="#000000"
+                                                class="size-5 ml-2"
+                                            >
+                                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                                <g
+                                                    id="SVGRepo_tracerCarrier"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                ></g>
+                                                <g id="SVGRepo_iconCarrier">
+                                                    <polygon
+                                                        style="fill: #ffea8a"
+                                                        points="0,443.733 0,68.267 17.067,68.267 136.533,187.733 256,68.267 375.467,187.733 494.933,68.267 512,68.267 512,443.733 "
+                                                    ></polygon>
+                                                    <polygon
+                                                        style="fill: #ffdb2d"
+                                                        points="494.933,68.267 375.467,187.733 256.002,68.267 256,68.267 256,443.733 512,443.733 512,68.267 "
+                                                    ></polygon>
+                                                </g>
+                                            </svg>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-gray-500">{{ company.company.description }}</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="absolute right-5 top-5">
+                                <button
+                                    @click.prevent="!openedDropdownCompanyId ? openDropdown({{company.id}}) : closeDropdown()"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="size-6"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+                                        />
+                                    </svg>
+                                </button>
+                                <div
+                                    v-if="openedDropdownCompanyId === {{ company.id }}"
+                                    class="absolute right-0 top-8 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
+                                    ref="dropdown"
+                                >
+                                    <button
+                                        @click="makePrimary({{ company.id }})"
+                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
+                                    >
+                                        <svg
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="size-5"
+                                        >
+                                            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                            <g
+                                                id="SVGRepo_tracerCarrier"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            ></g>
+                                            <g id="SVGRepo_iconCarrier">
+                                                <path
+                                                    d="M16.6992 18.9799H7.29922C6.87922 18.9799 6.40922 18.6499 6.26922 18.2499L2.12922 6.66986C1.53922 5.00986 2.22922 4.49986 3.64922 5.51986L7.54922 8.30986C8.19922 8.75986 8.93922 8.52986 9.21922 7.79986L10.9792 3.10986C11.5392 1.60986 12.4692 1.60986 13.0292 3.10986L14.7892 7.79986C15.0692 8.52986 15.8092 8.75986 16.4492 8.30986L20.1092 5.69986C21.6692 4.57986 22.4192 5.14986 21.7792 6.95986L17.7392 18.2699C17.5892 18.6499 17.1192 18.9799 16.6992 18.9799Z"
+                                                    stroke="#292D32"
+                                                    stroke-width="1.5"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                ></path>
+                                                <path
+                                                    opacity="0.34"
+                                                    d="M6.5 22H17.5"
+                                                    stroke="#292D32"
+                                                    stroke-width="1.5"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                ></path>
+                                                <path
+                                                    opacity="0.34"
+                                                    d="M9.5 14H14.5"
+                                                    stroke="#292D32"
+                                                    stroke-width="1.5"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                ></path>
+                                            </g>
+                                        </svg>
+                                        Make primary
+                                    </button>
+                                    {% if company.role.value == 'owner' %}
+                                    <button
+                                        @click="deleteUserCompany({{ company.id }})"
+                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="size-5"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                                            />
+                                        </svg>
+                                        Delete
+                                    </button>
+                                    {% endif %}
                                 </div>
                             </div>
-                        </a>
+                        </div>
                         {% endfor %}
                         <button
                             class="flex w-full items-center justify-center gap-2 rounded-xl border bg-white p-4 transition-all hover:border-2"

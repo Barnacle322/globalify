@@ -7,7 +7,7 @@ from sqlite3 import Connection as SQLite3Connection
 from uuid import uuid4
 
 from flask_login import UserMixin
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func, or_, text
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func, or_, text, update
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship, validates
@@ -371,6 +371,7 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
     role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
     is_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     user: Mapped[User] = relationship(
         User, backref=backref("user_company", passive_deletes=True, uselist=True), init=False
@@ -378,6 +379,26 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     company: Mapped[Company] = relationship(
         Company, backref=backref("user_company", passive_deletes=True, uselist=True), init=False
     )
+
+    @property
+    def get_primary(self):
+        return self.is_primary
+
+    @get_primary.setter
+    def set_primary(self, user_id: int) -> None:
+        db.session.execute(update(UserCompany).where(UserCompany.user_id == user_id).values(is_primary=False))
+        self.is_primary = True
+        db.session.commit()
+
+    @staticmethod
+    def get_by_id(id: int) -> UserCompany | None:
+        return db.session.scalar(db.select(UserCompany).where(UserCompany.id == id))
+
+    @staticmethod
+    def get_primary_by_user_id(user_id: int) -> UserCompany | None:
+        return db.session.scalar(
+            db.select(UserCompany).where(UserCompany.user_id == user_id, UserCompany.is_primary.is_(True))
+        )
 
     @staticmethod
     def get_by_user_id(user_id: int) -> Sequence[UserCompany]:

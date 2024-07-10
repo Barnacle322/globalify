@@ -465,11 +465,15 @@ def create_company():
     db.session.add(company)
     db.session.commit()
 
+    existing_user_companies = UserCompany.get_by_user_id(user_id=authenticated_user.id)
+    is_primary = False if existing_user_companies else True
+
     user_company = UserCompany(
         user_id=authenticated_user.id,
         company_id=company.id,
         role=CompanyRole.OWNER,
         is_accepted=True,
+        is_primary=is_primary,
     )
 
     db.session.add(user_company)
@@ -477,6 +481,28 @@ def create_company():
 
     status = Status(StatusType.SUCCESS, "Company created.").get_status()
     return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+
+@settings.post("/user-company/<int:user_company_id>/delete")
+@login_required
+@check_user_info_complete
+@check_verification
+def delete_user_company(user_company_id):
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    user_company = UserCompany.get_by_id(user_company_id)
+    if not user_company:
+        status = Status(StatusType.ERROR, "Company not found.").get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+    if user_company.user_id != authenticated_user.id and user_company.role != CompanyRole.OWNER:
+        status = Status(StatusType.ERROR, "You don't have permissions to delete this company!").get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+    db.session.delete(user_company)
+    db.session.commit()
+
+    return redirect(url_for("settings.company_list_view", _external=False))
 
 
 @settings.post("/company/invite/<int:company_id>")
@@ -689,6 +715,23 @@ def decline_invitation(company_id):
     company_invitation.is_used = True
 
     db.session.commit()
+
+    return redirect(url_for("settings.company_list_view", _external=False))
+
+
+@settings.post("/company/<int:company_id>/make/primary")
+@login_required
+@check_user_info_complete
+@check_verification
+def make_company_primary(company_id):
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    user_company = UserCompany.get_by_id(id=company_id)
+    if not user_company:
+        status = Status(StatusType.ERROR, "Company not found.").get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+    user_company.set_primary = authenticated_user.id
 
     return redirect(url_for("settings.company_list_view", _external=False))
 

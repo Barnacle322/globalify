@@ -376,6 +376,8 @@ createApp({
             asideMinified: false,
             confirmRestoreOpened: false,
             inviteMemberOpened: false,
+            openedDropdownCompanyId: null,
+            ignoreNextOutsideClick: false,
             csrfToken: "",
             selectedRounds: [],
             selectedIndustries: [],
@@ -396,6 +398,17 @@ createApp({
         };
     },
     methods: {
+        openDropdown(companyId) {
+            this.openedDropdownCompanyId = companyId;
+            this.ignoreNextOutsideClick = true;
+        },
+        closeDropdown(event) {
+            if (this.ignoreNextOutsideClick) {
+                this.ignoreNextOutsideClick = false;
+            } else if (event && !this.$el.contains(event.target)) {
+                this.openedDropdownCompanyId = false;
+            }
+        },
         getValues() {
             const first_name = document.getElementById("first_name").value;
             const last_name = document.getElementById("last_name").value;
@@ -545,6 +558,25 @@ createApp({
                     console.error("Error:", error);
                 });
         },
+        async deleteUserCompany(userCompanyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/settings/user-company/${userCompanyId}/delete`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error("Error deleting company:", error.message);
+            }
+        },
         async acceptInvitation(companyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
@@ -595,8 +627,28 @@ createApp({
                 }
             }
         },
+        async makePrimary(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/settings/company/${companyId}/make/primary`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error("Failed to make primary");
+                }
+            } catch (error) {
+                console.error("Error making primary:", error.message);
+            }
+        },
     },
     mounted() {
         this.setupMenuToggle();
+        window.addEventListener("click", this.closeDropdown);
     },
 }).mount("#app");

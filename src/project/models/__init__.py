@@ -11,13 +11,13 @@ from .investor import (
 from .user import (
     ClaimRequest,
     Company,
+    CompanyInvitation,
     EmailVerification,
     Notification,
     User,
+    UserCompany,
     UserInfo,
     UserPayment,
-    Waitlist,
-    WaitlistCharge,
 )
 
 __all__ = [
@@ -30,12 +30,12 @@ __all__ = [
     "Investor",
     "InvestorBookmark",
     "Company",
+    "CompanyInvitation",
+    "UserCompany",
     "User",
     "UserInfo",
     "UserPayment",
     "Notification",
-    "Waitlist",
-    "WaitlistCharge",
     "NotableInvestment",
     "ClaimRequest",
     "InvestorBackup",

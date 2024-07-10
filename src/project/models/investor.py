@@ -143,14 +143,6 @@ class SuggestionBuilder:
 
 
 class NotableInvestment(db.Model):
-    """
-    Represents a notable investment of an investor or investment firm.
-
-    Attributes:
-        id (int): The unique identifier for the notable investment (primary key).
-        name (str): The name of the notable investment (not nullable).
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
 
@@ -271,30 +263,6 @@ class InvestorBase(db.Model):
 
 
 class Investor(InvestorBase):
-    """
-    Class representing an investor in the database.
-
-    Attributes:
-        id (int): The unique identifier for the investor (primary key).
-        first_name (str): The first name of the investor (not nullable).
-        last_name (str): The last name of the investor.
-        firm_name (str): The name of the investor's firm.
-        about (str): A brief description or information about the investor.
-        position (str): The position or role of the investor.
-        website (str): The website URL of the investor.
-        linkedin (str): The LinkedIn profile of the investor.
-        twitter (str): The Twitter handle of the investor.
-        email (str): The email address of the investor (unique).
-        phone_number (str): The phone number of the investor.
-        n_investments (int): The number of investments made by the investor.
-        n_exits (int): The number of exits achieved by the investor.
-        min_investment (int): The minimum investment amount accepted by the investor.
-        max_investment (int): The maximum investment amount accepted by the investor.
-        location (str): The location or address of the investor.
-        rounds (List[Round]): List of Round objects associated with the investor.
-        industries (List[Industry]): List of Industry objects associated with the investor.
-    """
-
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
     _country: Mapped[str | None] = mapped_column(String, nullable=True)
     bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -615,7 +583,7 @@ class Investor(InvestorBase):
         db.session.commit()
 
     @staticmethod
-    def populate_demo(file_name="investor.csv"):
+    def populate_demo(file_name="data/investor.csv"):
         with open(file_name, newline="") as file:
             existing_notable_investments = NotableInvestment.get_all()
             existing_industry_list = Industry.get_industry_list()
@@ -703,7 +671,7 @@ class Investor(InvestorBase):
 
     @staticmethod
     def populate_cli():
-        with open("mercury_investor.jsonl", encoding="utf-8-sig") as file:
+        with open("data/mercury_investor.jsonl", encoding="utf-8-sig") as file:
             investors = file.readlines()
             existing_nis = list(NotableInvestment.get_all())
             for investor in investors:
@@ -760,7 +728,7 @@ class Investor(InvestorBase):
             db.session.commit()
 
     @staticmethod
-    def populate_vcsheet(file_name="investors_vc.csv"):
+    def populate_vcsheet(file_name="data/investors_vc.csv"):
         with open(file_name, newline="", encoding="utf-8") as file:
             reader = csv.reader(file, delimiter=",", quotechar='"')
             existing_notable_investments = NotableInvestment.get_all()
@@ -1156,25 +1124,6 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class InvestmentFirm(db.Model):
-    """
-    Represents an investment firm.
-
-    Attributes:
-        id (int): The ID of the investment firm.
-        name (str): The name of the investment firm.
-        about (str): A description of the investment firm.
-        website (str): The website of the investment firm.
-        email (str): The email of the investment firm.
-        phone_number (str): The phone number of the investment firm.
-        n_investments (int): The number of investments made by the investment firm.
-        n_exits (int): The number of exits made by the investment firm.
-        n_employees (int): The number of employees in the investment firm.
-        min_investment (int): The minimum investment amount for the investment firm.
-        max_investment (int): The maximum investment amount for the investment firm.
-        rounds (list[Round]): The rounds associated with the investment firm.
-        industries (list[Industry]): The industries associated with the investment firm.
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=True)
     slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
@@ -1440,7 +1389,7 @@ class InvestmentFirm(db.Model):
             batch_count += 1
 
     @staticmethod
-    def populate_vcsheet(file_name="funds_vc.csv"):
+    def populate_vcsheet(file_name="data/funds_vc.csv"):
         with open(file_name, newline="", encoding="utf-8") as file:
             reader = csv.reader(file, delimiter=",", quotechar='"')
             existing_notable_investments = NotableInvestment.get_all()

@@ -14,31 +14,11 @@ from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mappe
 
 from ..extensions import db
 from ..utils import suggestion
-from ..utils.enums import NotificationDestination, OauthProvider, RequestStatus, Tier
+from ..utils.enums import CompanyRole, NotificationDestination, OauthProvider, RequestStatus, Tier
 from .helpers import Country, Industry, Round
 
 
 class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
-    """
-    User model representing a user in the database.
-
-    Attributes:
-        id (Mapped[int]): Unique identifier for the user, serves as the primary key.
-        type (Mapped[str]): String indicating the type of the user, used for polymorphic identity.
-        email (Mapped[str]): The email address of the user, must be unique and is non-nullable.
-        is_verified (Mapped[bool]): Boolean flag indicating if the user's email is verified.
-        is_admin (Mapped[bool]): Boolean flag indicating if the user has admin privileges.
-        oauth_provider (Mapped[OauthProvider]): The OAuth provider used to authenticate the user, non-nullable.
-
-
-    Relationships:
-        user_info (relationship): Defines a one-to-one or one-to-many relationship with the UserInfo model.
-        user_payment (relationship): Defines a one-to-one or one-to-many relationship with the UserPayment model.
-        company (relationship): Defines a one-to-one or one-to-many relationship with the Company model.
-
-    The declared_attr decorator is used to create the relationships dynamically based on the class name, with cascading delete.
-    """
-
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -69,22 +49,6 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
-    """
-    Represents additional information about a user.
-
-    Attributes:
-        id (int): The unique identifier for the user info.
-        first_name (str | None): The first name of the user.
-        last_name (str | None): The last name of the user.
-        username (str | None): The username of the user.
-        bio (str | None): The bio of the user.
-        linkedin_url (str | None): The LinkedIn profile URL of the user.
-        instagram_url (str | None): The Instagram profile URL of the user.
-        twitter_url (str | None): The Twitter profile URL of the user.
-        picture_url (str | None): The Google storage blob ID for the user's profile picture.
-        is_complete (bool): Indicates if the user's profile is complete.
-    """
-
     user: Mapped[User] = relationship(User, backref=backref("user_info", passive_deletes=True, uselist=False))
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
@@ -173,19 +137,6 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
-    """
-    Represents user payment information.
-
-    Attributes:
-        id (int): The payment ID.
-        customer_id (str): The customer ID associated with the payment.
-        subscription_id (str): The subscription ID associated with the payment.
-        created (datetime.datetime | None): The date and time when the payment was created.
-        expires_at (datetime.datetime | None): The date and time when the payment expires.
-        is_active (bool): Indicates whether the payment is active or not.
-        tier (Tier): The subscription tier associated with the payment.
-    """
-
     user: Mapped[User] = relationship(User, backref=backref("user_payment", passive_deletes=True, uselist=False))
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
@@ -231,6 +182,12 @@ class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_by_user_id(user_id: int) -> UserPayment | None:
         return db.session.scalar(db.select(UserPayment).where(UserPayment.user_id == user_id))
+
+    @staticmethod
+    def get_by_customer_email(email: str) -> UserPayment | None:
+        return db.session.scalar(
+            db.select(UserPayment).join(User).where(User.email == email).order_by(desc(UserPayment.created))
+        )
 
     def sanitize(self):
         subscription = {
@@ -294,16 +251,6 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
-    """
-    Represents email verification information.
-
-    Attributes:
-        id (int): The verification ID.
-        user_id (int): The ID of the user associated with the verification.
-        token (str): The unique token generated for email verification.
-        created_at (datetime.datetime): The date and time when the verification was created.
-    """
-
     user: Mapped[User] = relationship(User, backref=backref("email_verifications", passive_deletes=True), init=False)
 
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -351,90 +298,8 @@ class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
         return last_verification
 
 
-class WaitlistCharge(db.Model):
-    """
-    Represents a waitlist charge.
-
-    Attributes:
-        id (int): The waitlist charge ID.
-        stripe_customer_id (str): The Stripe customer ID associated with the charge.
-        charge_id (str): The charge ID.
-        customer_email (str): The email of the customer associated with the charge.
-        customer_name (str): The name of the customer associated with the charge.
-        random_key (str): The randomly generated key.
-        downloaded (bool): Indicates whether the product database has been downloaded.
-    """
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    stripe_customer_id: Mapped[str] = mapped_column(String, nullable=False)
-    charge_id: Mapped[str] = mapped_column(String, nullable=False)
-    customer_email: Mapped[str] = mapped_column(String, nullable=False)
-    customer_name: Mapped[str] = mapped_column(String, nullable=False)
-    random_key: Mapped[str] = mapped_column(String, nullable=False, default=str(uuid4()))
-    downloaded: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<WaitlistCharge {self.customer_email} | {self.random_key}>"
-
-    @staticmethod
-    def get_by_id(id: int) -> WaitlistCharge | None:
-        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.id == id))
-
-    @staticmethod
-    def get_by_customer_id(customer_id: str) -> WaitlistCharge | None:
-        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.stripe_customer_id == customer_id))
-
-    @staticmethod
-    def get_by_charge_id(charge_id: str) -> WaitlistCharge | None:
-        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.charge_id == charge_id))
-
-    @staticmethod
-    def get_by_customer_email(customer_email: str) -> WaitlistCharge | None:
-        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.customer_email == customer_email))
-
-    @staticmethod
-    def get_by_random_key(random_key: str) -> WaitlistCharge | None:
-        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.random_key == random_key))
-
-
-class Waitlist(db.Model):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    @staticmethod
-    def get_by_email(email: str):
-        return db.session.scalar(db.select(Waitlist).where(Waitlist.email == email))
-
-
 class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
-    """
-    SQLAlchemy model representing a company.
-
-    Attributes:
-        id (Mapped[int]): The primary key for the company record.
-        user_id (Mapped[int]): A foreign key that may reference a user associated with the company, nullable.
-        name (Mapped[str]): The name of the company, not nullable.
-        description (Mapped[str]): A brief description of the company, nullable.
-        number_of_employees (Mapped[int]): The number of employees at the company, nullable.
-        website (Mapped[str]): The company's website URL, nullable.
-        picture_url (Mapped[str]): A unique identifier for the company's profile picture, nullable.
-        country_id (Mapped[int]): A foreign key that references the country the company is located in, nullable.
-        preferred_round_id (Mapped[int]): A foreign key that references the company's preferred funding round, nullable.
-        industry_id (Mapped[int]): A foreign key that references the industry the company operates in, nullable.
-
-        country (Mapped[Country]): Relationship to the Country model.
-        preferred_round (Mapped[Round]): Relationship to the Round model.
-        industry (Mapped[Industry]): Relationship to the Industry model.
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True, init=False)
@@ -445,7 +310,6 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True, init=False)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
 
-    user: Mapped[User] = relationship(User, backref=backref("company", passive_deletes=True), lazy=True, init=False)
     country: Mapped[Country] = relationship(init=False)
     preferred_round: Mapped[Round] = relationship(init=False)
     industry: Mapped[Industry] = relationship(init=False)
@@ -500,15 +364,109 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_by_id(id: int) -> Company | None:
         return db.session.scalar(db.select(Company).where(Company.id == id))
 
+
+class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
+    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
+    is_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    user: Mapped[User] = relationship(
+        User, backref=backref("user_company", passive_deletes=True, uselist=True), init=False
+    )
+    company: Mapped[Company] = relationship(
+        Company, backref=backref("user_company", passive_deletes=True, uselist=True), init=False
+    )
+
     @staticmethod
-    def get_by_user_id(user_id: int) -> Company | None:
-        return db.session.scalar(db.select(Company).where(Company.user_id == user_id))
+    def get_by_user_id(user_id: int) -> Sequence[UserCompany]:
+        return db.session.scalars(db.select(UserCompany).where(UserCompany.user_id == user_id)).all()
+
+    @staticmethod
+    def get_by_company_id(company_id: int) -> Sequence[UserCompany]:
+        return db.session.scalars(db.select(UserCompany).where(UserCompany.company_id == company_id)).all()
+
+    @staticmethod
+    def get_all() -> Sequence[UserCompany]:
+        return db.session.scalars(db.select(UserCompany)).all()
+
+    @staticmethod
+    def get_members(company_id: int):
+        results = db.session.execute(
+            db.select(User, UserCompany)
+            .join(UserCompany, UserCompany.user_id == User.id)
+            .where(UserCompany.company_id == company_id)
+        ).all()
+
+        return results
+
+    @staticmethod
+    def get_by_user_id_and_company_id(user_id: int, company_id: int, get_accepted: bool = False) -> UserCompany | None:
+        return db.session.scalar(
+            db.select(UserCompany).where(
+                UserCompany.user_id == user_id,
+                UserCompany.company_id == company_id,
+                UserCompany.is_accepted.is_(get_accepted),
+            )
+        )
+
+
+class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, server_default=func.now(), init=False
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    email: Mapped[str] = mapped_column(String, nullable=False)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
+    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
+    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    company: Mapped[Company] = relationship(
+        Company, backref=backref("company_invitation", passive_deletes=True, uselist=True), init=False
+    )
+
+    INVITATION_VALIDITY = 7
+
+    def is_expired(self) -> bool:
+        expiration_time = self.created_at + datetime.timedelta(days=self.INVITATION_VALIDITY)
+        return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
+
+    @staticmethod
+    def get_by_id(id: int) -> CompanyInvitation | None:
+        return db.session.scalar(db.select(CompanyInvitation).where(CompanyInvitation.id == id))
+
+    @staticmethod
+    def get_by_email(email: str) -> Sequence[CompanyInvitation] | None:
+        results = db.session.scalars(
+            db.select(CompanyInvitation)
+            .options(joinedload(CompanyInvitation.company))
+            .where(CompanyInvitation.email == email, CompanyInvitation.is_used.is_(False))
+        ).all()
+        return results
+
+    @staticmethod
+    def get_by_company_id(company_id: int) -> Sequence[CompanyInvitation]:
+        return db.session.scalars(
+            db.select(CompanyInvitation).where(
+                CompanyInvitation.company_id == company_id, CompanyInvitation.is_used.is_(False)
+            )
+        ).all()
+
+    @staticmethod
+    def get_by_company_id_and_email(company_id: int, email: str, get_used: bool = False) -> CompanyInvitation | None:
+        return db.session.scalar(
+            db.select(CompanyInvitation).where(
+                CompanyInvitation.company_id == company_id,
+                CompanyInvitation.email == email,
+                CompanyInvitation.is_used.is_(get_used),
+            )
+        )
 
 
 class ClaimRequest(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-
     investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
     status: Mapped[RequestStatus] = mapped_column(SQLEnum(RequestStatus), nullable=False, default=RequestStatus.PENDING)
     status_info: Mapped[str | None] = mapped_column(String, nullable=True, default=None)

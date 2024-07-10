@@ -14,17 +14,17 @@ from flask_login import (
 from ..extensions import db, login_manager, oauth
 from ..models import (
     Company,
+    CompanyInvitation,
     Country,
     EmailVerification,
     Industry,
     Notification,
     Round,
     User,
+    UserCompany,
     UserInfo,
     UserPayment,
 )
-
-# from ..utils.email_verification import create_verification_token
 from ..utils.enums import (
     ButtonLayout,
     Events,
@@ -62,26 +62,29 @@ def load_user(user_id: int) -> User | None:
 
 
 def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
-    """
-    Authenticates and retrieves a user based on the email and OAuth provider.
-
-    If the user does not exist, a new user is created and returned.
-    If the user exists but the OAuth provider is different, an exception is raised.
-    If the user exists and the OAuth provider is correct, the existing user is returned.
-
-    Args:
-        email (str): The email of the user.
-        oauth_provider (OauthProvider): The OAuth provider.
-
-    Returns:
-        User: The authenticated user.
-
-    Raises:
-        Exception: If the user exists but the OAuth provider is different.
-    """
     user = User.get_by_email(email)
     if not user:
         user = User(email=email, oauth_provider=oauth_provider)
+
+        company_invitations = CompanyInvitation.get_by_email(email)
+        if company_invitations:
+            for company_invitation in company_invitations:
+                user_company = UserCompany(
+                    user_id=user.id,
+                    company_id=company_invitation.company_id,
+                    role=company_invitation.role,
+                )
+                notification = Notification(
+                    user=user,
+                    json_data=NotificationLayout(
+                        title="You got invited to a company!",
+                        msg="Click here to accept the invitation.",
+                        buttons=[ButtonLayout(text="Accept", url=url_for("settings.company"))],
+                    ).get_json(),
+                    destination=NotificationDestination.ALL,
+                )
+                db.session.add_all((user_company, notification))
+
         db.session.add(user)
         db.session.commit()
         return user
@@ -270,14 +273,6 @@ def linkedin_login():
 
 @auth.route("/linkedin-oauth")
 def linkedin_callback():
-    """
-    Handles the callback from LinkedIn OAuth login.
-
-    Retrieves the access token from the authorization response.
-    Makes API calls to retrieve the user's email and personal info from LinkedIn.
-    Creates or updates the user and user info records in the database.
-    Logs in the user and redirects to the appropriate page.
-    """
     # BUG: For some reason client_secret is not being passed during
     # app initialization. Hardcoding it for now.
     # NOTE: Making this the only OAuth provider doesn't fix the issue.
@@ -354,14 +349,6 @@ def google_login():
 
 @auth.route("/google-oauth")
 def google_callback():
-    """
-    Handles the callback from Google OAuth login.
-
-    Retrieves the access token from the authorization response.
-    Makes API calls to retrieve the user's email and personal info from Google.
-    Creates or updates the user and user info records in the database.
-    Logs in the user and redirects to the appropriate page.
-    """
     authorization = oauth.google.authorize_access_token()  # type: ignore
     if not authorization:
         status = Status(StatusType.ERROR, OAUTH_ACCESS_TOKEN).get_status()
@@ -411,14 +398,6 @@ def google_callback():
 @auth.route("/onboarding", methods=["GET", "POST"])
 @login_required
 def onboarding():
-    """
-    Handles the onboarding process for authenticated users.
-
-    If the current user is anonymous, it redirects to the login page.
-    If user_info is not found for the authenticated user, it redirects to the login page.
-    If user_info.is_complete is True, it redirects to the company_form route.
-    If the request method is POST, it processes the onboarding form data and updates the user's information.
-    """
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     notifications = Notification.get_unread(
@@ -435,14 +414,13 @@ def onboarding():
         return redirect(url_for("auth.onboarding"))
 
     if request.method == "POST":
-        first_name, last_name, username, company_name = (
+        first_name, last_name, username = (
             request.form.get("first_name"),
             request.form.get("last_name"),
             request.form.get("username"),
-            request.form.get("company_name"),
         )
 
-        if not first_name or not last_name or not username or not company_name:
+        if not first_name or not last_name or not username:
             notification = Notification(
                 user=authenticated_user,
                 json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
@@ -479,10 +457,6 @@ def onboarding():
         user_info.first_name = first_name
         user_info.last_name = last_name
         user_info.username = username.lower()
-
-        if not Company.get_by_user_id(authenticated_user.id):
-            company = Company(user_id=authenticated_user.id, name=company_name)
-            db.session.add(company)
 
         user_info.is_complete = True
 
@@ -521,12 +495,6 @@ def onboarding():
 @auth.get("/username/<username>")
 @login_required
 def username(username: str):
-    """
-    Checks if a username is already taken.
-
-    Args:
-        username (str): The username to check.
-    """
     return jsonify({"is_taken": UserInfo.is_taken(username)})
 
 
@@ -535,14 +503,6 @@ def username(username: str):
 @check_verification
 @check_user_info_complete
 def expanded_onboarding():
-    """
-    Handles the expanded onboarding process for authenticated users.
-
-    If the current user is anonymous, it redirects to the login page.
-    If user_info is not found for the authenticated user, it redirects to the login page.
-    If user_info.is_complete is False, it redirects to the onboarding route.
-    If the request method is POST, it processes the expanded onboarding form data and updates the user's information.
-    """
     current_user._get_current_object()  # type: ignore
     status_type, msg = None, None
     if query := request.args:

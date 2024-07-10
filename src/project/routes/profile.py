@@ -21,7 +21,7 @@ def user_profile(username):
         .outerjoin(Round, Round.id == Company.preferred_round_id)
         .outerjoin(Country, Country.id == Company.country_id)
         .outerjoin(User, User.id == UserInfo.user_id)
-        .where(UserInfo.username == username, Company.user_id == UserInfo.user_id, User.id == UserInfo.user_id)
+        .where(UserInfo.username == username, User.id == UserInfo.user_id)
     ).all()
 
     if len(data) == 0:

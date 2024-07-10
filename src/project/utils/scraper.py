@@ -69,7 +69,7 @@ def get_notable_investments(existing_notable_investments, notable_investments_cl
     return list(set(notable_investment_list))
 
 
-def populate_demo(notable_investments_cls, industry_cls, file_name="investor.csv"):
+def populate_demo(notable_investments_cls, industry_cls, file_name="data/investor.csv"):
     existing_notable_investments = notable_investments_cls.get_all()
     existing_industry_list = industry_cls.get_industry_list()
     investor_list = []
@@ -112,7 +112,7 @@ def populate_demo(notable_investments_cls, industry_cls, file_name="investor.csv
         return investor_list
 
 
-def populate_blockchain(notable_investments_cls, industry_cls, file_name="globalify - blockchain.csv"):
+def populate_blockchain(notable_investments_cls, industry_cls, file_name="data/globalify - blockchain.csv"):
     investor_list = []
     with open(file_name, newline="") as file:
         existing_notable_investments = notable_investments_cls.get_all()

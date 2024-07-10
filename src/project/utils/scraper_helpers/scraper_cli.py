@@ -106,7 +106,7 @@ def set_columns(ctx):
                 "notable_investments": notable_investments,
             }
             investor_list.append(investor)
-    with open("investor_list.json", "w", encoding="utf-8-sig") as file:
+    with open("data/investor_list.json", "w", encoding="utf-8-sig") as file:
         file.write(json.dumps(investor_list, indent=4))
     click.echo("The columns were set successfully.")
 
@@ -127,14 +127,14 @@ def sanitize_data():
             "Enter the extra data that should be removed from the column with ';' as a separator if needed",
             type=str,
         )
-        with open("investor_list.json", encoding="utf-8-sig") as file:
+        with open("data/investor_list.json", encoding="utf-8-sig") as file:
             investor_list = json.load(file)
 
             for investor in investor_list:
                 for ex in extra.split(";"):
                     investor[column] = investor[column].replace(ex, "").replace("  ", " ").strip()
 
-            with open("investor_list.json", "w", encoding="utf-8-sig") as file:
+            with open("data/investor_list.json", "w", encoding="utf-8-sig") as file:
                 file.write(json.dumps(investor_list, indent=4))
     except Exception as e:
         click.echo(f"An error occurred: {e}")
@@ -143,14 +143,14 @@ def sanitize_data():
 @cli.command()
 @click.option(
     "--answer",
-    prompt="Are you sure you want to empty the file 'investor_list.json'? Enter 'y' for yes and 'n' for no.",
-    help="Command to empty the file 'investor_list.json'",
+    prompt="Are you sure you want to empty the file 'data/investor_list.json'? Enter 'y' for yes and 'n' for no.",
+    help="Command to empty the file 'data/investor_list.json'",
     type=click.Choice(["y", "n"]),
     required=True,
 )
 def empty_file(answer):
     """Empty the file"""
-    with open("investor_list.json", "w", encoding="utf-8-sig") as file:
+    with open("data/investor_list.json", "w", encoding="utf-8-sig") as file:
         if answer == "y":
             json.dump({}, file)
         else:

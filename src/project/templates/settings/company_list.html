@@ -212,7 +212,7 @@
                     </div>
                 </nav>
                 <main class="mt-10 flex flex-col items-center justify-center p-4">
-                    <h1 class="text-4xl font-semibold w-full">Your Companies</h1>
+                    <h1 class="w-full text-4xl font-semibold">Your Companies</h1>
                     {% if not companies %}
                     <p class="mx-auto mt-5 max-w-xl text-center text-gray-500">
                         Hmm, it look like you aren't a part of any company. You can create one or ask your colleague to
@@ -238,7 +238,9 @@
                             </div>
                         </a>
                         {% endfor %}
-                        <button class="flex w-full items-center justify-center gap-2 rounded-xl border bg-white p-4 hover:border-2 transition-all">
+                        <button
+                            class="flex w-full items-center justify-center gap-2 rounded-xl border bg-white p-4 transition-all hover:border-2"
+                        >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -257,7 +259,7 @@
                         </button>
                     </div>
                     {% endif %}
-                    <h1 class="text-4xl font-semibold mt-10 w-full">Your Invitation</h1>
+                    <h1 class="mt-10 w-full text-4xl font-semibold">Your Invitation</h1>
                     {% if not invitations %}
                     <p class="mx-auto mt-5 max-w-xl text-center text-gray-500">
                         You don't have any pending invitation. You can create a company or ask your colleague to invite
@@ -298,7 +300,7 @@
                                         />
                                     </svg>
 
-                                    <span class="font-medium text-sm">Accept</span>
+                                    <span class="text-sm font-medium">Accept</span>
                                 </button>
                                 <button
                                     class="flex items-center justify-center gap-2 rounded-xl border bg-white p-2 transition-shadow hover:shadow-md"
@@ -319,7 +321,7 @@
                                         />
                                     </svg>
 
-                                    <span class="font-medium text-sm">Decline</span>
+                                    <span class="text-sm font-medium">Decline</span>
                                 </button>
                             </div>
                         </div>

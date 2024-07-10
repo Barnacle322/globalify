@@ -8,7 +8,7 @@ from flask_login import current_user, login_required
 from stripe import InvalidRequestError, SignatureVerificationError
 
 from ..extensions import csrf, db
-from ..models import Notification, User, UserInfo, UserPayment, WaitlistCharge
+from ..models import Notification, User, UserInfo, UserPayment
 from ..utils.enums import Events, NotificationDestination, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
     ONBOARDING_INCOMPLETE,
@@ -16,7 +16,7 @@ from ..utils.errors.error_messages import (
     PAYMENT_NOT_FOUND,
 )
 from ..utils.google_helpers import google_pubsub
-from .main import check_user_info_complete
+from .main import check_user_info_complete, check_verification
 
 payment = Blueprint("payment", __name__)
 
@@ -30,23 +30,6 @@ def get_invoices(authenticated_user: User):
 
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
     if not user_payment or not user_payment.customer_id:
-        waitlist_charge = WaitlistCharge.get_by_customer_email(authenticated_user.email)
-        if not waitlist_charge:
-            return []
-        stripe_invoices = stripe.PaymentIntent.list(customer=waitlist_charge.stripe_customer_id)
-        invoices = []
-        for stripe_invoice in stripe_invoices:
-            invoice = {
-                "id": stripe_invoice.get("id"),
-                "created": datetime.datetime.fromtimestamp(stripe_invoice.get("created", 0), tz=datetime.UTC).date(),
-                "amount_due": stripe_invoice.get("amount"),
-                "amount_paid": stripe_invoice.get("amount"),
-                "currency": stripe_invoice.get("currency"),
-                "status": stripe_invoice.get("status"),
-                "hosted_invoice_url": stripe_invoice.get("hosted_invoice_url"),
-            }
-            invoices.append(invoice)
-            return invoices
         return []
 
     stripe_invoices = stripe.Invoice.list(customer=user_payment.customer_id)
@@ -153,6 +136,7 @@ def has_subscriptions(customer_id: str) -> bool:
 @payment.post("/create-checkout-session")
 @login_required
 @check_user_info_complete
+@check_verification
 def create_checkout_session():
     """
     DOCS: https://stripe.com/docs/payments/checkout/accept-a-payment
@@ -197,6 +181,7 @@ def create_checkout_session():
 @payment.post("/create-portal-session")
 @login_required
 @check_user_info_complete
+@check_verification
 def customer_portal():
     """
     DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
@@ -232,6 +217,7 @@ def customer_portal():
 @payment.post("/create-portal-session-subscription-update")
 @login_required
 @check_user_info_complete
+@check_verification
 def subscription_update():
     """
     DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
@@ -272,6 +258,7 @@ def subscription_update():
 @payment.get("/create-portal-session-subscription-cancel")
 @login_required
 @check_user_info_complete
+@check_verification
 def subscription_cancel():
     """
     DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
@@ -329,6 +316,7 @@ def index():
 @payment.route("/success", methods=["GET"])
 @login_required
 @check_user_info_complete
+@check_verification
 def success():
     return render_template("payment/success.html")
 
@@ -336,6 +324,7 @@ def success():
 @payment.route("/cancel", methods=["GET"])
 @login_required
 @check_user_info_complete
+@check_verification
 def cancel():
     return render_template("payment/cancel.html")
 
@@ -442,52 +431,6 @@ def payment_failed(data_object):
     )
 
 
-# def new_waitlist(data_object):
-#     metadata = data_object.get("metadata")
-#     if product := metadata.get("product", ""):
-#         if product != "teaser":
-#             return jsonify(success=False, message="Invalid product")
-
-#     stripe_customer_id = data_object.get("customer")
-#     charge_id = data_object.get("id")
-#     customer_email = data_object.get("customer_details").get("email")
-#     if not customer_email:
-#         return jsonify(success=False, message="No email found")
-#     customer_name = data_object.get("customer_details").get("name", "Dear Supporter")
-
-#     new_waitlist_charge = WaitlistCharge(
-#         stripe_customer_id=stripe_customer_id,
-#         charge_id=charge_id,
-#         customer_email=customer_email,
-#         customer_name=customer_name,
-#     )
-#     db.session.add(new_waitlist_charge)
-#     db.session.commit()
-
-#     user = User.get_by_email(customer_email)
-
-#     if not user:
-#         return jsonify(success=False, message="No user found")
-
-#     notification = Notification(
-#         user=user,
-#         json_data=NotificationLayout(
-#             title="Payment successful!",
-#             msg="Thank you for supporting us!",
-#         ).get_json(),
-#         destination=NotificationDestination.SEARCH,
-#     )
-#     db.session.add(notification)
-#     db.session.commit()
-
-#     google_pubsub.send_event(
-#         "A user has signed up for early access",
-#         event_type=Events.STRIPE_PAYMENT_SUCCEDED.value,
-#         email=customer_email,
-#         random_key=new_waitlist_charge.random_key,
-#     )
-
-
 @payment.post("/webhook")
 @csrf.exempt
 def webhook_received():
@@ -520,6 +463,7 @@ def webhook_received():
 
     """
     DOCS: https://stripe.com/docs/billing/subscriptions/webhooks
+    https://stripe.com/docs/payments/checkout/fulfill-orders
     """
 
     match event_type:
@@ -535,10 +479,5 @@ def webhook_received():
             trial_will_end(data_object)
         case "invoice.payment_failed":
             payment_failed(data_object)
-        # case "checkout.session.completed":
-        #     """
-        #     https://stripe.com/docs/payments/checkout/fulfill-orders
-        #     """
-        #     new_waitlist(data_object)
 
     return jsonify(success=True)

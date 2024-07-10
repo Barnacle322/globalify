@@ -21,8 +21,7 @@ from ..models import (
 )
 from ..schemas.investor import InvestorOriginPointSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
-from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
-from ..utils.google_helpers import google_pubsub
+from ..utils.enums import CompanyRole, Status, StatusType, Tier
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices

@@ -1,16 +1,16 @@
 {% macro render(user) %}
 <template id="confirm-restore-template">
     <article
-        class="fixed max-w-[800px] md:max-h-96 h-full overflow-y-auto right-1/2 top-1/2 z-50 flex w-full lg:w-2/3 xl:w-1/2 -translate-y-1/2 translate-x-1/2 flex-col md:rounded-3xl bg-white transition-all ease-in-out"
+        class="fixed right-1/2 top-1/2 z-50 flex h-full w-full max-w-[800px] -translate-y-1/2 translate-x-1/2 flex-col overflow-y-auto bg-white transition-all ease-in-out md:max-h-96 md:rounded-3xl lg:w-2/3 xl:w-1/2"
     >
-        <header class="sticky bg-white top-0 p-4">
+        <header class="sticky top-0 bg-white p-4">
             <span class="text-xl font-medium"
                 >You are about to <b>revert</b> all changes made after claiming the profile. Are you sure you want to
                 continue?
             </span>
         </header>
 
-        <div class="grid grid-cols-12 px-4 gap-2">
+        <div class="grid grid-cols-12 gap-2 px-4">
             <div v-if="investor_point_origin.first_name" class="col-span-6 flex flex-col">
                 <span class="font-semibold">First name</span>
                 <span v-text="investor_point_origin.first_name"></span>
@@ -19,15 +19,15 @@
                 <span class="font-semibold">Last name</span>
                 <span v-text="investor_point_origin.last_name"></span>
             </div>
-            <div v-if="investor_point_origin.firm_name" class="col-span-full md:col-span-4 flex flex-col">
+            <div v-if="investor_point_origin.firm_name" class="col-span-full flex flex-col md:col-span-4">
                 <span class="font-semibold">Firm name</span>
                 <span v-text="investor_point_origin.firm_name"></span>
             </div>
-            <div v-if="investor_point_origin.position" class="col-span-full md:col-span-4 flex flex-col">
+            <div v-if="investor_point_origin.position" class="col-span-full flex flex-col md:col-span-4">
                 <span class="font-semibold">Position</span>
                 <span v-text="investor_point_origin.position"></span>
             </div>
-            <div v-if="investor_point_origin.location" class="col-span-full md:col-span-4 flex flex-col">
+            <div v-if="investor_point_origin.location" class="col-span-full flex flex-col md:col-span-4">
                 <span class="font-semibold">Location</span>
                 <span v-text="investor_point_origin.location"></span>
             </div>
@@ -47,27 +47,27 @@
                 <span class="font-semibold">Twitter</span>
                 <span v-text="investor_point_origin.twitter"></span>
             </div>
-            <div v-if="investor_point_origin.email" class="col-span-full md:col-span-6 flex flex-col">
+            <div v-if="investor_point_origin.email" class="col-span-full flex flex-col md:col-span-6">
                 <span class="font-semibold">Email</span>
                 <span v-text="investor_point_origin.email"></span>
             </div>
-            <div v-if="investor_point_origin.phone_number" class="col-span-full md:col-span-6 flex flex-col">
+            <div v-if="investor_point_origin.phone_number" class="col-span-full flex flex-col md:col-span-6">
                 <span class="font-semibold">Phone number</span>
                 <span v-text="investor_point_origin.phone_number"></span>
             </div>
-            <div v-if="investor_point_origin.n_investments" class="col-span-6 md:col-span-3 flex flex-col">
+            <div v-if="investor_point_origin.n_investments" class="col-span-6 flex flex-col md:col-span-3">
                 <span class="font-semibold">№ Investments</span>
                 <span v-text="investor_point_origin.n_investments"></span>
             </div>
-            <div v-if="investor_point_origin.n_exits" class="col-span-6 md:col-span-3 flex flex-col">
+            <div v-if="investor_point_origin.n_exits" class="col-span-6 flex flex-col md:col-span-3">
                 <span class="font-semibold">№ Exits</span>
                 <span v-text="investor_point_origin.n_exits"></span>
             </div>
-            <div v-if="investor_point_origin.min_investment" class="col-span-6 md:col-span-3 flex flex-col">
+            <div v-if="investor_point_origin.min_investment" class="col-span-6 flex flex-col md:col-span-3">
                 <span class="font-semibold">Min investment</span>
                 <span v-text="investor_point_origin.min_investment"></span>
             </div>
-            <div v-if="investor_point_origin.max_investment" class="col-span-6 md:col-span-3 flex flex-col">
+            <div v-if="investor_point_origin.max_investment" class="col-span-6 flex flex-col md:col-span-3">
                 <span class="font-semibold">Max investment</span>
                 <span v-text="investor_point_origin.max_investment"></span>
             </div>
@@ -86,7 +86,7 @@
             </div>
         </div>
 
-        <div class="flex justify-end gap-5 p-4 mt-auto">
+        <div class="mt-auto flex justify-end gap-5 p-4">
             <button @click="closeConfirmRestore" class="rounded-lg border border-gray-300 px-3 py-2">Cancel</button>
             <button @click="restorePointOrigin" class="rounded-lg bg-sky-400 px-3 py-2 text-white">Confirm</button>
         </div>

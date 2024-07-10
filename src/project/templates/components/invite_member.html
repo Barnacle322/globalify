@@ -41,7 +41,7 @@
                 @input="debouncedGetUserList"
             />
             <div
-                class="flex gap-4 text-start w-full rounded-xl border-2 border-stone-300 items-center p-2 cursor-pointer hover:bg-stone-100"
+                class="flex w-full cursor-pointer items-center gap-4 rounded-xl border-2 border-stone-300 p-2 text-start hover:bg-stone-100"
                 v-if="userList.length > 0"
                 v-for="(user, index) in userList"
                 @click="selectUser(user.email, $event)"

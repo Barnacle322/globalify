@@ -18,8 +18,6 @@ from .user import (
     UserCompany,
     UserInfo,
     UserPayment,
-    Waitlist,
-    WaitlistCharge,
 )
 
 __all__ = [
@@ -38,8 +36,6 @@ __all__ = [
     "UserInfo",
     "UserPayment",
     "Notification",
-    "Waitlist",
-    "WaitlistCharge",
     "NotableInvestment",
     "ClaimRequest",
     "InvestorBackup",

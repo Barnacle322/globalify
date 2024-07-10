@@ -19,26 +19,6 @@ from .helpers import Country, Industry, Round
 
 
 class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
-    """
-    User model representing a user in the database.
-
-    Attributes:
-        id (Mapped[int]): Unique identifier for the user, serves as the primary key.
-        type (Mapped[str]): String indicating the type of the user, used for polymorphic identity.
-        email (Mapped[str]): The email address of the user, must be unique and is non-nullable.
-        is_verified (Mapped[bool]): Boolean flag indicating if the user's email is verified.
-        is_admin (Mapped[bool]): Boolean flag indicating if the user has admin privileges.
-        oauth_provider (Mapped[OauthProvider]): The OAuth provider used to authenticate the user, non-nullable.
-
-
-    Relationships:
-        user_info (relationship): Defines a one-to-one or one-to-many relationship with the UserInfo model.
-        user_payment (relationship): Defines a one-to-one or one-to-many relationship with the UserPayment model.
-        company (relationship): Defines a one-to-one or one-to-many relationship with the Company model.
-
-    The declared_attr decorator is used to create the relationships dynamically based on the class name, with cascading delete.
-    """
-
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -69,22 +49,6 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
-    """
-    Represents additional information about a user.
-
-    Attributes:
-        id (int): The unique identifier for the user info.
-        first_name (str | None): The first name of the user.
-        last_name (str | None): The last name of the user.
-        username (str | None): The username of the user.
-        bio (str | None): The bio of the user.
-        linkedin_url (str | None): The LinkedIn profile URL of the user.
-        instagram_url (str | None): The Instagram profile URL of the user.
-        twitter_url (str | None): The Twitter profile URL of the user.
-        picture_url (str | None): The Google storage blob ID for the user's profile picture.
-        is_complete (bool): Indicates if the user's profile is complete.
-    """
-
     user: Mapped[User] = relationship(User, backref=backref("user_info", passive_deletes=True, uselist=False))
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
@@ -173,19 +137,6 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
-    """
-    Represents user payment information.
-
-    Attributes:
-        id (int): The payment ID.
-        customer_id (str): The customer ID associated with the payment.
-        subscription_id (str): The subscription ID associated with the payment.
-        created (datetime.datetime | None): The date and time when the payment was created.
-        expires_at (datetime.datetime | None): The date and time when the payment expires.
-        is_active (bool): Indicates whether the payment is active or not.
-        tier (Tier): The subscription tier associated with the payment.
-    """
-
     user: Mapped[User] = relationship(User, backref=backref("user_payment", passive_deletes=True, uselist=False))
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
@@ -231,6 +182,12 @@ class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_by_user_id(user_id: int) -> UserPayment | None:
         return db.session.scalar(db.select(UserPayment).where(UserPayment.user_id == user_id))
+
+    @staticmethod
+    def get_by_customer_email(email: str) -> UserPayment | None:
+        return db.session.scalar(
+            db.select(UserPayment).join(User).where(User.email == email).order_by(desc(UserPayment.created))
+        )
 
     def sanitize(self):
         subscription = {
@@ -294,16 +251,6 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
-    """
-    Represents email verification information.
-
-    Attributes:
-        id (int): The verification ID.
-        user_id (int): The ID of the user associated with the verification.
-        token (str): The unique token generated for email verification.
-        created_at (datetime.datetime): The date and time when the verification was created.
-    """
-
     user: Mapped[User] = relationship(User, backref=backref("email_verifications", passive_deletes=True), init=False)
 
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -349,67 +296,6 @@ class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
             .order_by(EmailVerification.created_at.desc())
         )
         return last_verification
-
-
-class WaitlistCharge(db.Model):
-    """
-    Represents a waitlist charge.
-
-    Attributes:
-        id (int): The waitlist charge ID.
-        stripe_customer_id (str): The Stripe customer ID associated with the charge.
-        charge_id (str): The charge ID.
-        customer_email (str): The email of the customer associated with the charge.
-        customer_name (str): The name of the customer associated with the charge.
-        random_key (str): The randomly generated key.
-        downloaded (bool): Indicates whether the product database has been downloaded.
-    """
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    stripe_customer_id: Mapped[str] = mapped_column(String, nullable=False)
-    charge_id: Mapped[str] = mapped_column(String, nullable=False)
-    customer_email: Mapped[str] = mapped_column(String, nullable=False)
-    customer_name: Mapped[str] = mapped_column(String, nullable=False)
-    random_key: Mapped[str] = mapped_column(String, nullable=False, default=str(uuid4()))
-    downloaded: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<WaitlistCharge {self.customer_email} | {self.random_key}>"
-
-    @staticmethod
-    def get_by_id(id: int) -> WaitlistCharge | None:
-        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.id == id))
-
-    @staticmethod
-    def get_by_customer_id(customer_id: str) -> WaitlistCharge | None:
-        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.stripe_customer_id == customer_id))
-
-    @staticmethod
-    def get_by_charge_id(charge_id: str) -> WaitlistCharge | None:
-        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.charge_id == charge_id))
-
-    @staticmethod
-    def get_by_customer_email(customer_email: str) -> WaitlistCharge | None:
-        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.customer_email == customer_email))
-
-    @staticmethod
-    def get_by_random_key(random_key: str) -> WaitlistCharge | None:
-        return db.session.scalar(db.select(WaitlistCharge).where(WaitlistCharge.random_key == random_key))
-
-
-class Waitlist(db.Model):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    @staticmethod
-    def get_by_email(email: str):
-        return db.session.scalar(db.select(Waitlist).where(Waitlist.email == email))
 
 
 class Company(MappedAsDataclass, db.Model, unsafe_hash=True):

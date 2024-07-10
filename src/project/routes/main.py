@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
 from functools import wraps
@@ -13,7 +12,6 @@ from flask import (
     redirect,
     render_template,
     request,
-    send_from_directory,
     url_for,
 )
 from flask_login import current_user, login_required
@@ -33,8 +31,6 @@ from ..models import (
     Notification,
     Round,
     UserPayment,
-    Waitlist,
-    WaitlistCharge,
 )
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
 from ..utils.enums import NotificationDestination, Status, StatusType
@@ -112,11 +108,6 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 def index():
     posts = parse_medium_html()
     return render_template("index.html", posts=posts)
-
-
-@main.get("/incubation")
-def incubation():
-    return render_template("incubation.html")
 
 
 @main.get("/faq")
@@ -801,70 +792,6 @@ def update_notification(notification_id):
     db.session.commit()
 
     return jsonify({"status": "success"}, 200)
-
-
-@main.post("/waitlist-email")
-def waitlist_email():
-    email = request.get_json().get("email")
-
-    if not email:
-        status = Status(StatusType.ERROR, "Please enter an email.").get_status()
-        return jsonify(**status)
-
-    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
-        status = Status(StatusType.ERROR, "Please enter a valid email.").get_status()
-        return jsonify(**status)
-
-    email_for_newsletter = Waitlist.get_by_email(email)
-    if email_for_newsletter:
-        status = Status(StatusType.ERROR, "Email is already in the system.").get_status()
-        return jsonify(**status)
-
-    new_waitlist = Waitlist(email=email)
-    db.session.add(new_waitlist)
-    db.session.commit()
-
-    status = Status(StatusType.SUCCESS, "Email added.").get_status()
-    return jsonify(**status)
-
-
-@main.get("/waitlist/cancel")
-def cancel_waitlist():
-    return render_template("waitlist/cancel.html")
-
-
-@main.get("/waitlist/success")
-def success_waitlist():
-    return render_template("waitlist/success.html")
-
-
-@main.get("/download/<key>")
-def download(key):
-    waitlist_charge = WaitlistCharge.get_by_random_key(key)
-
-    if not waitlist_charge:
-        return render_template("download.html", can_download=False)
-
-    if waitlist_charge.downloaded:
-        return render_template("download.html", can_download=False)
-
-    return render_template("download.html", can_download=True, random_key=key)
-
-
-@main.post("/download")
-def post_download():
-    random_key = request.form.get("random_key", "")
-    waitlist_charge = WaitlistCharge.get_by_random_key(random_key)
-
-    if not waitlist_charge or waitlist_charge.downloaded:
-        return redirect(url_for("main.index"))
-
-    waitlist_charge.downloaded = True
-    db.session.commit()
-
-    return send_from_directory(
-        "static", "elements/download/Globalify_Early_Bird_Investor_List.xlsx", as_attachment=True
-    )
 
 
 @main.route("/pricing")

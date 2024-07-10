@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Company, Country, Industry, Investor, Round, User, UserCompany, UserInfo
+from ..models import Company, Country, Industry, Investor, Round, User, UserInfo
 from .main import check_verification
 
 profile = Blueprint("profile", __name__)

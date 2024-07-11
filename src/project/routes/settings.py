@@ -40,11 +40,20 @@ def index():
         status_type = query.get("type")
         msg = query.get("msg")
 
+    investor = Investor.get_by_user_id(current_user.id)
+    notable_investments = NotableInvestment.get_all()
+    rounds = Round.get_all()
+    industries = Industry.get_all()
+
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     return render_template(
         "settings/general.html",
         user=authenticated_user,
+        investor=investor,
+        rounds=rounds,
+        industries=industries,
+        notable_investments=notable_investments,
         status_type=status_type,
         msg=msg,
     )
@@ -266,7 +275,7 @@ def company_list_view():
     return render_template("settings/company_list.html", companies=user_companies, invitations=company_invitations)
 
 
-@settings.route("/company/<int:company_id>", methods=["GET", "POST"])
+@settings.get("/company/<int:company_id>")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -332,7 +341,7 @@ def change_company_info(company_id):
 
     if user_company.role == CompanyRole.EMPLOYEE:
         status = Status(StatusType.ERROR, "You don't have permissions to edit this company!").get_status()
-        return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     company = user_company.company
 
@@ -340,7 +349,7 @@ def change_company_info(company_id):
     if company_name and company_name.strip() != company.name:
         if company_name == " ":
             status = Status(StatusType.ERROR, "Company name cannot be empty.").get_status()
-            return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+            return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
         company.name = company_name.strip()
 
     preferred_round_id = request.form.get("round", type=int)
@@ -350,7 +359,7 @@ def change_company_info(company_id):
         status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
         return redirect(
             url_for(
-                "company_info_view",
+                "settings.company_info_view",
                 company_id=company_id,
                 _external=False,
                 **status,
@@ -375,7 +384,7 @@ def change_company_info(company_id):
     country_id = request.form.get("country", type=int)
     if not country_id:
         status = Status(StatusType.ERROR, "Country ID is required.").get_status()
-        return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     website_url = request.form.get("website", "")
     if website_url:
@@ -384,7 +393,7 @@ def change_company_info(company_id):
             company.website_url = website_url
         except Exception as e:
             status = Status(StatusType.ERROR, str(e)).get_status()
-            return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+            return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
     else:
         company.website_url = None
 
@@ -399,7 +408,7 @@ def change_company_info(company_id):
     status = Status(StatusType.SUCCESS, "Company successfully changed.").get_status()
     return redirect(
         url_for(
-            "company_info_view",
+            "settings.company_info_view",
             company_id=company_id,
             _external=False,
             **status,
@@ -734,40 +743,6 @@ def make_company_primary(company_id):
     user_company.set_primary = authenticated_user.id
 
     return redirect(url_for("settings.company_list_view", _external=False))
-
-
-@settings.get("/investor")
-@login_required
-@check_user_info_complete
-@check_verification
-def edit_investor_view():
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-
-    investor = Investor.get_by_user_id(current_user.id)
-    if not investor:
-        status = Status(StatusType.ERROR, "You don't have claimed investor profile yet.").get_status()
-        return redirect(url_for("settings.index", _external=True, **status))
-
-    if investor.user_id != current_user.id:
-        status = Status(StatusType.ERROR, "Not authorized.").get_status()
-        return redirect(url_for("settings.index", _external=True, **status))
-
-    notable_investments = NotableInvestment.get_all()
-    rounds = Round.get_all()
-    industries = Industry.get_all()
-
-    return render_template(
-        "settings/investor.html",
-        investor=investor,
-        rounds=rounds,
-        industries=industries,
-        notable_investments=notable_investments,
-        status_type=status_type,
-        msg=msg,
-    )
 
 
 @settings.post("/investor")

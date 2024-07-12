@@ -372,6 +372,7 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
     is_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     user: Mapped[User] = relationship(
         User, backref=backref("user_company", passive_deletes=True, uselist=True), init=False
@@ -388,6 +389,16 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     def set_primary(self, user_id: int) -> None:
         db.session.execute(update(UserCompany).where(UserCompany.user_id == user_id).values(is_primary=False))
         self.is_primary = True
+        db.session.commit()
+
+    @property
+    def get_public(self):
+        return self.is_public
+
+    @get_public.setter
+    def set_public(self, user_id: int) -> None:
+        db.session.execute(update(UserCompany).where(UserCompany.user_id == user_id).values(is_public=False))
+        self.is_public = True
         db.session.commit()
 
     @staticmethod

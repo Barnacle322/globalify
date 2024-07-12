@@ -646,6 +646,25 @@ createApp({
                 console.error("Error making primary:", error.message);
             }
         },
+        async makePublic(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/settings/company/${companyId}/make/public`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error("Failed to make public");
+                }
+            } catch (error) {
+                console.error("Error making public:", error.message);
+            }
+        },
     },
     mounted() {
         this.setupMenuToggle();

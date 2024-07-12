@@ -102,7 +102,7 @@ def create_checkout(
 ) -> stripe.checkout.Session:
     trial_period = 14
     success_url = request.host_url + "/search"
-    cancel_url = request.host_url + "payment/cancel" if not cancel_url else cancel_url
+    cancel_url = request.host_url + "tier-selection" if not cancel_url else cancel_url
     prices = stripe.Price.list(lookup_keys=[lookup_key], expand=["data.product"])
 
     checkout_data = {

@@ -509,12 +509,12 @@ def invite_user(company_id):
 
     if not user_email or not user_role:
         status = Status(StatusType.ERROR, "Email and role are required.").get_status()
-        return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     existing_company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id=company_id, email=user_email)
     if existing_company_invitation:
         status = Status(StatusType.ERROR, "User already invited.").get_status()
-        return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     company_invitation = CompanyInvitation(
         company_id=company_id,
@@ -533,7 +533,7 @@ def invite_user(company_id):
     # )
 
     status = Status(StatusType.SUCCESS, "User invited.").get_status()
-    return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+    return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
 
 @settings.post("/company/<int:company_id>/invitation/accept")
@@ -583,7 +583,6 @@ def decline_invitation(company_id):
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
     company_invitation.is_used = True
-
     db.session.commit()
 
     return redirect(url_for("settings.company_list_view", _external=False))
@@ -613,13 +612,12 @@ def cancel_invitation(invitation_id):
 def get_company_members(company_id):
     company_members = UserCompany.get_members(company_id=company_id)
     members = []
-
     if company_members:
         for user, user_company in company_members:
             user_info = user.user_info
             user_element = MemberSchema(
                 id=user.id,
-                name=user_info.first_name + " " + user_info.last_name,
+                name=user_info.full_name,
                 picture_url=user_info.picture_url,
                 role=user_company.role.value,
             )
@@ -651,21 +649,21 @@ def change_company_role(user_id):
     )
     if not current_user_company:
         status = Status(StatusType.ERROR, "You don't have an access!").get_status()
-        return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
     if current_user_company.role != CompanyRole.OWNER:
         status = Status(StatusType.ERROR, "Only owner can change role!").get_status()
-        return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     user_company = UserCompany.get_by_user_id_and_company_id(user_id, company_id, True)
     if not user_company:
         status = Status(StatusType.ERROR, "Member not found.").get_status()
-        return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     user_company.role = CompanyRole(role)
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Member's role changed.").get_status()
-    return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+    return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
 
 @settings.post("/company/member/<int:user_id>/remove")
@@ -679,22 +677,22 @@ def remove_company_member(user_id):
 
     if current_user.id == user_id:
         status = Status(StatusType.ERROR, "You can't remove yourself.").get_status()
-        return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     current_user_company = UserCompany.get_by_user_id_and_company_id(
         user_id=current_user.id, company_id=company_id, get_accepted=True
     )
     if not current_user_company:
         status = Status(StatusType.ERROR, "You don't have an access!").get_status()
-        return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
     if current_user_company.role != CompanyRole.OWNER:
         status = Status(StatusType.ERROR, "Only owner can change role!").get_status()
-        return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     user_company = UserCompany.get_by_user_id_and_company_id(user_id=user_id, company_id=company_id, get_accepted=True)
     if not user_company:
         status = Status(StatusType.ERROR, "Member not found.").get_status()
-        return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     company_invitation = CompanyInvitation.get_by_company_id_and_email(
         company_id=company_id, email=user_company.user.email
@@ -706,7 +704,7 @@ def remove_company_member(user_id):
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Member removed.").get_status()
-    return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
+    return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
 
 @settings.post("/company/<int:company_id>/set-primary")
@@ -731,8 +729,6 @@ def make_company_primary(company_id):
 @check_user_info_complete
 @check_verification
 def make_company_public(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
     user_company = UserCompany.get_by_id(id=company_id)
     if not user_company:
         status = Status(StatusType.ERROR, "Company not found.").get_status()
@@ -840,7 +836,6 @@ def edit_investor():
     investor.upsert_data()
 
     status = Status(StatusType.SUCCESS, "Investor updated.").get_status()
-
     return redirect(url_for("settings.edit_investor_view", _external=False, **status))
 
 
@@ -930,7 +925,7 @@ def restore_investor_data():
     return redirect(url_for("settings.edit_investor_view", _external=False, **status))
 
 
-@settings.get("/search_users/<search_input>")
+@settings.get("/users/search/<search_input>")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -939,19 +934,18 @@ def search_user(search_input):
         db.select(User).where(User.email.contains(search_input)).where(User.id != current_user.id)
     ).all()
 
-    if users:
-        user_list = []
-        for user in users:
-            user_element = UserSchema(
-                id=user.id,
-                email=user.email,
-                picture_url=user.user_info.picture_url,  # type: ignore
-            )
-            user_list.append(user_element.model_dump())
-        return jsonify({"users": user_list})
-    else:
+    if not users:
         email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if re.match(email_regex, search_input):
             return jsonify({"search_input": search_input})
-        else:
-            return jsonify({"users": []})
+        return jsonify({"users": []})
+
+    user_list = []
+    for user in users:
+        user_element = UserSchema(
+            id=user.id,
+            email=user.email,
+            picture_url=user.user_info.picture_url,  # type: ignore
+        )
+        user_list.append(user_element.model_dump())
+    return jsonify({"users": user_list})

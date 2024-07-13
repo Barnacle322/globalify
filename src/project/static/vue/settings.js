@@ -280,7 +280,7 @@ const InviteMemberComponent = defineComponent({
         async getUserList(event) {
             const searchInput = event.target.value;
             if (searchInput.length > 0) {
-                const response = await fetch(`/settings/search_users/${searchInput}`);
+                const response = await fetch(`/settings/users/search/${searchInput}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.users && data.users.length > 0) {

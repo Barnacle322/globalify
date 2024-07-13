@@ -135,6 +135,10 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
         user_info = db.session.scalar(db.select(UserInfo).where(UserInfo.username == username))
         return True if user_info else False
 
+    @staticmethod
+    def get_by_username(username: str) -> UserInfo | None:
+        return db.session.scalar(db.select(UserInfo).where(UserInfo.username == username))
+
 
 class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
     user: Mapped[User] = relationship(User, backref=backref("user_payment", passive_deletes=True, uselist=False))
@@ -388,16 +392,6 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     def set_primary(self, user_id: int) -> None:
         db.session.execute(update(UserCompany).where(UserCompany.user_id == user_id).values(is_primary=False))
         self.is_primary = True
-        db.session.commit()
-
-    @property
-    def get_public(self):
-        return self.is_public
-
-    @get_public.setter
-    def set_public(self, user_id: int) -> None:
-        db.session.execute(update(UserCompany).where(UserCompany.user_id == user_id).values(is_public=False))
-        self.is_public = True
         db.session.commit()
 
     @staticmethod

@@ -19,7 +19,7 @@ const CancelInvitationComponent = defineComponent({
         async cancelInvitation(invitationId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/settings/company/${invitationId}/cancel/invitation`, {
+                const response = await fetch(`/settings/companies/invitation/${invitationId}/cancel`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -77,7 +77,7 @@ const ChangeRoleComponent = defineComponent({
                 const csrfToken = document.getElementById("csrf_token").value;
                 const role = this.$refs.roleChange.value;
 
-                const response = await fetch(`/settings/company/${userId}/change-role`, {
+                const response = await fetch(`/settings/company/member/${userId}/role`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -101,7 +101,7 @@ const ChangeRoleComponent = defineComponent({
         async removeMember(userId, companyId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
-                const response = await fetch(`/settings/company/${userId}/remove`, {
+                const response = await fetch(`/settings/company/member/${userId}/remove`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -247,7 +247,7 @@ const InviteMemberComponent = defineComponent({
                 const role = this.selectedRole;
                 const invitationMessage = this.invitationMessage;
 
-                const response = await fetch(`/settings/company/invite/${companyId}`, {
+                const response = await fetch(`/settings/company/${companyId}/invitation/create`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -302,7 +302,7 @@ const InviteMemberComponent = defineComponent({
         },
         async fetchRoles() {
             try {
-                const response = await fetch("/settings/company/roles");
+                const response = await fetch("/settings/companies/roles");
                 if (response.ok) {
                     const data = await response.json();
                     this.roles = data.roles;
@@ -526,29 +526,10 @@ createApp({
                 }
             }
         },
-        async deleteUserCompany(userCompanyId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/settings/user-company/${userCompanyId}/delete`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else if (response.ok) {
-                    window.location.reload();
-                }
-            } catch (error) {
-                console.error("Error deleting company:", error.message);
-            }
-        },
         async acceptInvitation(companyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/settings/company/${companyId}/accept/invitation`, {
+                const response = await fetch(`/settings/company/${companyId}/invitation/accept`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -567,7 +548,7 @@ createApp({
         async declineInvitation(companyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/settings/company/${companyId}/decline/invitation`, {
+                const response = await fetch(`/settings/company/${companyId}/invitation/decline`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -598,7 +579,7 @@ createApp({
         async makePrimary(companyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/settings/company/${companyId}/make/primary`, {
+                const response = await fetch(`/settings/company/${companyId}/set-primary`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -617,7 +598,7 @@ createApp({
         async makePublic(companyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/settings/company/${companyId}/make/public`, {
+                const response = await fetch(`/settings/company/${companyId}/set-public`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

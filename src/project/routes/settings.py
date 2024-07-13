@@ -496,29 +496,7 @@ def create_company():
     return redirect(url_for("settings.company_list_view", _external=False, **status))
 
 
-@settings.post("/user-company/<int:user_company_id>/delete")
-@login_required
-@check_user_info_complete
-@check_verification
-def delete_user_company(user_company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    user_company = UserCompany.get_by_id(user_company_id)
-    if not user_company:
-        status = Status(StatusType.ERROR, "Company not found.").get_status()
-        return redirect(url_for("settings.company_list_view", _external=False, **status))
-
-    if user_company.user_id != authenticated_user.id and user_company.role != CompanyRole.OWNER:
-        status = Status(StatusType.ERROR, "You don't have permissions to delete this company!").get_status()
-        return redirect(url_for("settings.company_list_view", _external=False, **status))
-
-    db.session.delete(user_company)
-    db.session.commit()
-
-    return redirect(url_for("settings.company_list_view", _external=False))
-
-
-@settings.post("/company/invite/<int:company_id>")
+@settings.post("/company/<int:company_id>/invitation/create")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -558,24 +536,7 @@ def invite_user(company_id):
     return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
 
 
-@settings.post("/company/<int:invitation_id>/cancel/invitation")
-@login_required
-@check_user_info_complete
-@check_verification
-def cancel_invitation(invitation_id):
-    company_invitation = CompanyInvitation.get_by_id(id=invitation_id)
-
-    if not company_invitation:
-        status = Status(StatusType.ERROR, "Invitation not found.").get_status()
-        return redirect(url_for("settings.company_list_view", _external=False, **status))
-
-    db.session.delete(company_invitation)
-    db.session.commit()
-
-    return redirect(url_for("settings.company_list_view", _external=False))
-
-
-@settings.post("/company/<int:company_id>/accept/invitation")
+@settings.post("/company/<int:company_id>/invitation/accept")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -607,6 +568,44 @@ def accept_invitation(company_id):
     return redirect(url_for("settings.company_list_view", _external=False))
 
 
+@settings.post("/company/<int:company_id>/invitation/decline")
+@login_required
+@check_user_info_complete
+@check_verification
+def decline_invitation(company_id):
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    company_invitation = CompanyInvitation.get_by_company_id_and_email(
+        company_id=company_id, email=authenticated_user.email
+    )
+    if not company_invitation:
+        status = Status(StatusType.ERROR, "Invitation not found.").get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+    company_invitation.is_used = True
+
+    db.session.commit()
+
+    return redirect(url_for("settings.company_list_view", _external=False))
+
+
+@settings.post("/companies/invitation/<int:invitation_id>/cancel")
+@login_required
+@check_user_info_complete
+@check_verification
+def cancel_invitation(invitation_id):
+    company_invitation = CompanyInvitation.get_by_id(id=invitation_id)
+
+    if not company_invitation:
+        status = Status(StatusType.ERROR, "Invitation not found.").get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+    db.session.delete(company_invitation)
+    db.session.commit()
+
+    return redirect(url_for("settings.company_list_view", _external=False))
+
+
 @settings.get("/company/<int:company_id>/members")
 @login_required
 @check_user_info_complete
@@ -629,7 +628,7 @@ def get_company_members(company_id):
     return jsonify({"members": []})
 
 
-@settings.get("/company/roles")
+@settings.get("/companies/roles")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -637,7 +636,7 @@ def get_company_roles():
     return jsonify({"roles": [role.value for role in CompanyRole]})
 
 
-@settings.post("/company/<int:user_id>/change-role")
+@settings.post("/company/member/<int:user_id>/role")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -669,7 +668,7 @@ def change_company_role(user_id):
     return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
 
 
-@settings.post("/company/<int:user_id>/remove")
+@settings.post("/company/member/<int:user_id>/remove")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -710,28 +709,7 @@ def remove_company_member(user_id):
     return redirect(url_for("company_info_view", company_id=company_id, _external=False, **status))
 
 
-@settings.post("/company/<int:company_id>/decline/invitation")
-@login_required
-@check_user_info_complete
-@check_verification
-def decline_invitation(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    company_invitation = CompanyInvitation.get_by_company_id_and_email(
-        company_id=company_id, email=authenticated_user.email
-    )
-    if not company_invitation:
-        status = Status(StatusType.ERROR, "Invitation not found.").get_status()
-        return redirect(url_for("settings.company_list_view", _external=False, **status))
-
-    company_invitation.is_used = True
-
-    db.session.commit()
-
-    return redirect(url_for("settings.company_list_view", _external=False))
-
-
-@settings.post("/company/<int:company_id>/make/primary")
+@settings.post("/company/<int:company_id>/set-primary")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -748,7 +726,7 @@ def make_company_primary(company_id):
     return redirect(url_for("settings.company_list_view", _external=False))
 
 
-@settings.post("/company/<int:company_id>/make/public")
+@settings.post("/company/<int:company_id>/set-public")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -760,7 +738,8 @@ def make_company_public(company_id):
         status = Status(StatusType.ERROR, "Company not found.").get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    user_company.set_public = authenticated_user.id
+    user_company.is_public = True
+    db.session.commit()
 
     return redirect(url_for("settings.company_list_view", _external=False))
 

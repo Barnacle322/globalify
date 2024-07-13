@@ -191,40 +191,70 @@
                         </a>
                     </div>
                 </nav>
-                <main class="mt-10 flex flex-col items-center justify-center p-4">
-                    <h1 class="w-full text-4xl font-semibold">Your Companies</h1>
+                <main class="flex flex-col items-center justify-center p-8">
                     {% if not companies %}
-                    <div class="flex flex-col gap-2">
-                        <p class="mx-auto mt-5 max-w-xl text-center text-gray-500">
-                            Hmm, it look like you aren't a part of any company. You can create one or ask your colleague
-                            to invite you!
-                        </p>
-                        <a href="company/create" class="font-medium">
-                            <button
-                                class="flex w-full items-center justify-center gap-2 rounded-xl border bg-white p-4 transition-all hover:border-2"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="size-6"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                    />
-                                </svg>
-                                Create a company
-                            </button></a
+                    <div class="mt-14 flex w-full flex-col items-center justify-center gap-1">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-12 text-gray-400"
                         >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
+                            />
+                        </svg>
+                        <h2 class="mt-2 font-medium">No companies</h2>
+                        <span class="max-w-xs text-center font-light text-gray-500"
+                            >Get started by creating a company, or ask to get invited into one</span
+                        >
+                        <a
+                            class="mt-3 flex items-center justify-center gap-2 rounded-lg bg-sky-500 p-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+                            href="/settings/company/create"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-5"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            <span class="text-sm font-medium">New Company</span>
+                        </a>
                     </div>
                     {% else %}
-                    <div class="mt-10 grid w-full grid-cols-3 gap-4">
+                    <div class="flex w-full justify-between">
+                        <div class="">
+                            <h1 class="text-2xl font-bold">Companies</h1>
+                            <p class="text-muted-foreground">Manage your companies here</p>
+                        </div>
+                        <a
+                            class="mt-auto flex h-fit w-fit shrink-0 items-center justify-center gap-2 rounded-lg bg-sky-500 p-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+                            href="/settings/company/create"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-5"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            <span class="text-sm font-medium">New Company</span>
+                        </a>
+                    </div>
+                    <div class="mt-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {% for company in companies %}
-                        <div class="relative">
+                        <div class="relative flex">
                             <a
                                 href="/settings/company/{{ company.company.id }}"
                                 class="flex w-full justify-between rounded-xl border bg-white p-4"
@@ -239,66 +269,37 @@
                                         alt=""
                                     />
                                     {% endif %}
-                                    <div>
-                                        <div class="flex text-xl font-semibold items-center">
-                                            <h2 class=""></h2>
-                                            {{ company.company.name }} {% if company.is_primary %}
-                                            <svg
-                                                height="200px"
-                                                width="200px"
-                                                version="1.1"
-                                                id="Layer_1"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink"
-                                                viewBox="0 0 512 512"
-                                                xml:space="preserve"
-                                                fill="#000000"
-                                                class="size-5 ml-2"
+                                    <div class="flex flex-col">
+                                        <h2 class="text-xl font-medium">{{ company.company.name }}</h2>
+                                        <p class="line-clamp-2 text-sm text-gray-500">
+                                            {{ company.company.description if company.company.description else "" }}
+                                        </p>
+                                        <div class="mt-auto flex gap-1 pt-3">
+                                            {% if company.is_public %}
+                                            <span
+                                                class="rounded-lg border border-sky-200 bg-sky-100 p-1 px-2 text-xs font-medium text-sky-600"
                                             >
-                                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                                                <g
-                                                    id="SVGRepo_tracerCarrier"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                ></g>
-                                                <g id="SVGRepo_iconCarrier">
-                                                    <polygon
-                                                        style="fill: #ffea8a"
-                                                        points="0,443.733 0,68.267 17.067,68.267 136.533,187.733 256,68.267 375.467,187.733 494.933,68.267 512,68.267 512,443.733 "
-                                                    ></polygon>
-                                                    <polygon
-                                                        style="fill: #ffdb2d"
-                                                        points="494.933,68.267 375.467,187.733 256.002,68.267 256,68.267 256,443.733 512,443.733 512,68.267 "
-                                                    ></polygon>
-                                                </g>
-                                            </svg>
-                                            {% endif %} {% if company.is_public %}
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke-width="1.5"
-                                                stroke="currentColor"
-                                                class="size-5 ml-2"
+                                                Public
+                                            </span>
+
+                                            {% else %}
+                                            <span
+                                                class="rounded-lg border border-gray-200 bg-gray-100 p-1 px-2 text-xs font-medium text-gray-600"
                                             >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
-                                                />
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                                                />
-                                            </svg>
+                                                Private
+                                            </span>
+                                            {% endif %} {% if company.is_primary %}
+                                            <span
+                                                class="rounded-lg border border-violet-200 bg-violet-100 p-1 px-2 text-xs font-medium text-violet-600"
+                                            >
+                                                Primary</span
+                                            >
                                             {% endif %}
                                         </div>
-                                        <p class="text-gray-500">{{ company.company.description }}</p>
                                     </div>
                                 </div>
                             </a>
-                            <div class="absolute right-5 top-5">
+                            <div class="absolute right-3 top-3">
                                 <button
                                     @click.prevent="!openedDropdownCompanyId ? openDropdown({{company.id}}) : closeDropdown()"
                                 >
@@ -324,7 +325,7 @@
                                 >
                                     <button
                                         @click="makePrimary({{ company.id }})"
-                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
+                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-sky-500 hover:text-white"
                                     >
                                         <svg
                                             viewBox="0 0 24 24"
@@ -369,7 +370,7 @@
                                     {% if company.role.value == 'owner' %}
                                     <button
                                         @click="makePublic({{ company.id }})"
-                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
+                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-sky-500 hover:text-white"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -390,7 +391,6 @@
                                                 d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
                                             />
                                         </svg>
-
                                         Make public
                                     </button>
                                     {% endif %}
@@ -398,35 +398,12 @@
                             </div>
                         </div>
                         {% endfor %}
-                        <button
-                            class="flex w-full items-center justify-center gap-2 rounded-xl border bg-white p-4 transition-all hover:border-2"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                                class="size-6"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                />
-                            </svg>
-                            <a href="company/create" class="font-medium">Create a company</a>
-                        </button>
                     </div>
-                    {% endif %}
-                    <h1 class="mt-10 w-full text-4xl font-semibold">Your Invitations</h1>
-                    {% if not invitations %}
-                    <p class="mx-auto mt-5 max-w-xl text-center text-gray-500">
-                        You don't have any pending invitation. You can create a company or ask your colleague to invite
-                        you!
-                    </p>
-                    {% else %}
-                    <div class="mt-10 grid w-full grid-cols-3 gap-4">
+                    {% endif %} {% if not invitations %} {% else %}
+                    <div class="mt-4 w-full">
+                        <h1 class="text-xl font-bold">Invitations</h1>
+                    </div>
+                    <div class="mt-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {% for invitation in invitations %}
                         <div class="flex w-full justify-between rounded-xl border bg-white p-4">
                             <div class="flex gap-4 text-start">
@@ -437,12 +414,12 @@
                                 />
                                 <div>
                                     <h3 class="text-xl font-semibold">{{ invitation.name }}</h3>
-                                    <p class="text-gray-500">{{ invitation.role }}</p>
+                                    <p class="text-gray-500">{{ invitation.role.capitalize() }}</p>
                                 </div>
                             </div>
                             <div class="flex flex-col gap-2">
                                 <button
-                                    class="flex items-center justify-center gap-2 rounded-xl border bg-white p-2 transition-shadow hover:shadow-md"
+                                    class="flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-emerald-600 transition-shadow hover:shadow-md"
                                     @click="acceptInvitation({{ invitation.company_id }})"
                                 >
                                     <svg
@@ -463,8 +440,8 @@
                                     <span class="text-sm font-medium">Accept</span>
                                 </button>
                                 <button
-                                    class="flex items-center justify-center gap-2 rounded-xl border bg-white p-2 transition-shadow hover:shadow-md"
-                                    @click="declineInvitation({{invitation.company_id}})"
+                                    class="e flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 p-2 text-red-600 transition-shadow hover:shadow-md"
+                                    @click="declineInvitation({{ invitation.company_id }})"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"

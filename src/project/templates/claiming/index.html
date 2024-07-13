@@ -131,7 +131,7 @@
                 </span>
                 <div class="flex flex-wrap gap-1">
                     {% for round in investor.rounds %}
-                    <a class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
+                    <a class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
                         >{{ round.name }}
                     </a>
                     {% endfor %}
@@ -158,7 +158,7 @@
                 </span>
                 <div class="flex flex-wrap gap-1">
                     {% for industry in investor.industries %}
-                    <a class="text-nowrap rounded-lg bg-[#B9E5FF] px-2 py-1.5 text-xs font-medium text-[#3EB5FD]"
+                    <a class="text-nowrap rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-[#26a3f1]"
                         >{{ industry.name }}</a
                     >
                     {% endfor %}
@@ -255,7 +255,7 @@
                 <h2 class="mt-5 font-medium">Notable Investments</h2>
                 <div class="mt-2 flex flex-wrap gap-1">
                     {% for investment in investor.notable_investments %}
-                    <a class="text-nowrap rounded-lg bg-violet-300 px-2 py-1.5 text-xs font-medium text-violet-500"
+                    <a class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500"
                         >{{ investment.name }}</a
                     >
                     {% endfor %}

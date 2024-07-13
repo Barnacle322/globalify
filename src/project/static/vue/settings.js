@@ -526,38 +526,6 @@ createApp({
                 }
             }
         },
-        createCompany() {
-            const csrfToken = document.getElementById("csrf_token").value;
-            const formData = new FormData();
-
-            if (this.$refs.picture && this.$refs.picture.files[0]) {
-                formData.append("picture", this.$refs.picture.files[0]);
-            }
-
-            formData.append("company_name", this.$refs.company_name.value);
-            formData.append("number_of_employees", this.$refs.number_of_employees.value);
-            formData.append("description", this.$refs.description.value);
-            formData.append("country", this.$refs.country.value);
-            formData.append("round", this.$refs.round.value);
-            formData.append("industry", this.$refs.industry.value);
-            formData.append("website", this.$refs.website.value);
-
-            fetch("/settings/company/create", {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken,
-                },
-                body: formData,
-            })
-                .then((response) => {
-                    if (response.redirected) {
-                        window.location.href = response.url;
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error:", error);
-                });
-        },
         async deleteUserCompany(userCompanyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {

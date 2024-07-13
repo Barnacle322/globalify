@@ -29,6 +29,12 @@ from .payment import get_invoices
 settings = Blueprint("settings", __name__)
 
 
+def add_https_prefix(url):
+    if not url.startswith(("http://", "https://")):
+        return "https://" + url
+    return url
+
+
 @settings.route("/")
 @settings.route("/general")
 @login_required
@@ -113,12 +119,6 @@ def billing():
         user=authenticated_user,
         invoices=invoices,
     )
-
-
-def add_https_prefix(url):
-    if not url.startswith(("http://", "https://")):
-        return "https://" + url
-    return url
 
 
 @settings.post("/personal-info")
@@ -421,6 +421,10 @@ def change_company_info(company_id):
 @check_user_info_complete
 @check_verification
 def create_company_view():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
     industries = Industry.get_all()
     rounds = Round.get_all()
     countries = Country.get_all()
@@ -430,6 +434,8 @@ def create_company_view():
         industries=industries,
         rounds=rounds,
         countries=countries,
+        status_type=status_type,
+        msg=msg,
     )
 
 
@@ -462,29 +468,25 @@ def create_company():
 
     company.description = form_data.get("description") or None
     company.number_of_employees = form_data.get("number_of_employees", 0, type=int)
-    preferred_round_id = form_data.get("round", type=int) or None
     company.website_url = form_data.get("website") or None
-    company.preferred_round_id = preferred_round_id
+    company.preferred_round_id = form_data.get("round", type=int) or None
     company.industry_id = form_data.get("industry", type=int) or None
 
-    country_id = form_data.get("country", type=int)
-    company.country_id = country_id
-    company.coordinates = Country.get_by_id(country_id).name  # type: ignore
+    if country_id := form_data.get("country", type=int):
+        company.country_id = country_id
+        company.coordinates = Country.get_by_id(country_id).name  # type: ignore
 
     db.session.add(company)
     db.session.commit()
 
     existing_user_companies = UserCompany.get_by_user_id(user_id=authenticated_user.id)
     is_primary = False if existing_user_companies else True
-    is_public = False if existing_user_companies else True
 
     user_company = UserCompany(
         user_id=authenticated_user.id,
         company_id=company.id,
         role=CompanyRole.OWNER,
-        is_accepted=True,
         is_primary=is_primary,
-        is_public=is_public,
     )
 
     db.session.add(user_company)
@@ -599,7 +601,6 @@ def accept_invitation(company_id):
         db.session.add(user_company)
 
     company_invitation.is_used = True
-    user_company.is_accepted = True
 
     db.session.commit()
 

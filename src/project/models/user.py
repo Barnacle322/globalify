@@ -370,7 +370,6 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
     role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
-    is_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
@@ -439,7 +438,6 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.select(UserCompany).where(
                 UserCompany.user_id == user_id,
                 UserCompany.company_id == company_id,
-                UserCompany.is_accepted.is_(get_accepted),
             )
         )
 

@@ -71,7 +71,7 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
-            <div class="relative w-full">
+            <form enctype="multipart/form-data" method="POST" class="relative w-full">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <main class="mt-10 p-4">
                     <div class="grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
@@ -101,7 +101,6 @@
                                         <div class="w-full">
                                             <input
                                                 type="file"
-                                                ref="picture"
                                                 name="picture"
                                                 accept="image/png, image/jpeg"
                                                 class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
@@ -110,17 +109,17 @@
                                         </div>
                                     </div>
                                     <div class="col-span-full">
-                                        <label for="company-name" class="block text-sm font-medium leading-6"
+                                        <label for="company_name" class="block text-sm font-medium leading-6"
                                             >Company name</label
                                         >
                                         <div class="mt-2">
                                             <input
-                                                type="text"
-                                                name="company-name"
-                                                ref="company_name"
-                                                autocomplete="organization-title"
-                                                required
                                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                type="text"
+                                                name="company_name"
+                                                autocomplete="organization-title"
+                                                placeholder="Acme Inc."
+                                                required
                                             />
                                         </div>
                                     </div>
@@ -130,11 +129,11 @@
                                         >
                                         <div class="mt-2">
                                             <input
+                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                                 type="number"
                                                 name="number_of_employees"
-                                                ref="number_of_employees"
                                                 autocomplete="number_of_employees"
-                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                placeholder="10"
                                                 min="0"
                                             />
                                         </div>
@@ -145,7 +144,6 @@
                                         >
                                         <div class="mt-2">
                                             <textarea
-                                                ref="description"
                                                 name="description"
                                                 class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                                                 placeholder="Describe your company here."
@@ -158,11 +156,9 @@
                                         >
                                         <div class="mt-2">
                                             <select
-                                                ref="country"
                                                 name="country"
                                                 autocomplete="country-name"
                                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                                required
                                             >
                                                 <option value="" disabled selected>Select a country</option>
                                                 {% if countries %} {% for country in countries %}
@@ -180,11 +176,10 @@
                                                 id="round"
                                                 name="round"
                                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                                required
                                             >
                                                 <option value="" disabled selected>Select a round</option>
                                                 {% if rounds %} {% for round in rounds %}
-                                                <option value="{{ round.id }}" ref="round">{{ round.name }}</option>
+                                                <option value="{{ round.id }}">{{ round.name }}</option>
                                                 {% endfor %} {% endif %}
                                             </select>
                                         </div>
@@ -198,13 +193,12 @@
                                                 id="industry"
                                                 name="industry"
                                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 pr-8"
-                                                required
                                             >
                                                 <option value="" disabled selected>Select an industry</option>
                                                 {% for category, industry in industries.items() %}
                                                 <optgroup label="{{ category }}">
                                                     {% for ind in industry %}
-                                                    <option value="{{ ind.id }}" ref="industry">{{ ind.name }}</option>
+                                                    <option value="{{ ind.id }}">{{ ind.name }}</option>
                                                     {% endfor %}
                                                 </optgroup>
                                                 {% endfor %}
@@ -217,7 +211,6 @@
                                             <input
                                                 type="text"
                                                 name="website"
-                                                ref="website"
                                                 autocomplete="website"
                                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                                 pattern="^(https?:\/\/)?(www\.)?[\w.\-]+\.[a-z]{2,}\/?[\w.\-]*$"
@@ -227,7 +220,12 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-8 flex gap-5">
+                                <div class="mt-8 flex justify-end gap-5">
+                                    <a
+                                        class="flex items-center justify-center text-slate-700 underline"
+                                        href="/settings/companies"
+                                        >Cancel</a
+                                    >
                                     <button
                                         id="saveButton"
                                         @click="createCompany"
@@ -235,17 +233,12 @@
                                     >
                                         Create
                                     </button>
-                                    <a
-                                        class="flex items-center justify-center text-slate-700 underline"
-                                        href="/settings/company"
-                                        >Cancel</a
-                                    >
                                 </div>
                             </div>
                         </div>
                     </div>
                 </main>
-            </div>
+            </form>
         </div>
     </body>
 </html>

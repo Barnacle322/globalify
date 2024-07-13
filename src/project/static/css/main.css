@@ -4169,6 +4169,11 @@ textarea {
   background-color: rgb(245 245 244 / var(--tw-bg-opacity));
 }
 
+.hover\:py-2:hover {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
 .hover\:text-gray-900:hover {
   --tw-text-opacity: 1;
   color: rgb(17 24 39 / var(--tw-text-opacity));

@@ -502,10 +502,12 @@ def create_company():
 @check_verification
 def invite_user(company_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-    user_company = UserCompany.get_by_company_id_and_role(company_id=company_id, role=CompanyRole.OWNER)
-    if authenticated_user not in user_company:
+    user_companies = UserCompany.get_by_company_id_and_role(company_id=company_id, role=CompanyRole.OWNER)
+    owner_id_list = [user_company.user_id for user_company in user_companies]
+
+    if authenticated_user.id not in owner_id_list:
         status = Status(StatusType.ERROR, "You don't have access!").get_status()
-        return redirect(url_for("settings.company_list_view", _external=False, **status))
+        return redirect(url_for("settings.company_info_view", _external=False, **status))
 
     form_data = request.get_json()
     user_email = form_data.get("email") or None
@@ -601,10 +603,11 @@ def cancel_invitation(invitation_id):
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-    company_owners = UserCompany.get_by_company_id_and_role(
+    user_companies = UserCompany.get_by_company_id_and_role(
         company_id=company_invitation.company_id, role=CompanyRole.OWNER
     )
-    if authenticated_user not in company_owners:
+    owner_id_list = [user_company.user_id for user_company in user_companies]
+    if authenticated_user.id not in owner_id_list:
         status = Status(StatusType.ERROR, "You don't have an access!").get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
@@ -621,7 +624,8 @@ def cancel_invitation(invitation_id):
 def get_company_members(company_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
     company_members = UserCompany.get_members(company_id=company_id)
-    if not company_members or (authenticated_user not in company_members):
+    member_id_list = [user_company.user_id for user_company in company_members]
+    if not company_members or (authenticated_user.id not in member_id_list):
         return jsonify({"members": []})
 
     members = []

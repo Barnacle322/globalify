@@ -541,7 +541,7 @@
                                         id="about"
                                         placeholder="A very passionate human being!"
                                     >
-            {{investor.about if investor.about else ''}}</textarea
+{{investor.about if investor.about else ''}}</textarea
                                     >
                                 </div>
                                 <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
@@ -686,7 +686,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="relative col-span-full space-y-1">
+                                <!-- TODO: Removed temporarily to speed up the page loading -->
+                                <!-- <div class="relative col-span-full space-y-1">
                                     <label class="text-sm font-medium text-gray-700" for="rounds"
                                         >Notable Investments</label
                                     >
@@ -759,7 +760,7 @@
                                             >{% endif %}{% endfor %}
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="n_investments">№ Investments</label>
                                     <input

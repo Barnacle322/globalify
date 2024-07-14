@@ -464,7 +464,7 @@ createApp({
             const dataString = this.getValues();
 
             try {
-                const response = await fetch("", {
+                const response = await fetch("/investor", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

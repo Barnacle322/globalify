@@ -1,5 +1,5 @@
 import json
-import re
+import os
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
 from functools import wraps
@@ -12,28 +12,30 @@ from flask import (
     redirect,
     render_template,
     request,
-    send_from_directory,
     url_for,
 )
 from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import (
+    ClaimRequest,
     Company,
     Country,
+    EmailVerification,
     Industry,
     InvestmentFirm,
     InvestmentFirmBookmark,
     Investor,
     InvestorBookmark,
+    InvestorOriginPoint,
     Notification,
     Round,
+    User,
+    UserCompany,
     UserPayment,
-    Waitlist,
-    WaitlistCharge,
 )
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
-from ..utils.enums import NotificationDestination, Status, StatusType
+from ..utils.enums import NotificationDestination, NotificationLayout, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import WEIGHTS, check_weights
@@ -66,17 +68,6 @@ def check_verification(func):
 
 
 def generate_pagination(current_page: int, total_pages: int, around_count: int = 2) -> dict:
-    """
-    Generate a pagination dictionary.
-
-    Args:
-        current_page (int): The current page number.
-        total_pages (int): The total number of pages.
-        around_count (int, optional): The number of pages to show around the current page. Defaults to 4.
-
-    Returns:
-        dict: A dictionary with keys 'current_page', 'prev', 'next', and 'pages'.
-    """
     # Calculate all the page ranges
     start_pages = range(1, min(3, total_pages + 1))
     around_pages = range(max(1, current_page - around_count), min(current_page + around_count + 1, total_pages + 1))
@@ -121,11 +112,6 @@ def index():
     return render_template("index.html", posts=posts)
 
 
-@main.get("/incubation")
-def incubation():
-    return render_template("incubation.html")
-
-
 @main.get("/faq")
 def faq():
     return render_template("faq.html")
@@ -151,6 +137,8 @@ def arstan():
 @check_user_info_complete
 @check_verification
 def get_suggestions():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
     access = True
     user_payment = UserPayment.get_by_user_id(current_user.id)
     if current_user.is_admin:
@@ -160,7 +148,22 @@ def get_suggestions():
     elif user_payment and not user_payment.is_active:
         access = False
 
-    company = Company.get_by_user_id(current_user.id)
+    user_company = UserCompany.get_primary_by_user_id(current_user.id)
+
+    bookmarks = InvestorBookmark.get_id_list(current_user.id)
+    if not user_company:
+        notification = Notification(
+            user=authenticated_user,
+            json_data=NotificationLayout(
+                title="Error", msg="Please mark a company as primary to access suggestions."
+            ).get_json(),
+            destination=NotificationDestination.SEARCH,
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return redirect(url_for("main.search"))
+
+    company = Company.get_by_id(user_company.company_id)
 
     bookmarks = InvestorBookmark.get_id_list(current_user.id)
 
@@ -180,6 +183,8 @@ def get_suggestions():
 @check_user_info_complete
 @check_verification
 def get_suggestion_investment_firms():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
     access = True
     user_payment = UserPayment.get_by_user_id(current_user.id)
     if current_user.is_admin:
@@ -189,7 +194,22 @@ def get_suggestion_investment_firms():
     elif user_payment and not user_payment.is_active:
         access = False
 
-    company = Company.get_by_user_id(current_user.id)
+    user_company = UserCompany.get_primary_by_user_id(current_user.id)
+
+    bookmarks = InvestorBookmark.get_id_list(current_user.id)
+    if not user_company:
+        notification = Notification(
+            user=authenticated_user,
+            json_data=NotificationLayout(
+                title="Error", msg="Please mark a company as primary to access suggestions."
+            ).get_json(),
+            destination=NotificationDestination.SEARCH,
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return redirect(url_for("main.search"))
+
+    company = Company.get_by_id(user_company.company_id)
 
     bookmarks = InvestmentFirmBookmark.get_id_list(current_user.id)
 
@@ -433,11 +453,242 @@ def demo_search():
 @check_user_info_complete
 @check_verification
 def investor_slug(slug):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     investor = Investor.get_by_slug(slug)
     if not investor:
         return redirect(url_for("main.search"))
 
-    return render_template("investor.html", investor=investor, user=current_user)
+    return render_template("investor.html", investor=investor, user=current_user, status_type=status_type, msg=msg)
+
+
+@main.get("/investor/<slug>/claim")
+@login_required
+@check_user_info_complete
+@check_verification
+def claiming_types_view(slug):
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    return render_template("claiming/index.html", investor=investor)
+
+
+@main.get("/investor/<slug>/claim/manual")
+@login_required
+@check_user_info_complete
+@check_verification
+def claiming_manual_view(slug):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
+
+    return render_template(
+        "claiming/manual.html",
+        investor=investor,
+        captcha_site_key=captcha_site_key,
+        status_type=status_type,
+        msg=msg,
+    )
+
+
+@main.post("/investor/<slug>/claim/manual")
+@login_required
+@check_user_info_complete
+@check_verification
+def claiming_manual(slug):
+    form_data = request.get_json()
+    email = form_data.get("email")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+
+    claim_request = ClaimRequest.get_by_user_id(current_user.id)
+    if claim_request:
+        if claim_request.status == "pending":
+            status = Status(StatusType.ERROR, "You have already submitted a claim request.").get_status()
+            return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
+        elif claim_request.status == "approved":
+            status = Status(StatusType.ERROR, "You already have claimed investor.").get_status()
+            return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
+
+    claim_request = ClaimRequest(
+        user_id=current_user.id,
+        investor_id=investor.id,
+        email=email,
+    )
+    db.session.add(claim_request)
+
+    investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
+    if not investor_point_origin:
+        investor_point_origin = InvestorOriginPoint(investor=investor)
+        investor_point_origin.first_name = investor.first_name
+        investor_point_origin.last_name = investor.last_name
+        investor_point_origin.slug = investor.slug
+        investor_point_origin.firm_name = investor.firm_name
+        investor_point_origin.about = investor.about
+        investor_point_origin.position = investor.position
+        investor_point_origin.website = investor.website
+        investor_point_origin.linkedin = investor.linkedin
+        investor_point_origin.twitter = investor.twitter
+        investor_point_origin.email = investor.email
+        investor_point_origin.phone_number = investor.phone_number
+        investor_point_origin.n_investments = investor.n_investments
+        investor_point_origin.n_exits = investor.n_exits
+        investor_point_origin.min_investment = investor.min_investment
+        investor_point_origin.max_investment = investor.max_investment
+        investor_point_origin.location = investor.location
+        investor_point_origin.notable_investments = investor.notable_investments
+        investor_point_origin.rounds = investor.rounds
+        investor_point_origin.industries = investor.industries
+        db.session.add(investor_point_origin)
+
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Claim request submitted.").get_status()
+
+    return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
+
+
+@main.get("/investor/<slug>/claim/email")
+@login_required
+@check_user_info_complete
+@check_verification
+def claiming_email_view(slug):
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
+
+    return render_template("claiming/email.html", investor=investor, captcha_site_key=captcha_site_key)
+
+
+@main.post("/investor/<slug>/claim/email")
+@login_required
+@check_user_info_complete
+@check_verification
+def claiming_email(slug):
+    form_data = request.get_json()
+    email = form_data.get("email")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    verification = EmailVerification(user_id=current_user.id)
+    db.session.add(verification)
+    db.session.commit()
+
+    ### Claiming verification ###
+
+    # url = f"https://globalify.xyz/claim?code={verification.token}"
+
+    # google_pubsub.send_event(
+    #     "User wants to claim investor!",
+    #     email=investor.email,
+    #     random_key=verification.token,
+    # )
+
+    status = Status(StatusType.SUCCESS, "Verification email sent.").get_status()
+
+    return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
+
+
+@main.get("/investor/<slug>/claim/email/verify")
+@login_required
+@check_user_info_complete
+@check_verification
+def claim_verification_view(slug):
+    verification_code = request.args.get("code")
+
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    return render_template(
+        "claiming/email_verification.html",
+        investor=investor,
+        verification_code=verification_code,
+        status_type=status_type,
+        msg=msg,
+    )
+
+
+@main.post("/investor/<slug>/claim/email/verify")
+@login_required
+@check_user_info_complete
+@check_verification
+def claim_verification(slug):
+    form_data = request.get_json()
+    verification_code = form_data.get("code")
+    user_email = form_data.get("email")
+
+    investor = Investor.get_by_slug(slug)
+    if not investor:
+        return redirect(url_for("main.search"))
+
+    email_verification = EmailVerification.get_by_token(verification_code)
+    if not email_verification:
+        status = Status(StatusType.ERROR, "Verification code is invalid.").get_status()
+        return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
+
+    if email_verification.is_expired:
+        status = Status(StatusType.ERROR, "Verification code is expired. Please request a new one").get_status()
+        return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
+
+    if user_email != current_user.email:
+        status = Status(StatusType.ERROR, "Email is invalid. Please enter email that you registered with.").get_status()
+        return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
+
+    investor.user = current_user  # type: ignore
+    email_verification.is_used = True
+
+    investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
+    if not investor_point_origin:
+        investor_point_origin = InvestorOriginPoint(investor=investor)
+        investor_point_origin.first_name = investor.first_name
+        investor_point_origin.last_name = investor.last_name
+        investor_point_origin.slug = investor.slug
+        investor_point_origin.firm_name = investor.firm_name
+        investor_point_origin.about = investor.about
+        investor_point_origin.position = investor.position
+        investor_point_origin.website = investor.website
+        investor_point_origin.linkedin = investor.linkedin
+        investor_point_origin.twitter = investor.twitter
+        investor_point_origin.email = investor.email
+        investor_point_origin.phone_number = investor.phone_number
+        investor_point_origin.n_investments = investor.n_investments
+        investor_point_origin.n_exits = investor.n_exits
+        investor_point_origin.min_investment = investor.min_investment
+        investor_point_origin.max_investment = investor.max_investment
+        investor_point_origin.location = investor.location
+        investor_point_origin.notable_investments = investor.notable_investments
+        investor_point_origin.rounds = investor.rounds
+        investor_point_origin.industries = investor.industries
+        db.session.add(investor_point_origin)
+
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Investor claimed.").get_status()
+
+    return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
 
 
 @main.post("/investor/<int:investor_id>/bookmark")
@@ -484,7 +735,7 @@ def get_investor_bookmarks():
 
         investor = InvestorBookmarkSchema(
             id=db_investor.id,
-            name=db_investor.first_name + " " + db_investor.last_name,
+            name=f"{db_investor.first_name} {db_investor.last_name}",
             position=db_investor.position,
             firm_name=db_investor.firm_name,
             about=db_investor.about,
@@ -577,70 +828,6 @@ def update_notification(notification_id):
     db.session.commit()
 
     return jsonify({"status": "success"}, 200)
-
-
-@main.post("/waitlist-email")
-def waitlist_email():
-    email = request.get_json().get("email")
-
-    if not email:
-        status = Status(StatusType.ERROR, "Please enter an email.").get_status()
-        return jsonify(**status)
-
-    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
-        status = Status(StatusType.ERROR, "Please enter a valid email.").get_status()
-        return jsonify(**status)
-
-    email_for_newsletter = Waitlist.get_by_email(email)
-    if email_for_newsletter:
-        status = Status(StatusType.ERROR, "Email is already in the system.").get_status()
-        return jsonify(**status)
-
-    new_waitlist = Waitlist(email=email)
-    db.session.add(new_waitlist)
-    db.session.commit()
-
-    status = Status(StatusType.SUCCESS, "Email added.").get_status()
-    return jsonify(**status)
-
-
-@main.get("/waitlist/cancel")
-def cancel_waitlist():
-    return render_template("waitlist/cancel.html")
-
-
-@main.get("/waitlist/success")
-def success_waitlist():
-    return render_template("waitlist/success.html")
-
-
-@main.get("/download/<key>")
-def download(key):
-    waitlist_charge = WaitlistCharge.get_by_random_key(key)
-
-    if not waitlist_charge:
-        return render_template("download.html", can_download=False)
-
-    if waitlist_charge.downloaded:
-        return render_template("download.html", can_download=False)
-
-    return render_template("download.html", can_download=True, random_key=key)
-
-
-@main.post("/download")
-def post_download():
-    random_key = request.form.get("random_key", "")
-    waitlist_charge = WaitlistCharge.get_by_random_key(random_key)
-
-    if not waitlist_charge or waitlist_charge.downloaded:
-        return redirect(url_for("main.index"))
-
-    waitlist_charge.downloaded = True
-    db.session.commit()
-
-    return send_from_directory(
-        "static", "elements/download/Globalify_Early_Bird_Investor_List.xlsx", as_attachment=True
-    )
 
 
 @main.route("/pricing")

@@ -1,0 +1,32 @@
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %}
+{% block additional_scripts %}
+<script src="/static/scripts/claiming/email.js" defer></script>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+{% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
+content %}
+
+<main class="flex min-h-screen w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+    <section class="mt-36 flex max-w-md flex-col items-center justify-center gap-8 md:mt-48">
+        <article class="flex flex-col gap-2">
+            <h1 class="text-3xl font-semibold md:text-5xl">Email Verification</h1>
+            <p class="max-w-xl text-base text-slate-600 md:text-lg">
+                We will send a letter to <b>{{ investor.email }}</b>. After you've received the email, please confirm
+                the verification.
+            </p>
+        </article>
+        <form id="claimForm" class="flex w-full flex-col" slug="{{investor.slug}}">
+            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" id="email" name="email" value="{{ investor.email }}" />
+            <div class="g-recaptcha" data-sitekey="{{captcha_site_key}}"></div>
+            <br />
+            <button
+                type="submit"
+                class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 py-2 font-semibold text-white"
+            >
+                Send an email
+            </button>
+        </form>
+    </section>
+</main>
+{% endblock %}

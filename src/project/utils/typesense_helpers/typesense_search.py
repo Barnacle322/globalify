@@ -2,6 +2,7 @@ import os
 from typing import Any
 
 from typesense.client import Client
+from typesense.exceptions import ObjectNotFound
 
 from ..info_lists import synonyms
 
@@ -171,8 +172,10 @@ class SearchBuilder:
             return {"found": 0, "page": 1, "per_page": 9, "hits": []}
         self.parameters["prefix"] = False
         # IMPORTANT: Control the weight of the embedding field in the search with the distance_threshold parameter
-        self.parameters["vector_query"] = "embedding:([], distance_threshold:0.50)"
-        self.parameters["exclude_fields"] = "embedding"
+
+        if "embedding" in self.parameters["query_by"]:
+            self.parameters["vector_query"] = "embedding:([], distance_threshold:0.50)"
+            self.parameters["exclude_fields"] = "embedding"
         if self.filters:
             self.parameters["filter_by"] = " && ".join(self.filters)
 
@@ -219,6 +222,18 @@ def upsert_documents(schema_name: str, data: list[dict]) -> list[dict[str, Any]]
         return import_return
     else:
         raise ValueError("Schema name and file path are required")
+
+
+def delete_documents(schema_name: str, document_id: str) -> None:
+    if schema_name and document_id:
+        print(f"Deleting document from {schema_name} schema")
+        try:
+            client.collections[schema_name].documents.delete({"filter_by": f"db_id:={document_id}"})
+            print(f"Deleted document from {schema_name} schema")
+        except ObjectNotFound:
+            print(f"Document with id {document_id} not found in {schema_name} schema")
+    else:
+        raise ValueError("Schema name and document id are required")
 
 
 def delete_schema(schema_name: str) -> None:
@@ -296,19 +311,12 @@ def setup():
         ],
     }
 
-    industry_schema = {
-        "name": "industries",
-        "fields": [
-            {"name": "industry", "type": "string"},
-        ],
-    }
-
     try:
         delete_schema("cities")
     except Exception as e:
         print(f"Error deleting cities schema: {e}")
     create_schema(city_schema)
-    populate_schema_from_file("cities", file_path="./cities_index.jsonl")
+    populate_schema_from_file("cities", file_path="./data/cities_index.jsonl")
 
 
 def update_schema(schema_name: str, file_path: str) -> None:
@@ -338,25 +346,6 @@ def search(
 
     results = client.collections[collection].documents.search(search_parameters)
     return results
-
-
-def create_index(file_name: str):
-    import csv
-    import json
-
-    with open(file_name, newline="", encoding="utf-8") as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            with open("cities_index.jsonl", "a", encoding="utf-8") as jsonl_file:
-                json_row = {}
-                json_row["city"] = row["city"]
-                json_row["city_ascii"] = row["city_ascii"]
-                json_row["country"] = row["country"]
-                json_row["admin_name"] = row["admin_name"]
-                json_row["population"] = int(float(row.get("population", 0))) if row.get("population") != "" else 0
-                json_row["latitude"] = float(row["lat"])
-                json_row["longitude"] = float(row["lng"])
-                jsonl_file.write(json.dumps(json_row) + "\n")
 
 
 def create_synonyms(schema_name: str) -> None:

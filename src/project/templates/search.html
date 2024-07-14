@@ -1,4 +1,8 @@
-{% extends "layouts/layout_app.html" %} {% block title %}Investors{% endblock %} {% block head %} {{ super() }}
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %}
+{% block title %}Investors{% endblock %}
+{% block head %} 
+{{ super() }}
 <script src="/static/scripts/search.js" defer></script>
 <script src="/static/scripts/dashboard.js" defer></script>
 <script src="/static/scripts/query_setter.js" defer></script>
@@ -8,7 +12,7 @@
 {% endblock %} {% block content %}
 <main class="mx-auto h-full min-h-screen w-full overflow-x-hidden">
     <section class="bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white mx-4 rounded-xl my-3">
-        <div class="max-w-7xl mx-auto py-3 px-4 flex sm:flex-row flex-col justify-center items-center gap-2">
+        <div class="mx-auto py-3 px-4 flex sm:flex-row flex-col justify-center items-center gap-2">
             <span class="font-semibold text-lg">Globalify Knowledge Hub is here!</span>
             <a
                 href="https://hub.globalify.xyz/feed"
@@ -20,74 +24,121 @@
     <section class="bg-[#231645] p-5 pb-10 pt-16 mx-4 rounded-3xl">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mx-auto w-full max-w-3xl">
-            <div class="flex gap-2 rounded-full bg-white py-2 pr-3 max-w-3xl mx-auto">
-                <div class="relative w-full">
-                    <input
-                        type="search"
-                        name="search"
-                        id="search"
-                        class="w-full border-0 p-3 pl-12 text-sm focus:ring-0 bg-transparent"
-                        placeholder="Search"
-                        value="{{ query }}"
-                        required
-                    />
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="size-5"
-                        >
+            <div class="flex justify-evenly items-center">
+                <a href="/search/investment-firms">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="size-6 text-white hover:-translate-x-1 transition-transform ease-in-out"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                </a>
+
+                <h1
+                    class="text-4xl text-center font-bold tracking-tight sm:text-5xl xl:text-6xl bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] p-3 w-fit bg-clip-text text-transparent"
+                >
+                    Globalify Investors
+                </h1>
+
+                <a href="/search/investment-firms">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="size-6 text-white hover:translate-x-1 transition-transform ease-in-out"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="flex gap-2 rounded-full bg-white py-2 pr-3 max-w-3xl mx-auto mt-10">
+                <input
+                    type="search"
+                    name="search"
+                    id="search"
+                    class="w-full border-0 py-3 pr-0 pl-6 text-sm focus:ring-0 bg-transparent"
+                    placeholder="Search"
+                    value="{{ query }}"
+                    autocapitalize="off"
+                    autocorrect="off"
+                    autocomplete="off"
+                    aria-autocomplete="both"
+                    enterkeyhint="search"
+                    required
+                />
+                <button id="search-btn" class="" type="submit">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-5"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                        />
+                    </svg>
+                </button>
+                <a href="/suggestions" class="pr-3 flex justify-center items-center flex-col">
+                    <div
+                        class="size-6 animate-border bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%]"
+                        style="clip-path: url(#magic-icon)"
+                    ></div>
+                    <svg height="0" width="0">
+                        <clipPath id="magic-icon">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                                d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
                             />
-                        </svg>
-                    </div>
-                </div>
-                <button
-                    id="search-btn"
-                    class="w-fit text-nowrap rounded-full bg-blue-500 px-4 text-sm font-medium text-white transition-colors ease-in-out"
-                    type="submit"
-                >
-                    Search
-                </button>
-            </div>
-            <div class="text-white w-full flex text-xs justify-end mt-3">
-                <button
-                    id="open-advanced-button"
-                    class="flex gap-1 justify-center items-center text-gray-300 underline"
-                    onclick="toggleAdvanced()"
-                >
-                    Advanced
-                    <svg
-                        id="opened-advanced"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="size-4 hidden"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                        </clipPath>
                     </svg>
+                </a>
+            </div>
+            <button
+                id="open-advanced-button"
+                class="flex gap-1 justify-center items-center text-gray-300 underline text-xs mt-3 ml-auto"
+                onclick="toggleAdvanced()"
+            >
+                Advanced
+                <svg
+                    id="opened-advanced"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-4 hidden"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                </svg>
 
-                    <svg
-                        id="closed-advanced"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="size-4"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                    </svg>
-                </button>
-            </div>
+                <svg
+                    id="closed-advanced"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-4"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+            </button>
             <div id="advanced-menu" class="mt-5 flex-col flex-wrap gap-x-5 gap-y-3 sm:flex-row hidden">
                 <div class="group relative text-left">
                     <label class="text-sm font-semibold text-white" for="country-options">Country</label>
@@ -374,7 +425,8 @@
                 </div>
                 <a class="mt-3 ml-auto self-end text-sm text-gray-200 underline" href="./search">Clear all</a>
             </div>
-            <div id="cool-button" class="mt-5 flex w-full items-center justify-center gap-5 rounded-xl">
+            <div></div>
+            <!-- <button id="cool-button" class="mt-5 flex w-full items-center justify-center gap-5 rounded-xl">
                 <div class="w-fit items-start justify-center">
                     <div class="group relative w-full">
                         <div
@@ -388,7 +440,7 @@
                         </a>
                     </div>
                 </div>
-            </div>
+            </button> -->
         </div>
     </section>
     <section class="mx-auto px-4 py-12">
@@ -487,7 +539,7 @@
                         <div class="flex flex-wrap gap-1">
                             {% for round in investor.rounds %}
                             <a
-                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
+                                class="text-nowrap rounded-full bg-[#ffdcfd] px-2 font-medium py-1.5 text-xs text-[#dd70d8]"
                                 >{{ round }}
                             </a>
                             {% endfor %}
@@ -503,7 +555,7 @@
                 <h2 class="font-medium text-3xl">Want to see more results?</h2>
                 <span class="text-gray-700">Subscribe to Globalify Premium to get unlimited search results</span>
                 <a
-                    href="/expanded-onboarding"
+                    href="/tier-selection"
                     class="py-2 px-3 bg-gradient-to-r from-[#897BE6] to-[#E87BC3] text-white w-fit rounded-lg font-medium mt-5 hover:scale-105 transition-transform ease-in-out"
                     >Try out</a
                 >

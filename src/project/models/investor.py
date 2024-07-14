@@ -15,7 +15,7 @@ from more_itertools import chunked
 from slugify import slugify
 from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship
+from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship, validates
 from thefuzz import fuzz
 
 from ..extensions import db
@@ -41,6 +41,7 @@ from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
     create_schema,
     create_synonyms,
+    delete_documents,
     delete_schema,
     upsert_documents,
 )
@@ -142,14 +143,6 @@ class SuggestionBuilder:
 
 
 class NotableInvestment(db.Model):
-    """
-    Represents a notable investment of an investor or investment firm.
-
-    Attributes:
-        id (int): The unique identifier for the notable investment (primary key).
-        name (str): The name of the notable investment (not nullable).
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
 
@@ -170,6 +163,15 @@ class NotableInvestment(db.Model):
     @staticmethod
     def get_by_name(name: str) -> NotableInvestment | None:
         return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.name == name))
+
+    @staticmethod
+    def get_by_id_list(id_list) -> Sequence[NotableInvestment]:
+        if len(id_list) == 0:
+            return []
+        valid_id_list = [i for i in id_list if isinstance(i, int)]
+        stmt = db.select(NotableInvestment).where(NotableInvestment.id.in_(valid_id_list))
+        industries = db.session.execute(stmt).scalars().all()
+        return industries
 
     @staticmethod
     def populate() -> None:
@@ -238,53 +240,36 @@ investment_firm_industry = db.Table(
 )
 
 
-class Investor(db.Model):
-    """
-    Class representing an investor in the database.
-
-    Attributes:
-        id (int): The unique identifier for the investor (primary key).
-        first_name (str): The first name of the investor (not nullable).
-        last_name (str): The last name of the investor.
-        firm_name (str): The name of the investor's firm.
-        about (str): A brief description or information about the investor.
-        position (str): The position or role of the investor.
-        website (str): The website URL of the investor.
-        linkedin (str): The LinkedIn profile of the investor.
-        twitter (str): The Twitter handle of the investor.
-        email (str): The email address of the investor (unique).
-        phone_number (str): The phone number of the investor.
-        n_investments (int): The number of investments made by the investor.
-        n_exits (int): The number of exits achieved by the investor.
-        min_investment (int): The minimum investment amount accepted by the investor.
-        max_investment (int): The maximum investment amount accepted by the investor.
-        location (str): The location or address of the investor.
-        rounds (List[Round]): List of Round objects associated with the investor.
-        industries (List[Industry]): List of Industry objects associated with the investor.
-    """
+class InvestorBase(db.Model):
+    __abstract__ = True
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
-    last_name: Mapped[str] = mapped_column(String, nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
     slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
-    firm_name: Mapped[str] = mapped_column(String, nullable=True)
-    about: Mapped[str] = mapped_column(String, nullable=True)
-    position: Mapped[str] = mapped_column(String, nullable=True)
-    website: Mapped[str] = mapped_column(String, nullable=True)
-    linkedin: Mapped[str] = mapped_column(String, nullable=True)
-    twitter: Mapped[str] = mapped_column(String, nullable=True)
-    email: Mapped[str] = mapped_column(String, nullable=True, unique=False)
-    phone_number: Mapped[str] = mapped_column(String, nullable=True)
-    n_investments: Mapped[int] = mapped_column(Integer, nullable=True)
+    firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    about: Mapped[str | None] = mapped_column(String, nullable=True)
+    position: Mapped[str | None] = mapped_column(String, nullable=True)
+    website: Mapped[str | None] = mapped_column(String, nullable=True)
+    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
+    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True, unique=False)
+    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
     n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
-    min_investment: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    max_investment: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    location: Mapped[str] = mapped_column(String, nullable=True)
-    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
-    _country: Mapped[str] = mapped_column(String, nullable=True)
-    bias: Mapped[int] = mapped_column(Integer, nullable=True)
-    search_index: Mapped[str] = mapped_column(String, nullable=True)
+    min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
 
+
+class Investor(InvestorBase):
+    _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
+    _country: Mapped[str | None] = mapped_column(String, nullable=True)
+    bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    search_index: Mapped[str | None] = mapped_column(String, nullable=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+
+    user: Mapped[User | None] = relationship(User, backref=backref("investor", uselist=False))
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investor_industry)
@@ -297,7 +282,7 @@ class Investor(db.Model):
 
     @property
     def full_name(self) -> str:
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name} {self.last_name or ''}"
 
     @full_name.setter
     def full_name(self, add_slug: bool = True) -> None:
@@ -340,6 +325,14 @@ class Investor(db.Model):
         elif max_investment:
             return f"Up to {max_investment}"
 
+    @validates("location")
+    def on_location_change(self, key, value):
+        geo_data = geocode_location(value)
+        if geo_data is not None:
+            self._coordinates = geo_data["coordinates"]  # type: ignore
+            self._country = geo_data["country_name"]  # type: ignore
+        return value
+
     @staticmethod
     def get_all() -> Sequence[Investor]:
         return (
@@ -353,6 +346,10 @@ class Investor(db.Model):
     @staticmethod
     def get_by_slug(slug: str) -> Investor | None:
         return db.session.scalar(db.select(Investor).where(Investor.slug == slug))
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> Investor | None:
+        return db.session.scalar(db.select(Investor).where(Investor.user_id == user_id))
 
     @staticmethod
     def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[Investor], None, None]:
@@ -485,6 +482,15 @@ class Investor(db.Model):
     def get_by_email(email: str) -> Investor | None:
         return db.session.scalar(db.select(Investor).where(Investor.email == email))
 
+    def set_slug(self):
+        try:
+            self.slug = slugify(f"{self.first_name} {self.last_name or ''}")
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            self.slug = slugify(f"{self.first_name} {self.last_name or ''} {uuid.uuid4().hex[:6]}")
+            db.session.commit()
+
     @staticmethod
     def slugify_existing():
         batch_count = 1
@@ -495,9 +501,10 @@ class Investor(db.Model):
                 try:
                     investor.slug = slugify(f"{investor.first_name} {investor.last_name}")
                     db.session.commit()
-                except IntegrityError:
-                    db.session.rollback()
-                    investor.slug = slugify(f"{investor.first_name} {investor.last_name} {uuid.uuid4().hex[:4]}")
+                except Exception:
+                    investor.slug = slugify(
+                        f"{investor.first_name or ""}-{investor.last_name or ""}-{uuid.uuid4().hex[:6]}"
+                    )
                     db.session.commit()
 
             batch_count += 1
@@ -579,7 +586,7 @@ class Investor(db.Model):
         db.session.commit()
 
     @staticmethod
-    def populate_demo(file_name="investor.csv"):
+    def populate_demo(file_name="data/investor.csv"):
         with open(file_name, newline="") as file:
             existing_notable_investments = NotableInvestment.get_all()
             existing_industry_list = Industry.get_industry_list()
@@ -667,7 +674,7 @@ class Investor(db.Model):
 
     @staticmethod
     def populate_cli():
-        with open("signal_investor_urls.jsonl", encoding="utf-8-sig") as file:
+        with open("data/mercury_investor.jsonl", encoding="utf-8-sig") as file:
             investors = file.readlines()
             existing_nis = list(NotableInvestment.get_all())
             for investor in investors:
@@ -724,7 +731,7 @@ class Investor(db.Model):
             db.session.commit()
 
     @staticmethod
-    def populate_vcsheet(file_name="investors_vc.csv"):
+    def populate_vcsheet(file_name="data/investors_vc.csv"):
         with open(file_name, newline="", encoding="utf-8") as file:
             reader = csv.reader(file, delimiter=",", quotechar='"')
             existing_notable_investments = NotableInvestment.get_all()
@@ -898,6 +905,65 @@ class Investor(db.Model):
 
         return investors
 
+    def upsert_data(self):
+        investor_object = {}
+        if self.search_index:
+            investor_object["id"] = self.search_index
+        investor_object["db_id"] = self.id
+        if self.full_name:
+            investor_object["name"] = self.full_name
+        if self.slug:
+            investor_object["slug"] = self.slug
+        if self.firm_name:
+            investor_object["firm_name"] = self.firm_name
+        if self.about:
+            investor_object["about"] = self.about
+        if self.position:
+            investor_object["position"] = self.position
+        if self.n_investments:
+            investor_object["n_investments"] = self.n_investments
+        if self.n_exits:
+            investor_object["n_exits"] = self.n_exits
+        if self.min_investment:
+            investor_object["min_investment"] = self.min_investment
+        if self.max_investment:
+            investor_object["max_investment"] = self.max_investment
+        if self.location:
+            investor_object["location"] = self.location
+        if self._country:
+            investor_object["country"] = self._country
+        if self.rounds:
+            investor_object["rounds"] = [round_.name for round_ in self.rounds]
+        if self.industries:
+            investor_object["industries"] = [industry.name for industry in self.industries]
+        else:
+            investor_object["industries"] = []
+        if self.notable_investments:
+            investor_object["notable_investments"] = [
+                notable_investment.name for notable_investment in self.notable_investments
+            ]
+
+        data = [investor_object]
+
+        if self.search_index:
+            data[0]["id"] = self.search_index
+
+        result = upsert_documents("investors", data)
+
+        if json.loads(result[0].get("document", "{}")).get("id"):
+            search_index = json.loads(result[0].get("document", "{}")).get("id")
+        elif result[0].get("id"):
+            search_index = result[0].get("id")
+
+        if not search_index:
+            raise Exception("Search index not found")
+
+        self.search_index = search_index
+        db.session.commit()
+
+    def delete_data(self):
+        delete_documents("investors", str(self.id))
+
     @staticmethod
     def sync_search_index(recreate: bool = False):
         if recreate:
@@ -956,22 +1022,36 @@ class Investor(db.Model):
                 if investor.search_index and not recreate:
                     investor_object["id"] = investor.search_index
                 investor_object["db_id"] = investor.id
-                investor_object["name"] = investor.full_name
-                investor_object["slug"] = investor.slug
-                investor_object["firm_name"] = investor.firm_name
-                investor_object["about"] = investor.about
-                investor_object["position"] = investor.position
-                investor_object["n_investments"] = investor.n_investments
-                investor_object["n_exits"] = investor.n_exits
-                investor_object["min_investment"] = investor.min_investment
-                investor_object["max_investment"] = investor.max_investment
-                investor_object["location"] = investor.location
-                investor_object["country"] = investor._country
-                investor_object["rounds"] = [round_.name for round_ in investor.rounds]
-                investor_object["industries"] = [industry.name for industry in investor.industries]
-                investor_object["notable_investments"] = [
-                    notable_investment.name for notable_investment in investor.notable_investments
-                ]
+                if investor.full_name:
+                    investor_object["name"] = investor.full_name
+                if investor.slug:
+                    investor_object["slug"] = investor.slug
+                if investor.firm_name:
+                    investor_object["firm_name"] = investor.firm_name
+                if investor.about:
+                    investor_object["about"] = investor.about
+                if investor.position:
+                    investor_object["position"] = investor.position
+                if investor.n_investments:
+                    investor_object["n_investments"] = investor.n_investments
+                if investor.n_exits:
+                    investor_object["n_exits"] = investor.n_exits
+                if investor.min_investment:
+                    investor_object["min_investment"] = investor.min_investment
+                if investor.max_investment:
+                    investor_object["max_investment"] = investor.max_investment
+                if investor.location:
+                    investor_object["location"] = investor.location
+                if investor._country:
+                    investor_object["country"] = investor._country
+                if investor.rounds:
+                    investor_object["rounds"] = [round_.name for round_ in investor.rounds]
+                if investor.industries:
+                    investor_object["industries"] = [industry.name for industry in investor.industries]
+                if investor.notable_investments:
+                    investor_object["notable_investments"] = [
+                        notable_investment.name for notable_investment in investor.notable_investments
+                    ]
                 data.append(investor_object)
 
             result = upsert_documents("investors", data)
@@ -1047,42 +1127,25 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class InvestmentFirm(db.Model):
-    """
-    Represents an investment firm.
-
-    Attributes:
-        id (int): The ID of the investment firm.
-        name (str): The name of the investment firm.
-        about (str): A description of the investment firm.
-        website (str): The website of the investment firm.
-        email (str): The email of the investment firm.
-        phone_number (str): The phone number of the investment firm.
-        n_investments (int): The number of investments made by the investment firm.
-        n_exits (int): The number of exits made by the investment firm.
-        n_employees (int): The number of employees in the investment firm.
-        min_investment (int): The minimum investment amount for the investment firm.
-        max_investment (int): The maximum investment amount for the investment firm.
-        rounds (list[Round]): The rounds associated with the investment firm.
-        industries (list[Industry]): The industries associated with the investment firm.
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=True)
     slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
-    about: Mapped[str] = mapped_column(String, nullable=True)
-    website: Mapped[str] = mapped_column(String, nullable=True)
-    email: Mapped[str] = mapped_column(String, nullable=True, unique=True)
-    phone_number: Mapped[str] = mapped_column(String, nullable=True)
-    n_investments: Mapped[int] = mapped_column(Integer, nullable=True)
+    about: Mapped[str | None] = mapped_column(String, nullable=True)
+    website: Mapped[str | None] = mapped_column(String, nullable=True)
+    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
+    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
     n_exits: Mapped[int] = mapped_column(Integer, nullable=True)
-    n_employees: Mapped[int] = mapped_column(Integer, nullable=True)
-    min_investment: Mapped[int] = mapped_column(Integer, nullable=True)
-    max_investment: Mapped[int] = mapped_column(Integer, nullable=True)
-    location: Mapped[str] = mapped_column(String, nullable=True)
-    _coordinates: Mapped[str] = mapped_column(String, nullable=True)
-    _country: Mapped[str] = mapped_column(String, nullable=True)
-    bias: Mapped[int] = mapped_column(Integer, nullable=True)
-    search_index: Mapped[str] = mapped_column(String, nullable=True)
+    n_employees: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    min_investment: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_investment: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
+    _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
+    _country: Mapped[str | None] = mapped_column(String, nullable=True)
+    bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    search_index: Mapped[str | None] = mapped_column(String, nullable=True)
 
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investment_firm_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investment_firm_round)
@@ -1122,7 +1185,7 @@ class InvestmentFirm(db.Model):
         try:
             self.slug = slugify(self.name)
             db.session.commit()
-        except IntegrityError:
+        except Exception:
             db.session.rollback()
             self.slug = slugify(f"{self.name} {uuid.uuid4().hex[:4]}")
             db.session.commit()
@@ -1332,7 +1395,7 @@ class InvestmentFirm(db.Model):
             batch_count += 1
 
     @staticmethod
-    def populate_vcsheet(file_name="funds_vc.csv"):
+    def populate_vcsheet(file_name="data/funds_vc.csv"):
         with open(file_name, newline="", encoding="utf-8") as file:
             reader = csv.reader(file, delimiter=",", quotechar='"')
             existing_notable_investments = NotableInvestment.get_all()
@@ -1466,6 +1529,62 @@ class InvestmentFirm(db.Model):
         if completeness_score < 0:
             completeness_score = 0
         return completeness_score
+
+    def upsert_data(self):
+        investment_firm_object = {}
+
+        if self.search_index:
+            investment_firm_object["id"] = self.search_index
+        investment_firm_object["db_id"] = self.id
+        if self.name:
+            investment_firm_object["name"] = self.name
+        if self.slug:
+            investment_firm_object["slug"] = self.slug
+        if self.about:
+            investment_firm_object["about"] = self.about
+        if self.n_investments:
+            investment_firm_object["n_investments"] = self.n_investments
+        if self.n_exits:
+            investment_firm_object["n_exits"] = self.n_exits
+        if self.n_employees:
+            investment_firm_object["n_employees"] = self.n_employees
+        if self.min_investment:
+            investment_firm_object["min_investment"] = self.min_investment
+        if self.max_investment:
+            investment_firm_object["max_investment"] = self.max_investment
+        if self.location:
+            investment_firm_object["location"] = self.location
+        if self._country:
+            investment_firm_object["country"] = self._country
+        if self.rounds:
+            investment_firm_object["rounds"] = [round_.name for round_ in self.rounds]
+        if self.industries:
+            investment_firm_object["industries"] = [industry.name for industry in self.industries]
+        else:
+            investment_firm_object["industries"] = []
+        if self.notable_investments:
+            investment_firm_object["notable_investments"] = [
+                notable_investment.name for notable_investment in self.notable_investments
+            ]
+
+        data = [investment_firm_object]
+
+        if self.search_index:
+            data[0]["id"] = self.search_index
+
+        result = upsert_documents("investment_firms", data)
+
+        if result[0].get("id"):
+            search_index = result[0].get("id")
+
+        if not search_index:
+            raise Exception("Search index not found")
+
+        self.search_index = search_index
+        db.session.commit()
+
+    def delete_data(self):
+        delete_documents("investment_firms", str(self.id))
 
     @staticmethod
     def sync_search_index(recreate: bool = False):
@@ -1610,3 +1729,113 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
                 InvestmentFirmBookmark.user_id == user_id,
             )
         ).first()
+
+
+investor_backup_round = db.Table(
+    "investor_backup_round",
+    Column("investor_backup_id", Integer, ForeignKey("investor_backup.id"), primary_key=True),
+    Column("round_id", Integer, ForeignKey("round.id"), primary_key=True),
+)
+
+investor_backup_industry = db.Table(
+    "investor_backup_industry",
+    Column("investor_backup_id", Integer, ForeignKey("investor_backup.id"), primary_key=True),
+    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+)
+
+investor_backup_notable_investment = db.Table(
+    "investor_backup_notable_investment",
+    Column("investor_backup_id", Integer, ForeignKey("investor_backup.id"), primary_key=True),
+    Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
+)
+
+investor_origin_point_round = db.Table(
+    "investor_origin_point_round",
+    Column("investor_origin_point_id", Integer, ForeignKey("investor_origin_point.id"), primary_key=True),
+    Column("round_id", Integer, ForeignKey("round.id"), primary_key=True),
+)
+
+investor_origin_point_industry = db.Table(
+    "investor_origin_point_industry",
+    Column("investor_origin_point_id", Integer, ForeignKey("investor_origin_point.id"), primary_key=True),
+    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+)
+
+investor_origin_point_notable_investment = db.Table(
+    "investor_origin_point_notable_investment",
+    Column("investor_origin_point_id", Integer, ForeignKey("investor_origin_point.id"), primary_key=True),
+    Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
+)
+
+
+class InvestorBackup(InvestorBase):
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
+
+    user: Mapped[User | None] = relationship(User, backref=backref("investor_backup", uselist=False))
+    investor: Mapped[Investor] = relationship(Investor, backref=backref("backup", uselist=False))
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_backup_notable_investment)
+    rounds: Mapped[list[Round]] = relationship(secondary=investor_backup_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=investor_backup_industry)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self) -> str:
+        return f"<InvestorBackup {self.first_name} {self.last_name}>"
+
+    @staticmethod
+    def get_by_id(id: int) -> InvestorBackup | None:
+        return db.session.scalar(db.select(InvestorBackup).where(InvestorBackup.id == id))
+
+    @staticmethod
+    def get_by_investor_id(investor_id: int) -> InvestorBackup | None:
+        return db.session.scalar(db.select(InvestorBackup).where(InvestorBackup.investor_id == investor_id))
+
+    @staticmethod
+    def get_all() -> Sequence[InvestorBackup]:
+        return (
+            db.session.scalars(
+                db.select(InvestorBackup).options(
+                    joinedload(InvestorBackup.rounds), joinedload(InvestorBackup.industries)
+                )
+            )
+            .unique()
+            .all()
+        )
+
+
+class InvestorOriginPoint(InvestorBase):
+    investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
+    investor: Mapped[Investor] = relationship(Investor, backref=backref("origin_point", uselist=False))
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(
+        secondary=investor_origin_point_notable_investment
+    )
+    rounds: Mapped[list[Round]] = relationship(secondary=investor_origin_point_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=investor_origin_point_industry)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self) -> str:
+        return f"<InvestorOriginPoint {self.first_name} {self.last_name}>"
+
+    @staticmethod
+    def get_by_id(id: int) -> InvestorOriginPoint | None:
+        return db.session.scalar(db.select(InvestorOriginPoint).where(InvestorOriginPoint.id == id))
+
+    @staticmethod
+    def get_by_investor_id(investor_id: int) -> InvestorOriginPoint | None:
+        return db.session.scalar(db.select(InvestorOriginPoint).where(InvestorOriginPoint.investor_id == investor_id))
+
+    @staticmethod
+    def get_all() -> Sequence[InvestorOriginPoint]:
+        return (
+            db.session.scalars(
+                db.select(InvestorOriginPoint).options(
+                    joinedload(InvestorOriginPoint.rounds), joinedload(InvestorOriginPoint.industries)
+                )
+            )
+            .unique()
+            .all()
+        )

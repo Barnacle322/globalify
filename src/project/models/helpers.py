@@ -17,15 +17,6 @@ from ..utils.typesense_helpers.typesense_search import (
 
 
 class Industry(db.Model):
-    """
-    Represents an industry.
-
-    Attributes:
-        id (int): The industry ID.
-        name (str): The name of the industry.
-        category (str): The category of the industry.
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     category: Mapped[str] = mapped_column(String, nullable=False)
@@ -65,6 +56,14 @@ class Industry(db.Model):
             db.session.commit()
         except Exception:
             db.session.rollback()
+
+    @staticmethod
+    def get_by_id_list(id_list) -> Sequence[Industry]:
+        if len(id_list) == 0:
+            return []
+        valid_id_list = [i for i in id_list if isinstance(i, int)]
+        industries = db.session.execute(db.select(Industry).where(Industry.id.in_(valid_id_list))).scalars().all()
+        return industries
 
     @staticmethod
     def populate_if_not_exists() -> None:
@@ -122,14 +121,6 @@ class Industry(db.Model):
 
 
 class Round(db.Model):
-    """
-    Represents a funding round.
-
-    Attributes:
-        id (int): The round ID.
-        name (str): The name of the round.
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
 
@@ -152,6 +143,14 @@ class Round(db.Model):
         return db.session.scalar(db.select(Round).where(Round.name == name))
 
     @staticmethod
+    def get_by_id_list(id_list) -> Sequence[Round]:
+        if len(id_list) == 0:
+            return []
+        valid_id_list = [i for i in id_list if isinstance(i, int)]
+        rounds = db.session.execute(db.select(Round).where(Round.id.in_(valid_id_list))).scalars().all()
+        return rounds
+
+    @staticmethod
     def populate() -> None:
         try:
             round_list = ["Pre-Seed", "Seed", "Series A", "Series B", "Series C"]
@@ -162,15 +161,6 @@ class Round(db.Model):
 
 
 class Country(db.Model):
-    """
-    Represents a country.
-
-    Attributes:
-        id (int): The country ID.
-        name (str): The name of the country.
-        code (str): The code of the country.
-    """
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     code: Mapped[str] = mapped_column(String, nullable=False, unique=True)

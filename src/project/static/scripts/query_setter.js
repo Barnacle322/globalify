@@ -54,7 +54,6 @@ function setSearchValueFromParams() {
 
 function toggleAdvanced() {
     const advancedMenu = document.getElementById("advanced-menu");
-    const pickForMe = document.getElementById("cool-button");
 
     const openedAdvanced = document.getElementById("opened-advanced");
     const closedAdvanced = document.getElementById("closed-advanced");
@@ -62,14 +61,12 @@ function toggleAdvanced() {
     if (advancedMenu.classList.contains("hidden")) {
         advancedMenu.classList.remove("hidden");
         advancedMenu.classList.add("flex");
-        pickForMe.classList.add("hidden");
 
         openedAdvanced.classList.remove("hidden");
         closedAdvanced.classList.add("hidden");
     } else {
         advancedMenu.classList.add("hidden");
         advancedMenu.classList.remove("flex");
-        pickForMe.classList.remove("hidden");
 
         openedAdvanced.classList.add("hidden");
         closedAdvanced.classList.remove("hidden");

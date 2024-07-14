@@ -1,0 +1,53 @@
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %}
+{% block additional_scripts %}
+<script src="/static/scripts/claiming/email_verification.js" defer></script>
+{% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
+content %}
+
+<main class="flex min-h-screen w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+    <section class="mt-36 flex max-w-md flex-col items-center justify-center gap-8 md:mt-48">
+        <article class="flex flex-col gap-2">
+            <h1 class="text-3xl font-semibold md:text-5xl">Claim your profile</h1>
+            <p class="max-w-xl text-base text-slate-600 md:text-lg">
+                Input your email, that you've used to sign up with Globalify.
+            </p>
+        </article>
+        <div class="col-span-full empty:hidden">
+            {% if status_type %} {% if status_type == '3' %}
+            <div class="rounded-xl text-red-500">{{ msg }}</div>
+            {% elif status_type == '2' %}
+            <div class="rounded-xl text-orange-400">{{ msg }}</div>
+            {% elif status_type == '1' %}
+            <div class="rounded-xl text-lime-500">{{ msg }}</div>
+            {% endif %} {% endif %}
+        </div>
+        <form id="verifyForm" class="flex w-full flex-col gap-3" slug="{{investor.slug}}">
+            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+            <input
+                id="code"
+                type="text"
+                name="code"
+                placeholder="Code"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2"
+                value="{{ verification_code if verification_code else '' }}"
+                required
+            />
+            <input
+                id="email"
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2"
+                required
+            />
+            <button
+                type="submit"
+                class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 py-2 font-semibold text-white"
+            >
+                Claim profile
+            </button>
+        </form>
+    </section>
+</main>
+{% endblock %}

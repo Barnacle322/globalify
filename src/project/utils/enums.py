@@ -9,7 +9,6 @@ class NotificationDestination(Enum):
     COMPANY = "change_company_info"
     VERIFICATION = "email_verification"
     INDEX = "index"
-    EXPANDED_ONBOARDING = "expanded_onboarding"
 
 
 class StatusType(Enum):
@@ -55,6 +54,12 @@ class Events(Enum):
     USER_COMPLETED_ONBOARDING = "user.completed_onboarding"
 
 
+class CompanyRole(Enum):
+    OWNER = "owner"
+    ADMIN = "admin"
+    EMPLOYEE = "employee"
+
+
 @dataclass
 class ButtonLayout:
     text: str
@@ -88,3 +93,9 @@ class NotificationLayout:
             json_dict["icon_url"] = self.icon_url
 
         return json_dict
+
+
+class RequestStatus(Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"

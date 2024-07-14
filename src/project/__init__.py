@@ -5,6 +5,7 @@ from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
+from .routes.admin import admin
 from .routes.auth import auth
 from .routes.main import (
     bad_request,
@@ -28,6 +29,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.config["SQLALCHEMY_POOL_RECYCLE"] = int(os.getenv("SQLALCHEMY_POOL_RECYCLE", 1800))
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
+
     app.secret_key = os.getenv("SECRET_KEY", "18c2ff95-83a1-4998-8bee-0c6a2170497c")
 
     if os.getenv("FLASK_ENV") == "testing":
@@ -39,8 +41,9 @@ def create_app(database_url="sqlite:///db.sqlite"):
         app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
         app.config["SQLALCHEMY_RECORD_QUERIES"] = True
         app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+        # app.config["SQLALCHEMY_ECHO"] = True
         # app.config["DEBUG_TB_PROFILER_ENABLED"] = True
-        # toolbar.init_app(app)
+        toolbar.init_app(app)
     else:
         # Reverse proxy support
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
@@ -50,6 +53,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.register_blueprint(payment, url_prefix="/payment")
     app.register_blueprint(settings, url_prefix="/settings")
     app.register_blueprint(profile, url_prefix="/profile")
+    app.register_blueprint(admin, url_prefix="/admin")
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

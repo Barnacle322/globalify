@@ -13,18 +13,14 @@ from flask_login import (
 
 from ..extensions import db, login_manager, oauth
 from ..models import (
-    Company,
-    Country,
+    CompanyInvitation,
     EmailVerification,
-    Industry,
     Notification,
-    Round,
     User,
+    UserCompany,
     UserInfo,
     UserPayment,
 )
-
-# from ..utils.email_verification import create_verification_token
 from ..utils.enums import (
     ButtonLayout,
     Events,
@@ -62,26 +58,29 @@ def load_user(user_id: int) -> User | None:
 
 
 def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
-    """
-    Authenticates and retrieves a user based on the email and OAuth provider.
-
-    If the user does not exist, a new user is created and returned.
-    If the user exists but the OAuth provider is different, an exception is raised.
-    If the user exists and the OAuth provider is correct, the existing user is returned.
-
-    Args:
-        email (str): The email of the user.
-        oauth_provider (OauthProvider): The OAuth provider.
-
-    Returns:
-        User: The authenticated user.
-
-    Raises:
-        Exception: If the user exists but the OAuth provider is different.
-    """
     user = User.get_by_email(email)
     if not user:
         user = User(email=email, oauth_provider=oauth_provider)
+
+        company_invitations = CompanyInvitation.get_by_email(email)
+        if company_invitations:
+            for company_invitation in company_invitations:
+                user_company = UserCompany(
+                    user_id=user.id,
+                    company_id=company_invitation.company_id,
+                    role=company_invitation.role,
+                )
+                notification = Notification(
+                    user=user,
+                    json_data=NotificationLayout(
+                        title="You got invited to a company!",
+                        msg="Click here to accept the invitation.",
+                        buttons=[ButtonLayout(text="Accept", url=url_for("settings.company"))],
+                    ).get_json(),
+                    destination=NotificationDestination.ALL,
+                )
+                db.session.add_all((user_company, notification))
+
         db.session.add(user)
         db.session.commit()
         return user
@@ -93,16 +92,6 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
 
 
 def api_call(url: str, access_token: str):
-    """
-    Performs an API call to the specified URL using the provided access token.
-
-    Args:
-        url (str): The URL to make the API call to.
-        access_token (str): The access token to authenticate the API call.
-
-    Returns:
-        dict: The JSON response from the API call.
-    """
     response = requests.get(
         url,
         headers={"Authorization": f"Bearer {access_token}"},
@@ -261,6 +250,8 @@ def email_verification_required():
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("main.search"))
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -278,14 +269,6 @@ def linkedin_login():
 
 @auth.route("/linkedin-oauth")
 def linkedin_callback():
-    """
-    Handles the callback from LinkedIn OAuth login.
-
-    Retrieves the access token from the authorization response.
-    Makes API calls to retrieve the user's email and personal info from LinkedIn.
-    Creates or updates the user and user info records in the database.
-    Logs in the user and redirects to the appropriate page.
-    """
     # BUG: For some reason client_secret is not being passed during
     # app initialization. Hardcoding it for now.
     # NOTE: Making this the only OAuth provider doesn't fix the issue.
@@ -362,14 +345,6 @@ def google_login():
 
 @auth.route("/google-oauth")
 def google_callback():
-    """
-    Handles the callback from Google OAuth login.
-
-    Retrieves the access token from the authorization response.
-    Makes API calls to retrieve the user's email and personal info from Google.
-    Creates or updates the user and user info records in the database.
-    Logs in the user and redirects to the appropriate page.
-    """
     authorization = oauth.google.authorize_access_token()  # type: ignore
     if not authorization:
         status = Status(StatusType.ERROR, OAUTH_ACCESS_TOKEN).get_status()
@@ -419,14 +394,6 @@ def google_callback():
 @auth.route("/onboarding", methods=["GET", "POST"])
 @login_required
 def onboarding():
-    """
-    Handles the onboarding process for authenticated users.
-
-    If the current user is anonymous, it redirects to the login page.
-    If user_info is not found for the authenticated user, it redirects to the login page.
-    If user_info.is_complete is True, it redirects to the company_form route.
-    If the request method is POST, it processes the onboarding form data and updates the user's information.
-    """
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
     notifications = Notification.get_unread(
@@ -443,14 +410,13 @@ def onboarding():
         return redirect(url_for("auth.onboarding"))
 
     if request.method == "POST":
-        first_name, last_name, username, company_name = (
+        first_name, last_name, username = (
             request.form.get("first_name"),
             request.form.get("last_name"),
             request.form.get("username"),
-            request.form.get("company_name"),
         )
 
-        if not first_name or not last_name or not username or not company_name:
+        if not first_name or not last_name or not username:
             notification = Notification(
                 user=authenticated_user,
                 json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
@@ -488,10 +454,6 @@ def onboarding():
         user_info.last_name = last_name
         user_info.username = username.lower()
 
-        if not Company.get_by_user_id(authenticated_user.id):
-            company = Company(user_id=authenticated_user.id, name=company_name)
-            db.session.add(company)
-
         user_info.is_complete = True
 
         db.session.commit()
@@ -502,7 +464,7 @@ def onboarding():
                 title="Welcome!",
                 msg="To get better recommendations, complete your profile.",
                 buttons=[
-                    ButtonLayout(text="Go!", url=url_for("auth.expanded_onboarding"), dismiss=False),
+                    ButtonLayout(text="Go!", url=url_for("auth.tier_selection"), dismiss=False),
                 ],
                 is_closable=True,
             ).get_json(),
@@ -529,79 +491,7 @@ def onboarding():
 @auth.get("/username/<username>")
 @login_required
 def username(username: str):
-    """
-    Checks if a username is already taken.
-
-    Args:
-        username (str): The username to check.
-    """
     return jsonify({"is_taken": UserInfo.is_taken(username)})
-
-
-@auth.route("/expanded-onboarding", methods=["GET", "POST"])
-@login_required
-@check_verification
-@check_user_info_complete
-def expanded_onboarding():
-    """
-    Handles the expanded onboarding process for authenticated users.
-
-    If the current user is anonymous, it redirects to the login page.
-    If user_info is not found for the authenticated user, it redirects to the login page.
-    If user_info.is_complete is False, it redirects to the onboarding route.
-    If the request method is POST, it processes the expanded onboarding form data and updates the user's information.
-    """
-    current_user._get_current_object()  # type: ignore
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-
-    industries = Industry.get_all()
-    rounds = Round.get_all()
-    countries = Country.get_all()
-    company = Company.get_by_user_id(current_user.id)
-    if not company:
-        return redirect(url_for("auth.onboarding"))
-
-    if request.method == "POST":
-        company_name = request.form.get("company_name")
-        industry_id = request.form.get("industry", type=int)
-        round_id = request.form.get("round", type=int)
-        country_id = request.form.get("country", type=int)
-        website = request.form.get("website")
-
-        if not company_name or not industry_id or not round_id or not country_id:
-            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
-            return redirect(url_for("auth.expanded_onboarding", _external=False, **status))
-
-        industry = Industry.get_by_id(industry_id)
-        round = Round.get_by_id(round_id)
-        country = Country.get_by_id(country_id)
-
-        if not industry or not round or not country:
-            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
-            return redirect(url_for("auth.expanded_onboarding", _external=False, **status))
-
-        company.name = company_name
-        company.industry = industry
-        company.preferred_round = round
-        company.country = country
-        company.website_url = website
-
-        db.session.commit()
-
-        return redirect(url_for("auth.tier_selection"))
-
-    return render_template(
-        "auth/expanded_onboarding.html",
-        industries=industries,
-        rounds=rounds,
-        countries=countries,
-        company_name=company.name,
-        status_type=status_type,
-        msg=msg,
-    )
 
 
 @auth.route("/tier-selection")

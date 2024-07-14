@@ -13,13 +13,9 @@ from flask_login import (
 
 from ..extensions import db, login_manager, oauth
 from ..models import (
-    Company,
     CompanyInvitation,
-    Country,
     EmailVerification,
-    Industry,
     Notification,
-    Round,
     User,
     UserCompany,
     UserInfo,

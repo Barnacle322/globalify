@@ -486,8 +486,9 @@ class Investor(InvestorBase):
         try:
             self.slug = slugify(f"{self.first_name} {self.last_name or ''}")
             db.session.commit()
-        except IntegrityError:
-            self.slug = slugify(f"{self.first_name} {self.last_name or ''} {uuid.uuid4().hex[:4]}")
+        except Exception:
+            db.session.rollback()
+            self.slug = slugify(f"{self.first_name} {self.last_name or ''} {uuid.uuid4().hex[:6]}")
             db.session.commit()
 
     @staticmethod
@@ -500,8 +501,10 @@ class Investor(InvestorBase):
                 try:
                     investor.slug = slugify(f"{investor.first_name} {investor.last_name}")
                     db.session.commit()
-                except IntegrityError:
-                    investor.slug = slugify(f"{investor.first_name} {investor.last_name} {uuid.uuid4().hex[:4]}")
+                except Exception:
+                    investor.slug = slugify(
+                        f"{investor.first_name or ""}-{investor.last_name or ""}-{uuid.uuid4().hex[:6]}"
+                    )
                     db.session.commit()
 
             batch_count += 1
@@ -1129,6 +1132,8 @@ class InvestmentFirm(db.Model):
     slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
     about: Mapped[str | None] = mapped_column(String, nullable=True)
     website: Mapped[str | None] = mapped_column(String, nullable=True)
+    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
+    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
     email: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
     phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
     n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -1180,7 +1185,8 @@ class InvestmentFirm(db.Model):
         try:
             self.slug = slugify(self.name)
             db.session.commit()
-        except IntegrityError:
+        except Exception:
+            db.session.rollback()
             self.slug = slugify(f"{self.name} {uuid.uuid4().hex[:4]}")
             db.session.commit()
 

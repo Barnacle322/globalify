@@ -435,6 +435,15 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
             )
         )
 
+    @staticmethod
+    def get_by_company_id_and_role(company_id: int, role: CompanyRole) -> Sequence[UserCompany]:
+        return db.session.scalars(
+            db.select(UserCompany).where(
+                UserCompany.company_id == company_id,
+                UserCompany.role == role,
+            )
+        ).all()
+
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
     created_at: Mapped[datetime.datetime] = mapped_column(

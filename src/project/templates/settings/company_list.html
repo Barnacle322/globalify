@@ -344,7 +344,6 @@
 
                                         Make primary
                                     </button>
-                                    {% if company.role.value == 'owner' %}
                                     <button
                                         @click="makePublic({{ company.id }})"
                                         class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-sky-500 hover:text-white"
@@ -370,7 +369,6 @@
                                         </svg>
                                         Make public
                                     </button>
-                                    {% endif %}
                                 </div>
                             </div>
                         </div>

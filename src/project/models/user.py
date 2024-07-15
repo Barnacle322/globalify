@@ -69,6 +69,9 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     linkedin_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
     instagram_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
     twitter_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
+    refuse_all_invitations: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false"), default=False
+    )
 
     @property
     def full_name(self) -> str:
@@ -443,6 +446,12 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
                 UserCompany.role == role,
             )
         ).all()
+
+    @staticmethod
+    def get_by_company_id_and_email(company_id: int, email: str) -> UserCompany | None:
+        return db.session.scalar(
+            db.select(UserCompany).join(User).where(UserCompany.company_id == company_id, User.email == email)
+        )
 
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):

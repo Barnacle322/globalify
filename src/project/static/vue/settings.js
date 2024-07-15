@@ -218,7 +218,7 @@ const InviteMemberComponent = defineComponent({
     template: "#invite-member-template",
     data() {
         return {
-            email: "",
+            selectedUserEmail: "",
             userList: [],
             roles: [],
             debouncedGetUserList: null,
@@ -227,6 +227,10 @@ const InviteMemberComponent = defineComponent({
         };
     },
     methods: {
+        handleSubmit(event) {
+            event.preventDefault();
+            this.inviteMember(this.$refs.companyId.value);
+        },
         closeInviteMember() {
             this.$emit("close-invite-member");
         },
@@ -299,6 +303,7 @@ const InviteMemberComponent = defineComponent({
             event.stopPropagation();
             this.$refs.searchInput.value = email;
             this.userList = [];
+            this.selectedUserEmail = email;
         },
         async fetchRoles() {
             try {

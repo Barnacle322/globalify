@@ -133,6 +133,7 @@ def change_personal_info():
     linkedin_public = request.form.get("linkedin_public")
     instagram_public = request.form.get("instagram_public")
     twitter_public = request.form.get("twitter_public")
+    refuse_all_invitations = request.form.get("refuse_all_invitations")
     last_name = request.form.get("last-name")
     username = request.form.get("username")
     bio = request.form.get("bio")
@@ -218,6 +219,10 @@ def change_personal_info():
     user_info.linkedin_public = bool(linkedin_public)
     user_info.instagram_public = bool(instagram_public)
     user_info.twitter_public = bool(twitter_public)
+    user_info.refuse_all_invitations = bool(refuse_all_invitations)
+
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    print(refuse_all_invitations)
 
     db.session.commit()
 
@@ -521,6 +526,11 @@ def invite_user(company_id):
     existing_company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id=company_id, email=user_email)
     if existing_company_invitation:
         status = Status(StatusType.ERROR, "User already invited.").get_status()
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+
+    existing_user_company = UserCompany.get_by_company_id_and_email(email=user_email, company_id=company_id)
+    if existing_user_company:
+        status = Status(StatusType.ERROR, "User already in the company.").get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     company_invitation = CompanyInvitation(
@@ -945,7 +955,11 @@ def restore_investor_data():
 @check_verification
 def search_user(search_input):
     users = db.session.scalars(
-        db.select(User).where(User.email.contains(search_input)).where(User.id != current_user.id)
+        db.select(User)
+        .join(UserInfo, User.id == UserInfo.user_id)
+        .where(User.email.contains(search_input))
+        .where(User.id != current_user.id)
+        .where(UserInfo.refuse_all_invitations.is_(False))
     ).all()
 
     if not users:

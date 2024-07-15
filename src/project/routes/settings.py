@@ -736,18 +736,19 @@ def make_company_primary(company_id):
     return redirect(url_for("settings.company_list_view", _external=False))
 
 
-@settings.post("/company/<int:company_id>/set-public")
+@settings.post("/company/<int:company_id>/toggle-public")
 @login_required
 @check_user_info_complete
 @check_verification
 def make_company_public(company_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
     user_company = UserCompany.get_by_user_id_and_company_id(user_id=authenticated_user.id, company_id=company_id)
+
     if not user_company:
         status = Status(StatusType.ERROR, "Company not found.").get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    user_company.is_public = True
+    user_company.is_public = not user_company.is_public
     db.session.commit()
 
     return redirect(url_for("settings.company_list_view", _external=False))

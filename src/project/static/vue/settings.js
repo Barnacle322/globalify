@@ -595,10 +595,10 @@ createApp({
                 console.error("Error making primary:", error.message);
             }
         },
-        async makePublic(companyId) {
+        async togglePublic(companyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/settings/company/${companyId}/set-public`, {
+                const response = await fetch(`/settings/company/${companyId}/toggle-public`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

@@ -1363,6 +1363,8 @@ class InvestmentFirm(db.Model):
                     name=f"{names[i]}",
                     about=f"{abouts[i]}",
                     website=f"{websites[i]}",
+                    linkedin=f"https://www.linkedin.com/company/{names[i]}",
+                    twitter=f"https://twitter.com/{names[i]}",
                     email=f"{str(i) + emails[i]}",
                     phone_number=f"{phone_numbers[i]}",
                     n_investments=n_investments,

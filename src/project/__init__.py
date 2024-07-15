@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 
+import sentry_sdk
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -22,6 +23,10 @@ from .routes.settings import settings
 
 
 def create_app(database_url="sqlite:///db.sqlite"):
+    sentry_sdk.init(
+        dsn=os.getenv("_SENTRY_DSN"), traces_sample_rate=0.25, profiles_sample_rate=0.1, attach_stacktrace=True
+    )
+
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("_DATABASE_URL", database_url)
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -29,7 +34,6 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.config["SQLALCHEMY_POOL_RECYCLE"] = int(os.getenv("SQLALCHEMY_POOL_RECYCLE", 1800))
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
-
     app.secret_key = os.getenv("SECRET_KEY", "18c2ff95-83a1-4998-8bee-0c6a2170497c")
 
     if os.getenv("FLASK_ENV") == "testing":

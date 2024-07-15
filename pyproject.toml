@@ -33,6 +33,7 @@ click = "^8.1.7"
 pillow-heif = "^0.15.0"
 python-slugify = "^8.0.4"
 pydantic = "^2.7.2"
+sentry-sdk = {extras = ["flask"], version = "^2.10.0"}
 
 
 [tool.poetry.group.dev.dependencies]

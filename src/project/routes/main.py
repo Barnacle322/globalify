@@ -333,7 +333,6 @@ def search():
         NotificationDestination.SEARCH,
         is_read=False,
     )
-
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "db_id")
     sort_desc = request.args.get("descending", False, type=bool)

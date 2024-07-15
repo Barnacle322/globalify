@@ -144,8 +144,9 @@
                 {% endif %}
             </div>
         </article>
-        {% endif %} {% if company.preferred_round or company_indutry or company.description or company.website_url or
-        company.country or company.number_of_employees %}
+        {% endif %} {% for user_company in companies %} {% set company = user_company.company %} {% if
+        company.preferred_round or company.industry or company.description or company.website_url or company.country or
+        company.number_of_employees %}
         <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <div class="flex gap-2 items-center flex-wrap">
                 <h2 class="text-2xl font-medium flex gap-4 items-center">
@@ -254,7 +255,7 @@
             </ul>
             {% endif %}
         </article>
-        {% endif %}
+        {% endif %} {% endfor %}
     </section>
 </main>
 {% endblock %}

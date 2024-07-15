@@ -327,7 +327,7 @@ createApp({
         async getUserList(event) {
             const searchInput = event.target.value;
             if (searchInput.length > 0) {
-                const response = await fetch(`/admin/search_users/${searchInput}`);
+                const response = await fetch(`/admin/users/search/${searchInput}`);
                 if (response.ok) {
                     const data = await response.json();
                     this.userList = data.users;

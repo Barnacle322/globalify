@@ -10,7 +10,7 @@ const AsideComponent = defineComponent({
     },
     mounted() {
         this.currentPath = window.location.pathname.split("/")[1];
-        if (["suggestions", "investor"].includes(this.currentPath)) {
+        if (["suggestions", "investor", "investment-firm"].includes(this.currentPath)) {
             this.currentPath = "search";
         }
     },

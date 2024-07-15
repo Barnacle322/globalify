@@ -19,7 +19,7 @@ const CancelInvitationComponent = defineComponent({
         async cancelInvitation(invitationId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/settings/company/${invitationId}/cancel/invitation`, {
+                const response = await fetch(`/settings/companies/invitation/${invitationId}/cancel`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -77,7 +77,7 @@ const ChangeRoleComponent = defineComponent({
                 const csrfToken = document.getElementById("csrf_token").value;
                 const role = this.$refs.roleChange.value;
 
-                const response = await fetch(`/settings/company/${userId}/change-role`, {
+                const response = await fetch(`/settings/company/member/${userId}/role`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -101,7 +101,7 @@ const ChangeRoleComponent = defineComponent({
         async removeMember(userId, companyId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
-                const response = await fetch(`/settings/company/${userId}/remove`, {
+                const response = await fetch(`/settings/company/member/${userId}/remove`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -247,7 +247,7 @@ const InviteMemberComponent = defineComponent({
                 const role = this.selectedRole;
                 const invitationMessage = this.invitationMessage;
 
-                const response = await fetch(`/settings/company/invite/${companyId}`, {
+                const response = await fetch(`/settings/company/${companyId}/invitation/create`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -280,7 +280,7 @@ const InviteMemberComponent = defineComponent({
         async getUserList(event) {
             const searchInput = event.target.value;
             if (searchInput.length > 0) {
-                const response = await fetch(`/settings/search_users/${searchInput}`);
+                const response = await fetch(`/settings/users/search/${searchInput}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.users && data.users.length > 0) {
@@ -302,7 +302,7 @@ const InviteMemberComponent = defineComponent({
         },
         async fetchRoles() {
             try {
-                const response = await fetch("/settings/company/roles");
+                const response = await fetch("/settings/companies/roles");
                 if (response.ok) {
                     const data = await response.json();
                     this.roles = data.roles;
@@ -376,6 +376,8 @@ createApp({
             asideMinified: false,
             confirmRestoreOpened: false,
             inviteMemberOpened: false,
+            openedDropdownCompanyId: null,
+            ignoreNextOutsideClick: false,
             csrfToken: "",
             selectedRounds: [],
             selectedIndustries: [],
@@ -396,6 +398,17 @@ createApp({
         };
     },
     methods: {
+        openDropdown(companyId) {
+            this.openedDropdownCompanyId = companyId;
+            this.ignoreNextOutsideClick = true;
+        },
+        closeDropdown(event) {
+            if (this.ignoreNextOutsideClick) {
+                this.ignoreNextOutsideClick = false;
+            } else if (event && !this.$el.contains(event.target)) {
+                this.openedDropdownCompanyId = false;
+            }
+        },
         getValues() {
             const first_name = document.getElementById("first_name").value;
             const last_name = document.getElementById("last_name").value;
@@ -451,7 +464,7 @@ createApp({
             const dataString = this.getValues();
 
             try {
-                const response = await fetch("", {
+                const response = await fetch("/investor", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -513,42 +526,10 @@ createApp({
                 }
             }
         },
-        createCompany() {
-            const csrfToken = document.getElementById("csrf_token").value;
-            const formData = new FormData();
-
-            if (this.$refs.picture && this.$refs.picture.files[0]) {
-                formData.append("picture", this.$refs.picture.files[0]);
-            }
-
-            formData.append("company_name", this.$refs.company_name.value);
-            formData.append("number_of_employees", this.$refs.number_of_employees.value);
-            formData.append("description", this.$refs.description.value);
-            formData.append("country", this.$refs.country.value);
-            formData.append("round", this.$refs.round.value);
-            formData.append("industry", this.$refs.industry.value);
-            formData.append("website", this.$refs.website.value);
-
-            fetch("/settings/company/create", {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken,
-                },
-                body: formData,
-            })
-                .then((response) => {
-                    if (response.redirected) {
-                        window.location.href = response.url;
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error:", error);
-                });
-        },
         async acceptInvitation(companyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/settings/company/${companyId}/accept/invitation`, {
+                const response = await fetch(`/settings/company/${companyId}/invitation/accept`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -567,7 +548,7 @@ createApp({
         async declineInvitation(companyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/settings/company/${companyId}/decline/invitation`, {
+                const response = await fetch(`/settings/company/${companyId}/invitation/decline`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -595,8 +576,47 @@ createApp({
                 }
             }
         },
+        async makePrimary(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/settings/company/${companyId}/set-primary`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error("Failed to make primary");
+                }
+            } catch (error) {
+                console.error("Error making primary:", error.message);
+            }
+        },
+        async makePublic(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/settings/company/${companyId}/set-public`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error("Failed to make public");
+                }
+            } catch (error) {
+                console.error("Error making public:", error.message);
+            }
+        },
     },
     mounted() {
         this.setupMenuToggle();
+        window.addEventListener("click", this.closeDropdown);
     },
 }).mount("#app");

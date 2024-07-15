@@ -13,13 +13,9 @@ from flask_login import (
 
 from ..extensions import db, login_manager, oauth
 from ..models import (
-    Company,
     CompanyInvitation,
-    Country,
     EmailVerification,
-    Industry,
     Notification,
-    Round,
     User,
     UserCompany,
     UserInfo,
@@ -468,7 +464,7 @@ def onboarding():
                 title="Welcome!",
                 msg="To get better recommendations, complete your profile.",
                 buttons=[
-                    ButtonLayout(text="Go!", url=url_for("auth.expanded_onboarding"), dismiss=False),
+                    ButtonLayout(text="Go!", url=url_for("auth.tier_selection"), dismiss=False),
                 ],
                 is_closable=True,
             ).get_json(),
@@ -496,64 +492,6 @@ def onboarding():
 @login_required
 def username(username: str):
     return jsonify({"is_taken": UserInfo.is_taken(username)})
-
-
-@auth.route("/expanded-onboarding", methods=["GET", "POST"])
-@login_required
-@check_verification
-@check_user_info_complete
-def expanded_onboarding():
-    current_user._get_current_object()  # type: ignore
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-
-    industries = Industry.get_all()
-    rounds = Round.get_all()
-    countries = Country.get_all()
-    company = Company.get_by_user_id(current_user.id)
-    if not company:
-        return redirect(url_for("auth.onboarding"))
-
-    if request.method == "POST":
-        company_name = request.form.get("company_name")
-        industry_id = request.form.get("industry", type=int)
-        round_id = request.form.get("round", type=int)
-        country_id = request.form.get("country", type=int)
-        website = request.form.get("website")
-
-        if not company_name or not industry_id or not round_id or not country_id:
-            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
-            return redirect(url_for("auth.expanded_onboarding", _external=False, **status))
-
-        industry = Industry.get_by_id(industry_id)
-        round = Round.get_by_id(round_id)
-        country = Country.get_by_id(country_id)
-
-        if not industry or not round or not country:
-            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
-            return redirect(url_for("auth.expanded_onboarding", _external=False, **status))
-
-        company.name = company_name
-        company.industry = industry
-        company.preferred_round = round
-        company.country = country
-        company.website_url = website
-
-        db.session.commit()
-
-        return redirect(url_for("auth.tier_selection"))
-
-    return render_template(
-        "auth/expanded_onboarding.html",
-        industries=industries,
-        rounds=rounds,
-        countries=countries,
-        company_name=company.name,
-        status_type=status_type,
-        msg=msg,
-    )
 
 
 @auth.route("/tier-selection")

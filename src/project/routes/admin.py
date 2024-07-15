@@ -734,7 +734,7 @@ def delete_investment_firm(id):
     return redirect("/admin/investment-firms", code=302)
 
 
-@admin.get("/search_users/<search_input>")
+@admin.get("/users/search/<search_input>")
 @admin_only
 def search_user(search_input):
     users = db.session.execute(select(User).where(User.email.contains(search_input))).scalars().all()

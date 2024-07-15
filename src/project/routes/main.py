@@ -30,10 +30,12 @@ from ..models import (
     InvestorOriginPoint,
     Notification,
     Round,
+    User,
+    UserCompany,
     UserPayment,
 )
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
-from ..utils.enums import NotificationDestination, Status, StatusType
+from ..utils.enums import NotificationDestination, NotificationLayout, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import WEIGHTS, check_weights
@@ -135,6 +137,8 @@ def arstan():
 @check_user_info_complete
 @check_verification
 def get_suggestions():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
     access = True
     user_payment = UserPayment.get_by_user_id(current_user.id)
     if current_user.is_admin:
@@ -144,7 +148,22 @@ def get_suggestions():
     elif user_payment and not user_payment.is_active:
         access = False
 
-    company = Company.get_by_user_id(current_user.id)
+    user_company = UserCompany.get_primary_by_user_id(current_user.id)
+
+    bookmarks = InvestorBookmark.get_id_list(current_user.id)
+    if not user_company:
+        notification = Notification(
+            user=authenticated_user,
+            json_data=NotificationLayout(
+                title="Error", msg="Please mark a company as primary to access suggestions."
+            ).get_json(),
+            destination=NotificationDestination.SEARCH,
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return redirect(url_for("main.search"))
+
+    company = Company.get_by_id(user_company.company_id)
 
     bookmarks = InvestorBookmark.get_id_list(current_user.id)
 
@@ -164,6 +183,8 @@ def get_suggestions():
 @check_user_info_complete
 @check_verification
 def get_suggestion_investment_firms():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
     access = True
     user_payment = UserPayment.get_by_user_id(current_user.id)
     if current_user.is_admin:
@@ -173,7 +194,22 @@ def get_suggestion_investment_firms():
     elif user_payment and not user_payment.is_active:
         access = False
 
-    company = Company.get_by_user_id(current_user.id)
+    user_company = UserCompany.get_primary_by_user_id(current_user.id)
+
+    bookmarks = InvestorBookmark.get_id_list(current_user.id)
+    if not user_company:
+        notification = Notification(
+            user=authenticated_user,
+            json_data=NotificationLayout(
+                title="Error", msg="Please mark a company as primary to access suggestions."
+            ).get_json(),
+            destination=NotificationDestination.SEARCH,
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return redirect(url_for("main.search"))
+
+    company = Company.get_by_id(user_company.company_id)
 
     bookmarks = InvestmentFirmBookmark.get_id_list(current_user.id)
 
@@ -297,7 +333,6 @@ def search():
         NotificationDestination.SEARCH,
         is_read=False,
     )
-
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "db_id")
     sort_desc = request.args.get("descending", False, type=bool)

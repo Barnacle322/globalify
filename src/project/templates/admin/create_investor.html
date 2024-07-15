@@ -433,11 +433,21 @@
                             id="searchInput"
                             placeholder="Search users..."
                             class="w-full rounded-lg bg-transparent bg-white"
+                            @input="getUserList"
                         />
-                        <ul
+                        <div
                             id="userList"
-                            class="flex max-h-60 w-full origin-top-right flex-col gap-1 overflow-y-auto overscroll-y-contain border transition duration-100 ease-in-out empty:hidden"
-                        ></ul>
+                            v-show="userList.length > 0"
+                            class="flex max-h-60 w-full origin-top-right flex-col gap-1 overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
+                        >
+                            <p
+                                v-for="(email, index) in userList"
+                                :key="index"
+                                class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
+                                @click="selectUser(email)"
+                                v-text="email"
+                            ></p>
+                        </div>
                     </div>
                 </div>
                 <button

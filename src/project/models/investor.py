@@ -483,13 +483,26 @@ class Investor(InvestorBase):
         return db.session.scalar(db.select(Investor).where(Investor.email == email))
 
     def set_slug(self):
-        try:
-            self.slug = slugify(f"{self.first_name} {self.last_name or ''}")
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-            self.slug = slugify(f"{self.first_name} {self.last_name or ''} {uuid.uuid4().hex[:6]}")
-            db.session.commit()
+        base_slug = slugify(f"{self.first_name} {self.last_name}")
+        unique_slug = base_slug
+        attempt = 0
+
+        while True:
+            if db.session.scalar(db.select(Investor).where(Investor.slug == unique_slug)) is not None:
+                unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
+                attempt += 1
+            else:
+                try:
+                    self.slug = unique_slug
+                    db.session.commit()
+                    break
+                except IntegrityError:
+                    db.session.rollback()
+                    unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
+                    attempt += 1
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+                    break
 
     @staticmethod
     def slugify_existing():
@@ -502,6 +515,7 @@ class Investor(InvestorBase):
                     investor.slug = slugify(f"{investor.first_name} {investor.last_name}")
                     db.session.commit()
                 except Exception:
+                    db.session.rollback()
                     investor.slug = slugify(
                         f"{investor.first_name or ""}-{investor.last_name or ""}-{uuid.uuid4().hex[:6]}"
                     )

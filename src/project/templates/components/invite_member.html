@@ -1,4 +1,4 @@
-{% macro render(company) %}
+{% macro render(company, users_in_company) %}
 <template id="invite-member-template">
     <article
         class="fixed right-1/2 top-1/2 z-50 m-4 flex w-full max-w-2xl -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all"
@@ -34,17 +34,62 @@
         </div>
         <div class="flex flex-col gap-2">
             <label class="font-medium" for="email">Search by email</label>
+            <div
+                class="flex w-full items-center gap-4 rounded-xl border-2 border-sky-300 p-2 text-start text-sky-500 bg-sky-200 relative"
+                v-if="selectedUser"
+            >
+                <img
+                    class="size-12 rounded-lg"
+                    v-if="selectedUser.id"
+                    :src="selectedUser.picture_url ? selectedUser.picture_url : '/static/elements/pfp_placeholder.jpeg'"
+                    alt=""
+                />
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-6"
+                    v-else
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
+                    />
+                </svg>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-md font-semibold" v-text="selectedUser.email"></h3>
+                    </div>
+                </div>
+                <button class="absolute right-3" @click="clearUser">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
             <input
                 type="text"
                 ref="searchInput"
                 class="w-full rounded-xl border-2 border-stone-300"
                 @input="debouncedGetUserList"
+                v-else
             />
             <div
                 class="flex w-full cursor-pointer items-center gap-4 rounded-xl border-2 border-stone-300 p-2 text-start hover:bg-stone-100"
                 v-if="userList.length > 0"
                 v-for="(user, index) in userList"
-                @click="selectUser(user.email, $event)"
+                @click="selectUser(user, $event)"
+                :class="{ 'pointer-events-none opacity-60': {{users_in_company}}.includes(user.id) }"
             >
                 <img
                     class="size-12 rounded-lg"
@@ -68,10 +113,16 @@
                     />
                 </svg>
                 <div>
-                    <h2 class="text-xl font-semibold" v-text="user.email"></h2>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-md font-semibold" v-text="user.email"></h3>
+                        <span v-if="{{users_in_company}}.includes(user.id)" class="text-sm italic text-gray-500"
+                            >exists</span
+                        >
+                    </div>
                     <p class="text-gray-500">Invite to group</p>
                 </div>
             </div>
+
             <label class="font-medium" for="role">Select role</label>
             <select class="w-full rounded-xl border-2 border-stone-300" v-model="selectedRole">
                 <option v-for="role in roles" v-text="role" :value="role" @click=""></option>
@@ -83,7 +134,7 @@
             <button
                 class="w-full rounded-xl bg-sky-400 px-3 py-2 text-white mt-3"
                 @click="inviteMember({{company.id}})"
-                :disabled="!(selectedRole && selectedUserEmail)"
+                :disabled="!(selectedRole && selectedUser)"
             >
                 Invite
             </button>

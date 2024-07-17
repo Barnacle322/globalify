@@ -221,9 +221,6 @@ def change_personal_info():
     user_info.twitter_public = bool(twitter_public)
     user_info.refuse_all_invitations = bool(refuse_all_invitations)
 
-    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-    print(refuse_all_invitations)
-
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Personal info successfully changed.").get_status()
@@ -316,6 +313,8 @@ def company_info_view(company_id):
     company = user_company.company
     user_role = user_company.role.value
 
+    users_in_company = UserCompany.get_users_id_by_company_id(company_id=company_id)
+
     return render_template(
         "settings/company.html",
         industries=Industry.get_all(),
@@ -323,6 +322,7 @@ def company_info_view(company_id):
         countries=Country.get_all(),
         company=company,
         members=members,
+        users_in_company=users_in_company,
         company_invitations=company_invitations,
         user_role=user_role,
         status_type=status_type,

@@ -57,7 +57,7 @@
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
     {% import "components/invite_member.html" as invite_member %} 
-    {{ invite_member.render(company) }}
+    {{ invite_member.render(company, users_in_company) }}
     {% import "components/change_role.html" as change_role %}
     {{ change_role.render(company, current_user) }}
     {% import "components/cancel_invitation.html" as cancel_invitation %}

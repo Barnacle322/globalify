@@ -218,7 +218,7 @@ const InviteMemberComponent = defineComponent({
     template: "#invite-member-template",
     data() {
         return {
-            selectedUserEmail: "",
+            selectedUser: null,
             userList: [],
             roles: [],
             debouncedGetUserList: null,
@@ -247,7 +247,7 @@ const InviteMemberComponent = defineComponent({
         async inviteMember(companyId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
-                const email = this.$refs.searchInput.value;
+                const email = this.selectedUser.email;
                 const role = this.selectedRole;
                 const invitationMessage = this.invitationMessage;
 
@@ -299,11 +299,14 @@ const InviteMemberComponent = defineComponent({
                 this.userList = [];
             }
         },
-        selectUser(email, event) {
+        selectUser(user, event) {
             event.stopPropagation();
-            this.$refs.searchInput.value = email;
             this.userList = [];
-            this.selectedUserEmail = email;
+            this.selectedUser = user;
+        },
+        clearUser() {
+            event.stopPropagation();
+            this.selectedUser = null;
         },
         async fetchRoles() {
             try {

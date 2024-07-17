@@ -1640,6 +1640,10 @@ select {
   width: 2rem;
   height: 2rem;
 }
+.size-9 {
+  width: 2.25rem;
+  height: 2.25rem;
+}
 .h-0 {
   height: 0px;
 }

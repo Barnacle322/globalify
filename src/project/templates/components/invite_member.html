@@ -10,7 +10,7 @@
                 viewBox="0 0 24 24"
                 stroke-width="1.5"
                 stroke="currentColor"
-                class="size-6"
+                class="size-9"
             >
                 <path
                     stroke-linecap="round"
@@ -81,7 +81,7 @@
             <textarea class="w-full rounded-xl border-2 border-stone-300" v-model="invitationMessage"></textarea>
 
             <button
-                class="w-full rounded-xl bg-sky-400 px-3 py-2 text-white"
+                class="w-full rounded-xl bg-sky-400 px-3 py-2 text-white mt-3"
                 @click="inviteMember({{company.id}})"
                 :disabled="!(selectedRole && selectedUserEmail)"
             >

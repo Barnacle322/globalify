@@ -668,6 +668,7 @@ class Investor(InvestorBase):
                     rounds=list(set(round_list)),
                     notable_investments=notable_investment_list,
                 )
+                investor.set_slug()
                 db.session.add(investor)
                 print("Added investor:", investor)
         db.session.commit()

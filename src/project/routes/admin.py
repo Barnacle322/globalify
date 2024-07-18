@@ -150,7 +150,7 @@ def update_investor(id):
         return redirect(url_for("admin.create_investor_view", _external=True, **status))
 
     if email:
-        existing_email = User.get_by_email(email)
+        existing_email = Investor.get_by_email(email)
         if existing_email and existing_email.id != investor.user_id:
             status = Status(StatusType.ERROR, "Email already exists").get_status()
             return redirect(url_for("admin.update_investor_view", id=id, _external=True, **status))

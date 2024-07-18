@@ -476,6 +476,7 @@ def onboarding():
         verification = EmailVerification(user_id=authenticated_user.id)
         db.session.add(verification)
         db.session.commit()
+
         google_pubsub.send_event(
             "A new user has completed onboarding!",
             email=authenticated_user.email,

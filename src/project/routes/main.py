@@ -35,8 +35,9 @@ from ..models import (
     UserPayment,
 )
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
-from ..utils.enums import NotificationDestination, NotificationLayout, Status, StatusType
+from ..utils.enums import Events, NotificationDestination, NotificationLayout, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
+from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import WEIGHTS, check_weights
 
@@ -569,7 +570,7 @@ def claiming_email_view(slug):
     if not investor:
         return redirect(url_for("main.search"))
 
-    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
+    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SECRET_KEY")
 
     return render_template("claiming/email.html", investor=investor, captcha_site_key=captcha_site_key)
 
@@ -590,18 +591,15 @@ def claiming_email(slug):
     db.session.add(verification)
     db.session.commit()
 
-    ### Claiming verification ###
-
     # url = f"https://globalify.xyz/claim?code={verification.token}"
-
-    # google_pubsub.send_event(
-    #     "User wants to claim investor!",
-    #     email=investor.email,
-    #     random_key=verification.token,
-    # )
+    send_event(
+        "User wants to claim investor!",
+        event_type=Events.INVESTOR_PROFILE_CLAIM_REQUEST.value,
+        email=investor.email,
+        verification_token=verification.token,
+    )
 
     status = Status(StatusType.SUCCESS, "Verification email sent.").get_status()
-
     return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
 
 

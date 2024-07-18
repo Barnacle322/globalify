@@ -53,6 +53,8 @@ class Events(Enum):
 
     USER_COMPLETED_ONBOARDING = "user.completed_onboarding"
 
+    INVESTOR_PROFILE_CLAIM_REQUEST = "investor.profile_claim_request"
+
 
 class CompanyRole(Enum):
     OWNER = "owner"

@@ -258,15 +258,15 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
-    user: Mapped[User] = relationship(User, backref=backref("email_verifications", passive_deletes=True), init=False)
-
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
-    )
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     token: Mapped[str] = mapped_column(String, nullable=False, insert_default=lambda: str(uuid4()), init=False)
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
+    )
+
+    user: Mapped[User] = relationship(User, backref=backref("email_verifications", passive_deletes=True), init=False)
 
     @property
     def is_expired(self) -> bool:
@@ -278,29 +278,45 @@ class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
         expiration_time = self.created_at + datetime.timedelta(minutes=1)
         return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
 
-    @staticmethod
-    def expire_all_by_user_id(user_id: int) -> None:
+    @classmethod
+    def expire_all_by_user_id(cls, user_id: int) -> None:
         try:
-            email_verifications = db.session.scalars(
-                db.select(EmailVerification).where(EmailVerification.user_id == user_id)
-            ).all()
+            email_verifications = db.session.scalars(db.select(cls).where(cls.user_id == user_id)).all()
             for email_verification in email_verifications:
                 email_verification.is_expired = True
             db.session.commit()
         except Exception:
             db.session.rollback()
 
-    @staticmethod
-    def get_by_token(token: str) -> EmailVerification | None:
-        return db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
+    @classmethod
+    def get_by_token(cls, token: str) -> EmailVerification | None:
+        return db.session.scalar(db.select(cls).where(cls.token == token))
 
-    @staticmethod
-    def get_last_unused_by_user_id(user_id: int) -> EmailVerification | None:
+    @classmethod
+    def get_last_unused_by_user_id(cls, user_id: int) -> EmailVerification | None:
         last_verification = db.session.scalar(
-            db.select(EmailVerification)
-            .where(EmailVerification.user_id == user_id)
-            .where(EmailVerification.is_used.is_(False))
-            .order_by(EmailVerification.created_at.desc())
+            db.select(cls).where(cls.user_id == user_id).where(cls.is_used.is_(False)).order_by(cls.created_at.desc())
+        )
+        return last_verification
+
+
+class ClaimVerification(EmailVerification):
+    investor_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("investor.id", ondelete="CASCADE"), nullable=False, kw_only=True
+    )
+
+    investor: Mapped[Investor] = relationship(  # type: ignore # noqa: F821
+        "Investor", backref=backref("claim_verifications", passive_deletes=True), init=False
+    )
+
+    @classmethod
+    def get_by_token(cls, token: str) -> ClaimVerification | None:
+        return db.session.scalar(db.select(cls).where(cls.token == token))
+
+    @classmethod
+    def get_last_unused_by_user_id(cls, user_id: int) -> ClaimVerification | None:
+        last_verification = db.session.scalar(
+            db.select(cls).where(cls.user_id == user_id).where(cls.is_used.is_(False)).order_by(cls.created_at.desc())
         )
         return last_verification
 

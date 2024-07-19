@@ -10,6 +10,7 @@ from .investor import (
 )
 from .user import (
     ClaimRequest,
+    ClaimVerification,
     Company,
     CompanyInvitation,
     EmailVerification,
@@ -38,6 +39,7 @@ __all__ = [
     "Notification",
     "NotableInvestment",
     "ClaimRequest",
+    "ClaimVerification",
     "InvestorBackup",
     "InvestorOriginPoint",
 ]

@@ -21,7 +21,8 @@ from ..models import (
 )
 from ..schemas.investor import InvestorOriginPointSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
-from ..utils.enums import CompanyRole, Status, StatusType, Tier
+from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
+from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
@@ -133,6 +134,7 @@ def change_personal_info():
     linkedin_public = request.form.get("linkedin_public")
     instagram_public = request.form.get("instagram_public")
     twitter_public = request.form.get("twitter_public")
+    refuse_all_invitations = request.form.get("refuse_all_invitations")
     last_name = request.form.get("last-name")
     username = request.form.get("username")
     bio = request.form.get("bio")
@@ -218,6 +220,7 @@ def change_personal_info():
     user_info.linkedin_public = bool(linkedin_public)
     user_info.instagram_public = bool(instagram_public)
     user_info.twitter_public = bool(twitter_public)
+    user_info.refuse_all_invitations = bool(refuse_all_invitations)
 
     db.session.commit()
 
@@ -311,6 +314,8 @@ def company_info_view(company_id):
     company = user_company.company
     user_role = user_company.role.value
 
+    users_in_company = UserCompany.get_users_id_by_company_id(company_id=company_id)
+
     return render_template(
         "settings/company.html",
         industries=Industry.get_all(),
@@ -318,6 +323,7 @@ def company_info_view(company_id):
         countries=Country.get_all(),
         company=company,
         members=members,
+        users_in_company=users_in_company,
         company_invitations=company_invitations,
         user_role=user_role,
         status_type=status_type,
@@ -339,7 +345,7 @@ def change_company_info(company_id):
         status = Status(StatusType.ERROR, "Company not found.").get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    if user_company.role == CompanyRole.EMPLOYEE:
+    if user_company.role == CompanyRole.TEAM:
         status = Status(StatusType.ERROR, "You don't have permissions to edit this company!").get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
@@ -396,6 +402,39 @@ def change_company_info(company_id):
             return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
     else:
         company.website_url = None
+
+    linkedin_url = request.form.get("linkedin", "")
+    if linkedin_url:
+        linkedin_url = add_https_prefix(linkedin_url)
+        try:
+            company.linkedin_url = linkedin_url
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+    else:
+        company.linkedin_url = None
+
+    instagram_url = request.form.get("instagram", "")
+    if instagram_url:
+        instagram_url = add_https_prefix(instagram_url)
+        try:
+            company.instagram_url = instagram_url
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+    else:
+        company.instagram_url = None
+
+    twitter_url = request.form.get("twitter", "")
+    if twitter_url:
+        twitter_url = add_https_prefix(twitter_url)
+        try:
+            company.twitter_url = twitter_url
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+    else:
+        company.twitter_url = None
 
     company.description = request.form.get("description", "").strip()
     company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
@@ -523,21 +562,31 @@ def invite_user(company_id):
         status = Status(StatusType.ERROR, "User already invited.").get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
+    existing_user_company = UserCompany.get_by_company_id_and_email(email=user_email, company_id=company_id)
+    if existing_user_company:
+        status = Status(StatusType.ERROR, "User already in the company.").get_status()
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+
+    send_event(
+        "A user has been invited to a company.",
+        email=user_email,
+        event_type=Events.COMPANY_INVITATION.value,
+        role=user_role.title(),
+        message=invitation_message,
+        company_name=Company.get_by_id(company_id).name,  # type: ignore
+        invited_by=authenticated_user.user_info.username,  # type: ignore
+    )
+
     company_invitation = CompanyInvitation(
         company_id=company_id,
         email=user_email,
         role=CompanyRole(user_role),
+        invited_by=authenticated_user.id,
+        message=invitation_message,
     )
 
     db.session.add(company_invitation)
     db.session.commit()
-
-    # google_pubsub.send_event(
-    #     "Arstan is gay",
-    #     email=user_email,
-    #     event_type=Events.USER_COMPLETED_ONBOARDING.value,
-    #     message=invitation_message,
-    # )
 
     status = Status(StatusType.SUCCESS, "User invited.").get_status()
     return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
@@ -736,18 +785,19 @@ def make_company_primary(company_id):
     return redirect(url_for("settings.company_list_view", _external=False))
 
 
-@settings.post("/company/<int:company_id>/set-public")
+@settings.post("/company/<int:company_id>/toggle-public")
 @login_required
 @check_user_info_complete
 @check_verification
 def make_company_public(company_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
     user_company = UserCompany.get_by_user_id_and_company_id(user_id=authenticated_user.id, company_id=company_id)
+
     if not user_company:
         status = Status(StatusType.ERROR, "Company not found.").get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    user_company.is_public = True
+    user_company.is_public = not user_company.is_public
     db.session.commit()
 
     return redirect(url_for("settings.company_list_view", _external=False))
@@ -944,7 +994,11 @@ def restore_investor_data():
 @check_verification
 def search_user(search_input):
     users = db.session.scalars(
-        db.select(User).where(User.email.contains(search_input)).where(User.id != current_user.id)
+        db.select(User)
+        .join(UserInfo, User.id == UserInfo.user_id)
+        .where(User.email.contains(search_input))
+        .where(User.id != current_user.id)
+        .where(UserInfo.refuse_all_invitations.is_(False))
     ).all()
 
     if not users:

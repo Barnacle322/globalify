@@ -33,9 +33,9 @@
             </button>
         </div>
         <div class="flex flex-col gap-2">
-            <label class="font-medium" for="email">Search by email</label>
+            <label class="font-medium" for="email">Search by email*</label>
             <div
-                class="flex w-full items-center gap-4 rounded-xl border-2 border-sky-300 p-2 text-start text-sky-500 bg-sky-200 relative"
+                class="relative flex w-full items-center gap-4 rounded-xl border-2 border-sky-300 bg-sky-200 p-2 text-start text-sky-500"
                 v-if="selectedUser"
             >
                 <img
@@ -82,6 +82,7 @@
                 ref="searchInput"
                 class="w-full rounded-xl border-2 border-stone-300"
                 @input="debouncedGetUserList"
+                placeholder="johndoe@example.com"
                 v-else
             />
             <div
@@ -115,7 +116,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h3 class="text-md font-semibold" v-text="user.email"></h3>
-                        <span v-if="{{users_in_company}}.includes(user.id)" class="text-sm italic text-gray-500"
+                        <span v-if="{{ users_in_company }}.includes( user.id )" class="text-sm italic text-gray-500"
                             >exists</span
                         >
                     </div>
@@ -123,16 +124,22 @@
                 </div>
             </div>
 
-            <label class="font-medium" for="role">Select role</label>
+            <label class="font-medium" for="role">Select a role*</label>
             <select class="w-full rounded-xl border-2 border-stone-300" v-model="selectedRole">
-                <option v-for="role in roles" v-text="role" :value="role" @click=""></option>
+                <option class="text-gray-500" disabled selected value>Select a role</option>
+                <option v-for="role in roles" v-text="role[0].toUpperCase() + role.slice(1)" :value="role"></option>
             </select>
 
             <label class="font-medium" for="invitationMessage">Invitation Message</label>
-            <textarea class="w-full rounded-xl border-2 border-stone-300" v-model="invitationMessage"></textarea>
-
+            <textarea
+                class="w-full rounded-xl border-2 border-stone-300"
+                placeholder="Hey, join our company!"
+                v-model="invitationMessage"
+                @input="limitText"
+                @blur="invitationMessage = invitationMessage.trim()"
+            ></textarea>
             <button
-                class="w-full rounded-xl bg-sky-400 px-3 py-2 text-white mt-3"
+                class="mt-3 w-full rounded-xl bg-sky-400 px-3 py-2 text-white disabled:bg-gray-300"
                 @click="inviteMember({{company.id}})"
                 :disabled="!(selectedRole && selectedUser)"
             >

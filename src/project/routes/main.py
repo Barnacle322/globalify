@@ -22,7 +22,6 @@ from ..models import (
     ClaimVerification,
     Company,
     Country,
-    EmailVerification,
     Industry,
     InvestmentFirm,
     InvestmentFirmBookmark,

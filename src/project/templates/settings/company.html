@@ -240,7 +240,7 @@
                         >
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                             <div class="space-y-12">
-                                <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
                                     <div class="col-span-full flex items-start gap-x-8">
                                         {% if not company.picture_url %}
                                         <img
@@ -402,6 +402,54 @@
                                             />
                                         </div>
                                     </div>
+                                    <div class="col-span-full">
+                                        <label for="linkedin" class="block text-sm font-medium leading-6"
+                                            >LinkedIn</label
+                                        >
+                                        <div class="mt-2">
+                                            <input
+                                                name="linkedin"
+                                                id="linkedin"
+                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                value="{{ company.linkedin_url if company.linkedin_url else '' }}"
+                                                pattern="^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$"
+                                                placeholder="linkedin.com/in/username"
+                                                :disabled="'{{ user_role }}' == 'employee'"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-span-full">
+                                        <label for="instagram" class="block text-sm font-medium leading-6"
+                                            >Instagram</label
+                                        >
+                                        <div class="mt-2">
+                                            <input
+                                                name="instagram"
+                                                id="instagram"
+                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                value="{{ company.instagram_url if company.instagram_url else '' }}"
+                                                pattern="^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$"
+                                                placeholder="instagram.com/username"
+                                                :disabled="'{{ user_role }}' == 'employee'"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-span-full">
+                                        <label for="twitter" class="block text-sm font-medium leading-6"
+                                            >Twitter/X</label
+                                        >
+                                        <div class="mt-2">
+                                            <input
+                                                name="twitter"
+                                                id="twitter"
+                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                value="{{ company.twitter_url if company.twitter_url else '' }}"
+                                                pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
+                                                placeholder="twitter.com/username"
+                                                :disabled="'{{ user_role }}' == 'employee'"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="mt-8 flex gap-5" v-if="'{{ user_role }}' !== 'employee'">
@@ -411,9 +459,7 @@
                                     >
                                         Save
                                     </button>
-                                    <a
-                                        class="flex items-center justify-center text-slate-700 underline"
-                                        href="/settings/companies"
+                                    <a class="flex items-center justify-center text-slate-700 underline" href=""
                                         >Cancel</a
                                     >
                                 </div>

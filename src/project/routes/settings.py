@@ -21,7 +21,8 @@ from ..models import (
 )
 from ..schemas.investor import InvestorOriginPointSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
-from ..utils.enums import CompanyRole, Status, StatusType, Tier
+from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
+from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
@@ -344,7 +345,7 @@ def change_company_info(company_id):
         status = Status(StatusType.ERROR, "Company not found.").get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    if user_company.role == CompanyRole.EMPLOYEE:
+    if user_company.role == CompanyRole.TEAM:
         status = Status(StatusType.ERROR, "You don't have permissions to edit this company!").get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
@@ -401,6 +402,39 @@ def change_company_info(company_id):
             return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
     else:
         company.website_url = None
+
+    linkedin_url = request.form.get("linkedin", "")
+    if linkedin_url:
+        linkedin_url = add_https_prefix(linkedin_url)
+        try:
+            company.linkedin_url = linkedin_url
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+    else:
+        company.linkedin_url = None
+
+    instagram_url = request.form.get("instagram", "")
+    if instagram_url:
+        instagram_url = add_https_prefix(instagram_url)
+        try:
+            company.instagram_url = instagram_url
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+    else:
+        company.instagram_url = None
+
+    twitter_url = request.form.get("twitter", "")
+    if twitter_url:
+        twitter_url = add_https_prefix(twitter_url)
+        try:
+            company.twitter_url = twitter_url
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+    else:
+        company.twitter_url = None
 
     company.description = request.form.get("description", "").strip()
     company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
@@ -533,21 +567,26 @@ def invite_user(company_id):
         status = Status(StatusType.ERROR, "User already in the company.").get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
+    send_event(
+        "A user has been invited to a company.",
+        email=user_email,
+        event_type=Events.COMPANY_INVITATION.value,
+        role=user_role.title(),
+        message=invitation_message,
+        company_name=Company.get_by_id(company_id).name,  # type: ignore
+        invited_by=authenticated_user.user_info.username,  # type: ignore
+    )
+
     company_invitation = CompanyInvitation(
         company_id=company_id,
         email=user_email,
         role=CompanyRole(user_role),
+        invited_by=authenticated_user.id,
+        message=invitation_message,
     )
 
     db.session.add(company_invitation)
     db.session.commit()
-
-    # google_pubsub.send_event(
-    #     "Arstan is gay",
-    #     email=user_email,
-    #     event_type=Events.USER_COMPLETED_ONBOARDING.value,
-    #     message=invitation_message,
-    # )
 
     status = Status(StatusType.SUCCESS, "User invited.").get_status()
     return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))

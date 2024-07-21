@@ -213,7 +213,7 @@
                         >
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-                            <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
                                 <div class="col-span-full flex items-start gap-x-8">
                                     {% if not user.user_info.picture_url %}
                                     <img
@@ -281,7 +281,9 @@
                                             disabled
                                         />
                                     </div>
-                                    <span class="text-xs text-slate-700">Logged in with OAuth</span>
+                                    <span class="text-xs text-slate-700"
+                                        >Logged in with {{ user.oauth_provider.value.title() }} OAuth</span
+                                    >
                                     <div class="mt-2">
                                         <label class="inline-flex cursor-pointer items-center">
                                             {% if user.user_info.email_public %}
@@ -314,7 +316,7 @@
                                         <span
                                             class="absolute hidden h-12 select-none items-center pl-3 text-gray-500 sm:flex"
                                         >
-                                            globalify.com/user/
+                                            globalify.com/profile/
                                         </span>
                                         <input
                                             type="text"
@@ -322,7 +324,7 @@
                                             id="username"
                                             autocomplete="username"
                                             pattern="[a-zA-Z0-9_]{3,20}"
-                                            class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2 sm:pl-[148px]"
+                                            class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2 sm:pl-[162px]"
                                             minlength="4"
                                             placeholder="janesmith"
                                             required
@@ -415,7 +417,7 @@
                                     </div>
                                 </div>
                                 <div class="col-span-full">
-                                    <label for="twitter" class="block text-sm font-medium leading-6">Twitter</label>
+                                    <label for="twitter" class="block text-sm font-medium leading-6">Twitter/X</label>
                                     <div class="mt-2">
                                         <input
                                             id="twitter"
@@ -423,6 +425,7 @@
                                             class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                             pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
                                             value="{{ user.user_info.twitter_url if user.user_info.twitter_url else '' }}"
+                                            placeholder="twitter.com/username"
                                         />
                                     </div>
                                     <div class="mt-2">
@@ -453,7 +456,7 @@
                                 <div class="col-span-full">
                                     <div class="">
                                         <span class="block text-sm font-medium leading-6">Invitations</span>
-                                        <span class="text-gray-500 block text-sm font-medium leading-6"
+                                        <span class="block text-sm font-medium leading-6 text-gray-500"
                                             >You have the right to refuse invitations from any company.</span
                                         >
                                     </div>

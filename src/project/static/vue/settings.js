@@ -227,6 +227,11 @@ const InviteMemberComponent = defineComponent({
         };
     },
     methods: {
+        limitText() {
+            if (this.invitationMessage.length > 200) {
+                this.invitationMessage = this.invitationMessage.slice(0, 200);
+            }
+        },
         handleSubmit(event) {
             event.preventDefault();
             this.inviteMember(this.$refs.companyId.value);

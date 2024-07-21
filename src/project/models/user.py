@@ -278,45 +278,84 @@ class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
         expiration_time = self.created_at + datetime.timedelta(minutes=1)
         return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
 
-    @classmethod
-    def expire_all_by_user_id(cls, user_id: int) -> None:
+    @staticmethod
+    def expire_all_by_user_id(user_id: int) -> None:
         try:
-            email_verifications = db.session.scalars(db.select(cls).where(cls.user_id == user_id)).all()
+            email_verifications = db.session.scalars(
+                db.select(EmailVerification).where(EmailVerification.user_id == user_id)
+            ).all()
             for email_verification in email_verifications:
                 email_verification.is_expired = True
             db.session.commit()
         except Exception:
             db.session.rollback()
 
-    @classmethod
-    def get_by_token(cls, token: str) -> EmailVerification | None:
-        return db.session.scalar(db.select(cls).where(cls.token == token))
+    @staticmethod
+    def get_by_token(token: str) -> EmailVerification | None:
+        return db.session.scalar(db.select(EmailVerification).where(EmailVerification.token == token))
 
-    @classmethod
-    def get_last_unused_by_user_id(cls, user_id: int) -> EmailVerification | None:
+    @staticmethod
+    def get_last_unused_by_user_id(user_id: int) -> EmailVerification | None:
         last_verification = db.session.scalar(
-            db.select(cls).where(cls.user_id == user_id).where(cls.is_used.is_(False)).order_by(cls.created_at.desc())
+            db.select(EmailVerification)
+            .where(EmailVerification.user_id == user_id)
+            .where(EmailVerification.is_used.is_(False))
+            .order_by(EmailVerification.created_at.desc())
         )
         return last_verification
 
 
-class ClaimVerification(EmailVerification):
+class ClaimVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    token: Mapped[str] = mapped_column(String, nullable=False, insert_default=lambda: str(uuid4()), init=False)
+    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
+    )
     investor_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("investor.id", ondelete="CASCADE"), nullable=False, kw_only=True
     )
+
+    user: Mapped[User] = relationship(User, backref=backref("claim_verifications", passive_deletes=True), init=False)
 
     investor: Mapped[Investor] = relationship(  # type: ignore # noqa: F821
         "Investor", backref=backref("claim_verifications", passive_deletes=True), init=False
     )
 
-    @classmethod
-    def get_by_token(cls, token: str) -> ClaimVerification | None:
-        return db.session.scalar(db.select(cls).where(cls.token == token))
+    @property
+    def is_expired(self) -> bool:
+        expiration_time = self.created_at + datetime.timedelta(minutes=5)
+        return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
 
-    @classmethod
-    def get_last_unused_by_user_id(cls, user_id: int) -> ClaimVerification | None:
+    @property
+    def is_resendable(self) -> bool:
+        expiration_time = self.created_at + datetime.timedelta(minutes=1)
+        return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
+
+    @staticmethod
+    def expire_all_by_user_id(user_id: int) -> None:
+        try:
+            claim_verifications = db.session.scalars(
+                db.select(ClaimVerification).where(ClaimVerification.user_id == user_id)
+            ).all()
+            for claim_verification in claim_verifications:
+                claim_verification.is_expired = True
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    @staticmethod
+    def get_by_token(token: str) -> ClaimVerification | None:
+        return db.session.scalar(db.select(ClaimVerification).where(ClaimVerification.token == token))
+
+    @staticmethod
+    def get_last_unused_by_user_id(user_id: int) -> ClaimVerification | None:
         last_verification = db.session.scalar(
-            db.select(cls).where(cls.user_id == user_id).where(cls.is_used.is_(False)).order_by(cls.created_at.desc())
+            db.select(ClaimVerification)
+            .where(ClaimVerification.user_id == user_id)
+            .where(ClaimVerification.is_used.is_(False))
+            .order_by(ClaimVerification.created_at.desc())
         )
         return last_verification
 
@@ -327,6 +366,9 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     description: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True, init=False)
     website_url: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
+    linkedin_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    instagram_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    twitter_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     country_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("country.id"), nullable=True, init=False)
     preferred_round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("round.id"), nullable=True, init=False)
@@ -392,7 +434,7 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
-    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
+    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.TEAM)
     is_primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
@@ -479,9 +521,11 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
         DateTime, nullable=False, server_default=func.now(), init=False
     )
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    email: Mapped[str] = mapped_column(String, nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
-    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
+    invited_by: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    email: Mapped[str] = mapped_column(String, nullable=False)
+    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.TEAM)
+    message: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     company: Mapped[Company] = relationship(

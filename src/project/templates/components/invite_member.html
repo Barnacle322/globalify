@@ -1,7 +1,7 @@
 {% macro render(company, users_in_company) %}
 <template id="invite-member-template">
     <article
-        class="fixed right-1/2 top-1/2 z-50 m-4 flex w-full max-w-2xl -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all"
+        class="fixed sm:right-1/2 sm:top-1/2 top-0 right-0 z-50 w-full sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-3xl bg-white px-8 py-6 h-full sm:h-auto"
     >
         <div class="flex flex-col items-center justify-center gap-2">
             <svg
@@ -32,7 +32,7 @@
                 </svg>
             </button>
         </div>
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2 h-full">
             <label class="font-medium" for="email">Search by email*</label>
             <div
                 class="relative flex w-full items-center gap-4 rounded-xl border-2 border-sky-300 bg-sky-200 p-2 text-start text-sky-500"
@@ -85,44 +85,46 @@
                 placeholder="johndoe@example.com"
                 v-else
             />
-            <div
-                class="flex w-full cursor-pointer items-center gap-4 rounded-xl border-2 border-stone-300 p-2 text-start hover:bg-stone-100"
-                v-if="userList.length > 0"
-                v-for="(user, index) in userList"
-                @click="selectUser(user, $event)"
-                :class="{ 'pointer-events-none opacity-60': {{users_in_company}}.includes(user.id) }"
-            >
-                <img
-                    class="size-12 rounded-lg"
-                    v-if="user.id"
-                    :src="user.picture_url ? user.picture_url : '/static/elements/pfp_placeholder.jpeg'"
-                    alt=""
-                />
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-6"
-                    v-else
+            <ul class="overflow-y-auto max-h-60 space-y-2">
+                <li
+                    class="flex w-full cursor-pointer items-center gap-4 rounded-xl border-2 border-stone-300 p-2 text-start hover:bg-stone-100"
+                    v-if="userList.length > 0"
+                    v-for="(user, index) in userList"
+                    @click="selectUser(user, $event)"
+                    :class="{ 'pointer-events-none opacity-60': {{users_in_company}}.includes(user.id) }"
                 >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
+                    <img
+                        class="size-12 rounded-lg"
+                        v-if="user.id"
+                        :src="user.picture_url ? user.picture_url : '/static/elements/pfp_placeholder.jpeg'"
+                        alt=""
                     />
-                </svg>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h3 class="text-md font-semibold" v-text="user.email"></h3>
-                        <span v-if="{{ users_in_company }}.includes( user.id )" class="text-sm italic text-gray-500"
-                            >exists</span
-                        >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6"
+                        v-else
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
+                        />
+                    </svg>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-md font-semibold" v-text="user.email"></h3>
+                            <span v-if="{{ users_in_company }}.includes( user.id )" class="text-sm italic text-gray-500"
+                                >exists</span
+                            >
+                        </div>
+                        <p class="text-gray-500">Invite to group</p>
                     </div>
-                    <p class="text-gray-500">Invite to group</p>
-                </div>
-            </div>
+                </li>
+            </ul>
 
             <label class="font-medium" for="role">Select a role*</label>
             <select class="w-full rounded-xl border-2 border-stone-300" v-model="selectedRole">
@@ -139,7 +141,7 @@
                 @blur="invitationMessage = invitationMessage.trim()"
             ></textarea>
             <button
-                class="mt-3 w-full rounded-xl bg-sky-400 px-3 py-2 text-white disabled:bg-gray-300"
+                class="sm:mt-3 mt-auto w-full rounded-xl bg-sky-400 px-3 py-2 text-white disabled:bg-gray-300"
                 @click="inviteMember({{company.id}})"
                 :disabled="!(selectedRole && selectedUser)"
             >

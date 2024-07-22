@@ -298,7 +298,7 @@ def company_info_view(company_id):
             user_info = user.user_info
             user_element = MemberSchema(
                 id=user.id,
-                name=user_info.first_name + " " + user_info.last_name,
+                name=user_info.full_name,
                 picture_url=user_info.picture_url,
                 role=user_company.role.value,
             )
@@ -314,7 +314,7 @@ def company_info_view(company_id):
     company = user_company.company
     user_role = user_company.role.value
 
-    users_in_company = UserCompany.get_users_id_by_company_id(company_id=company_id)
+    users_in_company = UserCompany.get_user_ids_by_company_id(company_id=company_id)
 
     return render_template(
         "settings/company.html",
@@ -551,7 +551,7 @@ def invite_user(company_id):
     form_data = request.get_json()
     user_email = form_data.get("email") or None
     user_role = form_data.get("role") or None
-    invitation_message = form_data.get("invitation_message") or None
+    invitation_message = form_data.get("invitation_message") or "Hey, join our company!"
 
     if not user_email or not user_role:
         status = Status(StatusType.ERROR, "Email and role are required.").get_status()

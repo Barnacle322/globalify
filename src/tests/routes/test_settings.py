@@ -7,7 +7,7 @@ from flask_login import login_user
 from src.project import db
 from src.project.extensions import oauth
 from src.project.models import User, UserInfo, UserPayment
-from src.project.models.user import Company
+from src.project.models.user import Company, CompanyInvitation, CompanyRole, UserCompany
 from src.project.utils import suggestion
 from src.project.utils.enums import OauthProvider
 
@@ -17,7 +17,7 @@ def verified_user(app):
     with app.app_context():
         user = User(
             oauth_provider=OauthProvider.GOOGLE,
-            email="johndoe@example.com",
+            email="johndoe2@example.com",
             is_verified=True,
         )
         db.session.add(user)
@@ -93,26 +93,9 @@ def username_taken_user(app):
 
 
 @pytest.fixture()
-def new_user_with_company(app):
+def new_company(app):
     with app.app_context():
-        user = User(
-            oauth_provider=OauthProvider.GOOGLE,
-            email="margarita@example.com",
-            is_verified=True,
-        )
-        db.session.add(user)
-        db.session.commit()
-        user_info = UserInfo(
-            first_name="John",
-            last_name="Doe",
-            username="johndoe",
-            is_complete=True,
-            user=user,
-        )
-        db.session.add(user_info)
-        db.session.commit()
-
-        company = Company(user_id=1, name="Test Company")
+        company = Company(name="Test Company")
 
         company.description = "Test description"
         company.number_of_employees = 10
@@ -124,7 +107,57 @@ def new_user_with_company(app):
 
         db.session.add(company)
         db.session.commit()
+
+        return company
+
+
+@pytest.fixture()
+def new_user_with_company(app):
+    with app.app_context():
+        user = User(
+            oauth_provider=OauthProvider.GOOGLE,
+            email="margarita@example.com",
+            is_verified=True,
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        user_info = UserInfo(
+            first_name="John",
+            last_name="Doe",
+            username="johndoe",
+            is_complete=True,
+            user=user,
+        )
+        db.session.add(user_info)
+        db.session.commit()
+
+        company = Company(name="Test Company")
+        company.description = "Test description"
+        company.number_of_employees = 10
+        company.website_url = "https://www.example.com"
+        company.picture_url = "https://www.example.com"
+        company.country_id = 1
+        company.preferred_round_id = 1
+        company.industry_id = 1
+        db.session.add(company)
+        db.session.commit()
+
+        user_company = UserCompany(user_id=1, company_id=1)
+        user_company.role = CompanyRole.OWNER
+        db.session.add(user_company)
+        db.session.commit()
+
         return user
+
+
+@pytest.fixture()
+def new_company_invitations(app):
+    with app.app_context():
+        company_invitation = CompanyInvitation("johndoe2@example.com", 1)
+
+        db.session.add(company_invitation)
+        db.session.commit()
 
 
 def test_settings_anonymous_get(client):
@@ -342,7 +375,7 @@ def test_unverified_user_change_personal_info(client, app, unverified_user, monk
         assert b"Verify" in response.data
 
 
-def test_verified_user_change_personal_info(client, app, verified_user, monkeypatch):
+def test_verified_user_change_personal_info1(client, app, verified_user, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
             return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
@@ -365,13 +398,12 @@ def test_verified_user_change_personal_info(client, app, verified_user, monkeypa
         assert response.status_code == 200
         assert b"Personal info successfully changed." in response.data
 
-        # TODO Fix this
-        updated_user = User.get_by_id(1)
+        updated_user = UserInfo.get_by_user_id(1)
         assert updated_user is not None
-        assert updated_user.user_info.first_name == "NewFirstName"  # type: ignore
-        assert updated_user.user_info.last_name == "NewLastName"  # type: ignore
-        assert updated_user.user_info.username == "newusername"  # type: ignore
-        assert updated_user.user_info.bio == "New bio"  # type: ignore
+        assert updated_user.first_name == "NewFirstName"  # type: ignore
+        assert updated_user.last_name == "NewLastName"  # type: ignore
+        assert updated_user.username == "newusername"  # type: ignore
+        assert updated_user.bio == "New bio"  # type: ignore
 
 
 def test_verified_user_change_personal_info_empty_first_name(client, app, verified_user, monkeypatch):
@@ -458,6 +490,72 @@ def test_verified_user_change_personal_info_empty_username(client, app, verified
         assert b"Username cannot be empty." in response.data
 
 
+def test_verified_user_change_personal_info_add_linkedin_url(client, app, verified_user, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.post(
+            "/settings/personal-info",
+            data={
+                "linkedin": "linkedin.com/in/newLNKDN",
+            },
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+
+        updated_user = UserInfo.get_by_user_id(1)
+        assert updated_user.linkedin_url == "https://linkedin.com/in/newLNKDN"  # type: ignore
+
+
+def test_verified_user_change_personal_info_add_twitter_url(client, app, verified_user, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.post(
+            "/settings/personal-info",
+            data={
+                "twitter": "twitter.com/newTWTR",
+            },
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+
+        updated_user = UserInfo.get_by_user_id(1)
+        assert updated_user.twitter_url == "https://twitter.com/newTWTR"  # type: ignore
+
+
+def test_verified_user_change_personal_info_add_instagram_url(client, app, verified_user, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.post(
+            "/settings/personal-info",
+            data={
+                "instagram": "instagram.com/newINSTGRM",
+            },
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+
+        updated_user = UserInfo.get_by_user_id(1)
+        assert updated_user.instagram_url == "https://instagram.com/newINSTGRM"  # type: ignore
+
+
 def test_verified_user_change_personal_info_taken_username(
     client, app, verified_user, username_taken_user, monkeypatch
 ):
@@ -516,20 +614,21 @@ def test_delete_account(client, app, verified_user, monkeypatch):
         assert User.get_by_email("johndoe@example.com") is None
 
 
-def test_settings_company_anonymous_get(client):
-    response = client.get("/settings/company", follow_redirects=True)
+def test_settings_company_anonymous_get(client, new_company):
+    response = client.get("/settings/company/1", follow_redirects=True)
+
     assert response.status_code == 200
     assert b"Welcome!" in response.data
     assert b"Sign in with your social media" in response.data
     assert b"Oops! Looks like you aren&#39;t logged in" in response.data
 
 
-def test_settings_company_unverified_get(client, app, unverified_user, monkeypatch):
+def test_settings_company_unverified_get(client, app, unverified_user, new_company, monkeypatch):
     with app.test_request_context():
         user = User.get_by_id(1)
         login_user(user)
 
-        response = client.get("/settings/company", follow_redirects=True)
+        response = client.get("/settings/company/1", follow_redirects=True)
         assert response.status_code == 200
         assert b"Email Verification" in response.data
         assert (
@@ -544,28 +643,32 @@ def test_settings_company_verified_get(client, app, new_user_with_company, monke
         user = User.get_by_id(1)
         login_user(user)
 
-        response = client.get("/settings/company", follow_redirects=True)
+        response = client.get("/settings/company/1", follow_redirects=True)
+
         assert response.status_code == 200
         assert b"Company Information" in response.data
         assert b"Update your company information here." in response.data
 
 
+# Delete?
 def test_verified_user_without_company_get(client, app, verified_user, monkeypatch):
     with app.test_request_context():
         user = User.get_by_id(1)
         login_user(user)
 
-        response = client.get("/settings/company")
+        response = client.get("/settings/company/1")
         assert response.status_code == 404
 
 
+# Ломается из-за POST метода в функции company_info_view()
+# Иначе работает нормально
 def test_verified_user_change_company_empty_name(client, app, new_user_with_company, monkeypatch):
     with app.test_request_context():
         user = User.get_by_id(1)
         login_user(user)
 
         response = client.post(
-            url_for("settings.change_company_info"),
+            url_for("settings.change_company_info", company_id=1),
             data={
                 "company-name": " ",
             },
@@ -582,7 +685,7 @@ def test_verified_user_change_company_empty_industry_and_round(client, app, new_
         login_user(user)
 
         response = client.post(
-            url_for("settings.change_company_info"),
+            url_for("settings.change_company_info", company_id=1),
             data={
                 "industry": None,
                 "round": None,
@@ -600,7 +703,7 @@ def test_verified_user_change_company_empty_country(client, app, new_user_with_c
         login_user(user)
 
         response = client.post(
-            url_for("settings.change_company_info"),
+            url_for("settings.change_company_info", company_id=1),
             data={
                 "industry": 1,
                 "round": 1,
@@ -624,7 +727,7 @@ def test_verified_user_change_company_valid_data(client, app, new_user_with_comp
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
         response = client.post(
-            url_for("settings.change_company_info"),
+            url_for("settings.change_company_info", company_id=1),
             data={
                 "company-name": "Globalify",
                 "description": "Very good company",
@@ -640,7 +743,7 @@ def test_verified_user_change_company_valid_data(client, app, new_user_with_comp
         assert response.status_code == 200
         assert b"Company successfully changed." in response.data
 
-        company = Company.get_by_user_id(1)
+        company = Company.get_by_id(1)
 
         assert company
 
@@ -652,3 +755,36 @@ def test_verified_user_change_company_valid_data(client, app, new_user_with_comp
         assert company._coordinates == "20.45,16.5167"
         assert company.preferred_round_id == 2
         assert company.industry_id == 2
+
+
+def test_get_company_list_view(client, app, new_user_with_company):
+    with app.test_request_context():
+        user = User.get_by_id(1)
+        login_user(user)
+
+        response = client.get("/settings/companies", follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Hmm, it look like you aren't a part of any company." not in response.data
+        assert b"Test Company" in response.data
+        assert b"Test description" in response.data
+
+
+def test_create_company_view(client, app, new_user_with_company, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(suggestion, "geocode_location", MagicMock(return_value={"coordinates": "20.45,16.5167"}))
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.get("/settings/company/create", follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Fill in the details of your company to get started." in response.data
+        assert b"Kyrgyzstan" in response.data
+        assert b"Series A" in response.data
+        assert b"FinTech" in response.data
+        assert b"Create" in response.data

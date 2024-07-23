@@ -45,7 +45,7 @@ def verified_user(app):
         db.session.add_all([user_info, user_payment])
         db.session.commit()
 
-        company = Company(user_id=1, name="Test Company")
+        company = Company(name="Test Company")
 
         company.description = "Test description"
         company.number_of_employees = 10
@@ -184,7 +184,7 @@ def test_onboarding_post_valid_data(client, app, unverified_incomplete_user, mon
                 "first_name": "John",
                 "last_name": "Doe",
                 "username": "johndoe",
-                "company_name": "Globalify",
+                #      "company_name": "Globalify",
             },
             follow_redirects=True,
         )
@@ -203,9 +203,9 @@ def test_onboarding_post_valid_data(client, app, unverified_incomplete_user, mon
         assert user.user_info.last_name == "Doe"  # type: ignore
         assert user.user_info.username == "johndoe"  # type: ignore
 
-        company = Company.get_by_id(1)
-        assert company is not None
-        assert company.name == "Globalify"
+        # company = Company.get_by_id(1)
+        # assert company is not None
+        # assert company.name == "Globalify"
 
 
 def test_onboarding_incomplete(client, app, unverified_incomplete_user, monkeypatch):

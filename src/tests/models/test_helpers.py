@@ -70,6 +70,16 @@ def test_industry_get_by_id(app):
         assert industry.name == "AI"
 
 
+def test_industries_get_by_id_list(app):
+    with app.app_context():
+        industries = Industry.get_by_id_list([1, 2, 3, 4])
+        assert industries
+        assert industries[0].name == "AI"
+        assert industries[1].name == "API"
+        assert industries[2].name == "AR/VR"
+        assert industries[3].name == "Automation"
+
+
 def test_industry_get_by_name(app):
     with app.app_context():
         industry = Industry.get_by_name("AI")
@@ -111,3 +121,14 @@ def test_round_get_by_name_not_existing(app):
     with app.app_context():
         round = Round.get_by_name("Series D")
         assert round is None
+
+
+def test_get_rounds_by_id_list(app):
+    with app.app_context():
+        rounds = Round.get_by_id_list([1, 2, 3, 4, 5])
+        assert rounds
+        assert rounds[0].name == "Pre-Seed"
+        assert rounds[1].name == "Seed"
+        assert rounds[2].name == "Series A"
+        assert rounds[3].name == "Series B"
+        assert rounds[4].name == "Series C"

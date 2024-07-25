@@ -246,12 +246,10 @@ def search_companies():
     country = request.args.get("country")
 
     query_by = [
-        "location",
         "country",
-        "rounds",
-        "industries",
+        "preferred_round",
+        "industry",
         "embedding",
-        "notable_investments",
         "name",
     ]
 
@@ -267,7 +265,9 @@ def search_companies():
         country=country,
     )
     companies = result.get("companies")
-    print(companies)
+
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    print(companies[0])
 
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False

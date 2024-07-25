@@ -442,7 +442,18 @@ def change_company_info(company_id):
     company.preferred_round_id = preferred_round_id
     company.industry_id = industry_id
     company.coordinates = Country.get_by_id(country_id).name  # type: ignore
-    db.session.commit()
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+
+    try:
+        company.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     status = Status(StatusType.SUCCESS, "Company successfully changed.").get_status()
     return redirect(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 import re
 from collections.abc import Generator, Sequence
 from sqlite3 import Connection as SQLite3Connection
@@ -384,7 +385,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     preferred_round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("round.id"), nullable=True, init=False)
     industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True, init=False)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
-    search_index: Mapped[str | None] = mapped_column(String, nullable=True)
+    search_index: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
 
     country: Mapped[Country] = relationship(init=False)
     preferred_round: Mapped[Round] = relationship(init=False)
@@ -455,7 +456,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     ):
         try:
             results = (
-                SearchBuilder("investment_firms")
+                SearchBuilder("companies")
                 .query(query_string)
                 .query_by(query_by)
                 .filter_by_round(preferred_round)
@@ -466,8 +467,11 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                 .search()
             )
 
+            print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+            print(results)
+
         except Exception as e:
-            print("An error occurred while searching for investment firms. Error:", e)
+            print("An error occurred while searching for companies. Error:", e)
             results = {"found": 0, "page": page, "per_page": per_page, "hits": []}
             return results
 
@@ -488,7 +492,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                     "description": hit.get("description", ""),
                     "country": hit.get("country", ""),
                     "preferred_round": hit.get("preferred_round", []),
-                    "industry": hit.get("industries", []),
+                    "industry": hit.get("industry", []),
                 }
             )
         return {"companies": company_list, "found": found, "pages": pages, "page": page}
@@ -510,6 +514,40 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                 .all()
             )
             yield companies
+
+    def upsert_data(self):
+        company_object = {}
+        if self.search_index:
+            company_object["id"] = self.search_index
+        company_object["db_id"] = self.id
+        if self.name:
+            company_object["name"] = self.name
+        if self.description:
+            company_object["description"] = self.description
+        if self.country:
+            company_object["country"] = self.country.name
+        if self.preferred_round:
+            company_object["preferred_round"] = self.preferred_round.name
+        # if self.industry:
+        #     company_object["industry"] = self.industry.name
+
+        data = [company_object]
+
+        if self.search_index:
+            data[0]["id"] = self.search_index
+
+        result = upsert_documents("companies", data)
+
+        if json.loads(result[0].get("document", "{}")).get("id"):
+            search_index = json.loads(result[0].get("document", "{}")).get("id")
+        elif result[0].get("id"):
+            search_index = result[0].get("id")
+
+        if not search_index:
+            raise Exception("Search index not found")
+
+        self.search_index = search_index
+        db.session.commit()
 
     @staticmethod
     def sync_search_index(recreate: bool = False):
@@ -573,9 +611,12 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
             objects = []
             for index, obj in enumerate(result):
                 if obj.get("id"):
-                    objects.append((companies[index].id, obj.get("id"), 0))
+                    objects.append((companies[index].id, obj.get("id")))
                 else:
                     continue
+
+            print("\n\n\n\n\n\n\n\n\n\n\n\n\n")
+            print(objects)
 
             query = "UPDATE company SET search_index = CASE id "
             for db_id, search_index in objects:

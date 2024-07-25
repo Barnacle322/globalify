@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import datetime
 import re
-from collections.abc import Sequence
+from collections.abc import Generator, Sequence
 from sqlite3 import Connection as SQLite3Connection
+from typing import Any
 from uuid import uuid4
 
 from flask_login import UserMixin
+from more_itertools import chunked
 from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func, or_, text, update
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
@@ -15,6 +17,14 @@ from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mappe
 from ..extensions import db
 from ..utils import suggestion
 from ..utils.enums import CompanyRole, NotificationDestination, OauthProvider, RequestStatus, Tier
+from ..utils.typesense_helpers.typesense_search import (
+    SearchBuilder,
+    create_schema,
+    create_synonyms,
+    delete_documents,
+    delete_schema,
+    upsert_documents,
+)
 from .helpers import Country, Industry, Round
 
 
@@ -374,6 +384,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     preferred_round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("round.id"), nullable=True, init=False)
     industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True, init=False)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
+    search_index: Mapped[str | None] = mapped_column(String, nullable=True)
 
     country: Mapped[Country] = relationship(init=False)
     preferred_round: Mapped[Round] = relationship(init=False)
@@ -428,6 +439,152 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_by_id(id: int) -> Company | None:
         return db.session.scalar(db.select(Company).where(Company.id == id))
+
+    @classmethod
+    def get_search(
+        cls,
+        query_string: str,
+        query_by: list[str],
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        country: str | None = None,
+        preferred_round: str | None = None,
+        industry: str | None = None,
+        per_page: int = 12,
+        page: int = 1,
+    ):
+        try:
+            results = (
+                SearchBuilder("investment_firms")
+                .query(query_string)
+                .query_by(query_by)
+                .filter_by_round(preferred_round)
+                .filter_by_industry(industry)
+                .filter_by_country(country)
+                .sort_by(sort_by, sort_desc)
+                .page(page, per_page)
+                .search()
+            )
+
+        except Exception as e:
+            print("An error occurred while searching for investment firms. Error:", e)
+            results = {"found": 0, "page": page, "per_page": per_page, "hits": []}
+            return results
+
+        found = results.get("found", 0)
+        page = results.get("page", 1)
+
+        pages = found // per_page
+        if found % per_page > 0:
+            pages += 1
+
+        company_list = []
+        for hit in results.get("hits", []):
+            hit = hit.get("document", {})
+            company_list.append(
+                {
+                    "id": hit.get("db_id", 0),
+                    "name": hit.get("name", ""),
+                    "description": hit.get("description", ""),
+                    "country": hit.get("country", ""),
+                    "preferred_round": hit.get("preferred_round", []),
+                    "industry": hit.get("industries", []),
+                }
+            )
+        return {"companies": company_list, "found": found, "pages": pages, "page": page}
+
+    @staticmethod
+    def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[Company], None, None]:
+        stmt = db.select(Company.id) if isinstance(stmt, bool) else stmt
+
+        ids_query = db.session.scalars(stmt).all()
+
+        for ids in chunked(ids_query, batch_size):
+            companies = (
+                db.session.scalars(
+                    db.select(Company)
+                    .options(joinedload(Company.preferred_round), joinedload(Company.industry))
+                    .where(Company.id.in_(ids))
+                )
+                .unique()
+                .all()
+            )
+            yield companies
+
+    @staticmethod
+    def sync_search_index(recreate: bool = False):
+        if recreate:
+            company_schema = {
+                "name": "companies",
+                "fields": [
+                    {"name": "name", "type": "string"},
+                    {
+                        "name": "db_id",
+                        "type": "int32",
+                        "facet": True,
+                    },
+                    {"name": "description", "type": "string"},
+                    {"name": "country", "type": "string"},
+                    {"name": "preferred_round", "type": "string"},
+                    {"name": "industry", "type": "string"},
+                    {
+                        "name": "embedding",
+                        "type": "float[]",
+                        "embed": {
+                            "from": [
+                                "description",
+                                "country",
+                                "industry",
+                                "preferred_round",
+                            ],
+                            "model_config": {"model_name": "ts/all-MiniLM-L12-v2"},
+                        },
+                    },
+                ],
+                "primary_key": "db_id",
+            }
+            try:
+                delete_schema("companies")
+            except Exception:
+                print("Schema does not exist")
+            print("Creating schema")
+            create_schema(company_schema)
+            create_synonyms("companies")
+
+        batch_count = 1
+        for companies in Company.get_batches(batch_size=100):
+            print(f"Processing batch {batch_count} of companies...")
+            data = []
+            for company in companies:
+                company_object = {}
+                if company.search_index and not recreate:
+                    company_object["id"] = company.search_index
+                company_object["db_id"] = company.id
+                company_object["name"] = company.name
+                company_object["description"] = company.description
+                company_object["country"] = company.country.name if company.country else None
+                company_object["preferred_round"] = company.preferred_round.name if company.preferred_round else None
+                company_object["industry"] = company.industry.name if company.industry else None
+                data.append(company_object)
+
+            print("Upserting documents")
+            result = upsert_documents("companies", data)
+
+            objects = []
+            for index, obj in enumerate(result):
+                if obj.get("id"):
+                    objects.append((companies[index].id, obj.get("id"), 0))
+                else:
+                    continue
+
+            query = "UPDATE company SET search_index = CASE id "
+            for db_id, search_index in objects:
+                query += f"WHEN {db_id} THEN '{search_index}' "
+            query += "END WHERE id IN (" + ",".join(str(t[0]) for t in objects) + ")"
+
+            db.session.execute(db.text(query))
+            db.session.commit()
+            batch_count += 1
 
 
 class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):

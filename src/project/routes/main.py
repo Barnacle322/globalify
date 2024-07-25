@@ -225,6 +225,84 @@ def get_suggestion_investment_firms():
     )
 
 
+@main.route("/search/companies", methods=["GET", "POST"])
+@login_required
+@check_user_info_complete
+@check_verification
+def search_companies():
+    notifications = Notification.get_unread(
+        current_user.id,
+        NotificationDestination.SEARCH,
+        is_read=False,
+    )
+
+    search_string = request.args.get("search", "")
+    sort_by = request.args.get("sort_field", "db_id")
+    sort_desc = request.args.get("descending", False, type=bool)
+    page = request.args.get("page", 1, type=int)
+
+    round = request.args.get("round")
+    industry = request.args.get("industry")
+    country = request.args.get("country")
+
+    query_by = [
+        "location",
+        "country",
+        "rounds",
+        "industries",
+        "embedding",
+        "notable_investments",
+        "name",
+    ]
+
+    result = Company.get_search(
+        query_string=search_string,
+        query_by=query_by,
+        sort_by=sort_by,
+        sort_desc=sort_desc,
+        preferred_round=round,
+        industry=industry,
+        page=page,
+        per_page=9,
+        country=country,
+    )
+    companies = result.get("companies")
+    print(companies)
+
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+    unpaid = False
+    if current_user.is_admin:
+        pass
+    elif not user_payment and page > 1:
+        unpaid = True
+    elif user_payment and not user_payment.is_active and page > 1:
+        unpaid = True
+
+    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+
+    fields = {
+        "n_investments": "Number of Investments",
+        "n_exits": "Number of Exits",
+        "min_investment": "Minimum Investment",
+        "max_investment": "Maximum Investment",
+        "n_employees": "Number of Employees",
+    }
+
+    return render_template(
+        "search_companies.html",
+        companies=companies,
+        query=search_string,
+        fields=fields,
+        pagination=pagination,
+        total_pages=len(pagination.get("pages", [])),
+        notifications=notifications,
+        industry_list=Industry.get_all(),
+        round_list=Round.get_all(),
+        countries=Country.get_all(),
+        unpaid=unpaid,
+    )
+
+
 @main.route("/search/investment-firms", methods=["GET", "POST"])
 @login_required
 @check_user_info_complete

@@ -229,20 +229,6 @@
                         aria-labelledby="round-options-menu"
                     >
                         <div class="py-1" role="none">
-                            <label
-                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="checkbox"
-                            >
-                                <input
-                                    type="checkbox"
-                                    id="rounds_exclusive"
-                                    name="rounds_exclusive"
-                                    value="1"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                Show only with selected rounds
-                            </label>
-                            <hr />
                             {% for round in round_list %}
                             <label
                                 class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -293,20 +279,6 @@
                         aria-labelledby="industry-options-menu"
                     >
                         <div class="py-1" role="menu">
-                            <label
-                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="checkbox"
-                            >
-                                <input
-                                    type="checkbox"
-                                    id="industries_exclusive"
-                                    name="industries_exclusive"
-                                    value="1"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                Show only with selected industries
-                            </label>
-                            <hr />
                             {% for category, industries in industry_list.items() %}
                             <label
                                 class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -330,100 +302,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="group relative text-left">
-                    <label class="text-sm font-semibold text-white" for="sorting-options">Sorting</label>
-                    <button
-                        type="button"
-                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
-                        id="sorting-options"
-                        aria-haspopup="true"
-                        aria-expanded="true"
-                    >
-                        <svg
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                            class="h-5 w-5"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
-                            ></path>
-                        </svg>
-                        Sort By
-                    </button>
-                    <div
-                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
-                        id="sorting-options-menu"
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="sorting-options-menu"
-                    >
-                        <div class="py-1" role="none">
-                            <label
-                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="checkbox"
-                            >
-                                <input
-                                    type="checkbox"
-                                    id="descending"
-                                    name="descending"
-                                    value="1"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                Descending
-                            </label>
-                            <hr />
-                            {% if fields %} {% for field, field_name in fields.items() %}
-                            <label
-                                class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="menuitem"
-                            >
-                                <input
-                                    type="checkbox"
-                                    name="sort_field"
-                                    value="{{ field }}"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                {{ field_name }}
-                            </label>
-                            {% endfor %} {% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="group relative w-full text-left sm:w-52">
-                    <label class="text-sm font-semibold text-white" for="sorting-options">Investment Range</label>
-                    <div class="relative mt-2 w-full text-left">
-                        <input
-                            type="range"
-                            class="absolute h-0 w-full cursor-pointer appearance-none rounded-lg [&::-webkit-slider-runnable-track]:h-0"
-                            id="min_investment"
-                            min="0"
-                            max="100"
-                            value="0"
-                        />
-                        <input
-                            type="range"
-                            class="absolute h-0 w-full cursor-pointer appearance-none rounded-lg [&::-webkit-slider-runnable-track]:h-0"
-                            id="max_investment"
-                            min="0"
-                            max="100"
-                            value="100"
-                        />
-                        <div class="h-4 w-full rounded-full bg-gray-200"></div>
-                        <div class="mt-2 flex justify-between text-sm text-white">
-                            <span>$0&nbsp;&nbsp;</span>
-                            <span>$25M</span>
-                            <span>$50M</span>
-                        </div>
-                    </div>
-                </div>
 
-                <a class="mt-3 ml-auto self-end text-sm text-gray-200 underline" href="../search/investment-firms"
+                <a class="mt-3 ml-auto self-end text-sm text-gray-200 underline" href="../search/companies"
                     >Clear all</a
                 >
             </div>

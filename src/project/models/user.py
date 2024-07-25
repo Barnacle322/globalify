@@ -101,7 +101,7 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     @validates("instagram_url")
     def validate_instagram(self, key, instagram):
         if not instagram:
-            return None
+            return
         if not re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
             raise ValueError(
                 "Invalid Instagram URL format. Ensure it follows the pattern: https://www.instagram.com/username."
@@ -448,9 +448,9 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
         query_by: list[str],
         sort_by: str | None = None,
         sort_desc: bool = False,
-        country: str | None = None,
-        preferred_round: str | None = None,
-        industry: str | None = None,
+        countries: list[str] | None = None,
+        preferred_rounds: list[str] | None = None,
+        industries: list[str] | None = None,
         per_page: int = 12,
         page: int = 1,
     ):
@@ -459,9 +459,9 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                 SearchBuilder("companies")
                 .query(query_string)
                 .query_by(query_by)
-                .filter_by_round(preferred_round)
-                .filter_by_industry(industry)
-                .filter_by_country(country)
+                .filter_by_round(preferred_rounds)
+                .filter_by_industry(industries)
+                .filter_by_countries(countries)
                 .sort_by(sort_by, sort_desc)
                 .page(page, per_page)
                 .search()
@@ -528,8 +528,8 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
             company_object["country"] = self.country.name
         if self.preferred_round:
             company_object["preferred_round"] = self.preferred_round.name
-        # if self.industry:
-        #     company_object["industry"] = self.industry.name
+        if self.industry:
+            company_object["industry"] = self.industry.name
 
         data = [company_object]
 

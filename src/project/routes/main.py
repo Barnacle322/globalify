@@ -241,9 +241,9 @@ def search_companies():
     sort_desc = request.args.get("descending", False, type=bool)
     page = request.args.get("page", 1, type=int)
 
-    round = request.args.get("round")
-    industry = request.args.get("industry")
-    country = request.args.get("country")
+    round = request.args.getlist("round")
+    industry = request.args.getlist("industry")
+    country = request.args.getlist("country")
 
     query_by = [
         "country",
@@ -258,16 +258,13 @@ def search_companies():
         query_by=query_by,
         sort_by=sort_by,
         sort_desc=sort_desc,
-        preferred_round=round,
-        industry=industry,
+        preferred_rounds=round,
+        industries=industry,
         page=page,
         per_page=9,
-        country=country,
+        countries=country,
     )
     companies = result.get("companies")
-
-    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-    print(companies[0])
 
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False
@@ -280,19 +277,10 @@ def search_companies():
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-    fields = {
-        "n_investments": "Number of Investments",
-        "n_exits": "Number of Exits",
-        "min_investment": "Minimum Investment",
-        "max_investment": "Maximum Investment",
-        "n_employees": "Number of Employees",
-    }
-
     return render_template(
         "search_companies.html",
         companies=companies,
         query=search_string,
-        fields=fields,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
         notifications=notifications,

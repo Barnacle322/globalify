@@ -526,8 +526,18 @@ def create_company():
         company.country_id = country_id
         company.coordinates = Country.get_by_id(country_id).name  # type: ignore
 
-    db.session.add(company)
-    db.session.commit()
+    try:
+        db.session.add(company)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.create_company_view", _external=False, **status))
+
+    try:
+        company.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.create_company_view", _external=False, **status))
 
     existing_user_companies = UserCompany.get_by_user_id(user_id=authenticated_user.id)
     is_primary = False if existing_user_companies else True

@@ -19,9 +19,9 @@ from flask_login import current_user, login_required
 from ..extensions import db
 from ..models import (
     ClaimRequest,
+    ClaimVerification,
     Company,
     Country,
-    EmailVerification,
     Industry,
     InvestmentFirm,
     InvestmentFirmBookmark,
@@ -35,8 +35,9 @@ from ..models import (
     UserPayment,
 )
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
-from ..utils.enums import NotificationDestination, NotificationLayout, Status, StatusType
+from ..utils.enums import Events, NotificationDestination, NotificationLayout, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
+from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import WEIGHTS, check_weights
 
@@ -569,7 +570,7 @@ def claiming_email_view(slug):
     if not investor:
         return redirect(url_for("main.search"))
 
-    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
+    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SECRET_KEY")
 
     return render_template("claiming/email.html", investor=investor, captcha_site_key=captcha_site_key)
 
@@ -579,29 +580,23 @@ def claiming_email_view(slug):
 @check_user_info_complete
 @check_verification
 def claiming_email(slug):
-    form_data = request.get_json()
-    email = form_data.get("email")
-
     investor = Investor.get_by_slug(slug)
-    if not investor:
+    if not investor or investor.user_id:
         return redirect(url_for("main.search"))
 
-    verification = EmailVerification(user_id=current_user.id)
+    verification = ClaimVerification(user_id=current_user.id, investor_id=investor.id)
     db.session.add(verification)
     db.session.commit()
 
-    ### Claiming verification ###
-
-    # url = f"https://globalify.xyz/claim?code={verification.token}"
-
-    # google_pubsub.send_event(
-    #     "User wants to claim investor!",
-    #     email=investor.email,
-    #     random_key=verification.token,
-    # )
+    send_event(
+        "User wants to claim investor!",
+        event_type=Events.INVESTOR_PROFILE_CLAIM_REQUEST.value,
+        email=investor.email,
+        investor_slug=slug,
+        verification_token=verification.token,
+    )
 
     status = Status(StatusType.SUCCESS, "Verification email sent.").get_status()
-
     return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
 
 
@@ -610,7 +605,7 @@ def claiming_email(slug):
 @check_user_info_complete
 @check_verification
 def claim_verification_view(slug):
-    verification_code = request.args.get("code")
+    verification_code = request.args.get("verification_code")
 
     status_type, msg = None, None
     if query := request.args:
@@ -643,12 +638,12 @@ def claim_verification(slug):
     if not investor:
         return redirect(url_for("main.search"))
 
-    email_verification = EmailVerification.get_by_token(verification_code)
-    if not email_verification:
+    claim_verification = ClaimVerification.get_by_token(verification_code)
+    if not claim_verification:
         status = Status(StatusType.ERROR, "Verification code is invalid.").get_status()
         return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
 
-    if email_verification.is_expired:
+    if claim_verification.is_expired:
         status = Status(StatusType.ERROR, "Verification code is expired. Please request a new one").get_status()
         return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
 
@@ -656,8 +651,8 @@ def claim_verification(slug):
         status = Status(StatusType.ERROR, "Email is invalid. Please enter email that you registered with.").get_status()
         return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
 
-    investor.user = current_user  # type: ignore
-    email_verification.is_used = True
+    investor.user_id = current_user.id
+    claim_verification.is_used = True
 
     investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
     if not investor_point_origin:
@@ -686,7 +681,6 @@ def claim_verification(slug):
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Investor claimed.").get_status()
-
     return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
 
 

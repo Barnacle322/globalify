@@ -69,6 +69,9 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     linkedin_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
     instagram_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
     twitter_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"), default=False)
+    refuse_all_invitations: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false"), default=False
+    )
 
     @property
     def full_name(self) -> str:
@@ -255,15 +258,15 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
-    user: Mapped[User] = relationship(User, backref=backref("email_verifications", passive_deletes=True), init=False)
-
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
-    )
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     token: Mapped[str] = mapped_column(String, nullable=False, insert_default=lambda: str(uuid4()), init=False)
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
+    )
+
+    user: Mapped[User] = relationship(User, backref=backref("email_verifications", passive_deletes=True), init=False)
 
     @property
     def is_expired(self) -> bool:
@@ -302,12 +305,70 @@ class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
         return last_verification
 
 
+class ClaimVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    token: Mapped[str] = mapped_column(String, nullable=False, insert_default=lambda: str(uuid4()), init=False)
+    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
+    )
+    investor_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("investor.id", ondelete="CASCADE"), nullable=False, kw_only=True
+    )
+
+    user: Mapped[User] = relationship(User, backref=backref("claim_verifications", passive_deletes=True), init=False)
+
+    investor: Mapped[Investor] = relationship(  # type: ignore # noqa: F821
+        "Investor", backref=backref("claim_verifications", passive_deletes=True), init=False
+    )
+
+    @property
+    def is_expired(self) -> bool:
+        expiration_time = self.created_at + datetime.timedelta(minutes=5)
+        return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
+
+    @property
+    def is_resendable(self) -> bool:
+        expiration_time = self.created_at + datetime.timedelta(minutes=1)
+        return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
+
+    @staticmethod
+    def expire_all_by_user_id(user_id: int) -> None:
+        try:
+            claim_verifications = db.session.scalars(
+                db.select(ClaimVerification).where(ClaimVerification.user_id == user_id)
+            ).all()
+            for claim_verification in claim_verifications:
+                claim_verification.is_expired = True
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    @staticmethod
+    def get_by_token(token: str) -> ClaimVerification | None:
+        return db.session.scalar(db.select(ClaimVerification).where(ClaimVerification.token == token))
+
+    @staticmethod
+    def get_last_unused_by_user_id(user_id: int) -> ClaimVerification | None:
+        last_verification = db.session.scalar(
+            db.select(ClaimVerification)
+            .where(ClaimVerification.user_id == user_id)
+            .where(ClaimVerification.is_used.is_(False))
+            .order_by(ClaimVerification.created_at.desc())
+        )
+        return last_verification
+
+
 class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True, init=False)
     website_url: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
+    linkedin_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    instagram_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    twitter_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     country_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("country.id"), nullable=True, init=False)
     preferred_round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("round.id"), nullable=True, init=False)
@@ -373,7 +434,7 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
-    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
+    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.TEAM)
     is_primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
@@ -399,6 +460,10 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalar(db.select(UserCompany).where(UserCompany.id == id))
 
     @staticmethod
+    def get_user_ids_by_company_id(company_id: int) -> Sequence[int] | None:
+        return db.session.scalars(db.select(UserCompany.user_id).where(UserCompany.company_id == company_id)).all()
+
+    @staticmethod
     def get_primary_by_user_id(user_id: int) -> UserCompany | None:
         return db.session.scalar(
             db.select(UserCompany).where(UserCompany.user_id == user_id, UserCompany.is_primary.is_(True))
@@ -406,7 +471,9 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_by_user_id(user_id: int) -> Sequence[UserCompany]:
-        return db.session.scalars(db.select(UserCompany).where(UserCompany.user_id == user_id)).all()
+        return db.session.scalars(
+            db.select(UserCompany).where(UserCompany.user_id == user_id).order_by(UserCompany.is_primary.desc())
+        ).all()
 
     @staticmethod
     def get_by_company_id(company_id: int) -> Sequence[UserCompany]:
@@ -444,15 +511,23 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
             )
         ).all()
 
+    @staticmethod
+    def get_by_company_id_and_email(company_id: int, email: str) -> UserCompany | None:
+        return db.session.scalar(
+            db.select(UserCompany).join(User).where(UserCompany.company_id == company_id, User.email == email)
+        )
+
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), init=False
     )
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    email: Mapped[str] = mapped_column(String, nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
-    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.EMPLOYEE)
+    invited_by: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    email: Mapped[str] = mapped_column(String, nullable=False)
+    role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.TEAM)
+    message: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     company: Mapped[Company] = relationship(

@@ -53,11 +53,15 @@ class Events(Enum):
 
     USER_COMPLETED_ONBOARDING = "user.completed_onboarding"
 
+    INVESTOR_PROFILE_CLAIM_REQUEST = "investor.profile_claim_request"
+
+    COMPANY_INVITATION = "company.invitation"
+
 
 class CompanyRole(Enum):
     OWNER = "owner"
     ADMIN = "admin"
-    EMPLOYEE = "employee"
+    TEAM = "team"
 
 
 @dataclass

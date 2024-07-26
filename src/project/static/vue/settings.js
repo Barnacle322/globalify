@@ -218,7 +218,7 @@ const InviteMemberComponent = defineComponent({
     template: "#invite-member-template",
     data() {
         return {
-            email: "",
+            selectedUser: null,
             userList: [],
             roles: [],
             debouncedGetUserList: null,
@@ -227,6 +227,15 @@ const InviteMemberComponent = defineComponent({
         };
     },
     methods: {
+        limitText() {
+            if (this.invitationMessage.length > 200) {
+                this.invitationMessage = this.invitationMessage.slice(0, 200);
+            }
+        },
+        handleSubmit(event) {
+            event.preventDefault();
+            this.inviteMember(this.$refs.companyId.value);
+        },
         closeInviteMember() {
             this.$emit("close-invite-member");
         },
@@ -243,7 +252,7 @@ const InviteMemberComponent = defineComponent({
         async inviteMember(companyId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
-                const email = this.$refs.searchInput.value;
+                const email = this.selectedUser.email;
                 const role = this.selectedRole;
                 const invitationMessage = this.invitationMessage;
 
@@ -295,10 +304,14 @@ const InviteMemberComponent = defineComponent({
                 this.userList = [];
             }
         },
-        selectUser(email, event) {
+        selectUser(user, event) {
             event.stopPropagation();
-            this.$refs.searchInput.value = email;
             this.userList = [];
+            this.selectedUser = user;
+        },
+        clearUser() {
+            event.stopPropagation();
+            this.selectedUser = null;
         },
         async fetchRoles() {
             try {
@@ -595,10 +608,10 @@ createApp({
                 console.error("Error making primary:", error.message);
             }
         },
-        async makePublic(companyId) {
+        async togglePublic(companyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/settings/company/${companyId}/set-public`, {
+                const response = await fetch(`/settings/company/${companyId}/toggle-public`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

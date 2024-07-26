@@ -8,4 +8,5 @@ then
   set +a # stop automatically exporting variables
 fi
 
+source .venv/bin/activate
 flask run

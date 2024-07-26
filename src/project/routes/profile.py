@@ -37,3 +37,20 @@ def user_profile(username):
         authenticated_user=authenticated_user,
         investor=investor,
     )
+
+
+@profile.route("/company/<slug>")
+@login_required
+@check_verification
+def company_profile(slug):
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    company = Company.get_by_slug(slug)
+    if not company:
+        return redirect(url_for("main.search"))
+
+    return render_template(
+        "company_profile.html",
+        company=company,
+        user=authenticated_user,
+    )

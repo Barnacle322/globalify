@@ -358,6 +358,12 @@ def change_company_info(company_id):
             return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
         company.name = company_name.strip()
 
+    slug = request.form.get("slug") or None
+    if not slug:
+        company.set_slug()
+    else:
+        company.slug = slug
+
     preferred_round_id = request.form.get("round", type=int)
     industry_id = request.form.get("industry", type=int)
 
@@ -436,12 +442,15 @@ def change_company_info(company_id):
     else:
         company.twitter_url = None
 
+    is_public = request.form.get("is_public", False, type=bool)
+
     company.description = request.form.get("description", "").strip()
     company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
     company.country_id = country_id
     company.preferred_round_id = preferred_round_id
     company.industry_id = industry_id
     company.coordinates = Country.get_by_id(country_id).name  # type: ignore
+    company.is_public = is_public
 
     try:
         db.session.commit()
@@ -526,6 +535,9 @@ def create_company():
         company.country_id = country_id
         company.coordinates = Country.get_by_id(country_id).name  # type: ignore
 
+    if not company.slug:
+        company.set_slug()
+
     try:
         db.session.add(company)
         db.session.commit()
@@ -549,9 +561,12 @@ def create_company():
         is_primary=is_primary,
     )
 
-    db.session.add(user_company)
-    db.session.commit()
-
+    try:
+        db.session.add(user_company)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.create_company_view", _external=False, **status))
     status = Status(StatusType.SUCCESS, "Company created.").get_status()
     return redirect(url_for("settings.company_list_view", _external=False, **status))
 

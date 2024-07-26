@@ -102,7 +102,10 @@ class SearchBuilder:
                 self.filters.append(f"country: [{", ".join(countries)}]")
             else:
                 self.filters.append(f"country: {countries[0]}")
+        return self
 
+    def filter_by_public(self, is_public: bool):
+        self.filters.append(f"is_public:={str(is_public).lower()}")
         return self
 
     def sort_by(self, sort_by: str | None, sort_desc: bool | None):

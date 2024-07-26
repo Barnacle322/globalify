@@ -299,8 +299,9 @@
             {% if companies and not unpaid %} {% for company in companies %}
             <article class="flex flex-col rounded-lg p-6 shadow-card-hover transition-shadow ease-in-out bg-white">
                 <div class="flex justify-between items-center">
-                    {{ company.name }}
-
+                    <a href="/profile/company/{{ company.slug }}" class="text-xl font-bold leading-none">
+                        {{ company.name }}
+                    </a>
                     <button>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"

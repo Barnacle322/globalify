@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime
 import json
 import re
+import uuid
 from collections.abc import Generator, Sequence
 from sqlite3 import Connection as SQLite3Connection
 from typing import Any
@@ -440,6 +441,7 @@ class CompanySuggestionBuilder:
 class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
+    slug: Mapped[str] = mapped_column(String, nullable=True, unique=True, init=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True, init=False)
     website_url: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
@@ -452,6 +454,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True, init=False)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     country: Mapped[Country] = relationship(init=False)
     preferred_round: Mapped[Round] = relationship(init=False)
@@ -502,6 +505,32 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
         ):
             raise ValueError("Invalid Twitter URL format. Ensure it follows the pattern: https://twitter.com/username.")
         return twitter
+
+    def set_slug(self):
+        base_slug = slugify(f"{self.name}")
+        unique_slug = base_slug
+        attempt = 0
+
+        while True:
+            if db.session.scalar(db.select(Company).where(Company.slug == unique_slug)) is not None:
+                unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
+                attempt += 1
+            else:
+                try:
+                    self.slug = unique_slug
+                    db.session.commit()
+                    break
+                except IntegrityError:
+                    db.session.rollback()
+                    unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
+                    attempt += 1
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+                    break
+
+    @staticmethod
+    def get_by_slug(slug: str) -> Company | None:
+        return db.session.scalar(db.select(Company).where(Company.slug == slug))
 
     @staticmethod
     def get_all() -> Sequence[Company]:
@@ -561,11 +590,11 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                 .filter_by_round(preferred_rounds)
                 .filter_by_industry(industries)
                 .filter_by_countries(countries)
+                .filter_by_public(True)
                 .sort_by(sort_by, sort_desc)
                 .page(page, per_page)
                 .search()
             )
-
         except Exception as e:
             print("An error occurred while searching for companies. Error:", e)
             results = {"found": 0, "page": page, "per_page": per_page, "hits": []}
@@ -585,6 +614,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                 {
                     "id": hit.get("db_id", 0),
                     "name": hit.get("name", ""),
+                    "slug": hit.get("slug", ""),
                     "description": hit.get("description", ""),
                     "country": hit.get("country", ""),
                     "preferred_round": hit.get("preferred_round", []),
@@ -618,6 +648,8 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
         company_object["db_id"] = self.id
         if self.name:
             company_object["name"] = self.name
+        if self.slug:
+            company_object["slug"] = self.slug
         if self.description:
             company_object["description"] = self.description
         if self.country:
@@ -626,6 +658,8 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
             company_object["preferred_round"] = self.preferred_round.name
         if self.industry:
             company_object["industry"] = self.industry.name
+        if self.is_public:
+            company_object["is_public"] = self.is_public
 
         data = [company_object]
 
@@ -657,10 +691,12 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                         "type": "int32",
                         "facet": True,
                     },
+                    {"name": "slug", "type": "string", "optional": True},
                     {"name": "description", "type": "string"},
-                    {"name": "country", "type": "string"},
-                    {"name": "preferred_round", "type": "string"},
-                    {"name": "industry", "type": "string"},
+                    {"name": "country", "type": "string", "facet": True, "optional": True},
+                    {"name": "preferred_round", "type": "string", "facet": True, "optional": True},
+                    {"name": "industry", "type": "string", "facet": True, "optional": True},
+                    {"name": "is_public", "type": "bool", "facet": True, "optional": True},
                     {
                         "name": "embedding",
                         "type": "float[]",
@@ -694,11 +730,20 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                 if company.search_index and not recreate:
                     company_object["id"] = company.search_index
                 company_object["db_id"] = company.id
-                company_object["name"] = company.name
-                company_object["description"] = company.description
-                company_object["country"] = company.country.name if company.country else None
-                company_object["preferred_round"] = company.preferred_round.name if company.preferred_round else None
-                company_object["industry"] = company.industry.name if company.industry else None
+                if company.name:
+                    company_object["name"] = company.name
+                if company.slug:
+                    company_object["slug"] = company.slug
+                if company.description:
+                    company_object["description"] = company.description
+                if company.country:
+                    company_object["country"] = company.country.name
+                if company.preferred_round:
+                    company_object["preferred_round"] = company.preferred_round.name
+                if company.industry:
+                    company_object["industry"] = company.industry.name
+                if company.is_public:
+                    company_object["is_public"] = company.is_public
                 data.append(company_object)
 
             print("Upserting documents")
@@ -710,9 +755,6 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                     objects.append((companies[index].id, obj.get("id")))
                 else:
                     continue
-
-            print("\n\n\n\n\n\n\n\n\n\n\n\n\n")
-            print(objects)
 
             query = "UPDATE company SET search_index = CASE id "
             for db_id, search_index in objects:

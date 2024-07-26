@@ -450,8 +450,34 @@
                                             />
                                         </div>
                                     </div>
+                                    <div class="col-span-full">
+                                        <div>
+                                            <span class="block text-sm font-medium leading-6">Visibility Settings</span>
+                                            <span class="block text-sm font-medium leading-6 text-gray-500"
+                                                >You can make your company visible in search results.</span
+                                            >
+                                        </div>
+                                        <label class="inline-flex cursor-pointer items-center pt-2">
+                                            {% if company.is_public %}
+                                            <input
+                                                type="checkbox"
+                                                name="is_public"
+                                                value="True"
+                                                class="peer sr-only"
+                                                checked
+                                            />
+                                            {% else %}
+                                            <input type="checkbox" name="is_public" value="True" class="peer sr-only" />
+                                            {% endif %}
+                                            <div
+                                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                            ></div>
+                                            <span class="ms-3 text-sm font-medium text-gray-900"
+                                                >Show company in search</span
+                                            >
+                                        </label>
+                                    </div>
                                 </div>
-
                                 <div class="mt-8 flex gap-5" v-if="'{{ user_role }}' !== 'employee'">
                                     <button
                                         type="submit"

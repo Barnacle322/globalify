@@ -454,7 +454,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True, init=False)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
-    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     country: Mapped[Country] = relationship(init=False)
     preferred_round: Mapped[Round] = relationship(init=False)

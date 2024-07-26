@@ -9,6 +9,8 @@ gmaps = googlemaps.Client(key=os.getenv("_GOOGLE_MAPS_API_KEY"))
 
 WEIGHTS = {"bias": 0.3, "industry": 0.25, "round": 0.07, "location": 0.25, "exits": 0.07, "completeness": 0.06}
 
+COMPANY_WEIGHTS = {"bias": 0.3, "industry": 0.25, "location": 0.25, "round": 0.2}
+
 
 def check_weights(weights: dict[str, float]) -> None:
     if sum(weights.values()) != 1.0:

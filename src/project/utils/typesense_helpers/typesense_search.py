@@ -66,8 +66,7 @@ class SearchBuilder:
 
     def filter_by_round(self, rounds: list[str] | None):
         if rounds:
-            rounds_filter = " || ".join(f"preferred_round:={round}" for round in rounds)
-            self.filters.append(rounds_filter)
+            self.filters.append(f'preferred_round:=[{",".join(rounds)}]')
         return self
 
     def filter_by_industries(self, industries: list[str] | None, exclusivity: bool = True):
@@ -81,8 +80,7 @@ class SearchBuilder:
 
     def filter_by_industry(self, industries: list[str] | None):
         if industries:
-            industries_filter = " || ".join(f"industry:={industry}" for industry in industries)
-            self.filters.append(industries_filter)
+            self.filters.append(f'industry:=[{",".join(industries)}]')
         return self
 
     def filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):

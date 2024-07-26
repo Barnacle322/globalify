@@ -10,12 +10,36 @@ function search() {
     const filterValues = getCheckedValues("filter_field");
 
     const searchQuery = document.getElementById("search").value;
-    const minValue = document.getElementById("min_investment").value;
-    const maxValue = document.getElementById("max_investment").value;
-
-    const descending = document.getElementById("descending").checked;
-    const roundsExclusive = document.getElementById("rounds_exclusive").checked;
-    const industriesExclusive = document.getElementById("industries_exclusive").checked;
+    const minValueElement = document.getElementById("min_investment");
+    if (minValueElement) {
+        minValue = minValueElement.value;
+    } else {
+        minValue = 0;
+    }
+    const maxValueElement = document.getElementById("max_investment");
+    if (maxValueElement) {
+        maxValue = maxValueElement.value;
+    } else {
+        maxValue = 100;
+    }
+    const descendingElement = document.getElementById("descending");
+    if (descendingElement) {
+        descending = descendingElement.checked;
+    } else {
+        descending = false;
+    }
+    const roundsExclusiveElement = document.getElementById("rounds_exclusive");
+    if (roundsExclusiveElement) {
+        roundsExclusive = roundsExclusiveElement.checked;
+    } else {
+        roundsExclusive = false;
+    }
+    const industriesExclusiveElement = document.getElementById("industries_exclusive");
+    if (industriesExclusiveElement) {
+        industriesExclusive = industriesExclusive.checked;
+    } else {
+        industriesExclusive = false;
+    }
 
     const paramsArray = getExistingParams([
         "search",
@@ -97,14 +121,18 @@ function addParamsToUrl(paramsArray) {
 const lowerSlider = document.getElementById("min_investment");
 const upperSlider = document.getElementById("max_investment");
 
-lowerSlider.oninput = function () {
-    if (parseInt(lowerSlider.value) >= parseInt(upperSlider.value)) {
-        lowerSlider.value = parseInt(upperSlider.value) - 9;
-    }
-};
+if (lowerSlider) {
+    lowerSlider.oninput = function () {
+        if (parseInt(lowerSlider.value) >= parseInt(upperSlider.value)) {
+            lowerSlider.value = parseInt(upperSlider.value) - 9;
+        }
+    };
+}
 
-upperSlider.oninput = function () {
-    if (parseInt(upperSlider.value) <= parseInt(lowerSlider.value)) {
-        upperSlider.value = parseInt(lowerSlider.value) + 9;
-    }
-};
+if (upperSlider) {
+    upperSlider.oninput = function () {
+        if (parseInt(upperSlider.value) <= parseInt(lowerSlider.value)) {
+            upperSlider.value = parseInt(lowerSlider.value) + 9;
+        }
+    };
+}

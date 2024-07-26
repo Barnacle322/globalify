@@ -39,7 +39,7 @@ from ..utils.enums import Events, NotificationDestination, NotificationLayout, S
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.parse_medium import parse_medium_html
-from ..utils.suggestion import WEIGHTS, check_weights
+from ..utils.suggestion import COMPANY_WEIGHTS, WEIGHTS, check_weights
 
 main = Blueprint("main", __name__)
 
@@ -222,6 +222,34 @@ def get_suggestion_investment_firms():
         investment_firms=suggested_investment_firms,
         access=access,
         bookmark_ids=bookmarks,
+    )
+
+
+@main.route("/suggestions/companies")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_suggestion_companies():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    access = True
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+    if current_user.is_admin:
+        access = True
+    elif not user_payment:
+        access = False
+    elif user_payment and not user_payment.is_active:
+        access = False
+
+    investor = Investor.get_by_user_id(authenticated_user.id)
+
+    check_weights(COMPANY_WEIGHTS)
+    suggested_companies = Company.get_suggestions(investor=investor, quantity=15)
+
+    return render_template(
+        "suggestions_companies.html",
+        companies=suggested_companies,
+        access=access,
     )
 
 

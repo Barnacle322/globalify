@@ -30,7 +30,7 @@ googlemaps = "^4.10.0"
 geopy = "^2.4.1"
 typesense = "^0.20.0"
 click = "^8.1.7"
-pillow-heif = "^0.15.0"
+pillow-heif = "^0.18.0"
 python-slugify = "^8.0.4"
 pydantic = "^2.7.2"
 sentry-sdk = {extras = ["flask"], version = "^2.10.0"}

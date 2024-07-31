@@ -83,6 +83,7 @@ def new_company_invitation(app):
         company_invitation = CompanyInvitation(
             email="johndoe@example.com",
             company_id=1,
+            invited_by=1,
         )
 
         db.session.add(company_invitation)
@@ -121,12 +122,12 @@ def new_claim_request(app):
         db.session.add(investor)
         db.session.commit()
 
-        claim_request = ClaimRequest(user_id=1, investor_id=1, status_info="approved")
-        db.session.commit()
+        claim_request = ClaimRequest(user_id=1, investor_id=1, email="jane@example.com", status_info="approved")
         db.session.add(claim_request)
+        db.session.commit()
 
 
-def test_is_company_invination_expired(app, new_company, new_company_invitation):
+def test_is_company_invitation_expired(app, new_company, new_user_oauth, new_company_invitation):
     with app.app_context():
         company_invitation = db.session.scalar(db.select(CompanyInvitation).where(CompanyInvitation.id == 1))
         assert company_invitation
@@ -136,7 +137,7 @@ def test_is_company_invination_expired(app, new_company, new_company_invitation)
         assert company_invitation.is_expired()
 
 
-def test_get_company_invination_by_id(app, new_company, new_company_invitation):
+def test_get_company_invination_by_id(app, new_user_oauth, new_company, new_company_invitation):
     with app.app_context():
         company_invitation = CompanyInvitation.get_by_id(1)
 
@@ -144,7 +145,7 @@ def test_get_company_invination_by_id(app, new_company, new_company_invitation):
         assert company_invitation.email == "johndoe@example.com"
 
 
-def test_get_company_invination_by_email(app, new_company, new_company_invitation):
+def test_get_company_invination_by_email(app, new_user_oauth, new_company, new_company_invitation):
     with app.app_context():
         company_invitation = CompanyInvitation.get_by_email("johndoe@example.com")
 
@@ -152,7 +153,7 @@ def test_get_company_invination_by_email(app, new_company, new_company_invitatio
         assert company_invitation[0].id == 1
 
 
-def test_get_company_invination_by_id_and_email(app, new_company, new_company_invitation):
+def test_get_company_invination_by_id_and_email(app, new_user_oauth, new_company, new_company_invitation):
     with app.app_context():
         company_invitation = CompanyInvitation.get_by_company_id_and_email(1, "johndoe@example.com")
 
@@ -160,7 +161,7 @@ def test_get_company_invination_by_id_and_email(app, new_company, new_company_in
         assert company_invitation.id == 1
 
 
-def test_get_company_invination_by_company_id(app, new_company, new_company_invitation):
+def test_get_company_invination_by_company_id(app, new_user_oauth, new_company, new_company_invitation):
     with app.app_context():
         company_invitation = CompanyInvitation.get_by_company_id(1)
 
@@ -292,7 +293,7 @@ def test_user_company(new_user_oauth, new_company, new_user_company, app):
         assert user_company
         assert user_company[0].user_id == user.id
         assert user_company[0].company_id == company.id
-        assert user_company[0].role == CompanyRole.EMPLOYEE
+        assert user_company[0].role == CompanyRole.TEAM
 
 
 # Проблема в функции delete_by_id()
@@ -342,11 +343,25 @@ def test_get_by_user_id_and_company_id(new_user_oauth, new_company, new_user_com
     with app.app_context():
         user = User.get_by_id(1)
         company = Company.get_by_id(1)
+        assert user
+        assert company
+
         user_company = UserCompany.get_by_user_id_and_company_id(1, 1, True)
 
         assert user_company
-        assert user_company.user_id == user.id  # type: ignore
-        assert user_company.company_id == company.id  # type: ignore
+        assert user_company.user_id == user.id
+        assert user_company.company_id == company.id
+
+
+def test_get_by_company_id_and_email(new_user_oauth, new_company, new_user_company, app):
+    with app.app_context():
+        company = Company.get_by_id(1)
+        assert company
+
+        user_company = UserCompany.get_by_company_id_and_email(1, "janedoe@example.com")
+
+        assert user_company
+        assert user_company.company_id == company.id
 
 
 def test_get_company_members(new_user_oauth, new_company, new_user_company, app):
@@ -392,10 +407,36 @@ def test_get_primary_by_user_id(new_user_oauth, new_company, new_user_company, a
         assert test_user_company
 
 
-def test_get_claim_request_by_id(new_claim_request, app):
+def test_get_claim_request_by_id(new_user_oauth, new_claim_request, app):
     with app.app_context():
         claim_request = ClaimRequest.get_by_id(1)
-        claim_request_all = ClaimRequest.get_all()
-        print(claim_request_all)
+
         assert claim_request
         assert claim_request.email == "jane@example.com"
+
+
+def test_get_claim_request_by_user_id(new_user_oauth, new_claim_request, app):
+    with app.app_context():
+        claim_request = ClaimRequest.get_by_user_id(1)
+
+        assert claim_request
+        assert claim_request.user_id == 1
+        assert claim_request.email == "jane@example.com"
+
+
+def test_get_claim_request_by_investor_id(new_user_oauth, new_claim_request, app):
+    with app.app_context():
+        claim_request = ClaimRequest.get_by_investor_id(1)
+
+        assert claim_request
+        assert claim_request.investor_id == 1
+        assert claim_request.email == "jane@example.com"
+
+
+def test_get_all_claim_requests(new_user_oauth, new_claim_request, app):
+    with app.app_context():
+        claim_requests = ClaimRequest.get_all()
+
+        assert claim_requests
+        assert len(claim_requests) == 1
+        assert claim_requests[0].email == "jane@example.com"

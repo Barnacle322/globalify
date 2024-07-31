@@ -17,7 +17,7 @@ def verified_user(app):
     with app.app_context():
         user = User(
             oauth_provider=OauthProvider.GOOGLE,
-            email="johndoe2@example.com",
+            email="johndoe@example.com",
             is_verified=True,
         )
         db.session.add(user)
@@ -152,9 +152,9 @@ def new_user_with_company(app):
 
 
 @pytest.fixture()
-def new_company_invitations(app):
+def new_company_invitation(app):
     with app.app_context():
-        company_invitation = CompanyInvitation("johndoe2@example.com", 1)
+        company_invitation = CompanyInvitation(email="johndoe@example.com", company_id=1, invited_by=2)
 
         db.session.add(company_invitation)
         db.session.commit()
@@ -650,14 +650,14 @@ def test_settings_company_verified_get(client, app, new_user_with_company, monke
         assert b"Update your company information here." in response.data
 
 
-# Delete?
+# ?
 def test_verified_user_without_company_get(client, app, verified_user, monkeypatch):
     with app.test_request_context():
         user = User.get_by_id(1)
         login_user(user)
 
         response = client.get("/settings/company/1")
-        assert response.status_code == 404
+        assert b"Company+not+found" in response.data
 
 
 # Ломается из-за POST метода в функции company_info_view()
@@ -757,6 +757,36 @@ def test_verified_user_change_company_valid_data(client, app, new_user_with_comp
         assert company.industry_id == 2
 
 
+def test_verified_user_change_company_add_social_links(client, app, new_user_with_company, monkeypatch):
+    with app.test_request_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(suggestion, "geocode_location", MagicMock(return_value={"coordinates": "20.45,16.5167"}))
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.post(
+            url_for("settings.change_company_info", company_id=1),
+            data={
+                "linkedin": "https://linkedin.com/in/janedoe",
+                "instagram": "https://instagram.com/janedoe",
+                "twitter": "https://twitter.com/janedoe",
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+
+        company = Company.get_by_id(1)
+        print(company)
+        assert company
+        assert company.linkedin_url == "https://linkedin.com/in/janedoe"
+        assert company.instagram_url == "https://instagram.com/janedoe"
+        assert company.twitter_url == "https://twitter.com/janedoe"
+
+
 def test_get_company_list_view(client, app, new_user_with_company):
     with app.test_request_context():
         user = User.get_by_id(1)
@@ -770,10 +800,10 @@ def test_get_company_list_view(client, app, new_user_with_company):
         assert b"Test description" in response.data
 
 
-def test_create_company_view(client, app, new_user_with_company, monkeypatch):
+def test_create_company_view(client, app, verified_user, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
-            return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
         )
         monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
         monkeypatch.setattr(suggestion, "geocode_location", MagicMock(return_value={"coordinates": "20.45,16.5167"}))
@@ -788,3 +818,195 @@ def test_create_company_view(client, app, new_user_with_company, monkeypatch):
         assert b"Series A" in response.data
         assert b"FinTech" in response.data
         assert b"Create" in response.data
+
+
+def test_create_company(client, app, verified_user, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(suggestion, "geocode_location", MagicMock(return_value={"coordinates": "20.45,16.5167"}))
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.post(
+            ("/settings/company/create"),
+            data={
+                "company_name": "Super company",
+                "description": "Very good company",
+                "number_of_employees": 100,
+                "industry": 2,
+                "round": 2,
+                "country": 3,
+                "website": "https://www.globalify.com",
+            },
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Super company" in response.data
+        assert b"Very good company" in response.data
+
+        company = Company.get_by_id(1)
+
+        assert company
+        assert company.name == "Super company"
+        assert company.description == "Very good company"
+        assert company.number_of_employees == 100
+        assert company.website_url == "https://www.globalify.com"
+        assert company.country_id == 3
+        assert company._coordinates == "20.45,16.5167"
+        assert company.preferred_round_id == 2
+        assert company.industry_id == 2
+
+
+# Проблема в form_data = request.get_json()
+# работает с form_data = request.form
+def test_invite_user(client, app, new_user_with_company, verified_user, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(suggestion, "geocode_location", MagicMock(return_value={"coordinates": "20.45,16.5167"}))
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.post(
+            url_for("settings.invite_user", company_id=1),
+            data={"email": "johndoe@example.com", "role": "admin", "invitation_message": "wassap free 300$"},
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"User invited" in response.data
+
+        company_invitations = CompanyInvitation.get_by_company_id_and_email(1, "johndoe@example.com")
+        assert company_invitations
+        assert company_invitations.role == CompanyRole.ADMIN
+
+
+def test_accept_invitation(client, app, verified_user, new_company, new_company_invitation, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(suggestion, "geocode_location", MagicMock(return_value={"coordinates": "20.45,16.5167"}))
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.post(
+            url_for("settings.accept_invitation", company_id=1),
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"No companies" not in response.data
+        assert b"Test Company" in response.data
+        assert b"Test description" in response.data
+
+        user = User.get_by_id(1)
+        assert user
+
+        user_company_members = UserCompany.get_members(1)
+        assert user in user_company_members[0]
+
+
+def test_decline_invitation(client, app, verified_user, new_company, new_company_invitation, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(suggestion, "geocode_location", MagicMock(return_value={"coordinates": "20.45,16.5167"}))
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.post(
+            url_for("settings.decline_invitation", company_id=1),
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"No companies" in response.data
+        assert b"Get started by creating a company, or ask to get invited into one" in response.data
+
+        user = User.get_by_id(1)
+        assert user
+
+        user_company_members = UserCompany.get_members(1)
+        assert not user_company_members
+
+
+# ошибка в member_id_list = [user_company.user_id for user_company in company_members] - user_id
+# работает с                 user_company.User.id
+def test_get_company_members(client, app, new_user_with_company, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(suggestion, "geocode_location", MagicMock(return_value={"coordinates": "20.45,16.5167"}))
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.get(
+            url_for("settings.get_company_members", company_id=1),
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"John" in response.data
+
+
+def test_get_company_roles(client, app, verified_user, monkeypatch):
+    with app.app_context():
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "johndoe@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(suggestion, "geocode_location", MagicMock(return_value={"coordinates": "20.45,16.5167"}))
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.get(
+            url_for("settings.get_company_roles"),
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"owner" in response.data
+        assert b"admin" in response.data
+        assert b"employee" in response.data
+
+
+def test_change_company_role(client, app, verified_user, new_user_with_company, monkeypatch):
+    with app.app_context():
+        user_company = UserCompany(user_id=1, company_id=1, role=CompanyRole.TEAM)
+        db.session.add(user_company)
+        db.session.commit()
+
+        print(UserCompany.get_members(1))
+
+        user_company = UserCompany.get_by_user_id(1)
+        assert user_company[0].role == CompanyRole.TEAM
+
+        mock_authorize = MagicMock(
+            return_value={"userinfo": {"email": "margarita@example.com", "given_name": "Test", "family_name": "User"}}
+        )
+        monkeypatch.setattr(oauth.google, "authorize_access_token", mock_authorize)
+        monkeypatch.setattr(suggestion, "geocode_location", MagicMock(return_value={"coordinates": "20.45,16.5167"}))
+
+        response = client.get(url_for("auth.google_callback"), follow_redirects=True)
+
+        response = client.post(
+            url_for("settings.change_company_role", user_id=1),
+            data={"role": "admin", "company_id": 1},
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        user_company = UserCompany.get_by_user_id(1)
+        assert user_company[0].role == CompanyRole.ADMIN

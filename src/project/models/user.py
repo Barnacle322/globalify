@@ -22,7 +22,7 @@ from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mappe
 from ..extensions import db
 from ..utils import suggestion
 from ..utils.enums import CompanyRole, NotificationDestination, OauthProvider, RequestStatus, Tier
-from ..utils.suggestion import COMPANY_WEIGHTS, geocode_location
+from ..utils.suggestion import COMPANY_WEIGHTS
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
     create_schema,

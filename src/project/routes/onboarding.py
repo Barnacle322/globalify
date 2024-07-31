@@ -14,6 +14,7 @@ from ..models import (
     UserInfo,
 )
 from ..utils.enums import (
+    Events,
     NotificationDestination,
     NotificationLayout,
 )
@@ -21,6 +22,7 @@ from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
     AUTH_USERNAME_USED,
 )
+from ..utils.google_helpers import google_pubsub
 
 onboarding = Blueprint("onboarding", __name__)
 
@@ -98,13 +100,13 @@ def basic():
             verification = EmailVerification(user_id=authenticated_user.id)
             db.session.add(verification)
             db.session.commit()
-            # TODO
-            # google_pubsub.send_event(
-            #     "A new user has completed onboarding!",
-            #     email=authenticated_user.email,
-            #     event_type=Events.USER_COMPLETED_ONBOARDING.value,
-            #     random_key=verification.token,
-            # )
+
+            google_pubsub.send_event(
+                "A new user has completed onboarding!",
+                email=authenticated_user.email,
+                event_type=Events.USER_COMPLETED_ONBOARDING.value,
+                random_key=verification.token,
+            )
 
         return redirect(url_for("main.search", next=next_url))
 

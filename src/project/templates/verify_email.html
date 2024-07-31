@@ -14,7 +14,8 @@
             </p>
         </article>
 
-        <form action="/verify-email" method="GET" class="flex w-full flex-col items-center">
+        <form action="{{ url_for('auth.verify_email') }}" method="GET" class="flex w-full flex-col items-center">
+            <input type="hidden" id="next" name="next" value="{{ request.args.get('next') }}" />
             <input
                 type="text"
                 id="uuid"

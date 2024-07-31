@@ -55,22 +55,13 @@ class SearchBuilder:
             self.parameters["query_by_weights"] = ",".join(str(weight) for weight in weights)
         return self
 
-    def filter_by_rounds(self, rounds: list[str] | None, exclusivity: bool = True):
-        if rounds:
+    def filter_by(self, field: str, values: list[str] | None, exclusivity: bool = True):
+        if values:
             if exclusivity:
-                for round in rounds:
-                    self.filters.append(f"rounds:={round}")
+                for value in values:
+                    self.filters.append(f"{field}:={value}")
             else:
-                self.filters.append(f'rounds:=[{",".join(rounds)}]')
-        return self
-
-    def filter_by_industries(self, industries: list[str] | None, exclusivity: bool = True):
-        if industries:
-            if exclusivity:
-                for industry in industries:
-                    self.filters.append(f"industries:={industry}")
-            else:
-                self.filters.append(f'industries:=[{",".join(industries)}]')
+                self.filters.append(f'{field}:=[{",".join(values)}]')
         return self
 
     def filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
@@ -86,13 +77,8 @@ class SearchBuilder:
             self.filters.append(f"min_investment:<={max_investment}")
         return self
 
-    def filter_by_countries(self, countries: list[str] | None):
-        if countries:
-            if len(countries) > 1:
-                self.filters.append(f"country: [{", ".join(countries)}]")
-            else:
-                self.filters.append(f"country: {countries[0]}")
-
+    def filter_by_public(self, is_public: bool):
+        self.filters.append(f"is_public:={str(is_public).lower()}")
         return self
 
     def sort_by(self, sort_by: str | None, sort_desc: bool | None):

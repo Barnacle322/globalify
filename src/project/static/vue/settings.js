@@ -1,3 +1,51 @@
+const DeleteCompanyComponent = defineComponent({
+    template: "#delete-company-template",
+    methods: {
+        closeDeleteCompany() {
+            this.$emit("close-delete-company");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeDeleteCompany();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeDeleteCompany();
+            }
+        },
+        async deleteCompany(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/settings/company/${companyId}/delete`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-delete-company");
+                }
+            } catch (error) {
+                console.error("Error cancelling invitation:", error.message);
+            }
+        },
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+});
+
 const CancelInvitationComponent = defineComponent({
     template: "#cancel-invitation-template",
     props: ["invitation"],
@@ -352,6 +400,7 @@ createApp({
         InviteMemberComponent,
         ChangeRoleComponent,
         CancelInvitationComponent,
+        DeleteCompanyComponent,
     },
 
     watch: {
@@ -389,6 +438,7 @@ createApp({
             asideMinified: false,
             confirmRestoreOpened: false,
             inviteMemberOpened: false,
+            deleteCompanyOpened: false,
             openedDropdownCompanyId: null,
             ignoreNextOutsideClick: false,
             csrfToken: "",

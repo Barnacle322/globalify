@@ -353,6 +353,7 @@
                                             class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                             pattern="^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$"
                                             value="{{ user.user_info.linkedin_url if user.user_info.linkedin_url else '' }}"
+                                            placeholder="linkedin.com/in/username"
                                         />
                                     </div>
                                     <div class="mt-2">
@@ -389,6 +390,7 @@
                                             class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                             pattern="^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$"
                                             value="{{ user.user_info.instagram_url if user.user_info.instagram_url else '' }}"
+                                            placeholder="instagram.com/username"
                                         />
                                     </div>
                                     <div class="mt-2">
@@ -454,7 +456,7 @@
                                     </div>
                                 </div>
                                 <div class="col-span-full">
-                                    <div class="">
+                                    <div>
                                         <span class="block text-sm font-medium leading-6">Invitations</span>
                                         <span class="block text-sm font-medium leading-6 text-gray-500"
                                             >You have the right to refuse invitations from any company.</span

@@ -39,7 +39,7 @@ from ..utils.enums import Events, NotificationDestination, NotificationLayout, S
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.parse_medium import parse_medium_html
-from ..utils.suggestion import WEIGHTS, check_weights
+from ..utils.suggestion import COMPANY_WEIGHTS, WEIGHTS, check_weights
 
 main = Blueprint("main", __name__)
 
@@ -47,10 +47,11 @@ main = Blueprint("main", __name__)
 def check_user_info_complete(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
+        next_url = request.args.get("next")
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
         elif not current_user.user_info.is_complete:  # type: ignore
-            return redirect(url_for("auth.onboarding"))
+            return redirect(url_for("onboarding.index", next=next_url))
         return func(*args, **kwargs)
 
     return decorated_function
@@ -59,10 +60,11 @@ def check_user_info_complete(func):
 def check_verification(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
+        next_url = request.args.get("next")
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
         elif not current_user.is_verified:  # type: ignore
-            return redirect(url_for("auth.email_verification_required"))
+            return redirect(url_for("auth.email_verification_required", next=next_url))
         return func(*args, **kwargs)
 
     return decorated_function
@@ -225,6 +227,101 @@ def get_suggestion_investment_firms():
     )
 
 
+@main.route("/suggestions/companies")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_suggestion_companies():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    access = True
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+    if current_user.is_admin:
+        access = True
+    elif not user_payment:
+        access = False
+    elif user_payment and not user_payment.is_active:
+        access = False
+
+    investor = Investor.get_by_user_id(authenticated_user.id)
+
+    check_weights(COMPANY_WEIGHTS)
+    suggested_companies = Company.get_suggestions(investor=investor, quantity=15)
+
+    return render_template(
+        "suggestions_companies.html",
+        companies=suggested_companies,
+        access=access,
+    )
+
+
+@main.route("/search/companies", methods=["GET", "POST"])
+@login_required
+@check_user_info_complete
+@check_verification
+def search_companies():
+    notifications = Notification.get_unread(
+        current_user.id,
+        NotificationDestination.SEARCH,
+        is_read=False,
+    )
+
+    search_string = request.args.get("search", "")
+    sort_by = request.args.get("sort_field", "db_id")
+    sort_desc = request.args.get("descending", False, type=bool)
+    page = request.args.get("page", 1, type=int)
+
+    round = request.args.getlist("round")
+    industry = request.args.getlist("industry")
+    country = request.args.getlist("country")
+
+    query_by = [
+        "country",
+        "preferred_round",
+        "industry",
+        "embedding",
+        "name",
+    ]
+
+    result = Company.get_search(
+        query_string=search_string,
+        query_by=query_by,
+        sort_by=sort_by,
+        sort_desc=sort_desc,
+        preferred_rounds=round,
+        industries=industry,
+        page=page,
+        per_page=9,
+        countries=country,
+        is_public=True,
+    )
+    companies = result.get("companies")
+
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+    unpaid = False
+    if current_user.is_admin:
+        pass
+    elif not user_payment and page > 1:
+        unpaid = True
+    elif user_payment and not user_payment.is_active and page > 1:
+        unpaid = True
+
+    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+
+    return render_template(
+        "search_companies.html",
+        companies=companies,
+        query=search_string,
+        pagination=pagination,
+        total_pages=len(pagination.get("pages", [])),
+        notifications=notifications,
+        industry_list=Industry.get_all(),
+        round_list=Round.get_all(),
+        countries=Country.get_all(),
+        unpaid=unpaid,
+    )
+
+
 @main.route("/search/investment-firms", methods=["GET", "POST"])
 @login_required
 @check_user_info_complete
@@ -329,6 +426,9 @@ def search_investment_firms():
 @check_user_info_complete
 @check_verification
 def search():
+    if next_url := request.args.get("next"):
+        return redirect(next_url)
+
     notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.SEARCH,

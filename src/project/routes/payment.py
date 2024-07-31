@@ -313,22 +313,6 @@ def index():
     return render_template("payment/index.html", user=authenticated_user)
 
 
-@payment.route("/success", methods=["GET"])
-@login_required
-@check_user_info_complete
-@check_verification
-def success():
-    return render_template("payment/success.html")
-
-
-@payment.route("/cancel", methods=["GET"])
-@login_required
-@check_user_info_complete
-@check_verification
-def cancel():
-    return render_template("payment/cancel.html")
-
-
 def invoice_paid(data_object):
     if data_object.get("billing_reason") != "subscription_create":
         return

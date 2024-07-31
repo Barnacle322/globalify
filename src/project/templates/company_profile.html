@@ -24,7 +24,7 @@
             <h1 class="text-4xl font-semibold">{{ company.name }}</h1>
         </div>
     </section>
-    <section class="w-wull max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
+    <section class="max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
         {% if company.country or company.description %}
         <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <h2 class="text-xl font-medium">General</h2>
@@ -95,7 +95,7 @@
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke-width="1.5" 
+                        stroke-width="1.5"
                         stroke="currentColor"
                         class="size-5"
                     >
@@ -115,6 +115,7 @@
             </div>
             {% endif %}
         </article>
+        {% if company.twitter_url or company.linkedin_url or company.website_url %}
         <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <h2 class="text-xl font-medium">Contacts</h2>
             <div class="flex flex-col gap-2 text-sm mt-5">
@@ -209,6 +210,7 @@
                 {% endif %}
             </div>
         </article>
+        {% endif %}
     </section>
     {% if company.twitter_url %}
     <section class="w-full">

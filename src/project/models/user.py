@@ -453,7 +453,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     preferred_round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("round.id"), nullable=True, init=False)
     industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True, init=False)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
-    search_index: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    search_index: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     country: Mapped[Country] = relationship(init=False)
@@ -581,20 +581,23 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
         industries: list[str] | None = None,
         per_page: int = 12,
         page: int = 1,
+        is_public: bool | None = None,
     ):
         try:
-            results = (
+            search_builder = (
                 SearchBuilder("companies")
                 .query(query_string)
                 .query_by(query_by)
-                .filter_by_round(preferred_rounds)
-                .filter_by_industry(industries)
-                .filter_by_countries(countries)
-                .filter_by_public(True)
-                .sort_by(sort_by, sort_desc)
-                .page(page, per_page)
-                .search()
+                .filter_by("preferred_round", preferred_rounds, exclusivity=False)
+                .filter_by("industry", industries, exclusivity=False)
+                .filter_by("country", countries, exclusivity=False)
             )
+
+            if is_public is not None:
+                search_builder = search_builder.filter_by_public(is_public)
+
+            search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
+            results = search_builder.search()
         except Exception as e:
             print("An error occurred while searching for companies. Error:", e)
             results = {"found": 0, "page": page, "per_page": per_page, "hits": []}
@@ -617,8 +620,8 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                     "slug": hit.get("slug", ""),
                     "description": hit.get("description", ""),
                     "country": hit.get("country", ""),
-                    "preferred_round": hit.get("preferred_round", []),
-                    "industry": hit.get("industry", []),
+                    "preferred_round": hit.get("preferred_round", ""),
+                    "industry": hit.get("industry", ""),
                 }
             )
         return {"companies": company_list, "found": found, "pages": pages, "page": page}
@@ -640,6 +643,9 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                 .all()
             )
             yield companies
+
+    def delete_data(self):
+        delete_documents("companies", str(self.id))
 
     def upsert_data(self):
         company_object = {}
@@ -672,6 +678,8 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
             search_index = json.loads(result[0].get("document", "{}")).get("id")
         elif result[0].get("id"):
             search_index = result[0].get("id")
+        else:
+            search_index = None
 
         if not search_index:
             raise Exception("Search index not found")
@@ -692,7 +700,11 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                         "facet": True,
                     },
                     {"name": "slug", "type": "string", "optional": True},
-                    {"name": "description", "type": "string"},
+                    {
+                        "name": "description",
+                        "type": "string",
+                        "optional": True,
+                    },
                     {"name": "country", "type": "string", "facet": True, "optional": True},
                     {"name": "preferred_round", "type": "string", "facet": True, "optional": True},
                     {"name": "industry", "type": "string", "facet": True, "optional": True},
@@ -709,6 +721,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                             ],
                             "model_config": {"model_name": "ts/all-MiniLM-L12-v2"},
                         },
+                        "optional": True,
                     },
                 ],
                 "primary_key": "db_id",
@@ -852,6 +865,11 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalar(
             db.select(UserCompany).join(User).where(UserCompany.company_id == company_id, User.email == email)
         )
+
+    @staticmethod
+    def set_is_public_false_by_company_id(company_id: int) -> None:
+        db.session.execute(update(UserCompany).where(UserCompany.company_id == company_id).values(is_public=False))
+        db.session.commit()
 
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):

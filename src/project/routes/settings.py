@@ -24,16 +24,11 @@ from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
+from ..utils.scraper import add_https_prefix
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
 settings = Blueprint("settings", __name__)
-
-
-def add_https_prefix(url):
-    if not url.startswith(("http://", "https://")):
-        return "https://" + url
-    return url
 
 
 @settings.route("/")
@@ -442,7 +437,15 @@ def change_company_info(company_id):
     else:
         company.twitter_url = None
 
-    is_public = request.form.get("is_public", False, type=bool)
+    if user_company.role in [CompanyRole.OWNER, CompanyRole.ADMIN]:
+        is_public = request.form.get("is_public", False, type=bool)
+        if is_public is False:
+            UserCompany.set_is_public_false_by_company_id(company_id=company_id)
+    else:
+        status = Status(
+            StatusType.ERROR, "You do not have permission to edit the 'is_public' field for this company."
+        ).get_status()
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     company.description = request.form.get("description", "").strip()
     company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
@@ -569,6 +572,44 @@ def create_company():
         return redirect(url_for("settings.create_company_view", _external=False, **status))
     status = Status(StatusType.SUCCESS, "Company created.").get_status()
     return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+
+@settings.post("/company/<int:id>/delete")
+@login_required
+@check_user_info_complete
+@check_verification
+def delete_company(id):
+    company = Company.get_by_id(id)
+
+    user_company = UserCompany.get_by_user_id_and_company_id(user_id=current_user.id, company_id=id)
+
+    if not user_company:
+        status = Status(StatusType.ERROR, "You don't have permission to delete this company!").get_status()
+        return redirect(url_for("settings.company_list_view", _external=True, **status))
+
+    if user_company.role != CompanyRole.OWNER:
+        status = Status(StatusType.ERROR, "Company not found.").get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+    if not company:
+        status = Status(StatusType.ERROR, "Company not found").get_status()
+        return redirect(url_for("settings.company_list_view", _external=True, **status))
+
+    try:
+        company.delete_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.company_list_view", _external=True, **status))
+
+    try:
+        db.session.delete(company)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.company_list_view", _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Company deleted.").get_status()
+    return redirect(url_for("settings.company_list_view", _external=True, **status))
 
 
 @settings.post("/company/<int:company_id>/invitation/create")

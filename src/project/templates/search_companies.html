@@ -277,21 +277,6 @@
                     >Clear all</a
                 >
             </div>
-            <div id="cool-button" class="mt-5 flex w-full items-center justify-center gap-5 rounded-xl">
-                <div class="w-fit items-start justify-center">
-                    <div class="group relative w-full">
-                        <div
-                            class="absolute -inset-0.5 w-full animate-border rounded-lg bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%] opacity-75 blur transition-all duration-1000 group-hover:scale-110 group-hover:opacity-100 group-hover:duration-200"
-                        ></div>
-                        <a
-                            href="/suggestions/companies"
-                            class="relative flex w-full items-center justify-center rounded-lg bg-white px-10 py-4 text-sm leading-none transition-all duration-200 ease-in-out group-hover:scale-105"
-                        >
-                            Pick For Me ✨
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
     <section class="mx-auto px-4 py-12">
@@ -381,7 +366,7 @@
             {% if pagination.has_prev %}
             <a
                 class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search/investment-firms?page=1"
+                href="/search/companies?page=1"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -402,7 +387,7 @@
             <a
                 id="prev"
                 class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search/investment-firms?page={{ pagination.prev }}"
+                href="/search/companies?page={{ pagination.prev }}"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -422,14 +407,14 @@
             <a
                 id="current"
                 class="inline-flex size-10 items-center justify-center rounded-lg border bg-white border-sky-500 text-sm text-sky-500 font-bold transition-opacity duration-200 ease-in-out hover:opacity-90"
-                href="/search/investment-firms?page={{ pagination.current_page }}"
+                href="/search/companies?page={{ pagination.current_page }}"
                 >{{ pagination.current_page }}</a
             >
             {% else %}
             <a
                 id="page"
                 class="inline-flex size-10 items-center justify-center rounded-lg border text-sm font-medium bg-white"
-                href="/search/investment-firms?page={{ page }}"
+                href="/search/companies?page={{ page }}"
                 >{{ page }}</a
             >
             <!-- prettier-ignore -->
@@ -439,7 +424,7 @@
             <a
                 id="next"
                 class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search/investment-firms?page={{ pagination.next }}"
+                href="/search/companies?page={{ pagination.next }}"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -454,7 +439,7 @@
             </a>
             <a
                 class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search/investment-firms?page={{ pagination.last_page }}"
+                href="/search/companies?page={{ pagination.last_page }}"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

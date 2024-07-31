@@ -36,7 +36,7 @@ function search() {
     }
     const industriesExclusiveElement = document.getElementById("industries_exclusive");
     if (industriesExclusiveElement) {
-        industriesExclusive = industriesExclusive.checked;
+        industriesExclusive = industriesExclusiveElement.checked;
     } else {
         industriesExclusive = false;
     }

@@ -47,10 +47,11 @@ main = Blueprint("main", __name__)
 def check_user_info_complete(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
+        next_url = request.args.get("next")
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
         elif not current_user.user_info.is_complete:  # type: ignore
-            return redirect(url_for("auth.onboarding"))
+            return redirect(url_for("onboarding.index", next=next_url))
         return func(*args, **kwargs)
 
     return decorated_function
@@ -59,10 +60,11 @@ def check_user_info_complete(func):
 def check_verification(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
+        next_url = request.args.get("next")
         if not current_user.is_authenticated:  # type: ignore
             return redirect(url_for("auth.login"))
         elif not current_user.is_verified:  # type: ignore
-            return redirect(url_for("auth.email_verification_required"))
+            return redirect(url_for("auth.email_verification_required", next=next_url))
         return func(*args, **kwargs)
 
     return decorated_function
@@ -291,6 +293,7 @@ def search_companies():
         page=page,
         per_page=9,
         countries=country,
+        is_public=True,
     )
     companies = result.get("companies")
 
@@ -423,6 +426,9 @@ def search_investment_firms():
 @check_user_info_complete
 @check_verification
 def search():
+    if next_url := request.args.get("next"):
+        return redirect(next_url)
+
     notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.SEARCH,

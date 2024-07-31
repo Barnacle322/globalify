@@ -320,7 +320,7 @@ def test_verify_email_invalid_token(client, app, unverified_user, monkeypatch):
         response = client.get("/verify-email?uuid=invalid_token", follow_redirects=True)
         assert response.status_code == 200
         assert b"Invalid code" in response.data
-        assert b"The code you have put in is invalid" in response.data
+        assert b"The code you have entered is invalid" in response.data
 
 
 def test_verify_email_expired_token(client, app, unverified_user, monkeypatch):

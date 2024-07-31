@@ -343,6 +343,7 @@
                                         </svg>
                                         Make primary
                                     </button>
+                                    {% if company.company.is_public %}
                                     <button
                                         @click="togglePublic({{ company.company.id }})"
                                         class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-sky-500 hover:text-white"
@@ -385,6 +386,7 @@
                                         </svg>
                                         Make public {% endif %}
                                     </button>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

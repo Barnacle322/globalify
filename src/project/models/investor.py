@@ -419,9 +419,9 @@ class Investor(InvestorBase):
                 .query(query_string)
                 .query_by(query_by)
                 .filter_by_investment_range(min_investment, max_investment)
-                .filter_by_rounds(rounds, rounds_exclusive)
-                .filter_by_industries(industries, industries_exclusive)
-                .filter_by_countries(countries)
+                .filter_by("rounds", rounds, exclusivity=rounds_exclusive)
+                .filter_by("industries", industries, exclusivity=industries_exclusive)
+                .filter_by("countries", countries, exclusivity=False)
                 .sort_by(sort_by, sort_desc)
                 .page(page, per_page)
                 .search()
@@ -484,25 +484,20 @@ class Investor(InvestorBase):
 
     def set_slug(self):
         base_slug = slugify(f"{self.first_name} {self.last_name}")
-        unique_slug = base_slug
-        attempt = 0
 
-        while True:
-            if db.session.scalar(db.select(Investor).where(Investor.slug == unique_slug)) is not None:
-                unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
-                attempt += 1
-            else:
-                try:
-                    self.slug = unique_slug
-                    db.session.commit()
-                    break
-                except IntegrityError:
-                    db.session.rollback()
-                    unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
-                    attempt += 1
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-                    break
+        existing_slug = db.session.scalar(db.select(Investor).where(Investor.slug == base_slug))
+
+        if existing_slug:
+            base_slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+
+        self.slug = base_slug
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            self.slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+            db.session.commit()
 
     @staticmethod
     def slugify_existing():
@@ -1307,9 +1302,9 @@ class InvestmentFirm(db.Model):
                 .query(query_string)
                 .query_by(query_by)
                 .filter_by_investment_range(min_investment, max_investment)
-                .filter_by_rounds(rounds, rounds_exclusive)
-                .filter_by_industries(industries, industries_exclusive)
-                .filter_by_countries(countries)
+                .filter_by("rounds", rounds, exclusivity=rounds_exclusive)
+                .filter_by("industries", industries, exclusivity=industries_exclusive)
+                .filter_by("countries", countries, exclusivity=False)
                 .sort_by(sort_by, sort_desc)
                 .page(page, per_page)
                 .search()

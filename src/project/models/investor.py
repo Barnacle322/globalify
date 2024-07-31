@@ -175,16 +175,6 @@ class NotableInvestment(db.Model):
 
     @staticmethod
     def populate() -> None:
-        """
-        Populates the notable investments.
-
-        This method adds a list of predefined notable investment names to the database session
-        and commits the changes.
-
-        Raises:
-            Exception: If an exception occurs during the population process, the changes are rolled back.
-
-        """
         try:
             notable_investments = list(set(notable_investment_list))
             db.session.add_all(list(map(lambda x: NotableInvestment(name=x), notable_investments)))

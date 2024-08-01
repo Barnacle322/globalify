@@ -369,6 +369,12 @@ def create_investor():
     email = form_data.get("email") or None
     phone_number = form_data.get("phone_number") or None
 
+    user_email = form_data.get("user_email") or None
+    if user_email:
+        user = User.get_by_email(user_email)
+    else:
+        user = None
+
     if not first_name:
         status = Status(StatusType.ERROR, "First name cannot be empty!").get_status()
         return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
@@ -399,6 +405,7 @@ def create_investor():
         rounds=list(Round.get_by_id_list(selected_round_ids)),
         industries=list(Industry.get_by_id_list(selected_industry_ids)),
         notable_investments=list(NotableInvestment.get_by_id_list(selected_notable_investment_ids)),
+        user=user,
     )
 
     try:

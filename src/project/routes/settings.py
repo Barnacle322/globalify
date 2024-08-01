@@ -528,13 +528,27 @@ def create_company():
             status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
             return redirect(url_for("settings.create_company_view", _external=False, **status))
 
+    preferred_round_id = form_data.get("round", type=int) or None
+    industry_id = form_data.get("industry", type=int) or None
+    country = form_data.get("country", type=int) or None
+
+    if not all(
+        [
+            preferred_round_id,
+            industry_id,
+            country,
+        ]
+    ):
+        status = Status(StatusType.ERROR, "Please select rounds, industries, and countries.").get_status()
+        return redirect(url_for("settings.create_company_view", _external=False, **status))
+
     company.description = form_data.get("description") or None
     company.number_of_employees = form_data.get("number_of_employees", 0, type=int)
     company.website_url = form_data.get("website") or None
-    company.preferred_round_id = form_data.get("round", type=int) or None
-    company.industry_id = form_data.get("industry", type=int) or None
+    company.preferred_round_id = preferred_round_id
+    company.industry_id = industry_id
 
-    if country_id := form_data.get("country", type=int):
+    if country_id := country:
         company.country_id = country_id
         company.coordinates = Country.get_by_id(country_id).name  # type: ignore
 

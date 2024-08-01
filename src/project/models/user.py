@@ -508,25 +508,20 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     def set_slug(self):
         base_slug = slugify(f"{self.name}")
-        unique_slug = base_slug
-        attempt = 0
 
-        while True:
-            if db.session.scalar(db.select(Company).where(Company.slug == unique_slug)) is not None:
-                unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
-                attempt += 1
-            else:
-                try:
-                    self.slug = unique_slug
-                    db.session.commit()
-                    break
-                except IntegrityError:
-                    db.session.rollback()
-                    unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
-                    attempt += 1
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-                    break
+        existing_slug = db.session.scalar(db.select(Company).where(Company.slug == base_slug))
+
+        if existing_slug:
+            base_slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+
+        self.slug = base_slug
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            self.slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+            db.session.commit()
 
     @staticmethod
     def get_by_slug(slug: str) -> Company | None:

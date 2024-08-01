@@ -1182,12 +1182,20 @@ class InvestmentFirm(db.Model):
         return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.email == email))
 
     def set_slug(self):
+        base_slug = slugify(f"{self.name}")
+
+        existing_slug = db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.slug == base_slug))
+
+        if existing_slug:
+            base_slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+
+        self.slug = base_slug
+
         try:
-            self.slug = slugify(self.name)
             db.session.commit()
-        except Exception:
+        except IntegrityError:
             db.session.rollback()
-            self.slug = slugify(f"{self.name} {uuid.uuid4().hex[:4]}")
+            self.slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
             db.session.commit()
 
     @property

@@ -54,7 +54,6 @@ def verified_user(app):
         company.country_id = 1
         company.preferred_round_id = 1
         company.industry_id = 1
-        company.user = user
 
         db.session.add(company)
         db.session.commit()

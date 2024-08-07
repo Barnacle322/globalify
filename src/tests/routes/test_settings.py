@@ -154,7 +154,7 @@ def new_user_with_company(app):
 @pytest.fixture()
 def new_company_invitation(app):
     with app.app_context():
-        company_invitation = CompanyInvitation(email="johndoe@example.com", company_id=1, invited_by=2)
+        company_invitation = CompanyInvitation(email="johndoe@example.com", company_id=1, invited_by=1)
 
         db.session.add(company_invitation)
         db.session.commit()
@@ -770,6 +770,9 @@ def test_verified_user_change_company_add_social_links(client, app, new_user_wit
         response = client.post(
             url_for("settings.change_company_info", company_id=1),
             data={
+                "round": 1,
+                "industry": 1,
+                "country": 1,
                 "linkedin": "https://linkedin.com/in/janedoe",
                 "instagram": "https://instagram.com/janedoe",
                 "twitter": "https://twitter.com/janedoe",
@@ -861,8 +864,9 @@ def test_create_company(client, app, verified_user, monkeypatch):
         assert company.industry_id == 2
 
 
-# Проблема в form_data = request.get_json()
-# работает с form_data = request.form
+# problem in form_data = request.get_json()
+# works when form_data = request.form
+# also not working with send_event() function
 def test_invite_user(client, app, new_user_with_company, verified_user, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
@@ -940,8 +944,8 @@ def test_decline_invitation(client, app, verified_user, new_company, new_company
         assert not user_company_members
 
 
-# ошибка в member_id_list = [user_company.user_id for user_company in company_members] - user_id
-# работает с                 user_company.User.id
+# error in member_id_list = [user_company.user_id for user_company in company_members] - user_id
+# work with                  user_company.User.id
 def test_get_company_members(client, app, new_user_with_company, monkeypatch):
     with app.app_context():
         mock_authorize = MagicMock(
@@ -979,18 +983,17 @@ def test_get_company_roles(client, app, verified_user, monkeypatch):
         assert response.status_code == 200
         assert b"owner" in response.data
         assert b"admin" in response.data
-        assert b"employee" in response.data
+        assert b"team" in response.data
 
-
-def test_change_company_role(client, app, verified_user, new_user_with_company, monkeypatch):
+# problem in form_data = request.get_json()
+# works when form_data = request.form
+def test_change_company_role(client, app, new_user_with_company, verified_user, monkeypatch):
     with app.app_context():
-        user_company = UserCompany(user_id=1, company_id=1, role=CompanyRole.TEAM)
+        user_company = UserCompany(user_id=2, company_id=1, role=CompanyRole.TEAM)
         db.session.add(user_company)
         db.session.commit()
 
-        print(UserCompany.get_members(1))
-
-        user_company = UserCompany.get_by_user_id(1)
+        user_company = UserCompany.get_by_user_id(2)
         assert user_company[0].role == CompanyRole.TEAM
 
         mock_authorize = MagicMock(
@@ -1002,11 +1005,11 @@ def test_change_company_role(client, app, verified_user, new_user_with_company, 
         response = client.get(url_for("auth.google_callback"), follow_redirects=True)
 
         response = client.post(
-            url_for("settings.change_company_role", user_id=1),
+            url_for("settings.change_company_role", user_id=2),
             data={"role": "admin", "company_id": 1},
             follow_redirects=True,
         )
 
         assert response.status_code == 200
-        user_company = UserCompany.get_by_user_id(1)
+        user_company = UserCompany.get_by_user_id(2)
         assert user_company[0].role == CompanyRole.ADMIN

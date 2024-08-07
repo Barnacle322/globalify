@@ -25,6 +25,7 @@ createApp({
             selectedIndustry: "",
             selectedNotableInvestment: "",
             userList: [],
+            notableInvestmentList: [],
             industryList: [],
             dataString: "",
             menus: [
@@ -248,6 +249,7 @@ createApp({
             const twitter = document.getElementById("twitter").value;
             const isPublicElement = document.getElementById("is_public");
             const is_public = isPublicElement ? isPublicElement.checked : true;
+            const notable_investment = document.getElementById("searchInput").value;
 
             const dataString = JSON.stringify({
                 name: name,
@@ -261,6 +263,7 @@ createApp({
                 linkedin: linkedin,
                 twitter: twitter,
                 is_public: is_public,
+                notable_investment: notable_investment,
             });
 
             try {
@@ -300,6 +303,10 @@ createApp({
         selectUser(email) {
             this.$refs.searchInput.value = email;
             this.userList = [];
+        },
+        selectNotableInvestment(notable_investment) {
+            this.$refs.searchInput.value = notable_investment;
+            this.notableInvestmentList = [];
         },
         selectIndustry(industry) {
             this.selectedIndustry = industry;
@@ -420,6 +427,20 @@ createApp({
                 } else {
                     notable_investment_list.children[i].classList.add("hidden");
                 }
+            }
+        },
+        async fetchNotableInvestmentList(event) {
+            const searchInput = event.target.value;
+
+            if (searchInput.length > 0) {
+                const response = await fetch(`/admin/search_notable_investments/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.notableInvestmentList = data.notable_investments;
+                    console.log(this.notableInvestmentList);
+                }
+            } else {
+                this.notableInvestmentList = [];
             }
         },
     },

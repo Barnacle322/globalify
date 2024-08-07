@@ -20,12 +20,10 @@ from ..models import (
     UserInfo,
     UserPayment,
 )
+from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.enums import (
-    ButtonLayout,
     Events,
     NotificationDestination,
-    NotificationItem,
-    NotificationLayout,
     OauthProvider,
     Status,
     StatusType,
@@ -73,7 +71,7 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
                         url=url_for("settings.company_list_view"),
                         type="info",
                     ),
-                ).get_json(),
+                ).model_dump(),
             )
             db.session.add(notification)
 
@@ -128,7 +126,7 @@ def verify_email():
     if not email_verification or not user or user.id != authenticated_user.id:
         notification = Notification(
             user=authenticated_user,
-            json_data=NotificationLayout(title="Invalid code", msg="The code you have entered is invalid").get_json(),
+            json_data=NotificationLayout(title="Invalid code", msg="The code you have entered is invalid").model_dump(),
             destination=NotificationDestination.VERIFICATION,
         )
         db.session.add(notification)
@@ -138,7 +136,7 @@ def verify_email():
     if email_verification.is_expired:
         notification = Notification(
             user=authenticated_user,
-            json_data=NotificationLayout(title="Code expired", msg="The code has alread expired!").get_json(),
+            json_data=NotificationLayout(title="Code expired", msg="The code has alread expired!").model_dump(),
             destination=NotificationDestination.VERIFICATION,
         )
         db.session.add(notification)
@@ -176,7 +174,7 @@ def resend_verification_email(user_id):
                 user=authenticated_user,
                 json_data=NotificationLayout(
                     title="Hey! Slow down..", msg="You can only request a new code every minute."
-                ).get_json(),
+                ).model_dump(),
                 destination=NotificationDestination.VERIFICATION,
             )
             db.session.add(notification)
@@ -201,7 +199,7 @@ def resend_verification_email(user_id):
         json_data=NotificationLayout(
             title="Verification code sent!",
             msg="Please check your email for the new verification code. It may take a few minutes to arrive.",
-        ).get_json(),
+        ).model_dump(),
         destination=NotificationDestination.VERIFICATION,
     )
     db.session.add(notification)

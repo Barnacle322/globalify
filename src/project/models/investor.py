@@ -145,6 +145,9 @@ class SuggestionBuilder:
 class NotableInvestment(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id"), nullable=True)
+
+    company: Mapped[Company | None] = relationship(Company, backref=backref("notable_investment", uselist=False))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

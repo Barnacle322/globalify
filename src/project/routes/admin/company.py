@@ -5,6 +5,7 @@ from ...models import (
     Company,
     Country,
     Industry,
+    NotableInvestment,
     Round,
 )
 from ...routes.main import generate_pagination
@@ -179,6 +180,12 @@ def update_company(id):
     company.industry_id = form_data.get("industry", company.industry) or None
     company.is_public = form_data.get("is_public", company.is_public) or False
 
+    notable_investment_name = form_data.get("notable_investment") or None
+    if notable_investment_name:
+        notable_investment = NotableInvestment.get_by_name(notable_investment_name)
+        if notable_investment and notable_investment.company != company:
+            notable_investment.company = company
+
     try:
         db.session.commit()
     except Exception as e:
@@ -297,6 +304,12 @@ def create_company():
     company.industry_id = form_data.get("industry") or None
 
     company.is_public = form_data.get("is_public") or False
+
+    notable_investment_name = form_data.get("notable_investment")
+    if notable_investment_name:
+        notable_investment = NotableInvestment.get_by_name(notable_investment_name)
+        if notable_investment:
+            notable_investment.company = company
 
     try:
         db.session.add(company)

@@ -322,5 +322,24 @@ createApp({
                 console.error(error);
             }
         },
+        async markAsRead(notificationId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const response = await fetch(`/notification/mark-read/${notificationId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (!response.ok) {
+                    console.error("An error occurred while marking the notification as read.");
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
     },
 }).mount("#app");

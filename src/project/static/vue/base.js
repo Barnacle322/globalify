@@ -152,7 +152,7 @@ const NotificationComponent = defineComponent({
                 console.error("Error marking all notifications as read:", e);
             }
         },
-        async markAsRead(notificationId) {
+        async markNotificationAsRead(notificationId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
                 const response = await fetch(`/notification/mark-read/${notificationId}`, {
@@ -162,16 +162,35 @@ const NotificationComponent = defineComponent({
                         "X-CSRFToken": csrfToken,
                     },
                 });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                this.notifications = this.notifications.filter((notification) => notification.id !== notificationId);
-                this.inboxNotifications = this.inboxNotifications.filter(
-                    (notification) => notification.id !== notificationId,
-                );
+                return response;
             } catch (e) {
                 console.error("Error marking notification as read:", e);
+                return null;
             }
+        },
+        async markAsReadWithRedirect(notificationId) {
+            const response = await this.markNotificationAsRead(notificationId);
+            if (response && response.redirected) {
+                window.location.href = response.url;
+            } else if (response && !response.ok) {
+                console.error("An error occurred while marking the notification as read.");
+            } else {
+                this.updateNotificationsState(notificationId);
+            }
+        },
+        async markAsRead(notificationId) {
+            const response = await this.markNotificationAsRead(notificationId);
+            if (response && response.ok) {
+                this.updateNotificationsState(notificationId);
+            } else if (response) {
+                console.error("An error occurred while marking the notification as read.");
+            }
+        },
+        updateNotificationsState(notificationId) {
+            this.notifications = this.notifications.filter((notification) => notification.id !== notificationId);
+            this.inboxNotifications = this.inboxNotifications.filter(
+                (notification) => notification.id !== notificationId,
+            );
         },
     },
     async mounted() {

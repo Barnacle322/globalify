@@ -34,8 +34,9 @@ from ..models import (
     UserPayment,
 )
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
+from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.decorators import check_user_info_complete, check_verification
-from ..utils.enums import Events, NotificationDestination, NotificationItem, NotificationLayout, Status, StatusType
+from ..utils.enums import Events, NotificationDestination, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.parse_medium import parse_medium_html
@@ -134,7 +135,8 @@ def get_suggestions():
                 msg="Please mark a company as primary to access suggestions.",
                 type="system",
                 item=NotificationItem(type="warning", url=url_for("settings.company_list_view")),
-            ).get_json(),
+            ).model_dump(),
+            destination=NotificationDestination.SEARCH,
         )
         db.session.add(notification)
         db.session.commit()
@@ -182,7 +184,8 @@ def get_suggestion_investment_firms():
                 msg="Please mark a company as primary to access suggestions.",
                 type="system",
                 item=NotificationItem(type="warning", url=url_for("settings.company_list_view")),
-            ).get_json(),
+            ).model_dump(),
+            destination=NotificationDestination.SEARCH,
         )
         db.session.add(notification)
         db.session.commit()
@@ -957,6 +960,13 @@ def mark_notification_read(notification_id):
     notification.is_read = True
     db.session.commit()
 
+    item = notification.json_data.get("item")
+
+    if item:
+        url = item.get("url")
+
+    if url:
+        return redirect(url)
     return jsonify({"status": "success"}, 200)
 
 

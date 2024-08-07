@@ -38,6 +38,7 @@
         <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
         <script src="/static/vue/base.js"></script>
         <script src="/static/scripts/dashboard.js" defer></script>
+        <script src="/static/scripts/notificationHandler.js" defer></script>
         <script src="/static/vue/main.js" defer></script>
 
         <!-- Font -->
@@ -550,6 +551,10 @@
                             {% endif %} {% endif %}
                         </nav>
                     </section>
+
+                    <!-- prettier-ignore -->
+                    {% import "components/notification_macros.html" as notification_macros %} 
+                    {{ notification_macros.render_notifications(notifications) }}
                 </main>
             </div>
         </div>

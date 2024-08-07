@@ -66,8 +66,9 @@
             >
                 <div v-if="notification.json_data.type === 'system'">
                     <a
-                        v-bind="{ href: notification.json_data.item.url || undefined }"
+                        href="#"
                         :class="{ 'cursor-default': !notification.json_data.item.url }"
+                        @click="markAsReadWithRedirect(notification.id)"
                     >
                         <div class="flex gap-3">
                             <svg

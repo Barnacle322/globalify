@@ -64,55 +64,6 @@ class CompanyRole(Enum):
     TEAM = "team"
 
 
-@dataclass
-class ButtonLayout:
-    text: str
-    url: str
-    dismiss: bool = True
-
-    def get_json(self) -> dict[str, str | bool]:
-        return {"text": self.text, "url": self.url, "dismiss": self.dismiss}
-
-
-@dataclass
-class NotificationItem:
-    type: str | None
-    url: str | None = None
-
-    def get_json(self) -> dict[str, str]:
-        json_dict = {}
-
-        if self.type:
-            json_dict["type"] = self.type
-        if self.url:
-            json_dict["url"] = self.url
-
-        return json_dict
-
-
-@dataclass
-class NotificationLayout:
-    title: str
-    msg: str | None = None
-    type: str | None = None
-    item: NotificationItem | None = None
-
-    def get_json(self, **kwargs) -> dict[str, str]:
-        json_dict = {
-            "title": self.title,
-            **kwargs,
-        }
-
-        if self.msg:
-            json_dict["msg"] = self.msg
-        if self.type:
-            json_dict["type"] = self.type
-        if self.item:
-            json_dict["item"] = self.item.get_json()
-
-        return json_dict
-
-
 class RequestStatus(Enum):
     PENDING = "pending"
     APPROVED = "approved"

@@ -1610,6 +1610,10 @@ select {
   width: 4rem;
   height: 4rem;
 }
+.size-2 {
+  width: 0.5rem;
+  height: 0.5rem;
+}
 .size-3 {
   width: 0.75rem;
   height: 0.75rem;
@@ -1637,10 +1641,6 @@ select {
 .size-9 {
   width: 2.25rem;
   height: 2.25rem;
-}
-.size-2 {
-  width: 0.5rem;
-  height: 0.5rem;
 }
 .h-0 {
   height: 0px;
@@ -1933,6 +1933,16 @@ select {
 .animate-fade-out {
   animation: fade-out 0.5s ease;
 }
+@keyframes ping {
+
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
 @keyframes slide-in-left {
 
   0% {
@@ -1998,24 +2008,14 @@ select {
 .animate-zoom-out {
   animation: zoom-out 0.1s ease;
 }
-@keyframes ping {
-
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-.animate-ping {
-  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+.cursor-default {
+  cursor: default;
 }
 .cursor-not-allowed {
   cursor: not-allowed;
 }
 .cursor-pointer {
   cursor: pointer;
-}
-.cursor-default {
-  cursor: default;
 }
 .select-none {
   -webkit-user-select: none;
@@ -2364,6 +2364,10 @@ select {
 .border-white {
   --tw-border-opacity: 1;
   border-color: rgb(255 255 255 / var(--tw-border-opacity));
+}
+.border-stone-900 {
+  --tw-border-opacity: 1;
+  border-color: rgb(28 25 23 / var(--tw-border-opacity));
 }
 .bg-\[\#181747\] {
   --tw-bg-opacity: 1;
@@ -4309,12 +4313,12 @@ textarea {
   color: transparent;
 }
 
-.group:hover .group-hover\:opacity-100 {
-  opacity: 1;
-}
-
 .group:hover .group-hover\:opacity-0 {
   opacity: 0;
+}
+
+.group:hover .group-hover\:opacity-100 {
+  opacity: 1;
 }
 
 .group:hover .group-hover\:duration-200 {

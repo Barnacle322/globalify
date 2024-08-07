@@ -536,7 +536,7 @@
                                     </a>
                                     <button
                                         id="bookmark-icon-{{ investor.id }}"
-                                        onclick="toggleInvestorBookmark('{{investor.id}}')"
+                                        @click="toggleInvestorBookmark({{investor.id}})"
                                     >
                                         <svg
                                             id="bookmark-svg-investor-{{ investor.id }}"

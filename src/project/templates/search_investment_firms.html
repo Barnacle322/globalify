@@ -543,7 +543,7 @@
                                     >
                                         {{ investment_firm.name }}
                                     </a>
-                                    <button onclick="toggleInvestmentFirmBookmark('{{investment_firm.id}}')">
+                                    <button @click="toggleInvestmentFirmBookmark('{{investment_firm.id}}')">
                                         <svg
                                             id="bookmark-svg-firm-{{ investment_firm.id }}"
                                             xmlns="http://www.w3.org/2000/svg"

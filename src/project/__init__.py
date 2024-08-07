@@ -17,6 +17,7 @@ from .routes.main import (
     service_unavailable,
     unauthorized,
 )
+from .routes.onboarding import onboarding
 from .routes.payment import payment
 from .routes.profile import profile
 from .routes.settings import settings
@@ -58,6 +59,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.register_blueprint(settings, url_prefix="/settings")
     app.register_blueprint(profile, url_prefix="/profile")
     app.register_blueprint(admin, url_prefix="/admin")
+    app.register_blueprint(onboarding, url_prefix="/onboarding")
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

@@ -62,6 +62,8 @@
     {{ change_role.render(company, current_user) }}
     {% import "components/cancel_invitation.html" as cancel_invitation %}
     {{ cancel_invitation.render() }}
+    {% import "components/delete_company.html" as delete_company %}
+    {{ delete_company.render(company.id) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />
@@ -109,6 +111,15 @@
                     :invitation="selectedInvitationId"
                     @close-cancel-invitation="selectedInvitationId = null"
                 ></cancel-invitation-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="deleteCompanyOpened"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <delete-company-component
+                    v-if="deleteCompanyOpened"
+                    @close-delete-company="deleteCompanyOpened = null"
+                ></delete-company-component>
             </transition>
 
             <div class="relative w-full">
@@ -450,8 +461,36 @@
                                             />
                                         </div>
                                     </div>
+                                    {% if user_role in ["owner", "admin"] %}
+                                    <div class="col-span-full">
+                                        <div>
+                                            <span class="block text-sm font-medium leading-6">Visibility Settings</span>
+                                            <span class="block text-sm font-medium leading-6 text-gray-500"
+                                                >You can make your company visible in search results.</span
+                                            >
+                                        </div>
+                                        <label class="inline-flex cursor-pointer items-center pt-2">
+                                            {% if company.is_public %}
+                                            <input
+                                                type="checkbox"
+                                                name="is_public"
+                                                value="True"
+                                                class="peer sr-only"
+                                                checked
+                                            />
+                                            {% else %}
+                                            <input type="checkbox" name="is_public" value="True" class="peer sr-only" />
+                                            {% endif %}
+                                            <div
+                                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                            ></div>
+                                            <span class="ms-3 text-sm font-medium text-gray-900"
+                                                >Show company in search</span
+                                            >
+                                        </label>
+                                    </div>
+                                    {% endif %}
                                 </div>
-
                                 <div class="mt-8 flex gap-5" v-if="'{{ user_role }}' !== 'employee'">
                                     <button
                                         type="submit"
@@ -597,6 +636,26 @@
                             </div>
                         </div>
                     </div>
+                    {% if user_role == 'owner' %}
+                    <div class="my-10 grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
+                        <div class="col-span-2">
+                            <h2 class="font-medium leading-7">Delete company</h2>
+                            <p class="mt-1 leading-6 text-slate-700">
+                                Please note, deleting your company from our system is an irreversible action. This will
+                                permanently erase all data and records associated with your company. Proceed with
+                                caution.
+                            </p>
+                        </div>
+                        <div class="lx yx md:col-span-2">
+                            <div
+                                class="inline-flex h-12 items-center justify-center rounded-xl bg-red-500 px-4 text-white transition-colors ease-in-out hover:bg-red-600 cursor-pointer"
+                                @click="deleteCompanyOpened = true"
+                            >
+                                Yes, delete my company
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </main>
             </div>
         </div>

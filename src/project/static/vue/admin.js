@@ -233,6 +233,70 @@ createApp({
                 window.location.href = response.url;
             }
         },
+        async submitCompanyData() {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            const name = document.getElementById("name").value;
+            const slug = document.getElementById("slug").value;
+            const description = document.getElementById("description").value;
+            const country = document.getElementById("country").value;
+            const preferred_round = document.getElementById("round").value;
+            const industry = document.getElementById("industry").value;
+            const number_of_employees = document.getElementById("number_of_employees").value;
+            const website = document.getElementById("website").value;
+            const linkedin = document.getElementById("linkedin").value;
+            const twitter = document.getElementById("twitter").value;
+            const isPublicElement = document.getElementById("is_public");
+            const is_public = isPublicElement ? isPublicElement.checked : true;
+
+            const dataString = JSON.stringify({
+                name: name,
+                slug: slug,
+                description: description,
+                country: country,
+                preferred_round: preferred_round,
+                industry: industry,
+                number_of_employees: number_of_employees,
+                website: website,
+                linkedin: linkedin,
+                twitter: twitter,
+                is_public: is_public,
+            });
+
+            try {
+                const response = await fetch("", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: dataString,
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async deleteCompany(id) {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            if (!confirm("Are you sure you want to delete this company?")) {
+                return;
+            }
+
+            const response = await fetch(`/admin/company/${id}/delete`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                },
+            });
+            if (response.redirected) {
+                window.location.href = response.url;
+            }
+        },
         selectUser(email) {
             this.$refs.searchInput.value = email;
             this.userList = [];

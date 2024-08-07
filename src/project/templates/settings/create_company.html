@@ -47,7 +47,7 @@
             rel="stylesheet"
         />
         <script src="/static/vue/settings.js" defer></script>
-        <title>Edit Investor Profile | Globalify</title>
+        <title>Create Company | Globalify</title>
     </head>
 
     <!-- prettier-ignore -->
@@ -218,6 +218,51 @@
                                             />
                                         </div>
                                     </div>
+                                    <div class="col-span-full">
+                                        <label for="linkedin" class="block text-sm font-medium leading-6"
+                                            >Linkedin</label
+                                        >
+                                        <div class="mt-2">
+                                            <input
+                                                type="text"
+                                                name="linkedin"
+                                                autocomplete="linkedin"
+                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                pattern="^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+\/?$"
+                                                placeholder="linkedin.com/in/username"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-span-full">
+                                        <label for="twitter" class="block text-sm font-medium leading-6"
+                                            >Twitter/X</label
+                                        >
+                                        <div class="mt-2">
+                                            <input
+                                                type="text"
+                                                name="twitter"
+                                                autocomplete="twitter"
+                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
+                                                placeholder="twitter.com/username"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-span-full">
+                                        <label for="instagram" class="block text-sm font-medium leading-6"
+                                            >Instagram</label
+                                        >
+                                        <div class="mt-2">
+                                            <input
+                                                type="text"
+                                                name="instagram"
+                                                autocomplete="instagram"
+                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                pattern="^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$"
+                                                placeholder="instagram.com/username"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="mt-8 flex justify-end gap-5">
@@ -228,7 +273,6 @@
                                     >
                                     <button
                                         id="saveButton"
-                                        @click="createCompany"
                                         class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
                                     >
                                         Create

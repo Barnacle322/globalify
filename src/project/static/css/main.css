@@ -1284,6 +1284,9 @@ select {
 .inset-0 {
   inset: 0px;
 }
+.inset-1 {
+  inset: 0.25rem;
+}
 .inset-y-0 {
   top: 0px;
   bottom: 0px;
@@ -1559,6 +1562,9 @@ select {
 .block {
   display: block;
 }
+.inline-block {
+  display: inline-block;
+}
 .flex {
   display: flex;
 }
@@ -1631,6 +1637,10 @@ select {
 .size-9 {
   width: 2.25rem;
   height: 2.25rem;
+}
+.size-2 {
+  width: 0.5rem;
+  height: 0.5rem;
 }
 .h-0 {
   height: 0px;
@@ -1988,11 +1998,24 @@ select {
 .animate-zoom-out {
   animation: zoom-out 0.1s ease;
 }
+@keyframes ping {
+
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
 .cursor-not-allowed {
   cursor: not-allowed;
 }
 .cursor-pointer {
   cursor: pointer;
+}
+.cursor-default {
+  cursor: default;
 }
 .select-none {
   -webkit-user-select: none;
@@ -2219,6 +2242,9 @@ select {
 }
 .overflow-x-visible {
   overflow-x: visible;
+}
+.overscroll-contain {
+  overscroll-behavior: contain;
 }
 .overscroll-y-contain {
   overscroll-behavior-y: contain;
@@ -4285,6 +4311,10 @@ textarea {
 
 .group:hover .group-hover\:opacity-100 {
   opacity: 1;
+}
+
+.group:hover .group-hover\:opacity-0 {
+  opacity: 0;
 }
 
 .group:hover .group-hover\:duration-200 {

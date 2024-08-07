@@ -30,7 +30,7 @@
                     <span class="mb-1 text-sm font-semibold text-gray-900"
                         >{{ notification.json_data.get("title") }}</span
                     >
-                    <div class="mb-2 text-sm font-normal">{{ notification.json_data.get("msg") }}</div>
+                    <span class="mb-2 text-sm font-normal">{{ notification.json_data.get("msg") }}</span>
                     {% for button in notification.json_data.get("buttons", []) %} {% if button.url and button.text %} {%
                     if button.dismiss %}
                     <a

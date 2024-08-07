@@ -75,26 +75,40 @@ class ButtonLayout:
 
 
 @dataclass
+class NotificationItem:
+    type: str | None
+    url: str | None = None
+
+    def get_json(self) -> dict[str, str]:
+        json_dict = {}
+
+        if self.type:
+            json_dict["type"] = self.type
+        if self.url:
+            json_dict["url"] = self.url
+
+        return json_dict
+
+
+@dataclass
 class NotificationLayout:
     title: str
     msg: str | None = None
-    buttons: list[ButtonLayout] = field(default_factory=list)
-    icon_url: str | None = None
-    is_closable: bool = True
+    type: str | None = None
+    item: NotificationItem | None = None
 
     def get_json(self, **kwargs) -> dict[str, str]:
         json_dict = {
             "title": self.title,
-            "is_closable": self.is_closable,
             **kwargs,
         }
 
         if self.msg:
             json_dict["msg"] = self.msg
-        if self.buttons and self.buttons != []:
-            json_dict["buttons"] = [button.get_json() for button in self.buttons]
-        if self.icon_url:
-            json_dict["icon_url"] = self.icon_url
+        if self.type:
+            json_dict["type"] = self.type
+        if self.item:
+            json_dict["item"] = self.item.get_json()
 
         return json_dict
 

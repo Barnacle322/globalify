@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import enum
 import json
 import re
 import uuid
@@ -237,13 +238,31 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
     )
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "json_data": self.json_data,
+            "destination": self.destination.value if isinstance(self.destination, enum.Enum) else self.destination,
+            "is_read": self.is_read,
+        }
+
     @classmethod
     def get_by_id(cls, id: int) -> Notification | None:
         return db.session.scalar(db.select(cls).where(cls.id == id))
 
     @staticmethod
-    def get_by_user_id(user_id: int) -> Notification | None:
-        return db.session.scalar(db.select(Notification).where(Notification.user_id == user_id))
+    def get_by_user_id(
+        user_id: int, offset: int = 1, limit: int = 10, get_read: bool = False
+    ) -> Sequence[Notification]:
+        return db.session.scalars(
+            db.select(Notification)
+            .where(Notification.user_id == user_id, Notification.is_read.is_(get_read))
+            .order_by(desc(Notification.created_at))
+            .limit(limit)
+            .offset((offset - 1) * limit)
+        ).all()
 
     @staticmethod
     def get_unread(
@@ -260,16 +279,8 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
         ).all()
 
     @staticmethod
-    def mark_notifications_as_read(user_id: int, destination: NotificationDestination) -> None:
-        unread_notifications = db.session.scalars(
-            db.select(Notification).where(
-                Notification.user_id == user_id,
-                or_(Notification.destination == destination, Notification.destination == NotificationDestination.ALL),
-                Notification.is_read.is_(False),
-            )
-        ).all()
-        for notification in unread_notifications:
-            notification.is_read = True
+    def mark_notifications_as_read(user_id: int) -> None:
+        db.session.execute(update(Notification).where(Notification.user_id == user_id).values(is_read=True))
         db.session.commit()
 
 

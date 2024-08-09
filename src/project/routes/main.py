@@ -36,7 +36,14 @@ from ..models import (
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import Events, NotificationDestination, NotificationLayout, Status, StatusType
-from ..utils.errors.error_messages import NOT_AUTHORIZED
+from ..utils.errors.error_messages import (
+    CLAIM_REQUEST_ALREADY_SUBMITTED,
+    EXPIRED_CODE,
+    INVALID_CODE,
+    INVALID_EMAIL,
+    INVESTOR_ALREADY_CLAIMED,
+    NOT_AUTHORIZED,
+)
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import COMPANY_WEIGHTS, WEIGHTS, check_weights
@@ -591,10 +598,10 @@ def claiming_manual(slug):
     claim_request = ClaimRequest.get_by_user_id(current_user.id)
     if claim_request:
         if claim_request.status == "pending":
-            status = Status(StatusType.ERROR, "You have already submitted a claim request.").get_status()
+            status = Status(StatusType.ERROR, CLAIM_REQUEST_ALREADY_SUBMITTED).get_status()
             return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
         elif claim_request.status == "approved":
-            status = Status(StatusType.ERROR, "You already have claimed investor.").get_status()
+            status = Status(StatusType.ERROR, INVESTOR_ALREADY_CLAIMED).get_status()
             return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
 
     claim_request = ClaimRequest(
@@ -714,15 +721,15 @@ def claim_verification(slug):
 
     claim_verification = ClaimVerification.get_by_token(verification_code)
     if not claim_verification:
-        status = Status(StatusType.ERROR, "Verification code is invalid.").get_status()
+        status = Status(StatusType.ERROR, INVALID_CODE).get_status()
         return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
 
     if claim_verification.is_expired:
-        status = Status(StatusType.ERROR, "Verification code is expired. Please request a new one").get_status()
+        status = Status(StatusType.ERROR, EXPIRED_CODE).get_status()
         return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
 
     if user_email != current_user.email:
-        status = Status(StatusType.ERROR, "Email is invalid. Please enter email that you registered with.").get_status()
+        status = Status(StatusType.ERROR, INVALID_EMAIL).get_status()
         return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
 
     investor.user_id = current_user.id

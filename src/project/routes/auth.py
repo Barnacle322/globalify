@@ -30,6 +30,7 @@ from ..utils.enums import (
     StatusType,
 )
 from ..utils.errors.error_messages import (
+    ACCOUNT_NOT_FOUND,
     OAUTH_ACCESS_TOKEN,
     OAUTH_COULD_NOT_RETRIEVE_DATA,
     OAUTH_MISMATCHED_PROVIDER,
@@ -162,7 +163,7 @@ def resend_verification_email(user_id):
 
     if not user or user.id != authenticated_user.id:
         status = Status(
-            StatusType.ERROR, "Hmm, we couldn't find your account. Please reach out to our support team!"
+            StatusType.ERROR, ACCOUNT_NOT_FOUND
         ).get_status()
         return redirect(url_for("auth.login", _external=False, **status))
 

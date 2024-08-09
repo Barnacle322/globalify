@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
+from src.project.utils.errors.error_messages import UNKNOWN_ERROR
+
 
 class NotificationDestination(Enum):
     ALL = "all"
@@ -21,7 +23,7 @@ class Status:
     status_type: StatusType
     msg: str
 
-    def __init__(self, type: StatusType = StatusType.ERROR, msg="An unknown error occurred."):
+    def __init__(self, type: StatusType = StatusType.ERROR, msg=UNKNOWN_ERROR):
         self.status_type = type
         self.msg = msg
 

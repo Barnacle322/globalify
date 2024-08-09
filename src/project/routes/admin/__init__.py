@@ -4,6 +4,8 @@ from flask import Blueprint, jsonify, redirect, render_template, request, url_fo
 from flask_login import current_user
 from sqlalchemy import select
 
+from src.project.utils.errors.error_messages import INVALID_CLAIM_REQUEST, INVESTOR_NOT_FOUND, NO_CLAIM_REQUEST
+
 from ...extensions import db
 from ...models import (
     ClaimRequest,
@@ -70,19 +72,19 @@ def edit_claim_request(id):
     claim_request = ClaimRequest.get_by_id(id)
 
     if not claim_request:
-        status = Status(StatusType.ERROR, "Claim request not found").get_status()
+        status = Status(StatusType.ERROR, NO_CLAIM_REQUEST).get_status()
         return redirect(url_for("admin.claim_requests_view", _external=True, **status))
 
     investor = Investor.get_by_id(claim_request.investor_id)
     if not investor:
-        status = Status(StatusType.ERROR, "Investor not found").get_status()
+        status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.claim_requests_view", _external=True, **status))
 
     form_data = request.get_json()
     claim_status = form_data.get("status")
 
     if claim_status not in ["approved", "rejected"]:
-        status = Status(StatusType.ERROR, "Invalid claim status").get_status()
+        status = Status(StatusType.ERROR, INVALID_CLAIM_REQUEST).get_status()
         return redirect(url_for("admin.claim_requests_view", _external=True, **status))
     elif claim_status == "approved":
         claim_request.status = RequestStatus.APPROVED

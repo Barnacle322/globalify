@@ -1,5 +1,12 @@
 from flask import Blueprint, redirect, render_template, request, url_for
 
+from src.project.utils.errors.error_messages import (
+    EMAIL_ALREADY_USED,
+    EMPTY_FIRSTNAME,
+    INVESTOR_BACKUP_NOT_FOUND,
+    INVESTOR_NOT_FOUND,
+)
+
 from ...extensions import db
 from ...models import (
     Industry,
@@ -73,7 +80,7 @@ def update_investor_view(id):
 
     investor = Investor.get_by_id(id)
     if not investor:
-        status = Status(StatusType.ERROR, "Investor not found").get_status()
+        status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
     notable_investments = NotableInvestment.get_all()
@@ -98,7 +105,7 @@ def update_investor(id):
 
     investor = Investor.get_by_id(id)
     if not investor:
-        status = Status(StatusType.ERROR, "Investor not found").get_status()
+        status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
     first_name = form_data.get("first_name", investor.first_name)
@@ -125,13 +132,13 @@ def update_investor(id):
     phone_number = form_data.get("phone_number", investor.phone_number) or None
 
     if not first_name:
-        status = Status(StatusType.ERROR, "First name cannot be empty!").get_status()
+        status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
         return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
 
     if email:
         existing_email = Investor.get_by_email(email)
         if existing_email and existing_email.id != investor.id:
-            status = Status(StatusType.ERROR, "Email already exists").get_status()
+            status = Status(StatusType.ERROR, EMAIL_ALREADY_USED).get_status()
             return redirect(url_for("admin.investor.update_investor_view", id=id, _external=True, **status))
 
     investor_backup = InvestorBackup.get_by_investor_id(investor.id)
@@ -240,12 +247,12 @@ def update_investor(id):
 def undo_investor_data(id):
     investor = Investor.get_by_id(id)
     if not investor:
-        status = Status(StatusType.ERROR, "Investor not found").get_status()
+        status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
     investor_backup = InvestorBackup.get_by_investor_id(investor.id)
     if not investor_backup:
-        status = Status(StatusType.ERROR, "Investor backup not found").get_status()
+        status = Status(StatusType.ERROR, INVESTOR_BACKUP_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
     investor.first_name = investor_backup.first_name
@@ -283,7 +290,7 @@ def undo_investor_data(id):
 def restore_investor_data(id):
     investor = Investor.get_by_id(id)
     if not investor:
-        status = Status(StatusType.ERROR, "There is no such investor").get_status()
+        status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
     investor_point_origin = InvestorOriginPoint.get_by_investor_id(id)
@@ -312,7 +319,7 @@ def restore_investor_data(id):
 
         investor.upsert_data()
     else:
-        status = Status(StatusType.ERROR, "No backup data found.").get_status()
+        status = Status(StatusType.ERROR, INVESTOR_BACKUP_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", id=id, _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investor data restored.").get_status()
@@ -376,13 +383,13 @@ def create_investor():
         user = None
 
     if not first_name:
-        status = Status(StatusType.ERROR, "First name cannot be empty!").get_status()
+        status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
         return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
 
     if email:
         existing_email = Investor.get_by_email(email)
         if existing_email:
-            status = Status(StatusType.ERROR, "Email already exists").get_status()
+            status = Status(StatusType.ERROR, EMAIL_ALREADY_USED).get_status()
             return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
 
     investor = Investor(
@@ -435,7 +442,7 @@ def delete_investor(id):
 
     investor = Investor.get_by_id(id)
     if not investor:
-        status = Status(StatusType.ERROR, "Investor not found").get_status()
+        status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
     try:

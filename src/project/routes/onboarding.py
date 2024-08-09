@@ -17,6 +17,7 @@ from ..utils.enums import (
     Events,
     NotificationDestination,
     NotificationLayout,
+    OauthProvider,
 )
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
@@ -96,7 +97,7 @@ def basic():
         user_info.is_complete = True
         db.session.commit()
 
-        if authenticated_user.oauth_provider.value == "google":
+        if authenticated_user.oauth_provider == OauthProvider.GOOGLE:
             authenticated_user.is_verified = True
             db.session.commit()
         elif not authenticated_user.is_verified:

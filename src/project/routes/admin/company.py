@@ -1,4 +1,5 @@
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from sqlalchemy import select
 
 from ...extensions import db
 from ...models import (
@@ -18,6 +19,22 @@ from ...utils.google_helpers.google_storage import delete_blob_from_url, upload_
 from ...utils.scraper import add_https_prefix
 
 company = Blueprint("company", __name__)
+
+
+@company.get("/search_notable_investments/<search_input>")
+@admin_only
+def search_notable_investment(search_input):
+    notable_investments = (
+        db.session.execute(
+            select(NotableInvestment)
+            .where(NotableInvestment.name.contains(search_input))
+            .where(NotableInvestment.company_id.is_(None))
+        )
+        .scalars()
+        .all()
+    )
+
+    return jsonify(notable_investments=[notable_investment.name for notable_investment in notable_investments])
 
 
 @company.get("/")
@@ -183,8 +200,14 @@ def update_company(id):
     notable_investment_name = form_data.get("notable_investment") or None
     if notable_investment_name:
         notable_investment = NotableInvestment.get_by_name(notable_investment_name)
-        if notable_investment and notable_investment.company != company:
-            notable_investment.company = company
+        if notable_investment:
+            if notable_investment.company:
+                status = Status(
+                    StatusType.ERROR, "Notable investment already associated with another company"
+                ).get_status()
+                return redirect(url_for("admin.company.update_company_view", id=id, _external=True, **status))
+            if notable_investment.company != company:
+                notable_investment.company = company
 
     try:
         db.session.commit()

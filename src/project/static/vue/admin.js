@@ -433,7 +433,7 @@ createApp({
             const searchInput = event.target.value;
 
             if (searchInput.length > 0) {
-                const response = await fetch(`/admin/search_notable_investments/${searchInput}`);
+                const response = await fetch(`/admin/companies/search_notable_investments/${searchInput}`);
                 if (response.ok) {
                     const data = await response.json();
                     this.notableInvestmentList = data.notable_investments;

@@ -36,7 +36,7 @@ from ..models import (
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
 from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.decorators import check_user_info_complete, check_verification
-from ..utils.enums import Events, NotificationDestination, Status, StatusType
+from ..utils.enums import Events, NotificationDestination, NotificationType, Status, StatusType
 from ..utils.errors.error_messages import NOT_AUTHORIZED
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.parse_medium import parse_medium_html
@@ -131,16 +131,16 @@ def get_suggestions():
         notification = Notification(
             user=authenticated_user,
             json_data=NotificationLayout(
-                title="Error",
+                title="Info",
                 msg="Please mark a company as primary to access suggestions.",
                 type="system",
-                item=NotificationItem(type="info", url=url_for("settings.company_list_view")),
+                item=NotificationItem(type=NotificationType.INFO, url=url_for("settings.company_list_view")), # type: ignore
             ).model_dump(),
-            destination=NotificationDestination.SEARCH,
+            destination=NotificationDestination.SETTINGS,
         )
         db.session.add(notification)
         db.session.commit()
-        return redirect(url_for("main.search"))
+        return redirect(url_for("settings.company_list_view"))
 
     bookmarks = InvestorBookmark.get_id_list(current_user.id)
 
@@ -183,7 +183,7 @@ def get_suggestion_investment_firms():
                 title="Error",
                 msg="Please mark a company as primary to access suggestions.",
                 type="system",
-                item=NotificationItem(type="warning", url=url_for("settings.company_list_view")),
+                item=NotificationItem(type=NotificationType.WARNING, url=url_for("settings.company_list_view")), # type: ignore
             ).model_dump(),
             destination=NotificationDestination.SEARCH,
         )
@@ -310,7 +310,7 @@ def search_companies():
 def search_investment_firms():
     notifications = Notification.get_unread(
         current_user.id,
-        NotificationDestination.SEARCH,     
+        NotificationDestination.SEARCH,
     )
 
     search_string = request.args.get("search", "")

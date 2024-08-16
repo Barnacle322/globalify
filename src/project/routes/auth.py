@@ -24,6 +24,7 @@ from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.enums import (
     Events,
     NotificationDestination,
+    NotificationType,
     OauthProvider,
     Status,
     StatusType,
@@ -69,7 +70,7 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
                     type="system",
                     item=NotificationItem(
                         url=url_for("settings.company_list_view"),
-                        type="info",
+                        type=NotificationType.INFO,  # type: ignore
                     ),
                 ).model_dump(),
             )

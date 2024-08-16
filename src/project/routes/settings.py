@@ -3,6 +3,8 @@ import re
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, logout_user
 
+from src.project.models.user import Notification
+
 from ..extensions import db
 from ..models import (
     Company,
@@ -21,7 +23,7 @@ from ..models import (
 )
 from ..schemas.investor import InvestorOriginPointSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
-from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
+from ..utils.enums import CompanyRole, Events, NotificationDestination, Status, StatusType, Tier
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from ..utils.scraper import add_https_prefix
@@ -252,6 +254,10 @@ def delete_account():
 @check_verification
 def company_list_view():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
+    notifications = Notification.get_unread(
+        current_user.id,
+        NotificationDestination.SETTINGS,
+    )
 
     user_companies = UserCompany.get_by_user_id(user_id=authenticated_user.id)
     invitations = CompanyInvitation.get_by_email(email=authenticated_user.email)
@@ -268,7 +274,12 @@ def company_list_view():
             )
             company_invitations.append(company_invitation.model_dump())
 
-    return render_template("settings/company_list.html", companies=user_companies, invitations=company_invitations)
+    return render_template(
+        "settings/company_list.html",
+        companies=user_companies,
+        invitations=company_invitations,
+        notifications=notifications,
+    )
 
 
 @settings.get("/company/<int:company_id>")

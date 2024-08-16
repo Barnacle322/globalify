@@ -12,6 +12,11 @@ class NotificationDestination(Enum):
     INDEX = "index"
 
 
+class NotificationType(Enum):
+    INFO = "info"
+    WARNING = "warning"
+
+
 class StatusType(Enum):
     SUCCESS = 1
     WARNING = 2

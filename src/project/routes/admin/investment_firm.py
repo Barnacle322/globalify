@@ -199,7 +199,7 @@ def create_investment_firm():
 
     selected_round_ids = form_data.get("rounds") or []
     selected_industry_ids = form_data.get("industries") or []
-    selected_notable_investment_names = form_data.get("notable_investments") or []
+    selected_notable_investment_ids = form_data.get("notable_investments") or []
 
     n_investments = int(form_data.get("n_investments") or 0)
     n_exits = int(form_data.get("n_exits") or 0)
@@ -236,7 +236,7 @@ def create_investment_firm():
         location=location,
         rounds=list(Round.get_by_id_list(selected_round_ids)),
         industries=list(Industry.get_by_id_list(selected_industry_ids)),
-        notable_investments=list(NotableInvestment.get_by_names(selected_notable_investment_names)),
+        notable_investments=list(NotableInvestment.get_by_id_list(selected_notable_investment_ids)),
     )
 
     try:

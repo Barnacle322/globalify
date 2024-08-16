@@ -69,10 +69,7 @@ createApp({
             ).map((input) => parseInt(input.value, 10));
             const selectedNotableInvestments = Array.from(
                 document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
-            ).map((checkbox) => {
-                const nameElement = checkbox.closest("label").querySelector("span");
-                return nameElement ? nameElement.textContent : "";
-            });
+            ).map((input) => parseInt(input.value, 10));
 
             let dataString = JSON.stringify({
                 first_name: first_name,
@@ -185,10 +182,7 @@ createApp({
             ).map((input) => parseInt(input.value, 10));
             const selectedNotableInvestments = Array.from(
                 document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
-            ).map((checkbox) => {
-                const nameElement = checkbox.closest("label").querySelector("span");
-                return nameElement ? nameElement.textContent : "";
-            });
+            ).map((input) => parseInt(input.value, 10));
 
             const dataString = JSON.stringify({
                 name: name,

@@ -77,9 +77,6 @@ def update_investor_view(id):
         status = Status(StatusType.ERROR, "Investor not found").get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
-    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-    print(investor)
-
     rounds = Round.get_all()
     industries = Industry.get_all()
 
@@ -363,7 +360,7 @@ def create_investor():
 
     selected_round_ids = form_data.get("rounds") or []
     selected_industry_ids = form_data.get("industries") or [""]
-    selected_notable_investment_names = form_data.get("notable_investments") or []
+    selected_notable_investment_ids = form_data.get("notable_investments") or []
 
     website = form_data.get("website") or None
     linkedin = form_data.get("linkedin") or None
@@ -406,7 +403,7 @@ def create_investor():
         location=location,
         rounds=list(Round.get_by_id_list(selected_round_ids)),
         industries=list(Industry.get_by_id_list(selected_industry_ids)),
-        notable_investments=list(NotableInvestment.get_by_names(selected_notable_investment_names)),
+        notable_investments=list(NotableInvestment.get_by_id_list(selected_notable_investment_ids)),
         user=user,
     )
 

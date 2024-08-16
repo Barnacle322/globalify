@@ -265,15 +265,13 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
         ).all()
 
     @staticmethod
-    def get_unread(
-        user_id: int, destination: NotificationDestination, is_read: bool = False
-    ) -> Sequence[Notification] | None:
+    def get_unread(user_id: int, destination: NotificationDestination) -> Sequence[Notification] | None:
         return db.session.scalars(
             db.select(Notification)
             .where(
                 Notification.user_id == user_id,
                 or_(Notification.destination == destination, Notification.destination == NotificationDestination.ALL),
-                Notification.is_read.is_(is_read),
+                Notification.is_read.is_(False),
             )
             .order_by(desc(Notification.created_at))
         ).all()

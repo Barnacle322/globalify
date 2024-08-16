@@ -7,6 +7,7 @@ class NotificationDestination(Enum):
     SEARCH = "search"
     ONBOARDING = "onboarding"
     COMPANY = "change_company_info"
+    SETTINGS = "company_list_view"
     VERIFICATION = "email_verification"
     INDEX = "index"
 

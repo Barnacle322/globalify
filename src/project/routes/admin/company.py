@@ -34,7 +34,11 @@ def search_notable_investment(search_input):
         .all()
     )
 
-    return jsonify(notable_investments=[notable_investment.name for notable_investment in notable_investments])
+    return jsonify(
+        notable_investments=[
+            {"id": notable_investment.id, "name": notable_investment.name} for notable_investment in notable_investments
+        ]
+    )
 
 
 @company.get("/")

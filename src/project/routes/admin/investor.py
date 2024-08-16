@@ -1,4 +1,5 @@
 from flask import Blueprint, redirect, render_template, request, url_for
+from sqlalchemy import select
 
 from ...extensions import db
 from ...models import (
@@ -71,12 +72,14 @@ def update_investor_view(id):
         status_type = query.get("type")
         msg = query.get("msg")
 
-    investor = Investor.get_by_id(id)
+    investor = Investor.get_by_id_with_investments(id)
     if not investor:
         status = Status(StatusType.ERROR, "Investor not found").get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
-    notable_investments = NotableInvestment.get_all()
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    print(investor)
+
     rounds = Round.get_all()
     industries = Industry.get_all()
 
@@ -85,7 +88,6 @@ def update_investor_view(id):
         investor=investor,
         rounds=rounds,
         industries=industries,
-        notable_investments=notable_investments,
         status_type=status_type,
         msg=msg,
     )
@@ -361,7 +363,7 @@ def create_investor():
 
     selected_round_ids = form_data.get("rounds") or []
     selected_industry_ids = form_data.get("industries") or [""]
-    selected_notable_investment_ids = form_data.get("notable_investments") or []
+    selected_notable_investment_names = form_data.get("notable_investments") or []
 
     website = form_data.get("website") or None
     linkedin = form_data.get("linkedin") or None
@@ -404,7 +406,7 @@ def create_investor():
         location=location,
         rounds=list(Round.get_by_id_list(selected_round_ids)),
         industries=list(Industry.get_by_id_list(selected_industry_ids)),
-        notable_investments=list(NotableInvestment.get_by_id_list(selected_notable_investment_ids)),
+        notable_investments=list(NotableInvestment.get_by_names(selected_notable_investment_names)),
         user=user,
     )
 
@@ -452,3 +454,25 @@ def delete_investor(id):
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
     return redirect(url_for("admin.investor.index"), code=302)
+
+
+@investor.get("/search_notable_investments/<search_input>/<int:investor_id>")
+@admin_only
+def search_notable_investments(search_input, investor_id):
+    investor = Investor.get_by_id(investor_id)
+    if not investor:
+        return {"notable_investments": []}
+
+    excluded_notable_investment_ids = [ni.id for ni in investor.notable_investments]
+
+    notable_investments = (
+        db.session.execute(
+            select(NotableInvestment)
+            .where(NotableInvestment.name.contains(search_input))
+            .where(NotableInvestment.id.notin_(excluded_notable_investment_ids))
+        )
+        .scalars()
+        .all()
+    )
+
+    return {"notable_investments": [ni.to_dict() for ni in notable_investments]}

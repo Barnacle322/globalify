@@ -134,7 +134,7 @@ def get_suggestions():
                 title="Error",
                 msg="Please mark a company as primary to access suggestions.",
                 type="system",
-                item=NotificationItem(type="warning", url=url_for("settings.company_list_view")),
+                item=NotificationItem(type="info", url=url_for("settings.company_list_view")),
             ).model_dump(),
             destination=NotificationDestination.SEARCH,
         )
@@ -245,7 +245,6 @@ def search_companies():
     notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.SEARCH,
-        is_read=False,
     )
 
     search_string = request.args.get("search", "")
@@ -311,8 +310,7 @@ def search_companies():
 def search_investment_firms():
     notifications = Notification.get_unread(
         current_user.id,
-        NotificationDestination.SEARCH,
-        is_read=False,
+        NotificationDestination.SEARCH,     
     )
 
     search_string = request.args.get("search", "")
@@ -414,7 +412,6 @@ def search():
     notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.SEARCH,
-        is_read=False,
     )
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "db_id")

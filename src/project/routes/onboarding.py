@@ -41,7 +41,6 @@ def basic():
     notifications = Notification.get_unread(
         user_id=authenticated_user.id,
         destination=NotificationDestination.ONBOARDING,
-        is_read=False,
     )
 
     next_url = request.args.get("next")
@@ -121,7 +120,6 @@ def investor():
     notifications = Notification.get_unread(
         user_id=authenticated_user.id,
         destination=NotificationDestination.ONBOARDING,
-        is_read=False,
     )
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)

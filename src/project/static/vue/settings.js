@@ -446,6 +446,7 @@ createApp({
             selectedIndustries: [],
             selectedNotableInvestments: [],
             members: [],
+            notableInvestmentList: [],
             selectedIndustry: "",
             selectedNotableInvestment: "",
             selectedUser: null,
@@ -498,6 +499,7 @@ createApp({
             const selectedNotableInvestments = Array.from(
                 document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
+            const notable_investment = document.getElementById("searchInput").value;
 
             const dataString = JSON.stringify({
                 first_name: first_name,
@@ -676,6 +678,24 @@ createApp({
             } catch (error) {
                 console.error("Error making public:", error.message);
             }
+        },
+        async fetchNotableInvestmentList(event) {
+            const searchInput = event.target.value;
+
+            if (searchInput.length > 0) {
+                const response = await fetch(`/admin/companies/search_notable_investments/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.notableInvestmentList = data.notable_investments;
+                    console.log(this.notableInvestmentList);
+                }
+            } else {
+                this.notableInvestmentList = [];
+            }
+        },
+        selectNotableInvestment(notable_investment) {
+            this.$refs.searchInput.value = notable_investment;
+            this.notableInvestmentList = [];
         },
     },
     mounted() {

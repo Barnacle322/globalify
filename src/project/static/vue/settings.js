@@ -401,6 +401,7 @@ createApp({
         ChangeRoleComponent,
         CancelInvitationComponent,
         DeleteCompanyComponent,
+        CreateNotableInvestmentComponent,
     },
 
     watch: {
@@ -441,6 +442,7 @@ createApp({
             deleteCompanyOpened: false,
             openedDropdownCompanyId: null,
             ignoreNextOutsideClick: false,
+            createNotableInvestmentOpened: false,
             csrfToken: "",
             selectedRounds: [],
             selectedIndustries: [],
@@ -696,6 +698,21 @@ createApp({
         selectNotableInvestment(notable_investment) {
             this.$refs.searchInput.value = notable_investment;
             this.notableInvestmentList = [];
+        },
+        async fetchNotableInvestmentListByInvestorId(searchInput, investorId) {
+            searchInput = searchInput.trim();
+
+            if (searchInput.length > 0) {
+                const response = await fetch(
+                    `/admin/investors/search_notable_investments/${searchInput}/${investorId}`,
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    this.notableInvestmentList = data.notable_investments;
+                }
+            } else {
+                this.notableInvestmentList = [];
+            }
         },
     },
     mounted() {

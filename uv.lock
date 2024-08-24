@@ -385,7 +385,7 @@ wheels = [
 
 [[package]]
 name = "globalify"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "authlib" },
@@ -402,6 +402,7 @@ dependencies = [
     { name = "google-cloud-pubsub" },
     { name = "google-cloud-storage" },
     { name = "googlemaps" },
+    { name = "more-itertools" },
     { name = "pillow" },
     { name = "pillow-heif" },
     { name = "psycopg" },
@@ -443,6 +444,7 @@ requires-dist = [
     { name = "google-cloud-pubsub", specifier = ">=2.23.0" },
     { name = "google-cloud-storage", specifier = ">=2.18.2" },
     { name = "googlemaps", specifier = ">=4.10.0" },
+    { name = "more-itertools", specifier = ">=10.4.0" },
     { name = "pillow", specifier = ">=10.4.0" },
     { name = "pillow-heif", specifier = ">=0.18.0" },
     { name = "psycopg", specifier = ">=3.2.1" },
@@ -734,6 +736,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/88/07/2dc76aa51b481eb96a4c3198894f38b480490e834479611a4053fbf08623/MarkupSafe-2.1.5-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:58c98fee265677f63a4385256a6d7683ab1832f3ddd1e66fe948d5880c21a169", size = 33038 },
     { url = "https://files.pythonhosted.org/packages/96/0c/620c1fb3661858c0e37eb3cbffd8c6f732a67cd97296f725789679801b31/MarkupSafe-2.1.5-cp312-cp312-win32.whl", hash = "sha256:8590b4ae07a35970728874632fed7bd57b26b0102df2d2b233b6d9d82f6c62ad", size = 16572 },
     { url = "https://files.pythonhosted.org/packages/3f/14/c3554d512d5f9100a95e737502f4a2323a1959f6d0d01e0d0997b35f7b10/MarkupSafe-2.1.5-cp312-cp312-win_amd64.whl", hash = "sha256:823b65d8706e32ad2df51ed89496147a42a2a6e01c13cfb6ffb8b1e92bc910bb", size = 17127 },
+]
+
+[[package]]
+name = "more-itertools"
+version = "10.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/92/0d/ad6a82320cb8eba710fd0dceb0f678d5a1b58d67d03ae5be14874baa39e0/more-itertools-10.4.0.tar.gz", hash = "sha256:fe0e63c4ab068eac62410ab05cccca2dc71ec44ba8ef29916a0090df061cf923", size = 120755 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d8/0b/6a51175e1395774449fca317fb8861379b7a2d59be411b8cce3d19d6ce78/more_itertools-10.4.0-py3-none-any.whl", hash = "sha256:0f7d9f83a0a8dcfa8a2694a770590d98a67ea943e3d9f5298309a484758c4e27", size = 60935 },
 ]
 
 [[package]]

@@ -8,7 +8,7 @@ COPY README.md /app
 WORKDIR /app
 
 RUN pip install uv
-RUN uv sync --frozen
+RUN uv sync --frozen --no-install-project
 RUN uv pip install granian
 RUN rm -rf /root/.cache/pip/*
 

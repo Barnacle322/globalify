@@ -1,17 +1,18 @@
-FROM python:3.12.0-alpine
+FROM python:3.12-slim-bookworm
 
 COPY src/ app/
 COPY pyproject.toml /app
-COPY poetry.lock /app
+COPY uv.lock /app
+COPY README.md /app
 
 WORKDIR /app
 
-RUN pip install poetry
-RUN poetry config virtualenvs.create false
-RUN poetry install --without dev --no-root --no-cache
-RUN pip install granian
+RUN pip install uv
+RUN uv sync
+RUN uv pip install granian
+RUN uv pip install more_itertools
 RUN rm -rf /root/.cache/pip/*
 
 ENV PORT 80
 
-CMD exec poetry run granian --interface wsgi --port $PORT --host 0.0.0.0 --workers 5 --threads 8 project:application
+CMD exec uv run granian --interface wsgi --port $PORT --host 0.0.0.0 --workers 5 --threads 8 project:application

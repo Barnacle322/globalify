@@ -8,9 +8,8 @@ COPY README.md /app
 WORKDIR /app
 
 RUN pip install uv
-RUN uv sync
+RUN uv sync --frozen --no-install-project
 RUN uv pip install granian
-RUN uv pip install more_itertools
 RUN rm -rf /root/.cache/pip/*
 
 ENV PORT 80

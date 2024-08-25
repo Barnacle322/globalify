@@ -11,11 +11,11 @@ This is the main project of the Globalify Ecosystem. It is a web app that help e
 ## Installation
 
 1. Clone the repository
-1. Run `npm install` to install the dependencies.
-1. Run `python -m venv .venv` to create a virtual environment.
-1. Run `source .venv/bin/activate`(Mac/Linux) or `.\.venv\Scripts\activate`(Windows) to activate the virtual environment.
-1. Run `pip install poetry` to install poetry.
-1. Run `poetry install` to install the python dependencies.
+2. Run `npm install` to install the dependencies.
+3. Run `pip install uv` to install uv.
+4. Run `uv venv` to create a virtual environment.
+5. Run `source .venv/bin/activate`(Mac/Linux) or `.\.venv\Scripts\activate`(Windows) to activate the virtual environment.
+6. Run `uv sync` to install python dependencies.
 
 ## Running the app
 
@@ -23,7 +23,6 @@ This is the main project of the Globalify Ecosystem. It is a web app that help e
 1. Run `source start.sh`(Mac/Linux) or `.\start.ps1`(Windows) to start the app.
 1. The app will be available at `http://localhost:5000`.
 
-<br>
 <br>
 
 # TailwindCSS
@@ -40,7 +39,6 @@ To format the HTML files, run the following command:
 npm run html
 ```
 
-<br>
 <br>
 
 # Typesense

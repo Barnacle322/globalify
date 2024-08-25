@@ -136,7 +136,7 @@ def verify_email():
     if email_verification.is_expired:
         notification = Notification(
             user=authenticated_user,
-            json_data=NotificationLayout(title="Code expired", msg="The code has alread expired!").model_dump(),
+            json_data=NotificationLayout(title="Code expired", msg="The code has already expired!").get_json(),
             destination=NotificationDestination.VERIFICATION,
         )
         db.session.add(notification)
@@ -260,9 +260,9 @@ def linkedin_callback():
         url=LINKEDIN_EMAIL_URL,
         access_token=access_token,
     )
-    if not email_data:
+    if not email_data or "elements" not in email_data:
         status = Status(StatusType.ERROR, OAUTH_COULD_NOT_RETRIEVE_DATA).get_status()
-        return redirect(url_for("auth_login", _external=False, **status))
+        return redirect(url_for("auth.login", _external=False, **status))
 
     email = email_data.get("elements")[0].get("handle~").get("emailAddress")
     if not email:

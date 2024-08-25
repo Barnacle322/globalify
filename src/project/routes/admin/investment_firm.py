@@ -1,6 +1,12 @@
 from flask import Blueprint, redirect, render_template, request, url_for
 from sqlalchemy import select
 
+from src.project.utils.errors.error_messages import (
+    EMAIL_ALREADY_USED,
+    EMPTY_INVESTMENT_FIRM_NAME,
+    INVESTMENT_FIRM_NOT_FOUND,
+)
+
 from ...extensions import db
 from ...models import (
     Industry,
@@ -70,7 +76,7 @@ def update_investment_firm_view(id):
 
     investment_firm = InvestmentFirm.get_by_id_with_investments(id)
     if not investment_firm:
-        status = Status(StatusType.ERROR, "Investment Firm not found").get_status()
+        status = Status(StatusType.ERROR, INVESTMENT_FIRM_NOT_FOUND).get_status()
         return redirect(url_for("admin.investment_firm.index", _external=True, **status))
 
     rounds = Round.get_all()
@@ -94,7 +100,7 @@ def update_investment_firm(id):
     investment_firm = InvestmentFirm.get_by_id(id)
 
     if not investment_firm:
-        status = Status(StatusType.ERROR, "Investment Firm not found").get_status()
+        status = Status(StatusType.ERROR, INVESTMENT_FIRM_NOT_FOUND).get_status()
         return redirect(url_for("admin.investment_firm.index", _external=True, **status))
 
     name = form_data.get("name", investment_firm.name)
@@ -118,7 +124,7 @@ def update_investment_firm(id):
     phone_number = form_data.get("phone_number", investment_firm.phone_number) or None
 
     if not name:
-        status = Status(StatusType.ERROR, "Name cannot be empty!").get_status()
+        status = Status(StatusType.ERROR, EMPTY_INVESTMENT_FIRM_NAME).get_status()
         return redirect(url_for("admin.investment_firm.update_investment_firm_view", id=id, _external=True, **status))
 
     if not slug:
@@ -129,7 +135,7 @@ def update_investment_firm(id):
     if email:
         existing_email = InvestmentFirm.get_by_email(email)
         if existing_email and existing_email.id != investment_firm.id:
-            status = Status(StatusType.ERROR, "Email already exists").get_status()
+            status = Status(StatusType.ERROR, EMAIL_ALREADY_USED).get_status()
             return redirect(
                 url_for("admin.investment_firm.update_investment_firm_view", id=id, _external=True, **status)
             )
@@ -212,13 +218,13 @@ def create_investment_firm():
     phone_number = form_data.get("phone_number") or None
 
     if not name:
-        status = Status(StatusType.ERROR, "Name cannot be empty!").get_status()
+        status = Status(StatusType.ERROR, EMPTY_INVESTMENT_FIRM_NAME).get_status()
         return redirect(url_for("admin.investment_firm.create_investment_firm_view", _external=True, **status))
 
     if email:
         existing_email = InvestmentFirm.get_by_email(email)
         if existing_email:
-            status = Status(StatusType.ERROR, "Email already exists").get_status()
+            status = Status(StatusType.ERROR, EMAIL_ALREADY_USED).get_status()
             return redirect(url_for("admin.investment_firm.create_investment_firm_view", _external=True, **status))
 
     investment_firm = InvestmentFirm(
@@ -265,7 +271,7 @@ def delete_investment_firm(id):
     investment_firm = InvestmentFirm.get_by_id(id)
 
     if not investment_firm:
-        status = Status(StatusType.ERROR, "Investment Firm not found").get_status()
+        status = Status(StatusType.ERROR, INVESTMENT_FIRM_NOT_FOUND).get_status()
         return redirect(url_for("admin.investment_firm.index", _external=True, **status))
 
     try:

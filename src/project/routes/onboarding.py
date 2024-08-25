@@ -13,14 +13,18 @@ from ..models import (
     User,
     UserInfo,
 )
+from ..schemas.notification import NotificationLayout
 from ..utils.enums import (
+    Events,
     NotificationDestination,
     NotificationLayout,
+    OauthProvider,
 )
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
     AUTH_USERNAME_USED,
 )
+from ..utils.google_helpers import google_pubsub
 
 onboarding = Blueprint("onboarding", __name__)
 
@@ -39,7 +43,6 @@ def basic():
     notifications = Notification.get_unread(
         user_id=authenticated_user.id,
         destination=NotificationDestination.ONBOARDING,
-        is_read=False,
     )
 
     next_url = request.args.get("next")
@@ -58,7 +61,7 @@ def basic():
         if not first_name or not last_name or not username:
             notification = Notification(
                 user=authenticated_user,
-                json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
+                json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).model_dump(),
                 destination=NotificationDestination.ONBOARDING,
             )
             db.session.add(notification)
@@ -68,7 +71,7 @@ def basic():
         if UserInfo.is_taken(username):
             notification = Notification(
                 user=authenticated_user,
-                json_data=NotificationLayout(title="Error!", msg=AUTH_USERNAME_USED).get_json(),
+                json_data=NotificationLayout(title="Error!", msg=AUTH_USERNAME_USED).model_dump(),
                 destination=NotificationDestination.ONBOARDING,
             )
             db.session.add(notification)
@@ -81,7 +84,7 @@ def basic():
                 json_data=NotificationLayout(
                     title="Incorrect format!",
                     msg="Username must be between 4 and 20 characters and can only contain letters and numbers",
-                ).get_json(),
+                ).model_dump(),
                 destination=NotificationDestination.ONBOARDING,
             )
             db.session.add(notification)
@@ -94,17 +97,20 @@ def basic():
         user_info.is_complete = True
         db.session.commit()
 
-        if not authenticated_user.is_verified:
+        if authenticated_user.oauth_provider == OauthProvider.GOOGLE:
+            authenticated_user.is_verified = True
+            db.session.commit()
+        elif not authenticated_user.is_verified:
             verification = EmailVerification(user_id=authenticated_user.id)
             db.session.add(verification)
             db.session.commit()
-            # TODO
-            # google_pubsub.send_event(
-            #     "A new user has completed onboarding!",
-            #     email=authenticated_user.email,
-            #     event_type=Events.USER_COMPLETED_ONBOARDING.value,
-            #     random_key=verification.token,
-            # )
+
+            google_pubsub.send_event(
+                "A new user has completed onboarding!",
+                email=authenticated_user.email,
+                event_type=Events.USER_COMPLETED_ONBOARDING.value,
+                random_key=verification.token,
+            )
 
         return redirect(url_for("main.search", next=next_url))
 
@@ -119,7 +125,6 @@ def investor():
     notifications = Notification.get_unread(
         user_id=authenticated_user.id,
         destination=NotificationDestination.ONBOARDING,
-        is_read=False,
     )
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)

@@ -400,10 +400,10 @@ def test_verified_user_change_personal_info1(client, app, verified_user, monkeyp
 
         updated_user = UserInfo.get_by_user_id(1)
         assert updated_user is not None
-        assert updated_user.first_name == "NewFirstName"  # type: ignore
-        assert updated_user.last_name == "NewLastName"  # type: ignore
-        assert updated_user.username == "newusername"  # type: ignore
-        assert updated_user.bio == "New bio"  # type: ignore
+        assert updated_user.first_name == "NewFirstName"
+        assert updated_user.last_name == "NewLastName"
+        assert updated_user.username == "newusername"
+        assert updated_user.bio == "New bio"
 
 
 def test_verified_user_change_personal_info_empty_first_name(client, app, verified_user, monkeypatch):

@@ -1,14 +1,22 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
+from src.project.utils.errors.error_messages import UNKNOWN_ERROR
+
 
 class NotificationDestination(Enum):
     ALL = "all"
     SEARCH = "search"
     ONBOARDING = "onboarding"
     COMPANY = "change_company_info"
+    SETTINGS = "company_list_view"
     VERIFICATION = "email_verification"
     INDEX = "index"
+
+
+class NotificationType(Enum):
+    INFO = "info"
+    WARNING = "warning"
 
 
 class StatusType(Enum):
@@ -21,7 +29,7 @@ class Status:
     status_type: StatusType
     msg: str
 
-    def __init__(self, type: StatusType = StatusType.ERROR, msg="An unknown error occurred."):
+    def __init__(self, type: StatusType = StatusType.ERROR, msg=UNKNOWN_ERROR):
         self.status_type = type
         self.msg = msg
 
@@ -62,41 +70,6 @@ class CompanyRole(Enum):
     OWNER = "owner"
     ADMIN = "admin"
     TEAM = "team"
-
-
-@dataclass
-class ButtonLayout:
-    text: str
-    url: str
-    dismiss: bool = True
-
-    def get_json(self) -> dict[str, str | bool]:
-        return {"text": self.text, "url": self.url, "dismiss": self.dismiss}
-
-
-@dataclass
-class NotificationLayout:
-    title: str
-    msg: str | None = None
-    buttons: list[ButtonLayout] = field(default_factory=list)
-    icon_url: str | None = None
-    is_closable: bool = True
-
-    def get_json(self, **kwargs) -> dict[str, str]:
-        json_dict = {
-            "title": self.title,
-            "is_closable": self.is_closable,
-            **kwargs,
-        }
-
-        if self.msg:
-            json_dict["msg"] = self.msg
-        if self.buttons and self.buttons != []:
-            json_dict["buttons"] = [button.get_json() for button in self.buttons]
-        if self.icon_url:
-            json_dict["icon_url"] = self.icon_url
-
-        return json_dict
 
 
 class RequestStatus(Enum):

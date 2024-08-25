@@ -1,248 +1,326 @@
-{% extends "layouts/layout_payment.html" %} {% block title %}Subscriptions{% endblock %} {% block head %} {{ super() }}
-{% endblock %} {% block content %}
-<main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden text-slate-900">
-    <section class="mx-auto mb-28 mt-24 flex max-w-7xl flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div class="mb-10 md:text-center">
-            <h2 class="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl dark:text-slate-50">
-                Simple pricing for everyone.
-            </h2>
-            <p class="mt-4 text-lg text-slate-700">
-                It doesn’t matter what size your business is, our solution will work well for you.
-            </p>
-        </div>
-        <div class="flex flex-wrap items-center justify-center gap-7">
-            <div
-                class="flex h-96 w-64 flex-col justify-start gap-4 rounded-3xl border-2 p-6 transition-all ease-in-out"
-            >
-                <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Elevate</span>
-                <span class="text-stone-500">Full access to our database with Elevate tier.</span>
-                <span class="text-4xl font-semibold">$10<span class="text-base font-normal">/month</span></span>
-                <form action="/payment/create-checkout-session" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <input type="hidden" name="tier" value="elevate" />
-                    <button
-                        class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
-                        type="submit"
-                    >
-                        Subscribe
-                    </button>
-                </form>
-                <ul>
-                    <li class="flex flex-row">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            class="mr-1 inline-block h-5 w-5 text-sky-500"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span>Database access</span>
-                    </li>
-                    <!-- <li class="flex flex-row">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            class="mr-1 inline-block h-5 w-5 text-sky-500"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span></span>
-                    </li> -->
-                    <!-- <li class="flex flex-row">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            class="mr-1 inline-block h-5 w-5 text-sky-500"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span></span>
-                    </li> -->
-                </ul>
-            </div>
-            <div
-                class="flex h-96 w-64 flex-col justify-start gap-4 rounded-3xl border-2 border-sky-500 p-6 transition-all ease-in-out"
-            >
-                <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Connect Pro</span>
-                <span class="text-stone-500">Connect Pro makes it easier for investors to discover your idea.</span>
-                <span class="text-4xl font-semibold">20$<span class="text-base font-normal">/month</span></span>
-                <form action="/payment/create-checkout-session" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <input type="hidden" name="tier" value="connect" />
-                    <button
-                        class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
-                        type="submit"
-                    >
-                        Subscribe
-                    </button>
-                </form>
-                <ul>
-                    <li class="flex flex-row">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            class="mr-1 inline-block h-5 w-5 text-sky-500"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span>Database access</span>
-                    </li>
-                    <li class="flex flex-row">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            class="mr-1 inline-block h-5 w-5 text-sky-500"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span>Investor discoverability</span>
-                    </li>
-                    <!-- <li class="flex flex-row">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            class="mr-1 inline-block h-5 w-5 text-sky-500"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span></span>
-                    </li> -->
-                </ul>
-            </div>
-            <div
-                class="flex h-96 w-64 flex-col justify-start gap-4 rounded-3xl border-2 p-6 transition-all ease-in-out"
-            >
-                <span class="text-2xl font-medium transition-all group-hover:text-sky-500">Boost Academy</span>
-                <span class="text-stone-500">Take advantage of everything we offer with Boost Academy.</span>
-                <span class="text-4xl font-semibold">$40<span class="text-base font-normal">/month</span></span>
-                <form action="/payment/create-checkout-session" method="POST">
-                    <input type="hidden" name="tier" value="boost" />
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <button
-                        class="flex w-full items-center justify-center rounded-xl border-2 border-sky-500 py-[7px] font-medium text-sky-500 transition-all hover:bg-sky-500 hover:text-white focus:bg-sky-500 focus:text-white"
-                        type="submit"
-                    >
-                        Subscribe
-                    </button>
-                </form>
-                <ul>
-                    <li class="flex flex-row">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            class="mr-1 inline-block h-5 w-5 text-sky-500"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span>Database access</span>
-                    </li>
-                    <li class="flex flex-row">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            class="mr-1 inline-block h-5 w-5 text-sky-500"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span>Investor discoverability</span>
-                    </li>
-                    <li class="flex flex-row">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            class="mr-1 inline-block h-5 w-5 text-sky-500"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span>Knowledge hub</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </section>
-    <!-- <section class="relative isolate overflow-hidden bg-transparent px-6 py-24 sm:py-32 lg:px-8">
-        <div
-            class="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,theme(colors.indigo.100),white)] opacity-20"
-        ></div>
-        <div
-            class="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] shadow-xl shadow-indigo-600/10 ring-1 ring-indigo-50 sm:mr-28 lg:mr-0 xl:mr-16 xl:origin-center"
-        ></div>
-        <div class="mx-auto max-w-2xl lg:max-w-4xl">
-            <img class="mx-auto h-12" src="/static/elements/logo-black.png" alt="" />
-            <figure class="mt-10">
-                <blockquote class="text-center text-xl font-semibold leading-8 text-gray-900 sm:text-2xl sm:leading-9">
-                    <p>
-                        “We want to help founders with good ideas find all the resources they need. Get on board to help
-                        us with our ambition”
-                    </p>
-                </blockquote>
-                <figcaption class="mt-10">
-                    <img class="mx-auto h-10 w-10 rounded-full" src="/static/elements/Team/arisa_square.JPG" alt="" />
-                    <div class="mt-4 flex items-center justify-center space-x-3 text-base">
-                        <div class="font-semibold text-gray-900">Arisa Chelsea</div>
-                        <svg viewBox="0 0 2 2" width="3" height="3" aria-hidden="true" class="fill-gray-900">
-                            <circle cx="1" cy="1" r="1" />
-                        </svg>
-                        <div class="text-gray-600">CEO of Globalify</div>
-                    </div>
-                </figcaption>
-            </figure>
-        </div>
-    </section> -->
-</main>
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-{% endblock %}
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            name="description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="og:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="twitter:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="/static/vue/base.js"></script>
+        <script defer src="/static/vue/payment.js"></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+        <title>Pricing | Globalify</title>
+    </head>
+
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %} 
+    {{ navbar.render(current_user) }}
+
+    <body class="h-full overflow-x-clip" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component
+                    v-if="asideExpanded"
+                    @close-aside="asideExpanded = false"
+                ></aside-mobile-component>
+            </transition>
+            <main class="flex w-full flex-col items-center justify-center overflow-x-hidden p-6">
+                <h1 class="max-w-2xl text-3xl font-semibold sm:text-[40px]">
+                    Simple
+                    <span class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent"
+                        >pricing</span
+                    >
+                    for everyone
+                </h1>
+                <p class="mt-3 text-slate-500">Flexible Pricing Options for Advanced Search Solutions</p>
+
+                {% if status_type %} {% if status_type == '3' %}
+                <div class="rounded-xl text-center text-red-500">{{ msg }}</div>
+                {% endif %} {% if status_type == '2' %}
+                <div class="rounded-xl text-center text-orange-400">{{ msg }}</div>
+                {% endif %} {% if status_type == '1' %}
+                <div class="rounded-xl text-center text-lime-500">{{ msg }}</div>
+                {% endif %} {% endif %}
+
+                <section
+                    class="mt-10 grid w-full max-w-6xl grid-cols-1 gap-x-5 gap-y-10 sm:mt-16 sm:grid-cols-2 xl:grid-cols-3"
+                >
+                    <article class="flex w-full flex-col gap-5">
+                        <div class="flex flex-col gap-5 rounded-3xl bg-slate-50 px-5 py-7">
+                            <span class="text-lg font-semibold">Community</span>
+                            <span>
+                                <span
+                                    class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
+                                    >$0</span
+                                >/month</span
+                            >
+                            <p>A sneak peek into Globalify</p>
+                            <a
+                                class="w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-slate-200 sm:mt-12"
+                                href="/login"
+                                >Stay with Community</a
+                            >
+                        </div>
+                        <div class="flex flex-col divide-y-2">
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Search Engine (Limited search) </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Knowledge Hub Community </span>
+                            </span>
+                        </div>
+                    </article>
+                    <article id="premium-monthly" class="flex w-full flex-col gap-5">
+                        <div class="flex flex-col gap-5 rounded-3xl bg-slate-50 px-5 py-7">
+                            <span class="text-lg font-semibold">Premium</span>
+                            <span>
+                                <span
+                                    class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
+                                    >$29</span
+                                >/month</span
+                            >
+                            <p>Perfect for growing startups</p>
+                            <div class="mx-auto flex items-center justify-center gap-2">
+                                <span class="font-medium">Monthly</span>
+                                <button
+                                    @click="openMonthly"
+                                    class="flex w-12 justify-start rounded-full bg-sky-500 p-1"
+                                >
+                                    <div class="size-5 rounded-full bg-white"></div>
+                                </button>
+                                <span class="flex items-center justify-center gap-1 font-medium"
+                                    >Annual
+                                    <span class="rounded-2xl bg-sky-200 px-2 py-1 text-xs text-sky-500"
+                                        >Save 20%</span
+                                    ></span
+                                >
+                            </div>
+                            <form action="/payment/create-checkout-session" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <input type="hidden" name="tier" value="premium_monthly" />
+                                <button
+                                    type="submit"
+                                    class="w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-slate-200"
+                                >
+                                    Subscribe
+                                </button>
+                            </form>
+                        </div>
+                        <div class="flex flex-col divide-y-2">
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Search Engine (Unlimited results) </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Knowledge Hub Premium </span>
+                            </span>
+
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Weekly Public Office Hours </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Knowledge Hub Sprints </span>
+                            </span>
+                        </div>
+                    </article>
+                    <article id="premium-annual" class="hidden w-full flex-col gap-5">
+                        <div class="flex flex-col gap-5 rounded-3xl bg-slate-50 px-5 py-7">
+                            <span class="text-lg font-semibold">Premium</span>
+                            <span class="flex items-baseline justify-start">
+                                <span
+                                    class="leading bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
+                                >
+                                    $280
+                                </span>
+                                <span> /year </span>
+                            </span>
+                            <p>Perfect for growing startups</p>
+                            <div class="mx-auto flex items-center justify-center gap-2">
+                                <span class="font-medium">Monthly</span>
+                                <button @click="openMonthly" class="flex w-12 justify-end rounded-full bg-sky-500 p-1">
+                                    <div class="size-5 rounded-full bg-white"></div>
+                                </button>
+                                <span class="flex items-center justify-center gap-1 font-medium text-sky-500"
+                                    >Annual
+                                    <span class="rounded-2xl bg-sky-200 px-2 py-1 text-xs text-sky-500"
+                                        >Save 20%</span
+                                    ></span
+                                >
+                            </div>
+                            <form action="/payment/create-checkout-session" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <input type="hidden" name="tier" value="premium_yearly" />
+                                <button
+                                    type="submit"
+                                    class="w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-slate-200"
+                                >
+                                    Subscribe
+                                </button>
+                            </form>
+                        </div>
+                        <div class="flex flex-col divide-y-2">
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Search Engine (Unlimited results) </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Knowledge Hub Premium </span>
+                            </span>
+
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Weekly Office Hours </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Knowledge Hub Sprints </span>
+                            </span>
+                        </div>
+                    </article>
+                    <article class="flex w-full flex-col gap-5">
+                        <div class="flex flex-col gap-5 rounded-3xl bg-[#231645] px-5 py-7 text-white">
+                            <span class="text-lg font-semibold">SuperConnect</span>
+                            <span>
+                                From
+                                <span
+                                    class="w-fit bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
+                                >
+                                    $1900</span
+                                >
+                                /month
+                            </span>
+                            <p>Maximum Impact for Leaders</p>
+                            <button
+                                class="w-full rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#DE7CC8] py-3 text-center text-lg font-medium sm:mt-12"
+                                @click="openScheduler"
+                            >
+                                Book a call
+                            </button>
+                        </div>
+                        <div class="flex flex-col divide-y-2">
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Search Engine (Unlimited results) </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Knowledge Hub Premium </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Globalify Incubation* </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Priority Private Office Hours </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Knowledge Hub Sprints </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Access to Globalify Labs (unreleased AI features)</span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> 1x1 GTM Strategy, pitching, and deck assistance </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Financial modeling and projections </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> Access to our C-Level Team* </span>
+                            </span>
+                            <span class="inline-flex items-center gap-3 py-5">
+                                <img class="size-5" src="/static/elements/checkmark.svg" alt="" />
+                                <span> On-demand CXO support* </span>
+                            </span>
+                        </div>
+                    </article>
+                </section>
+                <section ref="schedulerContainer" class="fixed right-0 top-0 hidden h-full w-full bg-black/70 z-[100]">
+                    <div class="mx-auto h-full w-full max-w-7xl bg-white lg:my-10 lg:h-[90%] lg:w-3/4 lg:rounded-xl">
+                        <nav class="flex h-16 items-center justify-between gap-3 border-b px-5">
+                            <h2 class="text-xl font-semibold">Schedule a call</h2>
+                            <button @click="closeScheduler">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="h-6 w-6"
+                                >
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </nav>
+                        <iframe
+                            class="overflow-y-auto"
+                            ref="scheduler"
+                            style="border: 0"
+                            height="90%"
+                            width="100%"
+                            frameborder="0"
+                        ></iframe>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </body>
+</html>

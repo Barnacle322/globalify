@@ -2,7 +2,6 @@ import json
 import os
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
-from functools import wraps
 
 from flask import (
     Blueprint,
@@ -35,39 +34,22 @@ from ..models import (
     UserPayment,
 )
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
+from ..schemas.notification import NotificationItem, NotificationLayout
+from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import Events, NotificationDestination, NotificationLayout, Status, StatusType
-from ..utils.errors.error_messages import NOT_AUTHORIZED
+from ..utils.errors.error_messages import (
+    CLAIM_REQUEST_ALREADY_SUBMITTED,
+    EXPIRED_CODE,
+    INVALID_CODE,
+    INVALID_EMAIL,
+    INVESTOR_ALREADY_CLAIMED,
+    NOT_AUTHORIZED,
+)
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.parse_medium import parse_medium_html
 from ..utils.suggestion import COMPANY_WEIGHTS, WEIGHTS, check_weights
 
 main = Blueprint("main", __name__)
-
-
-def check_user_info_complete(func):
-    @wraps(func)
-    def decorated_function(*args, **kwargs):
-        next_url = request.args.get("next")
-        if not current_user.is_authenticated:  # type: ignore
-            return redirect(url_for("auth.login"))
-        elif not current_user.user_info.is_complete:  # type: ignore
-            return redirect(url_for("onboarding.index", next=next_url))
-        return func(*args, **kwargs)
-
-    return decorated_function
-
-
-def check_verification(func):
-    @wraps(func)
-    def decorated_function(*args, **kwargs):
-        next_url = request.args.get("next")
-        if not current_user.is_authenticated:  # type: ignore
-            return redirect(url_for("auth.login"))
-        elif not current_user.is_verified:  # type: ignore
-            return redirect(url_for("auth.email_verification_required", next=next_url))
-        return func(*args, **kwargs)
-
-    return decorated_function
 
 
 def generate_pagination(current_page: int, total_pages: int, around_count: int = 2) -> dict:
@@ -152,25 +134,27 @@ def get_suggestions():
         access = False
 
     user_company = UserCompany.get_primary_by_user_id(current_user.id)
-
-    bookmarks = InvestorBookmark.get_id_list(current_user.id)
     if not user_company:
         notification = Notification(
             user=authenticated_user,
             json_data=NotificationLayout(
-                title="Error", msg="Please mark a company as primary to access suggestions."
-            ).get_json(),
-            destination=NotificationDestination.SEARCH,
+                title="Info",
+                msg="It looks like you don't have a primary company set! Please set a primary company to access suggestions.",
+                type="system",
+                item=NotificationItem(
+                    type=NotificationType.INFO.value,
+                    url=url_for("settings.company_list_view"),
+                ),
+            ).model_dump(),
+            destination=NotificationDestination.SETTINGS,
         )
         db.session.add(notification)
         db.session.commit()
-        return redirect(url_for("main.search"))
-
-    company = Company.get_by_id(user_company.company_id)
+        return redirect(url_for("settings.company_list_view"))
 
     bookmarks = InvestorBookmark.get_id_list(current_user.id)
+    company = Company.get_by_id(user_company.company_id)
 
-    check_weights(WEIGHTS)
     suggested_investors = Investor.get_suggestions(company=company, quantity=15)
 
     return render_template(
@@ -198,19 +182,23 @@ def get_suggestion_investment_firms():
         access = False
 
     user_company = UserCompany.get_primary_by_user_id(current_user.id)
-
-    bookmarks = InvestorBookmark.get_id_list(current_user.id)
     if not user_company:
         notification = Notification(
             user=authenticated_user,
             json_data=NotificationLayout(
-                title="Error", msg="Please mark a company as primary to access suggestions."
-            ).get_json(),
+                title="Error",
+                msg="Please mark a company as primary to access suggestions.",
+                type="system",
+                item=NotificationItem(type=NotificationType.WARNING.value, url=url_for("settings.company_list_view")),
+            ).model_dump(),
             destination=NotificationDestination.SEARCH,
         )
         db.session.add(notification)
         db.session.commit()
+
         return redirect(url_for("main.search"))
+
+    bookmarks = InvestorBookmark.get_id_list(current_user.id)
 
     company = Company.get_by_id(user_company.company_id)
 
@@ -263,7 +251,6 @@ def search_companies():
     notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.SEARCH,
-        is_read=False,
     )
 
     search_string = request.args.get("search", "")
@@ -330,7 +317,6 @@ def search_investment_firms():
     notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.SEARCH,
-        is_read=False,
     )
 
     search_string = request.args.get("search", "")
@@ -432,7 +418,6 @@ def search():
     notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.SEARCH,
-        is_read=False,
     )
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "db_id")
@@ -617,10 +602,10 @@ def claiming_manual(slug):
     claim_request = ClaimRequest.get_by_user_id(current_user.id)
     if claim_request:
         if claim_request.status == "pending":
-            status = Status(StatusType.ERROR, "You have already submitted a claim request.").get_status()
+            status = Status(StatusType.ERROR, CLAIM_REQUEST_ALREADY_SUBMITTED).get_status()
             return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
         elif claim_request.status == "approved":
-            status = Status(StatusType.ERROR, "You already have claimed investor.").get_status()
+            status = Status(StatusType.ERROR, INVESTOR_ALREADY_CLAIMED).get_status()
             return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
 
     claim_request = ClaimRequest(
@@ -740,15 +725,15 @@ def claim_verification(slug):
 
     claim_verification = ClaimVerification.get_by_token(verification_code)
     if not claim_verification:
-        status = Status(StatusType.ERROR, "Verification code is invalid.").get_status()
+        status = Status(StatusType.ERROR, INVALID_CODE).get_status()
         return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
 
     if claim_verification.is_expired:
-        status = Status(StatusType.ERROR, "Verification code is expired. Please request a new one").get_status()
+        status = Status(StatusType.ERROR, EXPIRED_CODE).get_status()
         return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
 
     if user_email != current_user.email:
-        status = Status(StatusType.ERROR, "Email is invalid. Please enter email that you registered with.").get_status()
+        status = Status(StatusType.ERROR, INVALID_EMAIL).get_status()
         return redirect(url_for("main.claim_verification_view", slug=slug, _external=False, **status))
 
     investor.user_id = current_user.id
@@ -923,6 +908,71 @@ def update_notification(notification_id):
     return jsonify({"status": "success"}, 200)
 
 
+@main.get("/notifications")
+@login_required
+def get_notifications():
+    user_id = current_user.id
+
+    page = request.args.get("page", default=1, type=int)
+    limit = 10
+    offset = (page - 1) * limit
+
+    notifications = Notification.get_by_user_id(user_id=user_id, offset=offset, limit=limit)
+
+    notifications_dict = [notification.to_dict() for notification in notifications]
+
+    return jsonify({"notifications": notifications_dict})
+
+
+@main.get("/notifications/archived")
+@login_required
+def get_read_notifications():
+    user_id = current_user.id
+
+    page = request.args.get("page", default=1, type=int)
+    limit = 10
+    offset = (page - 1) * limit
+
+    notifications = Notification.get_by_user_id(user_id=user_id, offset=offset, limit=limit, get_read=True)
+
+    notifications_dict = [notification.to_dict() for notification in notifications]
+
+    return jsonify({"notifications": notifications_dict})
+
+
+@main.post("/notifications/mark-all-read")
+@login_required
+def mark_all_notifications_read():
+    user_id = current_user.id
+
+    Notification.mark_notifications_as_read(user_id=user_id)
+
+    return jsonify({"status": "success"}, 200)
+
+
+@main.post("/notification/mark-read/<int:notification_id>")
+@login_required
+def mark_notification_read(notification_id):
+    notification = Notification.get_by_id(int(notification_id))
+    if not notification:
+        return jsonify({"status": "error", "message": "Notification not found."}, 404)
+
+    if notification.user_id != current_user.id:
+        return jsonify({"status": "error", "message": "Not authorized."}, 401)
+
+    notification.is_read = True
+    db.session.commit()
+
+    item = notification.json_data.get("item")
+
+    if item:
+        url = item.get("url")
+
+    if url:
+        return redirect(url)
+    return jsonify({"status": "success"}, 200)
+
+
 @main.route("/pricing")
 def pricing():
     return render_template("pricing.html")
@@ -963,7 +1013,7 @@ def privacy_policy():
 @main.route("/sitemap.xml")
 def sitemap():
     pages = []
-    ten_days_ago = (datetime.now() - timedelta(days=10)).date().isoformat()  # type: ignore
+    ten_days_ago = (datetime.now() - timedelta(days=10)).date().isoformat()
 
     # Add static pages
     for rule in current_app.url_map.iter_rules():

@@ -38,6 +38,7 @@
         <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
         <script src="/static/vue/base.js"></script>
         <script src="/static/scripts/menu.js" defer></script>
+        <script src="/static/vue/settings.js" defer></script>
 
         <!-- Font -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -46,8 +47,7 @@
             href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
             rel="stylesheet"
         />
-        <script src="/static/vue/settings.js" defer></script>
-        <title>Edit Investor Profile | Globalify</title>
+        <title>General | Globalify</title>
     </head>
 
     <!-- prettier-ignore -->
@@ -55,6 +55,8 @@
     {{ navbar.render(current_user) }}
     {% import "components/confirm_restore.html" as confirm_restore %} 
     {{ confirm_restore.render(current_user) }}
+    {% import "components/create_notable_investment.html" as createNotableInvestment %}
+    {{ createNotableInvestment.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -83,6 +85,20 @@
                     @close-confirm-restore="confirmRestoreOpened = null"
                 ></confirm-restore-component
             ></transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div
+                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    v-if="createNotableInvestmentOpened"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <create-notable-investment-component
+                    v-if="createNotableInvestmentOpened"
+                    @close-create-notable-investment-modal="createNotableInvestmentOpened = false"
+                    @notable-investment-created="addNotableInvestment"
+                ></create-notable-investment-component
+            ></transition>
+
             <div class="relative w-full">
                 <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
                     <div class="flex h-full gap-2 px-4 text-sm">
@@ -721,8 +737,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- TODO: Removed temporarily to speed up the page loading -->
-                                <!-- <div class="relative col-span-full space-y-1">
+                                <div class="relative col-span-full space-y-1">
                                     <label class="text-sm font-medium text-gray-700" for="rounds"
                                         >Notable Investments</label
                                     >
@@ -746,11 +761,10 @@
                                                 d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z"
                                             />
                                         </svg>
-
                                         Notable Investments
                                     </button>
                                     <div
-                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        class="pointer-events-none absolute left-0 z-49 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                                         id="notable-investment-options-menu"
                                         role="menu"
                                         aria-orientation="vertical"
@@ -762,9 +776,16 @@
                                             placeholder="Search notable investments..."
                                             class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
                                             v-model="selectedNotableInvestment"
-                                            @input="getNotableInvestmentList(selectedNotableInvestment)"
+                                            @input="event => fetchNotableInvestmentListByInvestorId(event.target.value, {{ investor.id }})"
                                         />
-                                        <div class="py-1" role="none" ref="notableInvestmentListElement">
+                                        <div role="none" ref="notableInvestmentListElement">
+                                            <button
+                                                v-if="notableInvestmentList.length > 0"
+                                                class="rounded-lg bg-sky-500 px-4 py-2 text-sm text-white hover:bg-sky-600 w-full"
+                                                @click="createNotableInvestmentOpened = true"
+                                            >
+                                                Create Notable Investment
+                                            </button>
                                             {% for notable_investment in investor.notable_investments %}
                                             <label
                                                 class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -779,23 +800,24 @@
                                                 />
                                                 {{ notable_investment.name }}
                                             </label>
-                                            {% endfor %} {% for notable_investment in notable_investments %} {% if
-                                            notable_investment not in investor.notable_investments %}
+                                            {% endfor %}
                                             <label
                                                 class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                                 role="menuitem"
+                                                v-for="(notableInvestment, index) in notableInvestmentList"
+                                                :key="index"
                                             >
                                                 <input
                                                     type="checkbox"
                                                     name="selected_notable_investments"
-                                                    value="{{ notable_investment.id }}"
+                                                    :value="notableInvestment.id"
                                                     class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
                                                 />
-                                                <span>{{ notable_investment.name }} </span> </label
-                                            >{% endif %}{% endfor %}
+                                                <span v-text="notableInvestment.name"></span>
+                                            </label>
                                         </div>
                                     </div>
-                                </div> -->
+                                </div>
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="n_investments">№ Investments</label>
                                     <input

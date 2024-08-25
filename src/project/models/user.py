@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import enum
 import json
 import re
 import uuid
@@ -22,7 +23,7 @@ from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mappe
 from ..extensions import db
 from ..utils import suggestion
 from ..utils.enums import CompanyRole, NotificationDestination, OauthProvider, RequestStatus, Tier
-from ..utils.suggestion import COMPANY_WEIGHTS, geocode_location
+from ..utils.suggestion import COMPANY_WEIGHTS
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
     create_schema,
@@ -215,7 +216,7 @@ class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
     def sanitize(self):
         subscription = {
             "created": self.created,
-            "expires_at": self.expires_at.date(),  # type: ignore
+            "expires_at": self.expires_at.date() if self.expires_at else None,
             "is_active": self.is_active,
             "tier": self.tier,
             "subscription_id": self.subscription_id,
@@ -237,39 +238,47 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
     )
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    @classmethod
-    def get_by_id(cls, id: int) -> Notification | None:
-        return db.session.scalar(db.select(cls).where(cls.id == id))
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "json_data": self.json_data,
+            "destination": self.destination.value if isinstance(self.destination, enum.Enum) else self.destination,
+            "is_read": self.is_read,
+        }
 
     @staticmethod
-    def get_by_user_id(user_id: int) -> Notification | None:
-        return db.session.scalar(db.select(Notification).where(Notification.user_id == user_id))
+    def get_by_id(id: int) -> Notification | None:
+        return db.session.scalar(db.select(Notification).where(Notification.id == id))
 
     @staticmethod
-    def get_unread(
-        user_id: int, destination: NotificationDestination, is_read: bool = False
-    ) -> Sequence[Notification] | None:
+    def get_by_user_id(
+        user_id: int, offset: int = 1, limit: int = 10, get_read: bool = False
+    ) -> Sequence[Notification]:
+        return db.session.scalars(
+            db.select(Notification)
+            .where(Notification.user_id == user_id, Notification.is_read.is_(get_read))
+            .order_by(desc(Notification.created_at))
+            .limit(limit)
+            .offset((offset - 1) * limit)
+        ).all()
+
+    @staticmethod
+    def get_unread(user_id: int, destination: NotificationDestination) -> Sequence[Notification] | None:
         return db.session.scalars(
             db.select(Notification)
             .where(
                 Notification.user_id == user_id,
                 or_(Notification.destination == destination, Notification.destination == NotificationDestination.ALL),
-                Notification.is_read.is_(is_read),
+                Notification.is_read.is_(False),
             )
             .order_by(desc(Notification.created_at))
         ).all()
 
     @staticmethod
-    def mark_notifications_as_read(user_id: int, destination: NotificationDestination) -> None:
-        unread_notifications = db.session.scalars(
-            db.select(Notification).where(
-                Notification.user_id == user_id,
-                or_(Notification.destination == destination, Notification.destination == NotificationDestination.ALL),
-                Notification.is_read.is_(False),
-            )
-        ).all()
-        for notification in unread_notifications:
-            notification.is_read = True
+    def mark_notifications_as_read(user_id: int) -> None:
+        db.session.execute(update(Notification).where(Notification.user_id == user_id).values(is_read=True))
         db.session.commit()
 
 
@@ -466,7 +475,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @coordinates.setter
     def coordinates(self, coordinates: str) -> None:
-        self._coordinates = suggestion.geocode_location(coordinates)["coordinates"]  # type: ignore
+        self._coordinates = suggestion.geocode_location(coordinates).get("coordinates")
 
     @validates("website_url")
     def validate_website(self, key, website):
@@ -508,25 +517,20 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     def set_slug(self):
         base_slug = slugify(f"{self.name}")
-        unique_slug = base_slug
-        attempt = 0
 
-        while True:
-            if db.session.scalar(db.select(Company).where(Company.slug == unique_slug)) is not None:
-                unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
-                attempt += 1
-            else:
-                try:
-                    self.slug = unique_slug
-                    db.session.commit()
-                    break
-                except IntegrityError:
-                    db.session.rollback()
-                    unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
-                    attempt += 1
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-                    break
+        existing_slug = db.session.scalar(db.select(Company).where(Company.slug == base_slug))
+
+        if existing_slug:
+            base_slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+
+        self.slug = base_slug
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            self.slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+            db.session.commit()
 
     @staticmethod
     def get_by_slug(slug: str) -> Company | None:

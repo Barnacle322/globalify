@@ -145,12 +145,22 @@ class SuggestionBuilder:
 class NotableInvestment(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id"), nullable=True)
+
+    company: Mapped[Company | None] = relationship(Company, backref=backref("notable_investment", uselist=False))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def __repr__(self):
         return f"<NotableInvestment {self.name}>"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "company_id": self.company_id,
+        }
 
     @staticmethod
     def get_all() -> Sequence[NotableInvestment]:
@@ -165,6 +175,10 @@ class NotableInvestment(db.Model):
         return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.name == name))
 
     @staticmethod
+    def get_by_names(names: list[str]) -> Sequence[NotableInvestment]:
+        return db.session.scalars(db.select(NotableInvestment).where(NotableInvestment.name.in_(names))).all()
+
+    @staticmethod
     def get_by_id_list(id_list) -> Sequence[NotableInvestment]:
         if len(id_list) == 0:
             return []
@@ -175,16 +189,6 @@ class NotableInvestment(db.Model):
 
     @staticmethod
     def populate() -> None:
-        """
-        Populates the notable investments.
-
-        This method adds a list of predefined notable investment names to the database session
-        and commits the changes.
-
-        Raises:
-            Exception: If an exception occurs during the population process, the changes are rolled back.
-
-        """
         try:
             notable_investments = list(set(notable_investment_list))
             db.session.add_all(list(map(lambda x: NotableInvestment(name=x), notable_investments)))
@@ -465,6 +469,12 @@ class Investor(InvestorBase):
     @staticmethod
     def get_by_id(id: int) -> Investor | None:
         return db.session.scalar(db.select(Investor).where(Investor.id == id))
+
+    @staticmethod
+    def get_by_id_with_investments(id: int) -> Investor | None:
+        return db.session.scalar(
+            db.select(Investor).options(joinedload(Investor.notable_investments)).where(Investor.id == id)
+        )
 
     @staticmethod
     def get_by_id_list(ids: list[int]) -> Sequence[Investor] | None:
@@ -1188,16 +1198,30 @@ class InvestmentFirm(db.Model):
         return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.id == id))
 
     @staticmethod
+    def get_by_id_with_investments(id: int) -> InvestmentFirm | None:
+        return db.session.scalar(
+            db.select(InvestmentFirm).options(joinedload(InvestmentFirm.notable_investments)).where(InvestmentFirm.id == id)
+        )
+
+    @staticmethod
     def get_by_email(email: str) -> InvestmentFirm | None:
         return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.email == email))
 
     def set_slug(self):
+        base_slug = slugify(f"{self.name}")
+
+        existing_slug = db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.slug == base_slug))
+
+        if existing_slug:
+            base_slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+
+        self.slug = base_slug
+
         try:
-            self.slug = slugify(self.name)
             db.session.commit()
-        except Exception:
+        except IntegrityError:
             db.session.rollback()
-            self.slug = slugify(f"{self.name} {uuid.uuid4().hex[:4]}")
+            self.slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
             db.session.commit()
 
     @property

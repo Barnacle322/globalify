@@ -7,7 +7,8 @@ from src.project import db
 from src.project.models.helpers import Industry, Round
 from src.project.models.investor import InvestmentFirm, Investor, NotableInvestment
 from src.project.models.user import Notification, User, UserInfo, UserPayment
-from src.project.utils.enums import NotificationDestination, NotificationLayout, OauthProvider
+from src.project.schemas.notification import NotificationLayout
+from src.project.utils.enums import NotificationDestination, OauthProvider
 from src.project.utils.errors.error_messages import AUTH_FIELDS_INCOMPLETE
 from src.project.utils.google_helpers import google_pubsub
 
@@ -326,7 +327,7 @@ def test_edit_notification_mismatch_user(client, app, verified_user, verified_us
 
         notification = Notification(
             user=user,
-            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
+            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).model_dump(),
             destination=NotificationDestination.ONBOARDING,
         )
         db.session.add(notification)
@@ -351,7 +352,7 @@ def test_success_edit_notification(client, app, verified_user, monkeypatch):
 
         notification = Notification(
             user=user,
-            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
+            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).model_dump(),
             destination=NotificationDestination.ONBOARDING,
         )
         db.session.add(notification)
@@ -362,29 +363,8 @@ def test_success_edit_notification(client, app, verified_user, monkeypatch):
         updated_notification = Notification.get_by_user_id(1)
 
         assert updated_notification is not None
-        assert updated_notification.is_read
+        assert updated_notification[0].is_read
         assert response.status_code == 200
-
-
-# TODO
-# def test_firm_get(client, new_user, investment_firm):
-#     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-#     response = client.get("/investment-firm/1", follow_redirects=True)
-#     assert response.status_code == 200
-#     assert b"Qwerty LLC" in response.data
-#     assert b"Qwerty LLC is a great investment firm." in response.data
-#     assert b"Industries" in response.data
-#     assert b"Rounds" in response.data
-
-# TODO
-# def test_firm_not_found(client, new_user, investment_firm):
-#     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-#     response = client.get("/investment-firm/99999999", follow_redirects=True)
-#     assert response.status_code == 200
-#     assert b"Investors" in response.data
-#     assert b"Firms" in response.data
-#     assert b"Only show firms with selected rounds" in response.data
-#     assert b"Only show firms with selected industries" in response.data
 
 
 def test_pricing(client):

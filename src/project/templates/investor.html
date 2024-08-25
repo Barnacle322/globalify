@@ -254,11 +254,17 @@
             <div>
                 <h2 class="font-medium mt-5">Notable Investments</h2>
                 <div class="flex flex-wrap gap-1 mt-2">
-                    {% for investment in investor.notable_investments %}
+                    {% for investment in investor.notable_investments %} {% if investment.company %}
+                    <a
+                        href="/profile/company/{{investment.company.slug}}"
+                        class="text-nowrap rounded-lg bg-violet-200 px-2 font-medium py-1.5 text-xs text-violet-500 hover:bg-violet-300"
+                        >{{ investment.name }}</a
+                    >
+                    {% else %}
                     <a class="text-nowrap rounded-lg bg-violet-200 px-2 font-medium py-1.5 text-xs text-violet-500"
                         >{{ investment.name }}</a
                     >
-                    {% endfor %}
+                    {% endif %} {% endfor %}
                 </div>
             </div>
             {% endif %}

@@ -16,20 +16,20 @@ from ..models import (
     EmailVerification,
     Notification,
     User,
-    UserCompany,
     UserInfo,
     UserPayment,
 )
+from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.enums import (
-    ButtonLayout,
     Events,
     NotificationDestination,
-    NotificationLayout,
+    NotificationType,
     OauthProvider,
     Status,
     StatusType,
 )
 from ..utils.errors.error_messages import (
+    ACCOUNT_NOT_FOUND,
     OAUTH_ACCESS_TOKEN,
     OAUTH_COULD_NOT_RETRIEVE_DATA,
     OAUTH_MISMATCHED_PROVIDER,
@@ -60,29 +60,27 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
         user = User(email=email, oauth_provider=oauth_provider)
 
         company_invitations = CompanyInvitation.get_by_email(email)
+
         if company_invitations:
-            for company_invitation in company_invitations:
-                user_company = UserCompany(
-                    user_id=user.id,
-                    company_id=company_invitation.company_id,
-                    role=company_invitation.role,
-                )
-                notification = Notification(
-                    user=user,
-                    json_data=NotificationLayout(
-                        title="You got invited to a company!",
-                        msg="Click here to accept the invitation.",
-                        buttons=[ButtonLayout(text="Accept", url=url_for("settings.company"))],
-                    ).get_json(),
-                    destination=NotificationDestination.ALL,
-                )
-                db.session.add_all((user_company, notification))
+            notification = Notification(
+                user=user,
+                json_data=NotificationLayout(
+                    title="You got invited to a company!",
+                    msg="Click here to accept the invitation.",
+                    type="system",
+                    item=NotificationItem(
+                        url=url_for("settings.company_list_view"),
+                        type=NotificationType.INFO.value,
+                    ),
+                ).model_dump(),
+            )
+            db.session.add(notification)
 
         db.session.add(user)
         db.session.commit()
         return user
 
-    if user.oauth_provider != oauth_provider:  # type: ignore
+    if user.oauth_provider != oauth_provider:
         raise Exception(OAUTH_MISMATCHED_PROVIDER)
 
     return user
@@ -129,7 +127,7 @@ def verify_email():
     if not email_verification or not user or user.id != authenticated_user.id:
         notification = Notification(
             user=authenticated_user,
-            json_data=NotificationLayout(title="Invalid code", msg="The code you have entered is invalid").get_json(),
+            json_data=NotificationLayout(title="Invalid code", msg="The code you have entered is invalid").model_dump(),
             destination=NotificationDestination.VERIFICATION,
         )
         db.session.add(notification)
@@ -139,7 +137,7 @@ def verify_email():
     if email_verification.is_expired:
         notification = Notification(
             user=authenticated_user,
-            json_data=NotificationLayout(title="Code expired", msg="The code has alread expired!").get_json(),
+            json_data=NotificationLayout(title="Code expired", msg="The code has already expired!").get_json(),
             destination=NotificationDestination.VERIFICATION,
         )
         db.session.add(notification)
@@ -162,7 +160,7 @@ def resend_verification_email(user_id):
 
     if not user or user.id != authenticated_user.id:
         status = Status(
-            StatusType.ERROR, "Hmm, we couldn't find your account. Please reach out to our support team!"
+            StatusType.ERROR, ACCOUNT_NOT_FOUND
         ).get_status()
         return redirect(url_for("auth.login", _external=False, **status))
 
@@ -177,7 +175,7 @@ def resend_verification_email(user_id):
                 user=authenticated_user,
                 json_data=NotificationLayout(
                     title="Hey! Slow down..", msg="You can only request a new code every minute."
-                ).get_json(),
+                ).model_dump(),
                 destination=NotificationDestination.VERIFICATION,
             )
             db.session.add(notification)
@@ -202,7 +200,7 @@ def resend_verification_email(user_id):
         json_data=NotificationLayout(
             title="Verification code sent!",
             msg="Please check your email for the new verification code. It may take a few minutes to arrive.",
-        ).get_json(),
+        ).model_dump(),
         destination=NotificationDestination.VERIFICATION,
     )
     db.session.add(notification)
@@ -263,9 +261,9 @@ def linkedin_callback():
         url=LINKEDIN_EMAIL_URL,
         access_token=access_token,
     )
-    if not email_data:
+    if not email_data or "elements" not in email_data:
         status = Status(StatusType.ERROR, OAUTH_COULD_NOT_RETRIEVE_DATA).get_status()
-        return redirect(url_for("auth_login", _external=False, **status))
+        return redirect(url_for("auth.login", _external=False, **status))
 
     email = email_data.get("elements")[0].get("handle~").get("emailAddress")
     if not email:

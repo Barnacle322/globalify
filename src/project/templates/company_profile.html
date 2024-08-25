@@ -24,7 +24,7 @@
             <h1 class="text-4xl font-semibold">{{ company.name }}</h1>
         </div>
     </section>
-    <section class="max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
+    <section class="w-wull max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
         {% if company.country or company.description %}
         <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <h2 class="text-xl font-medium">General</h2>
@@ -115,7 +115,7 @@
             </div>
             {% endif %}
         </article>
-        {% if company.twitter_url or company.linkedin_url or company.website_url %}
+        {% if company.twitter_url or company.linkedin_url or instagram_url or company.website_url %}
         <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <h2 class="text-xl font-medium">Contacts</h2>
             <div class="flex flex-col gap-2 text-sm mt-5">
@@ -171,7 +171,33 @@
                         <span>linkedin.com</span>
                     </a>
                 </div>
-                {% endif %} {% if company.website_url %}
+                {% endif %} {% if company.instagram_url %}
+                <div class="flex gap-3 justify-between">
+                    <span class="inline-flex items-center gap-1 font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
+                            <path
+                                d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"
+                            />
+                        </svg>
+                        Instagram:
+                    </span>
+                    <a
+                        href="{{ company.instagram_url }}"
+                        target="_blank"
+                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                            <path
+                                d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
+                            />
+                            <path
+                                d="M3.5 6.75c0-.69.56-1.25 1.25-1.25H7A.75.75 0 0 0 7 4H4.75A2.75 2.75 0 0 0 2 6.75v4.5A2.75 2.75 0 0 0 4.75 14h4.5A2.75 2.75 0 0 0 12 11.25V9a.75.75 0 0 0-1.5 0v2.25c0 .69-.56 1.25-1.25 1.25h-4.5c-.69 0-1.25-.56-1.25-1.25v-4.5Z"
+                            />
+                        </svg>
+                        <span>instagram.com</span>
+                    </a>
+                </div>
+                {% endif %}{% if company.website_url %}
                 <div class="flex gap-3 justify-between">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg

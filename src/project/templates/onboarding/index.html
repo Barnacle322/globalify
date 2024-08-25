@@ -1,9 +1,8 @@
-{% extends "layouts/layout_clean.html" %} {% block additional_scripts%}
-<script src="/static/scripts/onboarding.js" defer></script>
-<script src="/static/scripts/idempotency.js" defer></script>
-<script src="/static/scripts/notificationHandler.js" defer></script>
-{% endblock %} {% block title %}Onboarding{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
-%}
+<!-- prettier-ignore -->
+{% extends "layouts/layout_clean.html" %} 
+{% block title %}Onboarding{% endblock %} 
+{% block head %} {{ super() }} {% endblock %} 
+{% block content %}
 <main class="mx-auto flex h-full max-w-7xl flex-col items-center justify-center overflow-x-hidden p-6">
     <div class="mx-auto flex w-full max-w-xl flex-col gap-2">
         <h1 class="w-fit text-3xl font-medium">How do you wanna get started?</h1>

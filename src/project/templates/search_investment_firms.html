@@ -1,637 +1,735 @@
-<!-- prettier-ignore -->
-{% extends "layouts/layout_app.html" %} 
-{% block title %}Investment firms{% endblock %} 
-{% block head %} 
-{{ super() }}
-<script src="/static/scripts/bookmark.js" defer></script>
-<script src="/static/scripts/search.js" defer></script>
-<script src="/static/scripts/dashboard.js" defer></script>
-<script src="/static/scripts/query_setter.js" defer></script>
-<script src="/static/scripts/query_param_handler.js" defer></script>
-<script src="/static/scripts/notificationHandler.js" defer></script>
-{% endblock %} {% block content %}
-<main class="mx-auto h-full min-h-screen w-full overflow-x-hidden">
-    <section class="bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white mx-4 rounded-xl my-3">
-        <div class="max-w-7xl mx-auto py-3 px-4 flex sm:flex-row flex-col justify-center items-center gap-2">
-            <span class="font-semibold text-lg">Globalify Knowledge Hub is here!</span>
-            <a
-                href="https://hub.globalify.xyz/feed"
-                class="bg-white py-2 px-3 font-medium rounded-full text-black text-xs hover:scale-105 transition-transform ease-in-out shrink-0"
-                >Check it out</a
-            >
-        </div>
-    </section>
-    <section class="bg-[#231645] p-5 pb-10 pt-16 mx-4 rounded-3xl">
-        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-        <div class="mx-auto w-full max-w-3xl">
-            <div class="flex justify-evenly items-center">
-                <a href="/search">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="size-6 text-white hover:-translate-x-1 transition-transform ease-in-out"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z"
-                            clip-rule="evenodd"
-                        />
-                    </svg>
-                </a>
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-                <h1
-                    class="text-4xl text-center font-bold tracking-tight sm:text-5xl xl:text-6xl bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] p-3 w-fit bg-clip-text text-transparent"
-                >
-                    Globalify Firms
-                </h1>
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            name="description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
 
-                <a href="/search">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="size-6 text-white hover:translate-x-1 transition-transform ease-in-out"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z"
-                            clip-rule="evenodd"
-                        />
-                    </svg>
-                </a>
-            </div>
-            <div class="flex gap-2 rounded-full bg-white py-2 pr-3 max-w-3xl mx-auto mt-10">
-                <input
-                    type="search"
-                    name="search"
-                    id="search"
-                    class="w-full border-0 py-3 pr-0 pl-6 text-sm focus:ring-0 bg-transparent"
-                    placeholder="Search"
-                    value="{{ query }}"
-                    autocapitalize="off"
-                    autocorrect="off"
-                    autocomplete="off"
-                    aria-autocomplete="both"
-                    enterkeyhint="search"
-                    required
-                />
-                <button id="search-btn" class="" type="submit">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="size-5"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                        />
-                    </svg>
-                </button>
-                <a href="/suggestions/investment-firms" class="pr-3 flex justify-center items-center flex-col">
-                    <div
-                        class="size-6 animate-border bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%]"
-                        style="clip-path: url(#magic-icon)"
-                    ></div>
-                    <svg height="0" width="0">
-                        <clipPath id="magic-icon">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
-                            />
-                        </clipPath>
-                    </svg>
-                </a>
-            </div>
-            <button
-                id="open-advanced-button"
-                class="flex gap-1 justify-center items-center text-gray-300 underline text-xs mt-3 ml-auto"
-                onclick="toggleAdvanced()"
-            >
-                Advanced
-                <svg
-                    id="opened-advanced"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-4 hidden"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
-                </svg>
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="og:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
 
-                <svg
-                    id="closed-advanced"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-4"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                </svg>
-            </button>
-            <div id="advanced-menu" class="mt-5 flex-col flex-wrap gap-x-5 gap-y-3 sm:flex-row hidden">
-                <div class="group relative text-left">
-                    <label class="text-sm font-semibold text-white" for="country-options">Country</label>
-                    <button
-                        type="button"
-                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
-                        id="country-options"
-                        aria-haspopup="true"
-                        aria-expanded="true"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="size-5"
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="twitter:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="/static/vue/base.js"></script>
+        <script src="/static/scripts/dashboard.js" defer></script>
+        <script src="/static/scripts/notificationHandler.js" defer></script>
+        <script src="/static/vue/main.js" defer></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+        <title>Investors | Globalify</title>
+    </head>
+
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %} 
+    {{ navbar.render(current_user) }}
+
+    <body class="h-full overflow-x-clip" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component
+                    v-if="asideExpanded"
+                    @close-aside="asideExpanded = false"
+                ></aside-mobile-component>
+            </transition>
+
+            <div class="relative w-full">
+                <main class="mx-auto h-full min-h-screen w-full overflow-x-hidden">
+                    <section class="bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white mx-4 rounded-xl my-3">
+                        <div
+                            class="max-w-7xl mx-auto py-3 px-4 flex sm:flex-row flex-col justify-center items-center gap-2"
                         >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                            />
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-                            />
-                        </svg>
-
-                        Country
-                    </button>
-                    <div
-                        class="pointer-events-none max-w-full absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
-                        id="country-options-menu"
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="country-options-menu"
-                    >
-                        <div class="py-1" role="none">
-                            {% for country in countries %}
-                            <label
-                                class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 text-overflow-wrap overflow-clip"
-                                role="menuitem"
+                            <span class="font-semibold text-lg">Globalify Knowledge Hub is here!</span>
+                            <a
+                                href="https://hub.globalify.xyz/feed"
+                                class="bg-white py-2 px-3 font-medium rounded-full text-black text-xs hover:scale-105 transition-transform ease-in-out shrink-0"
+                                >Check it out</a
                             >
-                                <input
-                                    type="checkbox"
-                                    name="country"
-                                    value="{{ country.name }}"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                {{ country.name }}
-                            </label>
-                            {% endfor %}
                         </div>
-                    </div>
-                </div>
+                    </section>
+                    <section class="bg-[#231645] p-5 pb-10 pt-16 mx-4 rounded-3xl">
+                        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                        <div class="mx-auto w-full max-w-3xl">
+                            <div class="flex justify-evenly items-center">
+                                <a href="/search">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        class="size-6 text-white hover:-translate-x-1 transition-transform ease-in-out"
+                                    >
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z"
+                                            clip-rule="evenodd"
+                                        />
+                                    </svg>
+                                </a>
 
-                <div class="group relative text-left">
-                    <label class="text-sm font-semibold text-white" for="round-options">Rounds</label>
-                    <button
-                        type="button"
-                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
-                        id="round-options"
-                        aria-haspopup="true"
-                        aria-expanded="true"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="h-5 w-5"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
-                            />
-                        </svg>
-                        Rounds
-                    </button>
-                    <div
-                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 overflow-x-hidden origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
-                        id="round-options-menu"
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="round-options-menu"
-                    >
-                        <div class="py-1" role="none">
-                            <label
-                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="checkbox"
-                            >
+                                <h1
+                                    class="text-4xl text-center font-bold tracking-tight sm:text-5xl xl:text-6xl bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] p-3 w-fit bg-clip-text text-transparent"
+                                >
+                                    Globalify Firms
+                                </h1>
+
+                                <a href="/search">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        class="size-6 text-white hover:translate-x-1 transition-transform ease-in-out"
+                                    >
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z"
+                                            clip-rule="evenodd"
+                                        />
+                                    </svg>
+                                </a>
+                            </div>
+                            <div class="flex gap-2 rounded-full bg-white py-2 pr-3 max-w-3xl mx-auto mt-10">
                                 <input
-                                    type="checkbox"
-                                    id="rounds_exclusive"
-                                    name="rounds_exclusive"
-                                    value="1"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                    type="search"
+                                    name="search"
+                                    id="search"
+                                    class="w-full border-0 py-3 pr-0 pl-6 text-sm focus:ring-0 bg-transparent"
+                                    placeholder="Search"
+                                    value="{{ query }}"
+                                    autocapitalize="off"
+                                    autocorrect="off"
+                                    autocomplete="off"
+                                    aria-autocomplete="both"
+                                    enterkeyhint="search"
+                                    required
                                 />
-                                Show only with selected rounds
-                            </label>
-                            <hr />
-                            {% for round in round_list %}
-                            <label
-                                class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="menuitem"
+                                <button id="search-btn" class="" type="submit">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="size-5"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                                        />
+                                    </svg>
+                                </button>
+                                <a
+                                    href="/suggestions/investment-firms"
+                                    class="pr-3 flex justify-center items-center flex-col"
+                                >
+                                    <div
+                                        class="size-6 animate-border bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%]"
+                                        style="clip-path: url(#magic-icon)"
+                                    ></div>
+                                    <svg height="0" width="0">
+                                        <clipPath id="magic-icon">
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
+                                            />
+                                        </clipPath>
+                                    </svg>
+                                </a>
+                            </div>
+                            <button
+                                id="open-advanced-button"
+                                class="flex gap-1 justify-center items-center text-gray-300 underline text-xs mt-3 ml-auto"
+                                @click="toggleAdvanced"
                             >
-                                <input
-                                    type="checkbox"
-                                    name="round"
-                                    value="{{ round.name }}"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                {{ round.name }}
-                            </label>
-                            {% endfor %}
+                                Advanced
+                                <svg
+                                    id="opened-advanced"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-4 hidden"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="m4.5 15.75 7.5-7.5 7.5 7.5"
+                                    />
+                                </svg>
+
+                                <svg
+                                    id="closed-advanced"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-4"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                                    />
+                                </svg>
+                            </button>
+                            <div id="advanced-menu" class="mt-5 flex-col flex-wrap gap-x-5 gap-y-3 sm:flex-row hidden">
+                                <div class="group relative text-left">
+                                    <label class="text-sm font-semibold text-white" for="country-options"
+                                        >Country</label
+                                    >
+                                    <button
+                                        type="button"
+                                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
+                                        id="country-options"
+                                        aria-haspopup="true"
+                                        aria-expanded="true"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="size-5"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                                            />
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                                            />
+                                        </svg>
+
+                                        Country
+                                    </button>
+                                    <div
+                                        class="pointer-events-none max-w-full absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        id="country-options-menu"
+                                        role="menu"
+                                        aria-orientation="vertical"
+                                        aria-labelledby="country-options-menu"
+                                    >
+                                        <div class="py-1" role="none">
+                                            {% for country in countries %}
+                                            <label
+                                                class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 text-overflow-wrap overflow-clip"
+                                                role="menuitem"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    name="country"
+                                                    value="{{ country.name }}"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                />
+                                                {{ country.name }}
+                                            </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="group relative text-left">
+                                    <label class="text-sm font-semibold text-white" for="round-options">Rounds</label>
+                                    <button
+                                        type="button"
+                                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
+                                        id="round-options"
+                                        aria-haspopup="true"
+                                        aria-expanded="true"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="h-5 w-5"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
+                                            />
+                                        </svg>
+                                        Rounds
+                                    </button>
+                                    <div
+                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 overflow-x-hidden origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        id="round-options-menu"
+                                        role="menu"
+                                        aria-orientation="vertical"
+                                        aria-labelledby="round-options-menu"
+                                    >
+                                        <div class="py-1" role="none">
+                                            <label
+                                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                                role="checkbox"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    id="rounds_exclusive"
+                                                    name="rounds_exclusive"
+                                                    value="1"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                />
+                                                Show only with selected rounds
+                                            </label>
+                                            <hr />
+                                            {% for round in round_list %}
+                                            <label
+                                                class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                                role="menuitem"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    name="round"
+                                                    value="{{ round.name }}"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                />
+                                                {{ round.name }}
+                                            </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="group relative text-left">
+                                    <label class="text-sm font-semibold text-white" for="industry-options"
+                                        >Industry</label
+                                    >
+                                    <button
+                                        type="button"
+                                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
+                                        id="industry-options"
+                                        aria-haspopup="true"
+                                        aria-expanded="true"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="h-5 w-5"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z"
+                                            />
+                                        </svg>
+                                        Industries
+                                    </button>
+                                    <div
+                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        id="industry-options-menu"
+                                        role="menu"
+                                        aria-orientation="vertical"
+                                        aria-labelledby="industry-options-menu"
+                                    >
+                                        <div class="py-1" role="menu">
+                                            <label
+                                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                                role="checkbox"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    id="industries_exclusive"
+                                                    name="industries_exclusive"
+                                                    value="1"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                />
+                                                Show only with selected industries
+                                            </label>
+                                            <hr />
+                                            {% for category, industries in industry_list.items() %}
+                                            <label
+                                                class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                            >
+                                                {{ category }}
+                                            </label>
+                                            {% for industry in industries %}
+                                            <label
+                                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                                role="menuitem"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    name="industry"
+                                                    value="{{ industry.name }}"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                />
+                                                {{ industry.name }}
+                                            </label>
+                                            {% endfor %} {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="group relative text-left">
+                                    <label class="text-sm font-semibold text-white" for="sorting-options"
+                                        >Sorting</label
+                                    >
+                                    <button
+                                        type="button"
+                                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
+                                        id="sorting-options"
+                                        aria-haspopup="true"
+                                        aria-expanded="true"
+                                    >
+                                        <svg
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.5"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            aria-hidden="true"
+                                            class="h-5 w-5"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+                                            ></path>
+                                        </svg>
+                                        Sort By
+                                    </button>
+                                    <div
+                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        id="sorting-options-menu"
+                                        role="menu"
+                                        aria-orientation="vertical"
+                                        aria-labelledby="sorting-options-menu"
+                                    >
+                                        <div class="py-1" role="none">
+                                            <label
+                                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                                role="checkbox"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    id="descending"
+                                                    name="descending"
+                                                    value="1"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                />
+                                                Descending
+                                            </label>
+                                            <hr />
+                                            {% if fields %} {% for field, field_name in fields.items() %}
+                                            <label
+                                                class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                                role="menuitem"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    name="sort_field"
+                                                    value="{{ field }}"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                />
+                                                {{ field_name }}
+                                            </label>
+                                            {% endfor %} {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="group relative w-full text-left sm:w-52">
+                                    <label class="text-sm font-semibold text-white" for="sorting-options"
+                                        >Investment Range</label
+                                    >
+                                    <div class="relative mt-2 w-full text-left">
+                                        <input
+                                            type="range"
+                                            class="absolute h-0 w-full cursor-pointer appearance-none rounded-lg [&::-webkit-slider-runnable-track]:h-0"
+                                            id="min_investment"
+                                            min="0"
+                                            max="100"
+                                            value="0"
+                                        />
+                                        <input
+                                            type="range"
+                                            class="absolute h-0 w-full cursor-pointer appearance-none rounded-lg [&::-webkit-slider-runnable-track]:h-0"
+                                            id="max_investment"
+                                            min="0"
+                                            max="100"
+                                            value="100"
+                                        />
+                                        <div class="h-4 w-full rounded-full bg-gray-200"></div>
+                                        <div class="mt-2 flex justify-between text-sm text-white">
+                                            <span>$0&nbsp;&nbsp;</span>
+                                            <span>$25M</span>
+                                            <span>$50M</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <a
+                                    class="mt-3 ml-auto self-end text-sm text-gray-200 underline"
+                                    href="../search/investment-firms"
+                                    >Clear all</a
+                                >
+                            </div>
+                            <!-- <div id="cool-button" class="mt-5 flex w-full items-center justify-center gap-5 rounded-xl">
+                                <div class="w-fit items-start justify-center">
+                                    <div class="group relative w-full">
+                                        <div
+                                            class="absolute -inset-0.5 w-full animate-border rounded-lg bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%] opacity-75 blur transition-all duration-1000 group-hover:scale-110 group-hover:opacity-100 group-hover:duration-200"
+                                        ></div>
+                                        <a
+                                            href="/suggestions/investment-firms"
+                                            class="relative flex w-full items-center justify-center rounded-lg bg-white px-10 py-4 text-sm leading-none transition-all duration-200 ease-in-out group-hover:scale-105"
+                                        >
+                                            Pick For Me ✨
+                                        </a>
+                                    </div>
+                                </div>
+                            </div> -->
                         </div>
-                    </div>
-                </div>
-                <div class="group relative text-left">
-                    <label class="text-sm font-semibold text-white" for="industry-options">Industry</label>
-                    <button
-                        type="button"
-                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
-                        id="industry-options"
-                        aria-haspopup="true"
-                        aria-expanded="true"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="h-5 w-5"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z"
-                            />
-                        </svg>
-                        Industries
-                    </button>
-                    <div
-                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
-                        id="industry-options-menu"
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="industry-options-menu"
-                    >
-                        <div class="py-1" role="menu">
-                            <label
-                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="checkbox"
+                    </section>
+                    <section class="mx-auto px-4 py-12">
+                        <div class="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {% if investment_firms and not unpaid %} {% for investment_firm in investment_firms %}
+                            <article
+                                class="flex flex-col rounded-lg p-6 shadow-card-hover transition-shadow ease-in-out bg-white"
                             >
-                                <input
-                                    type="checkbox"
-                                    id="industries_exclusive"
-                                    name="industries_exclusive"
-                                    value="1"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                Show only with selected industries
-                            </label>
-                            <hr />
-                            {% for category, industries in industry_list.items() %}
-                            <label
-                                class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                            >
-                                {{ category }}
-                            </label>
-                            {% for industry in industries %}
-                            <label
-                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="menuitem"
-                            >
-                                <input
-                                    type="checkbox"
-                                    name="industry"
-                                    value="{{ industry.name }}"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                {{ industry.name }}
-                            </label>
-                            {% endfor %} {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                <div class="group relative text-left">
-                    <label class="text-sm font-semibold text-white" for="sorting-options">Sorting</label>
-                    <button
-                        type="button"
-                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
-                        id="sorting-options"
-                        aria-haspopup="true"
-                        aria-expanded="true"
-                    >
-                        <svg
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                            class="h-5 w-5"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
-                            ></path>
-                        </svg>
-                        Sort By
-                    </button>
-                    <div
-                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
-                        id="sorting-options-menu"
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="sorting-options-menu"
-                    >
-                        <div class="py-1" role="none">
-                            <label
-                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="checkbox"
-                            >
-                                <input
-                                    type="checkbox"
-                                    id="descending"
-                                    name="descending"
-                                    value="1"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                Descending
-                            </label>
-                            <hr />
-                            {% if fields %} {% for field, field_name in fields.items() %}
-                            <label
-                                class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="menuitem"
-                            >
-                                <input
-                                    type="checkbox"
-                                    name="sort_field"
-                                    value="{{ field }}"
-                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                />
-                                {{ field_name }}
-                            </label>
+                                <div class="flex justify-between items-center">
+                                    <a
+                                        href="/investment-firm/{{ investment_firm.slug }}"
+                                        class="text-xl font-bold leading-none"
+                                    >
+                                        {{ investment_firm.name }}
+                                    </a>
+                                    <button @click="toggleInvestmentFirmBookmark('{{investment_firm.id}}')">
+                                        <svg
+                                            id="bookmark-svg-firm-{{ investment_firm.id }}"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="{{'#FFC9FC' if investment_firm.id in bookmark_ids else 'none'}}"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="w-6 h-6"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="flex flex-col gap-2 text-sm mt-5">
+                                    <div class="grid grid-cols-2">
+                                        <span class="inline-flex items-center gap-1 text-gray-700">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke-width="1.5"
+                                                stroke="currentColor"
+                                                class="size-5"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                                                />
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                                                />
+                                            </svg>
+                                            Location
+                                        </span>
+                                        <span>{{ investment_firm.location }}</span>
+                                    </div>
+                                    <div class="flex flex-col gap-2 mt-5">
+                                        <span class="flex text-gray-700 gap-1 text-sm"
+                                            ><svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke-width="1.5"
+                                                stroke="currentColor"
+                                                class="size-5"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"
+                                                />
+                                            </svg>
+                                            Series:
+                                        </span>
+                                        <div class="flex flex-wrap gap-1">
+                                            {% for round in investment_firm.rounds %}
+                                            <a
+                                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
+                                                >{{ round }}
+                                            </a>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-500">{{ ", ".join(investment_firm.industries) }}</p>
+                                </div>
+                            </article>
                             {% endfor %} {% endif %}
                         </div>
-                    </div>
-                </div>
-                <div class="group relative w-full text-left sm:w-52">
-                    <label class="text-sm font-semibold text-white" for="sorting-options">Investment Range</label>
-                    <div class="relative mt-2 w-full text-left">
-                        <input
-                            type="range"
-                            class="absolute h-0 w-full cursor-pointer appearance-none rounded-lg [&::-webkit-slider-runnable-track]:h-0"
-                            id="min_investment"
-                            min="0"
-                            max="100"
-                            value="0"
-                        />
-                        <input
-                            type="range"
-                            class="absolute h-0 w-full cursor-pointer appearance-none rounded-lg [&::-webkit-slider-runnable-track]:h-0"
-                            id="max_investment"
-                            min="0"
-                            max="100"
-                            value="100"
-                        />
-                        <div class="h-4 w-full rounded-full bg-gray-200"></div>
-                        <div class="mt-2 flex justify-between text-sm text-white">
-                            <span>$0&nbsp;&nbsp;</span>
-                            <span>$25M</span>
-                            <span>$50M</span>
-                        </div>
-                    </div>
-                </div>
 
-                <a class="mt-3 ml-auto self-end text-sm text-gray-200 underline" href="../search/investment-firms"
-                    >Clear all</a
-                >
-            </div>
-            <!-- <div id="cool-button" class="mt-5 flex w-full items-center justify-center gap-5 rounded-xl">
-                <div class="w-fit items-start justify-center">
-                    <div class="group relative w-full">
-                        <div
-                            class="absolute -inset-0.5 w-full animate-border rounded-lg bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%] opacity-75 blur transition-all duration-1000 group-hover:scale-110 group-hover:opacity-100 group-hover:duration-200"
-                        ></div>
-                        <a
-                            href="/suggestions/investment-firms"
-                            class="relative flex w-full items-center justify-center rounded-lg bg-white px-10 py-4 text-sm leading-none transition-all duration-200 ease-in-out group-hover:scale-105"
-                        >
-                            Pick For Me ✨
-                        </a>
-                    </div>
-                </div>
-            </div> -->
-        </div>
-    </section>
-    <section class="mx-auto px-4 py-12">
-        <div class="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {% if investment_firms and not unpaid %} {% for investment_firm in investment_firms %}
-            <article class="flex flex-col rounded-lg p-6 shadow-card-hover transition-shadow ease-in-out bg-white">
-                <div class="flex justify-between items-center">
-                    <a href="/investment-firm/{{ investment_firm.slug }}" class="text-xl font-bold leading-none">
-                        {{ investment_firm.name }}
-                    </a>
-                    <button onclick="toggleInvestmentFirmBookmark('{{investment_firm.id}}')">
-                        <svg
-                            id="bookmark-svg-firm-{{ investment_firm.id }}"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="{{'#FFC9FC' if investment_firm.id in bookmark_ids else 'none'}}"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="w-6 h-6"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
-                            />
-                        </svg>
-                    </button>
-                </div>
-                <div class="flex flex-col gap-2 text-sm mt-5">
-                    <div class="grid grid-cols-2">
-                        <span class="inline-flex items-center gap-1 text-gray-700">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                                class="size-5"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                                />
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-                                />
-                            </svg>
-                            Location
-                        </span>
-                        <span>{{ investment_firm.location }}</span>
-                    </div>
-                    <div class="flex flex-col gap-2 mt-5">
-                        <span class="flex text-gray-700 gap-1 text-sm"
-                            ><svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                                class="size-5"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"
-                                />
-                            </svg>
-                            Series:
-                        </span>
-                        <div class="flex flex-wrap gap-1">
-                            {% for round in investment_firm.rounds %}
+                        <nav class="mt-10 flex w-full items-center justify-center gap-2">
+                            <!-- prettier-ignore -->
+                            {% if pagination and pagination.has_other_pages %} 
+                            {% if pagination.has_prev %}
                             <a
-                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
-                                >{{ round }}
+                                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+                                href="/search/investment-firms?page=1"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-4"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
+                                    />
+                                </svg>
                             </a>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-500">{{ ", ".join(investment_firm.industries) }}</p>
-                </div>
-            </article>
-            {% endfor %} {% endif %}
+                            <!-- prettier-ignore -->
+                            <a
+                                id="prev"
+                                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+                                href="/search/investment-firms?page={{ pagination.prev }}"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-5"
+                                >
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                                </svg>
+                            </a>
+                            <!-- prettier-ignore -->
+                            {% endif %} 
+                            {% for page in pagination.pages %} 
+                            {% if page == pagination.current_page %}
+                            <a
+                                id="current"
+                                class="inline-flex size-10 items-center justify-center rounded-lg border bg-white border-sky-500 text-sm text-sky-500 font-bold transition-opacity duration-200 ease-in-out hover:opacity-90"
+                                href="/search/investment-firms?page={{ pagination.current_page }}"
+                                >{{ pagination.current_page }}</a
+                            >
+                            {% else %}
+                            <a
+                                id="page"
+                                class="inline-flex size-10 items-center justify-center rounded-lg border text-sm font-medium bg-white"
+                                href="/search/investment-firms?page={{ page }}"
+                                >{{ page }}</a
+                            >
+                            <!-- prettier-ignore -->
+                            {% endif %} 
+                            {% endfor %} 
+                            {% if pagination.has_next %}
+                            <a
+                                id="next"
+                                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+                                href="/search/investment-firms?page={{ pagination.next }}"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                                    />
+                                </svg>
+                            </a>
+                            <a
+                                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+                                href="/search/investment-firms?page={{ pagination.last_page }}"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-4"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
+                                    />
+                                </svg>
+                            </a>
+                            {% endif %} {% endif %}
+                        </nav>
+                    </section>
+
+                    <!-- prettier-ignore -->
+                    {% import "components/notification_macros.html" as notification_macros %} 
+                    {{ notification_macros.render_notifications(notifications) }}
+                </main>
+            </div>
         </div>
-
-        <nav class="mt-10 flex w-full items-center justify-center gap-2">
-            <!-- prettier-ignore -->
-            {% if pagination and pagination.has_other_pages %} 
-            {% if pagination.has_prev %}
-            <a
-                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search/investment-firms?page=1"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-4"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
-                    />
-                </svg>
-            </a>
-            <!-- prettier-ignore -->
-            <a
-                id="prev"
-                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search/investment-firms?page={{ pagination.prev }}"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-5"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
-            </a>
-            <!-- prettier-ignore -->
-            {% endif %} 
-            {% for page in pagination.pages %} 
-            {% if page == pagination.current_page %}
-            <a
-                id="current"
-                class="inline-flex size-10 items-center justify-center rounded-lg border bg-white border-sky-500 text-sm text-sky-500 font-bold transition-opacity duration-200 ease-in-out hover:opacity-90"
-                href="/search/investment-firms?page={{ pagination.current_page }}"
-                >{{ pagination.current_page }}</a
-            >
-            {% else %}
-            <a
-                id="page"
-                class="inline-flex size-10 items-center justify-center rounded-lg border text-sm font-medium bg-white"
-                href="/search/investment-firms?page={{ page }}"
-                >{{ page }}</a
-            >
-            <!-- prettier-ignore -->
-            {% endif %} 
-            {% endfor %} 
-            {% if pagination.has_next %}
-            <a
-                id="next"
-                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search/investment-firms?page={{ pagination.next }}"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-5"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-            </a>
-            <a
-                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
-                href="/search/investment-firms?page={{ pagination.last_page }}"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-4"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
-                    />
-                </svg>
-            </a>
-            <!-- prettier-ignore -->
-            {% endif %} 
-            {% endif %}
-        </nav>
-    </section>
-
-    {% import "macros/notification_macros.html" as notification_macros %} {{
-    notification_macros.render_notifications(notifications) }}
-</main>
-{% endblock %}
+    </body>
+</html>

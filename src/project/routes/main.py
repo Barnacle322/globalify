@@ -34,6 +34,7 @@ from ..models import (
     UserPayment,
 )
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
+from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import Events, NotificationDestination, NotificationLayout, Status, StatusType
 from ..utils.errors.error_messages import (
@@ -133,19 +134,22 @@ def get_suggestions():
         access = False
 
     user_company = UserCompany.get_primary_by_user_id(current_user.id)
-
-    bookmarks = InvestorBookmark.get_id_list(current_user.id)
     if not user_company:
         notification = Notification(
             user=authenticated_user,
             json_data=NotificationLayout(
-                title="Error", msg="Please mark a company as primary to access suggestions."
-            ).get_json(),
+                title="Error",
+                msg="Please mark a company as primary to access suggestions.",
+                type="system",
+                item=NotificationItem(type="info", url=url_for("settings.company_list_view")),
+            ).model_dump(),
             destination=NotificationDestination.SEARCH,
         )
         db.session.add(notification)
         db.session.commit()
         return redirect(url_for("main.search"))
+
+    bookmarks = InvestorBookmark.get_id_list(current_user.id)
 
     company = Company.get_by_id(user_company.company_id)
 
@@ -179,19 +183,23 @@ def get_suggestion_investment_firms():
         access = False
 
     user_company = UserCompany.get_primary_by_user_id(current_user.id)
-
-    bookmarks = InvestorBookmark.get_id_list(current_user.id)
     if not user_company:
         notification = Notification(
             user=authenticated_user,
             json_data=NotificationLayout(
-                title="Error", msg="Please mark a company as primary to access suggestions."
-            ).get_json(),
+                title="Error",
+                msg="Please mark a company as primary to access suggestions.",
+                type="system",
+                item=NotificationItem(type="warning", url=url_for("settings.company_list_view")),
+            ).model_dump(),
             destination=NotificationDestination.SEARCH,
         )
         db.session.add(notification)
         db.session.commit()
+
         return redirect(url_for("main.search"))
+
+    bookmarks = InvestorBookmark.get_id_list(current_user.id)
 
     company = Company.get_by_id(user_company.company_id)
 
@@ -244,7 +252,6 @@ def search_companies():
     notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.SEARCH,
-        is_read=False,
     )
 
     search_string = request.args.get("search", "")
@@ -310,8 +317,7 @@ def search_companies():
 def search_investment_firms():
     notifications = Notification.get_unread(
         current_user.id,
-        NotificationDestination.SEARCH,
-        is_read=False,
+        NotificationDestination.SEARCH,     
     )
 
     search_string = request.args.get("search", "")
@@ -413,7 +419,6 @@ def search():
     notifications = Notification.get_unread(
         current_user.id,
         NotificationDestination.SEARCH,
-        is_read=False,
     )
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "db_id")
@@ -901,6 +906,71 @@ def update_notification(notification_id):
     notification.is_read = True
     db.session.commit()
 
+    return jsonify({"status": "success"}, 200)
+
+
+@main.get("/notifications")
+@login_required
+def get_notifications():
+    user_id = current_user.id
+
+    page = request.args.get("page", default=1, type=int)
+    limit = 10
+    offset = (page - 1) * limit
+
+    notifications = Notification.get_by_user_id(user_id=user_id, offset=offset, limit=limit)
+
+    notifications_dict = [notification.to_dict() for notification in notifications]
+
+    return jsonify({"notifications": notifications_dict})
+
+
+@main.get("/notifications/archived")
+@login_required
+def get_read_notifications():
+    user_id = current_user.id
+
+    page = request.args.get("page", default=1, type=int)
+    limit = 10
+    offset = (page - 1) * limit
+
+    notifications = Notification.get_by_user_id(user_id=user_id, offset=offset, limit=limit, get_read=True)
+
+    notifications_dict = [notification.to_dict() for notification in notifications]
+
+    return jsonify({"notifications": notifications_dict})
+
+
+@main.post("/notifications/mark-all-read")
+@login_required
+def mark_all_notifications_read():
+    user_id = current_user.id
+
+    Notification.mark_notifications_as_read(user_id=user_id)
+
+    return jsonify({"status": "success"}, 200)
+
+
+@main.post("/notification/mark-read/<int:notification_id>")
+@login_required
+def mark_notification_read(notification_id):
+    notification = Notification.get_by_id(int(notification_id))
+    if not notification:
+        return jsonify({"status": "error", "message": "Notification not found."}, 404)
+
+    if notification.user_id != current_user.id:
+        return jsonify({"status": "error", "message": "Not authorized."}, 401)
+
+    notification.is_read = True
+    db.session.commit()
+
+    item = notification.json_data.get("item")
+
+    if item:
+        url = item.get("url")
+
+    if url:
+        return redirect(url)
     return jsonify({"status": "success"}, 200)
 
 

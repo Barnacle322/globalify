@@ -97,3 +97,21 @@ def edit_claim_request(id):
     db.session.commit()
 
     return jsonify({"message": "Claim request updated"}), 200
+
+
+@admin.post("/create/notable-investment")
+@admin_only
+def create_notable_investment():
+    form_data = request.get_json()
+    name = form_data.get("name")
+
+    if not name:
+        status = Status(StatusType.ERROR, "Name and description are required").get_status()
+        return redirect(url_for("admin.investment_firm_view", _external=True, **status))
+
+    notable_investment = NotableInvestment(name=name)
+    db.session.add(notable_investment)
+    db.session.commit()
+
+    notable_investment_dict = {"name": notable_investment.name}
+    return jsonify({"notable_investment": notable_investment_dict}), 200

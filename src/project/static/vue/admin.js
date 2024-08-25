@@ -4,6 +4,7 @@ createApp({
         AsideMobileComponent,
         NavbarComponent,
         Bookmark,
+        CreateNotableInvestmentComponent,
     },
     watch: {
         asideMinified(value) {
@@ -17,6 +18,7 @@ createApp({
         return {
             asideExpanded: false,
             asideMinified: false,
+            createNotableInvestmentOpened: false,
             csrfToken: "",
             searchQuery: localStorage.getItem("searchQuery") || "",
             selectedRounds: [],
@@ -25,6 +27,7 @@ createApp({
             selectedIndustry: "",
             selectedNotableInvestment: "",
             userList: [],
+            notableInvestmentList: [],
             industryList: [],
             dataString: "",
             menus: [
@@ -248,6 +251,7 @@ createApp({
             const twitter = document.getElementById("twitter").value;
             const isPublicElement = document.getElementById("is_public");
             const is_public = isPublicElement ? isPublicElement.checked : true;
+            const notable_investment = document.getElementById("searchInput").value;
 
             const dataString = JSON.stringify({
                 name: name,
@@ -261,6 +265,7 @@ createApp({
                 linkedin: linkedin,
                 twitter: twitter,
                 is_public: is_public,
+                notable_investment: notable_investment,
             });
 
             try {
@@ -300,6 +305,10 @@ createApp({
         selectUser(email) {
             this.$refs.searchInput.value = email;
             this.userList = [];
+        },
+        selectNotableInvestment(notable_investment) {
+            this.$refs.searchInput.value = notable_investment;
+            this.notableInvestmentList = [];
         },
         selectIndustry(industry) {
             this.selectedIndustry = industry;
@@ -421,6 +430,51 @@ createApp({
                     notable_investment_list.children[i].classList.add("hidden");
                 }
             }
+        },
+        async fetchNotableInvestmentList(event) {
+            const searchInput = event.target.value.trim();
+
+            if (searchInput.length > 0) {
+                const response = await fetch(`/admin/companies/search_notable_investments/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.notableInvestmentList = data.notable_investments.length > 0 ? data.notable_investments : [];
+                }
+            } else {
+                this.notableInvestmentList = [...this.selectedNotableInvestments];
+            }
+        },
+        async fetchNotableInvestmentListByInvestorId(searchInput, investorId) {
+            searchInput = searchInput.trim();
+
+            if (searchInput.length > 0) {
+                const response = await fetch(
+                    `/admin/investors/search_notable_investments/${searchInput}/${investorId}`,
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    this.notableInvestmentList = data.notable_investments;
+                }
+            } else {
+                this.notableInvestmentList = [];
+            }
+        },
+        async fetchNotableInvestmentListByInvestmentFirmId(searchInput, investmentFirmId) {
+            searchInput = searchInput.trim();
+            if (searchInput.length > 0) {
+                const response = await fetch(
+                    `/admin/investment-firms/search_notable_investments/${searchInput}/${investmentFirmId}`,
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    this.notableInvestmentList = data.notable_investments;
+                }
+            } else {
+                this.notableInvestmentList = [];
+            }
+        },
+        addNotableInvestment(newNotableInvestment) {
+            this.notableInvestmentList.push(newNotableInvestment);
         },
     },
     mounted() {

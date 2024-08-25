@@ -1,4 +1,5 @@
 from flask import Blueprint, redirect, render_template, request, url_for
+from sqlalchemy import select
 
 from src.project.utils.errors.error_messages import (
     EMAIL_ALREADY_USED,
@@ -78,12 +79,11 @@ def update_investor_view(id):
         status_type = query.get("type")
         msg = query.get("msg")
 
-    investor = Investor.get_by_id(id)
+    investor = Investor.get_by_id_with_investments(id)
     if not investor:
         status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
-    notable_investments = NotableInvestment.get_all()
     rounds = Round.get_all()
     industries = Industry.get_all()
 
@@ -92,7 +92,6 @@ def update_investor_view(id):
         investor=investor,
         rounds=rounds,
         industries=industries,
-        notable_investments=notable_investments,
         status_type=status_type,
         msg=msg,
     )
@@ -459,3 +458,25 @@ def delete_investor(id):
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
     return redirect(url_for("admin.investor.index"), code=302)
+
+
+@investor.get("/search_notable_investments/<search_input>/<int:investor_id>")
+@admin_only
+def search_notable_investments(search_input, investor_id):
+    investor = Investor.get_by_id(investor_id)
+    if not investor:
+        return {"notable_investments": []}
+
+    excluded_notable_investment_ids = [ni.id for ni in investor.notable_investments]
+
+    notable_investments = (
+        db.session.execute(
+            select(NotableInvestment)
+            .where(NotableInvestment.name.contains(search_input))
+            .where(NotableInvestment.id.notin_(excluded_notable_investment_ids))
+        )
+        .scalars()
+        .all()
+    )
+
+    return {"notable_investments": [ni.to_dict() for ni in notable_investments]}

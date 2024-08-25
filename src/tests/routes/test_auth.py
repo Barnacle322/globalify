@@ -195,12 +195,13 @@ def test_onboarding_post_valid_data(client, app, unverified_incomplete_user, mon
         )
         assert b"Verify" in response.data
 
-        user = User.get_by_id(1)
+        user_info = UserInfo.get_by_user_id(1)
 
-        assert user.user_info.is_complete  # type: ignore
-        assert user.user_info.first_name == "John"  # type: ignore
-        assert user.user_info.last_name == "Doe"  # type: ignore
-        assert user.user_info.username == "johndoe"  # type: ignore
+        assert user_info
+        assert user_info.is_complete
+        assert user_info.first_name == "John"
+        assert user_info.last_name == "Doe"
+        assert user_info.username == "johndoe"
 
         company = Company.get_by_id(1)
         assert company is not None

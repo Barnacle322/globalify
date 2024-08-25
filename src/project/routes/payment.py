@@ -175,7 +175,7 @@ def create_checkout_session():
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    return redirect(checkout_session.url, code=303)  # type: ignore
+    return redirect(checkout_session.url if checkout_session.url else "/", code=303)
 
 
 @payment.post("/create-portal-session")
@@ -338,7 +338,7 @@ def invoice_paid(data_object):
     elif stripe_tier_price == "premium_yearly":
         user_payment.tier = Tier.PREMIUM_YEARLY
     try:
-        Notification.mark_notifications_as_read(user_payment.user.id, NotificationDestination.SEARCH)
+        Notification.mark_notifications_as_read(user_payment.user.id)
     except Exception as e:
         current_app.logger.warning(f"Could not mark notifications as read: {e}")
     db.session.commit()

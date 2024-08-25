@@ -132,9 +132,12 @@ def get_suggestions():
             user=authenticated_user,
             json_data=NotificationLayout(
                 title="Info",
-                msg="Please mark a company as primary to access suggestions.",
+                msg="It looks like you don't have a primary company set! Please set a primary company to access suggestions.",
                 type="system",
-                item=NotificationItem(type=NotificationType.INFO, url=url_for("settings.company_list_view")), # type: ignore
+                item=NotificationItem(
+                    type=NotificationType.INFO.value,
+                    url=url_for("settings.company_list_view"),
+                ),
             ).model_dump(),
             destination=NotificationDestination.SETTINGS,
         )
@@ -143,12 +146,8 @@ def get_suggestions():
         return redirect(url_for("settings.company_list_view"))
 
     bookmarks = InvestorBookmark.get_id_list(current_user.id)
-
     company = Company.get_by_id(user_company.company_id)
 
-    bookmarks = InvestorBookmark.get_id_list(current_user.id)
-
-    check_weights(WEIGHTS)
     suggested_investors = Investor.get_suggestions(company=company, quantity=15)
 
     return render_template(
@@ -183,7 +182,7 @@ def get_suggestion_investment_firms():
                 title="Error",
                 msg="Please mark a company as primary to access suggestions.",
                 type="system",
-                item=NotificationItem(type=NotificationType.WARNING, url=url_for("settings.company_list_view")), # type: ignore
+                item=NotificationItem(type=NotificationType.WARNING.value, url=url_for("settings.company_list_view")),
             ).model_dump(),
             destination=NotificationDestination.SEARCH,
         )
@@ -1007,7 +1006,7 @@ def privacy_policy():
 @main.route("/sitemap.xml")
 def sitemap():
     pages = []
-    ten_days_ago = (datetime.now() - timedelta(days=10)).date().isoformat()  # type: ignore
+    ten_days_ago = (datetime.now() - timedelta(days=10)).date().isoformat()
 
     # Add static pages
     for rule in current_app.url_map.iter_rules():

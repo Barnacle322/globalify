@@ -216,7 +216,7 @@ class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
     def sanitize(self):
         subscription = {
             "created": self.created,
-            "expires_at": self.expires_at.date(),  # type: ignore
+            "expires_at": self.expires_at.date() if self.expires_at else None,
             "is_active": self.is_active,
             "tier": self.tier,
             "subscription_id": self.subscription_id,
@@ -248,9 +248,9 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
             "is_read": self.is_read,
         }
 
-    @classmethod
-    def get_by_id(cls, id: int) -> Notification | None:
-        return db.session.scalar(db.select(cls).where(cls.id == id))
+    @staticmethod
+    def get_by_id(id: int) -> Notification | None:
+        return db.session.scalar(db.select(Notification).where(Notification.id == id))
 
     @staticmethod
     def get_by_user_id(
@@ -475,7 +475,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @coordinates.setter
     def coordinates(self, coordinates: str) -> None:
-        self._coordinates = suggestion.geocode_location(coordinates)["coordinates"]  # type: ignore
+        self._coordinates = suggestion.geocode_location(coordinates).get("coordinates")
 
     @validates("website_url")
     def validate_website(self, key, website):

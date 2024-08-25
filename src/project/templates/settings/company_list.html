@@ -459,6 +459,9 @@
                         {% endfor %}
                     </div>
                     {% endif %}
+                    <!-- prettier-ignore -->
+                    {% import "components/notification_macros.html" as notification_macros %} 
+                    {{ notification_macros.render_notifications(notifications) }}
                 </main>
             </div>
         </div>

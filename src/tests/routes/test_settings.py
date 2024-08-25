@@ -364,12 +364,12 @@ def test_verified_user_change_personal_info(client, app, verified_user, monkeypa
         assert b"Personal info successfully changed." in response.data
 
         # TODO Fix this
-        updated_user = User.get_by_id(1)
-        assert updated_user is not None
-        assert updated_user.user_info.first_name == "NewFirstName"  # type: ignore
-        assert updated_user.user_info.last_name == "NewLastName"  # type: ignore
-        assert updated_user.user_info.username == "newusername"  # type: ignore
-        assert updated_user.user_info.bio == "New bio"  # type: ignore
+        updated_user_info = UserInfo.get_by_user_id(1)
+        assert updated_user_info
+        assert updated_user_info.first_name == "NewFirstName"
+        assert updated_user_info.last_name == "NewLastName"
+        assert updated_user_info.username == "newusername"
+        assert updated_user_info.bio == "New bio"
 
 
 def test_verified_user_change_personal_info_empty_first_name(client, app, verified_user, monkeypatch):

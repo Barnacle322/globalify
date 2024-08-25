@@ -16,7 +16,6 @@ from ..models import (
     EmailVerification,
     Notification,
     User,
-    UserCompany,
     UserInfo,
     UserPayment,
 )
@@ -24,6 +23,7 @@ from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.enums import (
     Events,
     NotificationDestination,
+    NotificationType,
     OauthProvider,
     Status,
     StatusType,
@@ -70,7 +70,7 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
                     type="system",
                     item=NotificationItem(
                         url=url_for("settings.company_list_view"),
-                        type="info",
+                        type=NotificationType.INFO.value,
                     ),
                 ).model_dump(),
             )
@@ -80,7 +80,7 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
         db.session.commit()
         return user
 
-    if user.oauth_provider != oauth_provider:  # type: ignore
+    if user.oauth_provider != oauth_provider:
         raise Exception(OAUTH_MISMATCHED_PROVIDER)
 
     return user

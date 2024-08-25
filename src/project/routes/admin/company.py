@@ -15,6 +15,11 @@ from ...utils.enums import (
     Status,
     StatusType,
 )
+from ...utils.errors.error_messages import (
+    COMPANY_NOT_FOUND,
+    EMPTY_COMPANY_NAME,
+    PICTURE_NOT_LOADED,
+)
 from ...utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from ...utils.scraper import add_https_prefix
 
@@ -91,7 +96,7 @@ def update_company_view(id):
 
     company = Company.get_by_id(id)
     if not company:
-        status = Status(StatusType.ERROR, "Company not found").get_status()
+        status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("admin.company.index", _external=True, **status))
 
     rounds = Round.get_all()
@@ -116,12 +121,12 @@ def update_company(id):
 
     company = Company.get_by_id(id)
     if not company:
-        status = Status(StatusType.ERROR, "Company not found").get_status()
+        status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("admin.company.index", _external=True, **status))
 
     name = form_data.get("name", company.name)
     if not name:
-        status = Status(StatusType.ERROR, "Name cannot be empty!").get_status()
+        status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("admin.company.update_company_view", id=id, _external=True, **status))
 
     slug = form_data.get("slug", company.slug) or None
@@ -186,7 +191,7 @@ def update_company(id):
             company.picture_url = picture_url
         except Exception as e:
             print(e)
-            status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
+            status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
     company.name = name
@@ -258,7 +263,7 @@ def create_company():
 
     name = form_data.get("name")
     if not name:
-        status = Status(StatusType.ERROR, "Name cannot be empty!").get_status()
+        status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("admin.company.create_company_view", _external=True, **status))
 
     company = Company(name=name)
@@ -323,7 +328,7 @@ def create_company():
             company.picture_url = picture_url
         except Exception as e:
             print(e)
-            status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
+            status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
             return redirect(url_for("settings.create_company_view", _external=False, **status))
 
     company.country_id = form_data.get("country") or None
@@ -364,7 +369,7 @@ def delete_company(id):
     company = Company.get_by_id(id)
 
     if not company:
-        status = Status(StatusType.ERROR, "Company not found").get_status()
+        status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("admin.company.index", _external=True, **status))
 
     try:

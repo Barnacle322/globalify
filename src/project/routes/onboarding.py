@@ -17,6 +17,8 @@ from ..schemas.notification import NotificationLayout
 from ..utils.enums import (
     Events,
     NotificationDestination,
+    NotificationLayout,
+    OauthProvider,
 )
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
@@ -95,7 +97,10 @@ def basic():
         user_info.is_complete = True
         db.session.commit()
 
-        if not authenticated_user.is_verified:
+        if authenticated_user.oauth_provider == OauthProvider.GOOGLE:
+            authenticated_user.is_verified = True
+            db.session.commit()
+        elif not authenticated_user.is_verified:
             verification = EmailVerification(user_id=authenticated_user.id)
             db.session.add(verification)
             db.session.commit()

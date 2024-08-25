@@ -11,9 +11,13 @@ from ..extensions import csrf, db
 from ..models import Notification, User, UserInfo, UserPayment
 from ..utils.enums import Events, NotificationDestination, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
+    INVALID_TIER,
     ONBOARDING_INCOMPLETE,
     PAYMENT_EMAIL_USED,
     PAYMENT_NOT_FOUND,
+    SUBSCRIPTION_CANCELATION_ERROR,
+    SUBSCRIPTION_NOT_FOUND,
+    SUBSCRIPTION_WAITING_CANCELATION,
 )
 from ..utils.google_helpers import google_pubsub
 from .main import check_user_info_complete, check_verification
@@ -164,7 +168,7 @@ def create_checkout_session():
     tier = request.form.get("tier", "premium_monthly")
 
     if tier not in ["premium_monthly", "premium_yearly"]:
-        status = Status(StatusType.ERROR, "Invalid tier").get_status()
+        status = Status(StatusType.ERROR, INVALID_TIER).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
     try:
@@ -240,7 +244,7 @@ def subscription_update():
 
     subscription_id = authenticated_user.user_payment.subscription_id  # type: ignore
     if not subscription_id:
-        status = Status(StatusType.ERROR, "No active subscription found").get_status()
+        status = Status(StatusType.ERROR, SUBSCRIPTION_NOT_FOUND).get_status()
         return redirect(url_for("settings.plan", _external=False, **status))
 
     portal_session = stripe.billing_portal.Session.create(
@@ -281,7 +285,7 @@ def subscription_cancel():
 
     subscription_id = authenticated_user.user_payment.subscription_id  # type: ignore
     if not subscription_id:
-        status = Status(StatusType.ERROR, "No active subscription found").get_status()
+        status = Status(StatusType.ERROR, SUBSCRIPTION_NOT_FOUND).get_status()
         return redirect(url_for("settings.plan", _external=False, **status))
 
     try:
@@ -298,10 +302,10 @@ def subscription_cancel():
             },
         )
     except InvalidRequestError:
-        status = Status(StatusType.ERROR, "The subscription is already pending cancelation").get_status()
+        status = Status(StatusType.ERROR, SUBSCRIPTION_WAITING_CANCELATION).get_status()
         return redirect(url_for("settings.plan", _external=False, **status))
     except Exception:
-        status = Status(StatusType.ERROR, "Could not cancel subscription").get_status()
+        status = Status(StatusType.ERROR, SUBSCRIPTION_CANCELATION_ERROR).get_status()
         return redirect(url_for("settings.plan", _external=False, **status))
 
     return redirect(portal_session.url, code=303)

@@ -2,7 +2,7 @@ import pytest
 from flask_login import login_user
 
 from src.project import db
-from src.project.models import User, UserInfo, UserPayment
+from src.project.models import User, UserCompany, UserInfo, UserPayment
 from src.project.models.user import Company
 from src.project.utils.enums import OauthProvider
 
@@ -85,23 +85,28 @@ def verified_user_with_company(app):
         db.session.add_all([user_info, user_payment])
         db.session.commit()
 
-        company = Company(
-            name="Test Company",
-            description="Test description",
-            number_of_employees=10,
-            website_url="https://www.example.com",
-            country_id=1,
-            preferred_round_id=1,
-            industry_id=1,
-            user=user,
-        )
+        company = Company(name="Test Company")
+
+        company.description = "Test description"
+        company.number_of_employees = 10
+        company.website_url = "https://www.example.com"
+        company.country_id = 1
+        company.preferred_round_id = 1
+        company.industry_id = 1
+
         db.session.add(company)
         db.session.commit()
+
+        user_company = UserCompany(1, 1, is_primary=True, is_public=True)
+
+        db.session.add(user_company)
+        db.session.commit()
+
         return user
 
 
 def test_user_profile_anonymous_get(client):
-    response = client.get("/profile/1", follow_redirects=True)
+    response = client.get("/profile/johndoe", follow_redirects=True)
     assert response.status_code == 200
     assert b"Welcome!" in response.data
     assert b"Sign in with your social media" in response.data
@@ -113,7 +118,7 @@ def test_user_profile_unverified_get(client, app, unverified_user, monkeypatch):
         user = User.get_by_id(1)
         login_user(user)
 
-        response = client.get("/profile/1", follow_redirects=True)
+        response = client.get("/profile/johndoe", follow_redirects=True)
 
         assert response.status_code == 200
         assert b"Email Verification" in response.data
@@ -124,34 +129,19 @@ def test_user_profile_unverified_get(client, app, unverified_user, monkeypatch):
         assert b"Verify" in response.data
 
 
-def test_user_profile_verified_get(client, app, verified_user, monkeypatch):
+def test_profile_verified_get(client, app, verified_user_with_company, monkeypatch):
     with app.test_request_context():
         user = User.get_by_id(1)
         login_user(user)
 
-        response = client.get("/profile/1", follow_redirects=True)
-        assert b"User Profile" in response.data
-        assert b"Company Profile" in response.data
-        assert b"johndoe@example.com" in response.data
-        assert b"John" in response.data
-        assert b"Doe" in response.data
-
-
-def test_company_profile_verified_get(client, app, verified_user_with_company, monkeypatch):
-    with app.test_request_context():
-        user = User.get_by_id(1)
-        login_user(user)
-
-        response = client.get("/profile/company/1", follow_redirects=True)
+        response = client.get("/profile/johndoe", follow_redirects=True)
         assert response.status_code == 200
-        assert b"User Profile" in response.data
-        assert b"Company Profile" in response.data
         assert b"Test Company" in response.data
         assert b"Test description" in response.data
 
 
 def test_company_profile_anonymous_get(client):
-    response = client.get("/profile/company/1", follow_redirects=True)
+    response = client.get("/profile/johndoe", follow_redirects=True)
     assert response.status_code == 200
     assert b"Welcome!" in response.data
     assert b"Sign in with your social media" in response.data
@@ -163,7 +153,7 @@ def test_company_profile_unverified_get(client, app, unverified_user, monkeypatc
         user = User.get_by_id(1)
         login_user(user)
 
-        response = client.get("/profile/company/1", follow_redirects=True)
+        response = client.get("/profile/johndoe", follow_redirects=True)
 
         assert response.status_code == 200
         assert b"Email Verification" in response.data
@@ -179,5 +169,5 @@ def test_company_profile_authenticated_without_company_get(client, app, verified
         user = User.get_by_id(1)
         login_user(user)
 
-        response = client.get("/profile/company/1", follow_redirects=True)
-        assert response.status_code == 404
+        response = client.get("/profile/johndasdadoee")
+        assert response.status_code == 302

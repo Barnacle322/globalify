@@ -13,6 +13,7 @@ from ..models import (
     User,
     UserInfo,
 )
+from ..schemas.notification import NotificationLayout
 from ..utils.enums import (
     Events,
     NotificationDestination,
@@ -42,7 +43,6 @@ def basic():
     notifications = Notification.get_unread(
         user_id=authenticated_user.id,
         destination=NotificationDestination.ONBOARDING,
-        is_read=False,
     )
 
     next_url = request.args.get("next")
@@ -61,7 +61,7 @@ def basic():
         if not first_name or not last_name or not username:
             notification = Notification(
                 user=authenticated_user,
-                json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
+                json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).model_dump(),
                 destination=NotificationDestination.ONBOARDING,
             )
             db.session.add(notification)
@@ -71,7 +71,7 @@ def basic():
         if UserInfo.is_taken(username):
             notification = Notification(
                 user=authenticated_user,
-                json_data=NotificationLayout(title="Error!", msg=AUTH_USERNAME_USED).get_json(),
+                json_data=NotificationLayout(title="Error!", msg=AUTH_USERNAME_USED).model_dump(),
                 destination=NotificationDestination.ONBOARDING,
             )
             db.session.add(notification)
@@ -84,7 +84,7 @@ def basic():
                 json_data=NotificationLayout(
                     title="Incorrect format!",
                     msg="Username must be between 4 and 20 characters and can only contain letters and numbers",
-                ).get_json(),
+                ).model_dump(),
                 destination=NotificationDestination.ONBOARDING,
             )
             db.session.add(notification)
@@ -125,7 +125,6 @@ def investor():
     notifications = Notification.get_unread(
         user_id=authenticated_user.id,
         destination=NotificationDestination.ONBOARDING,
-        is_read=False,
     )
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)

@@ -20,11 +20,10 @@ from ..models import (
     UserInfo,
     UserPayment,
 )
+from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.enums import (
-    ButtonLayout,
     Events,
     NotificationDestination,
-    NotificationLayout,
     OauthProvider,
     Status,
     StatusType,
@@ -60,23 +59,21 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
         user = User(email=email, oauth_provider=oauth_provider)
 
         company_invitations = CompanyInvitation.get_by_email(email)
+
         if company_invitations:
-            for company_invitation in company_invitations:
-                user_company = UserCompany(
-                    user_id=user.id,
-                    company_id=company_invitation.company_id,
-                    role=company_invitation.role,
-                )
-                notification = Notification(
-                    user=user,
-                    json_data=NotificationLayout(
-                        title="You got invited to a company!",
-                        msg="Click here to accept the invitation.",
-                        buttons=[ButtonLayout(text="Accept", url=url_for("settings.company"))],
-                    ).get_json(),
-                    destination=NotificationDestination.ALL,
-                )
-                db.session.add_all((user_company, notification))
+            notification = Notification(
+                user=user,
+                json_data=NotificationLayout(
+                    title="You got invited to a company!",
+                    msg="Click here to accept the invitation.",
+                    type="system",
+                    item=NotificationItem(
+                        url=url_for("settings.company_list_view"),
+                        type="info",
+                    ),
+                ).model_dump(),
+            )
+            db.session.add(notification)
 
         db.session.add(user)
         db.session.commit()
@@ -129,7 +126,7 @@ def verify_email():
     if not email_verification or not user or user.id != authenticated_user.id:
         notification = Notification(
             user=authenticated_user,
-            json_data=NotificationLayout(title="Invalid code", msg="The code you have entered is invalid").get_json(),
+            json_data=NotificationLayout(title="Invalid code", msg="The code you have entered is invalid").model_dump(),
             destination=NotificationDestination.VERIFICATION,
         )
         db.session.add(notification)
@@ -177,7 +174,7 @@ def resend_verification_email(user_id):
                 user=authenticated_user,
                 json_data=NotificationLayout(
                     title="Hey! Slow down..", msg="You can only request a new code every minute."
-                ).get_json(),
+                ).model_dump(),
                 destination=NotificationDestination.VERIFICATION,
             )
             db.session.add(notification)
@@ -202,7 +199,7 @@ def resend_verification_email(user_id):
         json_data=NotificationLayout(
             title="Verification code sent!",
             msg="Please check your email for the new verification code. It may take a few minutes to arrive.",
-        ).get_json(),
+        ).model_dump(),
         destination=NotificationDestination.VERIFICATION,
     )
     db.session.add(notification)

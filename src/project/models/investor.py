@@ -145,12 +145,22 @@ class SuggestionBuilder:
 class NotableInvestment(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id"), nullable=True)
+
+    company: Mapped[Company | None] = relationship(Company, backref=backref("notable_investment", uselist=False))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def __repr__(self):
         return f"<NotableInvestment {self.name}>"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "company_id": self.company_id,
+        }
 
     @staticmethod
     def get_all() -> Sequence[NotableInvestment]:
@@ -163,6 +173,10 @@ class NotableInvestment(db.Model):
     @staticmethod
     def get_by_name(name: str) -> NotableInvestment | None:
         return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.name == name))
+
+    @staticmethod
+    def get_by_names(names: list[str]) -> Sequence[NotableInvestment]:
+        return db.session.scalars(db.select(NotableInvestment).where(NotableInvestment.name.in_(names))).all()
 
     @staticmethod
     def get_by_id_list(id_list) -> Sequence[NotableInvestment]:
@@ -455,6 +469,12 @@ class Investor(InvestorBase):
     @staticmethod
     def get_by_id(id: int) -> Investor | None:
         return db.session.scalar(db.select(Investor).where(Investor.id == id))
+
+    @staticmethod
+    def get_by_id_with_investments(id: int) -> Investor | None:
+        return db.session.scalar(
+            db.select(Investor).options(joinedload(Investor.notable_investments)).where(Investor.id == id)
+        )
 
     @staticmethod
     def get_by_id_list(ids: list[int]) -> Sequence[Investor] | None:
@@ -1176,6 +1196,12 @@ class InvestmentFirm(db.Model):
     @staticmethod
     def get_by_id(id: int) -> InvestmentFirm | None:
         return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.id == id))
+
+    @staticmethod
+    def get_by_id_with_investments(id: int) -> InvestmentFirm | None:
+        return db.session.scalar(
+            db.select(InvestmentFirm).options(joinedload(InvestmentFirm.notable_investments)).where(InvestmentFirm.id == id)
+        )
 
     @staticmethod
     def get_by_email(email: str) -> InvestmentFirm | None:

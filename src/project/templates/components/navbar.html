@@ -6,6 +6,8 @@
 {{ aside_mobile.render(user) }}
 {% import "components/bookmark.html" as bookmark %} 
 {{ bookmark.render(user) }}
+{% import "components/notifications.html" as notifications %} 
+{{ notifications.render() }}
 
 <template id="navbar-template">
     <header class="sticky top-0 z-20 w-full bg-white">
@@ -51,13 +53,49 @@
                     <div class="flex items-center justify-center gap-2">
                         <div class="relative">
                             <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
+                                <notification-component
+                                    v-if="notificationsOpened"
+                                    ref="notifications"
+                                    @all-notifications-read="handleAllNotificationsRead"
+                                    @closenotifications="notificationsOpened = false"
+                                ></notification-component>
+                            </transition>
+                            <button
+                                @click="notificationsOpened ? closeNotifications() : openNotifications()"
+                                class="flex"
+                            >
+                                <div class="relative inline-block">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="size-6"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
+                                        />
+                                    </svg>
+                                    <span v-if="unreadNotifications" class="absolute right-0 top-0 flex size-2">
+                                        <span
+                                            class="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75"
+                                        ></span>
+                                        <span class="relative inline-flex size-2 rounded-full bg-sky-500"></span>
+                                    </span>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
                                 <bookmark
                                     v-if="bookmarksOpened"
                                     ref="bookmark"
                                     @closebookmarks="bookmarksOpened = false"
                                 ></bookmark>
                             </transition>
-
                             <button @click="bookmarksOpened ? closeBookmark() : openBookmark()" class="flex">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"

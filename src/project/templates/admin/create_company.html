@@ -53,6 +53,8 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
+    {% import "components/create_notable_investment.html" as createNotableInvestment %}
+    {{ createNotableInvestment.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -71,6 +73,19 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div
+                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    v-if="createNotableInvestmentOpened"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <create-notable-investment-component
+                    v-if="createNotableInvestmentOpened"
+                    @close-create-notable-investment-modal="createNotableInvestmentOpened = false"
+                    @notable-investment-created="addNotableInvestment"
+                ></create-notable-investment-component
+            ></transition>
 
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
@@ -194,6 +209,37 @@
                                 </optgroup>
                                 {% endfor %}
                             </select>
+                        </div>
+                    </div>
+                    <div class="relative col-span-full">
+                        <label class="text-sm font-medium text-gray-700">Notable Investment</label>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            ref="searchInput"
+                            placeholder="Search investments..."
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            @input="fetchNotableInvestmentList"
+                        />
+                        <div
+                            id="notableInvestmentList"
+                            v-show="notableInvestmentList.length > 0"
+                            class="flex max-h-60 w-full origin-top-right flex-col overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
+                        >
+                            <button
+                                v-if="notableInvestmentList.length > 0"
+                                class="rounded-lg bg-sky-500 px-4 py-2 text-sm text-white hover:bg-sky-600"
+                                @click="createNotableInvestmentOpened = true"
+                            >
+                                Create Notable Investment
+                            </button>
+                            <p
+                                v-for="(notableInvestment, index) in notableInvestmentList"
+                                :key="index"
+                                class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
+                                @click="selectNotableInvestment(notableInvestment)"
+                                v-text="notableInvestment.name"
+                            ></p>
                         </div>
                     </div>
                     <div class="col-span-full">

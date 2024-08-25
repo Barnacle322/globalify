@@ -53,6 +53,8 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
+    {% import "components/create_notable_investment.html" as createNotableInvestment %}
+    {{ createNotableInvestment.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -71,6 +73,19 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div
+                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    v-if="createNotableInvestmentOpened"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <create-notable-investment-component
+                    v-if="createNotableInvestmentOpened"
+                    @close-create-notable-investment-modal="createNotableInvestmentOpened = false"
+                    @notable-investment-created="addNotableInvestment"
+                ></create-notable-investment-component
+            ></transition>
 
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
@@ -317,7 +332,7 @@
                             Notable Investments
                         </button>
                         <div
-                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                            class="pointer-events-none absolute left-0 z-49 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                             id="notable-investment-options-menu"
                             role="menu"
                             aria-orientation="vertical"
@@ -329,9 +344,16 @@
                                 placeholder="Search notable investments..."
                                 class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
                                 v-model="selectedNotableInvestment"
-                                @input="getNotableInvestmentList(selectedNotableInvestment)"
+                                @input="event => fetchNotableInvestmentListByInvestmentFirmId(event.target.value, {{ investment_firm.id }})"
                             />
-                            <div class="py-1" role="none" ref="notableInvestmentListElement">
+                            <div role="none" ref="notableInvestmentListElement">
+                                <button
+                                    v-if="notableInvestmentList.length > 0"
+                                    class="rounded-lg bg-sky-500 px-4 py-2 text-sm text-white hover:bg-sky-600 w-full"
+                                    @click="createNotableInvestmentOpened = true"
+                                >
+                                    Create Notable Investment
+                                </button>
                                 {% for notable_investment in investment_firm.notable_investments %}
                                 <label
                                     class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -346,20 +368,21 @@
                                     />
                                     {{ notable_investment.name }}
                                 </label>
-                                {% endfor %} {% for notable_investment in notable_investments %} {% if
-                                notable_investment not in investment_firm.notable_investments %}
+                                {% endfor %}
                                 <label
                                     class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
+                                    v-for="(notableInvestment, index) in notableInvestmentList"
+                                    :key="index"
                                 >
                                     <input
                                         type="checkbox"
                                         name="selected_notable_investments"
-                                        value="{{ notable_investment.id }}"
+                                        :value="notableInvestment.id"
                                         class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
                                     />
-                                    <span>{{ notable_investment.name }} </span> </label
-                                >{% endif %}{% endfor %}
+                                    <span v-text="notableInvestment.name"></span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -383,7 +406,7 @@
                             placeholder="5"
                         />
                     </div>
-                    <div class="relative col-span-full">
+                    <div class="col-span-full">
                         <label class="text-sm font-medium text-gray-700" for="n_employees">№ Employees</label>
                         <input
                             class="w-full rounded-lg bg-transparent bg-white"

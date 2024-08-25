@@ -42,8 +42,7 @@ def index():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    investor = Investor.get_by_user_id(current_user.id)
-    notable_investments = NotableInvestment.get_all()
+    investor = Investor.get_by_id_with_investments(current_user.id)
     rounds = Round.get_all()
     industries = Industry.get_all()
 
@@ -55,7 +54,6 @@ def index():
         investor=investor,
         rounds=rounds,
         industries=industries,
-        notable_investments=notable_investments,
         status_type=status_type,
         msg=msg,
     )

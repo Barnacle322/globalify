@@ -4,8 +4,6 @@ from flask import Blueprint, jsonify, redirect, render_template, request, url_fo
 from flask_login import current_user
 from sqlalchemy import select
 
-from src.project.utils.errors.error_messages import INVALID_CLAIM_REQUEST, INVESTOR_NOT_FOUND, NO_CLAIM_REQUEST
-
 from ...extensions import db
 from ...models import (
     ClaimRequest,
@@ -19,6 +17,11 @@ from ...utils.enums import (
     RequestStatus,
     Status,
     StatusType,
+)
+from ...utils.errors.error_messages import (
+    INVALID_CLAIM_REQUEST,
+    INVESTOR_NOT_FOUND,
+    NO_CLAIM_REQUEST,
 )
 from .company import company as company_blueprint
 from .investment_firm import investment_firm as investment_firm_blueprint

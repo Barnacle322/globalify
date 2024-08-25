@@ -3,8 +3,6 @@ import re
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, logout_user
 
-from src.project.models.user import Notification
-
 from ..extensions import db
 from ..models import (
     Company,
@@ -15,6 +13,7 @@ from ..models import (
     InvestorBackup,
     InvestorOriginPoint,
     NotableInvestment,
+    Notification,
     Round,
     User,
     UserCompany,
@@ -718,7 +717,7 @@ def invite_user(company_id):
 def accept_invitation(company_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
     company_invitation = CompanyInvitation.get_by_company_id_and_email(
-        company_id=company_id   , email=authenticated_user.email
+        company_id=company_id, email=authenticated_user.email
     )
     if not company_invitation:
         status = Status(StatusType.ERROR, INVITATION_NOT_FOUND).get_status()
@@ -844,7 +843,7 @@ def change_company_role(user_id):
     user_company.role = CompanyRole(role)
     db.session.commit()
 
-    status = Status(StatusType.SUCCESS, "Member's role has been modified!").get_status() 
+    status = Status(StatusType.SUCCESS, "Member's role has been modified!").get_status()
     return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
 

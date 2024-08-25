@@ -137,7 +137,7 @@ def verify_email():
     if email_verification.is_expired:
         notification = Notification(
             user=authenticated_user,
-            json_data=NotificationLayout(title="Code expired", msg="The code has already expired!").get_json(),
+            json_data=NotificationLayout(title="Code expired", msg="The code has already expired!").model_dump(),
             destination=NotificationDestination.VERIFICATION,
         )
         db.session.add(notification)
@@ -159,9 +159,7 @@ def resend_verification_email(user_id):
     user = User.get_by_id(user_id)
 
     if not user or user.id != authenticated_user.id:
-        status = Status(
-            StatusType.ERROR, ACCOUNT_NOT_FOUND
-        ).get_status()
+        status = Status(StatusType.ERROR, ACCOUNT_NOT_FOUND).get_status()
         return redirect(url_for("auth.login", _external=False, **status))
 
     if user.is_verified:

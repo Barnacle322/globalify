@@ -17,7 +17,6 @@ from ..schemas.notification import NotificationLayout
 from ..utils.enums import (
     Events,
     NotificationDestination,
-    NotificationLayout,
     OauthProvider,
 )
 from ..utils.errors.error_messages import (

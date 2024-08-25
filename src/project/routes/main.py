@@ -36,7 +36,7 @@ from ..models import (
 from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
 from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.decorators import check_user_info_complete, check_verification
-from ..utils.enums import Events, NotificationDestination, NotificationLayout, Status, StatusType
+from ..utils.enums import Events, NotificationDestination, NotificationType, Status, StatusType
 from ..utils.errors.error_messages import (
     CLAIM_REQUEST_ALREADY_SUBMITTED,
     EXPIRED_CODE,

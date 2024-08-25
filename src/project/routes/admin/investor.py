@@ -1,13 +1,6 @@
 from flask import Blueprint, redirect, render_template, request, url_for
 from sqlalchemy import select
 
-from src.project.utils.errors.error_messages import (
-    EMAIL_ALREADY_USED,
-    EMPTY_FIRSTNAME,
-    INVESTOR_BACKUP_NOT_FOUND,
-    INVESTOR_NOT_FOUND,
-)
-
 from ...extensions import db
 from ...models import (
     Industry,
@@ -23,6 +16,12 @@ from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
     StatusType,
+)
+from ...utils.errors.error_messages import (
+    EMAIL_ALREADY_USED,
+    EMPTY_FIRSTNAME,
+    INVESTOR_BACKUP_NOT_FOUND,
+    INVESTOR_NOT_FOUND,
 )
 
 investor = Blueprint("investor", __name__)

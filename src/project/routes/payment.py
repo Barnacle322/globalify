@@ -9,7 +9,7 @@ from stripe import InvalidRequestError, SignatureVerificationError
 
 from ..extensions import csrf, db
 from ..models import Notification, User, UserInfo, UserPayment
-from ..utils.enums import Events, NotificationDestination, Status, StatusType, Tier
+from ..utils.enums import Events, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
     INVALID_TIER,
     ONBOARDING_INCOMPLETE,

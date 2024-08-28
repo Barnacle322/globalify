@@ -365,7 +365,7 @@ def create_investor():
     max_investment = int(form_data.get("max_investment") or 0)
 
     selected_round_ids = form_data.get("rounds") or []
-    selected_industry_ids = form_data.get("industries") or [""]
+    selected_industry_ids = form_data.get("industries") or []
     selected_notable_investment_ids = form_data.get("notable_investments") or []
 
     website = form_data.get("website") or None

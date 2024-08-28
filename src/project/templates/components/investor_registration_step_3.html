@@ -1,0 +1,70 @@
+{% macro render() %}
+<template id="third-step-registration-template">
+    <div class="mx-auto flex w-full max-w-xl flex-col gap-9">
+        <div class="flex flex-col gap-2">
+            <h1 class="text-4xl">Step 3 of 3: Contact info</h1>
+            <span class="">Your goals and past experience can help unlock accessto investment opportunities</span>
+        </div>
+        <div class="grid grid-cols-6 gap-x-2 gap-y-1">
+            <div class="col-span-full">
+                <label class="text-sm font-medium text-gray-700" for="website">Website</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="website"
+                    placeholder="https://www.acme.com"
+                    v-model="website"
+                />
+            </div>
+            <div class="col-span-full">
+                <label class="text-sm font-medium text-gray-700" for="linkedin">Linkedin</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="linkedin"
+                    placeholder="https://www.linkedin.com/in/johndoe"
+                    v-model="linkedin"
+                />
+            </div>
+            <div class="col-span-full">
+                <label class="text-sm font-medium text-gray-700" for="twitter">Twitter</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="twitter"
+                    placeholder="https://twitter.com/johndoe"
+                    v-model="twitter"
+                />
+            </div>
+            <div class="col-span-full sm:col-span-3">
+                <label class="text-sm font-medium text-gray-700" for="email">Email</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="email"
+                    placeholder="johndoe@gmail.com"
+                    v-model="email"
+                />
+            </div>
+            <div class="col-span-full sm:col-span-3">
+                <label class="text-sm font-medium text-gray-700" for="phone_number">Phone Number</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="phone_number"
+                    placeholder="+1 123 456 7890"
+                    v-model="phoneNumber"
+                />
+            </div>
+        </div>
+        <div class="flex justify-between">
+            <button class="bg-gray-300 text-black rounded-md w-fit px-3 py-2 mt-4" @click="goToPreviousPage">
+                Back
+            </button>
+            <button class="bg-gray-500 text-white rounded-md w-fit px-3 py-2 mt-4" @click="submitRegistrationData">
+                Continue
+            </button>
+        </div>
+    </div>
+</template>
+{% endmacro %}

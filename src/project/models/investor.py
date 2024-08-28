@@ -64,7 +64,7 @@ class SuggestionBuilder:
 
             # Calculate location score
             try:
-                if self.company.coordinates and investor["coordinates"]:  # type: ignore
+                if self.company and self.company.coordinates and investor["coordinates"]:
                     distance = float(geodesic(self.company.coordinates, investor["coordinates"]).kilometers)  # type: ignore
                     location_score = 1 - (distance / 20038)
                 else:
@@ -1200,7 +1200,9 @@ class InvestmentFirm(db.Model):
     @staticmethod
     def get_by_id_with_investments(id: int) -> InvestmentFirm | None:
         return db.session.scalar(
-            db.select(InvestmentFirm).options(joinedload(InvestmentFirm.notable_investments)).where(InvestmentFirm.id == id)
+            db.select(InvestmentFirm)
+            .options(joinedload(InvestmentFirm.notable_investments))
+            .where(InvestmentFirm.id == id)
         )
 
     @staticmethod

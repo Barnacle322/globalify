@@ -1,42 +1,33 @@
-<!-- prettier-ignore -->
-{% extends "layouts/layout_clean.html" %} {% block additional_scripts%}
+{% extends "layouts/layout_clean.html" %} {% block additional_scripts %}
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="/static/vue/investorOnboarding.js" defer></script>
-<!-- prettier-ignore -->
-{% endblock %} 
-{% block title %}Onboarding{% endblock %} 
-{% block head %}
-{% import "components/investor_registration.html" as investor_registration %} 
-{{ investor_registration.render() }}
-{% import "components/investor_registration_step_1.html" as first %} 
-{{ first.render() }}
-{% import "components/investor_registration_step_2.html" as second %} 
-{{ second.render(industries, rounds) }}
-{% import "components/investor_registration_step_3.html" as third %} 
-{{ third.render() }}
-{{ super() }} {% endblock %} 
-{% block content %}
+{% endblock %} {% block title %}Onboarding{% endblock %} {% block head %} {% import
+"components/investor_registration.html" as investor_registration %} {{ investor_registration.render() }} {% import
+"components/investor_registration_step_1.html" as first %} {{ first.render() }} {% import
+"components/investor_registration_step_2.html" as second %} {{ second.render(industries, rounds) }} {% import
+"components/investor_registration_step_3.html" as third %} {{ third.render() }} {{ super() }} {% endblock %} {% block
+content %}
 
 <main class="mx-auto flex h-full max-w-7xl flex-col items-center justify-center overflow-x-hidden p-6">
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
 
-    <transition enter-active-class="slide-left">
+    <transition enter-active-class="slide-fade-in-left" leave-active-class="slide-fade-out-left">
         <investor-registration-component
-            v-if="currentPage === 1"
+            v-show="currentPage === 1"
             @change-page="changePage"
         ></investor-registration-component>
     </transition>
 
-    <transition enter-active-class="slide-left">
-        <first-page-component v-if="currentPage === 2" @change-page="changePage"></first-page-component>
+    <transition enter-active-class="slide-fade-in-left" leave-active-class="slide-fade-out-left">
+        <first-page-component v-show="currentPage === 2" @change-page="changePage"></first-page-component>
     </transition>
 
-    <transition enter-active-class="slide-left">
-        <second-page-component v-if="currentPage === 3" @change-page="changePage"></second-page-component>
+    <transition enter-active-class="slide-fade-in-left" leave-active-class="slide-fade-out-left">
+        <second-page-component v-show="currentPage === 3" @change-page="changePage"></second-page-component>
     </transition>
 
-    <transition enter-active-class="slide-left">
-        <third-page-component v-if="currentPage === 4" @change-page="changePage"></third-page-component>
+    <transition enter-active-class="slide-fade-in-left" leave-active-class="slide-fade-out-left">
+        <third-page-component v-show="currentPage === 4" @change-page="changePage"></third-page-component>
     </transition>
 </main>
 

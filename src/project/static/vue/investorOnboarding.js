@@ -6,7 +6,7 @@ const InvestorRegistrationComponent = defineComponent({
     template: "#investor-registration-template",
     methods: {
         openRegistrationPage() {
-            this.$emit("change-page", 2);
+            this.$emit("change-page", 1);
         },
     },
 });
@@ -24,9 +24,9 @@ const FirstPageComponent = defineComponent({
         };
     },
     methods: {
-        openSecondPage() {
+        openNextPage() {
             this.saveFirstStepData();
-            this.$emit("change-page", 3);
+            this.$emit("change-page", 1);
         },
         saveFirstStepData() {
             const formData = {
@@ -78,12 +78,12 @@ const SecondPageComponent = defineComponent({
         };
     },
     methods: {
-        openThirdPage() {
+        openNextPage() {
             this.saveSecondStepData();
-            this.$emit("change-page", 4);
+            this.$emit("change-page", 1);
         },
         goToPreviousPage() {
-            this.$emit("change-page", 2);
+            this.$emit("change-page", -1);
         },
         saveSecondStepData() {
             const formData = {
@@ -148,15 +148,10 @@ const SecondPageComponent = defineComponent({
         async fetchNotableInvestmentList(event) {
             const searchInput = event.target.value.trim();
 
-            console.log(searchInput);
-
             if (searchInput.length > 0) {
                 const response = await fetch(`/admin/companies/search_notable_investments/${searchInput}`);
-                const data = await response.json();
-                console.log(data);
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(data);
                     this.notableInvestmentList = data.notable_investments.length > 0 ? data.notable_investments : [];
                 } else {
                     console.log("Error fetching notable investments");
@@ -185,7 +180,7 @@ const ThirdPageComponent = defineComponent({
     },
     methods: {
         goToPreviousPage() {
-            this.$emit("change-page", 3);
+            this.$emit("change-page", -1);
         },
         saveThirdStepData() {
             const formData = {
@@ -208,8 +203,8 @@ const ThirdPageComponent = defineComponent({
             }
         },
         async submitRegistrationData() {
-            const csrfToken = document.getElementById("csrf_token").value;
             this.saveThirdStepData();
+            const csrfToken = document.getElementById("csrf_token").value;
             const firstStepData = JSON.parse(localStorage.getItem("firstStepData"));
             const secondStepData = JSON.parse(localStorage.getItem("secondStepData"));
             const thirdStepData = JSON.parse(localStorage.getItem("thirdStepData"));
@@ -252,22 +247,13 @@ createApp({
 
     data() {
         return {
-            currentPage: 1,
+            currentPage: parseInt(localStorage.getItem("currentPage")) || 1,
         };
     },
     methods: {
         changePage(pageNumber) {
-            this.currentPage = pageNumber;
+            this.currentPage = this.currentPage + pageNumber;
+            localStorage.setItem("currentPage", this.currentPage);
         },
-    },
-    mounted() {
-        console.log("Investor onboarding component mounted");
-        console.log(this.secondPageOpened);
-    },
-    created() {
-        console.log("Investor onboarding component created");
-    },
-    watch() {
-        console.log("Investor onboarding component watch");
     },
 }).mount("#app");

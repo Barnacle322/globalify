@@ -878,7 +878,7 @@
                                     <input
                                         class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
-                                        id="linkedin"
+                                        id="investor_linkedin"
                                         value="{{ investor.linkedin if investor.linkedin else '' }}"
                                         placeholder="https://linkedin.com/in/username"
                                     />
@@ -888,7 +888,7 @@
                                     <input
                                         class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
-                                        id="twitter"
+                                        id="investor_twitter"
                                         value="{{ investor.twitter if investor.twitter else '' }}"
                                         placeholder="https://twitter.com/username"
                                     />
@@ -898,7 +898,7 @@
                                     <input
                                         class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
-                                        id="email"
+                                        id="investor_email"
                                         value="{{ investor.email if investor.email else ''}}"
                                         placeholder="example@mail.com"
                                     />
@@ -929,7 +929,7 @@
                                 >
                                 <button
                                     id="saveButton"
-                                    @click="updateInvestor()"
+                                    @click="updateInvestor"
                                     class="h-full w-fit rounded-md bg-sky-500 px-3 py-2 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
                                 >
                                     Save

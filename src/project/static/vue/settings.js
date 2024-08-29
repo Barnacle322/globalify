@@ -482,9 +482,9 @@ createApp({
             const position = document.getElementById("position").value;
             const about = document.getElementById("about").value;
             const website = document.getElementById("website").value;
-            const linkedin = document.getElementById("linkedin").value;
-            const twitter = document.getElementById("twitter").value;
-            const email = document.getElementById("email").value;
+            const linkedin = document.getElementById("investor_linkedin").value;
+            const twitter = document.getElementById("investor_twitter").value;
+            const email = document.getElementById("investor_email").value;
             const phone_number = document.getElementById("phone_number").value;
             const n_investments = document.getElementById("n_investments").value;
             const n_exits = document.getElementById("n_exits").value;
@@ -501,7 +501,6 @@ createApp({
             const selectedNotableInvestments = Array.from(
                 document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
-            const notable_investment = document.getElementById("searchInput").value;
 
             const dataString = JSON.stringify({
                 first_name: first_name,
@@ -530,8 +529,10 @@ createApp({
             const csrfToken = document.getElementById("csrf_token").value;
             const dataString = this.getValues();
 
+            console.log(dataString);
+
             try {
-                const response = await fetch("/investor", {
+                const response = await fetch("/settings/investor", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

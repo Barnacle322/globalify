@@ -477,6 +477,12 @@ class Investor(InvestorBase):
         )
 
     @staticmethod
+    def get_by_user_id_with_investments(user_id: int) -> Investor | None:
+        return db.session.scalar(
+            db.select(Investor).options(joinedload(Investor.notable_investments)).where(Investor.user_id == user_id)
+        )
+
+    @staticmethod
     def get_by_id_list(ids: list[int]) -> Sequence[Investor] | None:
         return (
             db.session.scalars(

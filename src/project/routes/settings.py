@@ -68,7 +68,7 @@ def index():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    investor = Investor.get_by_id_with_investments(current_user.id)
+    investor = Investor.get_by_user_id_with_investments(current_user.id)
     rounds = Round.get_all()
     industries = Industry.get_all()
 
@@ -927,6 +927,7 @@ def make_company_public(company_id):
 @check_verification
 def edit_investor():
     investor = Investor.get_by_user_id(current_user.id)
+
     if not investor:
         return jsonify({"status": "error", "message": "Investor not found."}, 404)
 
@@ -956,18 +957,21 @@ def edit_investor():
     email = form_data.get("email") or None
     phone_number = form_data.get("phone_number") or None
 
+    print("\n\n\n\n\n\n\n\n\n\n")
+    print(linkedin)
+
     selected_rounds = list(Round.get_by_id_list(selected_round_ids))
     selected_industries = list(Industry.get_by_id_list(selected_industry_ids))
     selected_notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
 
-    existing_email = User.get_by_email(email) if email else None
-    if existing_email and existing_email.id != investor.user_id:
-        status = Status(StatusType.ERROR, EMAIL_ALREADY_USED).get_status()
-        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+    # existing_email = User.get_by_email(email) if email else None
+    # if existing_email and existing_email.id != investor.user_id:
+    #     status = Status(StatusType.ERROR, EMAIL_ALREADY_USED).get_status()
+    #     return redirect(url_for("settings.index", _external=True, **status))
 
     if not first_name:
         status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
-        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+        return redirect(url_for("settings.index", _external=True, **status))
 
     investor.first_name = first_name
     investor.last_name = last_name
@@ -1012,12 +1016,23 @@ def edit_investor():
         investor_backup.notable_investments = selected_notable_investments
         db.session.add(investor_backup)
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
 
-    investor.upsert_data()
+    print("\n\n\n\n\n\n\n\n\n\n")
+    print(investor.linkedin)
+
+    try:
+        investor.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investor updated.").get_status()
-    return redirect(url_for("settings.edit_investor_view", _external=False, **status))
+    return redirect(url_for("settings.index", _external=False, **status))
 
 
 @settings.get("/investor/point-origin")

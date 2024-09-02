@@ -1,6 +1,8 @@
-{% macro render() %}
+{% macro render(user) %}
 <template id="third-step-registration-template">
     <div class="mx-auto flex w-full max-w-xl flex-col gap-9 fixed">
+        <input type="hidden" ref="userEmail" value="{{ user.email }}" />
+
         <div class="flex flex-col gap-2">
             <h1 class="text-4xl">Step 3 of 3: Contact info</h1>
             <span class="">Your goals and past experience can help unlock accessto investment opportunities</span>
@@ -25,6 +27,7 @@
                     placeholder="https://www.linkedin.com/in/johndoe"
                     v-model="linkedin"
                 />
+                <span v-if="errors.linkedin" class="text-sm text-red-500" v-text="errors.linkedin"></span>
             </div>
             <div class="col-span-full">
                 <label class="text-sm font-medium text-gray-700" for="twitter">Twitter</label>
@@ -35,6 +38,7 @@
                     placeholder="https://twitter.com/johndoe"
                     v-model="twitter"
                 />
+                <span v-if="errors.twitter" class="text-sm text-red-500" v-text="errors.twitter"></span>
             </div>
             <div class="col-span-full sm:col-span-3">
                 <label class="text-sm font-medium text-gray-700" for="email">Email</label>
@@ -45,6 +49,7 @@
                     placeholder="johndoe@gmail.com"
                     v-model="email"
                 />
+                <span v-if="errors.email" class="text-sm text-red-500" v-text="errors.email"></span>
             </div>
             <div class="col-span-full sm:col-span-3">
                 <label class="text-sm font-medium text-gray-700" for="phone_number">Phone Number</label>

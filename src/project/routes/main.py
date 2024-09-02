@@ -412,6 +412,8 @@ def search_investment_firms():
 @check_user_info_complete
 @check_verification
 def search():
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    print(request.args.get("next"))
     if next_url := request.args.get("next"):
         return redirect(next_url)
 

@@ -189,7 +189,7 @@
                     type="number"
                     id="n_investments"
                     placeholder="14"
-                    v-model="nInvestments"
+                    v-model.number="nInvestments"
                 />
             </div>
             <div class="col-span-full sm:col-span-3">
@@ -199,7 +199,7 @@
                     type="number"
                     id="n_exits"
                     placeholder="5"
-                    v-model="nExits"
+                    v-model.number="nExits"
                 />
             </div>
             <div class="col-span-full sm:col-span-3">
@@ -209,7 +209,7 @@
                     type="number"
                     id="min_investment"
                     placeholder="10000"
-                    v-model="minInvestment"
+                    v-model.number="minInvestment"
                 />
             </div>
             <div class="col-span-full sm:col-span-3">
@@ -219,7 +219,7 @@
                     type="number"
                     id="max_investment"
                     placeholder="1000000"
-                    v-model="maxInvestment"
+                    v-model.number="maxInvestment"
                 />
             </div>
         </div>

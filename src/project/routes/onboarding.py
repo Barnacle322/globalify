@@ -1,10 +1,11 @@
 import re
 
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import (
     current_user,
     login_required,
 )
+from sqlalchemy import select
 
 from ..extensions import db
 from ..models import (
@@ -134,15 +135,18 @@ def investor():
     countries = Country.get_all()
     industries = Industry.get_all()
 
-    print("\n\n\n\n\n\n\n\n\n\n\n\n")
-    print(industries)
-
     rounds = Round.get_all()
-    notable_investments = NotableInvestment.get_all()
+
+    user = User.get_by_id(authenticated_user.id)
+    if not user:
+        return redirect(url_for("auth.login"))
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info:
         return redirect(url_for("auth.login"))
+
+    if user_info.is_complete:
+        return redirect(url_for("main.search"))
 
     if request.method == "POST":
         form_data = request.get_json()
@@ -171,26 +175,7 @@ def investor():
         phone_number = form_data.get("phone_number") or None
 
         if not first_name:
-            notification = Notification(
-                user=authenticated_user,
-                json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).model_dump(),
-                destination=NotificationDestination.ONBOARDING,
-            )
-            db.session.add(notification)
-            db.session.commit()
-            return redirect(url_for("onboarding.index"))
-
-        if email:
-            existing_email = Investor.get_by_email(email)
-            if existing_email:
-                notification = Notification(
-                    user=authenticated_user,
-                    json_data=NotificationLayout(title="Error!", msg="Email already in use").model_dump(),
-                    destination=NotificationDestination.ONBOARDING,
-                )
-                db.session.add(notification)
-                db.session.commit()
-                return redirect(url_for("onboarding.index"))
+            return jsonify({"error": "First name is required"}), 400
 
         investor = Investor(
             user_id=authenticated_user.id,
@@ -242,14 +227,50 @@ def investor():
             db.session.commit()
             return redirect(url_for("onboarding.index"))
 
+        user_info.is_complete = True
+        db.session.commit()
+
+        if authenticated_user.oauth_provider == OauthProvider.GOOGLE:
+            authenticated_user.is_verified = True
+            db.session.commit()
+        elif not authenticated_user.is_verified:
+            verification = EmailVerification(user_id=authenticated_user.id)
+            db.session.add(verification)
+            db.session.commit()
+
+            google_pubsub.send_event(
+                "A new user has completed onboarding!",
+                email=authenticated_user.email,
+                event_type=Events.USER_COMPLETED_ONBOARDING.value,
+                random_key=verification.token,
+            )
+
         return redirect(url_for("main.search"))
 
     return render_template(
         "onboarding/investor.html",
-        user_info=user_info.sanitize(),
+        user=user,
         notifications=notifications,
         countries=countries,
         industries=industries,
         rounds=rounds,
-        # notable_investments=notable_investments,
+    )
+
+
+@onboarding.get("/search_notable_investments/<search_input>")
+def search_notable_investment(search_input):
+    notable_investments = (
+        db.session.execute(
+            select(NotableInvestment)
+            .where(NotableInvestment.name.contains(search_input))
+            .where(NotableInvestment.company_id.is_(None))
+        )
+        .scalars()
+        .all()
+    )
+
+    return jsonify(
+        notable_investments=[
+            {"id": notable_investment.id, "name": notable_investment.name} for notable_investment in notable_investments
+        ]
     )

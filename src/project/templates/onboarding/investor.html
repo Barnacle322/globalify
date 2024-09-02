@@ -3,10 +3,10 @@
 <script src="/static/vue/investorOnboarding.js" defer></script>
 {% endblock %} {% block title %}Onboarding{% endblock %} {% block head %} {% import
 "components/investor_registration.html" as investor_registration %} {{ investor_registration.render() }} {% import
-"components/investor_registration_step_1.html" as first %} {{ first.render() }} {% import
+"components/investor_registration_step_1.html" as first %} {{ first.render(user) }} {% import
 "components/investor_registration_step_2.html" as second %} {{ second.render(industries, rounds) }} {% import
-"components/investor_registration_step_3.html" as third %} {{ third.render() }} {{ super() }} {% endblock %} {% block
-content %}
+"components/investor_registration_step_3.html" as third %} {{ third.render(user) }} {{ super() }} {% endblock %} {%
+block content %}
 
 <main class="mx-auto flex h-full max-w-7xl flex-col items-center justify-center overflow-x-hidden p-6">
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />

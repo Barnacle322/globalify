@@ -52,6 +52,9 @@ const FirstPageComponent = defineComponent({
         },
     },
     mounted() {
+        this.firstName = this.$refs.userFirstName.value;
+        this.lastName = this.$refs.userLastName.value;
+
         this.loadFirstStepData();
     },
 });
@@ -64,10 +67,10 @@ const SecondPageComponent = defineComponent({
             selectedIndustries: [],
             selectedNotableInvestments: [],
             notableInvestmentList: [],
-            nInvestments: "",
-            nExits: "",
-            minInvestment: "",
-            maxInvestment: "",
+            nInvestments: 0,
+            nExits: 0,
+            minInvestment: 0,
+            maxInvestment: 0,
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
                 { menu: "round-options-menu", button: "round-options" },
@@ -148,13 +151,20 @@ const SecondPageComponent = defineComponent({
         async fetchNotableInvestmentList(event) {
             const searchInput = event.target.value.trim();
 
+            console.log("searchInput", searchInput);
+
             if (searchInput.length > 0) {
-                const response = await fetch(`/admin/companies/search_notable_investments/${searchInput}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.notableInvestmentList = data.notable_investments.length > 0 ? data.notable_investments : [];
-                } else {
-                    console.log("Error fetching notable investments");
+                try {
+                    const response = await fetch(`/onboarding/search_notable_investments/${searchInput}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.notableInvestmentList =
+                            data.notable_investments.length > 0 ? data.notable_investments : [];
+                    } else {
+                        console.log("Error fetching notable investments");
+                    }
+                } catch (error) {
+                    console.log(error);
                 }
             } else {
                 this.notableInvestmentList = [...this.selectedNotableInvestments];
@@ -176,6 +186,11 @@ const ThirdPageComponent = defineComponent({
             twitter: "",
             email: "",
             phoneNumber: "",
+            errors: {
+                linkedin: null,
+                twitter: null,
+                email: null,
+            },
         };
     },
     methods: {
@@ -202,37 +217,67 @@ const ThirdPageComponent = defineComponent({
                 this.phone_number = savedData.phone_number || "";
             }
         },
+        validateField(field, pattern, fieldName) {
+            if (this[field].trim() === "") {
+                this.errors[field] = null;
+            } else if (!this[field].match(pattern)) {
+                this.errors[field] = `Please enter a valid ${fieldName} field`;
+            } else {
+                this.errors[field] = null;
+            }
+        },
+        validateLinkedIn() {
+            this.validateField("linkedin", /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]+\/?$/, "LinkedIn");
+        },
+        validateTwitter() {
+            this.validateField(
+                "twitter",
+                /^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$/,
+                "Twitter",
+            );
+        },
+        validateEmail() {
+            this.validateField("email", /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, "email");
+        },
+
         async submitRegistrationData() {
-            this.saveThirdStepData();
-            const csrfToken = document.getElementById("csrf_token").value;
-            const firstStepData = JSON.parse(localStorage.getItem("firstStepData"));
-            const secondStepData = JSON.parse(localStorage.getItem("secondStepData"));
-            const thirdStepData = JSON.parse(localStorage.getItem("thirdStepData"));
+            this.validateLinkedIn();
+            this.validateTwitter();
+            this.validateEmail();
+            if (!this.errors.linkedin && !this.errors.twitter && !this.errors.email) {
+                this.saveThirdStepData();
+                const csrfToken = document.getElementById("csrf_token").value;
+                const firstStepData = JSON.parse(localStorage.getItem("firstStepData"));
+                const secondStepData = JSON.parse(localStorage.getItem("secondStepData"));
+                const thirdStepData = JSON.parse(localStorage.getItem("thirdStepData"));
 
-            const formData = {
-                ...firstStepData,
-                ...secondStepData,
-                ...thirdStepData,
-            };
+                const formData = {
+                    ...firstStepData,
+                    ...secondStepData,
+                    ...thirdStepData,
+                };
 
-            try {
-                const response = await fetch("/onboarding/investor", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                    body: JSON.stringify(formData),
-                });
-                if (response.redirected) {
-                    window.location.href = response.url;
+                try {
+                    const response = await fetch("/onboarding/investor", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": csrfToken,
+                        },
+                        body: JSON.stringify(formData),
+                    });
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    }
+                } catch (error) {
+                    console.log("Error submitting registration data", error);
                 }
-            } catch (error) {
-                console.log("Error submitting registration data", error);
             }
         },
     },
     mounted() {
+        this.email = this.$refs.userEmail.value;
+
         this.loadThirdStepData();
     },
 });

@@ -18,7 +18,6 @@ from ...utils.enums import (
     StatusType,
 )
 from ...utils.errors.error_messages import (
-    EMAIL_ALREADY_USED,
     EMPTY_FIRSTNAME,
     INVESTOR_BACKUP_NOT_FOUND,
     INVESTOR_NOT_FOUND,
@@ -132,12 +131,6 @@ def update_investor(id):
     if not first_name:
         status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
         return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
-
-    if email:
-        existing_email = Investor.get_by_email(email)
-        if existing_email and existing_email.id != investor.id:
-            status = Status(StatusType.ERROR, EMAIL_ALREADY_USED).get_status()
-            return redirect(url_for("admin.investor.update_investor_view", id=id, _external=True, **status))
 
     investor_backup = InvestorBackup.get_by_investor_id(investor.id)
     if not investor_backup:
@@ -383,12 +376,6 @@ def create_investor():
     if not first_name:
         status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
         return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
-
-    if email:
-        existing_email = Investor.get_by_email(email)
-        if existing_email:
-            status = Status(StatusType.ERROR, EMAIL_ALREADY_USED).get_status()
-            return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
 
     investor = Investor(
         first_name=first_name,

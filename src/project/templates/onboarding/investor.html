@@ -11,22 +11,22 @@ block content %}
 <main class="mx-auto flex h-full max-w-7xl flex-col items-center justify-center overflow-x-hidden p-6">
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
 
-    <transition enter-active-class="slide-fade-in-left" leave-active-class="slide-fade-out-left">
+    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
         <investor-registration-component
             v-show="currentPage === 1"
             @change-page="changePage"
         ></investor-registration-component>
     </transition>
 
-    <transition enter-active-class="slide-fade-in-left" leave-active-class="slide-fade-out-left">
+    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
         <first-page-component v-show="currentPage === 2" @change-page="changePage"></first-page-component>
     </transition>
 
-    <transition enter-active-class="slide-fade-in-left" leave-active-class="slide-fade-out-left">
+    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
         <second-page-component v-show="currentPage === 3" @change-page="changePage"></second-page-component>
     </transition>
 
-    <transition enter-active-class="slide-fade-in-left" leave-active-class="slide-fade-out-left">
+    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
         <third-page-component v-show="currentPage === 4" @change-page="changePage"></third-page-component>
     </transition>
 </main>

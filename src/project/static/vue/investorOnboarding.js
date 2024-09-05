@@ -71,6 +71,12 @@ const SecondPageComponent = defineComponent({
             nExits: 0,
             minInvestment: 0,
             maxInvestment: 0,
+            errors: {
+                nInvestments: null,
+                nExits: null,
+                minInvestment: null,
+                maxInvestment: null,
+            },
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
                 { menu: "round-options-menu", button: "round-options" },
@@ -82,23 +88,73 @@ const SecondPageComponent = defineComponent({
     },
     methods: {
         openNextPage() {
-            this.saveSecondStepData();
-            this.$emit("change-page", 1);
+            this.validateNInvestments();
+            this.validateNExits();
+            this.validateMinInvestment();
+            this.validateMaxInvestment();
+            if (
+                !this.errors.nInvestments &&
+                !this.errors.nExits &&
+                !this.errors.minInvestment &&
+                !this.errors.maxInvestment
+            ) {
+                this.saveSecondStepData();
+                this.$emit("change-page", 1);
+            }
         },
         goToPreviousPage() {
             this.$emit("change-page", -1);
         },
+        validateField(field, value) {
+            const numericRegex = /^-?\d+(\.\d+)?$/;
+
+            if (!numericRegex.test(value)) {
+                this.errors[field] = "Please enter a valid number";
+            } else if (Number(value) < 0) {
+                this.errors[field] = "The value cannot be negative";
+            } else {
+                this.errors[field] = null;
+            }
+        },
+
+        validateNInvestments() {
+            this.validateField("nInvestments", this.nInvestments);
+        },
+
+        validateNExits() {
+            this.validateField("nExits", this.nExits);
+        },
+
+        validateMinInvestment() {
+            this.validateField("minInvestment", this.minInvestment);
+        },
+
+        validateMaxInvestment() {
+            this.validateField("maxInvestment", this.maxInvestment);
+        },
+
         saveSecondStepData() {
-            const formData = {
-                selectedRounds: this.selectedRounds,
-                selectedIndustries: this.selectedIndustries,
-                selectedNotableInvestments: this.selectedNotableInvestments,
-                n_investments: this.nInvestments,
-                n_exits: this.nExits,
-                min_investment: this.minInvestment,
-                max_investment: this.maxInvestment,
-            };
-            localStorage.setItem("secondStepData", JSON.stringify(formData));
+            this.validateNInvestments();
+            this.validateNExits();
+            this.validateMinInvestment();
+            this.validateMaxInvestment();
+            if (
+                !this.errors.nInvestments &&
+                !this.errors.nExits &&
+                !this.errors.minInvestment &&
+                !this.errors.maxInvestment
+            ) {
+                const formData = {
+                    selectedRounds: this.selectedRounds,
+                    selectedIndustries: this.selectedIndustries,
+                    selectedNotableInvestments: this.selectedNotableInvestments,
+                    n_investments: this.nInvestments,
+                    n_exits: this.nExits,
+                    min_investment: this.minInvestment,
+                    max_investment: this.maxInvestment,
+                };
+                localStorage.setItem("secondStepData", JSON.stringify(formData));
+            }
         },
         loadSecondStepData() {
             const savedData = JSON.parse(localStorage.getItem("secondStepData"));
@@ -237,9 +293,8 @@ const ThirdPageComponent = defineComponent({
             );
         },
         validateEmail() {
-            this.validateField("email", /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, "email");
+            this.validateField("email", /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, "Email");
         },
-
         async submitRegistrationData() {
             this.validateLinkedIn();
             this.validateTwitter();
@@ -293,10 +348,20 @@ createApp({
     data() {
         return {
             currentPage: parseInt(localStorage.getItem("currentPage")) || 1,
+            enterClass: "slide-fade-in-left",
+            leaveClass: "slide-fade-out-left",
         };
     },
     methods: {
         changePage(pageNumber) {
+            if (pageNumber > 0) {
+                this.enterClass = "slide-fade-in-left";
+                this.leaveClass = "slide-fade-out-left";
+            } else {
+                this.enterClass = "slide-fade-in-right";
+                this.leaveClass = "slide-fade-out-right";
+            }
+
             this.currentPage = this.currentPage + pageNumber;
             localStorage.setItem("currentPage", this.currentPage);
         },

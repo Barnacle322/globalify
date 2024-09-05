@@ -191,6 +191,7 @@
                     placeholder="14"
                     v-model.number="nInvestments"
                 />
+                <span v-if="errors.nInvestments" class="text-sm text-red-500" v-text="errors.nInvestments"></span>
             </div>
             <div class="col-span-full sm:col-span-3">
                 <label class="text-sm font-medium text-gray-700" for="n_exits">№ Exits</label>
@@ -201,6 +202,7 @@
                     placeholder="5"
                     v-model.number="nExits"
                 />
+                <span v-if="errors.nExits" class="text-sm text-red-500" v-text="errors.nExits"></span>
             </div>
             <div class="col-span-full sm:col-span-3">
                 <label class="text-sm font-medium text-gray-700" for="min_investment">Min Investment</label>
@@ -211,6 +213,7 @@
                     placeholder="10000"
                     v-model.number="minInvestment"
                 />
+                <span v-if="errors.minInvestment" class="text-sm text-red-500" v-text="errors.minInvestment"></span>
             </div>
             <div class="col-span-full sm:col-span-3">
                 <label class="text-sm font-medium text-gray-700" for="max_investment">Max Investment</label>
@@ -221,6 +224,7 @@
                     placeholder="1000000"
                     v-model.number="maxInvestment"
                 />
+                <span v-if="errors.maxInvestment" class="text-sm text-red-500" v-text="errors.maxInvestment"></span>
             </div>
         </div>
         <div class="flex justify-between">

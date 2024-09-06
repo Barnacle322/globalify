@@ -13,7 +13,7 @@
             fill="currentColor"
             viewBox="0 0 33 32"
             stroke="currentColor"
-            class="size-12 text-gray-400"
+            class="size-9 text-gray-400"
         >
             <path
                 stroke-linecap="round"
@@ -26,9 +26,10 @@
                 />
             </g>
         </svg>
-        <h2 class="mt-2 font-medium">No personal information</h2>
+        <h2 class="mt-2 font-medium">Profile empty</h2>
+        {% if user == user_info.user %}
         <span class="max-w-xs text-center font-light text-gray-500">
-            Complete your profile by adding your personal details</span
+            Add your personal details to complete your profile</span
         >
         <a
             class="mt-3 flex items-center justify-center gap-2 rounded-lg bg-sky-500 p-2 text-white transition-colors ease-in-out hover:bg-sky-400"
@@ -49,10 +50,12 @@
                 />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
             </svg>
-            <span class="text-sm font-medium">Settings </span>
+            <span class="text-sm font-medium">Settings </span>
         </a>
     </div>
-    {% endif %}
+    {% else %}
+    <span class="max-w-xs text-center font-light text-gray-500"> Oops, this profile has not been filled out yet! </span>
+    {% endif %} {% endif %}
     <section class="w-wull max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
         <!-- prettier-ignore -->
         {% if user_info.bio or (user_info.twitter_public and user_info.twitter_url) or (user_info.linkedin_public and user_info.linkedin_url) or (user_info.instagram_public and user_info.instagram_url) or user_info.email_public %}

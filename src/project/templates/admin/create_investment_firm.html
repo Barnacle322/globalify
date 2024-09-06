@@ -296,7 +296,7 @@
                             Notable Investments
                         </button>
                         <div
-                            class="pointer-events-none absolute left-0 z-49 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                            class="z-49 pointer-events-none absolute left-0 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                             id="notable-investment-options-menu"
                             role="menu"
                             aria-orientation="vertical"
@@ -313,7 +313,7 @@
                             />
                             <button
                                 v-if="notableInvestmentList.length > 0"
-                                class="rounded-lg bg-sky-500 px-4 py-2 text-sm text-white hover:bg-sky-600 w-full"
+                                class="w-full rounded-lg bg-sky-500 px-4 py-2 text-sm text-white hover:bg-sky-600"
                                 @click="createNotableInvestmentOpened = true"
                             >
                                 Create Notable Investment

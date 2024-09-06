@@ -3,12 +3,12 @@
 <script src="/static/scripts/bookmark.js" defer></script>
 {% endblock %} {% block content %}
 <main class="mx-auto h-full min-h-screen w-full overflow-x-hidden bg-[#EAEDF6]">
-    <section class="mx-auto max-w-7xl px-4 bg-[#EAEDF6] mb-4">
+    <section class="mx-auto mb-4 max-w-7xl bg-[#EAEDF6] px-4">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         {% if not investors and not investment_firms %}
-        <div class="max-w-3xl mx-auto text-center mt-32">
-            <h1 class="font-semibold text-4xl">Bookmarks</h1>
-            <p class="flex justify-center items-center text-gray-700 mt-2">
+        <div class="mx-auto mt-32 max-w-3xl text-center">
+            <h1 class="text-4xl font-semibold">Bookmarks</h1>
+            <p class="mt-2 flex items-center justify-center text-gray-700">
                 Add your first bookmark by clicking (
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -28,14 +28,14 @@
             </p>
         </div>
         {% endif %} {% if investors %}
-        <h2 class="text-2xl font-bold my-4">Investors</h2>
+        <h2 class="my-4 text-2xl font-bold">Investors</h2>
         {% endif %}
         <div class="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {% if investors %} {% for investor in investors %}
             <article
-                class="flex flex-col rounded-lg p-6 shadow-lg hover:shadow-2xl transition-shadow ease-in-out bg-white"
+                class="flex flex-col rounded-lg bg-white p-6 shadow-lg transition-shadow ease-in-out hover:shadow-2xl"
             >
-                <div class="flex justify-between items-center">
+                <div class="flex items-center justify-between">
                     <a href="/investor/{{ investor.slug }}" class="text-xl font-bold leading-none">
                         {{ investor.full_name }}
                     </a>
@@ -47,7 +47,7 @@
                             viewBox="0 0 24 24"
                             stroke-width="1.5"
                             stroke="currentColor"
-                            class="w-6 h-6"
+                            class="h-6 w-6"
                         >
                             <path
                                 stroke-linecap="round"
@@ -57,7 +57,7 @@
                         </svg>
                     </button>
                 </div>
-                <div class="flex flex-col gap-2 text-sm mt-5">
+                <div class="mt-5 flex flex-col gap-2 text-sm">
                     {% if investor.location %}
                     <div class="grid grid-cols-2">
                         <span class="inline-flex items-center gap-1 text-gray-700">
@@ -106,8 +106,8 @@
                         <span>{{ investor.firm_name }}</span>
                     </div>
                     {% endif %} {% if investor.rounds %}
-                    <div class="flex flex-col gap-2 mt-5">
-                        <span class="flex text-gray-700 gap-1 text-sm"
+                    <div class="mt-5 flex flex-col gap-2">
+                        <span class="flex gap-1 text-sm text-gray-700"
                             ><svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -127,7 +127,7 @@
                         <div class="flex flex-wrap gap-1">
                             {% for round in investor.rounds %}
                             <a
-                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
+                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
                                 >{{ round.name }}
                             </a>
                             {% endfor %}
@@ -144,14 +144,14 @@
             {% endfor %} {% endif %}
         </div>
         {% if investment_firms %}
-        <h2 class="text-2xl font-bold my-4">Investment Firms</h2>
+        <h2 class="my-4 text-2xl font-bold">Investment Firms</h2>
         {% endif %}
         <div class="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {% if investment_firms %} {% for investment_firm in investment_firms %}
             <article
-                class="flex flex-col rounded-lg p-6 shadow-lg hover:shadow-2xl transition-shadow ease-in-out bg-white"
+                class="flex flex-col rounded-lg bg-white p-6 shadow-lg transition-shadow ease-in-out hover:shadow-2xl"
             >
-                <div class="flex justify-between items-center">
+                <div class="flex items-center justify-between">
                     <a href="/investment-firm/{{ investment_firm.slug }}" class="text-xl font-bold leading-none">
                         {{ investment_firm.name }}
                     </a>
@@ -163,7 +163,7 @@
                             viewBox="0 0 24 24"
                             stroke-width="1.5"
                             stroke="currentColor"
-                            class="w-6 h-6"
+                            class="h-6 w-6"
                         >
                             <path
                                 stroke-linecap="round"
@@ -173,7 +173,7 @@
                         </svg>
                     </button>
                 </div>
-                <div class="flex flex-col gap-2 text-sm mt-5">
+                <div class="mt-5 flex flex-col gap-2 text-sm">
                     <div class="grid grid-cols-2">
                         <span class="inline-flex items-center gap-1 text-gray-700">
                             <svg
@@ -199,8 +199,8 @@
                         </span>
                         <span>{{ investment_firm.location }}</span>
                     </div>
-                    <div class="flex flex-col gap-2 mt-5">
-                        <span class="flex text-gray-700 gap-1 text-sm"
+                    <div class="mt-5 flex flex-col gap-2">
+                        <span class="flex gap-1 text-sm text-gray-700"
                             ><svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -220,7 +220,7 @@
                         <div class="flex flex-wrap gap-1">
                             {% for round in investment_firm.rounds %}
                             <a
-                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
+                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
                                 >{{ round.name }}
                             </a>
                             {% endfor %}

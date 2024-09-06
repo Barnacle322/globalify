@@ -75,28 +75,28 @@
 
             <div class="relative w-full">
                 <main class="mx-auto h-full min-h-screen w-full overflow-x-hidden">
-                    <section class="bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white mx-4 rounded-xl my-3">
+                    <section class="mx-4 my-3 rounded-xl bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white">
                         <div
-                            class="max-w-7xl mx-auto py-3 px-4 flex sm:flex-row flex-col justify-center items-center gap-2"
+                            class="mx-auto flex max-w-7xl flex-col items-center justify-center gap-2 px-4 py-3 sm:flex-row"
                         >
-                            <span class="font-semibold text-lg">Globalify Knowledge Hub is here!</span>
+                            <span class="text-lg font-semibold">Globalify Knowledge Hub is here!</span>
                             <a
                                 href="https://hub.globalify.xyz/feed"
-                                class="bg-white py-2 px-3 font-medium rounded-full text-black text-xs hover:scale-105 transition-transform ease-in-out shrink-0"
+                                class="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-medium text-black transition-transform ease-in-out hover:scale-105"
                                 >Check it out</a
                             >
                         </div>
                     </section>
-                    <section class="bg-[#231645] p-5 pb-10 pt-16 mx-4 rounded-3xl">
+                    <section class="mx-4 rounded-3xl bg-[#231645] p-5 pb-10 pt-16">
                         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                         <div class="mx-auto w-full max-w-3xl">
-                            <div class="flex justify-evenly items-center">
+                            <div class="flex items-center justify-evenly">
                                 <a href="/search">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 24 24"
                                         fill="currentColor"
-                                        class="size-6 text-white hover:-translate-x-1 transition-transform ease-in-out"
+                                        class="size-6 text-white transition-transform ease-in-out hover:-translate-x-1"
                                     >
                                         <path
                                             fill-rule="evenodd"
@@ -107,7 +107,7 @@
                                 </a>
 
                                 <h1
-                                    class="text-4xl text-center font-bold tracking-tight sm:text-5xl xl:text-6xl bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] p-3 w-fit bg-clip-text text-transparent"
+                                    class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"
                                 >
                                     Globalify Firms
                                 </h1>
@@ -117,7 +117,7 @@
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 24 24"
                                         fill="currentColor"
-                                        class="size-6 text-white hover:translate-x-1 transition-transform ease-in-out"
+                                        class="size-6 text-white transition-transform ease-in-out hover:translate-x-1"
                                     >
                                         <path
                                             fill-rule="evenodd"
@@ -127,12 +127,12 @@
                                     </svg>
                                 </a>
                             </div>
-                            <div class="flex gap-2 rounded-full bg-white py-2 pr-3 max-w-3xl mx-auto mt-10">
+                            <div class="mx-auto mt-10 flex max-w-3xl gap-2 rounded-full bg-white py-2 pr-3">
                                 <input
                                     type="search"
                                     name="search"
                                     id="search"
-                                    class="w-full border-0 py-3 pr-0 pl-6 text-sm focus:ring-0 bg-transparent"
+                                    class="w-full border-0 bg-transparent py-3 pl-6 pr-0 text-sm focus:ring-0"
                                     placeholder="Search"
                                     value="{{ query }}"
                                     autocapitalize="off"
@@ -160,7 +160,7 @@
                                 </button>
                                 <a
                                     href="/suggestions/investment-firms"
-                                    class="pr-3 flex justify-center items-center flex-col"
+                                    class="flex flex-col items-center justify-center pr-3"
                                 >
                                     <div
                                         class="size-6 animate-border bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%]"
@@ -179,7 +179,7 @@
                             </div>
                             <button
                                 id="open-advanced-button"
-                                class="flex gap-1 justify-center items-center text-gray-300 underline text-xs mt-3 ml-auto"
+                                class="ml-auto mt-3 flex items-center justify-center gap-1 text-xs text-gray-300 underline"
                                 @click="toggleAdvanced"
                             >
                                 Advanced
@@ -190,7 +190,7 @@
                                     viewBox="0 0 24 24"
                                     stroke-width="1.5"
                                     stroke="currentColor"
-                                    class="size-4 hidden"
+                                    class="hidden size-4"
                                 >
                                     <path
                                         stroke-linecap="round"
@@ -215,7 +215,7 @@
                                     />
                                 </svg>
                             </button>
-                            <div id="advanced-menu" class="mt-5 flex-col flex-wrap gap-x-5 gap-y-3 sm:flex-row hidden">
+                            <div id="advanced-menu" class="mt-5 hidden flex-col flex-wrap gap-x-5 gap-y-3 sm:flex-row">
                                 <div class="group relative text-left">
                                     <label class="text-sm font-semibold text-white" for="country-options"
                                         >Country</label
@@ -250,7 +250,7 @@
                                         Country
                                     </button>
                                     <div
-                                        class="pointer-events-none max-w-full absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 max-w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                                         id="country-options-menu"
                                         role="menu"
                                         aria-orientation="vertical"
@@ -259,7 +259,7 @@
                                         <div class="py-1" role="none">
                                             {% for country in countries %}
                                             <label
-                                                class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 text-overflow-wrap overflow-clip"
+                                                class="text-overflow-wrap flex w-full cursor-pointer items-center overflow-clip px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                                 role="menuitem"
                                             >
                                                 <input
@@ -301,7 +301,7 @@
                                         Rounds
                                     </button>
                                     <div
-                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 overflow-x-hidden origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-y-auto overflow-x-hidden rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                                         id="round-options-menu"
                                         role="menu"
                                         aria-orientation="vertical"
@@ -509,7 +509,7 @@
                                 </div>
 
                                 <a
-                                    class="mt-3 ml-auto self-end text-sm text-gray-200 underline"
+                                    class="ml-auto mt-3 self-end text-sm text-gray-200 underline"
                                     href="../search/investment-firms"
                                     >Clear all</a
                                 >
@@ -535,9 +535,9 @@
                         <div class="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {% if investment_firms and not unpaid %} {% for investment_firm in investment_firms %}
                             <article
-                                class="flex flex-col rounded-lg p-6 shadow-card-hover transition-shadow ease-in-out bg-white"
+                                class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out"
                             >
-                                <div class="flex justify-between items-center">
+                                <div class="flex items-center justify-between">
                                     <a
                                         href="/investment-firm/{{ investment_firm.slug }}"
                                         class="text-xl font-bold leading-none"
@@ -552,7 +552,7 @@
                                             viewBox="0 0 24 24"
                                             stroke-width="1.5"
                                             stroke="currentColor"
-                                            class="w-6 h-6"
+                                            class="h-6 w-6"
                                         >
                                             <path
                                                 stroke-linecap="round"
@@ -562,7 +562,7 @@
                                         </svg>
                                     </button>
                                 </div>
-                                <div class="flex flex-col gap-2 text-sm mt-5">
+                                <div class="mt-5 flex flex-col gap-2 text-sm">
                                     <div class="grid grid-cols-2">
                                         <span class="inline-flex items-center gap-1 text-gray-700">
                                             <svg
@@ -588,8 +588,8 @@
                                         </span>
                                         <span>{{ investment_firm.location }}</span>
                                     </div>
-                                    <div class="flex flex-col gap-2 mt-5">
-                                        <span class="flex text-gray-700 gap-1 text-sm"
+                                    <div class="mt-5 flex flex-col gap-2">
+                                        <span class="flex gap-1 text-sm text-gray-700"
                                             ><svg
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 fill="none"
@@ -609,7 +609,7 @@
                                         <div class="flex flex-wrap gap-1">
                                             {% for round in investment_firm.rounds %}
                                             <a
-                                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
+                                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
                                                 >{{ round }}
                                             </a>
                                             {% endfor %}
@@ -626,7 +626,7 @@
                             {% if pagination and pagination.has_other_pages %} 
                             {% if pagination.has_prev %}
                             <a
-                                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+                                class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
                                 href="/search/investment-firms?page=1"
                             >
                                 <svg
@@ -667,14 +667,14 @@
                             {% if page == pagination.current_page %}
                             <a
                                 id="current"
-                                class="inline-flex size-10 items-center justify-center rounded-lg border bg-white border-sky-500 text-sm text-sky-500 font-bold transition-opacity duration-200 ease-in-out hover:opacity-90"
+                                class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500 transition-opacity duration-200 ease-in-out hover:opacity-90"
                                 href="/search/investment-firms?page={{ pagination.current_page }}"
                                 >{{ pagination.current_page }}</a
                             >
                             {% else %}
                             <a
                                 id="page"
-                                class="inline-flex size-10 items-center justify-center rounded-lg border text-sm font-medium bg-white"
+                                class="inline-flex size-10 items-center justify-center rounded-lg border bg-white text-sm font-medium"
                                 href="/search/investment-firms?page={{ page }}"
                                 >{{ page }}</a
                             >
@@ -684,7 +684,7 @@
                             {% if pagination.has_next %}
                             <a
                                 id="next"
-                                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+                                class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
                                 href="/search/investment-firms?page={{ pagination.next }}"
                             >
                                 <svg
@@ -703,7 +703,7 @@
                                 </svg>
                             </a>
                             <a
-                                class="inline-flex items-center justify-center rounded-lg border size-10 bg-white"
+                                class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
                                 href="/search/investment-firms?page={{ pagination.last_page }}"
                             >
                                 <svg

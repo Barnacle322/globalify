@@ -4,7 +4,7 @@
 {% block head %} {{ super() }} {% endblock %} 
 {% block content %}
 
-<main class="pt-5 flex flex-col min-h-screen items-center gap-5 pb-16 px-4 sm:px-9 w-full">
+<main class="pt-5 flex flex-col items-center gap-5 pb-16 px-4 sm:px-9 w-full">
     <!-- prettier-ignore -->
     {% if not user_info.bio and not user_info.twitter_public and not user_info.linkedin_public and not user_info.instagram_public and not user_info.email_public and not user_info.picture_url and not companies.all() %}
     <div class="mt-32 flex w-full flex-col items-center justify-center gap-1">

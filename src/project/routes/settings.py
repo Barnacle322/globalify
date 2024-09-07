@@ -957,9 +957,6 @@ def edit_investor():
     email = form_data.get("email") or None
     phone_number = form_data.get("phone_number") or None
 
-    print("\n\n\n\n\n\n\n\n\n\n")
-    print(linkedin)
-
     selected_rounds = list(Round.get_by_id_list(selected_round_ids))
     selected_industries = list(Industry.get_by_id_list(selected_industry_ids))
     selected_notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
@@ -1021,9 +1018,6 @@ def edit_investor():
     except Exception as e:
         status = Status(StatusType.ERROR, str(e)).get_status()
         return redirect(url_for("settings.index", _external=True, **status))
-
-    print("\n\n\n\n\n\n\n\n\n\n")
-    print(investor.linkedin)
 
     try:
         investor.upsert_data()

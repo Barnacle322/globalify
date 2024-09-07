@@ -1246,8 +1246,8 @@ class InvestmentFirm(db.Model):
     def coordinates(self, location: str) -> None:
         geo_data = geocode_location(location)
         if geo_data is not None:
-            self._coordinates = geo_data["coordinates"]  # type: ignore
-            self._country = geo_data["country_name"]  # type: ignore
+            self._coordinates = geo_data.get("coordinates")
+            self._country = geo_data.get("country_name")
 
     @staticmethod
     def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[InvestmentFirm], None, None]:

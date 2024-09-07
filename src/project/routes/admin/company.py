@@ -39,12 +39,9 @@ def search_notable_investment(search_input):
         .all()
     )
 
-    notable_investments1 = [
+    notable_investments = [
         {"id": notable_investment.id, "name": notable_investment.name} for notable_investment in notable_investments
     ]
-
-    print("\n\n\n\n\n\n\n\n")
-    print(notable_investments1)
 
     return jsonify(
         notable_investments=[

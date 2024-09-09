@@ -54,6 +54,8 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
+    {% import "components/full_investor.html" as full_investor %} 
+    {{ full_investor.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -71,6 +73,20 @@
                     v-if="asideExpanded"
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div
+                    v-if="selectedInvestorId"
+                    @click="selectedInvestorId = null"
+                    class="fixed top-0 z-50 h-full w-full bg-black/70"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
+                <full-investor
+                    @close-investor="selectedInvestorId = null"
+                    :id="selectedInvestorId"
+                    v-if="selectedInvestorId"
+                ></full-investor>
             </transition>
 
             <div class="relative w-full">
@@ -532,10 +548,13 @@
                             <article
                                 class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out"
                             >
-                                <div class="flex items-center justify-between">
-                                    <a href="/investor/{{ investor.slug }}" class="text-xl font-bold leading-none">
+                                <div class="flex justify-between items-center">
+                                    <button
+                                        @click="selectInvestorId({{investor.id}})"
+                                        class="text-xl font-bold leading-none"
+                                    >
                                         {{ investor.name }}
-                                    </a>
+                                    </button>
                                     <button
                                         id="bookmark-icon-{{ investor.id }}"
                                         @click="toggleInvestorBookmark({{investor.id}})"

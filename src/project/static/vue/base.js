@@ -559,3 +559,43 @@ const NavbarComponent = defineComponent({
         document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     },
 });
+
+const FullInvestor = defineComponent({
+    template: "#full-investor-template",
+    props: ["id"],
+    emits: ["close-investor"],
+    data() {
+        return {
+            isLoading: false,
+            investor: null,
+        };
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+    },
+    created() {
+        this.fetchInvestor();
+    },
+    methods: {
+        async fetchInvestor() {
+            this.isLoading = true;
+            try {
+                const response = await fetch(`/investor/${this.id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(typeof data.investor);
+                    this.investor = data.investor;
+                }
+            } catch (error) {
+                console.error("Error fetching investor:", error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-investor");
+            }
+        },
+    },
+});

@@ -4,10 +4,18 @@ createApp({
         AsideMobileComponent,
         NavbarComponent,
         Bookmark,
+        FullInvestor,
     },
     watch: {
         asideMinified(value) {
             localStorage.setItem("asideMinified", value);
+        },
+        selectedInvestorId(value) {
+            if (value) {
+                document.body.classList.add("overflow-hidden");
+            } else {
+                document.body.classList.remove("overflow-hidden");
+            }
         },
     },
     created() {
@@ -36,6 +44,7 @@ createApp({
             asideExpanded: false,
             asideMinified: false,
             openAdvanced: false,
+            selectedInvestorId: null,
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
                 { menu: "country-options-menu", button: "country-options" },
@@ -48,6 +57,9 @@ createApp({
         };
     },
     methods: {
+        selectInvestorId(investorId) {
+            this.selectedInvestorId = investorId;
+        },
         openMenu() {
             document.getElementById("menu").classList.remove("hidden");
         },

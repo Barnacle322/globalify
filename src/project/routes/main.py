@@ -33,7 +33,7 @@ from ..models import (
     UserCompany,
     UserPayment,
 )
-from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema
+from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema, InvestorSchema
 from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import Events, NotificationDestination, NotificationType, Status, StatusType
@@ -767,6 +767,41 @@ def claim_verification(slug):
 
     status = Status(StatusType.SUCCESS, "Investor claimed.").get_status()
     return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
+
+
+@main.get("/investor/<int:investor_id>")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investor(investor_id):
+    investor_model = Investor.get_by_id(int(investor_id))
+
+    if not investor_model:
+        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+
+    investor = InvestorSchema(
+        id=investor_model.id,
+        name=f"{investor_model.first_name} {investor_model.last_name}",
+        slug=investor_model.slug,
+        firm_name=investor_model.firm_name,
+        about=investor_model.about,
+        position=investor_model.position,
+        website=investor_model.website,
+        linkedin=investor_model.linkedin,
+        twitter=investor_model.twitter,
+        email=investor_model.email,
+        phone_number=investor_model.phone_number,
+        n_investments=investor_model.n_investments,
+        n_exits=investor_model.n_exits,
+        min_investment=investor_model.min_investment,
+        max_investment=investor_model.max_investment,
+        location=investor_model.location,
+        notable_investments=[{"id": ni.id, "name": ni.name} for ni in investor_model.notable_investments],
+        rounds=[{"id": r.id, "name": r.name} for r in investor_model.rounds],
+        industries=[{"id": i.id, "name": i.name} for i in investor_model.industries],
+    ).model_dump()
+
+    return jsonify({"investor": investor})
 
 
 @main.post("/investor/<int:investor_id>/bookmark")

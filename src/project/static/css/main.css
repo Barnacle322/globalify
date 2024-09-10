@@ -2806,6 +2806,10 @@ select {
   padding-top: 2rem;
   padding-bottom: 2rem;
 }
+.px-7 {
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
+}
 .pb-0 {
   padding-bottom: 0px;
 }
@@ -3273,6 +3277,9 @@ select {
 }
 .duration-700 {
   transition-duration: 700ms;
+}
+.duration-75 {
+  transition-duration: 75ms;
 }
 .ease-in {
   transition-timing-function: cubic-bezier(0.4, 0, 1, 1);

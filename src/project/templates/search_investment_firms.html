@@ -83,7 +83,7 @@
             </transition>
             <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
                 <full-investment-firm
-                    @close-investor="selectedInvestmentFirmId = null"
+                    @close-investment-firm="selectedInvestmentFirmId = null"
                     :id="selectedInvestmentFirmId"
                     v-if="selectedInvestmentFirmId"
                 ></full-investment-firm>

@@ -566,6 +566,7 @@ const FullInvestor = defineComponent({
     emits: ["close-investor"],
     data() {
         return {
+            isExpanded: false,
             isLoading: false,
             investor: null,
         };
@@ -597,6 +598,12 @@ const FullInvestor = defineComponent({
                 this.$emit("close-investor");
             }
         },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        closeInvestor() {
+            this.$emit("close-investor");
+        },
     },
 });
 
@@ -606,6 +613,7 @@ const FullInvestmentFirm = defineComponent({
     emits: ["close-investment-firm"],
     data() {
         return {
+            isExpanded: false,
             isLoading: false,
             investmentFirm: null,
         };
@@ -635,6 +643,12 @@ const FullInvestmentFirm = defineComponent({
             if (event.key === "Escape") {
                 this.$emit("close-investment-firm");
             }
+        },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        сloseInvestmentFirm() {
+            this.$emit("close-investment-firm");
         },
     },
 });

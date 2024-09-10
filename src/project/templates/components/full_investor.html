@@ -16,6 +16,58 @@
         </div>
 
         <div v-else>
+            <nav class="sticky right-0 top-0 z-10 flex w-full items-center justify-between bg-white px-7 py-4">
+                <button
+                    @click="toggleExpansion"
+                    class="hidden rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50 md:block"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-5"
+                        v-if="!isExpanded"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+                        />
+                    </svg>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-5"
+                        v-else
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"
+                        />
+                    </svg>
+                </button>
+                <button
+                    @click="closeInvestor"
+                    class="ml-auto flex aspect-square h-full items-center justify-center rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </nav>
             <main class="mx-auto pt-5 flex flex-col items-center gap-5 pb-16 px-4 sm:px-9">
                 <section class="w-full max-w-7xl flex justify-between items-center">
                     <div class="w-full max-w-7xl flex gap-4 items-center">

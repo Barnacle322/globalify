@@ -33,7 +33,12 @@ from ..models import (
     UserCompany,
     UserPayment,
 )
-from ..schemas.investor import InvestmentFirmBookmarkSchema, InvestorBookmarkSchema, InvestorSchema
+from ..schemas.investor import (
+    InvestmentFirmBookmarkSchema,
+    InvestmentFirmSchema,
+    InvestorBookmarkSchema,
+    InvestorSchema,
+)
 from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import Events, NotificationDestination, NotificationType, Status, StatusType
@@ -802,6 +807,40 @@ def get_investor(investor_id):
     ).model_dump()
 
     return jsonify({"investor": investor})
+
+
+@main.get("/investment-firm/<int:firm_id>")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investment_firm(firm_id):
+    investment_firm = InvestmentFirm.get_by_id(int(firm_id))
+
+    if not investment_firm:
+        return jsonify({"status": "error", "message": "Investment Firm not found."}, 404)
+
+    investment_firm = InvestmentFirmSchema(
+        id=investment_firm.id,
+        name=investment_firm.name,
+        slug=investment_firm.slug,
+        about=investment_firm.about,
+        website=investment_firm.website,
+        linkedin=investment_firm.linkedin,
+        twitter=investment_firm.twitter,
+        email=investment_firm.email,
+        phone_number=investment_firm.phone_number,
+        n_investments=investment_firm.n_investments,
+        n_exits=investment_firm.n_exits,
+        n_employees=investment_firm.n_employees,
+        min_investment=investment_firm.min_investment,
+        max_investment=investment_firm.max_investment,
+        location=investment_firm.location,
+        notable_investments=[{"id": ni.id, "name": ni.name} for ni in investment_firm.notable_investments],
+        rounds=[{"id": r.id, "name": r.name} for r in investment_firm.rounds],
+        industries=[{"id": i.id, "name": i.name} for i in investment_firm.industries],
+    ).model_dump()
+
+    return jsonify({"investment_firm": investment_firm})
 
 
 @main.post("/investor/<int:investor_id>/bookmark")

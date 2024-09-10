@@ -54,6 +54,8 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
+    {% import "components/full_investment_firm.html" as full_investment_firm %}
+    {{ full_investment_firm.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -71,6 +73,20 @@
                     v-if="asideExpanded"
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div
+                    v-if="selectedInvestmentFirmId"
+                    @click="selectedInvestmentFirmId = null"
+                    class="fixed top-0 z-50 h-full w-full bg-black/70"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
+                <full-investment-firm
+                    @close-investor="selectedInvestmentFirmId = null"
+                    :id="selectedInvestmentFirmId"
+                    v-if="selectedInvestmentFirmId"
+                ></full-investment-firm>
             </transition>
 
             <div class="relative w-full">
@@ -539,12 +555,12 @@
                                 class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out"
                             >
                                 <div class="flex items-center justify-between">
-                                    <a
-                                        href="/investment-firm/{{ investment_firm.slug }}"
+                                    <button
+                                        @click="selectInvestmentFirmId({{investment_firm.id}})"
                                         class="text-xl font-bold leading-none"
                                     >
                                         {{ investment_firm.name }}
-                                    </a>
+                                    </button>
                                     <button @click="toggleInvestmentFirmBookmark('{{investment_firm.id}}')">
                                         <svg
                                             id="bookmark-svg-firm-{{ investment_firm.id }}"

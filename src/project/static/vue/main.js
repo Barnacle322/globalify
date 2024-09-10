@@ -5,12 +5,20 @@ createApp({
         NavbarComponent,
         Bookmark,
         FullInvestor,
+        FullInvestmentFirm,
     },
     watch: {
         asideMinified(value) {
             localStorage.setItem("asideMinified", value);
         },
         selectedInvestorId(value) {
+            if (value) {
+                document.body.classList.add("overflow-hidden");
+            } else {
+                document.body.classList.remove("overflow-hidden");
+            }
+        },
+        selectedInvestmentFirmId(value) {
             if (value) {
                 document.body.classList.add("overflow-hidden");
             } else {
@@ -45,6 +53,7 @@ createApp({
             asideMinified: false,
             openAdvanced: false,
             selectedInvestorId: null,
+            selectedInvestmentFirmId: null,
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
                 { menu: "country-options-menu", button: "country-options" },
@@ -59,6 +68,9 @@ createApp({
     methods: {
         selectInvestorId(investorId) {
             this.selectedInvestorId = investorId;
+        },
+        selectInvestmentFirmId(firmId) {
+            this.selectedInvestmentFirmId = firmId;
         },
         openMenu() {
             document.getElementById("menu").classList.remove("hidden");

@@ -599,3 +599,42 @@ const FullInvestor = defineComponent({
         },
     },
 });
+
+const FullInvestmentFirm = defineComponent({
+    template: "#full-investment-firm-template",
+    props: ["id"],
+    emits: ["close-investment-firm"],
+    data() {
+        return {
+            isLoading: false,
+            investmentFirm: null,
+        };
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+    },
+    created() {
+        this.fetchInvestmentFirm();
+    },
+    methods: {
+        async fetchInvestmentFirm() {
+            this.isLoading = true;
+            try {
+                const response = await fetch(`/investment-firm/${this.id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investmentFirm = data.investment_firm;
+                }
+            } catch (error) {
+                console.error("Error fetching investment firm:", error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-investment-firm");
+            }
+        },
+    },
+});

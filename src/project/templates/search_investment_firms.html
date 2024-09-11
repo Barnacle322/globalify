@@ -76,16 +76,16 @@
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
-                    v-if="selectedInvestmentFirmId"
-                    @click="selectedInvestmentFirmId = null"
-                    class="fixed top-0 z-50 h-full w-full bg-black/70"
+                    v-if="selectedInvestmentFirmSlug"
+                    @click="selectedInvestmentFirmSlug = null"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
                 <full-investment-firm
-                    @close-investment-firm="selectedInvestmentFirmId = null"
-                    :id="selectedInvestmentFirmId"
-                    v-if="selectedInvestmentFirmId"
+                    @close-investment-firm="selectedInvestmentFirmSlug = null"
+                    :slug="selectedInvestmentFirmSlug"
+                    v-if="selectedInvestmentFirmSlug"
                 ></full-investment-firm>
             </transition>
 
@@ -556,7 +556,7 @@
                             >
                                 <div class="flex items-center justify-between">
                                     <button
-                                        @click="selectInvestmentFirmId({{investment_firm.id}})"
+                                        @click="selectInvestmentFirmSlug('{{investment_firm.slug}}')"
                                         class="text-xl font-bold leading-none"
                                     >
                                         {{ investment_firm.name }}

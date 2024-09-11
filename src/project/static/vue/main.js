@@ -52,8 +52,8 @@ createApp({
             asideExpanded: false,
             asideMinified: false,
             openAdvanced: false,
-            selectedInvestorId: null,
-            selectedInvestmentFirmId: null,
+            selectedInvestorSlug: null,
+            selectedInvestmentFirmSlug: null,
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
                 { menu: "country-options-menu", button: "country-options" },
@@ -66,11 +66,11 @@ createApp({
         };
     },
     methods: {
-        selectInvestorId(investorId) {
-            this.selectedInvestorId = investorId;
+        selectInvestorSlug(investorSlug) {
+            this.selectedInvestorSlug = investorSlug;
         },
-        selectInvestmentFirmId(firmId) {
-            this.selectedInvestmentFirmId = firmId;
+        selectInvestmentFirmSlug(investmentFirmSlug) {
+            this.selectedInvestmentFirmSlug = investmentFirmSlug;
         },
         openMenu() {
             document.getElementById("menu").classList.remove("hidden");

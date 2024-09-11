@@ -171,7 +171,10 @@
                             <p v-if="investor.about" class="mt-3" v-text="investor.about"></p>
                         </div>
                     </article>
-                    <article class="bg-white shadow-card p-5 rounded-xl w-full">
+                    <article
+                        v-if="investor.rounds || investor.industries || investor.min_max_investment || investor.n_investments || investor.n_exits"
+                        class="bg-white shadow-card p-5 rounded-xl w-full"
+                    >
                         <h2 class="text-xl font-medium">Investment</h2>
 
                         <div v-if="investor.rounds.length !== 0" class="flex flex-col gap-2 mt-5">
@@ -335,7 +338,10 @@
                             </div>
                         </div>
                     </article>
-                    <article class="bg-white shadow-card p-5 rounded-xl w-full">
+                    <article
+                        v-if="investor.twitter || investor.linkedin || investor.website || investor.email"
+                        class="bg-white shadow-card p-5 rounded-xl w-full"
+                    >
                         <h2 class="text-xl font-medium">Contacts</h2>
                         <div class="flex flex-col gap-2 text-sm mt-5">
                             <div v-if="investor.twitter" class="flex gap-3 justify-between">

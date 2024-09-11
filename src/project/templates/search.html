@@ -76,19 +76,18 @@
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
-                    v-if="selectedInvestorId"
-                    @click="selectedInvestorId = null"
-                    class="fixed top-0 z-50 h-full w-full bg-black/70"
+                    v-if="selectedInvestorSlug"
+                    @click="selectedInvestorSlug = null"
+                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
                 <full-investor
-                    @close-investor="selectedInvestorId = null"
-                    :id="selectedInvestorId"
-                    v-if="selectedInvestorId"
+                    @close-investor="selectedInvestorSlug = null"
+                    :slug="selectedInvestorSlug"
+                    v-if="selectedInvestorSlug"
                 ></full-investor>
             </transition>
-            
 
             <div class="relative w-full">
                 <main class="mx-auto h-full min-h-screen w-full overflow-x-hidden">
@@ -551,7 +550,7 @@
                             >
                                 <div class="flex justify-between items-center">
                                     <button
-                                        @click="selectInvestorId({{investor.id}})"
+                                        @click="selectInvestorSlug('{{investor.slug}}')"
                                         class="text-xl font-bold leading-none"
                                     >
                                         {{ investor.name }}

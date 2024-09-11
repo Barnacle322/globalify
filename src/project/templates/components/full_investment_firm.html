@@ -125,7 +125,10 @@
                             <p v-if="investmentFirm.about" class="mt-3" v-text="investmentFirm.about"></p>
                         </div>
                     </article>
-                    <article class="shadow-card w-full rounded-xl bg-white p-5">
+                    <article
+                        v-if="investmentFirm.rounds || investmentFirm.industries || investmentFirm.min_max_investment || investmentFirm.n_investments || investmentFirm.n_exits"
+                        class="shadow-card w-full rounded-xl bg-white p-5"
+                    >
                         <h2 class="text-xl font-medium">Investment</h2>
                         <div v-if="investmentFirm.rounds.length !== 0" class="mt-5 flex flex-col gap-2">
                             <span class="flex gap-1 text-sm font-medium"

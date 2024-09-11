@@ -774,12 +774,12 @@ def claim_verification(slug):
     return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
 
 
-@main.get("/investor/<int:investor_id>")
+@main.get("/investor/<slug>/get")
 @login_required
 @check_user_info_complete
 @check_verification
-def get_investor(investor_id):
-    investor_model = Investor.get_by_id(int(investor_id))
+def get_investor(slug):
+    investor_model = Investor.get_by_slug(slug)
 
     if not investor_model:
         return jsonify({"status": "error", "message": "Investor not found."}, 404)
@@ -809,35 +809,35 @@ def get_investor(investor_id):
     return jsonify({"investor": investor})
 
 
-@main.get("/investment-firm/<int:firm_id>")
+@main.get("/investment-firm/<slug>")
 @login_required
 @check_user_info_complete
 @check_verification
-def get_investment_firm(firm_id):
-    investment_firm = InvestmentFirm.get_by_id(int(firm_id))
+def get_investment_firm(slug):
+    investment_firm_model = InvestmentFirm.get_by_slug(slug)
 
-    if not investment_firm:
+    if not investment_firm_model:
         return jsonify({"status": "error", "message": "Investment Firm not found."}, 404)
 
     investment_firm = InvestmentFirmSchema(
-        id=investment_firm.id,
-        name=investment_firm.name,
-        slug=investment_firm.slug,
-        about=investment_firm.about,
-        website=investment_firm.website,
-        linkedin=investment_firm.linkedin,
-        twitter=investment_firm.twitter,
-        email=investment_firm.email,
-        phone_number=investment_firm.phone_number,
-        n_investments=investment_firm.n_investments,
-        n_exits=investment_firm.n_exits,
-        n_employees=investment_firm.n_employees,
-        min_investment=investment_firm.min_investment,
-        max_investment=investment_firm.max_investment,
-        location=investment_firm.location,
-        notable_investments=[{"id": ni.id, "name": ni.name} for ni in investment_firm.notable_investments],
-        rounds=[{"id": r.id, "name": r.name} for r in investment_firm.rounds],
-        industries=[{"id": i.id, "name": i.name} for i in investment_firm.industries],
+        id=investment_firm_model.id,
+        name=investment_firm_model.name,
+        slug=investment_firm_model.slug,
+        about=investment_firm_model.about,
+        website=investment_firm_model.website,
+        linkedin=investment_firm_model.linkedin,
+        twitter=investment_firm_model.twitter,
+        email=investment_firm_model.email,
+        phone_number=investment_firm_model.phone_number,
+        n_investments=investment_firm_model.n_investments,
+        n_exits=investment_firm_model.n_exits,
+        n_employees=investment_firm_model.n_employees,
+        min_investment=investment_firm_model.min_investment,
+        max_investment=investment_firm_model.max_investment,
+        location=investment_firm_model.location,
+        notable_investments=[{"id": ni.id, "name": ni.name} for ni in investment_firm_model.notable_investments],
+        rounds=[{"id": r.id, "name": r.name} for r in investment_firm_model.rounds],
+        industries=[{"id": i.id, "name": i.name} for i in investment_firm_model.industries],
     ).model_dump()
 
     return jsonify({"investment_firm": investment_firm})

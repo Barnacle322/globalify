@@ -562,7 +562,7 @@ const NavbarComponent = defineComponent({
 
 const FullInvestor = defineComponent({
     template: "#full-investor-template",
-    props: ["id"],
+    props: ["slug"],
     emits: ["close-investor"],
     data() {
         return {
@@ -581,10 +581,9 @@ const FullInvestor = defineComponent({
         async fetchInvestor() {
             this.isLoading = true;
             try {
-                const response = await fetch(`/investor/${this.id}`);
+                const response = await fetch(`/investor/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(typeof data.investor);
                     this.investor = data.investor;
                 }
             } catch (error) {
@@ -609,7 +608,7 @@ const FullInvestor = defineComponent({
 
 const FullInvestmentFirm = defineComponent({
     template: "#full-investment-firm-template",
-    props: ["id"],
+    props: ["slug"],
     emits: ["close-investment-firm"],
     data() {
         return {
@@ -628,7 +627,7 @@ const FullInvestmentFirm = defineComponent({
         async fetchInvestmentFirm() {
             this.isLoading = true;
             try {
-                const response = await fetch(`/investment-firm/${this.id}`);
+                const response = await fetch(`/investment-firm/${this.slug}`);
                 if (response.ok) {
                     const data = await response.json();
                     this.investmentFirm = data.investment_firm;

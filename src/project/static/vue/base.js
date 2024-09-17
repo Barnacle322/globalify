@@ -585,6 +585,7 @@ const FullInvestor = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     this.investor = data.investor;
+                    console.log(this.investor.user_id);
                 }
             } catch (error) {
                 console.error("Error fetching investor:", error);

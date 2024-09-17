@@ -36,6 +36,7 @@ class InvestorSchema(BaseModel):
     notable_investments: list[object] | None
     rounds: list[object] | None
     industries: list[object] | None
+    user_id: int | None
 
 
 class InvestmentFirmSchema(BaseModel):

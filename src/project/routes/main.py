@@ -804,6 +804,7 @@ def get_investor(slug):
         notable_investments=[{"id": ni.id, "name": ni.name} for ni in investor_model.notable_investments],
         rounds=[{"id": r.id, "name": r.name} for r in investor_model.rounds],
         industries=[{"id": i.id, "name": i.name} for i in investor_model.industries],
+        user_id=investor_model.user_id,
     ).model_dump()
 
     return jsonify({"investor": investor})

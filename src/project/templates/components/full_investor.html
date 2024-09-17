@@ -85,12 +85,11 @@
                         <div class="flex col">
                             <a
                                 v-if="!investor.user_id"
-                                href="/investor/investor.slug/claim"
+                                :href="`/investor/${investor.slug}/claim`"
                                 class="rounded-lg bg-sky-500 px-2 py-1 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
                             >
                                 Claim
                             </a>
-
                             <svg
                                 v-else
                                 xmlns="http://www.w3.org/2000/svg"
@@ -206,7 +205,7 @@
                             </div>
                         </div>
 
-                        <div v-if="investor.industries.lengtih !== 0" class="flex flex-col gap-2 mt-2">
+                        <div v-if="investor.industries.length !== 0" class="flex flex-col gap-2 mt-2">
                             <span class="flex font-medium gap-1 text-sm"
                                 ><svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -319,7 +318,7 @@
                             </span>
                             <span class="text-sm text-gray-700" v-text="investor.n_exits"></span>
                         </div>
-                        <div v-if="investor.notable_investments.lengtih !== 0">
+                        <div v-if="investor.notable_investments.length !== 0">
                             <h2 class="font-medium mt-5">Notable Investments</h2>
                             <div class="flex flex-wrap gap-1 mt-2">
                                 <div v-for="investment in investor.notable_investments" :key="investment.id">

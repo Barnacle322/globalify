@@ -18,7 +18,7 @@ class CompanyInvitationSchema(MemberSchema):
     company_id: int
 
 
-class CompanySchema(MemberSchema):
+class CompanySchema(BaseModel):
     id: int
     name: str
     slug: str

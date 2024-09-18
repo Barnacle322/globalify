@@ -873,8 +873,7 @@ def get_company(slug):
         country=company_model.country.name,
         preferred_round={"id": company_model.preferred_round.id, "name": company_model.preferred_round.name},
         industry={"id": company_model.industry.id, "name": company_model.industry.name},
-        role="admin",
-    ).model_dump()  # type: ignore
+    ).model_dump()
 
     return jsonify({"company": company})
 

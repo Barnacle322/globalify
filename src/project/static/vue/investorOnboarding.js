@@ -141,7 +141,6 @@ const SecondPageComponent = defineComponent({
 
         validateNInvestments() {
             this.validateField("nInvestments", this.nInvestments);
-            console.log("nInvestments", this.nInvestments);
         },
 
         validateNExits() {

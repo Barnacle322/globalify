@@ -783,6 +783,40 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
             batch_count += 1
 
 
+class CompanyBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
+    )
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id"), nullable=False)
+
+    user: Mapped[User] = relationship(User, backref=backref("company_bookmark", passive_deletes=True), init=False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def get_id_list(user_id: int) -> Sequence[int]:
+        return (
+            db.session.execute(
+                db.select(Company.id)
+                .join(CompanyBookmark, CompanyBookmark.company_id == Company.id)
+                .where(CompanyBookmark.user_id == user_id)
+            )
+            .scalars()
+            .all()
+        )
+
+    @staticmethod
+    def get_by_id(company_id: int, user_id: int) -> CompanyBookmark | None:
+        return db.session.scalars(
+            db.select(CompanyBookmark).where(
+                CompanyBookmark.company_id == company_id, CompanyBookmark.user_id == user_id
+            )
+        ).first()
+
+
 class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)

@@ -54,6 +54,8 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
+    {% import "components/full_company.html" as full_company %} 
+    {{ full_company.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -71,6 +73,21 @@
                     v-if="asideExpanded"
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
+            </transition>
+
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out"></transition>
+                <div
+                    v-if="selectedCompanySlug"
+                    @click="selectedCompanySlug = null"
+                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
+                <full-company
+                    @close-company="selectedCompanySlug = null"
+                    :slug="selectedCompanySlug"
+                    v-if="selectedCompanySlug"
+                ></full-company>
             </transition>
 
             <div class="relative w-full">
@@ -370,15 +387,20 @@
                                 class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out"
                             >
                                 <div class="flex items-center justify-between">
-                                    <a
-                                        href="/profile/company/{{ company.slug }}"
+                                    <button
+                                        @click="selectCompanySlug('{{company.slug}}')"
                                         class="text-xl font-bold leading-none"
                                     >
                                         {{ company.name }}
-                                    </a>
-                                    <button>
+                                    </button>
+                                    <button
+                                        id="bookmark-icon-{{ company.id }}"
+                                        @click="toggleCompanyBookmark({{company.id}})"
+                                    >
                                         <svg
+                                            id="bookmark-svg-company-{{ company.id }}"
                                             xmlns="http://www.w3.org/2000/svg"
+                                            fill="{{'#FFC9FC' if company.id in bookmark_ids else 'none'}}"
                                             viewBox="0 0 24 24"
                                             stroke-width="1.5"
                                             stroke="currentColor"

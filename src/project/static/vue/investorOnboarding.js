@@ -107,6 +107,7 @@ const SecondPageComponent = defineComponent({
         },
         validateField(field, value) {
             const numericRegex = /^-?\d+(\.\d+)?$/;
+            const MAX_INVESTMENT_LIMIT = 1000000;
 
             if (!numericRegex.test(value)) {
                 this.errors[field] = "Please enter a valid number";
@@ -115,10 +116,32 @@ const SecondPageComponent = defineComponent({
             } else {
                 this.errors[field] = null;
             }
+
+            if (field === "minInvestment" || field === "maxInvestment") {
+                const minInvestment = Number(this.minInvestment);
+                const maxInvestment = Number(this.maxInvestment);
+
+                if (minInvestment > maxInvestment) {
+                    this.errors["minInvestment"] = "Min investment cannot be greater than max investment";
+                    this.errors["maxInvestment"] = "Max investment cannot be less than min investment";
+                } else {
+                    if (this.errors["minInvestment"] === "Min investment cannot be greater than max investment") {
+                        this.errors["minInvestment"] = null;
+                    }
+                    if (this.errors["maxInvestment"] === "Max investment cannot be less than min investment") {
+                        this.errors["maxInvestment"] = null;
+                    }
+                }
+
+                if (maxInvestment > MAX_INVESTMENT_LIMIT) {
+                    this.errors["maxInvestment"] = `Max investment cannot exceed ${MAX_INVESTMENT_LIMIT}`;
+                }
+            }
         },
 
         validateNInvestments() {
             this.validateField("nInvestments", this.nInvestments);
+            console.log("nInvestments", this.nInvestments);
         },
 
         validateNExits() {

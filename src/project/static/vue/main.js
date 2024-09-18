@@ -6,6 +6,7 @@ createApp({
         Bookmark,
         FullInvestor,
         FullInvestmentFirm,
+        FullCompany,
     },
     watch: {
         asideMinified(value) {
@@ -54,6 +55,7 @@ createApp({
             openAdvanced: false,
             selectedInvestorSlug: null,
             selectedInvestmentFirmSlug: null,
+            selectedCompanySlug: null,
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
                 { menu: "country-options-menu", button: "country-options" },
@@ -71,6 +73,9 @@ createApp({
         },
         selectInvestmentFirmSlug(investmentFirmSlug) {
             this.selectedInvestmentFirmSlug = investmentFirmSlug;
+        },
+        selectCompanySlug(companySlug) {
+            this.selectedCompanySlug = companySlug;
         },
         openMenu() {
             document.getElementById("menu").classList.remove("hidden");
@@ -336,6 +341,29 @@ createApp({
                 if (response.ok) {
                     const data = await response.json();
                     var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
+                    if (data[0].bookmarked) {
+                        svg.style.fill = "#FFC9FC";
+                    } else {
+                        svg.style.fill = "none";
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async toggleCompanyBookmark(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/company/${companyId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    var svg = document.getElementById(`bookmark-svg-company-${companyId}`);
                     if (data[0].bookmarked) {
                         svg.style.fill = "#FFC9FC";
                     } else {

@@ -20,6 +20,7 @@ from ..models import (
     ClaimRequest,
     ClaimVerification,
     Company,
+    CompanyBookmark,
     Country,
     Industry,
     InvestmentFirm,
@@ -40,6 +41,7 @@ from ..schemas.investor import (
     InvestorSchema,
 )
 from ..schemas.notification import NotificationItem, NotificationLayout
+from ..schemas.user import CompanySchema
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import Events, NotificationDestination, NotificationType, Status, StatusType
 from ..utils.errors.error_messages import (
@@ -289,6 +291,8 @@ def search_companies():
     )
     companies = result.get("companies")
 
+    bookmark_ids = CompanyBookmark.get_id_list(current_user.id)
+
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False
     if current_user.is_admin:
@@ -311,6 +315,7 @@ def search_companies():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         unpaid=unpaid,
+        bookmark_ids=bookmark_ids,
     )
 
 
@@ -844,6 +849,36 @@ def get_investment_firm(slug):
     return jsonify({"investment_firm": investment_firm})
 
 
+@main.get("/company/<slug>")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_company(slug):
+    company_model = Company.get_by_slug(slug)
+
+    if not company_model:
+        return jsonify({"status": "error", "message": "Company not found."}, 404)
+
+    company = CompanySchema(
+        id=company_model.id,
+        name=company_model.name,
+        slug=company_model.slug,
+        description=company_model.description,
+        number_of_employees=company_model.number_of_employees,
+        website=company_model.website_url,
+        linkedin=company_model.linkedin_url,
+        instagram=company_model.instagram_url,
+        twitter=company_model.twitter_url,
+        picture_url=company_model.picture_url,
+        country=company_model.country.name,
+        preferred_round={"id": company_model.preferred_round.id, "name": company_model.preferred_round.name},
+        industry={"id": company_model.industry.id, "name": company_model.industry.name},
+        role="admin",
+    ).model_dump()  # type: ignore
+
+    return jsonify({"company": company})
+
+
 @main.post("/investor/<int:investor_id>/bookmark")
 @login_required
 @check_user_info_complete
@@ -861,6 +896,30 @@ def toggle_bookmark_investor(investor_id):
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestorBookmark(investor_id=investor.id, user_id=current_user.id)
+
+    db.session.add(new_bookmark)
+    db.session.commit()
+
+    return jsonify({"bookmarked": True}, 200)
+
+
+@main.post("/company/<int:company_id>/bookmark")
+@login_required
+@check_user_info_complete
+@check_verification
+def toggle_bookmark_company(company_id):
+    company = Company.get_by_id(int(company_id))
+    if not company:
+        return jsonify({"status": "error", "message": "Company not found."}, 404)
+
+    bookmark = CompanyBookmark.get_by_id(company.id, current_user.id)
+
+    if bookmark:
+        db.session.delete(bookmark)
+        db.session.commit()
+        return jsonify({"bookmarked": False}, 200)
+
+    new_bookmark = CompanyBookmark(company_id=company.id, user_id=current_user.id)
 
     db.session.add(new_bookmark)
     db.session.commit()

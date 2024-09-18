@@ -652,3 +652,51 @@ const FullInvestmentFirm = defineComponent({
         },
     },
 });
+
+const FullCompany = defineComponent({
+    template: "#full-company-template",
+    props: ["slug"],
+    emits: ["close-company"],
+    data() {
+        return {
+            isExpanded: false,
+            isLoading: false,
+            company: null,
+        };
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+    },
+    created() {
+        this.fetchCompany();
+    },
+    methods: {
+        async fetchCompany() {
+            this.isLoading = true;
+            try {
+                const response = await fetch(`/company/${this.slug}`);
+                console.log(response);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.company = data.company;
+                    console.log(this.company);
+                }
+            } catch (error) {
+                console.error("Error fetching company:", error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-company");
+            }
+        },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        closeCompany() {
+            this.$emit("close-company");
+        },
+    },
+});

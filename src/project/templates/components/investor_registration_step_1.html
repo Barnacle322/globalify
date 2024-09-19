@@ -20,6 +20,7 @@
                     required
                     v-model="firstName"
                 />
+                <span v-if="errors.firstName" class="text-sm text-red-500" v-text="errors.firstName"></span>
             </div>
             <div class="col-span-full sm:col-span-3">
                 <label class="text-sm font-medium text-gray-700" for="last_name">Last Name</label>

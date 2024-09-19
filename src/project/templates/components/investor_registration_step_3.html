@@ -17,6 +17,7 @@
                     placeholder="https://www.acme.com"
                     v-model="website"
                 />
+                <span v-if="errors.website" class="text-sm text-red-500" v-text="errors.website"></span>
             </div>
             <div class="col-span-full">
                 <label class="text-sm font-medium text-gray-700" for="linkedin">Linkedin</label>
@@ -60,6 +61,7 @@
                     placeholder="+1 123 456 7890"
                     v-model="phoneNumber"
                 />
+                <span v-if="errors.phoneNumber" class="text-sm text-red-500" v-text="errors.phoneNumber"></span>
             </div>
         </div>
         <div class="flex justify-between items-center">

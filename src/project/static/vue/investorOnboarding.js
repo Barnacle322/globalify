@@ -21,12 +21,18 @@ const FirstPageComponent = defineComponent({
             position: "",
             location: "",
             about: "",
+            errors: {
+                firstName: null,
+            },
         };
     },
     methods: {
         openNextPage() {
-            this.saveFirstStepData();
-            this.$emit("change-page", 1);
+            this.validateFirstName();
+            if (!this.errors.firstName) {
+                this.saveFirstStepData();
+                this.$emit("change-page", 1);
+            }
         },
         saveFirstStepData() {
             const formData = {
@@ -48,6 +54,13 @@ const FirstPageComponent = defineComponent({
                 this.position = savedData.position || "";
                 this.location = savedData.location || "";
                 this.about = savedData.about || "";
+            }
+        },
+        validateFirstName() {
+            if (this.firstName.trim() === "") {
+                this.errors.firstName = "The first name field is required!";
+            } else {
+                this.errors.firstName = null;
             }
         },
     },
@@ -109,7 +122,9 @@ const SecondPageComponent = defineComponent({
             const numericRegex = /^-?\d+(\.\d+)?$/;
             const MAX_INVESTMENT_LIMIT = 1000000;
 
-            if (!numericRegex.test(value)) {
+            if (value === "") {
+                this.errors[field] = null;
+            } else if (!numericRegex.test(value)) {
                 this.errors[field] = "Please enter a valid number";
             } else if (Number(value) < 0) {
                 this.errors[field] = "The value cannot be negative";
@@ -268,6 +283,8 @@ const ThirdPageComponent = defineComponent({
                 linkedin: null,
                 twitter: null,
                 email: null,
+                website: null,
+                phoneNumber: null,
             },
         };
     },
@@ -314,14 +331,32 @@ const ThirdPageComponent = defineComponent({
                 "Twitter",
             );
         },
+        validateWebsite() {
+            this.validateField("website", /^(https?:\/\/)?(www\.)?[\w.-]+\.[a-z]{2,}\/?[\w.-]*$/, "Website");
+        },
         validateEmail() {
             this.validateField("email", /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, "Email");
+        },
+        validatePhoneNumber() {
+            this.validateField(
+                "phoneNumber",
+                /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/,
+                "Phone number",
+            );
         },
         async submitRegistrationData() {
             this.validateLinkedIn();
             this.validateTwitter();
             this.validateEmail();
-            if (!this.errors.linkedin && !this.errors.twitter && !this.errors.email) {
+            this.validateWebsite();
+            this.validatePhoneNumber();
+            if (
+                !this.errors.linkedin &&
+                !this.errors.twitter &&
+                !this.errors.email &&
+                !this.errors.website &&
+                !this.errors.phoneNumber
+            ) {
                 this.saveThirdStepData();
                 const csrfToken = document.getElementById("csrf_token").value;
                 const firstStepData = JSON.parse(localStorage.getItem("firstStepData"));

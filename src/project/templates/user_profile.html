@@ -56,7 +56,7 @@
     {% else %}
     <span class="max-w-xs text-center font-light text-gray-500"> Oops, this profile has not been filled out yet! </span>
     {% endif %} {% endif %}
-    <section class="w-wull max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
+    <section class="max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
         <!-- prettier-ignore -->
         {% if user_info.bio or (user_info.twitter_public and user_info.twitter_url) or (user_info.linkedin_public and user_info.linkedin_url) or (user_info.instagram_public and user_info.instagram_url) or user_info.email_public %}
         <article class="bg-white shadow-card p-5 rounded-xl w-full">

@@ -101,10 +101,7 @@ const SecondPageComponent = defineComponent({
     },
     methods: {
         openNextPage() {
-            this.validateNInvestments();
-            this.validateNExits();
-            this.validateMinInvestment();
-            this.validateMaxInvestment();
+            this.validateNumbers();
             if (
                 !this.errors.nInvestments &&
                 !this.errors.nExits &&
@@ -119,13 +116,10 @@ const SecondPageComponent = defineComponent({
             this.$emit("change-page", -1);
         },
         validateField(field, value) {
-            const numericRegex = /^-?\d+(\.\d+)?$/;
-            const MAX_INVESTMENT_LIMIT = 1000000;
+            const MAX_INVESTMENT_LIMIT = 100000001;
 
-            if (value === "") {
+            if (value == "") {
                 this.errors[field] = null;
-            } else if (!numericRegex.test(value)) {
-                this.errors[field] = "Please enter a valid number";
             } else if (Number(value) < 0) {
                 this.errors[field] = "The value cannot be negative";
             } else {
@@ -147,34 +141,19 @@ const SecondPageComponent = defineComponent({
                         this.errors["maxInvestment"] = null;
                     }
                 }
-
                 if (maxInvestment > MAX_INVESTMENT_LIMIT) {
                     this.errors["maxInvestment"] = `Max investment cannot exceed ${MAX_INVESTMENT_LIMIT}`;
                 }
             }
         },
-
-        validateNInvestments() {
+        validateNumbers() {
             this.validateField("nInvestments", this.nInvestments);
-        },
-
-        validateNExits() {
             this.validateField("nExits", this.nExits);
-        },
-
-        validateMinInvestment() {
             this.validateField("minInvestment", this.minInvestment);
-        },
-
-        validateMaxInvestment() {
             this.validateField("maxInvestment", this.maxInvestment);
         },
-
         saveSecondStepData() {
-            this.validateNInvestments();
-            this.validateNExits();
-            this.validateMinInvestment();
-            this.validateMaxInvestment();
+            this.validateNumbers();
             if (
                 !this.errors.nInvestments &&
                 !this.errors.nExits &&
@@ -244,8 +223,6 @@ const SecondPageComponent = defineComponent({
         async fetchNotableInvestmentList(event) {
             const searchInput = event.target.value.trim();
 
-            console.log("searchInput", searchInput);
-
             if (searchInput.length > 0) {
                 try {
                     const response = await fetch(`/onboarding/search_notable_investments/${searchInput}`);
@@ -293,14 +270,23 @@ const ThirdPageComponent = defineComponent({
             this.$emit("change-page", -1);
         },
         saveThirdStepData() {
-            const formData = {
-                website: this.website,
-                linkedin: this.linkedin,
-                twitter: this.twitter,
-                email: this.email,
-                phone_number: this.phoneNumber,
-            };
-            localStorage.setItem("thirdStepData", JSON.stringify(formData));
+            this.validateLinks();
+            if (
+                !this.errors.linkedin &&
+                !this.errors.twitter &&
+                !this.errors.email &&
+                !this.errors.website &&
+                !this.errors.phoneNumber
+            ) {
+                const formData = {
+                    website: this.website,
+                    linkedin: this.linkedin,
+                    twitter: this.twitter,
+                    email: this.email,
+                    phone_number: this.phoneNumber,
+                };
+                localStorage.setItem("thirdStepData", JSON.stringify(formData));
+            }
         },
         loadThirdStepData() {
             const savedData = JSON.parse(localStorage.getItem("thirdStepData"));
@@ -321,23 +307,15 @@ const ThirdPageComponent = defineComponent({
                 this.errors[field] = null;
             }
         },
-        validateLinkedIn() {
+        validateLinks() {
             this.validateField("linkedin", /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]+\/?$/, "LinkedIn");
-        },
-        validateTwitter() {
             this.validateField(
                 "twitter",
                 /^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$/,
                 "Twitter",
             );
-        },
-        validateWebsite() {
             this.validateField("website", /^(https?:\/\/)?(www\.)?[\w.-]+\.[a-z]{2,}\/?[\w.-]*$/, "Website");
-        },
-        validateEmail() {
             this.validateField("email", /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, "Email");
-        },
-        validatePhoneNumber() {
             this.validateField(
                 "phoneNumber",
                 /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/,
@@ -345,11 +323,7 @@ const ThirdPageComponent = defineComponent({
             );
         },
         async submitRegistrationData() {
-            this.validateLinkedIn();
-            this.validateTwitter();
-            this.validateEmail();
-            this.validateWebsite();
-            this.validatePhoneNumber();
+            this.validateLinks();
             if (
                 !this.errors.linkedin &&
                 !this.errors.twitter &&

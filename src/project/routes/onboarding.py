@@ -37,6 +37,14 @@ onboarding = Blueprint("onboarding", __name__)
 @onboarding.route("/", methods=["GET"])
 @login_required
 def index():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    user_info = UserInfo.get_by_user_id(authenticated_user.id)
+
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    print(authenticated_user)
+    print(user_info)
+
     return render_template("onboarding/index.html")
 
 

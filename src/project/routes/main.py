@@ -32,6 +32,7 @@ from ..models import (
     Round,
     User,
     UserCompany,
+    UserInfo,
     UserPayment,
 )
 from ..schemas.investor import (
@@ -781,8 +782,6 @@ def claim_verification(slug):
 
 @main.get("/investor/<slug>/get")
 @login_required
-@check_user_info_complete
-@check_verification
 def get_investor(slug):
     investor_model = Investor.get_by_slug(slug)
 
@@ -956,6 +955,50 @@ def get_investor_bookmarks():
         investors.append(json.loads(investor.model_dump_json()))
 
     return jsonify({"bookmarks": investors})
+
+
+@main.get("/check-investor")
+@login_required
+def check_investor():
+    autentication_user: User = current_user._get_current_object()  # type: ignore
+
+    user_info = UserInfo.get_by_user_id(autentication_user.id)
+
+    if not user_info:
+        return jsonify({"status": "error", "message": "User Info not found."}, 404)
+
+    result = Investor.get_search(
+        query_string=user_info.full_name,
+        query_by=["name"],
+        page=1,
+        per_page=9,
+    )
+
+    investors_exist = bool(result.get("investors"))
+
+    return jsonify({"investors_exist": investors_exist})
+
+
+@main.get("/existing-investors")
+@login_required
+def existing_investors():
+    autentication_user: User = current_user._get_current_object()  # type: ignore
+
+    user_info = UserInfo.get_by_user_id(autentication_user.id)
+
+    if not user_info:
+        return jsonify({"status": "error", "message": "User Info not found."}, 404)
+
+    result = Investor.get_search(
+        query_string=user_info.full_name,
+        query_by=["name"],
+        page=1,
+        per_page=9,
+    )
+
+    investors = result.get("investors")
+
+    return jsonify({"investors": investors})
 
 
 @main.get("/investment-firms/bookmarks")

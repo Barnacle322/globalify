@@ -1,12 +1,24 @@
 {% extends "layouts/layout_clean.html" %} {% block additional_scripts %}
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="/static/vue/investorOnboarding.js" defer></script>
-{% endblock %} {% block title %}Onboarding{% endblock %} {% block head %} {% import
-"components/investor_registration.html" as investor_registration %} {{ investor_registration.render() }} {% import
-"components/investor_registration_step_1.html" as first %} {{ first.render(user) }} {% import
-"components/investor_registration_step_2.html" as second %} {{ second.render(industries, rounds) }} {% import
-"components/investor_registration_step_3.html" as third %} {{ third.render(user) }} {{ super() }} {% endblock %} {%
-block content %}
+{% endblock %} {% block title %}Onboarding{% endblock %} {% block head %}
+<!-- prettier-ignore -->
+{% import "components/investor_registration.html" as investor_registration %} 
+{{ investor_registration.render() }} 
+{% import "components/investor_registration_step_0.html" as zero %} 
+{{ zero.render(user) }} 
+{% import "components/investor_registration_step_1.html" as first %} 
+{{ first.render(user) }} 
+{% import "components/investor_registration_step_2.html" as second %} 
+{{ second.render(industries, rounds) }} 
+{% import "components/investor_registration_step_3.html" as third %} 
+{{ third.render(user) }} 
+{% import "components/full_investor.html" as full_investor %} 
+{{ full_investor.render(current_user) }}
+
+{{ super() }} 
+{% endblock %} 
+{% block content %}
 
 <main class="mx-auto flex h-full max-w-7xl flex-col items-center justify-center overflow-x-hidden p-6">
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
@@ -19,15 +31,19 @@ block content %}
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <first-page-component v-show="currentPage === 2" @change-page="changePage"></first-page-component>
+        <zero-page-component v-show="currentPage === 2" @change-page="changePage"></zero-page-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <second-page-component v-show="currentPage === 3" @change-page="changePage"></second-page-component>
+        <first-page-component v-show="currentPage === 3" @change-page="changePage"></first-page-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <third-page-component v-show="currentPage === 4" @change-page="changePage"></third-page-component>
+        <second-page-component v-show="currentPage === 4" @change-page="changePage"></second-page-component>
+    </transition>
+
+    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
+        <third-page-component v-show="currentPage === 5" @change-page="changePage"></third-page-component>
     </transition>
 </main>
 

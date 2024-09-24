@@ -1,13 +1,106 @@
-const { data } = "autoprefixer";
-
 const { defineComponent, createApp } = Vue;
+
+const FullInvestor = defineComponent({
+    template: "#full-investor-template",
+    props: ["slug"],
+    emits: ["close-investor"],
+    data() {
+        return {
+            isExpanded: false,
+            isLoading: false,
+            investor: null,
+        };
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+    },
+    created() {
+        this.fetchInvestor();
+    },
+    methods: {
+        async fetchInvestor() {
+            this.isLoading = true;
+            try {
+                const response = await fetch(`/investor/${this.slug}/get`);
+                console.log(response);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investor = data.investor;
+                    console.log(this.investor.user_id);
+                }
+            } catch (error) {
+                console.error("Error fetching investor:", error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-investor");
+            }
+        },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        closeInvestor() {
+            this.$emit("close-investor");
+        },
+    },
+});
 
 const InvestorRegistrationComponent = defineComponent({
     template: "#investor-registration-template",
     methods: {
+        async openRegistrationPage() {
+            try {
+                const response = await fetch("/check-investor");
+                const data = await response.json();
+
+                if (data.investors_exist) {
+                    this.$emit("change-page", 1);
+                } else {
+                    this.$emit("change-page", 2);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        },
+    },
+});
+
+const ZeroPageComponent = defineComponent({
+    template: "#zero-step-registration-template",
+    components: {
+        FullInvestor,
+    },
+    data() {
+        return {
+            investors: false,
+            selectedInvestorSlug: null,
+        };
+    },
+    methods: {
         openRegistrationPage() {
             this.$emit("change-page", 1);
         },
+
+        async fetchExistingInvestors() {
+            try {
+                const response = await fetch("/existing-investors");
+                const data = await response.json();
+                this.investors = data.investors;
+                console.log(this.investors);
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        selectInvestorSlug(investorSlug) {
+            this.selectedInvestorSlug = investorSlug;
+            console.log(this.selectedInvestorSlug);
+        },
+    },
+    created() {
+        this.fetchExistingInvestors();
     },
 });
 
@@ -371,6 +464,7 @@ const ThirdPageComponent = defineComponent({
 createApp({
     components: {
         InvestorRegistrationComponent,
+        ZeroPageComponent,
         FirstPageComponent,
         SecondPageComponent,
         ThirdPageComponent,

@@ -1,6 +1,8 @@
 {% extends "layouts/layout_clean.html" %} {% block additional_scripts %}
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="/static/vue/base.js" defer></script>
 <script src="/static/vue/investorOnboarding.js" defer></script>
+
 {% endblock %} {% block title %}Onboarding{% endblock %} {% block head %}
 <!-- prettier-ignore -->
 {% import "components/investor_registration.html" as investor_registration %} 
@@ -15,6 +17,9 @@
 {{ third.render(user) }} 
 {% import "components/full_investor.html" as full_investor %} 
 {{ full_investor.render(current_user) }}
+{% import "components/claim_investor.html" as claim_investor %} 
+{{ claim_investor.render(current_user) }}
+
 
 {{ super() }} 
 {% endblock %} 
@@ -31,19 +36,23 @@
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <zero-page-component v-show="currentPage === 2" @change-page="changePage"></zero-page-component>
+        <claim-investor-component v-show="currentPage === 2" @change-page="changePage"></claim-investor-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <first-page-component v-show="currentPage === 3" @change-page="changePage"></first-page-component>
+        <zero-page-component v-show="currentPage === 3" @change-page="changePage"></zero-page-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <second-page-component v-show="currentPage === 4" @change-page="changePage"></second-page-component>
+        <first-page-component v-show="currentPage === 4" @change-page="changePage"></first-page-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <third-page-component v-show="currentPage === 5" @change-page="changePage"></third-page-component>
+        <second-page-component v-show="currentPage === 5" @change-page="changePage"></second-page-component>
+    </transition>
+
+    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
+        <third-page-component v-show="currentPage === 6" @change-page="changePage"></third-page-component>
     </transition>
 </main>
 

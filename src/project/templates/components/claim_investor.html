@@ -1,0 +1,49 @@
+{% macro render(user) %}
+<template id="claim-investor-template">
+    <div class="mx-auto w-full max-w-xl bg-white p-10 shadow-xl rounded-lg fixed">
+        <input type="hidden" ref="userFirstName" value="{{ user.user_info.first_name }}" />
+        <input type="hidden" ref="userLastName" value="{{ user.user_info.last_name }}" />
+
+        <div class="mb-6 text-center">
+            <h1 class="text-3xl font-extrabold text-gray-800 mb-2">Investor Found</h1>
+            <p class="text-lg text-gray-600">
+                We found an investor with a similar name in the database. What would you like to do next?
+            </p>
+        </div>
+
+        <div class="space-y-4">
+            <button
+                @click="goToSimilarInvestors"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-semibold py-3 rounded-lg transition-all duration-200 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-400"
+            >
+                Go to Similar Investors
+            </button>
+            <button
+                @click="createNewInvestor"
+                class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold py-3 rounded-lg transition-all duration-200 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-green-400"
+            >
+                Create a New Investor
+            </button>
+        </div>
+
+        <div class="mt-8 text-center">
+            <button
+                class="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 font-medium bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-full transition-all duration-200 ease-in-out"
+                @click="goToPreviousPage"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="w-5 h-5"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                <span>Back to Onboarding</span>
+            </button>
+        </div>
+    </div>
+</template>
+{% endmacro %}

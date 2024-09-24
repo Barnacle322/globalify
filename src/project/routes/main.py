@@ -795,11 +795,6 @@ def get_investor(slug):
         firm_name=investor_model.firm_name,
         about=investor_model.about,
         position=investor_model.position,
-        website=investor_model.website,
-        linkedin=investor_model.linkedin,
-        twitter=investor_model.twitter,
-        email=investor_model.email,
-        phone_number=investor_model.phone_number,
         n_investments=investor_model.n_investments,
         n_exits=investor_model.n_exits,
         min_investment=investor_model.min_investment,
@@ -974,31 +969,21 @@ def check_investor():
         per_page=9,
     )
 
-    investors_exist = bool(result.get("investors"))
-
-    return jsonify({"investors_exist": investors_exist})
+    return jsonify({"existing_investors": result.get("investors")})
 
 
-@main.get("/existing-investors")
+@main.get("/search/investors/<search>")
 @login_required
-def existing_investors():
-    autentication_user: User = current_user._get_current_object()  # type: ignore
-
-    user_info = UserInfo.get_by_user_id(autentication_user.id)
-
-    if not user_info:
-        return jsonify({"status": "error", "message": "User Info not found."}, 404)
-
+@check_verification
+def search_investors(search):
     result = Investor.get_search(
-        query_string=user_info.full_name,
+        query_string=search,
         query_by=["name"],
         page=1,
         per_page=9,
     )
 
-    investors = result.get("investors")
-
-    return jsonify({"investors": investors})
+    return jsonify({"investors": result.get("investors")})
 
 
 @main.get("/investment-firms/bookmarks")

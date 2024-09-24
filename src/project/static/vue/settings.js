@@ -376,7 +376,7 @@ const InviteMemberComponent = defineComponent({
         },
     },
     mounted() {
-        this.debouncedGetUserList = this.debounce(this.getUserList, 300);
+        this.debouncedGetUserList = this.debounce(this.getUserList, 500);
         this.fetchRoles();
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {

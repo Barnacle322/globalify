@@ -79,9 +79,9 @@
         </div>
 
         <div class="flex justify-between">
-            <a
+            <button
                 class="bg-gray-300 text-black rounded-md w-fit px-3 py-2 mt-4 hover:bg-gray-400 hover:text-gray-800"
-                href="/onboarding"
+                @click="goToPreviousPage"
             >
                 <div class="flex gap-2 items-center">
                     <svg
@@ -96,7 +96,7 @@
                     </svg>
                     <span>Back</span>
                 </div>
-            </a>
+            </button>
             <button
                 class="bg-gray-500 text-white rounded-md w-fit px-3 py-2 mt-4 hover:bg-gray-700"
                 @click="openNextPage"

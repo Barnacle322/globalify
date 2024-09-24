@@ -1,53 +1,3 @@
-const { defineComponent, createApp } = Vue;
-
-const FullInvestor = defineComponent({
-    template: "#full-investor-template",
-    props: ["slug"],
-    emits: ["close-investor"],
-    data() {
-        return {
-            isExpanded: false,
-            isLoading: false,
-            investor: null,
-        };
-    },
-    mounted() {
-        window.addEventListener("keydown", this.handleKeyDown);
-    },
-    created() {
-        this.fetchInvestor();
-    },
-    methods: {
-        async fetchInvestor() {
-            this.isLoading = true;
-            try {
-                const response = await fetch(`/investor/${this.slug}/get`);
-                console.log(response);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investor = data.investor;
-                    console.log(this.investor.user_id);
-                }
-            } catch (error) {
-                console.error("Error fetching investor:", error);
-            } finally {
-                this.isLoading = false;
-            }
-        },
-        handleKeyDown(event) {
-            if (event.key === "Escape") {
-                this.$emit("close-investor");
-            }
-        },
-        toggleExpansion() {
-            this.isExpanded = !this.isExpanded;
-        },
-        closeInvestor() {
-            this.$emit("close-investor");
-        },
-    },
-});
-
 const InvestorRegistrationComponent = defineComponent({
     template: "#investor-registration-template",
     methods: {
@@ -56,14 +6,33 @@ const InvestorRegistrationComponent = defineComponent({
                 const response = await fetch("/check-investor");
                 const data = await response.json();
 
-                if (data.investors_exist) {
+                if (data.existing_investors.length > 0) {
                     this.$emit("change-page", 1);
                 } else {
-                    this.$emit("change-page", 2);
+                    this.$emit("change-page", 3);
                 }
             } catch (error) {
                 console.log(error);
             }
+        },
+    },
+});
+
+const ClaimInvestorComponent = defineComponent({
+    template: "#claim-investor-template",
+    data() {
+        return {};
+    },
+    methods: {
+        goToSimilarInvestors() {
+            this.$emit("change-page", 1);
+        },
+        createNewInvestor() {
+            this.$emit("change-page", 2);
+        },
+        goToPreviousPage() {
+            localStorage.setItem("currentPage", 0);
+            window.location.href = "/onboarding";
         },
     },
 });
@@ -75,8 +44,9 @@ const ZeroPageComponent = defineComponent({
     },
     data() {
         return {
-            investors: false,
+            investors: null,
             selectedInvestorSlug: null,
+            debouncedInvestors: null,
         };
     },
     methods: {
@@ -86,18 +56,46 @@ const ZeroPageComponent = defineComponent({
 
         async fetchExistingInvestors() {
             try {
-                const response = await fetch("/existing-investors");
+                const response = await fetch("/check-investor");
                 const data = await response.json();
-                this.investors = data.investors;
-                console.log(this.investors);
+                this.investors = data.existing_investors;
             } catch (error) {
                 console.log(error);
             }
         },
         selectInvestorSlug(investorSlug) {
             this.selectedInvestorSlug = investorSlug;
-            console.log(this.selectedInvestorSlug);
         },
+        goToPreviousPage() {
+            this.$emit("change-page", -1);
+        },
+        debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        },
+        async searchInvestors(event) {
+            const searchInput = event.target.value;
+
+            if (searchInput.length > 0) {
+                try {
+                    const response = await fetch(`/search/investors/${searchInput}`);
+                    const data = await response.json();
+                    this.investors = data.investors;
+                    console.log(data.investors);
+                } catch (error) {
+                    console.log(error);
+                }
+            } else {
+                this.fetchExistingInvestors();
+            }
+        },
+    },
+    mounted() {
+        this.debouncedInvestors = this.debounce(this.searchInvestors, 500);
     },
     created() {
         this.fetchExistingInvestors();
@@ -126,6 +124,10 @@ const FirstPageComponent = defineComponent({
                 this.saveFirstStepData();
                 this.$emit("change-page", 1);
             }
+        },
+        goToPreviousPage() {
+            localStorage.setItem("currentPage", 0);
+            window.location.href = "/onboarding";
         },
         saveFirstStepData() {
             const formData = {
@@ -464,6 +466,7 @@ const ThirdPageComponent = defineComponent({
 createApp({
     components: {
         InvestorRegistrationComponent,
+        ClaimInvestorComponent,
         ZeroPageComponent,
         FirstPageComponent,
         SecondPageComponent,

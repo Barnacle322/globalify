@@ -29,6 +29,15 @@ createApp({
     },
     created() {
         this.asideMinified = localStorage.getItem("asideMinified") === "true";
+        window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
+        window.addEventListener(
+            "popstate",
+            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
+        );
+        window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
+        this.checkAndSelectUrlParam("investor", this.selectInvestorSlug);
+        this.checkAndSelectUrlParam("investment-firm", this.selectInvestmentFirmSlug);
+        this.checkAndSelectUrlParam("company", this.selectCompanySlug);
     },
     mounted() {
         const lowerSlider = document.getElementById("min_investment");
@@ -68,14 +77,41 @@ createApp({
         };
     },
     methods: {
+        checkAndSelectUrlParam(paramName, selectFunction) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramSlug = urlParams.get(paramName);
+            if (paramSlug) {
+                selectFunction(paramSlug);
+            }
+        },
+        checkUrlParams(paramName, selectFunction, closeEvent) {
+            const urlParams = new URLSearchParams(window.location.search);
+            let paramSlug = urlParams.get(paramName);
+            if (paramSlug) {
+                if (typeof paramSlug === "object" && paramSlug !== null) {
+                    paramSlug = paramSlug;
+                }
+                selectFunction(paramSlug);
+            } else {
+                this.$emit(closeEvent);
+            }
+        },
+        updateUrlParam(paramName, paramValue, stateKey) {
+            const url = new URL(window.location.href);
+            if (url.searchParams.get(paramName) !== paramValue) {
+                url.searchParams.set(paramName, paramValue);
+                window.history.pushState({}, "", url);
+            }
+            this[stateKey] = paramValue;
+        },
         selectInvestorSlug(investorSlug) {
-            this.selectedInvestorSlug = investorSlug;
+            this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug");
         },
         selectInvestmentFirmSlug(investmentFirmSlug) {
-            this.selectedInvestmentFirmSlug = investmentFirmSlug;
+            this.updateUrlParam("investment-firm", investmentFirmSlug, "selectedInvestmentFirmSlug");
         },
         selectCompanySlug(companySlug) {
-            this.selectedCompanySlug = companySlug;
+            this.updateUrlParam("company", companySlug, "selectedCompanySlug");
         },
         openMenu() {
             document.getElementById("menu").classList.remove("hidden");

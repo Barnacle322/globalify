@@ -783,7 +783,20 @@ def claim_verification(slug):
 @main.get("/investor/<slug>/get")
 @login_required
 def get_investor(slug):
-    investor_model = Investor.get_by_slug(slug)
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+
+    unpaid = False
+    if current_user.is_admin:
+        pass
+    elif not user_payment:
+        unpaid = True
+    elif user_payment and not user_payment.is_active:
+        unpaid = True
+
+    if unpaid:
+        investor_model = Investor.get_by_slug(slug)
+    else:
+        investor_model = Investor.get_by_slug_without_contacts(slug)
 
     if not investor_model:
         return jsonify({"status": "error", "message": "Investor not found."}, 404)
@@ -795,6 +808,11 @@ def get_investor(slug):
         firm_name=investor_model.firm_name,
         about=investor_model.about,
         position=investor_model.position,
+        website=investor_model.website,
+        linkedin=investor_model.linkedin,
+        twitter=investor_model.twitter,
+        email=investor_model.email,
+        phone_number=investor_model.phone_number,
         n_investments=investor_model.n_investments,
         n_exits=investor_model.n_exits,
         min_investment=investor_model.min_investment,
@@ -806,7 +824,7 @@ def get_investor(slug):
         user_id=investor_model.user_id,
     ).model_dump()
 
-    return jsonify({"investor": investor})
+    return jsonify({"investor": investor, "unpaid": unpaid})
 
 
 @main.get("/investment-firm/<slug>")

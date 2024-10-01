@@ -23,6 +23,11 @@ class InvestorSchema(BaseModel):
     firm_name: str | None
     about: str | None
     position: str | None
+    website: str | None = None
+    linkedin: str | None = None
+    twitter: str | None = None
+    email: str | None = None
+    phone_number: str | None = None
     n_investments: int | None
     n_exits: int | None
     min_investment: int | None

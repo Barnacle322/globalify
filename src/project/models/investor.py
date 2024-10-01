@@ -15,7 +15,16 @@ from more_itertools import chunked
 from slugify import slugify
 from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship, validates
+from sqlalchemy.orm import (
+    Mapped,
+    MappedAsDataclass,
+    backref,
+    joinedload,
+    mapped_column,
+    relationship,
+    selectinload,
+    validates,
+)
 from thefuzz import fuzz
 
 from ..extensions import db
@@ -350,6 +359,21 @@ class Investor(InvestorBase):
     @staticmethod
     def get_by_slug(slug: str) -> Investor | None:
         return db.session.scalar(db.select(Investor).where(Investor.slug == slug))
+
+    @staticmethod
+    def get_by_slug_without_contacts(slug: str) -> Investor | None:
+        result = db.session.scalar(db.select(Investor).where(Investor.slug == slug))
+
+        if result:
+            result.website = None
+            result.linkedin = None
+            result.twitter = None
+            result.email = None
+            result.phone_number = None
+
+            return result
+
+        return None
 
     @staticmethod
     def get_by_user_id(user_id: int) -> Investor | None:

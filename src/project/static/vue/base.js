@@ -569,15 +569,33 @@ const FullInvestor = defineComponent({
             isExpanded: false,
             isLoading: false,
             investor: null,
+            unpaid: false,
         };
     },
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
     },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        this.deleteInvestorParam();
+    },
     created() {
         this.fetchInvestor();
+        window.removeEventListener("popstate", this.checkUrlParams);
     },
     methods: {
+        deleteInvestorParam() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("investor");
+            window.history.replaceState({}, "", url);
+        },
+        checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const investorSlug = urlParams.get("investor");
+            if (!investorSlug) {
+                this.$emit("close-investor");
+            }
+        },
         async fetchInvestor() {
             this.isLoading = true;
             try {
@@ -585,7 +603,8 @@ const FullInvestor = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     this.investor = data.investor;
-                    console.log(this.investor.user_id);
+                    this.unpaid = data.unpaid;
+                    console.log(this.unpaid);
                 }
             } catch (error) {
                 console.error("Error fetching investor:", error);
@@ -621,10 +640,27 @@ const FullInvestmentFirm = defineComponent({
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
     },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        this.deleteInvestmentFirmParam();
+    },
     created() {
         this.fetchInvestmentFirm();
+        window.removeEventListener("popstate", this.checkUrlParams);
     },
     methods: {
+        deleteInvestmentFirmParam() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("investment-firm");
+            window.history.replaceState({}, "", url);
+        },
+        checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const investorSlug = urlParams.get("investment-firm");
+            if (!investorSlug) {
+                this.$emit("close-investment-firm");
+            }
+        },
         async fetchInvestmentFirm() {
             this.isLoading = true;
             try {
@@ -667,10 +703,27 @@ const FullCompany = defineComponent({
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
     },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        this.deleteCompanyParam();
+    },
     created() {
         this.fetchCompany();
+        window.removeEventListener("popstate", this.checkUrlParams);
     },
     methods: {
+        deleteCompanyParam() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("company");
+            window.history.replaceState({}, "", url);
+        },
+        checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const investorSlug = urlParams.get("company");
+            if (!investorSlug) {
+                this.$emit("close-company");
+            }
+        },
         async fetchCompany() {
             this.isLoading = true;
             try {

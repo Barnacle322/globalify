@@ -123,7 +123,11 @@ def update_company_view(id):
 def update_company(id):
     form_data = request.get_json()
 
+    print("\n\n\n\n\n\n\n\n\n\n")
+    print(form_data)
+
     company = Company.get_by_id(id)
+
     if not company:
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("admin.company.index", _external=True, **status))
@@ -139,47 +143,47 @@ def update_company(id):
     else:
         company.slug = slug
 
-    website_url = form_data.get("website_url", company.website_url) or None
+    website_url = form_data.get("website", company.website_url) or None
     if website_url:
         website_url = add_https_prefix(website_url)
         try:
             company.website_url = website_url
         except Exception as e:
             status = Status(StatusType.ERROR, str(e)).get_status()
-            return redirect(url_for("settings.company_info_view", id=id, _external=False, **status))
+            return redirect(url_for("admin.company.update_company_view", id=id, _external=False, **status))
     else:
         company.website_url = None
 
-    linkedin_url = form_data.get("linkedin_url", company.linkedin_url) or None
+    linkedin_url = form_data.get("linkedin", company.linkedin_url) or None
     if linkedin_url:
         linkedin_url = add_https_prefix(linkedin_url)
         try:
             company.linkedin_url = linkedin_url
         except Exception as e:
             status = Status(StatusType.ERROR, str(e)).get_status()
-            return redirect(url_for("settings.company_info_view", id=id, _external=False, **status))
+            return redirect(url_for("admin.company.update_company_view", id=id, _external=False, **status))
     else:
         company.linkedin_url = None
 
-    instagram_url = form_data.get("instagram_url", company.instagram_url) or None
+    instagram_url = form_data.get("instagram", company.instagram_url) or None
     if instagram_url:
         instagram_url = add_https_prefix(instagram_url)
         try:
             company.instagram_url = instagram_url
         except Exception as e:
             status = Status(StatusType.ERROR, str(e)).get_status()
-            return redirect(url_for("settings.company_info_view", id=id, _external=False, **status))
+            return redirect(url_for("admin.company.update_company_view", id=id, _external=False, **status))
     else:
         company.instagram_url = None
 
-    twitter_url = form_data.get("twitter_url", company.twitter_url) or None
+    twitter_url = form_data.get("twitter", company.twitter_url) or None
     if twitter_url:
         twitter_url = add_https_prefix(twitter_url)
         try:
             company.twitter_url = twitter_url
         except Exception as e:
             status = Status(StatusType.ERROR, str(e)).get_status()
-            return redirect(url_for("settings.company_info_view", id=id, _external=False, **status))
+            return redirect(url_for("admin.company.update_company_view", id=id, _external=False, **status))
     else:
         company.twitter_url = None
 
@@ -196,7 +200,7 @@ def update_company(id):
         except Exception as e:
             print(e)
             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
-            return redirect(url_for("settings.index", _external=False, **status))
+            return redirect(url_for("admin.company.update_company_view", _external=False, **status))
 
     company.name = name
     company.description = form_data.get("description", company.description) or None

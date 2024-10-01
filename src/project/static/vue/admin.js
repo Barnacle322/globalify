@@ -249,6 +249,7 @@ createApp({
             const website = document.getElementById("website").value;
             const linkedin = document.getElementById("linkedin").value;
             const twitter = document.getElementById("twitter").value;
+            const instagram = document.getElementById("instagram").value;
             const isPublicElement = document.getElementById("is_public");
             const is_public = isPublicElement ? isPublicElement.checked : true;
             const notable_investment = document.getElementById("searchInput").value;
@@ -264,6 +265,7 @@ createApp({
                 website: website,
                 linkedin: linkedin,
                 twitter: twitter,
+                instagram: instagram,
                 is_public: is_public,
                 notable_investment: notable_investment,
             });

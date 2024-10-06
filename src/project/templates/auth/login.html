@@ -23,6 +23,14 @@
                 <img src="/static/elements/google.svg" alt="" />
                 <span class="font-medium">Google</span>
             </a>
+            <a
+                href="/login-apple"
+                class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-stone-300 bg-white p-3 transition-colors ease-in-out hover:bg-slate-100"
+                onclick="this.classList.add('idempotency');"
+            >
+                <img src="/static/elements/google.svg" alt="" />
+                <span class="font-medium">Apple</span>
+            </a>
             {% if status_type %} {% if status_type == '3' %}
             <div class="rounded-xl text-red-500">{{ msg }}</div>
             {% endif %} {% if status_type == '2' %}

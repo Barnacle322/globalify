@@ -7,7 +7,7 @@ import sentry_sdk
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
+from .extensions import csrf, db, login_manager, migrate, oauth
 from .routes.admin import admin
 from .routes.auth import auth
 from .routes.main import (
@@ -144,6 +144,55 @@ def create_app(database_url="sqlite:///db.sqlite"):
             "token_endpoint_auth_method": "client_secret_post",
         },
     )
+
+    @app.cli.command("setup")
+    def populate():
+        from .models import InvestmentFirm, Investor, User, UserInfo, UserPayment
+        from .utils.enums import OauthProvider
+
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+
+            admin_list = [
+                {
+                    "email": "arstan.usenov@gmail.com",
+                    "first_name": "Arstan",
+                    "last_name": "Usenov",
+                    "username": "barnacle",
+                },
+                {
+                    "email": "arstan@globalify.xyz",
+                    "first_name": "Arstanbek",
+                    "last_name": "Usenov",
+                    "username": "barnacle2",
+                },
+            ]
+            for admin in admin_list:
+                user = User(
+                    oauth_provider=OauthProvider.GOOGLE,
+                    email=admin["email"],
+                    is_verified=True,
+                    is_admin=True,
+                )
+                user_info = UserInfo(
+                    first_name=admin["first_name"], last_name=admin["last_name"], username=admin["username"], user=user
+                )
+                user_payment = UserPayment(user=user)
+
+                db.session.add(user)
+                db.session.add(user_info)
+                db.session.add(user_payment)
+
+            Investor.populate_demo()
+            Investor.slugify_existing()
+            Investor.sync_search_index(recreate=True)
+
+            InvestmentFirm.populate_vcsheet()
+            InvestmentFirm.slugify_existing()
+            InvestmentFirm.sync_search_index(recreate=True)
+
+    app.cli.add_command(populate)
 
     @app.cli.command("setup")
     def populate():

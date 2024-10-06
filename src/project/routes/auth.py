@@ -379,12 +379,12 @@ def apple_login():
     if nonce:
         del session["apple_nonce"]
 
-    nonce = secrets.token_urlsafe(16)  # Generate a secure random nonce
-    session["apple_nonce"] = nonce  # Store the nonce in the session
+    nonce = secrets.token_urlsafe(16)
+    session["apple_nonce"] = nonce
 
     return oauth.apple.authorize_redirect(
-        redirect_uri="https://1caa-104-28-218-188.ngrok-free.app/apple-oauth",
-        nonce=nonce,  # Include the nonce in the authorization request
+        redirect_uri=url_for("auth.apple_callback", _external=True),
+        nonce=nonce,
     )
 
 

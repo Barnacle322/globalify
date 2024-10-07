@@ -68,21 +68,21 @@
                     </svg>
                 </button>
             </nav>
-            <main class="mx-auto pt-5 flex flex-col items-center gap-5 pb-16 px-4 sm:px-9">
-                <section class="w-full max-w-7xl flex justify-between items-center">
-                    <div class="w-full max-w-7xl flex gap-4 items-center">
+            <main class="mx-auto flex flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+                <section class="flex w-full max-w-7xl items-center justify-between">
+                    <div class="flex w-full max-w-7xl items-center gap-4">
                         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
 
                         <img
                             v-if="investor.twitter"
-                            class="h-20 rounded-lg shadow-card"
+                            class="shadow-card h-20 rounded-lg"
                             src="https://unavatar.io/twitter/investor.twitter.split('/')[-1]"
                             alt=""
                             loading="lazy"
                         />
 
                         <h1 class="text-4xl font-semibold" v-text="investor.name"></h1>
-                        <div class="flex col">
+                        <div class="col flex">
                             <a
                                 v-if="!investor.user_id"
                                 :href="`/investor/${investor.slug}/claim`"
@@ -109,17 +109,17 @@
                     <a
                         v-if="investor.user_id == {{user.id}}"
                         href="/settings/investor"
-                        class="rounded-lg bg-sky-500 px-2 py-1 h-10 w-16 text-sm text-white transition-colors ease-in-out hover:bg-sky-400 flex justify-center items-center"
+                        class="flex h-10 w-16 items-center justify-center rounded-lg bg-sky-500 px-2 py-1 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
                         >Edit</a
                     >
                 </section>
-                <section class="max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
+                <section class="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2">
                     <article
                         v-if="investor.location || investor.firm_name || investor.about"
-                        class="bg-white shadow-card p-5 rounded-xl w-full"
+                        class="shadow-card w-full rounded-xl bg-white p-5"
                     >
                         <h2 class="text-xl font-medium">General</h2>
-                        <div class="flex flex-col gap-2 text-sm mt-5">
+                        <div class="mt-5 flex flex-col gap-2 text-sm">
                             <div v-if="investor.location" class="grid grid-cols-2">
                                 <span class="inline-flex items-center gap-1 font-medium">
                                     <svg
@@ -172,12 +172,12 @@
                     </article>
                     <article
                         v-if="investor.rounds.length > 0 || investor.industries.length > 0 || investor.notable_investments.length > 0 || investor.min_max_investment || investor.n_investments || investor.n_exits && !unpaid"
-                        class="bg-white shadow-card p-5 rounded-xl w-full"
+                        class="shadow-card w-full rounded-xl bg-white p-5"
                     >
                         <h2 class="text-xl font-medium">Investment</h2>
 
-                        <div v-if="investor.rounds.length !== 0" class="flex flex-col gap-2 mt-5">
-                            <span class="flex font-medium gap-1 text-sm"
+                        <div v-if="investor.rounds.length !== 0" class="mt-5 flex flex-col gap-2">
+                            <span class="flex gap-1 text-sm font-medium"
                                 ><svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
@@ -198,15 +198,15 @@
                                 <a
                                     v-for="round in investor.rounds"
                                     :key="round.id"
-                                    class="text-nowrap rounded-full bg-[#ffdcfd] px-2 font-medium py-1.5 text-xs text-[#dd70d8]"
+                                    class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
                                     v-text="round.name"
                                 >
                                 </a>
                             </div>
                         </div>
 
-                        <div v-if="investor.industries.length !== 0" class="flex flex-col gap-2 mt-2">
-                            <span class="flex font-medium gap-1 text-sm"
+                        <div v-if="investor.industries.length !== 0" class="mt-2 flex flex-col gap-2">
+                            <span class="flex gap-1 text-sm font-medium"
                                 ><svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
@@ -227,13 +227,13 @@
                                 <a
                                     v-for="industry in investor.industries"
                                     :key="industry.id"
-                                    class="text-nowrap rounded-lg bg-[#ccecff] px-2 font-medium py-1.5 text-xs text-[#26a3f1]"
+                                    class="text-nowrap rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-[#26a3f1]"
                                     v-text="industry.name"
                                 ></a>
                             </div>
                         </div>
-                        <div v-if="investor.min_max_investment" class="grid grid-cols-2 mt-5">
-                            <span class="flex font-medium gap-1 text-sm"
+                        <div v-if="investor.min_max_investment" class="mt-5 grid grid-cols-2">
+                            <span class="flex gap-1 text-sm font-medium"
                                 ><svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
@@ -253,8 +253,8 @@
                             <span class="text-sm text-gray-700" v-text="investor.min_max_investment"></span>
                         </div>
 
-                        <div v-if="investor.n_investments && investor.n_exits" class="grid grid-cols-2 mt-5">
-                            <span class="flex font-medium gap-1 text-sm"
+                        <div v-if="investor.n_investments && investor.n_exits" class="mt-5 grid grid-cols-2">
+                            <span class="flex gap-1 text-sm font-medium"
                                 ><svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
@@ -277,8 +277,8 @@
                                 v-text="`${investor.n_investments}/${investor.n_exits}`"
                             ></span>
                         </div>
-                        <div v-if="investor.n_investments" class="grid grid-cols-2 mt-5">
-                            <span class="flex font-medium gap-1 text-sm"
+                        <div v-if="investor.n_investments" class="mt-5 grid grid-cols-2">
+                            <span class="flex gap-1 text-sm font-medium"
                                 ><svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
@@ -297,8 +297,8 @@
                             </span>
                             <span class="text-sm text-gray-700" v-text="investor.n_investments"></span>
                         </div>
-                        <div v-if="investor.n_exits" class="grid grid-cols-2 mt-5">
-                            <span class="flex font-medium gap-1 text-sm"
+                        <div v-if="investor.n_exits" class="mt-5 grid grid-cols-2">
+                            <span class="flex gap-1 text-sm font-medium"
                                 ><svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
@@ -319,19 +319,19 @@
                             <span class="text-sm text-gray-700" v-text="investor.n_exits"></span>
                         </div>
                         <div v-if="investor.notable_investments.length !== 0">
-                            <h2 class="font-medium mt-5">Notable Investments</h2>
-                            <div class="flex flex-wrap gap-1 mt-2">
+                            <h2 class="mt-5 font-medium">Notable Investments</h2>
+                            <div class="mt-2 flex flex-wrap gap-1">
                                 <div v-for="investment in investor.notable_investments" :key="investment.id">
                                     <a
                                         v-if="investment.company"
                                         v-text="investment.name"
                                         href="/profile/company/investment.company.slug"
-                                        class="text-nowrap rounded-lg bg-violet-200 px-2 font-medium py-1.5 text-xs text-violet-500 hover:bg-violet-300"
+                                        class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500 hover:bg-violet-300"
                                     ></a>
                                     <a
                                         v-else
                                         v-text="investment.name"
-                                        class="text-nowrap rounded-lg bg-violet-200 px-2 font-medium py-1.5 text-xs text-violet-500"
+                                        class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500"
                                     ></a>
                                 </div>
                             </div>
@@ -472,10 +472,10 @@
                         </div>
                     </article>
                 </section>
-                <div v-if="unpaid" class="w-full max-w-7xl rounded-2xl p-5 shadow-card">
-                    <h2 class="text-2xl font-medium pb-5" v-text="'Find more contacts for ' + investor.name"></h2>
-                    <div class="flex gap-9 items-center">
-                        <div class="w-5/12 p-5 rounded-md border">
+                <div v-if="unpaid" class="shadow-card w-full max-w-7xl rounded-2xl p-5">
+                    <h2 class="pb-5 text-2xl font-medium" v-text="'Find more contacts for ' + investor.name"></h2>
+                    <div class="flex items-center gap-9">
+                        <div class="w-5/12 rounded-md border p-5">
                             <div class="flex flex-col gap-2 text-sm">
                                 <div class="flex justify-between gap-3">
                                     <span class="inline-flex items-center gap-1 font-medium">

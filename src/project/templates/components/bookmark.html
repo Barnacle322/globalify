@@ -42,7 +42,7 @@
                 <div
                     class="transition-color relative flex items-center gap-4 rounded-lg p-2 ease-in-out hover:bg-gray-50"
                 >
-                    <a class="flex" :href="computedHref(bookmark)">
+                    <a class="flex cursor-pointer" @click="selectInvestorSlug(bookmark.slug)">
                         <img
                             v-if="bookmark.twitter && selectedTab === 'investor'"
                             :src="'https://unavatar.io/twitter/' + getTwitterHandle(bookmark.twitter)"

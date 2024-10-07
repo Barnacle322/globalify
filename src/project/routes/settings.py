@@ -1043,7 +1043,7 @@ def investor_point_origin_data():
     investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
     if not investor_point_origin:
         status = Status(StatusType.ERROR, NO_BACKUP_DATA).get_status()
-        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+        return redirect(url_for("settings.index", _external=True, **status))
 
     data = InvestorOriginPointSchema(
         first_name=investor_point_origin.first_name,
@@ -1108,10 +1108,10 @@ def restore_investor_data():
         investor.upsert_data()
     else:
         status = Status(StatusType.ERROR, NO_BACKUP_DATA).get_status()
-        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+        return redirect(url_for("settings.index", _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investor data restored.").get_status()
-    return redirect(url_for("settings.edit_investor_view", _external=False, **status))
+    return redirect(url_for("settings.index", _external=False, **status))
 
 
 @settings.get("/users/search/<search_input>")

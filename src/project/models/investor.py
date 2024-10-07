@@ -19,6 +19,7 @@ from sqlalchemy.orm import (
     Mapped,
     MappedAsDataclass,
     backref,
+    defer,
     joinedload,
     mapped_column,
     relationship,

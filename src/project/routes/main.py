@@ -793,7 +793,7 @@ def get_investor(slug):
     elif user_payment and not user_payment.is_active:
         unpaid = True
 
-    if unpaid:
+    if not unpaid:
         investor_model = Investor.get_by_slug(slug)
     else:
         investor_model = Investor.get_by_slug_without_contacts(slug)

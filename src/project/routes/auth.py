@@ -1,8 +1,9 @@
 import datetime
 import os
+import secrets
 
 import requests
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from flask_login import (
     current_user,
     login_required,
@@ -10,7 +11,7 @@ from flask_login import (
     logout_user,
 )
 
-from ..extensions import db, login_manager, oauth
+from ..extensions import csrf, db, login_manager, oauth
 from ..models import (
     CompanyInvitation,
     EmailVerification,
@@ -42,6 +43,8 @@ from .main import check_user_info_complete, check_verification
 auth = Blueprint("auth", __name__)
 
 LINKEDIN_SECRET = os.environ.get("_LINKEDIN_OAUTH2_CLIENT_SECRET")
+APPLE_SECRET = os.environ.get("_APPLE_OAUTH2_CLIENT_SECRET")
+APPLE_ID = os.environ.get("_APPLE_OAUTH2_CLIENT_ID")
 LINKEDIN_EMAIL_URL = "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))"
 LINKEDIN_PERSONAL_INFO_URL = "https://api.linkedin.com/v2/me"
 
@@ -351,6 +354,76 @@ def google_callback():
             user=user,
             first_name=google_user_info.get("given_name"),
             last_name=google_user_info.get("family_name"),
+        )
+
+        db.session.add(user_info)
+        db.session.commit()
+
+    user_payment = UserPayment.get_by_user_id(user.id)
+    if not user_payment:
+        user_payment = UserPayment(user=user)
+        db.session.add(user_payment)
+        db.session.commit()
+
+    login_user(user, remember=True)
+
+    if not user_info.is_complete:
+        return redirect(url_for("onboarding.index"))
+
+    return redirect(url_for("main.search"))
+
+
+@auth.route("/login-apple")
+def apple_login():
+    nonce = session.get("apple_nonce")
+    if nonce:
+        del session["apple_nonce"]
+
+    nonce = secrets.token_urlsafe(16)
+    session["apple_nonce"] = nonce
+
+    return oauth.apple.authorize_redirect(
+        redirect_uri=url_for("auth.apple_callback", _external=True),
+        nonce=nonce,
+    )
+
+
+@auth.route("/apple-oauth", methods=["GET", "POST"])
+@csrf.exempt
+def apple_callback():
+    try:
+        token = oauth.apple.authorize_access_token()
+        nonce = session.pop("apple_nonce", None)  # Retrieve the nonce from the session
+        if not nonce:
+            raise ValueError("Nonce not found in session")
+        apple_user_info = oauth.apple.parse_id_token(token, nonce=nonce)  # Pass the nonce to parse_id_token
+    except Exception as e:
+        print(f"Error during Apple OAuth callback: {e}")
+        return redirect(url_for("auth.login"))
+
+    email = apple_user_info.get("email")
+    if not email:
+        print("No email found in user info")
+        return redirect(url_for("auth.login"))
+
+    user_name = apple_user_info.get("name", {})
+    first_name = user_name.get("firstName")
+    last_name = user_name.get("lastName")
+
+    try:
+        user = oauth_user(email, OauthProvider.APPLE)
+    except Exception as e:
+        print(f"Error creating or fetching user: {e}")
+        return redirect(url_for("auth.login"))
+
+    login_user(user, remember=True)
+
+    user_info = UserInfo.get_by_user_id(user.id)
+    if not user_info:
+        user_info = UserInfo(
+            user=user,
+            first_name=first_name,
+            last_name=last_name,
         )
 
         db.session.add(user_info)

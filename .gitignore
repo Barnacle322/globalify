@@ -400,3 +400,5 @@ start_local.ps1
 .idea
 typesense-data
 .DS_Store
+cert.pem
+key.pem

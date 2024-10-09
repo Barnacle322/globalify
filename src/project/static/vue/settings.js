@@ -206,6 +206,9 @@ const ConfirmRestoreComponent = defineComponent({
         async fetchPointOriginData() {
             try {
                 const response = await fetch("/settings/investor/point-origin");
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
                 if (!response.ok) {
                     console.error("Network response was not ok");
                 }
@@ -250,7 +253,6 @@ const ConfirmRestoreComponent = defineComponent({
     mounted() {
         this.fetchPointOriginData();
         window.addEventListener("keydown", this.handleKeyDown);
-        this.debouncedGetUserList = this.debounce(this.getUserList, 700);
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
         }, 0);

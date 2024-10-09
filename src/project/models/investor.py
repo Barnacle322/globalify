@@ -1898,6 +1898,10 @@ class InvestorOriginPoint(InvestorBase):
         return db.session.scalar(db.select(InvestorOriginPoint).where(InvestorOriginPoint.investor_id == investor_id))
 
     @staticmethod
+    def exists_by_investor_id(investor_id: int) -> bool:
+        return db.session.scalar(db.select(db.func.count()).where(InvestorOriginPoint.investor_id == investor_id)) > 0
+
+    @staticmethod
     def get_all() -> Sequence[InvestorOriginPoint]:
         return (
             db.session.scalars(

@@ -70,6 +70,7 @@ def index():
     investor = Investor.get_by_user_id_with_investments(current_user.id)
     rounds = Round.get_all()
     industries = Industry.get_all()
+    investor_origin = InvestorOriginPoint.exists_by_investor_id(investor.id) if investor else False
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
@@ -77,6 +78,7 @@ def index():
         "settings/general.html",
         user=authenticated_user,
         investor=investor,
+        investor_origin=investor_origin,
         rounds=rounds,
         industries=industries,
         status_type=status_type,
@@ -1043,7 +1045,7 @@ def investor_point_origin_data():
     investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
     if not investor_point_origin:
         status = Status(StatusType.ERROR, NO_BACKUP_DATA).get_status()
-        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+        return redirect(url_for("settings.index", _external=True, **status))
 
     data = InvestorOriginPointSchema(
         first_name=investor_point_origin.first_name,
@@ -1108,10 +1110,10 @@ def restore_investor_data():
         investor.upsert_data()
     else:
         status = Status(StatusType.ERROR, NO_BACKUP_DATA).get_status()
-        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+        return redirect(url_for("settings.index", _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investor data restored.").get_status()
-    return redirect(url_for("settings.edit_investor_view", _external=False, **status))
+    return redirect(url_for("settings.index", _external=False, **status))
 
 
 @settings.get("/users/search/<search_input>")

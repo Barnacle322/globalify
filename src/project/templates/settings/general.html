@@ -915,6 +915,7 @@
                                 </div>
                             </div>
                             <div class="mt-5 flex gap-2">
+                                {% if investor_origin %}
                                 <button
                                     id="openConfirmRestore"
                                     @click="confirmRestoreOpened = true"
@@ -922,6 +923,7 @@
                                 >
                                     Restore
                                 </button>
+                                {% endif %}
                                 <a
                                     href="/settings/investor"
                                     class="h-full w-fit rounded-md bg-red-500 px-3 py-2 text-sm text-white transition-colors ease-in-out hover:bg-red-400"

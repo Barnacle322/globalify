@@ -1,6 +1,6 @@
 {% macro render(user) %}
 <template id="zero-step-registration-template">
-    <div class="mx-auto flex w-full max-w-fit flex-col gap-9 fixed">
+    <div class="fixed mx-auto flex w-full max-w-fit flex-col gap-9">
         <input type="hidden" ref="userFirstName" value="{{ user.user_info.first_name }}" />
         <input type="hidden" ref="userLastName" value="{{ user.user_info.last_name }}" />
 
@@ -9,7 +9,7 @@
             <span class="text-gray-600">Please review the investors below to confirm your identity.</span>
         </div>
 
-        <div class="mx-auto flex w-full gap-2 rounded-full bg-white py-2 pr-3 border-2">
+        <div class="mx-auto flex w-full gap-2 rounded-full border-2 bg-white py-2 pr-3">
             <input
                 type="search"
                 ref="searchInput"
@@ -24,14 +24,14 @@
             />
         </div>
 
-        <div class="grid gap-4 grid-cols-2">
+        <div class="grid grid-cols-2 gap-4">
             <article
                 v-if="investors"
                 v-for="investor in investors"
                 :key="investor.id"
                 class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out"
             >
-                <div class="flex justify-between items-center">
+                <div class="flex items-center justify-between">
                     <button
                         @click="selectInvestorSlug(investor.slug)"
                         v-text="investor.name"
@@ -123,10 +123,10 @@
 
         <div class="flex">
             <button
-                class="bg-gray-300 text-black rounded-md w-fit px-3 py-2 mt-4 hover:bg-gray-400 hover:text-gray-800"
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
                 @click="goToPreviousPage"
             >
-                <div class="flex gap-2 items-center">
+                <div class="flex items-center gap-2">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"

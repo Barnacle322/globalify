@@ -25,9 +25,9 @@ const CreateNotableInvestmentComponent = defineComponent({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
+                        "X-CSRFToken": csrfToken
                     },
-                    body: JSON.stringify({ name }),
+                    body: JSON.stringify({ name })
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -37,7 +37,7 @@ const CreateNotableInvestmentComponent = defineComponent({
             } catch (error) {
                 console.error("Error:", error);
             }
-        },
+        }
     },
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
@@ -48,7 +48,7 @@ const CreateNotableInvestmentComponent = defineComponent({
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("click", this.handleOutsideClick);
-    },
+    }
 });
 
 const NotificationComponent = defineComponent({
@@ -62,7 +62,7 @@ const NotificationComponent = defineComponent({
             observer: null,
             loading: false,
             reachedEnd: false,
-            page: 2,
+            page: 2
         };
     },
     watch: {
@@ -82,7 +82,7 @@ const NotificationComponent = defineComponent({
                 this.page = 2;
                 this.setupInfinteScroll();
             }
-        },
+        }
     },
     methods: {
         handleKeyDown(event) {
@@ -136,7 +136,7 @@ const NotificationComponent = defineComponent({
             const options = {
                 root: null,
                 rootMargin: "0px",
-                threshold: 0.5,
+                threshold: 0.5
             };
             const sentinel = document.getElementById("notification-sentinel");
             this.observer = new IntersectionObserver((entries, observer) => {
@@ -186,8 +186,8 @@ const NotificationComponent = defineComponent({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
+                        "X-CSRFToken": csrfToken
+                    }
                 });
                 console.log(response);
                 if (!response.ok) {
@@ -210,8 +210,8 @@ const NotificationComponent = defineComponent({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
+                        "X-CSRFToken": csrfToken
+                    }
                 });
                 return response;
             } catch (e) {
@@ -240,9 +240,9 @@ const NotificationComponent = defineComponent({
         updateNotificationsState(notificationId) {
             this.notifications = this.notifications.filter((notification) => notification.id !== notificationId);
             this.inboxNotifications = this.inboxNotifications.filter(
-                (notification) => notification.id !== notificationId,
+                (notification) => notification.id !== notificationId
             );
-        },
+        }
     },
     async mounted() {
         await this.setupInfinteScroll();
@@ -250,7 +250,7 @@ const NotificationComponent = defineComponent({
     beforeUnmount() {
         this.observer.disconnect();
         window.removeEventListener("keydown", this.handleKeyDown);
-    },
+    }
 });
 
 const AsideComponent = defineComponent({
@@ -258,7 +258,7 @@ const AsideComponent = defineComponent({
     template: "#aside-template",
     data() {
         return {
-            currentPath: null,
+            currentPath: null
         };
     },
     mounted() {
@@ -266,7 +266,7 @@ const AsideComponent = defineComponent({
         if (["suggestions", "investor", "investment-firm"].includes(this.currentPath)) {
             this.currentPath = "search";
         }
-    },
+    }
 });
 
 const AsideMobileComponent = defineComponent({
@@ -274,16 +274,16 @@ const AsideMobileComponent = defineComponent({
     methods: {
         closeAside() {
             this.$emit("close-aside");
-        },
+        }
     },
     data() {
         return {
-            currentPath: null,
+            currentPath: null
         };
     },
     mounted() {
         this.currentPath = window.location.pathname.split("/")[1];
-    },
+    }
 });
 
 const Bookmark = defineComponent({
@@ -297,7 +297,7 @@ const Bookmark = defineComponent({
             observer: null,
             loading: false,
             reachedEnd: false,
-            page: 2,
+            page: 2
         };
     },
     watch: {
@@ -317,7 +317,7 @@ const Bookmark = defineComponent({
                 this.page = 2;
                 this.setupInfinteScroll();
             }
-        },
+        }
     },
     methods: {
         formatDate(date) {
@@ -348,7 +348,7 @@ const Bookmark = defineComponent({
             const options = {
                 root: null,
                 rootMargin: "0px",
-                threshold: 0.5,
+                threshold: 0.5
             };
 
             const sentinel = document.getElementById("bookmark-sentinel");
@@ -401,8 +401,8 @@ const Bookmark = defineComponent({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
+                        "X-CSRFToken": csrfToken
+                    }
                 });
 
                 if (response.ok) {
@@ -424,8 +424,8 @@ const Bookmark = defineComponent({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
+                        "X-CSRFToken": csrfToken
+                    }
                 });
 
                 if (response.ok) {
@@ -437,18 +437,23 @@ const Bookmark = defineComponent({
                 console.error("Error removing bookmark:", error.message);
             }
         },
-        computedHref(data) {
-            if (this.selectedTab === "investor") {
-                return "/investor/" + data.slug;
-            } else if (this.selectedTab === "investment_firm") {
-                return "/investment-firm/" + data.slug;
-            } else {
-                return "#";
+        updateUrlParam(paramName, paramValue, stateKey) {
+            const url = new URL(window.location.href);
+            if (url.searchParams.get(paramName) !== paramValue) {
+                url.searchParams.set(paramName, paramValue);
+                window.history.pushState({}, "", url);
             }
+            this[stateKey] = paramValue;
         },
+
+        selectInvestorSlug(investorSlug) {
+            this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug");
+            window.location.reload();
+        },
+
         getTwitterHandle(url) {
             return url.split("/").pop();
-        },
+        }
     },
     async mounted() {
         await this.setupInfinteScroll();
@@ -457,7 +462,7 @@ const Bookmark = defineComponent({
     beforeUnmount() {
         this.observer.disconnect();
         window.removeEventListener("click", this.closeRemoveBookmark);
-    },
+    }
 });
 
 const NavbarComponent = defineComponent({
@@ -465,7 +470,7 @@ const NavbarComponent = defineComponent({
     emits: ["open-aside", "open-notifications"],
     components: {
         Bookmark,
-        NotificationComponent,
+        NotificationComponent
     },
     data() {
         return {
@@ -473,7 +478,7 @@ const NavbarComponent = defineComponent({
             ignoreNextOutsideClickBookmarks: false,
             notificationsOpened: false,
             ignoreNextOutsideClickNotifications: false,
-            notifications: [],
+            notifications: []
         };
     },
     methods: {
@@ -536,13 +541,14 @@ const NavbarComponent = defineComponent({
             } else {
                 this.startPolling();
             }
-        },
+        }
     },
     computed: {
         unreadNotifications() {
             return this.notifications.some((notification) => !notification.is_read);
-        },
+        }
     },
+
     async mounted() {
         window.addEventListener("click", this.closeBookmark);
         window.addEventListener("click", this.closeNotifications);
@@ -557,7 +563,7 @@ const NavbarComponent = defineComponent({
         window.removeEventListener("click", this.closeNotifications);
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("visibilitychange", this.handleVisibilityChange);
-    },
+    }
 });
 
 const FullInvestor = defineComponent({
@@ -569,7 +575,7 @@ const FullInvestor = defineComponent({
             isExpanded: false,
             isLoading: false,
             investor: null,
-            unpaid: false,
+            unpaid: false
         };
     },
     mounted() {
@@ -622,8 +628,8 @@ const FullInvestor = defineComponent({
         },
         closeInvestor() {
             this.$emit("close-investor");
-        },
-    },
+        }
+    }
 });
 
 const FullInvestmentFirm = defineComponent({
@@ -634,7 +640,7 @@ const FullInvestmentFirm = defineComponent({
         return {
             isExpanded: false,
             isLoading: false,
-            investmentFirm: null,
+            investmentFirm: null
         };
     },
     mounted() {
@@ -685,8 +691,8 @@ const FullInvestmentFirm = defineComponent({
         },
         сloseInvestmentFirm() {
             this.$emit("close-investment-firm");
-        },
-    },
+        }
+    }
 });
 
 const FullCompany = defineComponent({
@@ -697,7 +703,7 @@ const FullCompany = defineComponent({
         return {
             isExpanded: false,
             isLoading: false,
-            company: null,
+            company: null
         };
     },
     mounted() {
@@ -750,6 +756,6 @@ const FullCompany = defineComponent({
         },
         closeCompany() {
             this.$emit("close-company");
-        },
-    },
+        }
+    }
 });

@@ -1,6 +1,6 @@
 {% macro render(user) %}
 <template id="first-step-registration-template">
-    <div class="mx-auto flex w-full max-w-xl flex-col gap-9 fixed">
+    <div class="fixed mx-auto flex w-full max-w-xl flex-col gap-9">
         <input type="hidden" ref="userFirstName" value="{{ user.user_info.first_name }}" />
         <input type="hidden" ref="userLastName" value="{{ user.user_info.last_name }}" />
 
@@ -80,10 +80,10 @@
 
         <div class="flex justify-between">
             <button
-                class="bg-gray-300 text-black rounded-md w-fit px-3 py-2 mt-4 hover:bg-gray-400 hover:text-gray-800"
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
                 @click="goToPreviousPage"
             >
-                <div class="flex gap-2 items-center">
+                <div class="flex items-center gap-2">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -98,10 +98,10 @@
                 </div>
             </button>
             <button
-                class="bg-gray-500 text-white rounded-md w-fit px-3 py-2 mt-4 hover:bg-gray-700"
+                class="mt-4 w-fit rounded-md bg-gray-500 px-3 py-2 text-white hover:bg-gray-700"
                 @click="openNextPage"
             >
-                <div class="flex gap-2 items-center">
+                <div class="flex items-center gap-2">
                     <span> Continue </span>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

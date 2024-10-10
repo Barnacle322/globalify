@@ -6,7 +6,7 @@ createApp({
         Bookmark,
         FullInvestor,
         FullInvestmentFirm,
-        FullCompany,
+        FullCompany
     },
     watch: {
         asideMinified(value) {
@@ -25,14 +25,14 @@ createApp({
             } else {
                 document.body.classList.remove("overflow-hidden");
             }
-        },
+        }
     },
     created() {
         this.asideMinified = localStorage.getItem("asideMinified") === "true";
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
-            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
+            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm")
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
         this.checkAndSelectUrlParam("investor", this.selectInvestorSlug);
@@ -56,6 +56,21 @@ createApp({
         this.setupMenuToggle();
         this.initializeValuesFromParams();
         this.updateLinksWithQueryParams();
+        window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
+        window.addEventListener(
+            "popstate",
+            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm")
+        );
+        window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
+    },
+    updated() {
+        window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
+        window.addEventListener(
+            "popstate",
+            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm")
+        );
+        window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
+
     },
     data() {
         return {
@@ -70,10 +85,10 @@ createApp({
                 { menu: "country-options-menu", button: "country-options" },
                 { menu: "sorting-options-menu", button: "sorting-options" },
                 { menu: "filter-options-menu", button: "filter-options" },
-                { menu: "round-options-menu", button: "round-options" },
+                { menu: "round-options-menu", button: "round-options" }
             ],
             showClasses: ["transform", "opacity-100", "scale-100"],
-            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
+            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"]
         };
     },
     methods: {
@@ -128,7 +143,7 @@ createApp({
                 "descending",
                 "rounds_exclusive",
                 "industries_exclusive",
-                "country",
+                "country"
             ];
             paramsArray.forEach((param) => {
                 this.setCheckedValuesFromParams(param);
@@ -222,7 +237,7 @@ createApp({
                 "descending",
                 "page",
                 "min_investment",
-                "max_investment",
+                "max_investment"
             ]);
 
             this.handleLists(roundValues, "round", paramsArray);
@@ -336,7 +351,7 @@ createApp({
             return url;
         },
         updateLinksWithQueryParams() {
-            document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
+            document.querySelectorAll("a[href^=\"/\"]:not([href^=\"//\"])").forEach((link) => {
                 if (!link.getAttribute("href").includes("search")) return;
                 link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
             });
@@ -348,8 +363,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
+                        "X-CSRFToken": csrfToken
+                    }
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -371,8 +386,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
+                        "X-CSRFToken": csrfToken
+                    }
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -394,8 +409,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
+                        "X-CSRFToken": csrfToken
+                    }
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -417,8 +432,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
+                        "X-CSRFToken": csrfToken
+                    }
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -428,6 +443,6 @@ createApp({
             } catch (error) {
                 console.error(error);
             }
-        },
-    },
+        }
+    }
 }).mount("#app");

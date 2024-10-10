@@ -1,6 +1,6 @@
 {% macro render(user) %}
 <template id="third-step-registration-template">
-    <div class="mx-auto flex w-full max-w-xl flex-col gap-9 fixed">
+    <div class="fixed mx-auto flex w-full max-w-xl flex-col gap-9">
         <input type="hidden" ref="userEmail" value="{{ user.email }}" />
 
         <div class="flex flex-col gap-2">
@@ -64,12 +64,12 @@
                 <span v-if="errors.phoneNumber" class="text-sm text-red-500" v-text="errors.phoneNumber"></span>
             </div>
         </div>
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
             <button
-                class="bg-gray-300 text-black rounded-md w-fit px-3 py-2 mt-4 hover:bg-gray-400 hover:text-gray-800"
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
                 @click="goToPreviousPage"
             >
-                <div class="flex gap-2 items-center">
+                <div class="flex items-center gap-2">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -84,10 +84,10 @@
                 </div>
             </button>
             <button
-                class="bg-gray-500 text-white rounded-md w-fit px-3 py-2 mt-4 hover:bg-gray-700"
+                class="mt-4 w-fit rounded-md bg-gray-500 px-3 py-2 text-white hover:bg-gray-700"
                 @click="submitRegistrationData"
             >
-                <div class="flex gap-2 items-center">
+                <div class="flex items-center gap-2">
                     <span> Submit</span>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

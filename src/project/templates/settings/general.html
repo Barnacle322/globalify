@@ -776,7 +776,7 @@
                                             placeholder="Search notable investments..."
                                             class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
                                             v-model="selectedNotableInvestment"
-                                            @input="event => fetchNotableInvestmentListByInvestorId(event.target.value, {{ investor.id }})"
+                                            @input="event => debouncedFetchNotableInvestmentListByInvestorId(event.target.value, {{ investor.id }})"
                                         />
                                         <div role="none" ref="notableInvestmentListElement">
                                             <button
@@ -915,6 +915,7 @@
                                 </div>
                             </div>
                             <div class="mt-5 flex gap-2 justify-end">
+                                {% if investor_origin %}
                                 <button
                                     id="openConfirmRestore"
                                     @click="confirmRestoreOpened = true"
@@ -922,7 +923,7 @@
                                 >
                                     Restore
                                 </button>
-
+                                {% endif %}
                                 <a
                                     href="/settings/investor"
                                     class="h-full w-fit rounded-md bg-red-500 px-3 py-2 text-sm text-white transition-colors ease-in-out hover:bg-red-400"

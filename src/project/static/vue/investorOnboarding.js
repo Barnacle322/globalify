@@ -85,7 +85,6 @@ const ZeroPageComponent = defineComponent({
                     const response = await fetch(`/search/investors/${searchInput}`);
                     const data = await response.json();
                     this.investors = data.investors;
-                    console.log(data.investors);
                 } catch (error) {
                     console.log(error);
                 }

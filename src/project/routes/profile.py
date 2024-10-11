@@ -29,6 +29,7 @@ def user_profile(username):
 
     investor = Investor.get_by_user_id(authenticated_user.id)
 
+
     return render_template(
         "user_profile.html",
         user_info=user_info,

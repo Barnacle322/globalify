@@ -1,12 +1,12 @@
 <!-- prettier-ignore -->
-{% extends "layouts/layout_app.html" %} 
-{% block title %} {{ user_info.full_name }} {% endblock %} 
-{% block head %} {{ super() }} {% endblock %} 
+{% extends "layouts/layout_app.html" %}
+{% block title %} {{ user_info.full_name }} {% endblock %}
+{% block head %} {{ super() }} {% endblock %}
 {% block content %}
 
 <main class="pt-5 flex flex-col items-center gap-5 pb-16 px-4 sm:px-9 w-full">
     <!-- prettier-ignore -->
-    {% if not user_info.bio and not user_info.twitter_public and not user_info.linkedin_public and not user_info.instagram_public and not user_info.email_public and not user_info.picture_url and not companies.all() %}
+    {% if not user_info.twitter_public and not user_info.linkedin_public and not user_info.instagram_public and not user_info.email_public and not user_info.picture_url and not companies.all() %}
     <div class="mt-32 flex w-full flex-col items-center justify-center gap-1">
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -29,7 +29,7 @@
         <h2 class="mt-2 font-medium">Profile empty</h2>
         {% if user == user_info.user %}
         <span class="max-w-xs text-center font-light text-gray-500">
-            Add your personal details to complete your profile</span
+            Add your personal details to complete your profile in settings or please untoggle the "Show in profile".</span
         >
         <a
             class="mt-3 flex items-center justify-center gap-2 rounded-lg bg-sky-500 p-2 text-white transition-colors ease-in-out hover:bg-sky-400"
@@ -50,15 +50,17 @@
                 />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
             </svg>
-            <span class="text-sm font-medium">Settings </span>
+            <span class="text-sm font-medium">Settings</span>
         </a>
     </div>
     {% else %}
     <span class="max-w-xs text-center font-light text-gray-500"> Oops, this profile has not been filled out yet! </span>
-    {% endif %} {% endif %}
+    {% endif %}
+
+    {% endif %}
+
     <section class="max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
-        <!-- prettier-ignore -->
-        {% if user_info.bio or (user_info.twitter_public and user_info.twitter_url) or (user_info.linkedin_public and user_info.linkedin_url) or (user_info.instagram_public and user_info.instagram_url) or user_info.email_public %}
+        {% if (user_info.twitter_public and user_info.twitter_url == None) or (user_info.linkedin_public and user_info.linkedin_url==None) or (user_info.instagram_public and user_info.instagram_url==None) or user_info.email_public %}
         <article class="bg-white shadow-card p-5 rounded-xl w-full">
             <h2 class="text-2xl font-medium flex gap-4 items-center">
                 {% if user_info.picture_url %}

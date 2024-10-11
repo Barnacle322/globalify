@@ -219,7 +219,7 @@
                             ref="searchInput"
                             placeholder="Search investments..."
                             class="w-full rounded-lg bg-transparent bg-white"
-                            @input="fetchNotableInvestmentList"
+                            @input="debouncedFetchNotableInvestmentList($event)"
                         />
                         <div
                             id="notableInvestmentList"

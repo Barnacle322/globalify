@@ -309,7 +309,7 @@
                                 placeholder="Search notable investments..."
                                 class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
                                 v-model="selectedNotableInvestment"
-                                @input="fetchNotableInvestmentList"
+                                @input="debouncedFetchNotableInvestmentList($event)"
                             />
                             <button
                                 v-if="notableInvestmentList.length > 0"

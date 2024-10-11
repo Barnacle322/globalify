@@ -344,7 +344,7 @@
                                 placeholder="Search notable investments..."
                                 class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
                                 v-model="selectedNotableInvestment"
-                                @input="event => fetchNotableInvestmentListByInvestmentFirmId(event.target.value, {{ investment_firm.id }})"
+                                @input="event => debouncedfetchNotableInvestmentListByInvestmentFirmId(event.target.value, {{ investment_firm.id }})"
                             />
                             <div role="none" ref="notableInvestmentListElement">
                                 <button

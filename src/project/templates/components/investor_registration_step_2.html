@@ -94,7 +94,7 @@
                         id="search-industries"
                         placeholder="Search industries..."
                         class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
-                        @input="getIndustryList(selectedIndustry)"
+                        @input="getIndustryList($event.target.value)"
                     />
                     <div class="py-1" role="none" ref="industryListElement">
                         {% for category, industries_list in industries.items() %}
@@ -158,7 +158,7 @@
                         ref="searchInput"
                         placeholder="Search notable investments..."
                         class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
-                        @input="fetchNotableInvestmentList"
+                        @input="debouncedFetchNotableInvestmentList($event)"
                     />
                     <div
                         role="none"

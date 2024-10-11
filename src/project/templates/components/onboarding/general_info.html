@@ -1,12 +1,12 @@
 {% macro render(user) %}
-<template id="first-step-registration-template">
-    <div class="fixed mx-auto flex w-full max-w-xl flex-col gap-9">
+<template id="general-info-template">
+    <div class="fixed mx-auto flex w-full max-w-xl flex-col gap-9 p-4 overflow-y-auto h-full justify-center">
         <input type="hidden" ref="userFirstName" value="{{ user.user_info.first_name }}" />
         <input type="hidden" ref="userLastName" value="{{ user.user_info.last_name }}" />
 
         <div class="flex flex-col gap-2">
-            <h1 class="text-4xl">Step 1 of 3: General info</h1>
-            <span class="">Globalify</span>
+            <h1 class="text-4xl font-medium">Step 1 of 3: General info</h1>
+            <span class="">Please tell us more about yourself</span>
         </div>
 
         <div class="grid grid-cols-6 gap-x-2 gap-y-1">
@@ -18,7 +18,7 @@
                     id="first_name"
                     placeholder="John"
                     required
-                    v-model="firstName"
+                    v-model="data.firstName"
                 />
                 <span v-if="errors.firstName" class="text-sm text-red-500" v-text="errors.firstName"></span>
             </div>
@@ -30,18 +30,18 @@
                     id="last_name"
                     placeholder="Doe"
                     required
-                    v-model="lastName"
+                    v-model="data.lastName"
                 />
             </div>
 
             <div class="col-span-full">
-                <label class="text-sm font-medium text-gray-700" for="firm_name">Firm Name</label>
+                <label class="text-sm font-medium text-gray-700" for="firm_name">Firm Name*</label>
                 <input
                     class="w-full rounded-lg bg-transparent bg-white"
                     type="text"
                     id="firm_name"
                     placeholder="ACME Inc."
-                    v-model="firmName"
+                    v-model="data.firmName"
                 />
             </div>
             <div class="col-span-full sm:col-span-3">
@@ -51,8 +51,7 @@
                     type="text"
                     id="position"
                     placeholder="CEO"
-                    required
-                    v-model="position"
+                    v-model="data.position"
                 />
             </div>
             <div class="col-span-full sm:col-span-3">
@@ -62,7 +61,7 @@
                     type="text"
                     id="location"
                     placeholder="New York, NY"
-                    v-model="location"
+                    v-model="data.location"
                 />
             </div>
             <div class="col-span-full">
@@ -73,7 +72,7 @@
                     id="about"
                     oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px';"
                     placeholder="John Doe is good person."
-                    v-model="about"
+                    v-model="data.about"
                 ></textarea>
             </div>
         </div>
@@ -81,7 +80,7 @@
         <div class="flex justify-between">
             <button
                 class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
-                @click="goToPreviousPage"
+                @click="previousPage"
             >
                 <div class="flex items-center gap-2">
                     <svg
@@ -97,10 +96,7 @@
                     <span>Back</span>
                 </div>
             </button>
-            <button
-                class="mt-4 w-fit rounded-md bg-gray-500 px-3 py-2 text-white hover:bg-gray-700"
-                @click="openNextPage"
-            >
+            <button class="mt-4 w-fit rounded-md bg-gray-900 px-3 py-2 text-white hover:bg-gray-800" @click="nextPage">
                 <div class="flex items-center gap-2">
                     <span> Continue </span>
                     <svg

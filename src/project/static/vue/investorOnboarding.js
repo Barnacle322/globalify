@@ -2,18 +2,7 @@ const InvestorRegistrationComponent = defineComponent({
     template: "#investor-registration-template",
     methods: {
         async openRegistrationPage() {
-            try {
-                const response = await fetch("/check-investor");
-                const data = await response.json();
-
-                if (data.existing_investors.length > 0) {
-                    this.$emit("change-page", 1);
-                } else {
-                    this.$emit("change-page", 3);
-                }
-            } catch (error) {
-                console.log(error);
-            }
+            this.$emit("change-page", 1);
         },
     },
 });
@@ -31,8 +20,9 @@ const ClaimInvestorComponent = defineComponent({
             this.$emit("change-page", 2);
         },
         goToPreviousPage() {
-            localStorage.setItem("currentPage", 0);
-            window.location.href = "/onboarding";
+            this.$emit("change-page", -1);
+            // localStorage.setItem("currentPage", 0);
+            // window.location.href = "/onboarding";
         },
     },
 });
@@ -50,10 +40,6 @@ const ZeroPageComponent = defineComponent({
         };
     },
     methods: {
-        openRegistrationPage() {
-            this.$emit("change-page", 1);
-        },
-
         async fetchExistingInvestors() {
             try {
                 const response = await fetch("/check-investor");
@@ -101,101 +87,90 @@ const ZeroPageComponent = defineComponent({
     },
 });
 
-const FirstPageComponent = defineComponent({
-    template: "#first-step-registration-template",
-    data() {
-        return {
-            firstName: "",
-            lastName: "",
-            firmName: "",
-            position: "",
-            location: "",
-            about: "",
-            errors: {
-                firstName: null,
-            },
-        };
+const GeneralInfoComponent = defineComponent({
+    template: "#general-info-template",
+    mounted() {
+        this.data.firstName = this.$refs.userFirstName.value;
+        this.data = JSON.parse(localStorage.getItem("generalInfo")) || this.data;
     },
     methods: {
-        openNextPage() {
+        nextPage() {
             this.validateFirstName();
             if (!this.errors.firstName) {
-                this.saveFirstStepData();
+                this.save();
                 this.$emit("change-page", 1);
             }
         },
-        goToPreviousPage() {
-            localStorage.setItem("currentPage", 0);
-            window.location.href = "/onboarding";
-        },
-        saveFirstStepData() {
-            const formData = {
-                first_name: this.firstName,
-                last_name: this.lastName,
-                firm_name: this.firmName,
-                position: this.position,
-                location: this.location,
-                about: this.about,
-            };
-            localStorage.setItem("firstStepData", JSON.stringify(formData));
-        },
-        loadFirstStepData() {
-            const savedData = JSON.parse(localStorage.getItem("firstStepData"));
-            if (savedData) {
-                this.firstName = savedData.first_name || "";
-                this.lastName = savedData.last_name || "";
-                this.firmName = savedData.firm_name || "";
-                this.position = savedData.position || "";
-                this.location = savedData.location || "";
-                this.about = savedData.about || "";
-            }
+        previousPage() {
+            this.$emit("change-page", -2);
         },
         validateFirstName() {
-            if (this.firstName.trim() === "") {
+            if (this.data.firstName.trim() === "") {
                 this.errors.firstName = "The first name field is required!";
             } else {
                 this.errors.firstName = null;
             }
         },
+        save() {
+            localStorage.setItem("generalInfo", JSON.stringify(this.data));
+        },
     },
-    mounted() {
-        this.firstName = this.$refs.userFirstName.value;
-        this.lastName = this.$refs.userLastName.value;
-
-        this.loadFirstStepData();
+    data() {
+        return {
+            data: {
+                firstName: "",
+                lastName: "",
+                firmName: "",
+                position: "",
+                location: "",
+                about: "",
+            },
+            errors: {
+                firstName: null,
+            },
+        };
     },
 });
 
 const SecondPageComponent = defineComponent({
     template: "#second-step-registration-template",
-    data() {
-        return {
-            selectedRounds: [],
-            selectedIndustries: [],
-            selectedNotableInvestments: [],
-            notableInvestmentList: [],
-            debouncedNotableInvestmentList: null,
-            nInvestments: 0,
-            nExits: 0,
-            minInvestment: 0,
-            maxInvestment: 0,
-            errors: {
-                nInvestments: null,
-                nExits: null,
-                minInvestment: null,
-                maxInvestment: null,
-            },
-            menus: [
-                { menu: "industry-options-menu", button: "industry-options" },
-                { menu: "round-options-menu", button: "round-options" },
-                { menu: "notable-investment-options-menu", button: "notable-investment-options" },
-            ],
-            showClasses: ["transform", "opacity-100", "scale-100"],
-            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
-        };
+    mounted() {
+        const menus = [
+            { menu: "industry-options-menu", button: "industry-options" },
+            { menu: "round-options-menu", button: "round-options" },
+            { menu: "notable-investment-options-menu", button: "notable-investment-options" },
+        ];
+        const showClasses = ["transform", "opacity-100", "scale-100"];
+        const hideClasses = ["opacity-0", "scale-95", "pointer-events-none"];
+
+        menus.forEach(({ menu, button }) => {
+            const menuElement = document.getElementById(menu);
+            const buttonElement = document.getElementById(button);
+
+            if (!menuElement || !buttonElement) return;
+
+            document.addEventListener("click", (event) => {
+                if (!menuElement.contains(event.target) && !buttonElement.contains(event.target)) {
+                    menuElement.classList.remove(...showClasses);
+                    menuElement.classList.add(...hideClasses);
+                }
+            });
+
+            buttonElement.onclick = () => {
+                if (menuElement.classList.contains(hideClasses[0])) {
+                    menuElement.classList.add(...showClasses);
+                    menuElement.classList.remove(...hideClasses);
+                } else {
+                    menuElement.classList.remove(...showClasses);
+                    menuElement.classList.add(...hideClasses);
+                }
+            };
+        });
+
+        this.data = JSON.parse(localStorage.getItem("secondStepData")) || this.data;
     },
     methods: {
-        openNextPage() {
+        nextPage() {
             this.validateNumbers();
             if (
                 !this.errors.nInvestments &&
@@ -203,11 +178,11 @@ const SecondPageComponent = defineComponent({
                 !this.errors.minInvestment &&
                 !this.errors.maxInvestment
             ) {
-                this.saveSecondStepData();
+                this.save();
                 this.$emit("change-page", 1);
             }
         },
-        goToPreviousPage() {
+        previousPage() {
             this.$emit("change-page", -1);
         },
         validateField(field, value) {
@@ -247,71 +222,24 @@ const SecondPageComponent = defineComponent({
             this.validateField("minInvestment", this.minInvestment);
             this.validateField("maxInvestment", this.maxInvestment);
         },
-        saveSecondStepData() {
-            this.validateNumbers();
+        save() {
             if (
                 !this.errors.nInvestments &&
                 !this.errors.nExits &&
                 !this.errors.minInvestment &&
                 !this.errors.maxInvestment
             ) {
-                const formData = {
-                    selectedRounds: this.selectedRounds,
-                    selectedIndustries: this.selectedIndustries,
-                    selectedNotableInvestments: this.selectedNotableInvestments,
-                    n_investments: this.nInvestments,
-                    n_exits: this.nExits,
-                    min_investment: this.minInvestment,
-                    max_investment: this.maxInvestment,
-                };
-                localStorage.setItem("secondStepData", JSON.stringify(formData));
+                localStorage.setItem("secondStepData", JSON.stringify(this.data));
             }
         },
-        loadSecondStepData() {
-            const savedData = JSON.parse(localStorage.getItem("secondStepData"));
-            if (savedData) {
-                this.selectedRounds = savedData.selectedRounds || [];
-                this.selectedIndustries = savedData.selectedIndustries || [];
-                this.selectedNotableInvestments = savedData.selectedNotableInvestments || [];
-                this.n_investments = savedData.n_investments || "";
-                this.n_exits = savedData.n_exits || "";
-                this.min_investment = savedData.min_investment || "";
-                this.max_investment = savedData.max_investment || "";
-            }
-        },
-        setupMenuToggle() {
-            this.menus.forEach(({ menu, button }) => {
-                const menuElement = document.getElementById(menu);
-                const buttonElement = document.getElementById(button);
+        async searchIndustryList(event) {
+            const searchInput = event.target.value.toUpperCase();
+            const industryList = this.$refs.industryListElement.children;
 
-                if (!menuElement || !buttonElement) return;
-
-                document.addEventListener("click", (event) => {
-                    if (!menuElement.contains(event.target) && !buttonElement.contains(event.target)) {
-                        menuElement.classList.remove(...this.showClasses);
-                        menuElement.classList.add(...this.hideClasses);
-                    }
-                });
-
-                buttonElement.onclick = () => {
-                    if (menuElement.classList.contains(this.hideClasses[0])) {
-                        menuElement.classList.add(...this.showClasses);
-                        menuElement.classList.remove(...this.hideClasses);
-                    } else {
-                        menuElement.classList.remove(...this.showClasses);
-                        menuElement.classList.add(...this.hideClasses);
-                    }
-                };
-            });
-        },
-        async getIndustryList(searchInput) {
-            let industry_list = this.$refs.industryListElement;
-            for (let i = 0; i < industry_list.children.length; i++) {
-                if (industry_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
-                    industry_list.children[i].classList.remove("hidden");
-                } else {
-                    industry_list.children[i].classList.add("hidden");
-                }
+            for (let i = 0; i < industryList.length; i++) {
+                const item = industryList[i];
+                const text = item.textContent.toUpperCase();
+                item.classList.toggle("hidden", !text.includes(searchInput));
             }
         },
         debounce(func, wait) {
@@ -330,7 +258,7 @@ const SecondPageComponent = defineComponent({
                     const response = await fetch(`/onboarding/search_notable_investments/${searchInput}`);
                     if (response.ok) {
                         const data = await response.json();
-                        this.notableInvestmentList =
+                        this.data.notableInvestmentList =
                             data.notable_investments.length > 0 ? data.notable_investments : [];
                     } else {
                         console.log("Error fetching notable investments");
@@ -339,14 +267,29 @@ const SecondPageComponent = defineComponent({
                     console.log(error);
                 }
             } else {
-                this.notableInvestmentList = [...this.selectedNotableInvestments];
+                this.data.notableInvestmentList = [...this.data.selectedNotableInvestments];
             }
         },
     },
-    mounted() {
-        this.debouncedFetchNotableInvestmentList = this.debounce(this.fetchNotableInvestmentList, 500);
-        this.setupMenuToggle();
-        this.loadSecondStepData();
+    data() {
+        return {
+            data: {
+                selectedRounds: [],
+                selectedIndustries: [],
+                selectedNotableInvestments: [],
+                notableInvestmentList: [],
+                nInvestments: 0,
+                nExits: 0,
+                minInvestment: 0,
+                maxInvestment: 0,
+            },
+            errors: {
+                nInvestments: null,
+                nExits: null,
+                minInvestment: null,
+                maxInvestment: null,
+            },
+        };
     },
 });
 
@@ -476,7 +419,7 @@ createApp({
         InvestorRegistrationComponent,
         ClaimInvestorComponent,
         ZeroPageComponent,
-        FirstPageComponent,
+        GeneralInfoComponent,
         SecondPageComponent,
         ThirdPageComponent,
     },

@@ -1,11 +1,11 @@
 {% macro render(user) %}
 <template id="third-step-registration-template">
-    <div class="fixed mx-auto flex w-full max-w-xl flex-col gap-9">
+    <div class="fixed mx-auto flex w-full max-w-xl flex-col gap-9 px-4 overflow-y-auto h-full justify-center">
         <input type="hidden" ref="userEmail" value="{{ user.email }}" />
 
         <div class="flex flex-col gap-2">
             <h1 class="text-4xl">Step 3 of 3: Contact info</h1>
-            <span class="">Your goals and past experience can help unlock accessto investment opportunities</span>
+            <span class="">Let's connect, how can people reach out to you? </span>
         </div>
         <div class="grid grid-cols-6 gap-x-2 gap-y-1">
             <div class="col-span-full">

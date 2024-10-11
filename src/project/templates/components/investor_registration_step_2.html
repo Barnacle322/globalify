@@ -1,9 +1,9 @@
 {% macro render(industries, rounds) %}
 <template id="second-step-registration-template">
-    <div class="fixed mx-auto flex w-full max-w-xl flex-col gap-9">
+    <div class="fixed mx-auto flex w-full max-w-xl flex-col gap-9 p-4 overflow-y-auto h-full sm:justify-center">
         <div class="flex flex-col gap-2">
-            <h1 class="text-4xl">Step 2 of 3: Investment Info</h1>
-            <span class="">Tell us more about why you want to invest</span>
+            <h1 class="text-3xl font-medium">Step 2 of 3: Investment Info</h1>
+            <span class="">Tell us more about your investments</span>
         </div>
         <div class="grid grid-cols-6 gap-x-2 gap-y-1">
             <div class="relative col-span-full sm:col-span-3">
@@ -49,7 +49,7 @@
                                     name="selected_rounds"
                                     class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
                                     value="{{ round.id }}"
-                                    v-model="selectedRounds"
+                                    v-model="data.selectedRounds"
                                 />
                                 {{ round.name }}
                             </label>
@@ -94,7 +94,7 @@
                         id="search-industries"
                         placeholder="Search industries..."
                         class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
-                        @input="getIndustryList($event.target.value)"
+                        @input="searchIndustryList"
                     />
                     <div class="py-1" role="none" ref="industryListElement">
                         {% for category, industries_list in industries.items() %}
@@ -113,7 +113,7 @@
                                 name="selected_industries"
                                 value="{{ industry.id }}"
                                 class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                v-model="selectedIndustries"
+                                v-model="data.selectedIndustries"
                             />
                             <span>{{ industry.name }}</span>
                         </label>
@@ -163,7 +163,7 @@
                     <div
                         role="none"
                         ref="notableInvestmentListElement"
-                        v-for="(notableInvestment, index) in notableInvestmentList"
+                        v-for="(notableInvestment, index) in data.notableInvestmentList"
                         :key="index"
                     >
                         <label
@@ -175,7 +175,7 @@
                                 name="selected_notable_investments"
                                 :value="notableInvestment.id"
                                 class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                v-model="selectedNotableInvestments"
+                                v-model="data.selectedNotableInvestments"
                             />
                             <span v-text="notableInvestment.name"></span>
                         </label>
@@ -189,7 +189,7 @@
                     type="number"
                     id="n_investments"
                     placeholder="14"
-                    v-model.number="nInvestments"
+                    v-model.number="data.nInvestments"
                 />
                 <span v-if="errors.nInvestments" class="text-sm text-red-500" v-text="errors.nInvestments"></span>
             </div>
@@ -200,29 +200,29 @@
                     type="number"
                     id="n_exits"
                     placeholder="5"
-                    v-model.number="nExits"
+                    v-model.number="data.nExits"
                 />
                 <span v-if="errors.nExits" class="text-sm text-red-500" v-text="errors.nExits"></span>
             </div>
             <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="min_investment">Min Investment</label>
+                <label class="text-sm font-medium text-gray-700" for="min_investment">Minimum Investment ($)</label>
                 <input
                     class="w-full rounded-lg bg-transparent bg-white"
                     type="number"
                     id="min_investment"
                     placeholder="10000"
-                    v-model.number="minInvestment"
+                    v-model.number="data.minInvestment"
                 />
                 <span v-if="errors.minInvestment" class="text-sm text-red-500" v-text="errors.minInvestment"></span>
             </div>
             <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="max_investment">Max Investment</label>
+                <label class="text-sm font-medium text-gray-700" for="max_investment">Maximum Investment ($)</label>
                 <input
                     class="w-full rounded-lg bg-transparent bg-white"
                     type="number"
                     id="max_investment"
                     placeholder="1000000"
-                    v-model.number="maxInvestment"
+                    v-model.number="data.maxInvestment"
                 />
                 <span v-if="errors.maxInvestment" class="text-sm text-red-500" v-text="errors.maxInvestment"></span>
             </div>
@@ -230,7 +230,7 @@
         <div class="flex justify-between">
             <button
                 class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
-                @click="goToPreviousPage"
+                @click="previousPage"
             >
                 <div class="flex items-center gap-2">
                     <svg
@@ -248,7 +248,7 @@
             </button>
             <button
                 class="mt-4 w-fit rounded-md bg-gray-500 px-3 py-2 text-white hover:bg-gray-700"
-                @click="openNextPage"
+                @click="nextPage"
             >
                 <div class="flex items-center gap-2">
                     <span> Continue </span>

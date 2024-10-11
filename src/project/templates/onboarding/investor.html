@@ -9,8 +9,8 @@
 {{ investor_registration.render() }} 
 {% import "components/investor_registration_step_0.html" as zero %} 
 {{ zero.render(user) }} 
-{% import "components/investor_registration_step_1.html" as first %} 
-{{ first.render(user) }} 
+{% import "components/onboarding/general_info.html" as general_info %} 
+{{ general_info.render(user) }} 
 {% import "components/investor_registration_step_2.html" as second %} 
 {{ second.render(industries, rounds) }} 
 {% import "components/investor_registration_step_3.html" as third %} 
@@ -30,29 +30,29 @@
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
         <investor-registration-component
-            v-show="currentPage === 1"
+            v-if="currentPage === 1"
             @change-page="changePage"
         ></investor-registration-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <claim-investor-component v-show="currentPage === 2" @change-page="changePage"></claim-investor-component>
+        <claim-investor-component v-if="currentPage === 2" @change-page="changePage"></claim-investor-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <zero-page-component v-show="currentPage === 3" @change-page="changePage"></zero-page-component>
+        <zero-page-component v-if="currentPage === 3" @change-page="changePage"></zero-page-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <first-page-component v-show="currentPage === 4" @change-page="changePage"></first-page-component>
+        <general-info-component v-if="currentPage === 4" @change-page="changePage"></first-page-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <second-page-component v-show="currentPage === 5" @change-page="changePage"></second-page-component>
+        <second-page-component v-if="currentPage === 5" @change-page="changePage"></second-page-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <third-page-component v-show="currentPage === 6" @change-page="changePage"></third-page-component>
+        <third-page-component v-if="currentPage === 6" @change-page="changePage"></third-page-component>
     </transition>
 </main>
 

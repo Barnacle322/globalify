@@ -4,9 +4,7 @@ const InvestorRegistrationComponent = defineComponent({
         async openRegistrationPage() {
             try {
                 const response = await fetch("/check-investor");
-                console.log(response);
                 const data = await response.json();
-                console.log(data);
 
                 if (data.existing_investors.length > 0) {
                     this.$emit("change-page", 1);

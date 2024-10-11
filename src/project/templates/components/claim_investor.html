@@ -4,15 +4,34 @@
         <input type="hidden" ref="userFirstName" value="{{ user.user_info.first_name }}" />
         <input type="hidden" ref="userLastName" value="{{ user.user_info.last_name }}" />
 
-        <div class="mb-6">
-            <h1 class="text-3xl font-medium text-gray-800 mb-2">Claim an Account</h1>
-            <p class="text-gray-600">
-                Our database is quite big and we may already have an account ready for you. Would you like to see the
-                possible matches?
-            </p>
-        </div>
+        <button
+            @click="goToPreviousPage"
+            class="group flex items-center gap-1.5 text-gray-500 transition-colors ease-in-out"
+            href="/onboarding"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5 transition-colors ease-in-out group-hover:text-gray-700"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+                ></path>
+            </svg>
+            <span class="transition-colors ease-in-out group-hover:text-gray-700">Back</span>
+        </button>
+        <h1 class="text-3xl font-medium text-gray-800 mt-2">Claim an Account</h1>
+        <p class="text-gray-600 mt-2">
+            Our database is quite big and we may already have an account ready for you. Would you like to see the
+            possible matches?
+        </p>
 
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2 mt-6">
             <button
                 class="rounded-lg py-2 bg-sky-500 text-white transition-colors ease-in-out hover:bg-sky-600"
                 @click="goToSimilarInvestors"
@@ -24,25 +43,6 @@
                 @click="createNewInvestor"
             >
                 No, create a new investor profile
-            </button>
-        </div>
-
-        <div class="mt-8 text-center">
-            <button
-                class="inline-flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2 font-medium text-gray-500 transition-all duration-200 ease-in-out hover:bg-gray-300 hover:text-gray-700"
-                @click="goToPreviousPage"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="h-5 w-5"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                </svg>
-                <span>Back to Onboarding</span>
             </button>
         </div>
     </div>

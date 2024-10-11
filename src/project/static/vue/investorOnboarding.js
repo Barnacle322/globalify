@@ -21,8 +21,6 @@ const ClaimInvestorComponent = defineComponent({
         },
         goToPreviousPage() {
             this.$emit("change-page", -1);
-            // localStorage.setItem("currentPage", 0);
-            // window.location.href = "/onboarding";
         },
     },
 });
@@ -132,8 +130,8 @@ const GeneralInfoComponent = defineComponent({
     },
 });
 
-const SecondPageComponent = defineComponent({
-    template: "#second-step-registration-template",
+const InvestmentInfoComponent = defineComponent({
+    template: "#investment-info-template",
     mounted() {
         const menus = [
             { menu: "industry-options-menu", button: "industry-options" },
@@ -167,7 +165,8 @@ const SecondPageComponent = defineComponent({
             };
         });
 
-        this.data = JSON.parse(localStorage.getItem("secondStepData")) || this.data;
+        this.data = JSON.parse(localStorage.getItem("investmentInfo")) || this.data;
+        this.debouncedFetchNotableInvestmentList = this.debounce(this.fetchNotableInvestmentList, 500);
     },
     methods: {
         nextPage() {
@@ -183,6 +182,7 @@ const SecondPageComponent = defineComponent({
             }
         },
         previousPage() {
+            this.save();
             this.$emit("change-page", -1);
         },
         validateField(field, value) {
@@ -223,14 +223,7 @@ const SecondPageComponent = defineComponent({
             this.validateField("maxInvestment", this.maxInvestment);
         },
         save() {
-            if (
-                !this.errors.nInvestments &&
-                !this.errors.nExits &&
-                !this.errors.minInvestment &&
-                !this.errors.maxInvestment
-            ) {
-                localStorage.setItem("secondStepData", JSON.stringify(this.data));
-            }
+            localStorage.setItem("investmentInfo", JSON.stringify(this.data));
         },
         async searchIndustryList(event) {
             const searchInput = event.target.value.toUpperCase();
@@ -252,7 +245,6 @@ const SecondPageComponent = defineComponent({
         },
         async fetchNotableInvestmentList(event) {
             const searchInput = event.target.value.trim();
-
             if (searchInput.length > 0) {
                 try {
                     const response = await fetch(`/onboarding/search_notable_investments/${searchInput}`);
@@ -293,29 +285,18 @@ const SecondPageComponent = defineComponent({
     },
 });
 
-const ThirdPageComponent = defineComponent({
-    template: "#third-step-registration-template",
-    data() {
-        return {
-            website: "",
-            linkedin: "",
-            twitter: "",
-            email: "",
-            phoneNumber: "",
-            errors: {
-                linkedin: null,
-                twitter: null,
-                email: null,
-                website: null,
-                phoneNumber: null,
-            },
-        };
+const ContactInfoComponent = defineComponent({
+    template: "#contact-info-template",
+    mounted() {
+        this.email = this.$refs.userEmail.value;
+        this.data = JSON.parse(localStorage.getItem("contactInfo")) || this.data;
     },
     methods: {
-        goToPreviousPage() {
+        previousPage() {
+            this.save();
             this.$emit("change-page", -1);
         },
-        saveThirdStepData() {
+        save() {
             this.validateLinks();
             if (
                 !this.errors.linkedin &&
@@ -324,30 +305,13 @@ const ThirdPageComponent = defineComponent({
                 !this.errors.website &&
                 !this.errors.phoneNumber
             ) {
-                const formData = {
-                    website: this.website,
-                    linkedin: this.linkedin,
-                    twitter: this.twitter,
-                    email: this.email,
-                    phone_number: this.phoneNumber,
-                };
-                localStorage.setItem("thirdStepData", JSON.stringify(formData));
-            }
-        },
-        loadThirdStepData() {
-            const savedData = JSON.parse(localStorage.getItem("thirdStepData"));
-            if (savedData) {
-                this.website = savedData.website || "";
-                this.linkedin = savedData.linkedin || "";
-                this.twitter = savedData.twitter || "";
-                this.email = savedData.email || "";
-                this.phone_number = savedData.phone_number || "";
+                localStorage.setItem("contactInfo", JSON.stringify(this.data));
             }
         },
         validateField(field, pattern, fieldName) {
-            if (this[field].trim() === "") {
+            if (this.data[field].trim() === "") {
                 this.errors[field] = null;
-            } else if (!this[field].match(pattern)) {
+            } else if (!this.data[field].match(pattern)) {
                 this.errors[field] = `Please enter a valid ${fieldName} field`;
             } else {
                 this.errors[field] = null;
@@ -377,26 +341,19 @@ const ThirdPageComponent = defineComponent({
                 !this.errors.website &&
                 !this.errors.phoneNumber
             ) {
-                this.saveThirdStepData();
-                const csrfToken = document.getElementById("csrf_token").value;
-                const firstStepData = JSON.parse(localStorage.getItem("firstStepData"));
-                const secondStepData = JSON.parse(localStorage.getItem("secondStepData"));
-                const thirdStepData = JSON.parse(localStorage.getItem("thirdStepData"));
-
-                const formData = {
-                    ...firstStepData,
-                    ...secondStepData,
-                    ...thirdStepData,
-                };
-
+                this.save();
                 try {
                     const response = await fetch("/onboarding/investor", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            "X-CSRFToken": csrfToken,
+                            "X-CSRFToken": document.getElementById("csrf_token").value,
                         },
-                        body: JSON.stringify(formData),
+                        body: JSON.stringify({
+                            ...JSON.parse(localStorage.getItem("generalInfo")),
+                            ...JSON.parse(localStorage.getItem("investmentInfo")),
+                            ...JSON.parse(localStorage.getItem("contactInfo")),
+                        }),
                     });
                     if (response.redirected) {
                         window.location.href = response.url;
@@ -407,10 +364,23 @@ const ThirdPageComponent = defineComponent({
             }
         },
     },
-    mounted() {
-        this.email = this.$refs.userEmail.value;
-
-        this.loadThirdStepData();
+    data() {
+        return {
+            data: {
+                website: "",
+                linkedin: "",
+                twitter: "",
+                email: "",
+                phoneNumber: "",
+            },
+            errors: {
+                linkedin: null,
+                twitter: null,
+                email: null,
+                website: null,
+                phoneNumber: null,
+            },
+        };
     },
 });
 
@@ -420,8 +390,8 @@ createApp({
         ClaimInvestorComponent,
         ZeroPageComponent,
         GeneralInfoComponent,
-        SecondPageComponent,
-        ThirdPageComponent,
+        InvestmentInfoComponent,
+        ContactInfoComponent,
     },
 
     data() {

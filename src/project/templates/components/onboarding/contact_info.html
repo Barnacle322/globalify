@@ -1,10 +1,10 @@
 {% macro render(user) %}
-<template id="third-step-registration-template">
-    <div class="fixed mx-auto flex w-full max-w-xl flex-col gap-9 px-4 overflow-y-auto h-full justify-center">
+<template id="contact-info-template">
+    <div class="fixed mx-auto flex w-full max-w-xl flex-col gap-9 p-4 overflow-y-auto h-full sm:justify-center">
         <input type="hidden" ref="userEmail" value="{{ user.email }}" />
 
         <div class="flex flex-col gap-2">
-            <h1 class="text-4xl">Step 3 of 3: Contact info</h1>
+            <h1 class="text-3xl font-medium">Step 3 of 3: Contact info</h1>
             <span class="">Let's connect, how can people reach out to you? </span>
         </div>
         <div class="grid grid-cols-6 gap-x-2 gap-y-1">
@@ -15,7 +15,7 @@
                     type="text"
                     id="website"
                     placeholder="https://www.acme.com"
-                    v-model="website"
+                    v-model="data.website"
                 />
                 <span v-if="errors.website" class="text-sm text-red-500" v-text="errors.website"></span>
             </div>
@@ -26,7 +26,7 @@
                     type="text"
                     id="linkedin"
                     placeholder="https://www.linkedin.com/in/johndoe"
-                    v-model="linkedin"
+                    v-model="data.linkedin"
                 />
                 <span v-if="errors.linkedin" class="text-sm text-red-500" v-text="errors.linkedin"></span>
             </div>
@@ -37,7 +37,7 @@
                     type="text"
                     id="twitter"
                     placeholder="https://twitter.com/johndoe"
-                    v-model="twitter"
+                    v-model="data.twitter"
                 />
                 <span v-if="errors.twitter" class="text-sm text-red-500" v-text="errors.twitter"></span>
             </div>
@@ -48,7 +48,7 @@
                     type="text"
                     id="email"
                     placeholder="johndoe@gmail.com"
-                    v-model="email"
+                    v-model="data.email"
                 />
                 <span v-if="errors.email" class="text-sm text-red-500" v-text="errors.email"></span>
             </div>
@@ -59,7 +59,7 @@
                     type="text"
                     id="phone_number"
                     placeholder="+1 123 456 7890"
-                    v-model="phoneNumber"
+                    v-model="data.phoneNumber"
                 />
                 <span v-if="errors.phoneNumber" class="text-sm text-red-500" v-text="errors.phoneNumber"></span>
             </div>
@@ -67,7 +67,7 @@
         <div class="flex items-center justify-between">
             <button
                 class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
-                @click="goToPreviousPage"
+                @click="previousPage"
             >
                 <div class="flex items-center gap-2">
                     <svg
@@ -80,7 +80,7 @@
                     >
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                     </svg>
-                    <span> Back </span>
+                    <span>Back</span>
                 </div>
             </button>
             <button

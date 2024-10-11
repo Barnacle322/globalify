@@ -11,10 +11,10 @@
 {{ zero.render(user) }} 
 {% import "components/onboarding/general_info.html" as general_info %} 
 {{ general_info.render(user) }} 
-{% import "components/investor_registration_step_2.html" as second %} 
-{{ second.render(industries, rounds) }} 
-{% import "components/investor_registration_step_3.html" as third %} 
-{{ third.render(user) }} 
+{% import "components/onboarding/investment_info.html" as investment_info %} 
+{{ investment_info.render(industries, rounds) }} 
+{% import "components/onboarding/contact_info.html" as contact_info %} 
+{{ contact_info.render(user) }} 
 {% import "components/full_investor.html" as full_investor %} 
 {{ full_investor.render(current_user) }}
 {% import "components/claim_investor.html" as claim_investor %} 
@@ -44,15 +44,15 @@
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <general-info-component v-if="currentPage === 4" @change-page="changePage"></first-page-component>
+        <general-info-component v-if="currentPage === 4" @change-page="changePage"></general-info-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <second-page-component v-if="currentPage === 5" @change-page="changePage"></second-page-component>
+        <investment-info-component v-if="currentPage === 5" @change-page="changePage"></investment-info-component>
     </transition>
 
     <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <third-page-component v-if="currentPage === 6" @change-page="changePage"></third-page-component>
+        <contact-info-component v-if="currentPage === 6" @change-page="changePage"></contact-info-component>
     </transition>
 </main>
 

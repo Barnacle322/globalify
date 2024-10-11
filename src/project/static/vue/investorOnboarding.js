@@ -85,7 +85,6 @@ const ZeroPageComponent = defineComponent({
                     const response = await fetch(`/search/investors/${searchInput}`);
                     const data = await response.json();
                     this.investors = data.investors;
-                    console.log(data.investors);
                 } catch (error) {
                     console.log(error);
                 }
@@ -175,6 +174,7 @@ const SecondPageComponent = defineComponent({
             selectedIndustries: [],
             selectedNotableInvestments: [],
             notableInvestmentList: [],
+            debouncedNotableInvestmentList: null,
             nInvestments: 0,
             nExits: 0,
             minInvestment: 0,
@@ -306,7 +306,6 @@ const SecondPageComponent = defineComponent({
         },
         async getIndustryList(searchInput) {
             let industry_list = this.$refs.industryListElement;
-
             for (let i = 0; i < industry_list.children.length; i++) {
                 if (industry_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
                     industry_list.children[i].classList.remove("hidden");
@@ -314,6 +313,14 @@ const SecondPageComponent = defineComponent({
                     industry_list.children[i].classList.add("hidden");
                 }
             }
+        },
+        debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
         },
         async fetchNotableInvestmentList(event) {
             const searchInput = event.target.value.trim();
@@ -337,6 +344,7 @@ const SecondPageComponent = defineComponent({
         },
     },
     mounted() {
+        this.debouncedFetchNotableInvestmentList = this.debounce(this.fetchNotableInvestmentList, 500);
         this.setupMenuToggle();
         this.loadSecondStepData();
     },

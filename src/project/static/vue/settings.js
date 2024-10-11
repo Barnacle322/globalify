@@ -451,6 +451,8 @@ createApp({
             selectedNotableInvestments: [],
             members: [],
             notableInvestmentList: [],
+            debouncedFetchNotableInvestmentList: null,
+            debouncedFetchNotableInvestmentListByInvestorId: null,
             selectedIndustry: "",
             selectedNotableInvestment: "",
             selectedUser: null,
@@ -740,6 +742,14 @@ createApp({
             this.$refs.searchInput.value = notable_investment;
             this.notableInvestmentList = [];
         },
+        debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        },
         async fetchNotableInvestmentListByInvestorId(searchInput, investorId) {
             searchInput = searchInput.trim();
 
@@ -757,6 +767,11 @@ createApp({
         }
     },
     mounted() {
+        this.debouncedFetchNotableInvestmentList = this.debounce(this.fetchNotableInvestmentList, 500);
+        this.debouncedFetchNotableInvestmentListByInvestorId = this.debounce(
+            this.fetchNotableInvestmentListByInvestorId,
+            500,
+        );
         this.setupMenuToggle();
         window.addEventListener("click", this.closeDropdown);
     }

@@ -26,6 +26,9 @@ createApp({
             selectedNotableInvestments: [],
             selectedIndustry: "",
             selectedNotableInvestment: "",
+            debouncedFetchNotableInvestmentList: null,
+            debouncedFetchNotableInvestmentListByInvestorId: null,
+            debouncedFetchNotableInvestmentListByInvestmentFirmId: null,
             userList: [],
             notableInvestmentList: [],
             industryList: [],
@@ -433,6 +436,14 @@ createApp({
                 }
             }
         },
+        debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        },
         async fetchNotableInvestmentList(event) {
             const searchInput = event.target.value.trim();
 
@@ -476,6 +487,15 @@ createApp({
             }
         },
         addNotableInvestment(newNotableInvestment) {
+            this.debouncedFetchNotableInvestmentList = this.debounce(this.fetchNotableInvestmentList, 500);
+            this.debouncedFetchNotableInvestmentListByInvestorId = this.debounce(
+                this.fetchNotableInvestmentListByInvestorId,
+                500,
+            );
+            this.debouncedFetchNotableInvestmentListByInvestmentFirmId = this.debounce(
+                this.fetchNotableInvestmentListByInvestmentFirmId,
+                500,
+            );
             this.notableInvestmentList.push(newNotableInvestment);
         },
     },

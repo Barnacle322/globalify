@@ -333,7 +333,6 @@ const SecondPageComponent = defineComponent({
                         const data = await response.json();
                         this.notableInvestmentList =
                             data.notable_investments.length > 0 ? data.notable_investments : [];
-                        console.log(data.notable_investments);
                     } else {
                         console.log("Error fetching notable investments");
                     }

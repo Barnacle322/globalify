@@ -51,12 +51,12 @@
     </head>
 
     <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %} 
-    {{ navbar.render(current_user) }}
-    {% import "components/confirm_restore.html" as confirm_restore %} 
-    {{ confirm_restore.render(current_user) }}
-    {% import "components/create_notable_investment.html" as createNotableInvestment %}
-    {{ createNotableInvestment.render() }}
+    {% import "components/navbar.html" as navbar %}
+{{ navbar.render(current_user) }}
+{% import "components/confirm_restore.html" as confirm_restore %}
+{{ confirm_restore.render(current_user) }}
+{% import "components/create_notable_investment.html" as createNotableInvestment %}
+{{ createNotableInvestment.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -83,8 +83,8 @@
                 <confirm-restore-component
                     v-if="confirmRestoreOpened"
                     @close-confirm-restore="confirmRestoreOpened = null"
-                ></confirm-restore-component
-            ></transition>
+                ></confirm-restore-component>
+            </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
                     class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
@@ -96,8 +96,8 @@
                     v-if="createNotableInvestmentOpened"
                     @close-create-notable-investment-modal="createNotableInvestmentOpened = false"
                     @notable-investment-created="addNotableInvestment"
-                ></create-notable-investment-component
-            ></transition>
+                ></create-notable-investment-component>
+            </transition>
 
             <div class="relative w-full">
                 <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
@@ -105,7 +105,8 @@
                         <a
                             href="/settings/general"
                             class="flex items-center justify-center gap-2 border-b-2 border-sky-500 px-3 py-2 font-medium transition-colors ease-in-out"
-                            ><svg
+                        >
+                            <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -125,7 +126,8 @@
                         <a
                             href="/settings/companies"
                             class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
-                            ><svg
+                        >
+                            <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -370,6 +372,7 @@
                                             pattern="^(https?:\/\/)?((www\.)?linkedin\.com)\/in\/[A-Za-z0-9_]+\/?$"
                                             value="{{ user.user_info.linkedin_url if user.user_info.linkedin_url else '' }}"
                                             placeholder="linkedin.com/in/username"
+                                            v-model="linkedInInput"
                                         />
                                     </div>
                                     <div class="mt-2">
@@ -388,12 +391,20 @@
                                                 name="linkedin_public"
                                                 value="True"
                                                 class="peer sr-only"
+                                                :checked="linkedInPublic"
+                                                @click="toggleLinkedInPublic"
                                             />
                                             {% endif %}
+
                                             <div
                                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                                             ></div>
                                             <span class="ms-3 text-sm font-medium text-gray-900">Show in profile</span>
+                                            <span
+                                                v-if="errors.linkedInPublic"
+                                                class="text-sm text-red-500"
+                                                v-text="errors.linkedInPublic"
+                                            ></span>
                                         </label>
                                     </div>
                                 </div>
@@ -407,6 +418,7 @@
                                             pattern="^(https?:\/\/)?((www\.)?instagram\.com)\/[A-Za-z0-9_]+\/?$"
                                             value="{{ user.user_info.instagram_url if user.user_info.instagram_url else '' }}"
                                             placeholder="instagram.com/username"
+                                            v-model="instagramInput"
                                         />
                                     </div>
                                     <div class="mt-2">
@@ -425,12 +437,19 @@
                                                 name="instagram_public"
                                                 value="True"
                                                 class="peer sr-only"
+                                                :checked="instagramPublic"
+                                                @click="toggleInstagramPublic"
                                             />
                                             {% endif %}
                                             <div
                                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                                             ></div>
                                             <span class="ms-3 text-sm font-medium text-gray-900">Show in profile</span>
+                                            <span
+                                                v-if="errors.instagramPublic"
+                                                class="text-sm text-red-500"
+                                                v-text="errors.instagramPublic"
+                                            ></span>
                                         </label>
                                     </div>
                                 </div>
@@ -444,6 +463,7 @@
                                             pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
                                             value="{{ user.user_info.twitter_url if user.user_info.twitter_url else '' }}"
                                             placeholder="twitter.com/username"
+                                            v-model="twitterInput"
                                         />
                                     </div>
                                     <div class="mt-2">
@@ -462,12 +482,19 @@
                                                 name="twitter_public"
                                                 value="True"
                                                 class="peer sr-only"
+                                                :checked="twitterPublic"
+                                                @click="toggleTwitterPublic"
                                             />
                                             {% endif %}
                                             <div
                                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                                             ></div>
                                             <span class="ms-3 text-sm font-medium text-gray-900">Show in profile</span>
+                                            <span
+                                                v-if="errors.twitterPublic"
+                                                class="text-sm text-red-500"
+                                                v-text="errors.twitterPublic"
+                                            ></span>
                                         </label>
                                     </div>
                                 </div>
@@ -846,7 +873,7 @@
                                         class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="number"
                                         id="min_investment"
-                                        value="{{ investor.min_investment}}"
+                                        value="{{ investor.min_investment }}"
                                         placeholder="1000"
                                     />
                                 </div>
@@ -899,7 +926,7 @@
                                         class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="investor_email"
-                                        value="{{ investor.email if investor.email else ''}}"
+                                        value="{{ investor.email if investor.email else '' }}"
                                         placeholder="example@mail.com"
                                     />
                                 </div>
@@ -909,7 +936,7 @@
                                         class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
                                         type="text"
                                         id="phone_number"
-                                        value="{{ investor.phone_number if investor.phone_number else ''}}"
+                                        value="{{ investor.phone_number if investor.phone_number else '' }}"
                                         placeholder="+1 123 456 7890"
                                     />
                                 </div>

@@ -27,7 +27,6 @@ company = Blueprint("company", __name__)
 
 
 @company.get("/search_notable_investments/<search_input>")
-@admin_only
 def search_notable_investment(search_input):
     notable_investments = (
         db.session.execute(

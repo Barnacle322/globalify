@@ -23,7 +23,6 @@ from ..models import (
 from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.enums import (
     Events,
-    NotificationDestination,
     NotificationType,
     OauthProvider,
     Status,
@@ -128,24 +127,12 @@ def verify_email():
     user = User.get_by_id(email_verification.user_id) if email_verification else None
 
     if not email_verification or not user or user.id != authenticated_user.id:
-        notification = Notification(
-            user=authenticated_user,
-            json_data=NotificationLayout(title="Invalid code", msg="The code you have entered is invalid").model_dump(),
-            destination=NotificationDestination.VERIFICATION,
-        )
-        db.session.add(notification)
-        db.session.commit()
-        return redirect(url_for("auth.email_verification_required", next=next_url))
+        statuc = Status(StatusType.ERROR, "The code you have entered is invalid").get_status()
+        return redirect(url_for("auth.email_verification_required", next=next_url, _external=False, **statuc))
 
     if email_verification.is_expired:
-        notification = Notification(
-            user=authenticated_user,
-            json_data=NotificationLayout(title="Code expired", msg="The code has already expired!").model_dump(),
-            destination=NotificationDestination.VERIFICATION,
-        )
-        db.session.add(notification)
-        db.session.commit()
-        return redirect(url_for("auth.email_verification_required", next=next_url))
+        status = Status(StatusType.ERROR, "The code has already expired!").get_status()
+        return redirect(url_for("auth.email_verification_required", next=next_url, _external=False, **status))
 
     authenticated_user.is_verified = True
     email_verification.is_used = True
@@ -172,16 +159,8 @@ def resend_verification_email(user_id):
 
     if last_verification:
         if not last_verification.is_resendable:
-            notification = Notification(
-                user=authenticated_user,
-                json_data=NotificationLayout(
-                    title="Hey! Slow down..", msg="You can only request a new code every minute."
-                ).model_dump(),
-                destination=NotificationDestination.VERIFICATION,
-            )
-            db.session.add(notification)
-            db.session.commit()
-            return redirect(url_for("auth.email_verification_required", _external=False))
+            status = Status(StatusType.WARNING, "You can only request a new code every minute.").get_status()
+            return redirect(url_for("auth.email_verification_required", _external=False, **status))
 
     EmailVerification.expire_all_by_user_id(user_id)
 
@@ -196,35 +175,30 @@ def resend_verification_email(user_id):
         random_key=verification.token,
     )
 
-    notification = Notification(
-        user=authenticated_user,
-        json_data=NotificationLayout(
-            title="Verification code sent!",
-            msg="Please check your email for the new verification code. It may take a few minutes to arrive.",
-        ).model_dump(),
-        destination=NotificationDestination.VERIFICATION,
-    )
-    db.session.add(notification)
-    db.session.commit()
-
-    return redirect(url_for("main.search"))
+    status = Status(
+        StatusType.SUCCESS,
+        "Verification code sent! Please check your email.",
+    ).get_status()
+    return redirect(url_for("auth.email_verification_required", _external=False, **status))
 
 
 @auth.route("/email-verification", methods=["GET", "POST"])
 @login_required
 @check_user_info_complete
 def email_verification_required():
+    status_type, msg = None, None
+
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     authenticated_user: User = current_user._get_current_object()  # type: ignore
     next_url = request.args.get("next")
 
     if authenticated_user.is_verified:
         return redirect(url_for("main.search", next=next_url))
 
-    notifications = Notification.get_unread(
-        user_id=authenticated_user.id,
-        destination=NotificationDestination.VERIFICATION,
-    )
-    return render_template("verify_email.html", user_id=current_user.id, notifications=notifications)
+    return render_template("verify_email.html", user_id=current_user.id, status_type=status_type, msg=msg)
 
 
 @auth.route("/login", methods=["GET", "POST"])

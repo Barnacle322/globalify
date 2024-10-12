@@ -318,7 +318,7 @@
                             </span>
                             <span class="text-sm text-gray-700" v-text="investor.n_exits"></span>
                         </div>
-                        <div v-if="investor.notable_investments.length !== 0">
+                        <div v-if="investor.notable_investments.filter(investment => investment.name).length > 0">
                             <h2 class="mt-5 font-medium">Notable Investments</h2>
                             <div class="mt-2 flex flex-wrap gap-1">
                                 <div v-for="investment in investor.notable_investments" :key="investment.id">

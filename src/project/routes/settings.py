@@ -13,7 +13,6 @@ from ..models import (
     InvestorBackup,
     InvestorOriginPoint,
     NotableInvestment,
-    Notification,
     Round,
     User,
     UserCompany,
@@ -22,7 +21,7 @@ from ..models import (
 )
 from ..schemas.investor import InvestorOriginPointSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
-from ..utils.enums import CompanyRole, Events, NotificationDestination, Status, StatusType, Tier
+from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
     AUTH_USERNAME_USED,
     COMPANY_NOT_FOUND,
@@ -279,10 +278,6 @@ def delete_account():
 @check_verification
 def company_list_view():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-    notifications = Notification.get_unread(
-        current_user.id,
-        NotificationDestination.SETTINGS,
-    )
 
     user_companies = UserCompany.get_by_user_id(user_id=authenticated_user.id)
     invitations = CompanyInvitation.get_by_email(email=authenticated_user.email)
@@ -303,7 +298,6 @@ def company_list_view():
         "settings/company_list.html",
         companies=user_companies,
         invitations=company_invitations,
-        notifications=notifications,
     )
 
 

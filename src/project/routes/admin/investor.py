@@ -447,7 +447,6 @@ def delete_investor(id):
 
 
 @investor.get("/search_notable_investments/<search_input>/<int:investor_id>")
-@admin_only
 def search_notable_investments(search_input, investor_id):
     investor = Investor.get_by_id(investor_id)
     if not investor:

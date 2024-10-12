@@ -261,48 +261,42 @@
                                     <label for="first-name" class="block text-sm font-medium leading-6"
                                         >First name</label
                                     >
-                                    <div class="mt-2">
-                                        <input
-                                            type="text"
-                                            name="first-name"
-                                            id="first-name"
-                                            autocomplete="given-name"
-                                            class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                            value="{{ user.user_info.first_name }}"
-                                        />
-                                    </div>
+                                    <input
+                                        type="text"
+                                        name="first-name"
+                                        id="first-name"
+                                        autocomplete="given-name"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 mt-2"
+                                        value="{{ user.user_info.first_name }}"
+                                    />
                                 </div>
                                 <div class="sm:col-span-3">
                                     <label for="last-name" class="block text-sm font-medium leading-6">Last name</label>
-                                    <div class="mt-2">
-                                        <input
-                                            type="text"
-                                            name="last-name"
-                                            id="last-name"
-                                            autocomplete="family-name"
-                                            class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                            value="{{ user.user_info.last_name }}"
-                                        />
-                                    </div>
+                                    <input
+                                        type="text"
+                                        name="last-name"
+                                        id="last-name"
+                                        autocomplete="family-name"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 mt-2"
+                                        value="{{ user.user_info.last_name }}"
+                                    />
                                 </div>
                                 <div class="col-span-full">
                                     {% if user.oauth_provider %}
                                     <label for="email" class="block text-sm font-medium leading-6">Email address</label>
-                                    <div class="mt-2">
-                                        <input
-                                            id="email"
-                                            name="email"
-                                            type="email"
-                                            autocomplete="email"
-                                            class="h-12 w-full cursor-not-allowed rounded-xl border-2 border-stone-300 px-2 text-slate-700"
-                                            value="{{ user.email }}"
-                                            disabled
-                                        />
-                                    </div>
+                                    <input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        autocomplete="email"
+                                        class="h-12 w-full cursor-not-allowed rounded-xl border-2 border-stone-300 px-2 text-slate-700 mt-2 peer"
+                                        value="{{ user.email }}"
+                                        disabled
+                                    />
                                     <span class="text-xs text-slate-700"
                                         >Logged in with {{ user.oauth_provider.value.title() }} OAuth</span
                                     >
-                                    <div class="mt-2">
+                                    <div class="mt-2 peer-placeholder-shown:hidden block">
                                         <label class="inline-flex cursor-pointer items-center">
                                             {% if user.user_info.email_public %}
                                             <input
@@ -352,30 +346,25 @@
                                 </div>
                                 <div class="col-span-full">
                                     <label for="bio" class="block text-sm font-medium leading-6">Bio</label>
-                                    <div class="mt-2">
-                                        <textarea
-                                            id="bio"
-                                            name="bio"
-                                            class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
-                                        >
+                                    <textarea
+                                        id="bio"
+                                        name="bio"
+                                        class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2 mt-2"
+                                    >
 {{ user.user_info.bio if user.user_info.bio else '' }}</textarea
-                                        >
-                                    </div>
+                                    >
                                 </div>
                                 <div class="col-span-full">
                                     <label for="linkedin" class="block text-sm font-medium leading-6">Linkedin</label>
-                                    <div class="mt-2">
-                                        <input
-                                            id="linkedin"
-                                            name="linkedin"
-                                            class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                            pattern="^(https?:\/\/)?((www\.)?linkedin\.com)\/in\/[A-Za-z0-9_]+\/?$"
-                                            value="{{ user.user_info.linkedin_url if user.user_info.linkedin_url else '' }}"
-                                            placeholder="linkedin.com/in/username"
-                                            v-model="linkedInInput"
-                                        />
-                                    </div>
-                                    <div class="mt-2">
+                                    <input
+                                        id="linkedin"
+                                        name="linkedin"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 mt-2 peer"
+                                        pattern="^(https?:\/\/)?((www\.)?linkedin\.com)\/in\/[A-Za-z0-9_]+\/?$"
+                                        value="{{ user.user_info.linkedin_url if user.user_info.linkedin_url else '' }}"
+                                        placeholder="linkedin.com/in/username"
+                                    />
+                                    <div class="mt-2 peer-placeholder-shown:hidden block">
                                         <label class="inline-flex cursor-pointer items-center">
                                             {% if user.user_info.linkedin_public %}
                                             <input
@@ -391,8 +380,6 @@
                                                 name="linkedin_public"
                                                 value="True"
                                                 class="peer sr-only"
-                                                :checked="linkedInPublic"
-                                                @click="toggleLinkedInPublic"
                                             />
                                             {% endif %}
 
@@ -400,28 +387,20 @@
                                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                                             ></div>
                                             <span class="ms-3 text-sm font-medium text-gray-900">Show in profile</span>
-                                            <span
-                                                v-if="errors.linkedInPublic"
-                                                class="text-sm text-red-500"
-                                                v-text="errors.linkedInPublic"
-                                            ></span>
                                         </label>
                                     </div>
                                 </div>
                                 <div class="col-span-full">
                                     <label for="instagram" class="block text-sm font-medium leading-6">Instagram</label>
-                                    <div class="mt-2">
-                                        <input
-                                            id="instagram"
-                                            name="instagram"
-                                            class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                            pattern="^(https?:\/\/)?((www\.)?instagram\.com)\/[A-Za-z0-9_]+\/?$"
-                                            value="{{ user.user_info.instagram_url if user.user_info.instagram_url else '' }}"
-                                            placeholder="instagram.com/username"
-                                            v-model="instagramInput"
-                                        />
-                                    </div>
-                                    <div class="mt-2">
+                                    <input
+                                        id="instagram"
+                                        name="instagram"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 mt-2 peer"
+                                        pattern="^(https?:\/\/)?((www\.)?instagram\.com)\/[A-Za-z0-9_]+\/?$"
+                                        value="{{ user.user_info.instagram_url if user.user_info.instagram_url else '' }}"
+                                        placeholder="instagram.com/username"
+                                    />
+                                    <div class="mt-2 peer-placeholder-shown:hidden block">
                                         <label class="inline-flex cursor-pointer items-center">
                                             {% if user.user_info.instagram_public %}
                                             <input
@@ -437,36 +416,26 @@
                                                 name="instagram_public"
                                                 value="True"
                                                 class="peer sr-only"
-                                                :checked="instagramPublic"
-                                                @click="toggleInstagramPublic"
                                             />
                                             {% endif %}
                                             <div
                                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                                             ></div>
                                             <span class="ms-3 text-sm font-medium text-gray-900">Show in profile</span>
-                                            <span
-                                                v-if="errors.instagramPublic"
-                                                class="text-sm text-red-500"
-                                                v-text="errors.instagramPublic"
-                                            ></span>
                                         </label>
                                     </div>
                                 </div>
                                 <div class="col-span-full">
                                     <label for="twitter" class="block text-sm font-medium leading-6">Twitter/X</label>
-                                    <div class="mt-2">
-                                        <input
-                                            id="twitter"
-                                            name="twitter"
-                                            class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                            pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
-                                            value="{{ user.user_info.twitter_url if user.user_info.twitter_url else '' }}"
-                                            placeholder="twitter.com/username"
-                                            v-model="twitterInput"
-                                        />
-                                    </div>
-                                    <div class="mt-2">
+                                    <input
+                                        id="twitter"
+                                        name="twitter"
+                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 mt-2 peer"
+                                        pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
+                                        value="{{ user.user_info.twitter_url if user.user_info.twitter_url else '' }}"
+                                        placeholder="twitter.com/username"
+                                    />
+                                    <div class="mt-2 peer-placeholder-shown:hidden block">
                                         <label class="inline-flex cursor-pointer items-center">
                                             {% if user.user_info.twitter_public %}
                                             <input
@@ -482,19 +451,12 @@
                                                 name="twitter_public"
                                                 value="True"
                                                 class="peer sr-only"
-                                                :checked="twitterPublic"
-                                                @click="toggleTwitterPublic"
                                             />
                                             {% endif %}
                                             <div
                                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                                             ></div>
                                             <span class="ms-3 text-sm font-medium text-gray-900">Show in profile</span>
-                                            <span
-                                                v-if="errors.twitterPublic"
-                                                class="text-sm text-red-500"
-                                                v-text="errors.twitterPublic"
-                                            ></span>
                                         </label>
                                     </div>
                                 </div>
@@ -529,18 +491,18 @@
                                     </label>
                                 </div>
                             </div>
-                            <div class="mt-8 flex gap-5">
+                            <div class="mt-8 flex gap-5 justify-end">
+                                <a
+                                    class="flex items-center justify-center text-slate-700 underline"
+                                    href="/settings/general"
+                                    >Cancel</a
+                                >
                                 <button
                                     type="submit"
                                     class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
                                 >
                                     Save
                                 </button>
-                                <a
-                                    class="flex items-center justify-center text-slate-700 underline"
-                                    href="/settings/general"
-                                    >Cancel</a
-                                >
                             </div>
                         </form>
                     </div>

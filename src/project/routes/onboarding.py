@@ -14,15 +14,12 @@ from ..models import (
     Industry,
     Investor,
     NotableInvestment,
-    Notification,
     Round,
     User,
     UserInfo,
 )
-from ..schemas.notification import NotificationLayout
 from ..utils.enums import (
     Events,
-    NotificationDestination,
     OauthProvider,
 )
 from ..utils.errors.error_messages import (
@@ -45,11 +42,6 @@ def index():
 def basic():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    notifications = Notification.get_unread(
-        user_id=authenticated_user.id,
-        destination=NotificationDestination.ONBOARDING,
-    )
-
     next_url = request.args.get("next")
 
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
@@ -64,37 +56,15 @@ def basic():
         first_name, last_name, username = f.get("first_name"), f.get("last_name"), f.get("username")
 
         if not first_name or not last_name or not username:
-            notification = Notification(
-                user=authenticated_user,
-                json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).model_dump(),
-                destination=NotificationDestination.ONBOARDING,
-            )
-            db.session.add(notification)
-            db.session.commit()
-            return redirect(url_for("onboarding.index"))
+            return jsonify({"error": AUTH_FIELDS_INCOMPLETE}), 400
 
         if UserInfo.is_taken(username):
-            notification = Notification(
-                user=authenticated_user,
-                json_data=NotificationLayout(title="Error!", msg=AUTH_USERNAME_USED).model_dump(),
-                destination=NotificationDestination.ONBOARDING,
-            )
-            db.session.add(notification)
-            db.session.commit()
-            return redirect(url_for("onboarding.index"))
+            return jsonify({"error": AUTH_USERNAME_USED}), 400
 
         if not re.match(r"^[a-zA-Z0-9]{4,20}$", username) and username != "None":
-            notification = Notification(
-                user=authenticated_user,
-                json_data=NotificationLayout(
-                    title="Incorrect format!",
-                    msg="Username must be between 4 and 20 characters and can only contain letters and numbers",
-                ).model_dump(),
-                destination=NotificationDestination.ONBOARDING,
-            )
-            db.session.add(notification)
-            db.session.commit()
-            return redirect(url_for("onboarding.index"))
+            return jsonify(
+                {"error": "Username must be between 4 and 20 characters and contain only letters and numbers"}
+            ), 400
 
         user_info.first_name = first_name
         user_info.last_name = last_name
@@ -119,18 +89,13 @@ def basic():
 
         return redirect(url_for("main.search", next=next_url))
 
-    return render_template("onboarding/basic.html", user_info=user_info.sanitize(), notifications=notifications)
+    return render_template("onboarding/basic.html", user_info=user_info.sanitize())
 
 
 @onboarding.route("/investor", methods=["GET", "POST"])
 @login_required
 def investor():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    notifications = Notification.get_unread(
-        user_id=authenticated_user.id,
-        destination=NotificationDestination.ONBOARDING,
-    )
 
     countries = Country.get_all()
     industries = Industry.get_all()
@@ -203,28 +168,14 @@ def investor():
         try:
             db.session.add(investor)
             db.session.commit()
-        except Exception as e:
-            notification = Notification(
-                user=authenticated_user,
-                json_data=NotificationLayout(title="Error!", msg=f"{e}").model_dump(),
-                destination=NotificationDestination.ONBOARDING,
-            )
-            db.session.add(notification)
-            db.session.commit()
+        except Exception:
             return redirect(url_for("onboarding.index"))
 
         investor.set_slug()
 
         try:
             investor.upsert_data()
-        except Exception as e:
-            notification = Notification(
-                user=authenticated_user,
-                json_data=NotificationLayout(title="Error!", msg=f"{e}").model_dump(),
-                destination=NotificationDestination.ONBOARDING,
-            )
-            db.session.add(notification)
-            db.session.commit()
+        except Exception:
             return redirect(url_for("onboarding.index"))
 
         user_info.is_complete = True
@@ -250,7 +201,6 @@ def investor():
     return render_template(
         "onboarding/investor.html",
         user=user,
-        notifications=notifications,
         countries=countries,
         industries=industries,
         rounds=rounds,

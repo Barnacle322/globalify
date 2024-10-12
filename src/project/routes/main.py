@@ -154,7 +154,6 @@ def get_suggestions():
                     url=url_for("settings.company_list_view"),
                 ),
             ).model_dump(),
-            destination=NotificationDestination.SETTINGS,
         )
         db.session.add(notification)
         db.session.commit()
@@ -194,17 +193,15 @@ def get_suggestion_investment_firms():
         notification = Notification(
             user=authenticated_user,
             json_data=NotificationLayout(
-                title="Error",
+                title="Info",
                 msg="Please mark a company as primary to access suggestions.",
                 type="system",
-                item=NotificationItem(type=NotificationType.WARNING.value, url=url_for("settings.company_list_view")),
+                item=NotificationItem(type=NotificationType.INFO.value, url=url_for("settings.company_list_view")),
             ).model_dump(),
-            destination=NotificationDestination.SEARCH,
         )
         db.session.add(notification)
         db.session.commit()
-
-        return redirect(url_for("main.search"))
+        return redirect(url_for("settings.company_list_view"))
 
     bookmarks = InvestorBookmark.get_id_list(current_user.id)
 
@@ -256,11 +253,6 @@ def get_suggestion_companies():
 @check_user_info_complete
 @check_verification
 def search_companies():
-    notifications = Notification.get_unread(
-        current_user.id,
-        NotificationDestination.SEARCH,
-    )
-
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "db_id")
     sort_desc = request.args.get("descending", False, type=bool)
@@ -311,7 +303,6 @@ def search_companies():
         query=search_string,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
-        notifications=notifications,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
@@ -325,11 +316,6 @@ def search_companies():
 @check_user_info_complete
 @check_verification
 def search_investment_firms():
-    notifications = Notification.get_unread(
-        current_user.id,
-        NotificationDestination.SEARCH,
-    )
-
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "db_id")
     sort_desc = request.args.get("descending", False, type=bool)
@@ -409,7 +395,6 @@ def search_investment_firms():
         fields=fields,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
-        notifications=notifications,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
@@ -426,10 +411,6 @@ def search():
     if next_url := request.args.get("next"):
         return redirect(next_url)
 
-    notifications = Notification.get_unread(
-        current_user.id,
-        NotificationDestination.SEARCH,
-    )
     search_string = request.args.get("search", "")
     sort_by = request.args.get("sort_field", "db_id")
     sort_desc = request.args.get("descending", False, type=bool)
@@ -510,7 +491,6 @@ def search():
         fields=fields,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
-        notifications=notifications,
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),

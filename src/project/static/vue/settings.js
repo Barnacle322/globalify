@@ -465,47 +465,9 @@ createApp({
             ],
             showClasses: ["transform", "opacity-100", "scale-100"],
             hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
-            twitterInput: "",
-            linkedInInput: "",
-            instagramInput: "",
-            twitterPublic: false,
-            linkedInPublic: false,
-            instagramPublic: false,
-            errors: {
-                twitterPublic: null,
-                linkedInPublic: null,
-                instagramPublic: null
-            }
         };
     },
     methods: {
-        validateInput(input, errorField) {
-            if (input.trim() === "") {
-                this.errors[errorField] = `To toggle the ${errorField.replace("Public", "")} visibility, please fill in the URL!`;
-                return false;
-            } else {
-                this.errors[errorField] = null;
-                return true;
-            }
-        },
-        toggleVisibility(input, publicState, errorField, event) {
-            if (!this.validateInput(input, errorField)) {
-                event.preventDefault();
-                this[publicState] = !this[publicState];
-            } else {
-                this[publicState] = false;
-            }
-        },
-        toggleTwitterPublic(event) {
-            this.toggleVisibility(this.twitterInput, "twitterPublic", "twitterPublic", event);
-        },
-        toggleLinkedInPublic(event) {
-            this.toggleVisibility(this.linkedInInput, "linkedInPublic", "linkedInPublic", event);
-        },
-        toggleInstagramPublic(event) {
-            this.toggleVisibility(this.instagramInput, "instagramPublic", "instagramPublic", event);
-        },
-
         openDropdown(companyId) {
             this.openedDropdownCompanyId = companyId;
             this.ignoreNextOutsideClick = true;
@@ -725,14 +687,13 @@ createApp({
             }
         },
         async fetchNotableInvestmentList(event) {
-            const searchInput = event.target.value;
+            const searchInput = event.target.value.trim();
 
             if (searchInput.length > 0) {
                 const response = await fetch(`/admin/companies/search_notable_investments/${searchInput}`);
                 if (response.ok) {
                     const data = await response.json();
                     this.notableInvestmentList = data.notable_investments;
-                    console.log(this.notableInvestmentList);
                 }
             } else {
                 this.notableInvestmentList = [];

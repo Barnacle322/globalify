@@ -1,6 +1,21 @@
 {% macro render(user) %}
 <template id="zero-step-registration-template">
-    <div class="fixed mx-auto flex w-full max-w-fit flex-col gap-9">
+    <div class="fixed mx-auto flex w-full max-w-fit flex-col gap-9 p-4 overflow-y-auto h-full sm:justify-center">
+        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+            <div
+                v-if="selectedInvestorSlug"
+                @click="selectedInvestorSlug = null"
+                class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+            ></div>
+        </transition>
+        <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
+            <full-investor
+                @close-investor="selectedInvestorSlug = null"
+                :slug="selectedInvestorSlug"
+                :renderContacts="false"
+                v-if="selectedInvestorSlug"
+            ></full-investor>
+        </transition>
         <input type="hidden" ref="userFirstName" value="{{ user.user_info.first_name }}" />
         <input type="hidden" ref="userLastName" value="{{ user.user_info.last_name }}" />
 
@@ -24,7 +39,7 @@
             />
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <article
                 v-if="investors"
                 v-for="investor in investors"
@@ -120,7 +135,6 @@
                 </div>
             </article>
         </div>
-
         <div class="flex">
             <button
                 class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
@@ -141,21 +155,6 @@
                 </div>
             </button>
         </div>
-
-        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-            <div
-                v-if="selectedInvestorSlug"
-                @click="selectedInvestorSlug = null"
-                class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
-            ></div>
-        </transition>
-        <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
-            <full-investor
-                @close-investor="selectedInvestorSlug = null"
-                :slug="selectedInvestorSlug"
-                v-if="selectedInvestorSlug"
-            ></full-investor>
-        </transition>
     </div>
 </template>
 {% endmacro %}

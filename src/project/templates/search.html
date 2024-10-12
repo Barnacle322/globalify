@@ -85,6 +85,7 @@
                 <full-investor
                     @close-investor="selectedInvestorSlug = null"
                     :slug="selectedInvestorSlug"
+                    :renderContacts="true"
                     v-if="selectedInvestorSlug"
                 ></full-investor>
             </transition>

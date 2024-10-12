@@ -16,7 +16,7 @@
         </div>
 
         <div v-else>
-            <nav class="sticky right-0 top-0 z-10 flex w-full items-center justify-between bg-white px-7 py-4">
+            <nav class="sticky right-0 top-0 z-10 flex w-full items-center justify-between bg-white px-4 sm:px-9 py-4">
                 <button
                     @click="toggleExpansion"
                     class="hidden rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50 md:block"
@@ -82,7 +82,7 @@
                         />
 
                         <h1 class="text-4xl font-semibold" v-text="investor.name"></h1>
-                        <div class="col flex">
+                        <div class="flex">
                             <a
                                 v-if="!investor.user_id"
                                 :href="`/investor/${investor.slug}/claim`"
@@ -318,9 +318,14 @@
                             </span>
                             <span class="text-sm text-gray-700" v-text="investor.n_exits"></span>
                         </div>
-                        <div v-if="investor.notable_investments.filter(investment => investment.name).length > 0">
-                            <h2 class="mt-5 font-medium">Notable Investments</h2>
-                            <div class="mt-2 flex flex-wrap gap-1">
+                        <div
+                            v-if="
+                            investor.notable_investments.length !== 0 &&
+                            investor.notable_investments.some((investment) => investment.name)
+                        "
+                        >
+                            <h2 class="font-medium mt-5">Notable Investments</h2>
+                            <div class="flex flex-wrap gap-1 mt-2">
                                 <div v-for="investment in investor.notable_investments" :key="investment.id">
                                     <a
                                         v-if="investment.company"
@@ -329,7 +334,7 @@
                                         class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500 hover:bg-violet-300"
                                     ></a>
                                     <a
-                                        v-else
+                                        v-if="investment.name"
                                         v-text="investment.name"
                                         class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500"
                                     ></a>
@@ -337,7 +342,15 @@
                             </div>
                         </div>
                     </article>
-                    <article v-if="!unpaid" class="shadow-card w-full rounded-xl bg-white p-5">
+                    <article
+                        v-if="investor.user_id && investor.user_id != {{ user.id }}"
+                        class="shadow-card w-full rounded-xl bg-white p-5"
+                    >
+                        <h2 class="font-medium text-xl">This profile has already been claimed by another user.</h2>
+                        <p>If you think that there has been a mistake please contact us at <b>partners@globalify.xyz</b></p>
+
+                    </article>
+                    <article v-if="!unpaid && renderContacts" class="shadow-card w-full rounded-xl bg-white p-5">
                         <h2 class="text-xl font-medium">Contacts</h2>
                         <div class="mt-5 flex flex-col gap-2 text-sm">
                             <div v-if="investor.twitter" class="flex justify-between gap-3">
@@ -468,7 +481,7 @@
                             </div>
                         </div>
                     </article>
-                    <article v-if="unpaid" class="shadow-card col-span-full w-full max-w-7xl rounded-2xl p-5">
+                    <article v-if="unpaid && renderContacts" class="shadow-card col-span-full w-full rounded-2xl p-5">
                         <h2 class="pb-5 text-xl font-medium" v-text="'Find more contacts for ' + investor.name"></h2>
                         <div class="flex items-center gap-9">
                             <div class="w-5/12 rounded-md border p-5">

@@ -99,7 +99,6 @@ def investor():
 
     countries = Country.get_all()
     industries = Industry.get_all()
-
     rounds = Round.get_all()
 
     user = User.get_by_id(authenticated_user.id)

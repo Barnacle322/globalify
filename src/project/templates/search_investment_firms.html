@@ -78,7 +78,7 @@
                 <div
                     v-if="selectedInvestmentFirmSlug"
                     @click="selectedInvestmentFirmSlug = null"
-                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
+                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
@@ -103,7 +103,7 @@
                             >
                         </div>
                     </section> -->
-                    <section class="mx-4 rounded-3xl bg-[#231645] p-5 pb-10 pt-16 my-3">
+                    <section class="mx-4 my-3 rounded-3xl bg-[#231645] p-5 pb-10 pt-16">
                         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                         <div class="mx-auto w-full max-w-3xl">
                             <div class="flex items-center justify-evenly">

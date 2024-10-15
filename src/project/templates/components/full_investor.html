@@ -16,7 +16,7 @@
         </div>
 
         <div v-else>
-            <nav class="sticky right-0 top-0 z-10 flex w-full items-center justify-between bg-white px-4 sm:px-9 py-4">
+            <nav class="sticky right-0 top-0 z-10 flex w-full items-center justify-between bg-white px-4 py-4 sm:px-9">
                 <button
                     @click="toggleExpansion"
                     class="hidden rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50 md:block"
@@ -326,8 +326,8 @@
                             investor.notable_investments.some((investment) => investment.name)
                         "
                         >
-                            <h2 class="font-medium mt-5">Notable Investments</h2>
-                            <div class="flex flex-wrap gap-1 gap-y-2 h-fit mt-2">
+                            <h2 class="mt-5 font-medium">Notable Investments</h2>
+                            <div class="mt-2 flex h-fit flex-wrap gap-1 gap-y-2">
                                 <div v-for="investment in investor.notable_investments" :key="investment.id">
                                     <a
                                         v-if="investment.company"
@@ -348,7 +348,7 @@
                         v-if="investor.user_id && investor.user_id != {{ user.id }}"
                         class="shadow-card w-full rounded-xl bg-white p-5"
                     >
-                        <h2 class="font-medium text-xl">This profile has already been claimed by another user.</h2>
+                        <h2 class="text-xl font-medium">This profile has already been claimed by another user.</h2>
                         <p>
                             If you think that there has been a mistake please contact us at
                             <b>partners@globalify.xyz</b>
@@ -360,7 +360,7 @@
                         v-if="investor.user_id == {{ user.id }}"
                         class="shadow-card w-full rounded-xl bg-white p-5"
                     >
-                        <h2 class="font-medium text-xl">Hey! You aren't supposed to be here!</h2>
+                        <h2 class="text-xl font-medium">Hey! You aren't supposed to be here!</h2>
                         <p>
                             You already have access to this profile. If you want to edit it, please go to your settings
                             page. If you are stuck in the onboarding flow, contact us at

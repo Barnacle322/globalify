@@ -4,7 +4,7 @@
 {% block head %} {{ super() }} {% endblock %}
 {% block content %}
 
-<main class="pt-5 flex flex-col items-center gap-5 pb-16 px-4 sm:px-9 w-full">
+<main class="flex w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
     <!-- prettier-ignore -->
     {% if not user_info.twitter_public and not user_info.linkedin_public and not user_info.instagram_public and not user_info.email_public and not user_info.picture_url and not companies.all() %}
     <div class="mt-32 flex w-full flex-col items-center justify-center gap-1">
@@ -55,12 +55,12 @@
         </a>
     </div>
     {% else %}
-    <section class="max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
+    <section class="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2">
         {% if user_info.twitter_public and not user_info.twitter_url or user_info.linkedin_public and not
         user_info.linkedin_url or user_info.instagram_public and not user_info.instagram_url or user_info.email_public
         %}
-        <article class="bg-white shadow-card p-5 rounded-xl w-full">
-            <h2 class="text-2xl font-medium flex gap-4 items-center">
+        <article class="shadow-card w-full rounded-xl bg-white p-5">
+            <h2 class="flex items-center gap-4 text-2xl font-medium">
                 {% if user_info.picture_url %}
                 <img class="h-20 rounded-lg" src="{{ user_info.picture_url }}" alt="" loading="lazy" />
                 {% endif %} {{ user_info.full_name }}
@@ -86,9 +86,9 @@
             {% endif %} {% if user_info.bio %}
             <p class="mt-4 text-sm">{{ user_info.bio }}</p>
             {% endif %}
-            <div class="flex flex-col gap-3 text-sm mt-5">
+            <div class="mt-5 flex flex-col gap-3 text-sm">
                 {% if user_info.twitter_url and user_info.twitter_public %}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="size-5">
                             <path
@@ -100,9 +100,9 @@
                     <a
                         href="{{ user_info.twitter_url }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                        class="flex select-text items-center gap-1 text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -114,7 +114,7 @@
                     </a>
                 </div>
                 {% endif %} {% if user_info.linkedin_url and user_info.linkedin_public %}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
                             <path
@@ -126,9 +126,9 @@
                     <a
                         href="{{ user_info.linkedin_url }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                        class="flex select-text items-center gap-1 text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -140,7 +140,7 @@
                     </a>
                 </div>
                 {% endif %} {% if user_info.instagram_url and user_info.instagram_public %}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
                             <path
@@ -152,9 +152,9 @@
                     <a
                         href="{{ user_info.linkedin_url }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                        class="flex select-text items-center gap-1 text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -166,7 +166,7 @@
                     </a>
                 </div>
                 {% endif %} {% if user.email and user_info.email_public%}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -187,7 +187,7 @@
                     </span>
                     <a
                         href="mailto:{{ user.email }}"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                        class="flex select-text items-center gap-1 text-gray-700 underline"
                     >
                         <span>{{ user.email }}</span>
                     </a>
@@ -198,19 +198,19 @@
         {% endif %} {% for user_company in companies %} {% set company = user_company.company %} {% if
         company.preferred_round or company.industry or company.description or company.website_url or company.country or
         company.number_of_employees %}
-        <article class="bg-white shadow-card p-5 rounded-xl w-full">
-            <div class="flex gap-2 items-center flex-wrap">
-                <h2 class="text-2xl font-medium flex gap-4 items-center">
+        <article class="shadow-card w-full rounded-xl bg-white p-5">
+            <div class="flex flex-wrap items-center gap-2">
+                <h2 class="flex items-center gap-4 text-2xl font-medium">
                     {% if company.picture_url %}
                     <img class="h-20 rounded-lg" src="{{ company.picture_url }}" alt="" loading="lazy" />
                     {% endif %} {{ company.name }}
                 </h2>
                 {% if company.industry %}
-                <div class="text-nowrap rounded-lg bg-[#B9E5FF] px-2 font-medium py-1.5 text-xs text-[#3EB5FD] h-fit">
+                <div class="h-fit text-nowrap rounded-lg bg-[#B9E5FF] px-2 py-1.5 text-xs font-medium text-[#3EB5FD]">
                     {{ company.industry.name }}
                 </div>
                 {% endif %} {% if company.preferred_round %}
-                <div class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD] h-fit">
+                <div class="h-fit text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]">
                     {{ company.preferred_round.name }}
                 </div>
                 {% endif %}
@@ -218,10 +218,10 @@
             {% if company.description %}
             <p class="mt-4 text-sm">{{ company.description }}</p>
             {% endif %}
-            <ul class="flex flex-col gap-2 mt-5">
+            <ul class="mt-5 flex flex-col gap-2">
                 {% if company.website_url %}
                 <li class="grid grid-cols-2">
-                    <span class="inline-flex items-center gap-1 font-medium text-sm">
+                    <span class="inline-flex items-center gap-1 text-sm font-medium">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -242,9 +242,9 @@
                     <a
                         href="{{ company.website_url }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center text-sm"
+                        class="flex select-text items-center gap-1 text-sm text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -257,7 +257,7 @@
                 </li>
                 {% endif %} {% if company.instagram_url %}
                 <li class="grid grid-cols-2">
-                    <span class="inline-flex items-center gap-1 font-medium text-sm">
+                    <span class="inline-flex items-center gap-1 text-sm font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
                             <path
                                 d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"
@@ -268,9 +268,9 @@
                     <a
                         href="{{ company.instagram_url }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center text-sm"
+                        class="flex select-text items-center gap-1 text-sm text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -283,7 +283,7 @@
                 </li>
                 {% endif %} {% if company.linkedin_url %}
                 <li class="grid grid-cols-2">
-                    <span class="inline-flex items-center gap-1 font-medium text-sm">
+                    <span class="inline-flex items-center gap-1 text-sm font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
                             <path
                                 d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"
@@ -294,9 +294,9 @@
                     <a
                         href="{{ company.linkedin_url }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center text-sm"
+                        class="flex select-text items-center gap-1 text-sm text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -309,7 +309,7 @@
                 </li>
                 {% endif %} {% if company.twitter_url %}
                 <li class="grid grid-cols-2">
-                    <span class="inline-flex items-center gap-1 font-medium text-sm">
+                    <span class="inline-flex items-center gap-1 text-sm font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="size-5">
                             <path
                                 d="M459.4 151.7c.3 4.5 .3 9.1 .3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53 51.7 63.7 129.3 105.3 216.4 109.8-1.6-7.8-2.6-15.9-2.6-24 0-57.8 46.8-104.9 104.9-104.9 30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3z"
@@ -320,9 +320,9 @@
                     <a
                         href="{{ company.twitter_url }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center text-sm"
+                        class="flex select-text items-center gap-1 text-sm text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -335,7 +335,7 @@
                 </li>
                 {% endif %} {% if company.country %}
                 <li class="grid grid-cols-2">
-                    <span class="inline-flex items-center gap-1 font-medium text-sm">
+                    <span class="inline-flex items-center gap-1 text-sm font-medium">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -357,11 +357,11 @@
                         </svg>
                         Location:
                     </span>
-                    <span class="text-gray-700 text-sm">{{ company.country.name }}</span>
+                    <span class="text-sm text-gray-700">{{ company.country.name }}</span>
                 </li>
                 {% endif %} {% if company.number_of_employees %}
                 <li class="grid grid-cols-2">
-                    <span class="flex font-medium gap-1 text-sm"
+                    <span class="flex gap-1 text-sm font-medium"
                         ><svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"

@@ -1,6 +1,6 @@
 {% macro render(user) %}
 <template id="zero-step-registration-template">
-    <div class="h-full flex w-full max-w-3xl justify-center flex-col gap-6 p-4">
+    <div class="flex h-full w-full max-w-3xl flex-col justify-center gap-6 p-4">
         <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
             <div
                 v-if="selectedInvestorSlug"
@@ -22,14 +22,14 @@
             <h1 class="text-3xl font-medium">Try to find your profile using the search below!</h1>
             <span class="text-gray-600">Please review the investors below to confirm your identity.</span>
         </div>
-        <div class="bg-[#231645] rounded-2xl px-5 py-10 flex gap-10 flex-col justify-center items-center">
+        <div class="flex flex-col items-center justify-center gap-10 rounded-2xl bg-[#231645] px-5 py-10">
             <h1
-                class="text-3xl text-center font-bold tracking-tight sm:text-4xl xl:text-5xl bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] p-3 w-fit bg-clip-text text-transparent"
+                class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-3xl font-bold tracking-tight text-transparent sm:text-4xl xl:text-5xl"
             >
                 Globalify Investors
             </h1>
             <div
-                class="mx-auto flex w-full gap-2 rounded-full border-2 bg-white py-2 pr-3 placeholder:text-2xl text-2xl"
+                class="mx-auto flex w-full gap-2 rounded-full border-2 bg-white py-2 pr-3 text-2xl placeholder:text-2xl"
             >
                 <input
                     type="search"
@@ -45,7 +45,7 @@
                 />
             </div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-full overflow-visible">
+        <div class="grid max-h-full grid-cols-1 gap-4 overflow-visible sm:grid-cols-2">
             <article
                 v-for="investor in investors"
                 :key="investor.id"
@@ -141,10 +141,10 @@
             </article>
             <article
                 v-if="Array.isArray(investors) && investors.length == 0"
-                class="col-span-full flex justify-center items-center flex-col gap-3"
+                class="col-span-full flex flex-col items-center justify-center gap-3"
             >
-                <h2 class="font-medium text-2xl">Woah, a unicorn 🦄!</h2>
-                <p class="text-gray-600 max-w-lg text-center">
+                <h2 class="text-2xl font-medium">Woah, a unicorn 🦄!</h2>
+                <p class="max-w-lg text-center text-gray-600">
                     We can't seem to find you in our database. You can still create an account, just go back a step and
                     select an option to create a new account
                 </p>

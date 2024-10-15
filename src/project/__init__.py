@@ -36,7 +36,7 @@ def get_apple_client_secret():
                 "aud": "https://appleid.apple.com",
                 "sub": os.getenv("_APPLE_OAUTH2_CLIENT_ID"),
             },
-            key=os.getenv("_APPLE_OAUTH2_PRIVATE_KEY"),
+            key=os.getenv("_APPLE_OAUTH2_PRIVATE_KEY", ""),
             algorithm="ES256",
         )
     except Exception as e:
@@ -168,64 +168,18 @@ def create_app(database_url="sqlite:///db.sqlite"):
                     "username": "barnacle2",
                 },
             ]
-            for admin in admin_list:
+            for administrator in admin_list:
                 user = User(
                     oauth_provider=OauthProvider.GOOGLE,
-                    email=admin["email"],
+                    email=administrator["email"],
                     is_verified=True,
                     is_admin=True,
                 )
                 user_info = UserInfo(
-                    first_name=admin["first_name"], last_name=admin["last_name"], username=admin["username"], user=user
-                )
-                user_payment = UserPayment(user=user)
-
-                db.session.add(user)
-                db.session.add(user_info)
-                db.session.add(user_payment)
-
-            Investor.populate_demo()
-            Investor.slugify_existing()
-            Investor.sync_search_index(recreate=True)
-
-            InvestmentFirm.populate_vcsheet()
-            InvestmentFirm.slugify_existing()
-            InvestmentFirm.sync_search_index(recreate=True)
-
-    app.cli.add_command(populate)
-
-    @app.cli.command("setup")
-    def populate():
-        from .models import InvestmentFirm, Investor, User, UserInfo, UserPayment
-        from .utils.enums import OauthProvider
-
-        with app.app_context():
-            db.drop_all()
-            db.create_all()
-
-            admin_list = [
-                {
-                    "email": "arstan.usenov@gmail.com",
-                    "first_name": "Arstan",
-                    "last_name": "Usenov",
-                    "username": "barnacle",
-                },
-                {
-                    "email": "arstan@globalify.xyz",
-                    "first_name": "Arstanbek",
-                    "last_name": "Usenov",
-                    "username": "barnacle2",
-                },
-            ]
-            for admin in admin_list:
-                user = User(
-                    oauth_provider=OauthProvider.GOOGLE,
-                    email=admin["email"],
-                    is_verified=True,
-                    is_admin=True,
-                )
-                user_info = UserInfo(
-                    first_name=admin["first_name"], last_name=admin["last_name"], username=admin["username"], user=user
+                    first_name=administrator["first_name"],
+                    last_name=administrator["last_name"],
+                    username=administrator["username"],
+                    user=user,
                 )
                 user_payment = UserPayment(user=user)
 

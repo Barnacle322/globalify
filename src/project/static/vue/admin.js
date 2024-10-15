@@ -13,6 +13,10 @@ createApp({
     },
     created() {
         this.asideMinified = localStorage.getItem("asideMinified") === "true";
+        this.debouncedFetchNotableInvestmentListByInvestorId = this.debounce(
+            this.fetchNotableInvestmentListByInvestorId,
+            500,
+        );
     },
     data() {
         return {

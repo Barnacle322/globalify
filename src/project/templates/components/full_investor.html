@@ -105,13 +105,15 @@
                             </svg>
                         </div>
                     </div>
-
+                    <!-- renderContacts variable is false during the onboarding process.  -->
+                    <!-- The additional check is to prevent an almost impossible edge case -->
+                    <!-- Where a user with claimed invesor profile is doing onboarding again -->
                     <a
-                        v-if="investor.user_id == {{user.id}}"
+                        v-if="investor.user_id == {{ user.id }} && renderContacts"
                         href="/settings/investor"
                         class="flex h-10 w-16 items-center justify-center rounded-lg bg-sky-500 px-2 py-1 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
-                        >Edit</a
-                    >
+                        >Edit
+                    </a>
                 </section>
                 <section class="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2">
                     <article
@@ -325,7 +327,7 @@
                         "
                         >
                             <h2 class="font-medium mt-5">Notable Investments</h2>
-                            <div class="flex flex-wrap gap-1 mt-2">
+                            <div class="flex flex-wrap gap-1 gap-y-2 h-fit mt-2">
                                 <div v-for="investment in investor.notable_investments" :key="investment.id">
                                     <a
                                         v-if="investment.company"
@@ -347,8 +349,23 @@
                         class="shadow-card w-full rounded-xl bg-white p-5"
                     >
                         <h2 class="font-medium text-xl">This profile has already been claimed by another user.</h2>
-                        <p>If you think that there has been a mistake please contact us at <b>partners@globalify.xyz</b></p>
-
+                        <p>
+                            If you think that there has been a mistake please contact us at
+                            <b>partners@globalify.xyz</b>
+                        </p>
+                    </article>
+                    <!-- The additional check is to prevent an almost impossible edge case -->
+                    <!-- Where a user with claimed invesor profile is doing onboarding again -->
+                    <article
+                        v-if="investor.user_id == {{ user.id }}"
+                        class="shadow-card w-full rounded-xl bg-white p-5"
+                    >
+                        <h2 class="font-medium text-xl">Hey! You aren't supposed to be here!</h2>
+                        <p>
+                            You already have access to this profile. If you want to edit it, please go to your settings
+                            page. If you are stuck in the onboarding flow, contact us at
+                            <b>partners@globalify.xyz</b>
+                        </p>
                     </article>
                     <article v-if="!unpaid && renderContacts" class="shadow-card w-full rounded-xl bg-white p-5">
                         <h2 class="text-xl font-medium">Contacts</h2>

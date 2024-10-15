@@ -3,21 +3,8 @@ const form = document.getElementById("claimForm");
 const email = document.getElementById("email");
 const slug = form.getAttribute("slug");
 
-function checkCaptcha() {
-    const recaptchaValue = grecaptcha.getResponse();
-    if (recaptchaValue.length === 0) {
-        alert("Please verify that you are not a robot.");
-        return false;
-    }
-    return true;
-}
-
 form.addEventListener("submit", function (event) {
     event.preventDefault();
-
-    if (!checkCaptcha()) {
-        return;
-    }
 
     fetch(`/investor/${slug}/claim/email`, {
         method: "POST",

@@ -1,5 +1,4 @@
 import json
-import os
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
 
@@ -44,7 +43,7 @@ from ..schemas.investor import (
 from ..schemas.notification import NotificationItem, NotificationLayout
 from ..schemas.user import CompanySchema
 from ..utils.decorators import check_user_info_complete, check_verification
-from ..utils.enums import Events, NotificationDestination, NotificationType, Status, StatusType
+from ..utils.enums import Events, NotificationType, Status, StatusType
 from ..utils.errors.error_messages import (
     CLAIM_REQUEST_ALREADY_SUBMITTED,
     EXPIRED_CODE,
@@ -543,20 +542,23 @@ def investor_slug(slug):
 
 @main.get("/investor/<slug>/claim")
 @login_required
-@check_user_info_complete
-@check_verification
 def claiming_types_view(slug):
     investor = Investor.get_by_slug(slug)
     if not investor:
         return redirect(url_for("main.search"))
+
+    # Take investors email and obfuscate it by only showing first and last 3 characters
+
+    email = investor.email
+    if email:
+        email = email[:3] + "*" * (len(email) - 6) + email[-3:]
+        investor.email = email
 
     return render_template("claiming/index.html", investor=investor)
 
 
 @main.get("/investor/<slug>/claim/manual")
 @login_required
-@check_user_info_complete
-@check_verification
 def claiming_manual_view(slug):
     status_type, msg = None, None
     if query := request.args:
@@ -567,12 +569,9 @@ def claiming_manual_view(slug):
     if not investor:
         return redirect(url_for("main.search"))
 
-    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
-
     return render_template(
         "claiming/manual.html",
         investor=investor,
-        captcha_site_key=captcha_site_key,
         status_type=status_type,
         msg=msg,
     )
@@ -580,8 +579,6 @@ def claiming_manual_view(slug):
 
 @main.post("/investor/<slug>/claim/manual")
 @login_required
-@check_user_info_complete
-@check_verification
 def claiming_manual(slug):
     form_data = request.get_json()
     email = form_data.get("email")
@@ -639,22 +636,16 @@ def claiming_manual(slug):
 
 @main.get("/investor/<slug>/claim/email")
 @login_required
-@check_user_info_complete
-@check_verification
 def claiming_email_view(slug):
     investor = Investor.get_by_slug(slug)
     if not investor:
         return redirect(url_for("main.search"))
 
-    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SECRET_KEY")
-
-    return render_template("claiming/email.html", investor=investor, captcha_site_key=captcha_site_key)
+    return render_template("claiming/email.html", investor=investor)
 
 
 @main.post("/investor/<slug>/claim/email")
 @login_required
-@check_user_info_complete
-@check_verification
 def claiming_email(slug):
     investor = Investor.get_by_slug(slug)
     if not investor or investor.user_id:
@@ -678,8 +669,6 @@ def claiming_email(slug):
 
 @main.get("/investor/<slug>/claim/email/verify")
 @login_required
-@check_user_info_complete
-@check_verification
 def claim_verification_view(slug):
     verification_code = request.args.get("verification_code")
 
@@ -703,8 +692,6 @@ def claim_verification_view(slug):
 
 @main.post("/investor/<slug>/claim/email/verify")
 @login_required
-@check_user_info_complete
-@check_verification
 def claim_verification(slug):
     form_data = request.get_json()
     verification_code = form_data.get("code")

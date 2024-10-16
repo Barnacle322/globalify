@@ -1,12 +1,11 @@
 <!-- prettier-ignore -->
-{% extends "layouts/layout_app.html" %}
+{% extends "layouts/layout_clean.html" %}
 {% block additional_scripts %}
 <script src="/static/scripts/claiming/email.js" defer></script>
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 {% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
 content %}
 
-<main class="flex min-h-screen w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+<main class="mx-auto flex w-full max-w-3xl flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
     <section class="mt-36 flex max-w-md flex-col items-center justify-center gap-8 md:mt-48">
         <article class="flex flex-col gap-2">
             <h1 class="text-3xl font-semibold md:text-5xl">Email Verification</h1>
@@ -18,7 +17,6 @@ content %}
         <form id="claimForm" class="flex w-full flex-col" slug="{{ investor.slug }}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="hidden" id="email" name="email" value="{{ investor.email }}" />
-            <div class="g-recaptcha" data-sitekey="{{ captcha_site_key }}"></div>
             <br />
             <button
                 type="submit"

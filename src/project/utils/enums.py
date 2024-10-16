@@ -1,7 +1,6 @@
-from dataclasses import dataclass, field
 from enum import Enum
 
-from src.project.utils.errors.error_messages import UNKNOWN_ERROR
+from ..utils.errors.error_messages import UNKNOWN_ERROR
 
 
 class NotificationDestination(Enum):

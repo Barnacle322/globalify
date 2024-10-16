@@ -266,7 +266,7 @@
                                         name="first-name"
                                         id="first-name"
                                         autocomplete="given-name"
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 mt-2"
+                                        class="mt-2 h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                         value="{{ user.user_info.first_name }}"
                                     />
                                 </div>
@@ -277,7 +277,7 @@
                                         name="last-name"
                                         id="last-name"
                                         autocomplete="family-name"
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 mt-2"
+                                        class="mt-2 h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                         value="{{ user.user_info.last_name }}"
                                     />
                                 </div>
@@ -289,14 +289,14 @@
                                         name="email"
                                         type="email"
                                         autocomplete="email"
-                                        class="h-12 w-full cursor-not-allowed rounded-xl border-2 border-stone-300 px-2 text-slate-700 mt-2 peer"
+                                        class="peer mt-2 h-12 w-full cursor-not-allowed rounded-xl border-2 border-stone-300 px-2 text-slate-700"
                                         value="{{ user.email }}"
                                         disabled
                                     />
                                     <span class="text-xs text-slate-700"
                                         >Logged in with {{ user.oauth_provider.value.title() }} OAuth</span
                                     >
-                                    <div class="mt-2 peer-placeholder-shown:hidden block">
+                                    <div class="mt-2 block peer-placeholder-shown:hidden">
                                         <label class="inline-flex cursor-pointer items-center">
                                             {% if user.user_info.email_public %}
                                             <input
@@ -349,7 +349,7 @@
                                     <textarea
                                         id="bio"
                                         name="bio"
-                                        class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2 mt-2"
+                                        class="mt-2 h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                                     >
 {{ user.user_info.bio if user.user_info.bio else '' }}</textarea
                                     >
@@ -359,12 +359,12 @@
                                     <input
                                         id="linkedin"
                                         name="linkedin"
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 mt-2 peer"
+                                        class="peer mt-2 h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                         pattern="^(https?:\/\/)?((www\.)?linkedin\.com)\/in\/[A-Za-z0-9_]+\/?$"
                                         value="{{ user.user_info.linkedin_url if user.user_info.linkedin_url else '' }}"
                                         placeholder="linkedin.com/in/username"
                                     />
-                                    <div class="mt-2 peer-placeholder-shown:hidden block">
+                                    <div class="mt-2 block peer-placeholder-shown:hidden">
                                         <label class="inline-flex cursor-pointer items-center">
                                             {% if user.user_info.linkedin_public %}
                                             <input
@@ -395,12 +395,12 @@
                                     <input
                                         id="instagram"
                                         name="instagram"
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 mt-2 peer"
+                                        class="peer mt-2 h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                         pattern="^(https?:\/\/)?((www\.)?instagram\.com)\/[A-Za-z0-9_]+\/?$"
                                         value="{{ user.user_info.instagram_url if user.user_info.instagram_url else '' }}"
                                         placeholder="instagram.com/username"
                                     />
-                                    <div class="mt-2 peer-placeholder-shown:hidden block">
+                                    <div class="mt-2 block peer-placeholder-shown:hidden">
                                         <label class="inline-flex cursor-pointer items-center">
                                             {% if user.user_info.instagram_public %}
                                             <input
@@ -430,12 +430,12 @@
                                     <input
                                         id="twitter"
                                         name="twitter"
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 mt-2 peer"
+                                        class="peer mt-2 h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                         pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
                                         value="{{ user.user_info.twitter_url if user.user_info.twitter_url else '' }}"
                                         placeholder="twitter.com/username"
                                     />
-                                    <div class="mt-2 peer-placeholder-shown:hidden block">
+                                    <div class="mt-2 block peer-placeholder-shown:hidden">
                                         <label class="inline-flex cursor-pointer items-center">
                                             {% if user.user_info.twitter_public %}
                                             <input
@@ -491,7 +491,7 @@
                                     </label>
                                 </div>
                             </div>
-                            <div class="mt-8 flex gap-5 justify-end">
+                            <div class="mt-8 flex justify-end gap-5">
                                 <a
                                     class="flex items-center justify-center text-slate-700 underline"
                                     href="/settings/general"
@@ -903,7 +903,7 @@
                                     />
                                 </div>
                             </div>
-                            <div class="mt-5 flex gap-2 justify-end">
+                            <div class="mt-5 flex justify-end gap-2">
                                 {% if investor_origin %}
                                 <button
                                     id="openConfirmRestore"

@@ -1,4 +1,4 @@
-const InvestorRegistrationComponent = defineComponent({
+const InvestorRegistration = defineComponent({
     template: "#investor-registration-template",
     methods: {
         async openRegistrationPage() {
@@ -7,7 +7,7 @@ const InvestorRegistrationComponent = defineComponent({
     },
 });
 
-const ClaimInvestorComponent = defineComponent({
+const ClaimInvestor = defineComponent({
     template: "#claim-investor-template",
     data() {
         return {};
@@ -25,17 +25,14 @@ const ClaimInvestorComponent = defineComponent({
     },
 });
 
-const ZeroPageComponent = defineComponent({
+const ZeroPage = defineComponent({
     template: "#zero-step-registration-template",
     components: {
         FullInvestor,
     },
-    data() {
-        return {
-            investors: null,
-            selectedInvestorSlug: null,
-            debouncedInvestors: null,
-        };
+    mounted() {
+        this.debouncedInvestors = this.debounce(this.searchInvestors, 500);
+        this.fetchExistingInvestors();
     },
     methods: {
         async fetchExistingInvestors() {
@@ -50,7 +47,7 @@ const ZeroPageComponent = defineComponent({
         selectInvestorSlug(investorSlug) {
             this.selectedInvestorSlug = investorSlug;
         },
-        goToPreviousPage() {
+        previousPage() {
             this.$emit("change-page", -1);
         },
         debounce(func, wait) {
@@ -77,15 +74,16 @@ const ZeroPageComponent = defineComponent({
             }
         },
     },
-    mounted() {
-        this.debouncedInvestors = this.debounce(this.searchInvestors, 500);
-    },
-    created() {
-        this.fetchExistingInvestors();
+    data() {
+        return {
+            investors: null,
+            selectedInvestorSlug: null,
+            debouncedInvestors: null,
+        };
     },
 });
 
-const GeneralInfoComponent = defineComponent({
+const GeneralInfo = defineComponent({
     template: "#general-info-template",
     mounted() {
         this.data.firstName = this.$refs.userFirstName.value;
@@ -130,7 +128,7 @@ const GeneralInfoComponent = defineComponent({
     },
 });
 
-const InvestmentInfoComponent = defineComponent({
+const InvestmentInfo = defineComponent({
     template: "#investment-info-template",
     mounted() {
         const menus = [
@@ -285,7 +283,7 @@ const InvestmentInfoComponent = defineComponent({
     },
 });
 
-const ContactInfoComponent = defineComponent({
+const ContactInfo = defineComponent({
     template: "#contact-info-template",
     mounted() {
         this.email = this.$refs.userEmail.value;
@@ -386,20 +384,12 @@ const ContactInfoComponent = defineComponent({
 
 createApp({
     components: {
-        InvestorRegistrationComponent,
-        ClaimInvestorComponent,
-        ZeroPageComponent,
-        GeneralInfoComponent,
-        InvestmentInfoComponent,
-        ContactInfoComponent,
-    },
-
-    data() {
-        return {
-            currentPage: parseInt(localStorage.getItem("currentPage")) || 1,
-            enterClass: "slide-fade-in-left",
-            leaveClass: "slide-fade-out-left",
-        };
+        InvestorRegistration,
+        ClaimInvestor,
+        ZeroPage,
+        GeneralInfo,
+        InvestmentInfo,
+        ContactInfo,
     },
     methods: {
         changePage(pageNumber) {
@@ -414,5 +404,32 @@ createApp({
             this.currentPage = this.currentPage + pageNumber;
             localStorage.setItem("currentPage", this.currentPage);
         },
+    },
+    computed: {
+        currentComponent() {
+            switch (this.currentPage) {
+                case 1:
+                    return "investor-registration";
+                case 2:
+                    return "claim-investor";
+                case 3:
+                    return "zero-page";
+                case 4:
+                    return "general-info";
+                case 5:
+                    return "investment-info";
+                case 6:
+                    return "contact-info";
+                default:
+                    return null;
+            }
+        },
+    },
+    data() {
+        return {
+            currentPage: parseInt(localStorage.getItem("currentPage")) || 1,
+            enterClass: "slide-fade-in-left",
+            leaveClass: "slide-fade-out-left",
+        };
     },
 }).mount("#app");

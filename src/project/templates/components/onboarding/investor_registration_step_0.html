@@ -1,6 +1,6 @@
 {% macro render(user) %}
 <template id="zero-step-registration-template">
-    <div class="fixed mx-auto flex w-full max-w-fit flex-col gap-9 p-4 overflow-y-auto h-full sm:justify-center">
+    <div class="flex h-full w-full max-w-3xl flex-col justify-center gap-6 p-4">
         <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
             <div
                 v-if="selectedInvestorSlug"
@@ -18,30 +18,35 @@
         </transition>
         <input type="hidden" ref="userFirstName" value="{{ user.user_info.first_name }}" />
         <input type="hidden" ref="userLastName" value="{{ user.user_info.last_name }}" />
-
         <div class="flex flex-col gap-2">
-            <h1 class="text-3xl font-medium">Select your profile! Are you one of these investors?</h1>
+            <h1 class="text-3xl font-medium">Try to find your profile using the search below!</h1>
             <span class="text-gray-600">Please review the investors below to confirm your identity.</span>
         </div>
-
-        <div class="mx-auto flex w-full gap-2 rounded-full border-2 bg-white py-2 pr-3">
-            <input
-                type="search"
-                ref="searchInput"
-                class="w-full border-0 bg-transparent py-3 pl-6 pr-0 text-sm focus:ring-0"
-                placeholder="Search"
-                autocapitalize="off"
-                autocorrect="off"
-                autocomplete="off"
-                aria-autocomplete="both"
-                required
-                @input="debouncedInvestors"
-            />
+        <div class="flex flex-col items-center justify-center gap-10 rounded-2xl bg-[#231645] px-5 py-10">
+            <h1
+                class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-3xl font-bold tracking-tight text-transparent sm:text-4xl xl:text-5xl"
+            >
+                Globalify Investors
+            </h1>
+            <div
+                class="mx-auto flex w-full gap-2 rounded-full border-2 bg-white py-2 pr-3 text-2xl placeholder:text-2xl"
+            >
+                <input
+                    type="search"
+                    ref="searchInput"
+                    class="w-full border-0 bg-transparent py-3 pl-6 pr-0 focus:ring-0"
+                    placeholder="Search"
+                    autocapitalize="off"
+                    autocorrect="off"
+                    autocomplete="off"
+                    aria-autocomplete="both"
+                    required
+                    @input="debouncedInvestors"
+                />
+            </div>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid max-h-full grid-cols-1 gap-4 overflow-visible sm:grid-cols-2">
             <article
-                v-if="investors"
                 v-for="investor in investors"
                 :key="investor.id"
                 class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out"
@@ -134,27 +139,35 @@
                     ></p>
                 </div>
             </article>
-        </div>
-        <div class="flex">
-            <button
-                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
-                @click="goToPreviousPage"
+            <article
+                v-if="Array.isArray(investors) && investors.length == 0"
+                class="col-span-full flex flex-col items-center justify-center gap-3"
             >
-                <div class="flex items-center gap-2">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="size-5"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                    </svg>
-                    <span>Back</span>
-                </div>
-            </button>
+                <h2 class="text-2xl font-medium">Woah, a unicorn 🦄!</h2>
+                <p class="max-w-lg text-center text-gray-600">
+                    We can't seem to find you in our database. You can still create an account, just go back a step and
+                    select an option to create a new account
+                </p>
+            </article>
         </div>
+        <button
+            class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
+            @click="previousPage"
+        >
+            <div class="flex items-center gap-2">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                <span>Back</span>
+            </div>
+        </button>
     </div>
 </template>
 {% endmacro %}

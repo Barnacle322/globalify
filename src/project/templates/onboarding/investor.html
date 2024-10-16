@@ -5,7 +5,7 @@
 
 {% endblock %} {% block title %}Onboarding{% endblock %} {% block head %}
 <!-- prettier-ignore -->
-{% import "components/investor_registration.html" as investor_registration %} 
+{% import "components/onboarding/investor_registration.html" as investor_registration %} 
 {{ investor_registration.render() }} 
 {% import "components/onboarding/investor_registration_step_0.html" as zero %} 
 {{ zero.render(user) }} 
@@ -17,7 +17,7 @@
 {{ contact_info.render(user) }} 
 {% import "components/full_investor.html" as full_investor %} 
 {{ full_investor.render(current_user) }}
-{% import "components/claim_investor.html" as claim_investor %} 
+{% import "components/onboarding/claim_investor.html" as claim_investor %} 
 {{ claim_investor.render(current_user) }}
 
 
@@ -25,34 +25,10 @@
 {% endblock %} 
 {% block content %}
 
-<main class="mx-auto flex h-full max-w-7xl flex-col items-center justify-center overflow-x-hidden p-6">
+<main class="mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center overflow-hidden p-4 sm:p-6">
     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-
-    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <investor-registration-component
-            v-if="currentPage === 1"
-            @change-page="changePage"
-        ></investor-registration-component>
-    </transition>
-
-    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <claim-investor-component v-if="currentPage === 2" @change-page="changePage"></claim-investor-component>
-    </transition>
-
-    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <zero-page-component v-if="currentPage === 3" @change-page="changePage"></zero-page-component>
-    </transition>
-
-    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <general-info-component v-if="currentPage === 4" @change-page="changePage"></general-info-component>
-    </transition>
-
-    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <investment-info-component v-if="currentPage === 5" @change-page="changePage"></investment-info-component>
-    </transition>
-
-    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass">
-        <contact-info-component v-if="currentPage === 6" @change-page="changePage"></contact-info-component>
+    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass" mode="out-in">
+        <component :is="currentComponent" @change-page="changePage"></component>
     </transition>
 </main>
 

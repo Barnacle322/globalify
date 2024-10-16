@@ -102,7 +102,7 @@
                             >
                         </div>
                     </section> -->
-                    <section class="mx-4 rounded-3xl bg-[#231645] p-5 pb-10 pt-16 my-3">
+                    <section class="mx-4 my-3 rounded-3xl bg-[#231645] p-5 pb-10 pt-16">
                         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                         <div class="mx-auto w-full max-w-3xl">
                             <div class="flex items-center justify-evenly">
@@ -549,7 +549,7 @@
                             <article
                                 class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out"
                             >
-                                <div class="flex justify-between items-center">
+                                <div class="flex items-center justify-between">
                                     <button
                                         @click="selectInvestorSlug('{{investor.slug}}')"
                                         class="text-xl font-bold leading-none"

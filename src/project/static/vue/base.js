@@ -574,6 +574,7 @@ const FullInvestor = defineComponent({
         return {
             isExpanded: false,
             isLoading: false,
+            bookmark: null,
             investor: null,
             unpaid: false,
         };
@@ -609,12 +610,36 @@ const FullInvestor = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     this.investor = data.investor;
+                    this.bookmark = data.bookmark;
                     this.unpaid = data.unpaid;
                 }
             } catch (error) {
                 console.error("Error fetching investor:", error);
             } finally {
                 this.isLoading = false;
+            }
+        },
+        async toggleInvestorBookmark(investorId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investor/${investorId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
+                    if (data[0].bookmarked) {
+                        svg.style.fill = "#FFC9FC";
+                    } else {
+                        svg.style.fill = "none";
+                    }
+                }
+            } catch (error) {
+                console.error(error);
             }
         },
         handleKeyDown(event) {

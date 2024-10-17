@@ -768,6 +768,8 @@ def get_investor(slug):
     if not investor_model:
         return jsonify({"status": "error", "message": "Investor not found."}, 404)
 
+    bookmark = InvestorBookmark.exists(investor_model.id, current_user.id)
+
     investor = InvestorSchema(
         id=investor_model.id,
         name=f"{investor_model.first_name} {investor_model.last_name}",
@@ -791,7 +793,7 @@ def get_investor(slug):
         user_id=investor_model.user_id,
     ).model_dump()
 
-    return jsonify({"investor": investor, "unpaid": unpaid})
+    return jsonify({"investor": investor, "unpaid": unpaid, "bookmark": bookmark})
 
 
 @main.get("/investment-firm/<slug>")

@@ -52,11 +52,11 @@
 
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %}
-{{ navbar.render(current_user) }}
-{% import "components/confirm_restore.html" as confirm_restore %}
-{{ confirm_restore.render(current_user) }}
-{% import "components/create_notable_investment.html" as createNotableInvestment %}
-{{ createNotableInvestment.render() }}
+    {{ navbar.render(current_user) }}
+    {% import "components/confirm_restore.html" as confirm_restore %}
+    {{ confirm_restore.render(current_user) }}
+    {% import "components/create_notable_investment.html" as createNotableInvestment %}
+    {{ createNotableInvestment.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>

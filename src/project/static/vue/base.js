@@ -439,8 +439,10 @@ const Bookmark = defineComponent({
         },
         updateUrlParam(paramName, paramValue, stateKey) {
             const url = new URL(window.location.href);
+            console.log(url);
             if (url.searchParams.get(paramName) !== paramValue) {
-                url.searchParams.set(paramName, paramValue);
+                url.searchParams.set('investor', paramValue);
+                url.pathname = '/search';
                 window.history.pushState({}, "", url);
             }
             this[stateKey] = paramValue;

@@ -51,7 +51,10 @@ createApp({
             upperSlider.oninput = this.handleUpperSliderInput;
         }
 
-        document.getElementById("search-btn").addEventListener("click", this.search);
+        const searchBtn = document.getElementById("search-btn");
+        if (searchBtn) {
+            searchBtn.addEventListener("click", this.search);
+        }
 
         this.setupMenuToggle();
         this.initializeValuesFromParams();
@@ -467,3 +470,4 @@ createApp({
         },
     },
 }).mount("#app");
+

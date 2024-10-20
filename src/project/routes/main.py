@@ -470,15 +470,7 @@ def search():
     )
     investors = result.get("investors")
 
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-    unpaid = False
-    if current_user.is_admin:
-        pass
-    elif not user_payment and page > 1:
-        unpaid = True
-    elif user_payment and not user_payment.is_active and page > 1:
-        unpaid = True
-
+    bookmarks = InvestorBookmark.get_id_list(current_user.id)
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     fields = {
@@ -498,7 +490,6 @@ def search():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        unpaid=unpaid,
         user=current_user,
     )
 

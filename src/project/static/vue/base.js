@@ -441,8 +441,8 @@ const Bookmark = defineComponent({
             const url = new URL(window.location.href);
             console.log(url);
             if (url.searchParams.get(paramName) !== paramValue) {
-                url.searchParams.set('investor', paramValue);
-                url.pathname = '/search';
+                url.searchParams.set("investor", paramValue);
+                url.pathname = "/search";
                 window.history.pushState({}, "", url);
             }
             this[stateKey] = paramValue;
@@ -657,6 +657,17 @@ const FullInvestor = defineComponent({
         closeInvestor() {
             this.$emit("close-investor");
         },
+        getTwitterHandle(url) {
+            return url.split("/").pop();
+        },
+    },
+    data() {
+        return {
+            isExpanded: false,
+            isLoading: false,
+            investor: null,
+            unpaid: false,
+        };
     },
 });
 

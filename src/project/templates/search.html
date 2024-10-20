@@ -86,7 +86,7 @@
                     @close-investor="selectedInvestorSlug = null"
                     @bookmarked="handleInvestorBookmark"
                     :slug="selectedInvestorSlug"
-                    :renderContacts="true"
+                    :rendercontacts="true"
                     v-if="selectedInvestorSlug"
                 ></full-investor>
             </transition>
@@ -561,7 +561,7 @@
                     </section>
                     <section class="mx-auto px-4 py-12">
                         <div class="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {% if investors and not unpaid %} {% for investor in investors %}
+                            {% if investors %} {% for investor in investors %}
                             <article
                                 class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out"
                             >

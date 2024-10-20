@@ -571,7 +571,7 @@ const NavbarComponent = defineComponent({
 const FullInvestor = defineComponent({
     template: "#full-investor-template",
     props: { slug: String, renderContacts: Boolean },
-    emits: ["close-investor"],
+    emits: ["close-investor", "bookmarked"],
     data() {
         return {
             isExpanded: false,
@@ -636,8 +636,10 @@ const FullInvestor = defineComponent({
                     var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
                     if (data[0].bookmarked) {
                         svg.style.fill = "#FFC9FC";
+                        this.$emit("bookmarked", { investorId: investorId, status: true });
                     } else {
                         svg.style.fill = "none";
+                        this.$emit("bookmarked", { investorId: investorId, status: false });
                     }
                 }
             } catch (error) {
@@ -661,12 +663,13 @@ const FullInvestor = defineComponent({
 const FullInvestmentFirm = defineComponent({
     template: "#full-investment-firm-template",
     props: ["slug"],
-    emits: ["close-investment-firm"],
+    emits: ["close-investment-firm", "bookmarked"],
     data() {
         return {
             isExpanded: false,
             isLoading: false,
             investmentFirm: null,
+            bookmark: null,
         };
     },
     mounted() {
@@ -681,6 +684,46 @@ const FullInvestmentFirm = defineComponent({
         window.removeEventListener("popstate", this.checkUrlParams);
     },
     methods: {
+        async fetchInvestmentFirm() {
+            this.isLoading = true;
+            try {
+                const response = await fetch(`/investment-firm/${this.slug}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investmentFirm = data.investment_firm;
+                    this.bookmark = data.bookmark;
+                }
+            } catch (error) {
+                console.error("Error fetching investment firm:", error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async toggleInvestmentFirmBookmark(firmId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
+                    if (data[0].bookmarked) {
+                        svg.style.fill = "#FFC9FC";
+                        this.$emit("bookmarked", { firmId: firmId, status: true });
+                    } else {
+                        svg.style.fill = "none";
+                        this.$emit("bookmarked", { firmId: firmId, status: false });
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
         deleteInvestmentFirmParam() {
             const url = new URL(window.location.href);
             url.searchParams.delete("investment-firm");
@@ -691,20 +734,6 @@ const FullInvestmentFirm = defineComponent({
             const investorSlug = urlParams.get("investment-firm");
             if (!investorSlug) {
                 this.$emit("close-investment-firm");
-            }
-        },
-        async fetchInvestmentFirm() {
-            this.isLoading = true;
-            try {
-                const response = await fetch(`/investment-firm/${this.slug}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investmentFirm = data.investment_firm;
-                }
-            } catch (error) {
-                console.error("Error fetching investment firm:", error);
-            } finally {
-                this.isLoading = false;
             }
         },
         handleKeyDown(event) {
@@ -785,3 +814,4 @@ const FullCompany = defineComponent({
         },
     },
 });
+

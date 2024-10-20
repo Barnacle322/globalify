@@ -1803,6 +1803,17 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             )
         ).first()
 
+    @staticmethod
+    def exists(investment_firm_id: int, user_id: int) -> bool:
+        return db.session.scalar(
+            db.select(
+                exists().where(
+                    InvestmentFirmBookmark.investment_firm_id == investment_firm_id,
+                    InvestmentFirmBookmark.user_id == user_id,
+                )
+            )
+        )
+
 
 investor_backup_round = db.Table(
     "investor_backup_round",

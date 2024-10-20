@@ -38,6 +38,8 @@ createApp({
         this.checkAndSelectUrlParam("investor", this.selectInvestorSlug);
         this.checkAndSelectUrlParam("investment-firm", this.selectInvestmentFirmSlug);
         this.checkAndSelectUrlParam("company", this.selectCompanySlug);
+        this.fetchInvestorBookmarks();
+        this.fetchInvestmentFirmBookmarks();
     },
     mounted() {
         const lowerSlider = document.getElementById("min_investment");
@@ -82,6 +84,9 @@ createApp({
             selectedInvestorSlug: null,
             selectedInvestmentFirmSlug: null,
             selectedCompanySlug: null,
+            bookmarkedInvestorId: null,
+            investorBookmakrIds: [],
+            investmentFirmBookmakrIds: [],
             selectedIndustry: "",
             selectedCountry: "",
             menus: [
@@ -96,6 +101,42 @@ createApp({
         };
     },
     methods: {
+        async handleInvestorBookmark(data) {
+            if (data.status) {
+                this.investorBookmakrIds.push(data.investorId);
+            } else {
+                this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId);
+            }
+        },
+        async fetchInvestorBookmarks() {
+            try {
+                const response = await fetch("/investor/bookmarks");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investorBookmakrIds = data.bookmark_ids;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async handleInvestmentFirmBookmark(data) {
+            if (data.status) {
+                this.investmentFirmBookmakrIds.push(data.firmId);
+            } else {
+                this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== data.firmId);
+            }
+        },
+        async fetchInvestmentFirmBookmarks() {
+            try {
+                const response = await fetch("/investment-firm/bookmarks");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investmentFirmBookmakrIds = data.bookmark_ids;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
         checkAndSelectUrlParam(paramName, selectFunction) {
             const urlParams = new URLSearchParams(window.location.search);
             const paramSlug = urlParams.get(paramName);

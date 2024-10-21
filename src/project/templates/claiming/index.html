@@ -6,21 +6,6 @@
 
 <main class="mx-auto mb-20 flex w-full max-w-3xl flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
     <section class="flex w-full flex-col gap-4">
-        <a href="/search?investor={{ investor.slug }}" class="group flex items-center gap-1 text-gray-500"
-            ><svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                class="size-4 transition-colors ease-in-out group-hover:text-gray-700"
-            >
-                <path
-                    fill-rule="evenodd"
-                    d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
-                    clip-rule="evenodd"
-                ></path>
-            </svg>
-            <span class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Go Back</span>
-        </a>
         <h1 class="text-3xl font-semibold sm:text-4xl">Claim the profile</h1>
         <p class="max-w-xl text-pretty text-gray-700">
             You are about to request a claim for the following investor profile. Please make sure that you are claiming
@@ -250,11 +235,12 @@
                 </span>
                 <span class="text-sm text-gray-700">{{ investor.n_exits }}</span>
             </div>
-            {% endif %} {% if investor.notable_investments %}
+            {% endif %} {% if investor.notable_investments and (investor.notable_investments | selectattr("name") |
+            select("string") | list) %}
             <div>
                 <h2 class="mt-5 font-medium">Notable Investments</h2>
                 <div class="mt-2 flex flex-wrap gap-1">
-                    {% for investment in investor.notable_investments %}
+                    {% for investment in investor.notable_investments if investment.name != "" %}
                     <a class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500"
                         >{{ investment.name }}</a
                     >

@@ -382,7 +382,6 @@ createApp({
             });
         },
         getQueryParams() {
-            console.log(window.location.search)
             return new URLSearchParams(window.location.search);
         },
         removePageParam(params) {
@@ -401,7 +400,6 @@ createApp({
             document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
                 if (!link.getAttribute("href").includes("search")) return;
                 link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
-                // console.log(link.href)
             });
         },
         async getCountryList(searchInput) {

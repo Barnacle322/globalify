@@ -386,6 +386,7 @@ createApp({
         },
         removePageParam(params) {
             params.delete("page");
+            params.delete("investor");
             return params;
         },
         applyQueryParams(url) {

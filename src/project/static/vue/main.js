@@ -55,6 +55,7 @@ createApp({
 
         this.setupMenuToggle();
         this.initializeValuesFromParams();
+        this.updateLinksWithQueryParams();
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
@@ -333,6 +334,29 @@ createApp({
                         menuElement.classList.add(...this.hideClasses);
                     }
                 };
+            });
+        },
+        getQueryParams() {
+            console.log(window.location.search)
+            return new URLSearchParams(window.location.search);
+        },
+        removePageParam(params) {
+            params.delete("page");
+            params.delete("investor");
+            return params;
+        },
+        applyQueryParams(url) {
+            const params = this.removePageParam(this.getQueryParams());
+            if (params.toString()) {
+                return `${url}${url.includes("?") ? "&" : "?"}${params.toString()}`;
+            }
+            return url;
+        },
+        updateLinksWithQueryParams() {
+            document.querySelectorAll("a[href^=\"/\"]:not([href^=\"//\"])").forEach((link) => {
+                if (!link.getAttribute("href").includes("search")) return;
+                link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
+                // console.log(link.href)
             });
         },
         async toggleInvestorBookmark(investorId) {

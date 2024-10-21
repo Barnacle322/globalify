@@ -1464,6 +1464,9 @@ select {
 .mb-5 {
   margin-bottom: 1.25rem;
 }
+.ml-2 {
+  margin-left: 0.5rem;
+}
 .ml-3 {
   margin-left: 0.75rem;
 }
@@ -1535,9 +1538,6 @@ select {
 }
 .mt-auto {
   margin-top: auto;
-}
-.ml-2 {
-  margin-left: 0.5rem;
 }
 .line-clamp-2 {
   overflow: hidden;
@@ -4675,10 +4675,6 @@ textarea {
 
   .sm\:flex-row {
     flex-direction: row;
-  }
-
-  .sm\:flex-col {
-    flex-direction: column;
   }
 
   .sm\:items-center {

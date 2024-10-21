@@ -395,15 +395,15 @@
                                         aria-orientation="vertical"
                                         aria-labelledby="industry-options-menu"
                                     >
+                                        <input
+                                            type="text"
+                                            id="search-industries"
+                                            placeholder="Search industries..."
+                                            class="hover:bg-gray-100 hover:text-gray-900 w-full border-b border-slate-200"
+                                            v-model="selectedIndustry"
+                                            @input="getIndustryList(selectedIndustry)"
+                                        />
                                         <div role="menu" ref="industryListElement">
-                                            <input
-                                                type="text"
-                                                id="search-industries"
-                                                placeholder="Search industries..."
-                                                class="hover:bg-gray-100 hover:text-gray-900 w-full border-b border-slate-200"
-                                                v-model="selectedIndustry"
-                                                @input="getIndustryList(selectedIndustry)"
-                                            />
                                             <label
                                                 class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                                 role="checkbox"
@@ -572,9 +572,7 @@
                                     >
                                         {{ investor.name }}
                                     </button>
-                                    <button
-                                        @click="toggleInvestorBookmark('{{investor.id}}')"
-                                    >
+                                    <button @click="toggleInvestorBookmark('{{investor.id}}')">
                                         <svg
                                             id="bookmark-svg-investor-{{ investor.id }}"
                                             :fill="investorBookmakrIds.includes({{investor.id}}) ? '#FFC9FC' : 'none'"

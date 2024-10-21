@@ -13,7 +13,7 @@ from typing import Any
 from geopy.distance import geodesic
 from more_itertools import chunked
 from slugify import slugify
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, exists, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import (
     Mapped,
@@ -1174,6 +1174,12 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             )
         ).first()
 
+    @staticmethod
+    def exists(investor_id: int, user_id: int) -> bool:
+        return db.session.scalar(
+            db.select(exists().where(InvestorBookmark.investor_id == investor_id, InvestorBookmark.user_id == user_id))
+        )
+
 
 class InvestmentFirm(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -1797,6 +1803,17 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             )
         ).first()
 
+    @staticmethod
+    def exists(investment_firm_id: int, user_id: int) -> bool:
+        return db.session.scalar(
+            db.select(
+                exists().where(
+                    InvestmentFirmBookmark.investment_firm_id == investment_firm_id,
+                    InvestmentFirmBookmark.user_id == user_id,
+                )
+            )
+        )
+
 
 investor_backup_round = db.Table(
     "investor_backup_round",
@@ -1896,8 +1913,8 @@ class InvestorOriginPoint(InvestorBase):
         return db.session.scalar(db.select(InvestorOriginPoint).where(InvestorOriginPoint.investor_id == investor_id))
 
     @staticmethod
-    def exists_by_investor_id(investor_id: int) -> bool:
-        return db.session.scalar(db.select(db.func.count()).where(InvestorOriginPoint.investor_id == investor_id)) > 0
+    def exists(investor_id: int) -> bool:
+        return db.session.scalar(db.select(exists().where(InvestorOriginPoint.investor_id == investor_id)))
 
     @staticmethod
     def get_all() -> Sequence[InvestorOriginPoint]:

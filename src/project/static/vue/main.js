@@ -6,7 +6,7 @@ createApp({
         Bookmark,
         FullInvestor,
         FullInvestmentFirm,
-        FullCompany
+        FullCompany,
     },
     watch: {
         asideMinified(value) {
@@ -25,19 +25,21 @@ createApp({
             } else {
                 document.body.classList.remove("overflow-hidden");
             }
-        }
+        },
     },
     created() {
         this.asideMinified = localStorage.getItem("asideMinified") === "true";
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
-            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm")
+            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
         this.checkAndSelectUrlParam("investor", this.selectInvestorSlug);
         this.checkAndSelectUrlParam("investment-firm", this.selectInvestmentFirmSlug);
         this.checkAndSelectUrlParam("company", this.selectCompanySlug);
+        this.fetchInvestorBookmarks();
+        this.fetchInvestmentFirmBookmarks();
     },
     mounted() {
         const lowerSlider = document.getElementById("min_investment");
@@ -51,7 +53,10 @@ createApp({
             upperSlider.oninput = this.handleUpperSliderInput;
         }
 
-        document.getElementById("search-btn").addEventListener("click", this.search);
+        const searchBtn = document.getElementById("search-btn");
+        if (searchBtn) {
+            searchBtn.addEventListener("click", this.search);
+        }
 
         this.setupMenuToggle();
         this.initializeValuesFromParams();
@@ -59,7 +64,7 @@ createApp({
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
-            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm")
+            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
     },
@@ -67,10 +72,9 @@ createApp({
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
-            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm")
+            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
-
     },
     data() {
         return {
@@ -80,18 +84,59 @@ createApp({
             selectedInvestorSlug: null,
             selectedInvestmentFirmSlug: null,
             selectedCompanySlug: null,
+            bookmarkedInvestorId: null,
+            investorBookmakrIds: [],
+            investmentFirmBookmakrIds: [],
+            selectedIndustry: "",
+            selectedCountry: "",
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
                 { menu: "country-options-menu", button: "country-options" },
                 { menu: "sorting-options-menu", button: "sorting-options" },
                 { menu: "filter-options-menu", button: "filter-options" },
-                { menu: "round-options-menu", button: "round-options" }
+                { menu: "round-options-menu", button: "round-options" },
             ],
             showClasses: ["transform", "opacity-100", "scale-100"],
-            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"]
+            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
         };
     },
     methods: {
+        async handleInvestorBookmark(data) {
+            if (data.status) {
+                this.investorBookmakrIds.push(data.investorId);
+            } else {
+                this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId);
+            }
+        },
+        async fetchInvestorBookmarks() {
+            try {
+                const response = await fetch("/investor/bookmarks");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investorBookmakrIds = data.bookmark_ids;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async handleInvestmentFirmBookmark(data) {
+            if (data.status) {
+                this.investmentFirmBookmakrIds.push(data.firmId);
+            } else {
+                this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== data.firmId);
+            }
+        },
+        async fetchInvestmentFirmBookmarks() {
+            try {
+                const response = await fetch("/investment-firm/bookmarks");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investmentFirmBookmakrIds = data.bookmark_ids;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
         checkAndSelectUrlParam(paramName, selectFunction) {
             const urlParams = new URLSearchParams(window.location.search);
             const paramSlug = urlParams.get(paramName);
@@ -143,7 +188,7 @@ createApp({
                 "descending",
                 "rounds_exclusive",
                 "industries_exclusive",
-                "country"
+                "country",
             ];
             paramsArray.forEach((param) => {
                 this.setCheckedValuesFromParams(param);
@@ -237,7 +282,7 @@ createApp({
                 "descending",
                 "page",
                 "min_investment",
-                "max_investment"
+                "max_investment",
             ]);
 
             this.handleLists(roundValues, "round", paramsArray);
@@ -341,6 +386,7 @@ createApp({
         },
         removePageParam(params) {
             params.delete("page");
+            params.delete("investor");
             return params;
         },
         applyQueryParams(url) {
@@ -351,10 +397,30 @@ createApp({
             return url;
         },
         updateLinksWithQueryParams() {
-            document.querySelectorAll("a[href^=\"/\"]:not([href^=\"//\"])").forEach((link) => {
+            document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
                 if (!link.getAttribute("href").includes("search")) return;
                 link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
             });
+        },
+        async getCountryList(searchInput) {
+            let country_list = this.$refs.countryListElement;
+            for (let i = 0; i < country_list.children.length; i++) {
+                if (country_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    country_list.children[i].classList.remove("hidden");
+                } else {
+                    country_list.children[i].classList.add("hidden");
+                }
+            }
+        },
+        async getIndustryList(searchInput) {
+            let industry_list = this.$refs.industryListElement;
+            for (let i = 0; i < industry_list.children.length; i++) {
+                if (industry_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    industry_list.children[i].classList.remove("hidden");
+                } else {
+                    industry_list.children[i].classList.add("hidden");
+                }
+            }
         },
         async toggleInvestorBookmark(investorId) {
             const csrfToken = document.getElementById("csrf_token").value;
@@ -363,8 +429,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
-                    }
+                        "X-CSRFToken": csrfToken,
+                    },
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -386,8 +452,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
-                    }
+                        "X-CSRFToken": csrfToken,
+                    },
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -409,8 +475,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
-                    }
+                        "X-CSRFToken": csrfToken,
+                    },
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -432,8 +498,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
-                    }
+                        "X-CSRFToken": csrfToken,
+                    },
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -443,6 +509,7 @@ createApp({
             } catch (error) {
                 console.error(error);
             }
-        }
-    }
+        },
+    },
 }).mount("#app");
+

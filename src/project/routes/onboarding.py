@@ -115,18 +115,18 @@ def investor():
     if request.method == "POST":
         form_data = request.get_json()
 
-        first_name = form_data.get("first_name")
-        last_name = form_data.get("last_name")
+        first_name = form_data.get("firstName")
+        last_name = form_data.get("lastName")
         slug = form_data.get("slug") or None
-        firm_name = form_data.get("firm_name") or None
+        firm_name = form_data.get("firmName") or None
         position = form_data.get("position") or None
         about = form_data.get("about") or None
         location = form_data.get("location") or None
 
-        n_investments = int(form_data.get("n_investments") or 0)
-        n_exits = int(form_data.get("n_exits") or 0)
-        min_investment = int(form_data.get("min_investment") or 0)
-        max_investment = int(form_data.get("max_investment") or 0)
+        n_investments = int(form_data.get("nInvestments") or 0)
+        n_exits = int(form_data.get("nIxits") or 0)
+        min_investment = int(form_data.get("minInvestment") or 0)
+        max_investment = int(form_data.get("maxInvestment") or 0)
 
         selected_round_ids = form_data.get("selectedRounds") or []
         selected_industry_ids = form_data.get("selectedIndustries") or [""]
@@ -136,7 +136,7 @@ def investor():
         linkedin = form_data.get("linkedin") or None
         twitter = form_data.get("twitter") or None
         email = form_data.get("email") or None
-        phone_number = form_data.get("phone_number") or None
+        phone_number = form_data.get("phoneNumber") or None
 
         if not first_name:
             return jsonify({"error": "First name is required"}), 400

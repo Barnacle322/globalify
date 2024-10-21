@@ -69,7 +69,7 @@ def index():
     investor = Investor.get_by_user_id_with_investments(current_user.id)
     rounds = Round.get_all()
     industries = Industry.get_all()
-    investor_origin = InvestorOriginPoint.exists_by_investor_id(investor.id) if investor else False
+    investor_origin = InvestorOriginPoint.exists(investor.id) if investor else False
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 

@@ -366,8 +366,6 @@ def search_investment_firms():
     )
     investment_firms = result.get("investment_firms")
 
-    bookmarks = InvestmentFirmBookmark.get_id_list(current_user.id)
-
     user_payment = UserPayment.get_by_user_id(current_user.id)
     unpaid = False
     if current_user.is_admin:
@@ -398,8 +396,17 @@ def search_investment_firms():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         unpaid=unpaid,
-        bookmark_ids=bookmarks,
     )
+
+
+@main.get("/investment-firm/bookmarks")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investment_firm_bookmark_ids():
+    bookmarks_ids = InvestmentFirmBookmark.get_id_list(current_user.id)
+
+    return jsonify({"bookmark_ids": bookmarks_ids})
 
 
 @main.route("/search", methods=["GET", "POST"])
@@ -464,16 +471,6 @@ def search():
     investors = result.get("investors")
 
     bookmarks = InvestorBookmark.get_id_list(current_user.id)
-
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-    unpaid = False
-    if current_user.is_admin:
-        pass
-    elif not user_payment and page > 1:
-        unpaid = True
-    elif user_payment and not user_payment.is_active and page > 1:
-        unpaid = True
-
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     fields = {
@@ -493,10 +490,18 @@ def search():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        unpaid=unpaid,
         user=current_user,
-        bookmark_ids=bookmarks,
     )
+
+
+@main.get("/investor/bookmarks")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investor_bookmark_ids():
+    bookmarks_ids = InvestorBookmark.get_id_list(current_user.id)
+
+    return jsonify({"bookmark_ids": bookmarks_ids})
 
 
 @main.get("/demo_search")
@@ -768,6 +773,8 @@ def get_investor(slug):
     if not investor_model:
         return jsonify({"status": "error", "message": "Investor not found."}, 404)
 
+    bookmark = InvestorBookmark.exists(investor_model.id, current_user.id)
+
     investor = InvestorSchema(
         id=investor_model.id,
         name=f"{investor_model.first_name} {investor_model.last_name}",
@@ -791,7 +798,7 @@ def get_investor(slug):
         user_id=investor_model.user_id,
     ).model_dump()
 
-    return jsonify({"investor": investor, "unpaid": unpaid})
+    return jsonify({"investor": investor, "unpaid": unpaid, "bookmark": bookmark})
 
 
 @main.get("/investment-firm/<slug>")
@@ -825,7 +832,9 @@ def get_investment_firm(slug):
         industries=[{"id": i.id, "name": i.name} for i in investment_firm_model.industries],
     ).model_dump()
 
-    return jsonify({"investment_firm": investment_firm})
+    bookmark = InvestmentFirmBookmark.exists(investment_firm_model.id, current_user.id)
+
+    return jsonify({"investment_firm": investment_firm, "bookmark": bookmark})
 
 
 @main.get("/company/<slug>")

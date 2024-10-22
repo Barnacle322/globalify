@@ -30,8 +30,7 @@ class InvestorSchema(BaseModel):
     phone_number: str | None = None
     n_investments: int | None
     n_exits: int | None
-    min_investment: int | None
-    max_investment: int | None
+    min_max_investment: str | None
     location: str | None
     notable_investments: list[object] | None
     rounds: list[object] | None
@@ -52,8 +51,7 @@ class InvestmentFirmSchema(BaseModel):
     n_investments: int | None
     n_exits: int | None
     n_employees: int | None
-    min_investment: int | None
-    max_investment: int | None
+    min_max_investment: str | None
     location: str | None
     notable_investments: list[object] | None
     rounds: list[object] | None

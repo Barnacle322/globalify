@@ -14,12 +14,6 @@ createApp({
     created() {
         this.asideMinified = localStorage.getItem("asideMinified") === "true";
     },
-    data() {
-        return {
-            asideExpanded: false,
-            asideMinified: false,
-        };
-    },
     methods: {
         toggleVisibility(showRef, hideRef) {
             this.$refs[hideRef].classList.add("hidden");
@@ -44,4 +38,11 @@ createApp({
             this.toggleVisibility("premiumMonthly", "premiumAnnual");
         },
     },
+    data() {
+        return {
+            asideExpanded: false,
+            asideMinified: false,
+        };
+    }
 }).mount("#app");
+

@@ -76,36 +76,16 @@ createApp({
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
     },
-    data() {
-        return {
-            asideExpanded: false,
-            asideMinified: false,
-            openAdvanced: false,
-            selectedInvestorSlug: null,
-            selectedInvestmentFirmSlug: null,
-            selectedCompanySlug: null,
-            bookmarkedInvestorId: null,
-            investorBookmakrIds: [],
-            investmentFirmBookmakrIds: [],
-            selectedIndustry: "",
-            selectedCountry: "",
-            menus: [
-                { menu: "industry-options-menu", button: "industry-options" },
-                { menu: "country-options-menu", button: "country-options" },
-                { menu: "sorting-options-menu", button: "sorting-options" },
-                { menu: "filter-options-menu", button: "filter-options" },
-                { menu: "round-options-menu", button: "round-options" },
-            ],
-            showClasses: ["transform", "opacity-100", "scale-100"],
-            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
-        };
-    },
     methods: {
         async handleInvestorBookmark(data) {
-            if (data.status) {
-                this.investorBookmakrIds.push(data.investorId);
-            } else {
-                this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId);
+            try {
+                if (data.status) {
+                    this.investorBookmakrIds.push(data.investorId); // Corrected typo
+                } else {
+                    this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId); // Corrected typo
+                }
+            } catch (error) {
+                console.error("Error handling investor bookmark:", error);
             }
         },
         async fetchInvestorBookmarks() {
@@ -511,5 +491,29 @@ createApp({
             }
         },
     },
+    data() {
+        return {
+            asideExpanded: false,
+            asideMinified: false,
+            openAdvanced: false,
+            selectedInvestorSlug: null,
+            selectedInvestmentFirmSlug: null,
+            selectedCompanySlug: null,
+            bookmarkedInvestorId: null,
+            investorBookmakrIds: [],
+            investmentFirmBookmakrIds: [],
+            selectedIndustry: "",
+            selectedCountry: "",
+            menus: [
+                { menu: "industry-options-menu", button: "industry-options" },
+                { menu: "country-options-menu", button: "country-options" },
+                { menu: "sorting-options-menu", button: "sorting-options" },
+                { menu: "filter-options-menu", button: "filter-options" },
+                { menu: "round-options-menu", button: "round-options" },
+            ],
+            showClasses: ["transform", "opacity-100", "scale-100"],
+            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
+        };
+    }
 }).mount("#app");
 

@@ -924,10 +924,10 @@ def edit_investor():
     investor = Investor.get_by_user_id(current_user.id)
 
     if not investor:
-        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+        return jsonify({"status": "error", "message": "Investor not found."}), 404
 
     if investor.user_id != current_user.id:
-        return jsonify({"status": "error", "message": "Not authorized."}, 401)
+        return jsonify({"status": "error", "message": "Not authorized."}), 401
 
     form_data = request.get_json()
 

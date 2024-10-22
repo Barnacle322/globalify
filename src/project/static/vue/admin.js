@@ -18,34 +18,6 @@ createApp({
             500,
         );
     },
-    data() {
-        return {
-            asideExpanded: false,
-            asideMinified: false,
-            createNotableInvestmentOpened: false,
-            csrfToken: "",
-            searchQuery: localStorage.getItem("searchQuery") || "",
-            selectedRounds: [],
-            selectedIndustries: [],
-            selectedNotableInvestments: [],
-            selectedIndustry: "",
-            selectedNotableInvestment: "",
-            debouncedFetchNotableInvestmentList: null,
-            debouncedFetchNotableInvestmentListByInvestorId: null,
-            debouncedFetchNotableInvestmentListByInvestmentFirmId: null,
-            userList: [],
-            notableInvestmentList: [],
-            industryList: [],
-            dataString: "",
-            menus: [
-                { menu: "industry-options-menu", button: "industry-options" },
-                { menu: "round-options-menu", button: "round-options" },
-                { menu: "notable-investment-options-menu", button: "notable-investment-options" },
-            ],
-            showClasses: ["transform", "opacity-100", "scale-100"],
-            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
-        };
-    },
     methods: {
         async submitInvestorData() {
             const csrfToken = document.getElementById("csrf_token").value;
@@ -506,4 +478,33 @@ createApp({
     mounted() {
         this.setupMenuToggle();
     },
+    data() {
+        return {
+            asideExpanded: false,
+            asideMinified: false,
+            createNotableInvestmentOpened: false,
+            csrfToken: "",
+            searchQuery: localStorage.getItem("searchQuery") || "",
+            selectedRounds: [],
+            selectedIndustries: [],
+            selectedNotableInvestments: [],
+            selectedIndustry: "",
+            selectedNotableInvestment: "",
+            debouncedFetchNotableInvestmentList: null,
+            debouncedFetchNotableInvestmentListByInvestorId: null,
+            debouncedFetchNotableInvestmentListByInvestmentFirmId: null,
+            userList: [],
+            notableInvestmentList: [],
+            industryList: [],
+            dataString: "",
+            menus: [
+                { menu: "industry-options-menu", button: "industry-options" },
+                { menu: "round-options-menu", button: "round-options" },
+                { menu: "notable-investment-options-menu", button: "notable-investment-options" },
+            ],
+            showClasses: ["transform", "opacity-100", "scale-100"],
+            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
+        };
+    },
 }).mount("#app");
+

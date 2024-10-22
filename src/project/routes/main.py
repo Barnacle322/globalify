@@ -590,7 +590,7 @@ def claiming_manual(slug):
 
     investor = Investor.get_by_slug(slug)
     if not investor:
-        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+        return jsonify({"status": "error", "message": "Investor not found."}), 404
 
     claim_request = ClaimRequest.get_by_user_id(current_user.id)
     if claim_request:
@@ -771,7 +771,7 @@ def get_investor(slug):
         investor_model = Investor.get_by_slug_without_contacts(slug)
 
     if not investor_model:
-        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+        return jsonify({"status": "error", "message": "Investor not found."}), 404
 
     bookmark = InvestorBookmark.exists(investor_model.id, current_user.id)
 
@@ -808,7 +808,7 @@ def get_investment_firm(slug):
     investment_firm_model = InvestmentFirm.get_by_slug(slug)
 
     if not investment_firm_model:
-        return jsonify({"status": "error", "message": "Investment Firm not found."}, 404)
+        return jsonify({"status": "error", "message": "Investment Firm not found."}), 404
 
     investment_firm = InvestmentFirmSchema(
         id=investment_firm_model.id,
@@ -843,7 +843,7 @@ def get_company(slug):
     company_model = Company.get_by_slug(slug)
 
     if not company_model:
-        return jsonify({"status": "error", "message": "Company not found."}, 404)
+        return jsonify({"status": "error", "message": "Company not found."}), 404
 
     company = CompanySchema(
         id=company_model.id,
@@ -871,7 +871,7 @@ def get_company(slug):
 def toggle_bookmark_investor(investor_id):
     investor = Investor.get_by_id(int(investor_id))
     if not investor:
-        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+        return jsonify({"status": "error", "message": "Investor not found."}), 404
 
     bookmark = InvestorBookmark.get_by_id(investor.id, current_user.id)
 
@@ -895,7 +895,7 @@ def toggle_bookmark_investor(investor_id):
 def toggle_bookmark_company(company_id):
     company = Company.get_by_id(int(company_id))
     if not company:
-        return jsonify({"status": "error", "message": "Company not found."}, 404)
+        return jsonify({"status": "error", "message": "Company not found."}), 404
 
     bookmark = CompanyBookmark.get_by_id(company.id, current_user.id)
 
@@ -928,7 +928,7 @@ def get_investor_bookmarks():
     investors = []
     for db_investor in bookmarks:
         if not isinstance(db_investor, Investor):
-            return jsonify({"status": "error", "message": "Investors not found."}, 404)
+            return jsonify({"status": "error", "message": "Investors not found."}), 404
 
         investor = InvestorBookmarkSchema(
             id=db_investor.id,
@@ -952,7 +952,7 @@ def check_investor():
     user_info = UserInfo.get_by_user_id(autentication_user.id)
 
     if not user_info:
-        return jsonify({"status": "error", "message": "User Info not found."}, 404)
+        return jsonify({"status": "error", "message": "User Info not found."}), 404
 
     result = Investor.get_search(
         query_string=user_info.full_name,
@@ -995,7 +995,7 @@ def get_investment_firms_bookmarks():
 
     for db_investment_firm in bookmarks:
         if not isinstance(db_investment_firm, InvestmentFirm):
-            return jsonify({"status": "error", "message": "Investment Firms not found."}, 404)
+            return jsonify({"status": "error", "message": "Investment Firms not found."}), 404
 
         investment_firm = InvestmentFirmBookmarkSchema(
             id=db_investment_firm.id,
@@ -1028,21 +1028,21 @@ def toggle_bookmark_investment_firm(firm_id):
     investment_firm = InvestmentFirm.get_by_id(int(firm_id))
 
     if not investment_firm:
-        return jsonify({"status": "error", "message": "Investment Firm not found."}, 404)
+        return jsonify({"status": "error", "message": "Investment Firm not found."}), 404
 
     bookmark = InvestmentFirmBookmark.get_by_id(investment_firm.id, current_user.id)
 
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
-        return jsonify({"bookmarked": False}, 200)
+        return jsonify({"bookmarked": False}), 200
 
     new_bookmark = InvestmentFirmBookmark(investment_firm_id=investment_firm.id, user_id=current_user.id)
 
     db.session.add(new_bookmark)
     db.session.commit()
 
-    return jsonify({"bookmarked": True}, 200)
+    return jsonify({"bookmarked": True}), 200
 
 
 @main.get("/notification/edit/<int:notification_id>")
@@ -1058,7 +1058,7 @@ def update_notification(notification_id):
     notification.is_read = True
     db.session.commit()
 
-    return jsonify({"status": "success"}, 200)
+    return jsonify({"status": "success"}), 200
 
 
 @main.get("/notifications")
@@ -1100,7 +1100,7 @@ def mark_all_notifications_read():
 
     Notification.mark_notifications_as_read(user_id=user_id)
 
-    return jsonify({"status": "success"}, 200)
+    return jsonify({"status": "success"}), 200
 
 
 @main.post("/notification/mark-read/<int:notification_id>")
@@ -1108,10 +1108,10 @@ def mark_all_notifications_read():
 def mark_notification_read(notification_id):
     notification = Notification.get_by_id(int(notification_id))
     if not notification:
-        return jsonify({"status": "error", "message": "Notification not found."}, 404)
+        return jsonify({"status": "error", "message": "Notification not found."}), 404
 
     if notification.user_id != current_user.id:
-        return jsonify({"status": "error", "message": "Not authorized."}, 401)
+        return jsonify({"status": "error", "message": "Not authorized."}), 401
 
     notification.is_read = True
     db.session.commit()
@@ -1123,7 +1123,7 @@ def mark_notification_read(notification_id):
 
     if url:
         return redirect(url)
-    return jsonify({"status": "success"}, 200)
+    return jsonify({"status": "success"}), 200
 
 
 @main.route("/pricing")

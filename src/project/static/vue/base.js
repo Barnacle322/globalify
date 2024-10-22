@@ -54,17 +54,6 @@ const CreateNotableInvestmentComponent = defineComponent({
 const NotificationComponent = defineComponent({
     template: "#notifications-template",
     emits: ["all-notifications-read", "closenotifications"],
-    data() {
-        return {
-            notifications: [],
-            inboxNotifications: [],
-            selectedTab: "inbox",
-            observer: null,
-            loading: false,
-            reachedEnd: false,
-            page: 2,
-        };
-    },
     watch: {
         selectedTab(newVal, oldVal) {
             if (newVal === oldVal) {
@@ -251,21 +240,32 @@ const NotificationComponent = defineComponent({
         this.observer.disconnect();
         window.removeEventListener("keydown", this.handleKeyDown);
     },
+    data() {
+        return {
+            notifications: [],
+            inboxNotifications: [],
+            selectedTab: "inbox",
+            observer: null,
+            loading: false,
+            reachedEnd: false,
+            page: 2,
+        };
+    },
 });
 
 const AsideComponent = defineComponent({
     props: ["place", "minified"],
     template: "#aside-template",
-    data() {
-        return {
-            currentPath: null,
-        };
-    },
     mounted() {
         this.currentPath = window.location.pathname.split("/")[1];
         if (["suggestions", "investor", "investment-firm"].includes(this.currentPath)) {
             this.currentPath = "search";
         }
+    },
+    data() {
+        return {
+            currentPath: null,
+        };
     },
 });
 
@@ -276,30 +276,19 @@ const AsideMobileComponent = defineComponent({
             this.$emit("close-aside");
         },
     },
+    mounted() {
+        this.currentPath = window.location.pathname.split("/")[1];
+    },
     data() {
         return {
             currentPath: null,
         };
-    },
-    mounted() {
-        this.currentPath = window.location.pathname.split("/")[1];
     },
 });
 
 const Bookmark = defineComponent({
     template: "#bookmark-template",
     emits: ["bookmarked", "closebookmarks"],
-    data() {
-        return {
-            bookmarks: [],
-            openedDropdownId: null,
-            selectedTab: "investor",
-            observer: null,
-            loading: false,
-            reachedEnd: false,
-            page: 2,
-        };
-    },
     watch: {
         selectedTab(newVal, oldVal) {
             if (newVal === oldVal) {
@@ -465,6 +454,17 @@ const Bookmark = defineComponent({
         this.observer.disconnect();
         window.removeEventListener("click", this.closeRemoveBookmark);
     },
+    data() {
+        return {
+            bookmarks: [],
+            openedDropdownId: null,
+            selectedTab: "investor",
+            observer: null,
+            loading: false,
+            reachedEnd: false,
+            page: 2,
+        };
+    },
 });
 
 const NavbarComponent = defineComponent({
@@ -473,15 +473,6 @@ const NavbarComponent = defineComponent({
     components: {
         Bookmark,
         NotificationComponent,
-    },
-    data() {
-        return {
-            bookmarksOpened: false,
-            ignoreNextOutsideClickBookmarks: false,
-            notificationsOpened: false,
-            ignoreNextOutsideClickNotifications: false,
-            notifications: [],
-        };
     },
     methods: {
         expandAside() {
@@ -566,21 +557,21 @@ const NavbarComponent = defineComponent({
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     },
+    data() {
+        return {
+            bookmarksOpened: false,
+            ignoreNextOutsideClickBookmarks: false,
+            notificationsOpened: false,
+            ignoreNextOutsideClickNotifications: false,
+            notifications: [],
+        };
+    },
 });
 
 const FullInvestor = defineComponent({
     template: "#full-investor-template",
-    props: { slug: String, renderContacts: Boolean },
+    props: { slug: String, rendercontacts: Boolean },
     emits: ["close-investor", "bookmarked"],
-    data() {
-        return {
-            isExpanded: false,
-            isLoading: false,
-            bookmark: null,
-            investor: null,
-            unpaid: false,
-        };
-    },
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
     },
@@ -606,7 +597,6 @@ const FullInvestor = defineComponent({
             }
         },
         async fetchInvestor() {
-            this.isLoading = true;
             try {
                 const response = await fetch(`/investor/${this.slug}/get`);
                 if (response.ok) {
@@ -614,6 +604,9 @@ const FullInvestor = defineComponent({
                     this.investor = data.investor;
                     this.bookmark = data.bookmark;
                     this.unpaid = data.unpaid;
+                } else {
+                    this.closeInvestor();
+                    return;
                 }
             } catch (error) {
                 console.error("Error fetching investor:", error);
@@ -664,7 +657,8 @@ const FullInvestor = defineComponent({
     data() {
         return {
             isExpanded: false,
-            isLoading: false,
+            isLoading: true,
+            bookmark: null,
             investor: null,
             unpaid: false,
         };
@@ -675,14 +669,6 @@ const FullInvestmentFirm = defineComponent({
     template: "#full-investment-firm-template",
     props: ["slug"],
     emits: ["close-investment-firm", "bookmarked"],
-    data() {
-        return {
-            isExpanded: false,
-            isLoading: false,
-            investmentFirm: null,
-            bookmark: null,
-        };
-    },
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
     },
@@ -703,6 +689,9 @@ const FullInvestmentFirm = defineComponent({
                     const data = await response.json();
                     this.investmentFirm = data.investment_firm;
                     this.bookmark = data.bookmark;
+                } else {
+                    this.сloseInvestmentFirm();
+                    return;
                 }
             } catch (error) {
                 console.error("Error fetching investment firm:", error);
@@ -759,19 +748,20 @@ const FullInvestmentFirm = defineComponent({
             this.$emit("close-investment-firm");
         },
     },
+    data() {
+        return {
+            isExpanded: false,
+            isLoading: false,
+            investmentFirm: null,
+            bookmark: null,
+        };
+    },
 });
 
 const FullCompany = defineComponent({
     template: "#full-company-template",
     props: ["slug"],
     emits: ["close-company"],
-    data() {
-        return {
-            isExpanded: false,
-            isLoading: false,
-            company: null,
-        };
-    },
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
     },
@@ -800,11 +790,13 @@ const FullCompany = defineComponent({
             this.isLoading = true;
             try {
                 const response = await fetch(`/company/${this.slug}`);
-                console.log(response);
                 if (response.ok) {
                     const data = await response.json();
                     this.company = data.company;
                     console.log(this.company);
+                } else {
+                    this.closeCompany();
+                    return;
                 }
             } catch (error) {
                 console.error("Error fetching company:", error);
@@ -823,6 +815,13 @@ const FullCompany = defineComponent({
         closeCompany() {
             this.$emit("close-company");
         },
+    },
+    data() {
+        return {
+            isExpanded: false,
+            isLoading: false,
+            company: null,
+        };
     },
 });
 

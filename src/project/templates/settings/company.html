@@ -424,7 +424,7 @@
                                                 id="linkedin"
                                                 class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
                                                 value="{{ company.linkedin_url if company.linkedin_url else '' }}"
-                                                pattern="^(https?:\/\/)?((www\.)?linkedin\.com)\/in\/[A-Za-z0-9_]+\/?$"
+                                                pattern="^(https?:\/\/)?((www\.)?linkedin\.com)\/in\/[A-Za-z0-9_\-]+\/?$"
                                                 placeholder="linkedin.com/in/username"
                                                 :disabled="'{{ user_role }}' == 'employee'"
                                             />
@@ -662,3 +662,4 @@
         </div>
     </body>
 </html>
+

@@ -396,7 +396,7 @@
                                         id="instagram"
                                         name="instagram"
                                         class="peer mt-2 h-12 w-full rounded-xl border-2 border-stone-300 px-2"
-                                        pattern="^(https?:\/\/)?((www\.)?instagram\.com)\/[A-Za-z0-9_]+\/?$"
+                                        pattern="^(https?:\/\/)?((www\.)?instagram\.com)\/[A-Za-z0-9_.]+\/?$"
                                         value="{{ user.user_info.instagram_url if user.user_info.instagram_url else '' }}"
                                         placeholder="instagram.com/username"
                                     />
@@ -870,7 +870,7 @@
                                         type="text"
                                         id="investor_linkedin"
                                         value="{{ investor.linkedin if investor.linkedin else '' }}"
-                                        pattern="^(https?:\/\/)?((www\.)?linkedin\.com)\/in\/[A-Za-z0-9_\-]+\/?$"
+                                        pattern="^(https?:\/\/)?((www\.)?linkedin\.com)\/in\/[A-Za-z0-9_\-]+(\/.*)?\/?$"
                                         placeholder="https://linkedin.com/in/username"
                                     />
                                 </div>

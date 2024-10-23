@@ -25,10 +25,9 @@ def user_profile(username):
         .join(Company)
         .where(UserCompany.user_id == user_info.user_id, UserCompany.is_public.is_(True))
         .order_by(UserCompany.is_primary.desc())
-    )
+    ).all()
 
     investor = Investor.get_by_user_id(authenticated_user.id)
-
 
     return render_template(
         "user_profile.html",

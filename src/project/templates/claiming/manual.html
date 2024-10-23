@@ -8,16 +8,32 @@
 {% block head %} {{ super() }} {% endblock %} 
 {% block content %}
 
-<main class="mx-auto flex w-full max-w-3xl flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
-    <section class="mt-36 flex max-w-md flex-col items-center justify-center gap-2 md:mt-48">
-        <article class="flex flex-col gap-2">
+<main class="mx-auto flex w-full max-w-3xl flex-col items-center justify-center h-full gap-5 px-4 sm:px-9">
+    <section class="max-w-md">
+        <a
+            class="group flex items-center gap-1.5 text-gray-500 transition-colors ease-in-out"
+            href="/investor/{{investor.slug}}/claim"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5 transition-colors ease-in-out group-hover:text-gray-700"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+            </svg>
+            <span class="transition-colors ease-in-out group-hover:text-gray-700">Back</span>
+        </a>
+        <article class="flex flex-col gap-2 mt-4">
             <h1 class="text-3xl font-semibold md:text-5xl">Manual Verification</h1>
-            <p class="max-w-xl text-base text-slate-600 md:text-lg">
+            <p class="max-w-xl text-base text-slate-600 md:text-lg mt-2">
                 You are about to request a manual verification. Please enter your personal email and our team will reach
                 out to you shortly. Keep in mind that this process may take some time.
             </p>
         </article>
-        <div class="col-span-full empty:hidden">
+        <div class="col-span-full empty:hidden mt-4 w-full">
             {% if status_type %} {% if status_type == '3' %}
             <div class="rounded-xl text-red-500">{{ msg }}</div>
             {% elif status_type == '2' %}
@@ -26,7 +42,7 @@
             <div class="rounded-xl text-lime-500">{{ msg }}</div>
             {% endif %} {% endif %}
         </div>
-        <form id="claimForm" class="flex w-full flex-col gap-3" slug="{{ investor.slug }}">
+        <form id="claimForm" class="flex w-full flex-col gap-3 mt-2" slug="{{ investor.slug }}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input
                 id="email"
@@ -46,3 +62,4 @@
     </section>
 </main>
 {% endblock %}
+

@@ -296,6 +296,7 @@ const ContactInfo = defineComponent({
         },
         save() {
             this.validateLinks();
+            this.validateExistingInvestorByEmail();
             if (
                 !this.errors.linkedin &&
                 !this.errors.twitter &&
@@ -329,6 +330,19 @@ const ContactInfo = defineComponent({
                 /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/,
                 "Phone number",
             );
+        },
+        async validateExistingInvestorByEmail() {
+            try {
+                const response = await fetch(`/onboarding/check-investor/${this.email}`);
+                const data = await response.json();
+                if (data.investor_exists) {
+                    this.errors.email = "This email is already associated with an investor";
+                } else {
+                    this.errors.email = null;
+                }
+            } catch (error) {
+                console.log(error);
+            }
         },
         async submitRegistrationData() {
             this.validateLinks();

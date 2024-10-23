@@ -587,6 +587,11 @@ def claiming_manual(slug):
     form_data = request.get_json()
     email = form_data.get("email")
 
+    existing_claim = Investor.get_by_user_id(current_user.id)
+    if existing_claim:
+        status = Status(StatusType.ERROR, "You can't claim another investor account!").get_status()
+        return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
+
     investor = Investor.get_by_slug(slug)
     if not investor:
         return jsonify({"status": "error", "message": "Investor not found."}), 404
@@ -641,11 +646,16 @@ def claiming_manual(slug):
 @main.get("/investor/<slug>/claim/email")
 @login_required
 def claiming_email_view(slug):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     investor = Investor.get_by_slug(slug)
     if not investor:
         return redirect(url_for("main.search"))
 
-    return render_template("claiming/email.html", investor=investor)
+    return render_template("claiming/email.html", investor=investor, status_type=status_type, msg=msg)
 
 
 @main.post("/investor/<slug>/claim/email")
@@ -654,6 +664,11 @@ def claiming_email(slug):
     investor = Investor.get_by_slug(slug)
     if not investor or investor.user_id:
         return redirect(url_for("main.search"))
+
+    existing_claim = Investor.get_by_user_id(current_user.id)
+    if existing_claim:
+        status = Status(StatusType.ERROR, "You can't claim another investor account!").get_status()
+        return redirect(url_for("main.claiming_email_view", slug=slug, _external=False, **status))
 
     verification = ClaimVerification(user_id=current_user.id, investor_id=investor.id)
     db.session.add(verification)

@@ -470,7 +470,6 @@ def search():
     )
     investors = result.get("investors")
 
-    bookmarks = InvestorBookmark.get_id_list(current_user.id)
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     fields = {
@@ -1035,14 +1034,14 @@ def toggle_bookmark_investment_firm(firm_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
-        return jsonify({"bookmarked": False}), 200
+        return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestmentFirmBookmark(investment_firm_id=investment_firm.id, user_id=current_user.id)
 
     db.session.add(new_bookmark)
     db.session.commit()
 
-    return jsonify({"bookmarked": True}), 200
+    return jsonify({"bookmarked": True}, 200)
 
 
 @main.get("/notification/edit/<int:notification_id>")

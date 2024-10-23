@@ -94,6 +94,8 @@
                                     v-if="bookmarksOpened"
                                     ref="bookmark"
                                     @closebookmarks="bookmarksOpened = false"
+                                    @investor-bookmarked="handleBookmark($event, 'investor')"
+                                    @firm-bookmarked="handleBookmark($event, 'firm')"
                                 ></bookmark>
                             </transition>
                             <button @click="bookmarksOpened ? closeBookmark() : openBookmark()" class="flex">
@@ -132,3 +134,4 @@
     </header>
 </template>
 {% endmacro %}
+

@@ -80,9 +80,12 @@ createApp({
         async handleInvestorBookmark(data) {
             try {
                 if (data.status) {
+                    console.log(typeof data.investorId);
                     this.investorBookmakrIds.push(data.investorId); // Corrected typo
+                    console.log(this.investorBookmakrIds);
                 } else {
                     this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId); // Corrected typo
+                    console.log(this.investorBookmakrIds);
                 }
             } catch (error) {
                 console.error("Error handling investor bookmark:", error);
@@ -414,11 +417,10 @@ createApp({
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
                     if (data[0].bookmarked) {
-                        svg.style.fill = "#FFC9FC";
+                        this.investorBookmakrIds.push(investorId);
                     } else {
-                        svg.style.fill = "none";
+                        this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== investorId);
                     }
                 }
             } catch (error) {
@@ -437,11 +439,10 @@ createApp({
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
                     if (data[0].bookmarked) {
-                        svg.style.fill = "#FFC9FC";
+                        this.investmentFirmBookmakrIds.push(firmId);
                     } else {
-                        svg.style.fill = "none";
+                        this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== firmId);
                     }
                 }
             } catch (error) {
@@ -514,6 +515,6 @@ createApp({
             showClasses: ["transform", "opacity-100", "scale-100"],
             hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
         };
-    }
+    },
 }).mount("#app");
 

@@ -61,7 +61,6 @@ createApp({
         this.setupMenuToggle();
         this.initializeValuesFromParams();
         this.updateLinksWithQueryParams();
-        this.updateCompanyLinksQueryParams();
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
@@ -142,7 +141,6 @@ createApp({
         },
         updateUrlParam(paramName, paramValue, stateKey) {
             const url = new URL(window.location.href);
-            url.searchParams.delete("company");
             if (url.searchParams.get(paramName) !== paramValue) {
                 url.searchParams.set(paramName, paramValue);
                 window.history.pushState({}, "", url);
@@ -372,6 +370,7 @@ createApp({
         removePageParam(params) {
             params.delete("page");
             params.delete("investor");
+            params.delete("company");
             return params;
         },
         applyQueryParams(url) {

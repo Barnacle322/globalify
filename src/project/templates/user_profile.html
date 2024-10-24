@@ -6,7 +6,7 @@
 
 <main class="flex w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
     <!-- prettier-ignore -->
-    {% if not user_info.twitter_public and not user_info.linkedin_public and not user_info.instagram_public and not user_info.email_public and not user_info.picture_url and not companies.all() %}
+    {% if not user_info.twitter_public and not user_info.linkedin_public and not user_info.instagram_public and not user_info.email_public and not user_info.picture_url and not companies %}
     <div class="mt-32 flex w-full flex-col items-center justify-center gap-1">
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -56,9 +56,8 @@
     </div>
     {% else %}
     <section class="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2">
-        {% if user_info.twitter_public and not user_info.twitter_url or user_info.linkedin_public and not
-        user_info.linkedin_url or user_info.instagram_public and not user_info.instagram_url or user_info.email_public
-        %}
+        {% if user_info.twitter_public and user_info.twitter_url or user_info.linkedin_public and user_info.linkedin_url
+        or user_info.instagram_public and user_info.instagram_url or user_info.email_public %}
         <article class="shadow-card w-full rounded-xl bg-white p-5">
             <h2 class="flex items-center gap-4 text-2xl font-medium">
                 {% if user_info.picture_url %}
@@ -195,9 +194,7 @@
                 {% endif %}
             </div>
         </article>
-        {% endif %} {% for user_company in companies %} {% set company = user_company.company %} {% if
-        company.preferred_round or company.industry or company.description or company.website_url or company.country or
-        company.number_of_employees %}
+        {% endif %} {% for user_company in companies %} {% set company = user_company.company %}
         <article class="shadow-card w-full rounded-xl bg-white p-5">
             <div class="flex flex-wrap items-center gap-2">
                 <h2 class="flex items-center gap-4 text-2xl font-medium">
@@ -384,8 +381,9 @@
             </ul>
             {% endif %}
         </article>
-        {% endif %} {% endfor %}
+        {% endfor %}
     </section>
     {% endif %}
 </main>
 {% endblock %}
+

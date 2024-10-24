@@ -9,6 +9,7 @@ from sqlalchemy import select
 
 from ..extensions import db
 from ..models import (
+    ClaimRequest,
     Country,
     EmailVerification,
     Industry,
@@ -34,7 +35,9 @@ onboarding = Blueprint("onboarding", __name__)
 @onboarding.route("/", methods=["GET"])
 @login_required
 def index():
-    return render_template("onboarding/index.html")
+    claim_request = ClaimRequest.get_with_investor_by_user_id(current_user.id)
+
+    return render_template("onboarding/index.html", claim_request=claim_request)
 
 
 @onboarding.route("/basic", methods=["GET", "POST"])
@@ -138,6 +141,11 @@ def investor():
         email = form_data.get("email") or None
         phone_number = form_data.get("phoneNumber") or None
 
+        if email:
+            existing_investor_by_email = Investor.get_by_email(email)
+            if existing_investor_by_email:
+                return jsonify({"error": "Email is already in use"}), 400
+
         if not first_name:
             return jsonify({"error": "First name is required"}), 400
 
@@ -204,6 +212,13 @@ def investor():
         industries=industries,
         rounds=rounds,
     )
+
+
+@onboarding.get("/check-investor/<email>")
+def check_investor(email):
+    existing_investor_by_email = Investor.get_by_email(email)
+
+    return jsonify({"investor_exists": bool(existing_investor_by_email)})
 
 
 @onboarding.get("/search_notable_investments/<search_input>")

@@ -288,7 +288,7 @@ const AsideMobileComponent = defineComponent({
 
 const Bookmark = defineComponent({
     template: "#bookmark-template",
-    emits: ["bookmarked", "closebookmarks"],
+    emits: ["investor-bookmarked", "firm-bookmarked", "closebookmarks"],
     watch: {
         selectedTab(newVal, oldVal) {
             if (newVal === oldVal) {
@@ -382,7 +382,6 @@ const Bookmark = defineComponent({
                 }
             }
         },
-
         async unbookmarkInvestor(investorId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
@@ -396,8 +395,7 @@ const Bookmark = defineComponent({
 
                 if (response.ok) {
                     this.bookmarks = this.bookmarks.filter((investor) => investor.id !== investorId);
-
-                    this.$emit("bookmarked", { investorId: investorId, status: false });
+                    this.$emit("investor-bookmarked", { investorId: investorId, status: false });
                 } else {
                     console.error("Error removing bookmark:", response.statusText);
                 }
@@ -405,7 +403,6 @@ const Bookmark = defineComponent({
                 console.error("Error removing bookmark:", error.message);
             }
         },
-
         async UnbookmarkInvestmentFirm(firmId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
@@ -419,6 +416,7 @@ const Bookmark = defineComponent({
 
                 if (response.ok) {
                     this.bookmarks = this.bookmarks.filter((firm) => firm.id !== firmId);
+                    this.$emit("firm-bookmarked", { firmId: firmId, status: false });
                 } else {
                     console.error("Error removing bookmark:", response.statusText);
                 }
@@ -436,7 +434,6 @@ const Bookmark = defineComponent({
             }
             this[stateKey] = paramValue;
         },
-
         selectInvestorSlug(investorSlug) {
             this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug");
             window.location.reload();
@@ -469,12 +466,19 @@ const Bookmark = defineComponent({
 
 const NavbarComponent = defineComponent({
     template: "#navbar-template",
-    emits: ["open-aside", "open-notifications"],
+    emits: ["open-aside", "open-notifications", "bookmarked"],
     components: {
         Bookmark,
         NotificationComponent,
     },
     methods: {
+        handleBookmark(data, type) {
+            if (type === "investor") {
+                this.$emit("bookmarked", { investorId: data.investorId, status: data.status });
+            } else if (type === "firm") {
+                this.$emit("bookmarked", { firmId: data.firmId, status: data.status });
+            }
+        },
         expandAside() {
             this.$emit("open-aside");
         },
@@ -541,7 +545,6 @@ const NavbarComponent = defineComponent({
             return this.notifications.some((notification) => !notification.is_read);
         },
     },
-
     async mounted() {
         window.addEventListener("click", this.closeBookmark);
         window.addEventListener("click", this.closeNotifications);

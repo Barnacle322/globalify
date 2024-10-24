@@ -2907,6 +2907,9 @@ select {
 .pt-8 {
   padding-top: 2rem;
 }
+.pt-6 {
+  padding-top: 1.5rem;
+}
 .text-left {
   text-align: left;
 }
@@ -3166,6 +3169,14 @@ select {
 }
 .text-white\/30 {
   color: rgb(255 255 255 / 0.3);
+}
+.text-green-500 {
+  --tw-text-opacity: 1;
+  color: rgb(34 197 94 / var(--tw-text-opacity));
+}
+.text-orange-500 {
+  --tw-text-opacity: 1;
+  color: rgb(249 115 22 / var(--tw-text-opacity));
 }
 .underline {
   text-decoration-line: underline;

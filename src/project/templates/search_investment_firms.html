@@ -58,7 +58,10 @@
     {{ full_investment_firm.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
-        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <navbar-component
+            @bookmarked="handleInvestmentFirmBookmark"
+            @open-aside="asideExpanded = true, asideMinified = !asideMinified"
+        ></navbar-component>
         <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
@@ -578,10 +581,10 @@
                                     >
                                         {{ investment_firm.name }}
                                     </button>
-                                    <button @click="toggleInvestmentFirmBookmark('{{investment_firm.id}}')">
+                                    <button @click="toggleInvestmentFirmBookmark({{investment_firm.id}})">
                                         <svg
                                             id="bookmark-svg-firm-{{ investment_firm.id }}"
-                                            :fill="investmentFirmBookmakrIds.includes({{investment_firm.id}}) ? '#FFC9FC' : 'none'"
+                                            :style="{ fill: investmentFirmBookmakrIds.includes({{investment_firm.id}}) ? '#FFC9FC' : 'none' }"
                                             xmlns="http://www.w3.org/2000/svg"
                                             viewBox="0 0 24 24"
                                             stroke-width="1.5"

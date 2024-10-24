@@ -993,6 +993,12 @@ class ClaimRequest(db.Model):
         return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.user_id == user_id))
 
     @staticmethod
+    def get_with_investor_by_user_id(user_id: int) -> ClaimRequest | None:
+        return db.session.scalar(
+            db.select(ClaimRequest).join(ClaimRequest.investor).where(ClaimRequest.user_id == user_id)
+        )
+
+    @staticmethod
     def get_by_investor_id(investor_id: int) -> ClaimRequest | None:
         return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.investor_id == investor_id))
 

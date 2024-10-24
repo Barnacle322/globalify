@@ -244,7 +244,15 @@
                                         aria-orientation="vertical"
                                         aria-labelledby="country-options-menu"
                                     >
-                                        <div class="py-1" role="none">
+                                        <input
+                                            type="text"
+                                            id="search-countries"
+                                            placeholder="Search countries..."
+                                            class="hover:bg-gray-100 hover:text-gray-900 w-full border-slate-200 border-0 focus:ring-0"
+                                            v-model="selectedCountry"
+                                            @input="getCountryList(selectedCountry)"
+                                        />
+                                        <div role="none" ref="countryListElement">
                                             {% for country in countries %}
                                             <label
                                                 class="text-overflow-wrap flex w-full cursor-pointer items-center overflow-clip px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -347,7 +355,29 @@
                                         aria-orientation="vertical"
                                         aria-labelledby="industry-options-menu"
                                     >
-                                        <div class="py-1" role="menu">
+                                        <input
+                                            type="text"
+                                            id="search-industries"
+                                            placeholder="Search industries..."
+                                            class="hover:bg-gray-100 hover:text-gray-900 w-full border-slate-200 border-0 focus:ring-0"
+                                            v-model="selectedIndustry"
+                                            @input="getIndustryList(selectedIndustry)"
+                                        />
+                                        <div role="menu" ref="industryListElement">
+                                            <label
+                                                class="flex cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                                role="checkbox"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    id="industries_exclusive"
+                                                    name="industries_exclusive"
+                                                    value="1"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                />
+                                                Show only with selected industries
+                                            </label>
+                                            <hr />
                                             {% for category, industries in industry_list.items() %}
                                             <label
                                                 class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"

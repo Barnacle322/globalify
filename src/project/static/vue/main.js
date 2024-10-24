@@ -64,7 +64,7 @@ createApp({
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
-            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm")
+            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
     },
@@ -72,7 +72,7 @@ createApp({
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
-            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm")
+            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
     },

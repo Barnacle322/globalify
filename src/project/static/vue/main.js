@@ -370,6 +370,7 @@ createApp({
         removePageParam(params) {
             params.delete("page");
             params.delete("investor");
+            params.delete("company");
             return params;
         },
         applyQueryParams(url) {
@@ -380,7 +381,7 @@ createApp({
             return url;
         },
         updateLinksWithQueryParams() {
-            document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
+            document.querySelectorAll("a[href^=\"/\"]:not([href^=\"//\"])").forEach((link) => {
                 if (!link.getAttribute("href").includes("search")) return;
                 link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
             });

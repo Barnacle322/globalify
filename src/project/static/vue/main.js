@@ -80,12 +80,9 @@ createApp({
         async handleInvestorBookmark(data) {
             try {
                 if (data.status) {
-                    console.log(typeof data.investorId);
                     this.investorBookmakrIds.push(data.investorId); // Corrected typo
-                    console.log(this.investorBookmakrIds);
                 } else {
                     this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId); // Corrected typo
-                    console.log(this.investorBookmakrIds);
                 }
             } catch (error) {
                 console.error("Error handling investor bookmark:", error);

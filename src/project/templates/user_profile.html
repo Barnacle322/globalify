@@ -65,7 +65,7 @@
                 {% endif %} {{ user_info.full_name }}
             </h2>
             {% if investor %}
-            <a href="/investor/{{investor.slug}}" class="group mt-3 flex items-center gap-1 text-gray-500">
+            <a href="/search?investor={{investor.slug}}" class="group mt-3 flex items-center gap-1 text-gray-500">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"

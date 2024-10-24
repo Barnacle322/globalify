@@ -61,10 +61,11 @@ createApp({
         this.setupMenuToggle();
         this.initializeValuesFromParams();
         this.updateLinksWithQueryParams();
+        this.updateCompanyLinksQueryParams();
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
-            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
+            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm")
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
     },
@@ -72,7 +73,7 @@ createApp({
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
-            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
+            this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm")
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
     },
@@ -138,6 +139,7 @@ createApp({
         },
         updateUrlParam(paramName, paramValue, stateKey) {
             const url = new URL(window.location.href);
+            url.searchParams.delete("company");
             if (url.searchParams.get(paramName) !== paramValue) {
                 url.searchParams.set(paramName, paramValue);
                 window.history.pushState({}, "", url);
@@ -377,7 +379,7 @@ createApp({
             return url;
         },
         updateLinksWithQueryParams() {
-            document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
+            document.querySelectorAll("a[href^=\"/\"]:not([href^=\"//\"])").forEach((link) => {
                 if (!link.getAttribute("href").includes("search")) return;
                 link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
             });

@@ -40,6 +40,7 @@ createApp({
         this.checkAndSelectUrlParam("company", this.selectCompanySlug);
         this.fetchInvestorBookmarks();
         this.fetchInvestmentFirmBookmarks();
+        this.fetchCompanyBookmarks();
     },
     mounted() {
         const lowerSlider = document.getElementById("min_investment");
@@ -115,6 +116,28 @@ createApp({
                 if (response.ok) {
                     const data = await response.json();
                     this.investmentFirmBookmakrIds = data.bookmark_ids;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async handleCompanyBookmark(data) {
+            try {
+                if (data.status) {
+                    this.companyBookmarkIds.push(data.companyId);
+                } else {
+                    this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== data.companyId);
+                }
+            } catch (error) {
+                console.error("Error handling company bookmark:", error);
+            }
+        },
+        async fetchCompanyBookmarks() {
+            try {
+                const response = await fetch("/company/bookmarks");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.companyBookmarkIds = data.bookmark_ids;
                 }
             } catch (error) {
                 console.error(error);
@@ -461,11 +484,10 @@ createApp({
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-company-${companyId}`);
                     if (data[0].bookmarked) {
-                        svg.style.fill = "#FFC9FC";
+                        this.companyBookmarkIds.push(companyId);
                     } else {
-                        svg.style.fill = "none";
+                        this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== companyId);
                     }
                 }
             } catch (error) {
@@ -503,6 +525,7 @@ createApp({
             bookmarkedInvestorId: null,
             investorBookmakrIds: [],
             investmentFirmBookmakrIds: [],
+            companyBookmarkIds: [],
             selectedIndustry: "",
             selectedCountry: "",
             menus: [
@@ -517,4 +540,3 @@ createApp({
         };
     },
 }).mount("#app");
-

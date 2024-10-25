@@ -503,6 +503,16 @@ def get_investor_bookmark_ids():
     return jsonify({"bookmark_ids": bookmarks_ids})
 
 
+@main.get("/company/bookmarks")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_company_bookmark_ids():
+    bookmarks_ids = CompanyBookmark.get_id_list(current_user.id)
+
+    return jsonify({"bookmark_ids": bookmarks_ids})
+
+
 @main.get("/demo_search")
 def demo_search():
     search_query = request.args.get("search", "")

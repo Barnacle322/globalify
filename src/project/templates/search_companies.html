@@ -85,6 +85,7 @@
             <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
                 <full-company
                     @close-company="selectedCompanySlug = null"
+                    @bookmarked="handleCompanyBookmark"
                     :slug="selectedCompanySlug"
                     v-if="selectedCompanySlug"
                 ></full-company>
@@ -423,14 +424,11 @@
                                     >
                                         {{ company.name }}
                                     </button>
-                                    <button
-                                        id="bookmark-icon-{{ company.id }}"
-                                        @click="toggleCompanyBookmark({{company.id}})"
-                                    >
+                                    <button @click="toggleCompanyBookmark({{company.id}})">
                                         <svg
                                             id="bookmark-svg-company-{{ company.id }}"
+                                            :style="{ fill: companyBookmarkIds.includes({{company.id}}) ? '#FFC9FC' : 'none' }"
                                             xmlns="http://www.w3.org/2000/svg"
-                                            fill="{{'#FFC9FC' if company.id in bookmark_ids else 'none'}}"
                                             viewBox="0 0 24 24"
                                             stroke-width="1.5"
                                             stroke="currentColor"

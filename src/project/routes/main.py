@@ -885,7 +885,9 @@ def get_company(slug):
         industry={"id": company_model.industry.id, "name": company_model.industry.name},
     ).model_dump()
 
-    return jsonify({"company": company})
+    bookmark = CompanyBookmark.exists(company_model.id, current_user.id)
+
+    return jsonify({"company": company, "bookmark": bookmark})
 
 
 @main.post("/investor/<int:investor_id>/bookmark")

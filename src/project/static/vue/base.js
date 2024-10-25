@@ -796,7 +796,7 @@ const FullCompany = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     this.company = data.company;
-                    console.log(this.company);
+                    this.bookmark = data.bookmark;
                 } else {
                     this.closeCompany();
                     return;

@@ -14,7 +14,21 @@ from flask_login import UserMixin
 from geopy.distance import geodesic
 from more_itertools import chunked
 from slugify import slugify
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, desc, event, func, or_, text, update
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    desc,
+    event,
+    exists,
+    func,
+    or_,
+    text,
+    update,
+)
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
@@ -815,6 +829,12 @@ class CompanyBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
                 CompanyBookmark.company_id == company_id, CompanyBookmark.user_id == user_id
             )
         ).first()
+
+    @staticmethod
+    def exists(company_id: int, user_id: int) -> bool:
+        return db.session.scalar(
+            db.select(exists().where(CompanyBookmark.company_id == company_id, CompanyBookmark.user_id == user_id))
+        )
 
 
 class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):

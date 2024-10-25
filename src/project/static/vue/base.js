@@ -605,7 +605,7 @@ const FullInvestor = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     this.investor = data.investor;
-                    this.bookmark = data.bookmark;
+                    this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
                 } else {
                     this.closeInvestor();
@@ -661,7 +661,7 @@ const FullInvestor = defineComponent({
         return {
             isExpanded: false,
             isLoading: true,
-            bookmark: null,
+            isBookmarked: false,
             investor: null,
             unpaid: false,
         };
@@ -691,9 +691,9 @@ const FullInvestmentFirm = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     this.investmentFirm = data.investment_firm;
-                    this.bookmark = data.bookmark;
+                    this.isBookmarked = data.isBookmarked;
                 } else {
-                    this.сloseInvestmentFirm();
+                    this.closeInvestmentFirm();
                     return;
                 }
             } catch (error) {
@@ -756,7 +756,7 @@ const FullInvestmentFirm = defineComponent({
             isExpanded: false,
             isLoading: false,
             investmentFirm: null,
-            bookmark: null,
+            isBookmarked: false,
         };
     },
 });
@@ -796,7 +796,7 @@ const FullCompany = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     this.company = data.company;
-                    this.bookmark = data.bookmark;
+                    this.isBookmarked = data.isBookmarked;
                 } else {
                     this.closeCompany();
                     return;
@@ -848,8 +848,9 @@ const FullCompany = defineComponent({
         return {
             isExpanded: false,
             isLoading: false,
-            bookmark: null,
+            isBookmarked: false,
             company: null,
         };
     },
 });
+

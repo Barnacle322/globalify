@@ -60,12 +60,9 @@ main = Blueprint("main", __name__)
 
 
 def generate_pagination(current_page: int, total_pages: int, around_count: int = 2) -> dict:
-    # Calculate all the page ranges
     start_pages = range(1, min(3, total_pages + 1))
     around_pages = range(max(1, current_page - around_count), min(current_page + around_count + 1, total_pages + 1))
     end_pages = range(max(current_page + around_count + 1, total_pages - 1), total_pages + 1)
-
-    # Build the pages list
     pages = list(start_pages)
 
     if not pages:
@@ -122,6 +119,43 @@ def jennifer():
 @main.get("/about/arstan")
 def arstan():
     return render_template("arstan.html")
+
+
+@main.route("/pricing")
+def pricing():
+    return render_template("pricing.html")
+
+
+@main.route("/about")
+def about():
+    return render_template("about.html")
+
+
+@main.route("/superconnect")
+def superconnect():
+    return render_template("superconnect.html")
+
+
+@main.route("/docs")
+@main.route("/jobs")
+@main.route("/partners")
+@main.route("/help")
+@main.route("/investor-database")
+@main.route("/startup-database")
+@main.route("/digest")
+@main.route("/data-request")
+def construction():
+    return render_template("construction.html")
+
+
+@main.route("/terms-of-service")
+def terms_of_service():
+    return render_template("terms_of_service.html")
+
+
+@main.route("/privacy-policy")
+def privacy_policy():
+    return render_template("privacy_policy.html")
 
 
 @main.route("/suggestions")
@@ -202,20 +236,15 @@ def get_suggestion_investment_firms():
         db.session.commit()
         return redirect(url_for("settings.company_list_view"))
 
-    bookmarks = InvestorBookmark.get_id_list(current_user.id)
-
-    company = Company.get_by_id(user_company.company_id)
-
-    bookmarks = InvestmentFirmBookmark.get_id_list(current_user.id)
-
     check_weights(WEIGHTS)
-    suggested_investment_firms = InvestmentFirm.get_suggestions(company=company, quantity=15)
 
     return render_template(
         "suggestions_investment_firms.html",
-        investment_firms=suggested_investment_firms,
+        investment_firms=InvestmentFirm.get_suggestions(
+            company=Company.get_by_id(user_company.company_id), quantity=15
+        ),
         access=access,
-        bookmark_ids=bookmarks,
+        bookmark_ids=InvestmentFirmBookmark.get_id_list(current_user.id),
     )
 
 
@@ -235,14 +264,11 @@ def get_suggestion_companies():
     elif user_payment and not user_payment.is_active:
         access = False
 
-    investor = Investor.get_by_user_id(authenticated_user.id)
-
     check_weights(COMPANY_WEIGHTS)
-    suggested_companies = Company.get_suggestions(investor=investor, quantity=15)
 
     return render_template(
         "suggestions_companies.html",
-        companies=suggested_companies,
+        companies=Company.get_suggestions(investor=Investor.get_by_user_id(authenticated_user.id), quantity=15),
         access=access,
     )
 
@@ -253,60 +279,37 @@ def get_suggestion_companies():
 @check_verification
 def search_companies():
     search_string = request.args.get("search", "")
-    sort_by = request.args.get("sort_field", "db_id")
-    sort_desc = request.args.get("descending", False, type=bool)
     page = request.args.get("page", 1, type=int)
-
-    round = request.args.getlist("round")
-    industry = request.args.getlist("industry")
-    country = request.args.getlist("country")
-
-    query_by = [
-        "country",
-        "preferred_round",
-        "industry",
-        "embedding",
-        "name",
-    ]
-
     result = Company.get_search(
         query_string=search_string,
-        query_by=query_by,
-        sort_by=sort_by,
-        sort_desc=sort_desc,
-        preferred_rounds=round,
-        industries=industry,
+        query_by=[
+            "country",
+            "preferred_round",
+            "industry",
+            "embedding",
+            "name",
+        ],
+        sort_by=request.args.get("sort_field", "db_id"),
+        sort_desc=request.args.get("descending", False, type=bool),
+        preferred_rounds=request.args.getlist("round"),
+        industries=request.args.getlist("industry"),
         page=page,
         per_page=9,
-        countries=country,
+        countries=request.args.getlist("country"),
         is_public=True,
     )
-    companies = result.get("companies")
-
-    bookmark_ids = CompanyBookmark.get_id_list(current_user.id)
-
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-    unpaid = False
-    if current_user.is_admin:
-        pass
-    elif not user_payment and page > 1:
-        unpaid = True
-    elif user_payment and not user_payment.is_active and page > 1:
-        unpaid = True
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
-
     return render_template(
         "search_companies.html",
-        companies=companies,
+        companies=result.get("companies"),
         query=search_string,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        unpaid=unpaid,
-        bookmark_ids=bookmark_ids,
+        bookmark_ids=CompanyBookmark.get_id_list(current_user.id),
     )
 
 
@@ -316,19 +319,13 @@ def search_companies():
 @check_verification
 def search_investment_firms():
     search_string = request.args.get("search", "")
-    sort_by = request.args.get("sort_field", "db_id")
-    sort_desc = request.args.get("descending", False, type=bool)
-    min_investment = request.args.get("min_investment", type=int)
-    max_investment = request.args.get("max_investment", type=int)
     page = request.args.get("page", 1, type=int)
 
-    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
     rounds = []
     for round_name in request.args.getlist("round"):
         if round_object := Round.get_by_name(round_name):
             rounds.append(round_object.name)
 
-    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
     industries = []
     for industry_name in request.args.getlist("industry"):
         if industry_object := Industry.get_by_name(industry_name):
@@ -339,63 +336,47 @@ def search_investment_firms():
         if country_object := Country.get_by_name(country_name):
             countries.append(country_object.name)
 
-    query_by = [
-        "location",
-        "country",
-        "rounds",
-        "industries",
-        "embedding",
-        "notable_investments",
-        "name",
-    ]
-
     result = InvestmentFirm.get_search(
         query_string=search_string,
-        query_by=query_by,
-        sort_by=sort_by,
-        sort_desc=sort_desc,
+        query_by=[
+            "location",
+            "country",
+            "rounds",
+            "industries",
+            "embedding",
+            "notable_investments",
+            "name",
+        ],
+        sort_by=request.args.get("sort_field", "db_id"),
+        sort_desc=request.args.get("descending", False, type=bool),
         rounds=rounds,
         industries=industries,
-        rounds_exclusive=rounds_exclusive,
-        industries_exclusive=industries_exclusive,
-        min_investment=min_investment,
-        max_investment=max_investment,
+        rounds_exclusive=request.args.get("rounds_exclusive", False, type=bool),
+        industries_exclusive=request.args.get("industries_exclusive", False, type=bool),
+        min_investment=request.args.get("min_investment", type=int),
+        max_investment=request.args.get("max_investment", type=int),
         page=page,
         per_page=9,
         countries=countries,
     )
-    investment_firms = result.get("investment_firms")
-
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-    unpaid = False
-    if current_user.is_admin:
-        pass
-    elif not user_payment and page > 1:
-        unpaid = True
-    elif user_payment and not user_payment.is_active and page > 1:
-        unpaid = True
-
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
-
-    fields = {
-        "n_investments": "Number of Investments",
-        "n_exits": "Number of Exits",
-        "min_investment": "Minimum Investment",
-        "max_investment": "Maximum Investment",
-        "n_employees": "Number of Employees",
-    }
 
     return render_template(
         "search_investment_firms.html",
-        investment_firms=investment_firms,
+        investment_firms=result.get("investment_firms"),
         query=search_string,
-        fields=fields,
+        fields={
+            "n_investments": "Number of Investments",
+            "n_exits": "Number of Exits",
+            "min_investment": "Minimum Investment",
+            "max_investment": "Maximum Investment",
+            "n_employees": "Number of Employees",
+        },
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        unpaid=unpaid,
     )
 
 
@@ -405,7 +386,6 @@ def search_investment_firms():
 @check_verification
 def get_investment_firm_bookmark_ids():
     bookmarks_ids = InvestmentFirmBookmark.get_id_list(current_user.id)
-
     return jsonify({"bookmark_ids": bookmarks_ids})
 
 
@@ -418,19 +398,13 @@ def search():
         return redirect(next_url)
 
     search_string = request.args.get("search", "")
-    sort_by = request.args.get("sort_field", "db_id")
-    sort_desc = request.args.get("descending", False, type=bool)
-    min_investment = request.args.get("min_investment", type=int)
-    max_investment = request.args.get("max_investment", type=int)
     page = request.args.get("page", 1, type=int)
 
-    rounds_exclusive = request.args.get("rounds_exclusive", False, type=bool)
     rounds = []
     for round_name in request.args.getlist("round"):
         if round_object := Round.get_by_name(round_name):
             rounds.append(round_object.name)
 
-    industries_exclusive = request.args.get("industries_exclusive", False, type=bool)
     industries = []
     for industry_name in request.args.getlist("industry"):
         if industry_object := Industry.get_by_name(industry_name):
@@ -441,49 +415,44 @@ def search():
         if country_object := Country.get_by_name(country_name):
             countries.append(country_object.name)
 
-    query_by = [
-        "location",
-        "country",
-        "rounds",
-        "industries",
-        "embedding",
-        "notable_investments",
-        "name",
-        "firm_name",
-        "position",
-    ]
-
     result = Investor.get_search(
         query_string=search_string,
-        query_by=query_by,
-        sort_by=sort_by,
-        sort_desc=sort_desc,
+        query_by=[
+            "location",
+            "country",
+            "rounds",
+            "industries",
+            "embedding",
+            "notable_investments",
+            "name",
+            "firm_name",
+            "position",
+        ],
+        sort_by=request.args.get("sort_field", "db_id"),
+        sort_desc=request.args.get("descending", False, type=bool),
         rounds=rounds,
         industries=industries,
-        rounds_exclusive=rounds_exclusive,
-        industries_exclusive=industries_exclusive,
-        min_investment=min_investment,
-        max_investment=max_investment,
+        rounds_exclusive=request.args.get("rounds_exclusive", False, type=bool),
+        industries_exclusive=request.args.get("industries_exclusive", False, type=bool),
+        min_investment=request.args.get("min_investment", type=int),
+        max_investment=request.args.get("max_investment", type=int),
         page=page,
         per_page=9,
         countries=countries,
     )
-    investors = result.get("investors")
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-    fields = {
-        "n_investments": "Number of Investments",
-        "n_exits": "Number of Exits",
-        "min_investment": "Minimum Investment",
-        "max_investment": "Maximum Investment",
-    }
-
     return render_template(
         "search.html",
-        investors=investors,
+        investors=result.get("investors"),
         query=search_string,
-        fields=fields,
+        fields={
+            "n_investments": "Number of Investments",
+            "n_exits": "Number of Exits",
+            "min_investment": "Minimum Investment",
+            "max_investment": "Maximum Investment",
+        },
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
         industry_list=Industry.get_all(),
@@ -499,7 +468,6 @@ def search():
 @check_verification
 def get_investor_bookmark_ids():
     bookmarks_ids = InvestorBookmark.get_id_list(current_user.id)
-
     return jsonify({"bookmark_ids": bookmarks_ids})
 
 
@@ -509,15 +477,13 @@ def get_investor_bookmark_ids():
 @check_verification
 def get_company_bookmark_ids():
     bookmarks_ids = CompanyBookmark.get_id_list(current_user.id)
-
     return jsonify({"bookmark_ids": bookmarks_ids})
 
 
 @main.get("/demo_search")
 def demo_search():
-    search_query = request.args.get("search", "")
     result = Investor.get_search(
-        query_string=search_query,
+        query_string=request.args.get("search", ""),
         query_by=[
             "location",
             "country",
@@ -532,9 +498,8 @@ def demo_search():
         page=1,
         per_page=9,
     )
-    investors = result.get("investors")
 
-    return jsonify(investors)
+    return jsonify(result.get("investors"))
 
 
 @main.route("/investor/<slug>")
@@ -561,10 +526,7 @@ def claiming_types_view(slug):
     if not investor:
         return redirect(url_for("main.search"))
 
-    # Take investors email and obfuscate it by only showing first and last 3 characters
-
-    email = investor.email
-    if email:
+    if email := investor.email:
         email = email[:3] + "*" * (len(email) - 6) + email[-3:]
         investor.email = email
 
@@ -645,11 +607,9 @@ def claiming_manual(slug):
         investor_point_origin.rounds = investor.rounds
         investor_point_origin.industries = investor.industries
         db.session.add(investor_point_origin)
-
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Claim request submitted.").get_status()
-
     return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
 
 
@@ -789,39 +749,34 @@ def get_investor(slug):
     elif user_payment and not user_payment.is_active:
         unpaid = True
 
-    if not unpaid:
-        investor_model = Investor.get_by_slug(slug)
-    else:
-        investor_model = Investor.get_by_slug_without_contacts(slug)
-
-    if not investor_model:
+    investor = Investor.get_by_slug(slug) if not unpaid else Investor.get_by_slug_without_contacts(slug)
+    if not investor:
         return jsonify({"status": "error", "message": "Investor not found."}), 404
 
-    bookmark = InvestorBookmark.exists(investor_model.id, current_user.id)
-
     investor = InvestorSchema(
-        id=investor_model.id,
-        name=f"{investor_model.first_name} {investor_model.last_name}",
-        slug=investor_model.slug,
-        firm_name=investor_model.firm_name,
-        about=investor_model.about,
-        position=investor_model.position,
-        website=investor_model.website,
-        linkedin=investor_model.linkedin,
-        twitter=investor_model.twitter,
-        email=investor_model.email,
-        phone_number=investor_model.phone_number,
-        n_investments=investor_model.n_investments,
-        n_exits=investor_model.n_exits,
-        min_max_investment=investor_model.min_max_investment,
-        location=investor_model.location,
-        notable_investments=[{"id": ni.id, "name": ni.name} for ni in investor_model.notable_investments],
-        rounds=[{"id": r.id, "name": r.name} for r in investor_model.rounds],
-        industries=[{"id": i.id, "name": i.name} for i in investor_model.industries],
-        user_id=investor_model.user_id,
-    ).model_dump()
+        id=investor.id,
+        name=f"{investor.first_name} {investor.last_name}",
+        slug=investor.slug,
+        firm_name=investor.firm_name,
+        about=investor.about,
+        position=investor.position,
+        website=investor.website,
+        linkedin=investor.linkedin,
+        twitter=investor.twitter,
+        email=investor.email,
+        phone_number=investor.phone_number,
+        n_investments=investor.n_investments,
+        n_exits=investor.n_exits,
+        min_max_investment=investor.min_max_investment,
+        location=investor.location,
+        notable_investments=[{"id": ni.id, "name": ni.name} for ni in investor.notable_investments],
+        rounds=[{"id": r.id, "name": r.name} for r in investor.rounds],
+        industries=[{"id": i.id, "name": i.name} for i in investor.industries],
+        user_id=investor.user_id,
+    )
 
-    return jsonify({"investor": investor, "unpaid": unpaid, "bookmark": bookmark})
+    is_bookmarked = InvestorBookmark.exists(investor.id, current_user.id)
+    return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked})
 
 
 @main.get("/investment-firm/<slug>")
@@ -854,9 +809,8 @@ def get_investment_firm(slug):
         industries=[{"id": i.id, "name": i.name} for i in investment_firm_model.industries],
     ).model_dump()
 
-    bookmark = InvestmentFirmBookmark.exists(investment_firm_model.id, current_user.id)
-
-    return jsonify({"investment_firm": investment_firm, "bookmark": bookmark})
+    is_bookmarked = InvestmentFirmBookmark.exists(investment_firm_model.id, current_user.id)
+    return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked})
 
 
 @main.get("/company/<slug>")
@@ -884,10 +838,9 @@ def get_company(slug):
         preferred_round={"id": company_model.preferred_round.id, "name": company_model.preferred_round.name},
         industry={"id": company_model.industry.id, "name": company_model.industry.name},
     ).model_dump()
+    is_bookmarked = CompanyBookmark.exists(company_model.id, current_user.id)
 
-    bookmark = CompanyBookmark.exists(company_model.id, current_user.id)
-
-    return jsonify({"company": company, "bookmark": bookmark})
+    return jsonify({"company": company, "isBookmarked": is_bookmarked})
 
 
 @main.post("/investor/<int:investor_id>/bookmark")
@@ -900,14 +853,12 @@ def toggle_bookmark_investor(investor_id):
         return jsonify({"status": "error", "message": "Investor not found."}), 404
 
     bookmark = InvestorBookmark.get_by_id(investor.id, current_user.id)
-
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestorBookmark(investor_id=investor.id, user_id=current_user.id)
-
     db.session.add(new_bookmark)
     db.session.commit()
 
@@ -924,14 +875,12 @@ def toggle_bookmark_company(company_id):
         return jsonify({"status": "error", "message": "Company not found."}), 404
 
     bookmark = CompanyBookmark.get_by_id(company.id, current_user.id)
-
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = CompanyBookmark(company_id=company.id, user_id=current_user.id)
-
     db.session.add(new_bookmark)
     db.session.commit()
 
@@ -949,9 +898,8 @@ def get_investor_bookmarks():
     limit = 10
     offset = (page - 1) * limit
 
-    bookmarks = InvestorBookmark.get_by_user_id(user_id, offset=offset, limit=limit)
-
     investors = []
+    bookmarks = InvestorBookmark.get_by_user_id(user_id, offset=offset, limit=limit)
     for db_investor in bookmarks:
         if not isinstance(db_investor, Investor):
             return jsonify({"status": "error", "message": "Investors not found."}), 404
@@ -976,7 +924,6 @@ def check_investor():
     autentication_user: User = current_user._get_current_object()  # type: ignore
 
     user_info = UserInfo.get_by_user_id(autentication_user.id)
-
     if not user_info:
         return jsonify({"status": "error", "message": "User Info not found."}), 404
 
@@ -1015,10 +962,8 @@ def get_investment_firms_bookmarks():
     limit = 10
     offset = (page - 1) * limit
 
-    bookmarks = InvestmentFirmBookmark.get_by_user_id(user_id, offset=offset, limit=limit)
-
     investment_firms = []
-
+    bookmarks = InvestmentFirmBookmark.get_by_user_id(user_id, offset=offset, limit=limit)
     for db_investment_firm in bookmarks:
         if not isinstance(db_investment_firm, InvestmentFirm):
             return jsonify({"status": "error", "message": "Investment Firms not found."}), 404
@@ -1052,19 +997,16 @@ def investment_firm_slug(slug):
 @check_verification
 def toggle_bookmark_investment_firm(firm_id):
     investment_firm = InvestmentFirm.get_by_id(int(firm_id))
-
     if not investment_firm:
         return jsonify({"status": "error", "message": "Investment Firm not found."}), 404
 
     bookmark = InvestmentFirmBookmark.get_by_id(investment_firm.id, current_user.id)
-
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestmentFirmBookmark(investment_firm_id=investment_firm.id, user_id=current_user.id)
-
     db.session.add(new_bookmark)
     db.session.commit()
 
@@ -1090,41 +1032,33 @@ def update_notification(notification_id):
 @main.get("/notifications")
 @login_required
 def get_notifications():
-    user_id = current_user.id
-
     page = request.args.get("page", default=1, type=int)
     limit = 10
     offset = (page - 1) * limit
 
-    notifications = Notification.get_by_user_id(user_id=user_id, offset=offset, limit=limit)
+    notifications = Notification.get_by_user_id(user_id=current_user.id, offset=offset, limit=limit)
+    notifications = [notification.to_dict() for notification in notifications]
 
-    notifications_dict = [notification.to_dict() for notification in notifications]
-
-    return jsonify({"notifications": notifications_dict})
+    return jsonify({"notifications": notifications})
 
 
 @main.get("/notifications/archived")
 @login_required
 def get_read_notifications():
-    user_id = current_user.id
-
     page = request.args.get("page", default=1, type=int)
     limit = 10
     offset = (page - 1) * limit
 
-    notifications = Notification.get_by_user_id(user_id=user_id, offset=offset, limit=limit, get_read=True)
+    notifications = Notification.get_by_user_id(user_id=current_user.id, offset=offset, limit=limit, get_read=True)
+    notifications = [notification.to_dict() for notification in notifications]
 
-    notifications_dict = [notification.to_dict() for notification in notifications]
-
-    return jsonify({"notifications": notifications_dict})
+    return jsonify({"notifications": notifications})
 
 
 @main.post("/notifications/mark-all-read")
 @login_required
 def mark_all_notifications_read():
-    user_id = current_user.id
-
-    Notification.mark_notifications_as_read(user_id=user_id)
+    Notification.mark_notifications_as_read(user_id=current_user.id)
 
     return jsonify({"status": "success"}), 200
 
@@ -1142,51 +1076,12 @@ def mark_notification_read(notification_id):
     notification.is_read = True
     db.session.commit()
 
-    item = notification.json_data.get("item")
-
-    if item:
+    if item := notification.json_data.get("item"):
         url = item.get("url")
+        if url:
+            return redirect(url)
 
-    if url:
-        return redirect(url)
     return jsonify({"status": "success"}), 200
-
-
-@main.route("/pricing")
-def pricing():
-    return render_template("pricing.html")
-
-
-@main.route("/about")
-def about():
-    return render_template("about.html")
-
-
-@main.route("/superconnect")
-def superconnect():
-    return render_template("superconnect.html")
-
-
-@main.route("/docs")
-@main.route("/jobs")
-@main.route("/partners")
-@main.route("/help")
-@main.route("/investor-database")
-@main.route("/startup-database")
-@main.route("/digest")
-@main.route("/data-request")
-def construction():
-    return render_template("construction.html")
-
-
-@main.route("/terms-of-service")
-def terms_of_service():
-    return render_template("terms_of_service.html")
-
-
-@main.route("/privacy-policy")
-def privacy_policy():
-    return render_template("privacy_policy.html")
 
 
 @main.route("/sitemap.xml")

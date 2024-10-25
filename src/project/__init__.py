@@ -97,47 +97,27 @@ def create_app(database_url="sqlite:///db.sqlite"):
     oauth.init_app(app)
     csrf.init_app(app)
 
-    oauth_config_google: dict = {
-        "OAUTH2_CLIENT_ID": str(os.getenv("_GOOGLE_OAUTH2_CLIENT_ID")),
-        "OAUTH2_CLIENT_SECRET": str(os.getenv("_GOOGLE_OAUTH2_CLIENT_SECRET")),
-        "OAUTH2_META_URL": "https://accounts.google.com/.well-known/openid-configuration",
-        "FLASK_SECRET": "230a59ee-9caa-43d8-bf33-6c1d57cc4721",
-    }
-
-    oauth_config_linkedin: dict = {
-        "OAUTH2_CLIENT_ID": str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_ID")),
-        "OAUTH2_CLIENT_SECRET": str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_SECRET")),
-        "OAUTH2_META_URL": "https://www.linkedin.com/oauth/.well-known/openid-configuration",
-        "FLASK_SECRET": "15a104fc-03ed-4c48-9e7e-872fcd6e4c58",
-    }
-
-    oauth_config_apple: dict = {
-        "OAUTH2_CLIENT_ID": str(os.getenv("_APPLE_OAUTH2_CLIENT_ID")),
-        "OAUTH2_META_URL": "https://appleid.apple.com/.well-known/openid-configuration",
-        "FLASK_SECRET": "aaea93b4-7a34-46c7-921a-d9642880216c",
-    }
-
     oauth.register(
         "google",
-        client_id=oauth_config_google.get("OAUTH2_CLIENT_ID"),
-        client_secret=oauth_config_google.get("OAUTH2_CLIENT_SECRET"),
-        server_metadata_url=oauth_config_google.get("OAUTH2_META_URL"),
+        client_id=str(os.getenv("_GOOGLE_OAUTH2_CLIENT_ID")),
+        client_secret=str(os.getenv("_GOOGLE_OAUTH2_CLIENT_SECRET")),
+        server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
         client_kwargs={"scope": "openid email profile"},
     )
 
     oauth.register(
         "linkedin",
-        client_id=oauth_config_linkedin.get("OAUTH2_CLIENT_ID"),
-        client_secret=oauth_config_linkedin.get("OAUTH2_CLIENT_SECRET"),
-        server_metadata_url=oauth_config_linkedin.get("OAUTH2_META_URL"),
+        client_id=str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_ID")),
+        client_secret=str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_SECRET")),
+        server_metadata_url="https://www.linkedin.com/oauth/.well-known/openid-configuration",
         client_kwargs={"scope": "r_liteprofile r_emailaddress"},
     )
 
     oauth.register(
         "apple",
-        client_id=oauth_config_apple.get("OAUTH2_CLIENT_ID"),
+        client_id=str(os.getenv("_APPLE_OAUTH2_CLIENT_ID")),
         client_secret=get_apple_client_secret(),
-        server_metadata_url=oauth_config_apple.get("OAUTH2_META_URL"),
+        server_metadata_url="https://appleid.apple.com/.well-known/openid-configuration",
         client_kwargs={
             "scope": "name email",
             "response_mode": "form_post",

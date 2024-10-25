@@ -38,10 +38,6 @@ def search_notable_investment(search_input):
         .all()
     )
 
-    notable_investments = [
-        {"id": notable_investment.id, "name": notable_investment.name} for notable_investment in notable_investments
-    ]
-
     return jsonify(
         notable_investments=[
             {"id": notable_investment.id, "name": notable_investment.name} for notable_investment in notable_investments
@@ -58,24 +54,19 @@ def index():
         msg = query.get("msg")
 
     search_string = request.args.get("search", "")
-    page = request.args.get("page", 1, type=int)
-
-    query_by = [
-        "country",
-        "preferred_round",
-        "industry",
-        "embedding",
-        "name",
-    ]
-
     result = Company.get_search(
         query_string=search_string,
-        query_by=query_by,
-        page=page,
+        query_by=[
+            "country",
+            "preferred_round",
+            "industry",
+            "embedding",
+            "name",
+        ],
+        page=request.args.get("page", 1, type=int),
         per_page=9,
     )
     companies = result.get("companies")
-
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     return render_template(
@@ -102,16 +93,12 @@ def update_company_view(id):
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("admin.company.index", _external=True, **status))
 
-    rounds = Round.get_all()
-    industries = Industry.get_all()
-    countries = Country.get_all()
-
     return render_template(
         "admin/update_company.html",
         company=company,
-        rounds=rounds,
-        industries=industries,
-        countries=countries,
+        rounds=Round.get_all(),
+        industries=Industry.get_all(),
+        countries=Country.get_all(),
         status_type=status_type,
         msg=msg,
     )
@@ -126,7 +113,6 @@ def update_company(id):
     print(form_data)
 
     company = Company.get_by_id(id)
-
     if not company:
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("admin.company.index", _external=True, **status))
@@ -249,15 +235,11 @@ def create_company_view():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    rounds = Round.get_all()
-    industries = Industry.get_all()
-    countries = Country.get_all()
-
     return render_template(
         "admin/create_company.html",
-        rounds=rounds,
-        industries=industries,
-        countries=countries,
+        rounds=Round.get_all(),
+        industries=Industry.get_all(),
+        countries=Country.get_all(),
         status_type=status_type,
         msg=msg,
     )
@@ -280,9 +262,6 @@ def create_company():
         company.set_slug()
     else:
         company.slug = slug
-
-    company.description = form_data.get("description") or None
-    company.number_of_employees = int(form_data.get("number_of_employees") or 0)
 
     website_url = form_data.get("website") or None
     if website_url:
@@ -337,6 +316,9 @@ def create_company():
             print(e)
             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
             return redirect(url_for("settings.create_company_view", _external=False, **status))
+
+    company.description = form_data.get("description") or None
+    company.number_of_employees = int(form_data.get("number_of_employees") or 0)
 
     company.country_id = form_data.get("country") or None
     company.preferred_round_id = form_data.get("preferred_round") or None

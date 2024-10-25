@@ -44,9 +44,6 @@ def index():
 @login_required
 def basic():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    next_url = request.args.get("next")
-
     user_info = UserInfo.get_by_user_id(authenticated_user.id)
     if not user_info:
         return redirect(url_for("auth.login"))
@@ -90,7 +87,7 @@ def basic():
                 random_key=verification.token,
             )
 
-        return redirect(url_for("main.search", next=next_url))
+        return redirect(url_for("main.search", next=request.args.get("next")))
 
     return render_template("onboarding/basic.html", user_info=user_info.sanitize())
 
@@ -99,77 +96,45 @@ def basic():
 @login_required
 def investor():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    countries = Country.get_all()
-    industries = Industry.get_all()
-    rounds = Round.get_all()
-
-    user = User.get_by_id(authenticated_user.id)
-    if not user:
-        return redirect(url_for("auth.login"))
-
-    user_info = UserInfo.get_by_user_id(authenticated_user.id)
-    if not user_info:
-        return redirect(url_for("auth.login"))
-
-    if user_info.is_complete:
+    if authenticated_user.user_info.is_complete:  # type: ignore
         return redirect(url_for("main.search"))
 
     if request.method == "POST":
         form_data = request.get_json()
 
         first_name = form_data.get("firstName")
-        last_name = form_data.get("lastName")
-        slug = form_data.get("slug") or None
-        firm_name = form_data.get("firmName") or None
-        position = form_data.get("position") or None
-        about = form_data.get("about") or None
-        location = form_data.get("location") or None
+        if not first_name:
+            return jsonify({"error": "First name is required"}), 400
 
-        n_investments = int(form_data.get("nInvestments") or 0)
-        n_exits = int(form_data.get("nIxits") or 0)
-        min_investment = int(form_data.get("minInvestment") or 0)
-        max_investment = int(form_data.get("maxInvestment") or 0)
-
-        selected_round_ids = form_data.get("selectedRounds") or []
-        selected_industry_ids = form_data.get("selectedIndustries") or [""]
-        selected_notable_investment_ids = form_data.get("selectedNotableInvestments") or []
-
-        website = form_data.get("website") or None
-        linkedin = form_data.get("linkedin") or None
-        twitter = form_data.get("twitter") or None
         email = form_data.get("email") or None
-        phone_number = form_data.get("phoneNumber") or None
-
         if email:
             existing_investor_by_email = Investor.get_by_email(email)
             if existing_investor_by_email:
                 return jsonify({"error": "Email is already in use"}), 400
 
-        if not first_name:
-            return jsonify({"error": "First name is required"}), 400
-
         investor = Investor(
             user_id=authenticated_user.id,
             first_name=first_name,
-            last_name=last_name,
-            slug=slug,
-            firm_name=firm_name,
-            position=position,
-            about=about,
-            location=location,
-            n_investments=n_investments,
-            n_exits=n_exits,
-            min_investment=min_investment,
-            max_investment=max_investment,
-            website=website,
-            linkedin=linkedin,
-            twitter=twitter,
+            last_name=form_data.get("lastName"),
+            slug=form_data.get("slug") or None,
+            firm_name=form_data.get("firmName") or None,
+            position=form_data.get("position") or None,
+            about=form_data.get("about") or None,
+            location=form_data.get("location") or None,
+            n_investments=int(form_data.get("nInvestments") or 0),
+            n_exits=int(form_data.get("nIxits") or 0),
+            min_investment=int(form_data.get("minInvestment") or 0),
+            max_investment=int(form_data.get("maxInvestment") or 0),
+            website=form_data.get("website") or None,
+            linkedin=form_data.get("linkedin") or None,
+            twitter=form_data.get("twitter") or None,
             email=email,
-            phone_number=phone_number,
-            rounds=list(Round.get_by_id_list(selected_round_ids)),
-            industries=list(Industry.get_by_id_list(selected_industry_ids)),
-            notable_investments=list(NotableInvestment.get_by_id_list(selected_notable_investment_ids)),
+            phone_number=form_data.get("phoneNumber") or None,
+            rounds=list(Round.get_by_id_list(form_data.get("selectedRounds") or [])),
+            industries=list(Industry.get_by_id_list(form_data.get("selectedIndustries") or [""])),
+            notable_investments=list(
+                NotableInvestment.get_by_id_list(form_data.get("selectedNotableInvestments") or [])
+            ),
         )
 
         try:
@@ -185,7 +150,7 @@ def investor():
         except Exception:
             return redirect(url_for("onboarding.index"))
 
-        user_info.is_complete = True
+        authenticated_user.user_info.is_complete = True  # type: ignore
         db.session.commit()
 
         if authenticated_user.oauth_provider == OauthProvider.GOOGLE:
@@ -207,34 +172,25 @@ def investor():
 
     return render_template(
         "onboarding/investor.html",
-        user=user,
-        countries=countries,
-        industries=industries,
-        rounds=rounds,
+        user=authenticated_user,
+        countries=Country.get_all(),
+        industries=Industry.get_all(),
+        rounds=Round.get_all(),
     )
 
 
 @onboarding.get("/check-investor/<email>")
 def check_investor(email):
     existing_investor_by_email = Investor.get_by_email(email)
-
     return jsonify({"investor_exists": bool(existing_investor_by_email)})
 
 
 @onboarding.get("/search_notable_investments/<search_input>")
 def search_notable_investment(search_input):
-    notable_investments = (
-        db.session.execute(
-            select(NotableInvestment)
-            .where(NotableInvestment.name.contains(search_input))
-            .where(NotableInvestment.company_id.is_(None))
-        )
-        .scalars()
-        .all()
-    )
+    notable_investments = db.session.scalars(
+        select(NotableInvestment)
+        .where(NotableInvestment.name.contains(search_input))
+        .where(NotableInvestment.company_id.is_(None))
+    ).all()
 
-    return jsonify(
-        notable_investments=[
-            {"id": notable_investment.id, "name": notable_investment.name} for notable_investment in notable_investments
-        ]
-    )
+    return jsonify(notable_investments=[ni.to_dict() for ni in notable_investments])

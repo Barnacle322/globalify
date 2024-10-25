@@ -35,27 +35,22 @@ def index():
         msg = query.get("msg")
 
     search_string = request.args.get("search", "")
-    page = request.args.get("page", 1, type=int)
-
-    query_by = [
-        "location",
-        "country",
-        "rounds",
-        "industries",
-        "notable_investments",
-        "name",
-        "firm_name",
-        "position",
-    ]
-
     result = Investor.get_search(
         query_string=search_string,
-        query_by=query_by,
-        page=page,
+        query_by=[
+            "location",
+            "country",
+            "rounds",
+            "industries",
+            "notable_investments",
+            "name",
+            "firm_name",
+            "position",
+        ],
+        page=request.args.get("page", 1, type=int),
         per_page=9,
     )
     investors = result.get("investors")
-
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     return render_template(
@@ -82,14 +77,11 @@ def update_investor_view(id):
         status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
-    rounds = Round.get_all()
-    industries = Industry.get_all()
-
     return render_template(
         "admin/update_investor.html",
         investor=investor,
-        rounds=rounds,
-        industries=industries,
+        rounds=Round.get_all(),
+        industries=Industry.get_all(),
         status_type=status_type,
         msg=msg,
     )
@@ -106,28 +98,6 @@ def update_investor(id):
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
     first_name = form_data.get("first_name", investor.first_name)
-    last_name = form_data.get("last_name", investor.last_name)
-    slug = form_data.get("slug", investor.slug) or None
-    firm_name = form_data.get("firm_name", investor.firm_name) or None
-    position = form_data.get("position", investor.position) or None
-    about = form_data.get("about", investor.about) or None
-    location = form_data.get("location", investor.location) or None
-
-    n_investments = int(form_data.get("n_investments", investor.n_investments) or 0)
-    n_exits = int(form_data.get("n_exits", investor.n_exits) or 0)
-    min_investment = int(form_data.get("min_investment", investor.min_investment) or 0)
-    max_investment = int(form_data.get("max_investment", investor.max_investment) or 0)
-
-    selected_round_ids = form_data.get("rounds", investor.rounds) or []
-    selected_industry_ids = form_data.get("industries", investor.industries) or []
-    selected_notable_investment_ids = form_data.get("notable_investments", investor.notable_investments) or []
-
-    website = form_data.get("website", investor.website) or None
-    linkedin = form_data.get("linkedin", investor.linkedin) or None
-    twitter = form_data.get("twitter", investor.twitter) or None
-    email = form_data.get("email", investor.email) or None
-    phone_number = form_data.get("phone_number", investor.phone_number) or None
-
     if not first_name:
         status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
         return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
@@ -193,29 +163,34 @@ def update_investor(id):
             db.session.delete(investor_point_origin)
 
     investor.first_name = first_name
-    investor.last_name = last_name
+    investor.last_name = form_data.get("last_name", investor.last_name)
 
+    slug = form_data.get("slug", investor.slug) or None
     if not slug:
         investor.set_slug()
     else:
         investor.slug = slug
 
-    investor.firm_name = firm_name
-    investor.position = position
-    investor.about = about
-    investor.website = website
-    investor.linkedin = linkedin
-    investor.twitter = twitter
-    investor.email = email
-    investor.phone_number = phone_number
-    investor.n_investments = n_investments
-    investor.n_exits = n_exits
-    investor.min_investment = min_investment
-    investor.max_investment = max_investment
-    investor.location = location
-    investor.rounds = list(Round.get_by_id_list(selected_round_ids))
-    investor.industries = list(Industry.get_by_id_list(selected_industry_ids))
-    investor.notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
+    investor.firm_name = form_data.get("firm_name", investor.firm_name) or None
+    investor.position = form_data.get("position", investor.position) or None
+    investor.website = form_data.get("website", investor.website) or None
+    investor.linkedin = form_data.get("linkedin", investor.linkedin) or None
+    investor.twitter = form_data.get("twitter", investor.twitter) or None
+    investor.email = form_data.get("email", investor.email) or None
+    investor.phone_number = form_data.get("phone_number", investor.phone_number) or None
+    investor.location = form_data.get("location", investor.location) or None
+
+    investor.n_investments = int(form_data.get("n_investments", investor.n_investments) or 0)
+    investor.n_exits = int(form_data.get("n_exits", investor.n_exits) or 0)
+    investor.min_investment = int(form_data.get("min_investment", investor.min_investment) or 0)
+    investor.max_investment = int(form_data.get("max_investment", investor.max_investment) or 0)
+    investor.location = form_data.get("location", investor.location) or None
+
+    investor.rounds = list(Round.get_by_id_list(form_data.get("rounds", investor.rounds) or []))
+    investor.industries = list(Industry.get_by_id_list(form_data.get("industries", investor.industries) or []))
+    investor.notable_investments = list(
+        NotableInvestment.get_by_id_list(form_data.get("notable_investments", investor.notable_investments) or [])
+    )
 
     try:
         db.session.commit()
@@ -268,11 +243,9 @@ def undo_investor_data(id):
     investor.user = investor_backup.user
 
     db.session.commit()
-
     investor.upsert_data()
 
     status = Status(StatusType.SUCCESS, "Investor backed up successfully!").get_status()
-
     return redirect(url_for("admin.investor.update_investor_view", id=id, _external=True, **status))
 
 
@@ -307,7 +280,6 @@ def restore_investor_data(id):
         investor.notable_investments = investor_point_origin.notable_investments
 
         db.session.commit()
-
         investor.upsert_data()
     else:
         status = Status(StatusType.ERROR, INVESTOR_BACKUP_NOT_FOUND).get_status()
@@ -325,15 +297,11 @@ def create_investor_view():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    notable_investments = NotableInvestment.get_all()
-    rounds = Round.get_all()
-    industries = Industry.get_all()
-
     return render_template(
         "admin/create_investor.html",
-        rounds=rounds,
-        industries=industries,
-        notable_investments=notable_investments,
+        rounds=Round.get_all(),
+        industries=Industry.get_all(),
+        notable_investments=NotableInvestment.get_all(),
         status_type=status_type,
         msg=msg,
     )
@@ -345,27 +313,9 @@ def create_investor():
     form_data = request.get_json()
 
     first_name = form_data.get("first_name")
-    last_name = form_data.get("last_name")
-    slug = form_data.get("slug") or None
-    firm_name = form_data.get("firm_name") or None
-    position = form_data.get("position") or None
-    about = form_data.get("about") or None
-    location = form_data.get("location") or None
-
-    n_investments = int(form_data.get("n_investments") or 0)
-    n_exits = int(form_data.get("n_exits") or 0)
-    min_investment = int(form_data.get("min_investment") or 0)
-    max_investment = int(form_data.get("max_investment") or 0)
-
-    selected_round_ids = form_data.get("rounds") or []
-    selected_industry_ids = form_data.get("industries") or []
-    selected_notable_investment_ids = form_data.get("notable_investments") or []
-
-    website = form_data.get("website") or None
-    linkedin = form_data.get("linkedin") or None
-    twitter = form_data.get("twitter") or None
-    email = form_data.get("email") or None
-    phone_number = form_data.get("phone_number") or None
+    if not first_name:
+        status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
+        return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
 
     user_email = form_data.get("user_email") or None
     if user_email:
@@ -373,30 +323,26 @@ def create_investor():
     else:
         user = None
 
-    if not first_name:
-        status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
-        return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
-
     investor = Investor(
         first_name=first_name,
-        last_name=last_name,
-        slug=slug,
-        firm_name=firm_name,
-        position=position,
-        about=about,
-        website=website,
-        linkedin=linkedin,
-        twitter=twitter,
-        email=email,
-        phone_number=phone_number,
-        n_investments=n_investments,
-        n_exits=n_exits,
-        min_investment=min_investment,
-        max_investment=max_investment,
-        location=location,
-        rounds=list(Round.get_by_id_list(selected_round_ids)),
-        industries=list(Industry.get_by_id_list(selected_industry_ids)),
-        notable_investments=list(NotableInvestment.get_by_id_list(selected_notable_investment_ids)),
+        last_name=form_data.get("last_name"),
+        slug=form_data.get("slug") or None,
+        firm_name=form_data.get("firm_name") or None,
+        position=form_data.get("position") or None,
+        about=form_data.get("about") or None,
+        website=form_data.get("website") or None,
+        linkedin=form_data.get("linkedin") or None,
+        twitter=form_data.get("twitter") or None,
+        email=form_data.get("email") or None,
+        phone_number=form_data.get("phone_number") or None,
+        n_investments=int(form_data.get("n_investments") or 0),
+        n_exits=int(form_data.get("n_exits") or 0),
+        min_investment=int(form_data.get("min_investment") or 0),
+        max_investment=int(form_data.get("max_investment") or 0),
+        location=form_data.get("location") or None,
+        rounds=list(Round.get_by_id_list(form_data.get("rounds") or [])),
+        industries=list(Industry.get_by_id_list(form_data.get("industries") or [])),
+        notable_investments=list(NotableInvestment.get_by_id_list(form_data.get("notable_investments") or [])),
         user=user,
     )
 
@@ -423,8 +369,6 @@ def create_investor():
 @investor.post("/<int:id>/delete")
 @admin_only
 def delete_investor(id):
-    investor = Investor.get_by_id(id)
-
     investor = Investor.get_by_id(id)
     if not investor:
         status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()

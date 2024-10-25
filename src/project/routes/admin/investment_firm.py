@@ -32,26 +32,21 @@ def index():
         msg = query.get("msg")
 
     search_string = request.args.get("search", "")
-    page = request.args.get("page", 1, type=int)
-
-    query_by = [
-        "location",
-        "country",
-        "rounds",
-        "industries",
-        "embedding",
-        "notable_investments",
-        "name",
-    ]
-
     result = InvestmentFirm.get_search(
         query_string=search_string,
-        query_by=query_by,
-        page=page,
+        query_by=[
+            "location",
+            "country",
+            "rounds",
+            "industries",
+            "embedding",
+            "notable_investments",
+            "name",
+        ],
+        page=request.args.get("page", 1, type=int),
         per_page=9,
     )
     investment_firms = result.get("investment_firms")
-
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     return render_template(
@@ -78,14 +73,11 @@ def update_investment_firm_view(id):
         status = Status(StatusType.ERROR, INVESTMENT_FIRM_NOT_FOUND).get_status()
         return redirect(url_for("admin.investment_firm.index", _external=True, **status))
 
-    rounds = Round.get_all()
-    industries = Industry.get_all()
-
     return render_template(
         "admin/update_investment_firm.html",
         investment_firm=investment_firm,
-        rounds=rounds,
-        industries=industries,
+        rounds=Round.get_all(),
+        industries=Industry.get_all(),
         status_type=status_type,
         msg=msg,
     )
@@ -97,40 +89,22 @@ def update_investment_firm(id):
     form_data = request.get_json()
 
     investment_firm = InvestmentFirm.get_by_id(id)
-
     if not investment_firm:
         status = Status(StatusType.ERROR, INVESTMENT_FIRM_NOT_FOUND).get_status()
         return redirect(url_for("admin.investment_firm.index", _external=True, **status))
 
     name = form_data.get("name", investment_firm.name)
-    slug = form_data.get("slug", investment_firm.slug) or None
-
-    about = form_data.get("about", investment_firm.about) or None
-    location = form_data.get("location", investment_firm.location) or None
-
-    selected_round_ids = form_data.get("rounds", investment_firm.rounds) or []
-    selected_industry_ids = form_data.get("industries", investment_firm.industries) or []
-    selected_notable_investment_ids = form_data.get("notable_investments", investment_firm.notable_investments) or []
-
-    n_investments = int(form_data.get("n_investments", investment_firm.n_investments) or 0)
-    n_exits = int(form_data.get("n_exits", investment_firm.n_exits) or 0)
-    n_employees = int(form_data.get("n_employees", investment_firm.n_employees) or 0)
-    min_investment = int(form_data.get("min_investment", investment_firm.min_investment) or 0)
-    max_investment = int(form_data.get("max_investment", investment_firm.max_investment) or 0)
-
-    website = form_data.get("website", investment_firm.website) or None
-    email = form_data.get("email", investment_firm.email) or None
-    phone_number = form_data.get("phone_number", investment_firm.phone_number) or None
-
     if not name:
         status = Status(StatusType.ERROR, EMPTY_INVESTMENT_FIRM_NAME).get_status()
         return redirect(url_for("admin.investment_firm.update_investment_firm_view", id=id, _external=True, **status))
 
+    slug = form_data.get("slug", investment_firm.slug) or None
     if not slug:
         investment_firm.set_slug()
     else:
         investment_firm.slug = slug
 
+    email = form_data.get("email", investment_firm.email) or None
     if email:
         existing_email = InvestmentFirm.get_by_email(email)
         if existing_email and existing_email.id != investment_firm.id:
@@ -140,19 +114,25 @@ def update_investment_firm(id):
             )
 
     investment_firm.name = name
-    investment_firm.about = about
-    investment_firm.website = website
+    investment_firm.about = form_data.get("about", investment_firm.about) or None
+    investment_firm.website = form_data.get("website", investment_firm.website) or None
     investment_firm.email = email
-    investment_firm.phone_number = phone_number
-    investment_firm.n_investments = n_investments
-    investment_firm.n_exits = n_exits
-    investment_firm.n_employees = n_employees
-    investment_firm.min_investment = min_investment
-    investment_firm.max_investment = max_investment
-    investment_firm.location = location
-    investment_firm.rounds = list(Round.get_by_id_list(selected_round_ids))
-    investment_firm.industries = list(Industry.get_by_id_list(selected_industry_ids))
-    investment_firm.notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
+    investment_firm.phone_number = form_data.get("phone_number", investment_firm.phone_number) or None
+    investment_firm.n_investments = int(form_data.get("n_investments", investment_firm.n_investments) or 0)
+    investment_firm.n_exits = int(form_data.get("n_exits", investment_firm.n_exits) or 0)
+    investment_firm.n_employees = int(form_data.get("n_employees", investment_firm.n_employees) or 0)
+    investment_firm.min_investment = int(form_data.get("min_investment", investment_firm.min_investment) or 0)
+    investment_firm.max_investment = int(form_data.get("max_investment", investment_firm.max_investment) or 0)
+    investment_firm.location = form_data.get("location", investment_firm.location) or None
+    investment_firm.rounds = list(Round.get_by_id_list(form_data.get("rounds", investment_firm.rounds) or []))
+    investment_firm.industries = list(
+        Industry.get_by_id_list(form_data.get("industries", investment_firm.industries) or [])
+    )
+    investment_firm.notable_investments = list(
+        NotableInvestment.get_by_id_list(
+            form_data.get("notable_investments", investment_firm.notable_investments) or []
+        )
+    )
 
     try:
         db.session.commit()
@@ -178,15 +158,11 @@ def create_investment_firm_view():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    notable_investments = NotableInvestment.get_all()
-    rounds = Round.get_all()
-    industries = Industry.get_all()
-
     return render_template(
         "admin/create_investment_firm.html",
-        rounds=rounds,
-        industries=industries,
-        notable_investments=notable_investments,
+        rounds=Round.get_all(),
+        industries=Industry.get_all(),
+        notable_investments=NotableInvestment.get_all(),
         status_type=status_type,
         msg=msg,
     )
@@ -198,28 +174,11 @@ def create_investment_firm():
     form_data = request.get_json()
 
     name = form_data.get("name")
-    slug = form_data.get("slug") or None
-    location = form_data.get("location") or None
-    about = form_data.get("about") or None
-
-    selected_round_ids = form_data.get("rounds") or []
-    selected_industry_ids = form_data.get("industries") or []
-    selected_notable_investment_ids = form_data.get("notable_investments") or []
-
-    n_investments = int(form_data.get("n_investments") or 0)
-    n_exits = int(form_data.get("n_exits") or 0)
-    n_employees = int(form_data.get("n_employees") or 0)
-    min_investment = int(form_data.get("min_investment") or 0)
-    max_investment = int(form_data.get("max_investment") or 0)
-
-    website = form_data.get("website") or None
-    email = form_data.get("email") or None
-    phone_number = form_data.get("phone_number") or None
-
     if not name:
         status = Status(StatusType.ERROR, EMPTY_INVESTMENT_FIRM_NAME).get_status()
         return redirect(url_for("admin.investment_firm.create_investment_firm_view", _external=True, **status))
 
+    email = form_data.get("email") or None
     if email:
         existing_email = InvestmentFirm.get_by_email(email)
         if existing_email:
@@ -228,20 +187,20 @@ def create_investment_firm():
 
     investment_firm = InvestmentFirm(
         name=name,
-        slug=slug,
-        about=about,
-        website=website,
+        slug=form_data.get("slug") or None,
+        about=form_data.get("about") or None,
+        website=form_data.get("website") or None,
         email=email,
-        phone_number=phone_number,
-        n_investments=n_investments,
-        n_exits=n_exits,
-        n_employees=n_employees,
-        min_investment=min_investment,
-        max_investment=max_investment,
-        location=location,
-        rounds=list(Round.get_by_id_list(selected_round_ids)),
-        industries=list(Industry.get_by_id_list(selected_industry_ids)),
-        notable_investments=list(NotableInvestment.get_by_id_list(selected_notable_investment_ids)),
+        phone_number=form_data.get("phone_number") or None,
+        n_investments=int(form_data.get("n_investments") or 0),
+        n_exits=int(form_data.get("n_exits") or 0),
+        n_employees=int(form_data.get("n_employees") or 0),
+        min_investment=int(form_data.get("min_investment") or 0),
+        max_investment=int(form_data.get("max_investment") or 0),
+        location=form_data.get("location") or None,
+        rounds=list(Round.get_by_id_list(form_data.get("notable_investments") or [])),
+        industries=list(Industry.get_by_id_list(form_data.get("industries") or [])),
+        notable_investments=list(NotableInvestment.get_by_id_list(form_data.get("notable_investments") or [])),
     )
 
     try:

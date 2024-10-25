@@ -159,7 +159,7 @@ def resend_verification_email(user_id):
 
     if last_verification:
         if not last_verification.is_resendable:
-            status = Status(StatusType.WARNING, "You can only request a new code every minute.").get_status()
+            status = Status(StatusType.WARNING, "You can only request a new code once per minute.").get_status()
             return redirect(url_for("auth.email_verification_required", _external=False, **status))
 
     EmailVerification.expire_all_by_user_id(user_id)
@@ -187,7 +187,6 @@ def resend_verification_email(user_id):
 @check_user_info_complete
 def email_verification_required():
     status_type, msg = None, None
-
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
@@ -205,6 +204,7 @@ def email_verification_required():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("main.search"))
+
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")

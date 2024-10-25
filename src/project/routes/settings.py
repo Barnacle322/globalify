@@ -67,19 +67,15 @@ def index():
         msg = query.get("msg")
 
     investor = Investor.get_by_user_id_with_investments(current_user.id)
-    rounds = Round.get_all()
-    industries = Industry.get_all()
-    investor_origin = InvestorOriginPoint.exists(investor.id) if investor else False
-
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    has_investor_origin = InvestorOriginPoint.exists(investor.id) if investor else False
 
     return render_template(
         "settings/general.html",
-        user=authenticated_user,
+        user=current_user._get_current_object(),
         investor=investor,
-        investor_origin=investor_origin,
-        rounds=rounds,
-        industries=industries,
+        investor_origin=has_investor_origin,
+        rounds=Round.get_all(),
+        industries=Industry.get_all(),
         status_type=status_type,
         msg=msg,
     )
@@ -106,7 +102,6 @@ def plan():
         msg = query.get("msg")
 
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-
     user_payment = UserPayment.get_by_user_id(authenticated_user.id)
     if user_payment and user_payment.customer_id and user_payment.subscription_id:
         subscription = user_payment.sanitize()
@@ -131,13 +126,10 @@ def plan():
 @check_verification
 def billing():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    invoices = get_invoices(authenticated_user)
-
     return render_template(
         "settings/billing.html",
         user=authenticated_user,
-        invoices=invoices,
+        invoices=get_invoices(authenticated_user),
     )
 
 
@@ -147,41 +139,30 @@ def billing():
 @check_verification
 def change_personal_info():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    first_name = request.form.get("first-name")
-    email_public = request.form.get("email_public")
-    linkedin_public = request.form.get("linkedin_public")
-    instagram_public = request.form.get("instagram_public")
-    twitter_public = request.form.get("twitter_public")
-    refuse_all_invitations = request.form.get("refuse_all_invitations")
-    last_name = request.form.get("last-name")
-    username = request.form.get("username")
-    bio = request.form.get("bio")
-    linkedin_url = request.form.get("linkedin")
-    instagram_url = request.form.get("instagram")
-    twitter_url = request.form.get("twitter")
-    picture = request.files.get("picture")
-
     user_info = authenticated_user.user_info  # type: ignore
 
+    first_name = request.form.get("first-name")
     if first_name and first_name.strip() != user_info.first_name:
         if first_name == " ":
             status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.first_name = first_name.strip()
 
+    last_name = request.form.get("last-name")
     if last_name and last_name.strip() != user_info.last_name:
         if last_name == " ":
             status = Status(StatusType.ERROR, EMPTY_LASTNAME).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.last_name = last_name.strip()
 
+    bio = request.form.get("bio")
     if bio and bio.strip() != user_info.bio:
         if bio == " ":
             status = Status(StatusType.ERROR, EMPTY_BIO).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.bio = bio.strip()
 
+    username = request.form.get("username")
     if username and username.strip() != user_info.username:
         if username == " ":
             status = Status(StatusType.ERROR, EMPTY_USERNAME).get_status()
@@ -191,7 +172,7 @@ def change_personal_info():
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.username = username.strip()
 
-    if picture:
+    if picture := request.files.get("picture"):
         try:
             picture_url = upload_picture(picture)
             if user_info.picture_url:
@@ -205,7 +186,7 @@ def change_personal_info():
             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
-    if linkedin_url:
+    if linkedin_url := request.form.get("linkedin"):
         linkedin_url = add_https_prefix(linkedin_url)
         try:
             user_info.linkedin_url = linkedin_url
@@ -215,7 +196,7 @@ def change_personal_info():
     else:
         user_info.linkedin_url = None
 
-    if instagram_url:
+    if instagram_url := request.form.get("instagram"):
         instagram_url = add_https_prefix(instagram_url)
         try:
             user_info.instagram_url = instagram_url
@@ -225,7 +206,7 @@ def change_personal_info():
     else:
         user_info.instagram_url = None
 
-    if twitter_url:
+    if twitter_url := request.form.get("twitter"):
         twitter_url = add_https_prefix(twitter_url)
         try:
             user_info.twitter_url = twitter_url
@@ -235,12 +216,11 @@ def change_personal_info():
     else:
         user_info.twitter_url = None
 
-    user_info.email_public = bool(email_public)
-    user_info.linkedin_public = bool(linkedin_public)
-    user_info.instagram_public = bool(instagram_public)
-    user_info.twitter_public = bool(twitter_public)
-    user_info.refuse_all_invitations = bool(refuse_all_invitations)
-
+    user_info.email_public = bool(request.form.get("email_public"))
+    user_info.linkedin_public = bool(request.form.get("linkedin_public"))
+    user_info.instagram_public = bool(request.form.get("instagram_public"))
+    user_info.twitter_public = bool(request.form.get("twitter_public"))
+    user_info.refuse_all_invitations = bool(request.form.get("refuse_all_invitations"))
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Personal info successfully changed.").get_status()
@@ -401,8 +381,7 @@ def change_company_info(company_id):
             )
         )
 
-    picture = request.files.get("picture")
-    if picture:
+    if picture := request.files.get("picture"):
         try:
             picture_url = upload_picture(picture)
             if company.picture_url:
@@ -416,13 +395,11 @@ def change_company_info(company_id):
             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
-    country_id = request.form.get("country", type=int)
-    if not country_id:
+    if not (country_id := request.form.get("country", type=int)):
         status = Status(StatusType.ERROR, EMPTY_COUNTRY_ID).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    website_url = request.form.get("website", "")
-    if website_url:
+    if website_url := request.form.get("website", ""):
         website_url = add_https_prefix(website_url)
         try:
             company.website_url = website_url
@@ -432,8 +409,7 @@ def change_company_info(company_id):
     else:
         company.website_url = None
 
-    linkedin_url = request.form.get("linkedin", "")
-    if linkedin_url:
+    if linkedin_url := request.form.get("linkedin", ""):
         linkedin_url = add_https_prefix(linkedin_url)
         try:
             company.linkedin_url = linkedin_url
@@ -443,8 +419,7 @@ def change_company_info(company_id):
     else:
         company.linkedin_url = None
 
-    instagram_url = request.form.get("instagram", "")
-    if instagram_url:
+    if instagram_url := request.form.get("instagram", ""):
         instagram_url = add_https_prefix(instagram_url)
         try:
             company.instagram_url = instagram_url
@@ -454,8 +429,7 @@ def change_company_info(company_id):
     else:
         company.instagram_url = None
 
-    twitter_url = request.form.get("twitter", "")
-    if twitter_url:
+    if twitter_url := request.form.get("twitter", ""):
         twitter_url = add_https_prefix(twitter_url)
         try:
             company.twitter_url = twitter_url
@@ -513,15 +487,12 @@ def create_company_view():
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
-    industries = Industry.get_all()
-    rounds = Round.get_all()
-    countries = Country.get_all()
 
     return render_template(
         "settings/create_company.html",
-        industries=industries,
-        rounds=rounds,
-        countries=countries,
+        industries=Industry.get_all(),
+        rounds=Round.get_all(),
+        countries=Country.get_all(),
         status_type=status_type,
         msg=msg,
     )
@@ -535,8 +506,7 @@ def create_company():
     authenticated_user: User = current_user._get_current_object()  # type: ignore
     form_data = request.form
 
-    company_name = form_data.get("company_name")
-    if not company_name:
+    if not (company_name := form_data.get("company_name")):
         status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("settings.create_company_view", _external=False, **status))
 
@@ -544,8 +514,7 @@ def create_company():
         name=company_name,
     )
 
-    picture = request.files.get("picture") or None
-    if picture:
+    if picture := request.files.get("picture") or None:
         try:
             picture_url = upload_picture(picture)
             company.picture_url = picture_url
@@ -556,13 +525,11 @@ def create_company():
 
     preferred_round_id = request.form.get("round", type=int)
     industry_id = request.form.get("industry", type=int)
-
     if not preferred_round_id or not industry_id:
         status = Status(StatusType.ERROR, NO_ROUND_OR_INDUSTRY).get_status()
         return redirect(url_for("settings.create_company_view", _external=False, **status))
 
-    country_id = request.form.get("country", type=int)
-    if not country_id:
+    if not (country_id := request.form.get("country", type=int)):
         status = Status(StatusType.ERROR, EMPTY_COUNTRY_ID).get_status()
         return redirect(url_for("settings.create_company_view", _external=False, **status))
 
@@ -591,7 +558,7 @@ def create_company():
         return redirect(url_for("settings.create_company_view", _external=False, **status))
 
     existing_user_companies = UserCompany.get_by_user_id(user_id=authenticated_user.id)
-    is_primary = False if existing_user_companies else True
+    is_primary = not existing_user_companies
 
     user_company = UserCompany(
         user_id=authenticated_user.id,
@@ -616,9 +583,7 @@ def create_company():
 @check_verification
 def delete_company(id):
     company = Company.get_by_id(id)
-
     user_company = UserCompany.get_by_user_id_and_company_id(user_id=current_user.id, company_id=id)
-
     if not user_company:
         status = Status(StatusType.ERROR, DELETE_COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_list_view", _external=True, **status))
@@ -955,11 +920,6 @@ def edit_investor():
     selected_rounds = list(Round.get_by_id_list(selected_round_ids))
     selected_industries = list(Industry.get_by_id_list(selected_industry_ids))
     selected_notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
-
-    # existing_email = User.get_by_email(email) if email else None
-    # if existing_email and existing_email.id != investor.user_id:
-    #     status = Status(StatusType.ERROR, EMAIL_ALREADY_USED).get_status()
-    #     return redirect(url_for("settings.index", _external=True, **status))
 
     if not first_name:
         status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()

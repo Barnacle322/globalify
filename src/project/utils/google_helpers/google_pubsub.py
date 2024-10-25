@@ -46,6 +46,7 @@ def send_event(msg: str, **attributes) -> None:
     elif os.getenv("FLASK_DEBUG"):
         print("Pub/Sub is disabled in debug environment")
         return
+
     publish_future = publisher.publish(topic_path, msg.encode("utf-8"), **attributes)
     publish_future.add_done_callback(get_callback(publish_future, msg))
     publish_futures.append(publish_future)

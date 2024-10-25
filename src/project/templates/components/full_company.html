@@ -84,7 +84,7 @@
                         <button id="'bookmark-icon-company-' + company.id" @click="toggleCompanyBookmark(company.id)">
                             <svg
                                 :id="'bookmark-svg-company-' + company.id"
-                                :fill="bookmark ? '#FFC9FC' : 'none'"
+                                :fill="isBookmarked ? '#FFC9FC' : 'none'"
                                 xmlns="http://www.w3.org/2000/svg"
                                 viewBox="0 0 23 23"
                                 stroke-width="1.5"
@@ -341,3 +341,4 @@
     </article>
 </template>
 {% endmacro %}
+

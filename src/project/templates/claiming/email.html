@@ -5,7 +5,7 @@
 {% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
 content %}
 
-<main class="mx-auto flex w-full max-w-3xl flex-col items-center justify-center h-full gap-5 px-4 sm:px-9">
+<main class="mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center gap-5 px-4 sm:px-9">
     <section class="max-w-md">
         <a
             class="group flex items-center gap-1.5 text-gray-500 transition-colors ease-in-out"
@@ -23,14 +23,14 @@ content %}
             </svg>
             <span class="transition-colors ease-in-out group-hover:text-gray-700">Back</span>
         </a>
-        <article class="flex flex-col gap-2 mt-4">
+        <article class="mt-4 flex flex-col gap-2">
             <h1 class="text-3xl font-semibold md:text-5xl">Email Verification</h1>
-            <p class="max-w-xl text-base text-slate-600 md:text-lg mt-2">
+            <p class="mt-2 max-w-xl text-base text-slate-600 md:text-lg">
                 We will send a letter to <b>{{ investor.email }}</b>. After you've received the email, please confirm
                 the verification.
             </p>
         </article>
-        <div class="col-span-full empty:hidden mt-4 w-full">
+        <div class="col-span-full mt-4 w-full empty:hidden">
             {% if status_type %} {% if status_type == '3' %}
             <div class="rounded-xl text-red-500">{{ msg }}</div>
             {% elif status_type == '2' %}
@@ -39,7 +39,7 @@ content %}
             <div class="rounded-xl text-lime-500">{{ msg }}</div>
             {% endif %} {% endif %}
         </div>
-        <form id="claimForm" class="flex w-full flex-col mt-2" slug="{{ investor.slug }}">
+        <form id="claimForm" class="mt-2 flex w-full flex-col" slug="{{ investor.slug }}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="hidden" id="email" name="email" value="{{ investor.email }}" />
             <button
@@ -52,4 +52,3 @@ content %}
     </section>
 </main>
 {% endblock %}
-

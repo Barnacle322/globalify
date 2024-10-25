@@ -35,8 +35,10 @@ onboarding = Blueprint("onboarding", __name__)
 @onboarding.route("/", methods=["GET"])
 @login_required
 def index():
-    claim_request = ClaimRequest.get_with_investor_by_user_id(current_user.id)
+    if current_user.is_authenticated and current_user.user_info.is_complete:
+        return redirect(url_for("main.search"))
 
+    claim_request = ClaimRequest.get_with_investor_by_user_id(current_user.id)
     return render_template("onboarding/index.html", claim_request=claim_request)
 
 

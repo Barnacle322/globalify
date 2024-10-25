@@ -81,12 +81,9 @@ createApp({
         async handleInvestorBookmark(data) {
             try {
                 if (data.status) {
-                    console.log(typeof data.investorId);
                     this.investorBookmakrIds.push(data.investorId); // Corrected typo
-                    console.log(this.investorBookmakrIds);
                 } else {
                     this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId); // Corrected typo
-                    console.log(this.investorBookmakrIds);
                 }
             } catch (error) {
                 console.error("Error handling investor bookmark:", error);
@@ -393,6 +390,7 @@ createApp({
         removePageParam(params) {
             params.delete("page");
             params.delete("investor");
+            params.delete("company");
             return params;
         },
         applyQueryParams(url) {
@@ -403,7 +401,7 @@ createApp({
             return url;
         },
         updateLinksWithQueryParams() {
-            document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
+            document.querySelectorAll("a[href^=\"/\"]:not([href^=\"//\"])").forEach((link) => {
                 if (!link.getAttribute("href").includes("search")) return;
                 link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
             });

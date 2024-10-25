@@ -764,7 +764,7 @@ const FullInvestmentFirm = defineComponent({
 const FullCompany = defineComponent({
     template: "#full-company-template",
     props: ["slug"],
-    emits: ["close-company"],
+    emits: ["close-company", "bookmarked"],
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
     },
@@ -807,6 +807,31 @@ const FullCompany = defineComponent({
                 this.isLoading = false;
             }
         },
+        async toggleCompanyBookmark(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/company/${companyId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    var svg = document.getElementById(`bookmark-svg-company-${companyId}`);
+                    if (data[0].bookmarked) {
+                        svg.style.fill = "#FFC9FC";
+                        this.$emit("bookmarked", { companyId: companyId, status: true });
+                    } else {
+                        svg.style.fill = "none";
+                        this.$emit("bookmarked", { companyId: companyId, status: false });
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
         handleKeyDown(event) {
             if (event.key === "Escape") {
                 this.$emit("close-company");
@@ -823,8 +848,8 @@ const FullCompany = defineComponent({
         return {
             isExpanded: false,
             isLoading: false,
+            bookmark: null,
             company: null,
         };
     },
 });
-

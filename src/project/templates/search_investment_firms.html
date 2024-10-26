@@ -568,8 +568,8 @@
                             </div> -->
                         </div>
                     </section>
-                    <section class="mx-auto px-4 py-12">
-                        <div class="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <section class="mx-auto px-4 py-12 @container">
+                        <div class="relative grid gap-4 @xl:grid-cols-2 @5xl:grid-cols-3">
                             {% if investment_firms and not unpaid %} {% for investment_firm in investment_firms %}
                             <article
                                 class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out"
@@ -766,4 +766,3 @@
         </div>
     </body>
 </html>
-

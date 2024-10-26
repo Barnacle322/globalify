@@ -356,7 +356,7 @@ def apple_login():
     nonce = secrets.token_urlsafe(16)
     session["apple_nonce"] = nonce
 
-    return oauth.apple.authorize_redirect(
+    return oauth.apple.authorize_redirect(  # type: ignore
         redirect_uri=url_for("auth.apple_callback", _external=True),
         nonce=nonce,
     )
@@ -366,11 +366,11 @@ def apple_login():
 @csrf.exempt
 def apple_callback():
     try:
-        token = oauth.apple.authorize_access_token()
-        nonce = session.pop("apple_nonce", None)  # Retrieve the nonce from the session
+        token = oauth.apple.authorize_access_token()  # type: ignore
+        nonce = session.pop("apple_nonce", None)
         if not nonce:
             raise ValueError("Nonce not found in session")
-        apple_user_info = oauth.apple.parse_id_token(token, nonce=nonce)  # Pass the nonce to parse_id_token
+        apple_user_info = oauth.apple.parse_id_token(token, nonce=nonce)  # type: ignore
     except Exception as e:
         print(f"Error during Apple OAuth callback: {e}")
         return redirect(url_for("auth.login"))

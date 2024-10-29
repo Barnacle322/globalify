@@ -1,7 +1,9 @@
 import json
+import os
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
 
+import requests
 from flask import (
     Blueprint,
     current_app,
@@ -545,10 +547,13 @@ def claiming_manual_view(slug):
     if not investor:
         return redirect(url_for("main.search"))
 
+    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
+
     return render_template(
         "claiming/manual.html",
         investor=investor,
         status_type=status_type,
+        captcha_site_key=captcha_site_key,
         msg=msg,
     )
 
@@ -558,6 +563,17 @@ def claiming_manual_view(slug):
 def claiming_manual(slug):
     form_data = request.get_json()
     email = form_data.get("email")
+    recaptcha_response = form_data.get("recaptcha")
+
+    secret_key = os.getenv("_GOOGLE_RECAPTCHA_SECRET_KEY_DEV")
+    captcha_verification_url = "https://www.google.com/recaptcha/api/siteverify"
+    payload = {"secret": secret_key, "response": recaptcha_response}
+    response = requests.post(captcha_verification_url, data=payload)
+    result = response.json()
+
+    if not result.get("success"):
+        status = Status(StatusType.ERROR, "CAPTCHA verification failed.").get_status()
+        return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
 
     existing_claim = Investor.get_by_user_id(current_user.id)
     if existing_claim:
@@ -621,16 +637,33 @@ def claiming_email_view(slug):
         status_type = query.get("type")
         msg = query.get("msg")
 
+    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
+
     investor = Investor.get_by_slug(slug)
     if not investor:
         return redirect(url_for("main.search"))
 
-    return render_template("claiming/email.html", investor=investor, status_type=status_type, msg=msg)
+    return render_template(
+        "claiming/email.html", investor=investor, status_type=status_type, msg=msg, captcha_site_key=captcha_site_key
+    )
 
 
 @main.post("/investor/<slug>/claim/email")
 @login_required
 def claiming_email(slug):
+    form_data = request.get_json()
+    recaptcha_response = form_data.get("recaptcha")
+
+    secret_key = os.getenv("_GOOGLE_RECAPTCHA_SECRET_KEY_DEV")
+    captcha_verification_url = "https://www.google.com/recaptcha/api/siteverify"
+    payload = {"secret": secret_key, "response": recaptcha_response}
+    response = requests.post(captcha_verification_url, data=payload)
+    result = response.json()
+
+    if not result.get("success"):
+        status = Status(StatusType.ERROR, "CAPTCHA verification failed.").get_status()
+        return redirect(url_for("main.claiming_email_view", slug=slug, _external=False, **status))
+
     investor = Investor.get_by_slug(slug)
     if not investor or investor.user_id:
         return redirect(url_for("main.search"))

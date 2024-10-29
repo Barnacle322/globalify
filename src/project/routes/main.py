@@ -907,7 +907,7 @@ def toggle_bookmark_company(company_id):
     if not company:
         return jsonify({"status": "error", "message": "Company not found."}), 404
 
-    bookmark = CompanyBookmark.get_by_id(company.id, current_user.id)
+    bookmark = CompanyBookmark.get_by_ids(company.id, current_user.id)
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()

@@ -442,7 +442,7 @@ def change_company_info(company_id):
     if user_company.role in [CompanyRole.OWNER, CompanyRole.ADMIN]:
         is_public = request.form.get("is_public", False, type=bool)
         if is_public is False:
-            UserCompany.set_is_public_false_by_company_id(company_id=company_id)
+            UserCompany.set_private(company_id=company_id)
     else:
         status = Status(StatusType.ERROR, EDIT_COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))

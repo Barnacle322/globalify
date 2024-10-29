@@ -279,18 +279,6 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
         ).all()
 
     @staticmethod
-    def get_unread(user_id: int, destination: NotificationDestination) -> Sequence[Notification] | None:
-        return db.session.scalars(
-            db.select(Notification)
-            .where(
-                Notification.user_id == user_id,
-                or_(Notification.destination == destination, Notification.destination == NotificationDestination.ALL),
-                Notification.is_read.is_(False),
-            )
-            .order_by(desc(Notification.created_at))
-        ).all()
-
-    @staticmethod
     def mark_notifications_as_read(user_id: int) -> None:
         db.session.execute(update(Notification).where(Notification.user_id == user_id).values(is_read=True))
         db.session.commit()
@@ -823,7 +811,7 @@ class CompanyBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
         )
 
     @staticmethod
-    def get_by_id(company_id: int, user_id: int) -> CompanyBookmark | None:
+    def get_by_ids(company_id: int, user_id: int) -> CompanyBookmark | None:
         return db.session.scalars(
             db.select(CompanyBookmark).where(
                 CompanyBookmark.company_id == company_id, CompanyBookmark.user_id == user_id
@@ -925,7 +913,7 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
         )
 
     @staticmethod
-    def set_is_public_false_by_company_id(company_id: int) -> None:
+    def set_private(company_id: int) -> None:
         db.session.execute(update(UserCompany).where(UserCompany.company_id == company_id).values(is_public=False))
         db.session.commit()
 

@@ -183,10 +183,6 @@ class NotableInvestment(db.Model):
         return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.name == name))
 
     @staticmethod
-    def get_by_names(names: list[str]) -> Sequence[NotableInvestment]:
-        return db.session.scalars(db.select(NotableInvestment).where(NotableInvestment.name.in_(names))).all()
-
-    @staticmethod
     def get_by_id_list(id_list) -> Sequence[NotableInvestment]:
         if len(id_list) == 0:
             return []

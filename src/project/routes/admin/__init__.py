@@ -86,15 +86,15 @@ def edit_claim_request(id):
     form_data = request.get_json()
     claim_status = form_data.get("status")
 
-    if claim_status not in ["approved", "rejected"]:
+    if claim_status not in [RequestStatus.APPROVED.value, RequestStatus.REJECTED.value]:
         status = Status(StatusType.ERROR, INVALID_CLAIM_REQUEST).get_status()
         return redirect(url_for("admin.claim_requests_view", _external=True, **status))
-    elif claim_status == "approved":
+    elif claim_status == RequestStatus.APPROVED.value:
         claim_request.status = RequestStatus.APPROVED
         claim_request.approved_at = datetime.now(UTC)
         claim_request.approved_by = current_user.user_info.username
         investor.user = claim_request.user
-    elif claim_status == "rejected":
+    elif claim_status == RequestStatus.REJECTED.value:
         claim_request.status = RequestStatus.REJECTED
         investor.user = None
     db.session.commit()

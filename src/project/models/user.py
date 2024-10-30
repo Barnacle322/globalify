@@ -587,7 +587,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
         industries: list[str] | None = None,
         per_page: int = 12,
         page: int = 1,
-        is_public: bool | None = None,
+        is_public: bool = True,
     ):
         try:
             search_builder = (
@@ -597,10 +597,8 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
                 .filter_by("preferred_round", preferred_rounds, exclusivity=False)
                 .filter_by("industry", industries, exclusivity=False)
                 .filter_by("country", countries, exclusivity=False)
+                .filter_by_public(is_public)
             )
-
-            if is_public is not None:
-                search_builder = search_builder.filter_by_public(is_public)
 
             search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
             results = search_builder.search()

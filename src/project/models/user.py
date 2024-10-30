@@ -999,9 +999,16 @@ class ClaimRequest(db.Model):
         return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.user_id == user_id))
 
     @staticmethod
-    def get_with_investor_by_user_id(user_id: int) -> ClaimRequest | None:
-        return db.session.scalar(
-            db.select(ClaimRequest).join(ClaimRequest.investor).where(ClaimRequest.user_id == user_id)
+    def get_with_investor_by_user_id(user_id: int) -> Sequence[ClaimRequest]:
+        return (
+            db.session.execute(
+                db.select(ClaimRequest)
+                .join(ClaimRequest.investor)
+                .where(ClaimRequest.user_id == user_id)
+                .order_by(ClaimRequest.requested_at.desc())
+            )
+            .scalars()
+            .all()
         )
 
     @staticmethod

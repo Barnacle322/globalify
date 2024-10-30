@@ -1537,6 +1537,9 @@ select {
 .mt-auto {
   margin-top: auto;
 }
+.ml-4 {
+  margin-left: 1rem;
+}
 .line-clamp-2 {
   overflow: hidden;
   display: -webkit-box;

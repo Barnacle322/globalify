@@ -6,6 +6,21 @@
 <main class="mx-auto flex h-full max-w-7xl flex-col items-center justify-center overflow-x-hidden p-4">
     <div class="mx-auto flex w-full max-w-xl flex-col gap-2">
         <h1 class="w-fit text-3xl font-medium">How do you wanna get started?</h1>
+        {% if last_claim_request.status.value == "pending" %}
+        <a
+            class="mt-7 flex w-full items-center gap-4 rounded-md border border-gray-300 px-4 py-5 transition-colors ease-in-out cursor-not-allowed opacity-50"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368">
+                <path
+                    d="M320-160h320v-120q0-66-47-113t-113-47q-66 0-113 47t-47 113v120Zm160-360q66 0 113-47t47-113v-120H320v120q0 66 47 113t113 47ZM160-80v-80h80v-120q0-61 28.5-114.5T348-480q-51-32-79.5-85.5T240-680v-120h-80v-80h640v80h-80v120q0 61-28.5 114.5T612-480q51 32 79.5 85.5T720-280v120h80v80H160Zm320-80Zm0-640Z"
+                />
+            </svg>
+            <div class="flex flex-col gap-1">
+                <span class="font-medium">Processing Request</span>
+                <span class="text-sm text-gray-600">Please wait while we process your request...</span>
+            </div>
+        </a>
+        {% else %}
         <a
             class="mt-7 flex w-full items-center gap-4 rounded-md border border-gray-300 px-4 py-5 transition-colors ease-in-out hover:border-sky-300 hover:bg-sky-50"
             href="investor?next=/search"
@@ -29,6 +44,7 @@
                 <span class="text-sm text-gray-600">Invest in promising startups and companies</span>
             </div>
         </a>
+        {% endif %}
         <a
             class="flex w-full items-center gap-4 rounded-md border border-gray-300 px-4 py-5 transition-colors ease-in-out hover:border-sky-300 hover:bg-sky-50"
             href="basic?next=/settings/company/create"
@@ -79,8 +95,9 @@
         </a>
     </div>
 
-    {% if claim_request %}
+    {% if claim_requests %}
     <h2 class="justify-center pt-6 text-xl font-medium">Claim status</h2>
+    {% for claim_request in claim_requests %}
     <div class="mt-3 flex w-full max-w-xl justify-between rounded-md border border-gray-300 p-4">
         <span>{{ claim_request.investor.full_name }}</span>
         {% if claim_request.status.value == "pending"%}
@@ -90,7 +107,7 @@
         {% endif %}
     </div>
 
-    <p class="mt-3 w-full max-w-xl text-gray-600">
+    <p class="mt-3 ml-4 w-full max-w-xl text-gray-600">
         <!-- prettier-ignore  -->
         {% if claim_request.status.value == "pending"%}
         Your claim request is pending. You will be notified once it is approved.
@@ -98,6 +115,6 @@
         Your claim request has been rejected. Please contact support for more information.
         {% endif %}
     </p>
-    {% endif %}
+    {% endfor %} {% endif %}
 </main>
 {% endblock %}

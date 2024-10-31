@@ -19,6 +19,7 @@ from ...utils.enums import (
 )
 from ...utils.errors.error_messages import (
     EMPTY_FIRSTNAME,
+    EMPTY_LASTNAME,
     INVESTOR_BACKUP_NOT_FOUND,
     INVESTOR_NOT_FOUND,
 )
@@ -97,9 +98,14 @@ def update_investor(id):
         status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
-    first_name = form_data.get("first_name", investor.first_name)
+    first_name = form_data.get("first_name", investor.first_name).strip()
     if not first_name:
         status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
+        return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
+
+    last_name = form_data.get("last_name", investor.last_name).strip()
+    if not last_name:
+        status = Status(StatusType.ERROR, EMPTY_LASTNAME).get_status()
         return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
 
     investor_backup = InvestorBackup.get_by_investor_id(investor.id)
@@ -162,14 +168,19 @@ def update_investor(id):
         if investor_point_origin:
             db.session.delete(investor_point_origin)
 
-    investor.first_name = first_name
-    investor.last_name = form_data.get("last_name", investor.last_name)
-
     slug = form_data.get("slug", investor.slug) or None
-    if not slug:
-        investor.set_slug()
-    else:
+    old_slug = investor.slug
+
+    if slug and slug != investor.slug:
         investor.slug = slug
+
+    if first_name != investor.first_name or last_name != investor.last_name:
+        investor.first_name = first_name
+        investor.last_name = last_name
+        if not slug or slug == old_slug:
+            investor.set_slug()
+    elif not slug:
+        investor.set_slug()
 
     investor.firm_name = form_data.get("firm_name", investor.firm_name) or None
     investor.position = form_data.get("position", investor.position) or None

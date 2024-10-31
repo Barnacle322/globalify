@@ -355,17 +355,13 @@ def change_company_info(company_id):
     company = user_company.company
 
     company_name = request.form.get("company-name", "")
+
     if company_name and company_name.strip() != company.name:
         if company_name == " ":
             status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
             return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
         company.name = company_name.strip()
-
-    slug = request.form.get("slug") or None
-    if not slug:
         company.set_slug()
-    else:
-        company.slug = slug
 
     preferred_round_id = request.form.get("round", type=int)
     industry_id = request.form.get("industry", type=int)
@@ -896,8 +892,8 @@ def edit_investor():
 
     form_data = request.get_json()
 
-    first_name = form_data.get("first_name")
-    last_name = form_data.get("last_name") or None
+    first_name = form_data.get("first_name").strip()
+    last_name = form_data.get("last_name").strip() or None
     firm_name = form_data.get("firm_name") or None
     position = form_data.get("position") or None
     about = form_data.get("about") or None
@@ -925,9 +921,10 @@ def edit_investor():
         status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
         return redirect(url_for("settings.index", _external=True, **status))
 
-    investor.first_name = first_name
-    investor.last_name = last_name
-    investor.set_slug()
+    if first_name != investor.first_name or last_name != investor.last_name:
+        investor.first_name = first_name
+        investor.last_name = last_name
+        investor.set_slug()
     investor.firm_name = firm_name
     investor.position = position
     investor.about = about

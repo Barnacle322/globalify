@@ -109,24 +109,15 @@ def update_company_view(id):
 def update_company(id):
     form_data = request.get_json()
 
-    print("\n\n\n\n\n\n\n\n\n\n")
-    print(form_data)
-
     company = Company.get_by_id(id)
     if not company:
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("admin.company.index", _external=True, **status))
 
-    name = form_data.get("name", company.name)
-    if not name:
+    company_name = form_data.get("name", company.name).strip()
+    if not company_name:
         status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("admin.company.update_company_view", id=id, _external=True, **status))
-
-    slug = form_data.get("slug", company.slug) or None
-    if not slug:
-        company.set_slug()
-    else:
-        company.slug = slug
 
     website_url = form_data.get("website", company.website_url) or None
     if website_url:
@@ -187,7 +178,13 @@ def update_company(id):
             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
             return redirect(url_for("admin.company.update_company_view", _external=False, **status))
 
-    company.name = name
+    slug = form_data.get("slug") or None
+    if slug and slug != company.slug:
+        company.slug = slug
+    elif company_name != company.name:
+        company.name = company_name.strip()
+        company.set_slug()
+
     company.description = form_data.get("description", company.description) or None
     company.number_of_employees = int(form_data.get("number_of_employees", company.number_of_employees) or 0)
     company.website_url = website_url

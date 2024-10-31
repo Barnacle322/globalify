@@ -17,11 +17,11 @@ from ..models import (
     NotableInvestment,
     Round,
     User,
-    UserInfo,
+    UserInfo, Notification,
 )
 from ..utils.enums import (
     Events,
-    OauthProvider,
+    OauthProvider, NotificationDestination,
 )
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
@@ -162,6 +162,18 @@ def investor():
 
         if authenticated_user.oauth_provider == OauthProvider.GOOGLE:
             authenticated_user.is_verified = True
+            db.session.commit()
+            notification = Notification(
+                user=authenticated_user,
+                json_data={"title": "Info",
+                    "msg": "Welcome to our platform. You have successfully completed registration. Explore the world of investment with us!",
+                    "type": "system",
+                    "item": {"type": "info", "url": "/search"}
+                    },
+                destination=NotificationDestination.SEARCH,
+
+            )
+            db.session.add(notification)
             db.session.commit()
         elif not authenticated_user.is_verified:
             verification = EmailVerification(user_id=authenticated_user.id)

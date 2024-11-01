@@ -40,7 +40,7 @@ def index():
 
     claim_requests = ClaimRequest.get_with_investor_by_user_id(current_user.id)
 
-    last_claim_request = claim_requests[0]
+    last_claim_request = claim_requests[0] if claim_requests else None
 
     return render_template(
         "onboarding/index.html", claim_requests=claim_requests, last_claim_request=last_claim_request

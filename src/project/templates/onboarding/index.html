@@ -6,7 +6,7 @@
 <main class="mx-auto flex h-full max-w-7xl flex-col items-center justify-center overflow-x-hidden p-4">
     <div class="mx-auto flex w-full max-w-xl flex-col gap-2">
         <h1 class="w-fit text-3xl font-medium">How do you wanna get started?</h1>
-        {% if last_claim_request.status.value == "pending" %}
+        {% if last_claim_request and last_claim_request.status.value == "pending" %}
         <a
             class="mt-7 flex w-full items-center gap-4 rounded-md border border-gray-300 px-4 py-5 transition-colors ease-in-out cursor-not-allowed opacity-50"
         >

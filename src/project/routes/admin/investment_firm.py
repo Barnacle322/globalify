@@ -93,16 +93,10 @@ def update_investment_firm(id):
         status = Status(StatusType.ERROR, INVESTMENT_FIRM_NOT_FOUND).get_status()
         return redirect(url_for("admin.investment_firm.index", _external=True, **status))
 
-    name = form_data.get("name", investment_firm.name)
-    if not name:
+    investment_firm_name = form_data.get("name", investment_firm.name).strip()
+    if not investment_firm_name:
         status = Status(StatusType.ERROR, EMPTY_INVESTMENT_FIRM_NAME).get_status()
         return redirect(url_for("admin.investment_firm.update_investment_firm_view", id=id, _external=True, **status))
-
-    slug = form_data.get("slug", investment_firm.slug) or None
-    if not slug:
-        investment_firm.set_slug()
-    else:
-        investment_firm.slug = slug
 
     email = form_data.get("email", investment_firm.email) or None
     if email:
@@ -113,7 +107,13 @@ def update_investment_firm(id):
                 url_for("admin.investment_firm.update_investment_firm_view", id=id, _external=True, **status)
             )
 
-    investment_firm.name = name
+    slug = form_data.get("slug") or None
+    if slug and slug != investment_firm.slug:
+        investment_firm.slug = slug
+    elif investment_firm_name != investment_firm.name:
+        investment_firm.name = investment_firm_name
+        investment_firm.set_slug()
+
     investment_firm.about = form_data.get("about", investment_firm.about) or None
     investment_firm.website = form_data.get("website", investment_firm.website) or None
     investment_firm.email = email

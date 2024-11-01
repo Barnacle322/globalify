@@ -1468,6 +1468,9 @@ select {
 .ml-3 {
   margin-left: 0.75rem;
 }
+.ml-4 {
+  margin-left: 1rem;
+}
 .ml-auto {
   margin-left: auto;
 }
@@ -1536,9 +1539,6 @@ select {
 }
 .mt-auto {
   margin-top: auto;
-}
-.ml-4 {
-  margin-left: 1rem;
 }
 .line-clamp-2 {
   overflow: hidden;

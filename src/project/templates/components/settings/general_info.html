@@ -1,0 +1,118 @@
+{% macro render(user) %}
+<template id="settings-general-info-template">
+    <div class="mx-auto flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
+        <input type="hidden" ref="userFirstName" value="{{ user.user_info.first_name }}" />
+        <input type="hidden" ref="userLastName" value="{{ user.user_info.last_name }}" />
+
+        <div class="flex flex-col gap-2">
+            <h1 class="text-4xl font-medium">Step 1 of 3: General info</h1>
+            <span class="">Please tell us more about yourself</span>
+        </div>
+
+        <div class="grid grid-cols-6 gap-x-2 gap-y-1">
+            <div class="col-span-full sm:col-span-3">
+                <label class="text-sm font-medium text-gray-700" for="first_name">First Name*</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="first_name"
+                    placeholder="John"
+                    required
+                    v-model="data.firstName"
+                />
+                <span v-if="errors.firstName" class="text-sm text-red-500" v-text="errors.firstName"></span>
+            </div>
+            <div class="col-span-full sm:col-span-3">
+                <label class="text-sm font-medium text-gray-700" for="last_name">Last Name</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="last_name"
+                    placeholder="Doe"
+                    required
+                    v-model="data.lastName"
+                />
+            </div>
+
+            <div class="col-span-full">
+                <label class="text-sm font-medium text-gray-700" for="firm_name">Firm Name*</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="firm_name"
+                    placeholder="ACME Inc."
+                    v-model="data.firmName"
+                />
+            </div>
+            <div class="col-span-full sm:col-span-3">
+                <label class="text-sm font-medium text-gray-700" for="position">Position</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="position"
+                    placeholder="CEO"
+                    v-model="data.position"
+                />
+            </div>
+            <div class="col-span-full sm:col-span-3">
+                <label class="text-sm font-medium text-gray-700" for="location">Location</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="location"
+                    placeholder="New York, NY"
+                    v-model="data.location"
+                />
+            </div>
+            <div class="col-span-full">
+                <label class="text-sm font-medium text-gray-700" for="about">About</label>
+                <textarea
+                    class="w-full rounded-lg"
+                    type="text"
+                    id="about"
+                    oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px';"
+                    placeholder="John Doe is good person."
+                    v-model="data.about"
+                ></textarea>
+            </div>
+        </div>
+
+        <div class="flex justify-between">
+            <a
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
+                href="/settings"
+            >
+                <div class="flex items-center gap-2">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-5"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    <span>Back</span>
+                </div>
+            </a>
+            <button class="mt-4 w-fit rounded-md bg-gray-900 px-3 py-2 text-white hover:bg-gray-800" @click="nextPage">
+                <div class="flex items-center gap-2">
+                    <span> Continue </span>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-5"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </div>
+            </button>
+        </div>
+    </div>
+</template>
+
+{% endmacro %}

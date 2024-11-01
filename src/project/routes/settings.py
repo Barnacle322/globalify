@@ -1098,3 +1098,72 @@ def search_user(search_input):
         )
         user_list.append(user_element.model_dump())
     return jsonify({"users": user_list})
+
+
+@settings.route("/investor/create", methods=["GET", "POST"])
+@login_required
+@check_user_info_complete
+@check_verification
+def investor():
+    authenticated_user: User = current_user._get_current_object()  # type: ignore
+
+    if request.method == "POST":
+        form_data = request.get_json()
+
+        first_name = form_data.get("firstName")
+        if not first_name:
+            return jsonify({"error": "First name is required"}), 400
+
+        email = form_data.get("email") or None
+        if email:
+            existing_investor_by_email = Investor.get_by_email(email)
+            if existing_investor_by_email:
+                return jsonify({"error": "Email is already in use"}), 400
+
+        investor = Investor(
+            user_id=authenticated_user.id,
+            first_name=first_name,
+            last_name=form_data.get("lastName"),
+            slug=form_data.get("slug") or None,
+            firm_name=form_data.get("firmName") or None,
+            position=form_data.get("position") or None,
+            about=form_data.get("about") or None,
+            location=form_data.get("location") or None,
+            n_investments=int(form_data.get("nInvestments") or 0),
+            n_exits=int(form_data.get("nIxits") or 0),
+            min_investment=int(form_data.get("minInvestment") or 0),
+            max_investment=int(form_data.get("maxInvestment") or 0),
+            website=form_data.get("website") or None,
+            linkedin=form_data.get("linkedin") or None,
+            twitter=form_data.get("twitter") or None,
+            email=email,
+            phone_number=form_data.get("phoneNumber") or None,
+            rounds=list(Round.get_by_id_list(form_data.get("selectedRounds") or [])),
+            industries=list(Industry.get_by_id_list(form_data.get("selectedIndustries") or [""])),
+            notable_investments=list(
+                NotableInvestment.get_by_id_list(form_data.get("selectedNotableInvestments") or [])
+            ),
+        )
+
+        try:
+            db.session.add(investor)
+            db.session.commit()
+        except Exception:
+            return redirect(url_for("settings.index"))
+
+        investor.set_slug()
+
+        try:
+            investor.upsert_data()
+        except Exception:
+            return redirect(url_for("settings.index"))
+
+        return redirect(url_for("settings.index"))
+
+    return render_template(
+        "settings/create_investor.html",
+        user=authenticated_user,
+        countries=Country.get_all(),
+        industries=Industry.get_all(),
+        rounds=Round.get_all(),
+    )

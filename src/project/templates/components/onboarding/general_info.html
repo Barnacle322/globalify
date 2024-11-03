@@ -1,6 +1,6 @@
-{% macro render(user) %}
+{% macro render(user, href) %}
 <template id="general-info-template">
-    <div class="mx-auto flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
+    <div class="mx-auto mt-4 flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
         <input type="hidden" ref="userFirstName" value="{{ user.user_info.first_name }}" />
         <input type="hidden" ref="userLastName" value="{{ user.user_info.last_name }}" />
 
@@ -78,6 +78,26 @@
         </div>
 
         <div class="flex justify-between">
+            {% if href %}
+            <a
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
+                href="{{ href }}"
+            >
+                <div class="flex items-center gap-2">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-5"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    <span>Back</span>
+                </div>
+            </a>
+            {% else %}
             <button
                 class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
                 @click="previousPage"
@@ -96,6 +116,7 @@
                     <span>Back</span>
                 </div>
             </button>
+            {% endif %}
             <button class="mt-4 w-fit rounded-md bg-gray-900 px-3 py-2 text-white hover:bg-gray-800" @click="nextPage">
                 <div class="flex items-center gap-2">
                     <span> Continue </span>
@@ -116,4 +137,3 @@
 </template>
 
 {% endmacro %}
-

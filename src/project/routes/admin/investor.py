@@ -131,6 +131,7 @@ def update_investor(id):
     investor_backup.rounds = investor.rounds
     investor_backup.industries = investor.industries
     investor_backup.user = investor.user
+    investor_backup.is_public = investor.is_public
 
     db.session.add(investor_backup)
 
@@ -161,6 +162,7 @@ def update_investor(id):
             investor_point_origin.notable_investments = investor.notable_investments
             investor_point_origin.rounds = investor.rounds
             investor_point_origin.industries = investor.industries
+            investor_point_origin.is_public = investor.is_public
             db.session.add(investor_point_origin)
     else:
         investor.user = None
@@ -202,6 +204,7 @@ def update_investor(id):
     investor.notable_investments = list(
         NotableInvestment.get_by_id_list(form_data.get("notable_investments", investor.notable_investments) or [])
     )
+    investor.is_public = form_data.get("is_public", investor.is_public)
 
     try:
         db.session.commit()

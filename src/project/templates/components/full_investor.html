@@ -332,7 +332,7 @@
                     <!-- The additional check is to prevent an almost impossible edge case -->
                     <!-- Where a user with claimed invesor profile is doing onboarding again -->
                     <article
-                        v-if="investor.user_id == {{ user.id }}"
+                        v-if="investor.user_id == {{ user.id }} && !rendercontacts"
                         class="shadow-card w-full rounded-xl bg-white p-5"
                     >
                         <h2 class="text-xl font-medium">Hey! You aren't supposed to be here!</h2>

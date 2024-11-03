@@ -49,8 +49,9 @@ createApp({
             const selectedNotableInvestments = Array.from(
                 document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
+            const is_public = document.getElementById("is_public");
 
-            let dataString = JSON.stringify({
+            let data = {
                 first_name: first_name,
                 last_name: last_name,
                 slug: slug,
@@ -71,7 +72,13 @@ createApp({
                 rounds: selectedRounds,
                 industries: selectedIndustries,
                 notable_investments: selectedNotableInvestments,
-            });
+            };
+
+            if (is_public) {
+                data.is_public = is_public.checked;
+            }
+
+            let dataString = JSON.stringify(data);
 
             try {
                 const response = await fetch("", {
@@ -162,8 +169,9 @@ createApp({
             const selectedNotableInvestments = Array.from(
                 document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
+            const is_public = document.getElementById("is_public");
 
-            const dataString = JSON.stringify({
+            let data = {
                 name: name,
                 slug: slug,
                 about: about,
@@ -179,7 +187,13 @@ createApp({
                 rounds: selectedRounds,
                 industries: selectedIndustries,
                 notable_investments: selectedNotableInvestments,
-            });
+            };
+
+            if (is_public) {
+                data.is_public = is_public.checked;
+            }
+
+            let dataString = JSON.stringify(data);
 
             try {
                 const response = await fetch("", {
@@ -507,4 +521,3 @@ createApp({
         };
     },
 }).mount("#app");
-

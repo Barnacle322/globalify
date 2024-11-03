@@ -468,7 +468,27 @@
                             placeholder="+1 123 456 7890"
                         />
                     </div>
+                    <div class="col-span-full">
+                        <div>
+                            <span class="block text-sm font-medium leading-6">Visibility Settings</span>
+                            <span class="block text-sm font-medium leading-6 text-gray-500"
+                                >You can make your investment firm visible in search results.</span
+                            >
+                        </div>
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if investment_firm.is_public %}
+                            <input id="is_public" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="is_public" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Show investment firm in search</span>
+                        </label>
+                    </div>
                 </div>
+
                 <button
                     id="saveButton"
                     @click="submitInvestmentFirmData"

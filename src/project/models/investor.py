@@ -13,7 +13,7 @@ from typing import Any
 from geopy.distance import geodesic
 from more_itertools import chunked
 from slugify import slugify
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, exists, func
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, exists, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import (
     Mapped,
@@ -268,6 +268,7 @@ class InvestorBase(db.Model):
     min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     location: Mapped[str | None] = mapped_column(String, nullable=True)
+    is_public = mapped_column(Boolean, nullable=False, default=True)
 
 
 class Investor(InvestorBase):
@@ -435,9 +436,10 @@ class Investor(InvestorBase):
         industries: list[str] | None = None,
         per_page: int = 12,
         page: int = 1,
+        is_public: bool | None = None,
     ):
         try:
-            results = (
+            search_builder = (
                 SearchBuilder("investors")
                 .query(query_string)
                 .query_by(query_by)
@@ -445,10 +447,13 @@ class Investor(InvestorBase):
                 .filter_by("rounds", rounds, exclusivity=rounds_exclusive)
                 .filter_by("industries", industries, exclusivity=industries_exclusive)
                 .filter_by("countries", countries, exclusivity=False)
-                .sort_by(sort_by, sort_desc)
-                .page(page, per_page)
-                .search()
             )
+
+            if is_public is not None:
+                search_builder = search_builder.filter_by_public(is_public)
+
+            search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
+            results = search_builder.search()
 
         except Exception:
             results = {"found": 0, "page": page, "per_page": per_page, "hits": []}
@@ -987,6 +992,8 @@ class Investor(InvestorBase):
             investor_object["notable_investments"] = [
                 notable_investment.name for notable_investment in self.notable_investments
             ]
+        if self.is_public:
+            investor_object["is_public"] = self.is_public
 
         data = [investor_object]
 
@@ -1034,6 +1041,7 @@ class Investor(InvestorBase):
                     {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
                     {"name": "industries", "type": "string[]", "facet": True, "optional": True},
                     {"name": "notable_investments", "type": "string[]", "optional": True},
+                    {"name": "is_public", "type": "bool", "optional": True},
                     {
                         "name": "embedding",
                         "type": "float[]",
@@ -1097,6 +1105,8 @@ class Investor(InvestorBase):
                     investor_object["notable_investments"] = [
                         notable_investment.name for notable_investment in investor.notable_investments
                     ]
+                if investor.is_public:
+                    investor_object["is_public"] = investor.is_public
                 data.append(investor_object)
 
             result = upsert_documents("investors", data)
@@ -1197,6 +1207,7 @@ class InvestmentFirm(db.Model):
     _country: Mapped[str | None] = mapped_column(String, nullable=True)
     bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investment_firm_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investment_firm_round)
@@ -1352,9 +1363,10 @@ class InvestmentFirm(db.Model):
         industries: list[str] | None = None,
         per_page: int = 12,
         page: int = 1,
+        is_public: bool | None = None,
     ):
         try:
-            results = (
+            search_builder = (
                 SearchBuilder("investment_firms")
                 .query(query_string)
                 .query_by(query_by)
@@ -1362,10 +1374,13 @@ class InvestmentFirm(db.Model):
                 .filter_by("rounds", rounds, exclusivity=rounds_exclusive)
                 .filter_by("industries", industries, exclusivity=industries_exclusive)
                 .filter_by("countries", countries, exclusivity=False)
-                .sort_by(sort_by, sort_desc)
-                .page(page, per_page)
-                .search()
             )
+
+            if is_public is not None:
+                search_builder = search_builder.filter_by_public(is_public)
+
+            search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
+            results = search_builder.search()
 
         except Exception as e:
             print("An error occurred while searching for investment firms. Error:", e)
@@ -1635,6 +1650,8 @@ class InvestmentFirm(db.Model):
             investment_firm_object["notable_investments"] = [
                 notable_investment.name for notable_investment in self.notable_investments
             ]
+        if self.is_public:
+            investment_firm_object["is_public"] = self.is_public
 
         data = [investment_firm_object]
 
@@ -1679,6 +1696,7 @@ class InvestmentFirm(db.Model):
                     {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
                     {"name": "industries", "type": "string[]", "facet": True, "optional": True},
                     {"name": "notable_investments", "type": "string[]", "optional": True},
+                    {"name": "is_public", "type": "bool", "optional": True},
                     {
                         "name": "embedding",
                         "type": "float[]",
@@ -1726,6 +1744,7 @@ class InvestmentFirm(db.Model):
                 investment_firm_object["notable_investments"] = [
                     notable_investment.name for notable_investment in investment_firm.notable_investments
                 ]
+                investment_firm_object["is_public"] = investment_firm.is_public
                 data.append(investment_firm_object)
 
             print("Upserting documents")

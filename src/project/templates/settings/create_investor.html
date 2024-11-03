@@ -53,11 +53,11 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
-    {% import "components/settings/general_info.html" as general_info %} 
-    {{ general_info.render(user) }} 
-    {% import "components/settings/investment_info.html" as investment_info %} 
+    {% import "components/onboarding/general_info.html" as general_info %} 
+    {{ general_info.render(user, "/settings/") }} 
+    {% import "components/onboarding/investment_info.html" as investment_info %} 
     {{ investment_info.render(industries, rounds) }} 
-    {% import "components/settings/contact_info.html" as contact_info %} 
+    {% import "components/onboarding/contact_info.html" as contact_info %} 
     {{ contact_info.render(user) }}
 
     <body class="h-full overflow-x-clip" id="app">

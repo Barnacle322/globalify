@@ -360,6 +360,7 @@ def search_investment_firms():
         page=page,
         per_page=9,
         countries=countries,
+        is_public=True,
     )
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
@@ -441,6 +442,7 @@ def search():
         page=page,
         per_page=9,
         countries=countries,
+        is_public=True,
     )
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))

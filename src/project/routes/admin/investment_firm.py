@@ -133,6 +133,7 @@ def update_investment_firm(id):
             form_data.get("notable_investments", investment_firm.notable_investments) or []
         )
     )
+    investment_firm.is_public = form_data.get("is_public", investment_firm.is_public)
 
     try:
         db.session.commit()

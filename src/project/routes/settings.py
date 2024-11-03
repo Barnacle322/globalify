@@ -906,6 +906,7 @@ def edit_investor():
     selected_round_ids = form_data.get("rounds") or []
     selected_industry_ids = form_data.get("industries") or []
     selected_notable_investment_ids = form_data.get("notable_investments") or []
+    is_public = form_data.get("is_public") or False
 
     website = form_data.get("website") or None
     linkedin = form_data.get("linkedin") or None
@@ -941,6 +942,7 @@ def edit_investor():
     investor.rounds = selected_rounds
     investor.industries = selected_industries
     investor.notable_investments = selected_notable_investments
+    investor.is_public = is_public
 
     investor_backup = InvestorBackup.get_by_investor_id(investor.id)
     if investor_backup:
@@ -963,6 +965,7 @@ def edit_investor():
         investor_backup.rounds = selected_rounds
         investor_backup.industries = selected_industries
         investor_backup.notable_investments = selected_notable_investments
+        investor_backup.is_public = is_public
         db.session.add(investor_backup)
 
     try:

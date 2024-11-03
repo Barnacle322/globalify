@@ -392,7 +392,7 @@ const InviteMemberComponent = defineComponent({
 });
 
 const GeneralInfo = defineComponent({
-    template: "#settings-general-info-template",
+    template: "#general-info-template",
     mounted() {
         this.data.firstName = this.$refs.userFirstName.value;
         this.data = JSON.parse(localStorage.getItem("generalInfo")) || this.data;
@@ -437,7 +437,7 @@ const GeneralInfo = defineComponent({
 });
 
 const InvestmentInfo = defineComponent({
-    template: "#settings-investment-info-template",
+    template: "#investment-info-template",
     mounted() {
         const menus = [
             { menu: "industry-options-menu", button: "industry-options" },
@@ -592,7 +592,7 @@ const InvestmentInfo = defineComponent({
 });
 
 const ContactInfo = defineComponent({
-    template: "#settings-contact-info-template",
+    template: "#contact-info-template",
     mounted() {
         this.email = this.$refs.userEmail.value;
         this.data = JSON.parse(localStorage.getItem("contactInfo")) || this.data;
@@ -791,6 +791,7 @@ createApp({
             const min_investment = document.getElementById("min_investment").value;
             const max_investment = document.getElementById("max_investment").value;
             const location = document.getElementById("location").value;
+            const is_public = document.getElementById("is_public").checked;
 
             const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map(
                 (input) => parseInt(input.value, 10),
@@ -821,6 +822,7 @@ createApp({
                 rounds: selectedRounds,
                 industries: selectedIndustries,
                 notable_investments: selectedNotableInvestments,
+                is_public: is_public,
             });
 
             return dataString;

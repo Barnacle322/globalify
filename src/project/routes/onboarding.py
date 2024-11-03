@@ -15,12 +15,14 @@ from ..models import (
     Industry,
     Investor,
     NotableInvestment,
+    Notification,
     Round,
     User,
     UserInfo,
 )
 from ..utils.enums import (
     Events,
+    NotificationDestination,
     OauthProvider,
 )
 from ..utils.errors.error_messages import (
@@ -168,12 +170,25 @@ def investor():
             db.session.add(verification)
             db.session.commit()
 
-            google_pubsub.send_event(
-                "A new user has completed onboarding!",
-                email=authenticated_user.email,
-                event_type=Events.USER_COMPLETED_ONBOARDING.value,
-                random_key=verification.token,
-            )
+        google_pubsub.send_event(
+            "A new user has completed onboarding!",
+            email=authenticated_user.email,
+            event_type=Events.USER_COMPLETED_ONBOARDING.value,
+            random_key=verification.token,
+        )
+
+        notification = Notification(
+            user=authenticated_user,
+            json_data={
+                "title": "Info",
+                "msg": "Welcome to our platform. You have successfully completed registration. Explore the world of investment with us!",
+                "type": "system",
+                "item": {"type": "info", "url": "/search"},
+            },
+            destination=NotificationDestination.SEARCH,
+        )
+        db.session.add(notification)
+        db.session.commit()
 
         return redirect(url_for("main.search"))
 

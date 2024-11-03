@@ -184,7 +184,7 @@ def test_empty_db(app):
         company = Company.get_by_id(1)
         assert company is None
 
-        user_company = UserCompany.get_by_user_id_and_company_id(1, 1)
+        user_company = UserCompany.get_by_user_and_company_id(1, 1)
         assert user_company is None
 
 
@@ -346,7 +346,7 @@ def test_get_by_user_id_and_company_id(new_user_oauth, new_company, new_user_com
         assert user
         assert company
 
-        user_company = UserCompany.get_by_user_id_and_company_id(1, 1, True)
+        user_company = UserCompany.get_by_user_and_company_id(1, 1)
 
         assert user_company
         assert user_company.user_id == user.id

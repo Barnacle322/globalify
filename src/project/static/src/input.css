@@ -336,19 +336,6 @@
     animation: pulse 0.5s ease-in-out;
 }
 
-.slider-thumb::-webkit-slider-thumb {
-    @apply h-4 w-4 bg-green-500 rounded-full appearance-none cursor-pointer;
-    margin-top: -1.5rem;
-}
-
-.slider-thumb::-moz-range-thumb {
-    @apply h-4 w-4 bg-green-500 rounded-full cursor-pointer;
-}
-
-.slider-track {
-    pointer-events: none;
-}
-
 .view-eric {
     view-transition-name: view-eric;
 }

@@ -33,7 +33,7 @@ admin.register_blueprint(investment_firm_blueprint, url_prefix="/investment-firm
 admin.register_blueprint(company_blueprint, url_prefix="/companies")
 
 
-@admin.get("/users/search/<search_input>")  
+@admin.get("/users/search/<search_input>")
 @admin_only
 def search_user(search_input):
     users = db.session.execute(select(User).where(User.email.contains(search_input))).scalars().all()

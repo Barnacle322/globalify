@@ -1,7 +1,9 @@
-{% extends "layouts/layout_app.html" %} {% block title %} {{ investor.full_name }} {% endblock %} {% block head %}
-{{super() }}
-<script src="/static/scripts/dashboard.js" defer></script>
-{% endblock %} {% block content %}
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %} 
+{% block title %} {{ investor.full_name }} {% endblock %} 
+{% block head %} {{ super() }}
+{% endblock %} 
+{% block content %}
 <main class="mx-auto flex min-h-screen w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
     {% if status_type %} {% if status_type == '3' %}
     <div class="flex w-full rounded-xl text-red-500">{{ msg }}</div>

@@ -49,6 +49,7 @@ def index():
     )
 
 
+# TODO: Implement status system
 @onboarding.route("/basic", methods=["GET", "POST"])
 @login_required
 def basic():

@@ -661,7 +661,6 @@ def test_calculate_round_score(new_investors_without_additional_info, new_compan
         assert round_score == 1
 
 
-
 def test_calculate_round_score_with_few_rounds(new_investors_without_additional_info, new_company, app):
     with app.app_context():
         investor = db.session.scalar(db.select(Investor).where(Investor.id == 2))
@@ -678,6 +677,7 @@ def test_calculate_round_score_without_rounds(new_investors_without_additional_i
         round_score = Investor.calculate_round_score(investor, company)
 
         assert round_score == 0
+
 
 def test_calculate_investor_completeness_score(new_investors_with_additional_info, app):
     with app.app_context():

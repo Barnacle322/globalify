@@ -51,8 +51,6 @@
     </head>
 
     <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %} 
-    {{ navbar.render(current_user) }}
     {% import "components/onboarding/general_info.html" as general_info %} 
     {{ general_info.render(user, "/settings/") }} 
     {% import "components/onboarding/investment_info.html" as investment_info %} 
@@ -62,22 +60,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
-            <aside-component :minified="asideMinified"></aside-component>
-            <transition enter-active-class="pop-in" leave-active-class="pop-out">
-                <div
-                    v-if="asideExpanded"
-                    @click="asideExpanded = false"
-                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
-            </transition>
+        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl items-center justify-center">
             <transition :enter-active-class="enterClass" :leave-active-class="leaveClass" mode="out-in">
                 <component :is="currentComponent" @change-page="changePage"></component>
             </transition>

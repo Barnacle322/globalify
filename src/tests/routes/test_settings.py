@@ -985,6 +985,7 @@ def test_get_company_roles(client, app, verified_user, monkeypatch):
         assert b"admin" in response.data
         assert b"team" in response.data
 
+
 # problem in form_data = request.get_json()
 # works when form_data = request.form
 def test_change_company_role(client, app, new_user_with_company, verified_user, monkeypatch):

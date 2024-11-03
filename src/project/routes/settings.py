@@ -2,6 +2,7 @@ import re
 
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, logout_user
+from sqlalchemy.orm import joinedload
 
 from ..extensions import db
 from ..models import (
@@ -257,10 +258,20 @@ def delete_account():
 @check_user_info_complete
 @check_verification
 def company_list_view():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.search"))
 
-    user_companies = UserCompany.get_by_user_id(user_id=authenticated_user.id)
-    invitations = CompanyInvitation.get_by_email(email=authenticated_user.email)
+    companies = (
+        db.session.scalars(
+            db.select(UserCompany)
+            .options(joinedload(UserCompany.company))
+            .where(UserCompany.user_id == current_user.id)
+        )
+        .unique()
+        .all()
+    )
+
+    invitations = CompanyInvitation.get_by_email(email=current_user.email)
 
     company_invitations = []
     if invitations:
@@ -276,7 +287,7 @@ def company_list_view():
 
     return render_template(
         "settings/company_list.html",
-        companies=user_companies,
+        companies=companies,
         invitations=company_invitations,
     )
 
@@ -291,9 +302,11 @@ def company_info_view(company_id):
         status_type = query.get("type")
         msg = query.get("msg")
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.search"))
 
     company_invitations = CompanyInvitation.get_by_company_id(company_id=company_id)
+
     company_members = UserCompany.get_members(company_id=company_id)
     members = []
     if company_members:
@@ -307,9 +320,7 @@ def company_info_view(company_id):
             )
             members.append(user_element.model_dump())
 
-    user_company = UserCompany.get_by_user_id_and_company_id(
-        user_id=authenticated_user.id, company_id=company_id, get_accepted=True
-    )
+    user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not user_company:
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
@@ -341,9 +352,7 @@ def company_info_view(company_id):
 def change_company_info(company_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    user_company = UserCompany.get_by_user_id_and_company_id(
-        user_id=authenticated_user.id, company_id=company_id, get_accepted=True
-    )
+    user_company = UserCompany.get_by_user_and_company_id(user_id=authenticated_user.id, company_id=company_id)
     if not user_company:
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
@@ -579,7 +588,7 @@ def create_company():
 @check_verification
 def delete_company(id):
     company = Company.get_by_id(id)
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id=current_user.id, company_id=id)
+    user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=id)
     if not user_company:
         status = Status(StatusType.ERROR, DELETE_COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_list_view", _external=True, **status))
@@ -679,7 +688,7 @@ def accept_invitation(company_id):
         status = Status(StatusType.ERROR, INVITATION_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    user_company = UserCompany.get_by_user_id_and_company_id(company_id=company_id, user_id=authenticated_user.id)
+    user_company = UserCompany.get_by_user_and_company_id(company_id=company_id, user_id=authenticated_user.id)
     if not user_company:
         is_primary = not UserCompany.get_by_user_id(user_id=authenticated_user.id)
         user_company = UserCompany(
@@ -781,9 +790,7 @@ def change_company_role(user_id):
     company_id = form_data.get("company_id")
     role = form_data.get("role")
 
-    current_user_company = UserCompany.get_by_user_id_and_company_id(
-        user_id=current_user.id, company_id=company_id, get_accepted=True
-    )
+    current_user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not current_user_company:
         status = Status(StatusType.ERROR, COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
@@ -791,7 +798,7 @@ def change_company_role(user_id):
         status = Status(StatusType.ERROR, NOT_COMPANY_OWNER).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id, company_id, True)
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
     if not user_company:
         status = Status(StatusType.ERROR, NOT_COMPANY_MEMBER).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
@@ -814,9 +821,7 @@ def remove_company_member(user_id):
         status = Status(StatusType.ERROR, REMOVE_YOURSELF_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    current_user_company = UserCompany.get_by_user_id_and_company_id(
-        user_id=current_user.id, company_id=company_id, get_accepted=True
-    )
+    current_user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not current_user_company:
         status = Status(StatusType.ERROR, COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
@@ -824,7 +829,7 @@ def remove_company_member(user_id):
         status = Status(StatusType.ERROR, NOT_COMPANY_OWNER).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id=user_id, company_id=company_id, get_accepted=True)
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
     if not user_company:
         status = Status(StatusType.ERROR, NOT_COMPANY_MEMBER).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
@@ -849,7 +854,7 @@ def remove_company_member(user_id):
 def make_company_primary(company_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
 
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id=authenticated_user.id, company_id=company_id)
+    user_company = UserCompany.get_by_user_and_company_id(user_id=authenticated_user.id, company_id=company_id)
     if not user_company:
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
@@ -865,7 +870,7 @@ def make_company_primary(company_id):
 @check_verification
 def make_company_public(company_id):
     authenticated_user: User = current_user._get_current_object()  # type: ignore
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id=authenticated_user.id, company_id=company_id)
+    user_company = UserCompany.get_by_user_and_company_id(user_id=authenticated_user.id, company_id=company_id)
 
     if not user_company:
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()

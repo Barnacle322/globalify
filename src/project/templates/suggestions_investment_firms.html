@@ -1,10 +1,10 @@
-{% extends "layouts/layout_app.html" %} {% block additional_scripts %}
-<script src="/static/scripts/dashboard.js" defer></script>
-<script src="/static/scripts/bookmark.js" defer></script>
-{% endblock %} {% block title %}Investment firms{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
-content %}
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %}
+{% block title %}Investment Firms{% endblock %} 
+{% block head %} {{ super() }} {% endblock %} 
+{% block content %}
 <main class="mx-auto h-full min-h-screen w-full overflow-x-visible">
-    <section class="mx-4 mt-4 rounded-3xl bg-[#231645] px-4 py-24 text-white">
+    <section class="mx-4 mt-4 rounded-3xl bg-deep-purple px-4 py-24 text-white">
         <div class="flex flex-col gap-4">
             <h1
                 class="mx-auto w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"

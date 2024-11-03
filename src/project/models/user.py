@@ -7,7 +7,7 @@ import re
 import uuid
 from collections.abc import Generator, Sequence
 from sqlite3 import Connection as SQLite3Connection
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from flask_login import UserMixin
@@ -25,18 +25,17 @@ from sqlalchemy import (
     event,
     exists,
     func,
-    or_,
     text,
     update,
 )
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship, validates
+from sqlalchemy.orm import Mapped, MappedAsDataclass, joinedload, mapped_column, relationship, validates
 
 from ..extensions import db
 from ..utils import suggestion
-from ..utils.enums import CompanyRole, NotificationDestination, OauthProvider, RequestStatus, Tier
+from ..utils.enums import CompanyRole, NotificationDestination, OauthProvider, Tier
 from ..utils.suggestion import COMPANY_WEIGHTS
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
@@ -48,8 +47,52 @@ from ..utils.typesense_helpers.typesense_search import (
 )
 from .helpers import Country, Industry, Round
 
+if TYPE_CHECKING:
+    from .claim import ClaimRequest, ClaimVerification
+    from .investor import InvestmentFirmBookmark, Investor, InvestorBackup, InvestorBookmark, NotableInvestment
+
 
 class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
+    user_info: Mapped[UserInfo] = relationship(
+        "UserInfo", back_populates="user", uselist=False, lazy="joined", init=False
+    )
+    user_payment: Mapped[UserPayment] = relationship(
+        "UserPayment", back_populates="user", uselist=False, lazy="joined", init=False
+    )
+    user_companies: Mapped[list[UserCompany]] = relationship(
+        "UserCompany", back_populates="user", uselist=True, lazy="joined", init=False
+    )
+    notifications: Mapped[list[Notification]] = relationship(
+        "Notification", back_populates="user", lazy="joined", init=False
+    )
+    email_verifications: Mapped[list[EmailVerification]] = relationship(
+        "EmailVerification", back_populates="user", lazy="joined", init=False
+    )
+
+    claim_requests: Mapped[list[ClaimRequest]] = relationship(
+        "ClaimRequest", back_populates="user", uselist=True, lazy="joined", init=False
+    )
+    claim_verifications: Mapped[list[ClaimVerification]] = relationship(
+        "ClaimVerification", back_populates="user", lazy="joined", init=False
+    )
+
+    investor: Mapped[Investor] = relationship(
+        "Investor", back_populates="user", uselist=False, lazy="joined", init=False
+    )
+    investor_backup: Mapped[InvestorBackup | None] = relationship(
+        "InvestorBackup", back_populates="user", uselist=False, lazy="joined", init=False
+    )
+
+    company_bookmarks: Mapped[list[CompanyBookmark]] = relationship(
+        "CompanyBookmark", back_populates="user", uselist=True, lazy="joined", init=False
+    )
+    investor_bookmarks: Mapped[list[InvestorBookmark]] = relationship(
+        "InvestorBookmark", back_populates="user", uselist=True, lazy="joined", init=False
+    )
+    investment_firm_bookmarks: Mapped[list[InvestmentFirmBookmark]] = relationship(
+        "InvestmentFirmBookmark", back_populates="user", uselist=True, lazy="joined", init=False
+    )
+
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -80,7 +123,7 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
-    user: Mapped[User] = relationship(User, backref=backref("user_info", passive_deletes=True, uselist=False))
+    user: Mapped[User] = relationship(User, back_populates="user_info", uselist=False)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(
@@ -121,7 +164,7 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     @validates("instagram_url")
     def validate_instagram(self, key, instagram):
         if not instagram:
-            return
+            return None
         if not re.match(r"^(https?:\/\/)?(www\.)?instagram\.com\/[\w.-]+\/?$", instagram, re.IGNORECASE):
             raise ValueError(
                 "Invalid Instagram URL format. Ensure it follows the pattern: https://www.instagram.com/username."
@@ -175,7 +218,7 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
-    user: Mapped[User] = relationship(User, backref=backref("user_payment", passive_deletes=True, uselist=False))
+    user: Mapped[User] = relationship(User, back_populates="user_payment", uselist=False)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(
@@ -239,7 +282,7 @@ class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
-    user: Mapped[User] = relationship(User, backref=backref("notifications", passive_deletes=True))
+    user: Mapped[User] = relationship(User, back_populates="notifications")
 
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
@@ -285,6 +328,8 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
+    user: Mapped[User] = relationship(User, back_populates="email_verifications", uselist=True, init=False)
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     token: Mapped[str] = mapped_column(String, nullable=False, insert_default=lambda: str(uuid4()), init=False)
@@ -292,8 +337,6 @@ class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
     )
-
-    user: Mapped[User] = relationship(User, backref=backref("email_verifications", passive_deletes=True), init=False)
 
     @property
     def is_expired(self) -> bool:
@@ -328,61 +371,6 @@ class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
             .where(EmailVerification.user_id == user_id)
             .where(EmailVerification.is_used.is_(False))
             .order_by(EmailVerification.created_at.desc())
-        )
-        return last_verification
-
-
-class ClaimVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
-    token: Mapped[str] = mapped_column(String, nullable=False, insert_default=lambda: str(uuid4()), init=False)
-    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
-    )
-    investor_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("investor.id", ondelete="CASCADE"), nullable=False, kw_only=True
-    )
-
-    user: Mapped[User] = relationship(User, backref=backref("claim_verifications", passive_deletes=True), init=False)
-
-    investor: Mapped[Investor] = relationship(  # type: ignore # noqa: F821
-        "Investor", backref=backref("claim_verifications", passive_deletes=True), init=False
-    )
-
-    @property
-    def is_expired(self) -> bool:
-        expiration_time = self.created_at + datetime.timedelta(minutes=5)
-        return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
-
-    @property
-    def is_resendable(self) -> bool:
-        expiration_time = self.created_at + datetime.timedelta(minutes=1)
-        return datetime.datetime.now(datetime.UTC) > expiration_time.replace(tzinfo=datetime.UTC)
-
-    @staticmethod
-    def expire_all_by_user_id(user_id: int) -> None:
-        try:
-            claim_verifications = db.session.scalars(
-                db.select(ClaimVerification).where(ClaimVerification.user_id == user_id)
-            ).all()
-            for claim_verification in claim_verifications:
-                claim_verification.is_expired = True
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-
-    @staticmethod
-    def get_by_token(token: str) -> ClaimVerification | None:
-        return db.session.scalar(db.select(ClaimVerification).where(ClaimVerification.token == token))
-
-    @staticmethod
-    def get_last_unused_by_user_id(user_id: int) -> ClaimVerification | None:
-        last_verification = db.session.scalar(
-            db.select(ClaimVerification)
-            .where(ClaimVerification.user_id == user_id)
-            .where(ClaimVerification.is_used.is_(False))
-            .order_by(ClaimVerification.created_at.desc())
         )
         return last_verification
 
@@ -450,6 +438,20 @@ class CompanySuggestionBuilder:
 
 
 class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
+    user_companies: Mapped[list[UserCompany]] = relationship(
+        "UserCompany", back_populates="company", uselist=True, init=False, lazy="joined"
+    )
+    company_invitations: Mapped[list[CompanyInvitation]] = relationship(
+        "CompanyInvitation", back_populates="company", uselist=True, init=False, lazy="joined"
+    )
+    notable_investment: Mapped[NotableInvestment] = relationship(
+        "NotableInvestment", back_populates="company", uselist=False, init=False, lazy="joined"
+    )
+
+    country: Mapped[Country] = relationship(init=False)
+    preferred_round: Mapped[Round] = relationship(init=False)
+    industry: Mapped[Industry] = relationship(init=False)
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     slug: Mapped[str] = mapped_column(String, nullable=True, unique=True, init=False)
@@ -466,10 +468,6 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-
-    country: Mapped[Country] = relationship(init=False)
-    preferred_round: Mapped[Round] = relationship(init=False)
-    industry: Mapped[Industry] = relationship(init=False)
 
     @property
     def coordinates(self):
@@ -575,9 +573,8 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
         ]
         return sorted_suggestions
 
-    @classmethod
+    @staticmethod
     def get_search(
-        cls,
         query_string: str,
         query_by: list[str],
         sort_by: str | None = None,
@@ -786,14 +783,14 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class CompanyBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
+    user: Mapped[User] = relationship(User, back_populates="company_bookmarks", uselist=False, init=False)
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
     )
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id"), nullable=False)
-
-    user: Mapped[User] = relationship(User, backref=backref("company_bookmark", passive_deletes=True), init=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -826,19 +823,17 @@ class CompanyBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
+    user: Mapped[User] = relationship(User, back_populates="user_companies", uselist=True, init=False, lazy="joined")
+    company: Mapped[Company] = relationship(
+        Company, back_populates="user_companies", uselist=True, init=False, lazy="joined"
+    )
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
     role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.TEAM)
     is_primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-
-    user: Mapped[User] = relationship(
-        User, backref=backref("user_company", passive_deletes=True, uselist=True), init=False
-    )
-    company: Mapped[Company] = relationship(
-        Company, backref=backref("user_company", passive_deletes=True, uselist=True), init=False
-    )
 
     @property
     def get_primary(self):
@@ -880,16 +875,19 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_members(company_id: int):
-        results = db.session.execute(
-            db.select(User, UserCompany)
-            .join(UserCompany, UserCompany.user_id == User.id)
-            .where(UserCompany.company_id == company_id)
-        ).all()
-
+        results = (
+            db.session.execute(
+                db.select(User, UserCompany)
+                .join(UserCompany, UserCompany.user_id == User.id)
+                .where(UserCompany.company_id == company_id)
+            )
+            .unique()
+            .all()
+        )
         return results
 
     @staticmethod
-    def get_by_user_id_and_company_id(user_id: int, company_id: int, get_accepted: bool = False) -> UserCompany | None:
+    def get_by_user_and_company_id(user_id: int, company_id: int) -> UserCompany | None:
         return db.session.scalar(
             db.select(UserCompany).where(
                 UserCompany.user_id == user_id,
@@ -919,6 +917,8 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
+    company: Mapped[Company] = relationship(Company, back_populates="company_invitations", uselist=True, init=False)
+
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), init=False
     )
@@ -929,10 +929,6 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
     role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.TEAM)
     message: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-
-    company: Mapped[Company] = relationship(
-        Company, backref=backref("company_invitation", passive_deletes=True, uselist=True), init=False
-    )
 
     INVITATION_VALIDITY = 7
 
@@ -970,58 +966,6 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
                 CompanyInvitation.is_used.is_(get_used),
             )
         )
-
-
-class ClaimRequest(db.Model):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-    investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
-    status: Mapped[RequestStatus] = mapped_column(SQLEnum(RequestStatus), nullable=False, default=RequestStatus.PENDING)
-    status_info: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
-    approved_by: Mapped[int] = mapped_column(Integer, nullable=True, default=None)
-    approved_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, default=None)
-    email: Mapped[str] = mapped_column(String, nullable=True, default=None)
-    requested_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
-
-    user: Mapped[User] = relationship(User, backref=backref("claim_request", uselist=False))
-    investor: Mapped[Investor] = relationship("Investor", backref=backref("claim_request", uselist=False))  # type: ignore # noqa: F821
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<ClaimRequest {self.id}>"
-
-    @staticmethod
-    def get_by_id(id: int) -> ClaimRequest | None:
-        return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.id == id))
-
-    @staticmethod
-    def get_by_user_id(user_id: int) -> ClaimRequest | None:
-        return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.user_id == user_id))
-
-    @staticmethod
-    def get_with_investor_by_user_id(user_id: int) -> Sequence[ClaimRequest]:
-        return (
-            db.session.execute(
-                db.select(ClaimRequest)
-                .join(ClaimRequest.investor)
-                .where(ClaimRequest.user_id == user_id)
-                .order_by(ClaimRequest.requested_at.desc())
-            )
-            .scalars()
-            .all()
-        )
-
-    @staticmethod
-    def get_by_investor_id(investor_id: int) -> ClaimRequest | None:
-        return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.investor_id == investor_id))
-
-    @staticmethod
-    def get_all() -> Sequence[ClaimRequest]:
-        return db.session.scalars(
-            db.select(ClaimRequest).options(joinedload(ClaimRequest.user), joinedload(ClaimRequest.investor))
-        ).all()
 
 
 @event.listens_for(Engine, "connect")

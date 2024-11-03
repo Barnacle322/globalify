@@ -42,7 +42,6 @@
 
         <!-- JS -->
         <script src="/static/scripts/idempotency.js" defer></script>
-        <script src="/static/scripts/notificationHandler.js" defer></script>
 
         <!-- Font -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -235,7 +234,7 @@
                     <div class="grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
                         <div class="col-span-2">
                             <h2 class="font-medium leading-7">Company Information</h2>
-                            <p class="mb-2 mt-1 leading-6 text-slate-700">Update your company information here.</p>
+                            <p class="mb-2 mt-1 leading-6 text-gray-700">Update your company information here.</p>
                             {% if status_type %} {% if status_type == '3' %}
                             <div class="text-red-500">{{ msg }}</div>
                             {% elif status_type == '2' %}
@@ -256,13 +255,13 @@
                                     <div class="col-span-full flex items-start gap-x-8">
                                         {% if not company.picture_url %}
                                         <img
-                                            class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
+                                            class="h-16 w-16 flex-none rounded-xl bg-gray-400 object-cover"
                                             src="/static/elements/default_pfp.svg"
                                             alt="Company picture"
                                         />
                                         {% else %}
                                         <img
-                                            class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
+                                            class="h-16 w-16 flex-none rounded-xl bg-gray-400 object-cover"
                                             src="{{ company.picture_url }}"
                                             alt="Company picture"
                                         />
@@ -273,7 +272,7 @@
                                                 id="picture"
                                                 name="picture"
                                                 accept="image/png, image/jpeg"
-                                                class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
+                                                class="h-12 w-full cursor-pointer rounded-xl border-2 border-gray-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
                                             />
                                             <p class="mt-2 text-xs leading-5">JPG or PNG</p>
                                         </div>
@@ -289,7 +288,7 @@
                                                 id="company-name"
                                                 autocomplete="organization-title"
                                                 required
-                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                                 value="{{ company.name if company.name else ''}}"
                                                 :disabled="'{{ user_role }}' == 'employee'"
                                             />
@@ -305,7 +304,7 @@
                                                 name="number_of_employees"
                                                 id="number_of_employees"
                                                 autocomplete="number_of_employees"
-                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                                 value="{{ company.number_of_employees }}"
                                                 min="0"
                                                 :disabled="'{{ user_role }}' == 'employee'"
@@ -320,7 +319,7 @@
                                             <textarea
                                                 id="description"
                                                 name="description"
-                                                class="h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                                                class="h-44 w-full rounded-xl border-2 border-gray-300 bg-transparent px-2"
                                                 placeholder="Describe your company here."
                                                 :disabled="'{{ user_role }}' == 'employee'"
                                             >
@@ -337,7 +336,7 @@
                                                 id="country"
                                                 name="country"
                                                 autocomplete="country-name"
-                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                                 required
                                                 :disabled="'{{ user_role }}' == 'employee'"
                                             >
@@ -359,7 +358,7 @@
                                             <select
                                                 id="round"
                                                 name="round"
-                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                                 required
                                                 :disabled="'{{ user_role }}' == 'employee'"
                                             >
@@ -381,7 +380,7 @@
                                             <select
                                                 id="industry"
                                                 name="industry"
-                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2 pr-8"
+                                                class="h-12 w-full rounded-xl border-2 border-gray-300 px-2 pr-8"
                                                 required
                                                 :disabled="'{{ user_role }}' == 'employee'"
                                             >
@@ -406,7 +405,7 @@
                                                 name="website"
                                                 id="website"
                                                 autocomplete="website"
-                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                                 value="{{ company.website_url if company.website_url else '' }}"
                                                 pattern="^(https?:\/\/)?(www\.)?[\w.\-]+\.[a-z]{2,}\/?[\w.\-]*$"
                                                 placeholder="example.com"
@@ -422,7 +421,7 @@
                                             <input
                                                 name="linkedin"
                                                 id="linkedin"
-                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                                 value="{{ company.linkedin_url if company.linkedin_url else '' }}"
                                                 pattern="^(https?:\/\/)?((www\.)?linkedin\.com)\/in\/[A-Za-z0-9_\-]+\/?$"
                                                 placeholder="linkedin.com/in/username"
@@ -438,7 +437,7 @@
                                             <input
                                                 name="instagram"
                                                 id="instagram"
-                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                                 value="{{ company.instagram_url if company.instagram_url else '' }}"
                                                 pattern="^(https?:\/\/)?((www\.)?instagram\.com)\/[A-Za-z0-9_]+\/?$"
                                                 placeholder="instagram.com/username"
@@ -454,7 +453,7 @@
                                             <input
                                                 name="twitter"
                                                 id="twitter"
-                                                class="h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                                class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                                 value="{{ company.twitter_url if company.twitter_url else '' }}"
                                                 pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
                                                 placeholder="twitter.com/username"
@@ -499,7 +498,7 @@
                                     >
                                         Save
                                     </button>
-                                    <a class="flex items-center justify-center text-slate-700 underline" href=""
+                                    <a class="flex items-center justify-center text-gray-700 underline" href=""
                                         >Cancel</a
                                     >
                                 </div>
@@ -509,7 +508,7 @@
                     <div class="my-10 grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
                         <div class="col-span-2">
                             <h2 class="font-medium leading-7">Member information</h2>
-                            <p class="mb-2 mt-1 leading-6 text-slate-700">
+                            <p class="mb-2 mt-1 leading-6 text-gray-700">
                                 Manage member information here. You can add, edit and delete the members here.
                             </p>
                         </div>
@@ -613,7 +612,7 @@
                                     <div class="ml-auto flex items-center justify-center">
                                         <button
                                             class="rounded-lg border bg-white px-2 py-1"
-                                            @click="this.selectedUser = {{user}};"
+                                            @click="this.selectedUser = {{ user.id }};"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -641,7 +640,7 @@
                     <div class="my-10 grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
                         <div class="col-span-2">
                             <h2 class="font-medium leading-7">Delete company</h2>
-                            <p class="mt-1 leading-6 text-slate-700">
+                            <p class="mt-1 leading-6 text-gray-700">
                                 Please note, deleting your company from our system is an irreversible action. This will
                                 permanently erase all data and records associated with your company. Proceed with
                                 caution.

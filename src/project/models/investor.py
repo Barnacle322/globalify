@@ -8,7 +8,7 @@ import uuid
 from ast import literal_eval
 from collections.abc import Generator, Sequence
 from itertools import islice
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from geopy.distance import geodesic
 from more_itertools import chunked
@@ -18,7 +18,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import (
     Mapped,
     MappedAsDataclass,
-    backref,
     joinedload,
     mapped_column,
     relationship,
@@ -27,7 +26,6 @@ from sqlalchemy.orm import (
 from thefuzz import fuzz
 
 from ..extensions import db
-from ..models.user import Company, User
 from ..utils.fake_data import (
     get_abouts,
     get_companies,
@@ -54,6 +52,10 @@ from ..utils.typesense_helpers.typesense_search import (
     upsert_documents,
 )
 from .helpers import Industry, Round
+
+if TYPE_CHECKING:
+    from .claim import ClaimRequest, ClaimVerification
+    from .user import Company, User
 
 
 class SuggestionBuilder:
@@ -150,18 +152,14 @@ class SuggestionBuilder:
         return [investor["id"] for investor in self.investor_list[:quantity]]
 
 
-class NotableInvestment(db.Model):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+class NotableInvestment(MappedAsDataclass, db.Model, unsafe_hash=True):
+    company: Mapped[Company | None] = relationship(
+        "Company", back_populates="notable_investment", uselist=True, init=False
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    company_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("company.id"), nullable=True)
-
-    company: Mapped[Company | None] = relationship(Company, backref=backref("notable_investment", uselist=False))
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<NotableInvestment {self.name}>"
+    company_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("company.id"), nullable=True, init=False)
 
     def to_dict(self) -> dict[str, str | int | None]:
         return {
@@ -272,16 +270,26 @@ class InvestorBase(db.Model):
 
 
 class Investor(InvestorBase):
+    user: Mapped[User | None] = relationship("User", back_populates="investor", uselist=False)
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_notable_investment)
+    rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=investor_industry)
+    claim_verifications: Mapped[list[ClaimVerification]] = relationship(
+        "ClaimVerification", back_populates="investor", uselist=True
+    )
+    claim_requests: Mapped[list[ClaimRequest]] = relationship("ClaimRequest", back_populates="investor", uselist=True)
+    investor_backup: Mapped[InvestorBackup | None] = relationship(
+        "InvestorBackup", back_populates="investor", uselist=False
+    )
+    origin_point: Mapped[InvestorOriginPoint | None] = relationship(
+        "InvestorOriginPoint", back_populates="investor", uselist=False
+    )
+
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
     _country: Mapped[str | None] = mapped_column(String, nullable=True)
     bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
-
-    user: Mapped[User | None] = relationship(User, backref=backref("investor", uselist=False))
-    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_notable_investment)
-    rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
-    industries: Mapped[list[Industry]] = relationship(secondary=investor_industry)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1131,16 +1139,16 @@ class Investor(InvestorBase):
 
 
 class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
+    user: Mapped[User] = relationship(
+        "User", back_populates="investor_bookmarks", passive_deletes=True, lazy=True, init=False
+    )
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
-
-    user: Mapped[User] = relationship(
-        User, backref=backref("investor_bookmarks", passive_deletes=True), lazy=True, init=False
-    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1768,16 +1776,16 @@ class InvestmentFirm(db.Model):
 
 
 class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
+    user: Mapped[User] = relationship(
+        "User", back_populates="investment_firm_bookmarks", passive_deletes=True, lazy=True, init=False
+    )
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     investment_firm_id: Mapped[int] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=False)
-
-    user: Mapped[User] = relationship(
-        User, backref=backref("investment_firm_bookmarks", passive_deletes=True), lazy=True, init=False
-    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1868,11 +1876,11 @@ investor_origin_point_notable_investment = db.Table(
 
 
 class InvestorBackup(InvestorBase):
+    user: Mapped[User | None] = relationship("User", back_populates="investor_backup", uselist=False)
+    investor: Mapped[Investor] = relationship(Investor, back_populates="investor_backup", uselist=False)
+
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
     investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
-
-    user: Mapped[User | None] = relationship(User, backref=backref("investor_backup", uselist=False))
-    investor: Mapped[Investor] = relationship(Investor, backref=backref("backup", uselist=False))
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_backup_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investor_backup_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investor_backup_industry)
@@ -1905,8 +1913,9 @@ class InvestorBackup(InvestorBase):
 
 
 class InvestorOriginPoint(InvestorBase):
+    investor: Mapped[Investor] = relationship(Investor, back_populates="origin_point", uselist=False)
+
     investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
-    investor: Mapped[Investor] = relationship(Investor, backref=backref("origin_point", uselist=False))
     notable_investments: Mapped[list[NotableInvestment]] = relationship(
         secondary=investor_origin_point_notable_investment
     )

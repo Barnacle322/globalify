@@ -35,7 +35,7 @@
             </div>
 
             <div class="col-span-full">
-                <label class="text-sm font-medium text-gray-700" for="firm_name">Firm Name*</label>
+                <label class="text-sm font-medium text-gray-700" for="firm_name">Firm Name</label>
                 <input
                     class="w-full rounded-lg bg-transparent bg-white"
                     type="text"
@@ -80,7 +80,7 @@
         <div class="flex justify-between">
             {% if href %}
             <a
-                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-200 transition-colors ease-in-out"
                 href="{{ href }}"
             >
                 <div class="flex items-center gap-2">
@@ -99,7 +99,7 @@
             </a>
             {% else %}
             <button
-                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-400 hover:text-gray-800"
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-200 transition-colors ease-in-out"
                 @click="previousPage"
             >
                 <div class="flex items-center gap-2">
@@ -117,7 +117,7 @@
                 </div>
             </button>
             {% endif %}
-            <button class="mt-4 w-fit rounded-md bg-gray-900 px-3 py-2 text-white hover:bg-gray-800" @click="nextPage">
+            <button class="mt-4 w-fit rounded-md bg-deep-purple px-3 py-2 text-white" @click="nextPage">
                 <div class="flex items-center gap-2">
                     <span> Continue </span>
                     <svg

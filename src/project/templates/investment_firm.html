@@ -1,6 +1,8 @@
-{% extends "layouts/layout_app.html" %} {% block title %} {{ investment_firm.name }} {% endblock %} {% block head %}
-{{super() }}
-<script src="/static/scripts/dashboard.js" defer></script>
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %} 
+{% block title %} {{ investment_firm.name }} {% endblock %} 
+{% block head %}
+{{ super() }}
 {% endblock %} {% block content %}
 <main class="mx-auto flex min-h-screen flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
     <section class="mx-auto flex w-full max-w-7xl items-center gap-4">

@@ -209,11 +209,12 @@
                     </div>
                 </nav>
                 <main class="mt-10 p-4">
-                    <div class="grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
-                        <div class="col-span-2">
+                    <div class="flex flex-col gap-x-8 gap-y-10 px-4 sm:grid sm:grid-cols-6">
+                        <div class="top-36 col-span-2 h-fit sm:sticky">
                             <h2 class="font-medium leading-7">Personal Information</h2>
-                            <p class="mb-2 mt-1 leading-6 text-slate-700">
-                                Use a permanent address where you can receive mail.
+                            <p class="mb-2 mt-1 text-justify text-gray-700">
+                                Manage your personal profile information and privacy settings here. This information is
+                                visible to other users on the platform.
                             </p>
                             {% if status_type %} {% if status_type == '3' %}
                             <div class="rounded-xl text-red-500">{{ msg }}</div>
@@ -235,13 +236,13 @@
                                 <div class="col-span-full flex items-start gap-x-8">
                                     {% if not user.user_info.picture_url %}
                                     <img
-                                        class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
+                                        class="h-16 w-16 flex-none rounded-xl bg-gray-400 object-cover"
                                         src="/static/elements/default_pfp.svg"
                                         alt="Profile picture"
                                     />
                                     {% else %}
                                     <img
-                                        class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
+                                        class="h-16 w-16 flex-none rounded-xl bg-gray-400 object-cover"
                                         src="{{ user.user_info.picture_url }}"
                                         alt="Profile picture"
                                     />
@@ -252,7 +253,7 @@
                                             id="picture"
                                             name="picture"
                                             accept="image/png, image/jpeg, image/jpg, image/heic, image/heif"
-                                            class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
+                                            class="h-12 w-full cursor-pointer rounded-xl border-2 border-gray-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
                                         />
                                         <p class="mt-2 text-xs leading-5">JPG or PNG</p>
                                     </div>
@@ -266,7 +267,7 @@
                                         name="first-name"
                                         id="first-name"
                                         autocomplete="given-name"
-                                        class="mt-2 h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                        class="mt-2 h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                         value="{{ user.user_info.first_name }}"
                                     />
                                 </div>
@@ -277,7 +278,7 @@
                                         name="last-name"
                                         id="last-name"
                                         autocomplete="family-name"
-                                        class="mt-2 h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                        class="mt-2 h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                         value="{{ user.user_info.last_name }}"
                                     />
                                 </div>
@@ -289,12 +290,12 @@
                                         name="email"
                                         type="email"
                                         autocomplete="email"
-                                        class="peer mt-2 h-12 w-full cursor-not-allowed rounded-xl border-2 border-stone-300 px-2 text-slate-700"
+                                        class="peer mt-2 h-12 w-full cursor-not-allowed rounded-xl border-2 border-gray-300 px-2 text-gray-400"
                                         value="{{ user.email }}"
                                         disabled
                                     />
-                                    <span class="text-xs text-slate-700"
-                                        >Logged in with {{ user.oauth_provider.value.title() }} OAuth</span
+                                    <span class="text-xs text-gray-700"
+                                        >Logged in with {{ user.oauth_provider.value.title() }}</span
                                     >
                                     <div class="mt-2 block peer-placeholder-shown:hidden">
                                         <label class="inline-flex cursor-pointer items-center">
@@ -336,7 +337,7 @@
                                             id="username"
                                             autocomplete="username"
                                             pattern="[a-zA-Z0-9_]{3,20}"
-                                            class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2 sm:pl-[162px]"
+                                            class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent px-2 sm:pl-[162px]"
                                             minlength="4"
                                             placeholder="janesmith"
                                             required
@@ -349,7 +350,8 @@
                                     <textarea
                                         id="bio"
                                         name="bio"
-                                        class="mt-2 h-44 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
+                                        class="mt-2 h-44 w-full rounded-xl border-2 border-gray-300 bg-transparent px-2"
+                                        placeholder="A very passionate human being!"
                                     >
 {{ user.user_info.bio if user.user_info.bio else '' }}</textarea
                                     >
@@ -359,7 +361,7 @@
                                     <input
                                         id="linkedin"
                                         name="linkedin"
-                                        class="peer mt-2 h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                        class="peer mt-2 h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                         pattern="^(https?:\/\/)?((www\.)?linkedin\.com)\/in\/[A-Za-z0-9_\-]+\/?$"
                                         value="{{ user.user_info.linkedin_url if user.user_info.linkedin_url else '' }}"
                                         placeholder="linkedin.com/in/username"
@@ -395,7 +397,7 @@
                                     <input
                                         id="instagram"
                                         name="instagram"
-                                        class="peer mt-2 h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                        class="peer mt-2 h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                         pattern="^(https?:\/\/)?((www\.)?instagram\.com)\/[A-Za-z0-9_]+\/?$"
                                         value="{{ user.user_info.instagram_url if user.user_info.instagram_url else '' }}"
                                         placeholder="instagram.com/username"
@@ -430,7 +432,7 @@
                                     <input
                                         id="twitter"
                                         name="twitter"
-                                        class="peer mt-2 h-12 w-full rounded-xl border-2 border-stone-300 px-2"
+                                        class="peer mt-2 h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                                         pattern="^(https?:\/\/)?((www\.)?twitter\.com|(www\.)?x\.com)\/[A-Za-z0-9_]+\/?$"
                                         value="{{ user.user_info.twitter_url if user.user_info.twitter_url else '' }}"
                                         placeholder="twitter.com/username"
@@ -493,7 +495,7 @@
                             </div>
                             <div class="mt-8 flex justify-end gap-5">
                                 <a
-                                    class="flex items-center justify-center text-slate-700 underline"
+                                    class="flex items-center justify-center text-gray-700 underline"
                                     href="/settings/general"
                                     >Cancel</a
                                 >
@@ -506,15 +508,16 @@
                             </div>
                         </form>
                     </div>
-                    {% if investor %}
-                    <div class="mt-10 grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
-                        <div class="col-span-2">
+
+                    <div class="mb-20 mt-10 grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
+                        <div class="top-36 col-span-2 h-fit sm:sticky">
                             <h2 class="font-medium leading-7">Investor Information</h2>
-                            <p class="mb-2 mt-1 leading-6 text-slate-700">
+                            <p class="mb-2 mt-1 text-justify leading-6 text-gray-700">
                                 Manage your investor profile information here. This information is visible to other
                                 users on the platform.
                             </p>
                         </div>
+                        {% if investor %}
                         <div class="col-span-4">
                             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
@@ -524,7 +527,7 @@
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="first_name">First Name</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="text"
                                         id="first_name"
                                         value="{{ investor.first_name }}"
@@ -535,7 +538,7 @@
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="last_name">Last Name</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="text"
                                         id="last_name"
                                         value="{{ investor.last_name if investor.last_name else '' }}"
@@ -546,7 +549,7 @@
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="firm_name">Firm Name</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="text"
                                         id="firm_name"
                                         placeholder="ACME Capital"
@@ -556,7 +559,7 @@
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="position">Position</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="text"
                                         id="position"
                                         placeholder="Investor"
@@ -566,7 +569,7 @@
                                 <div class="col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="location">Location</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="text"
                                         id="location"
                                         placeholder="San Francisco, CA"
@@ -576,19 +579,19 @@
                                 <div class="col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="about">About</label>
                                     <textarea
-                                        class="h-44 w-full rounded-xl border-2 border-stone-300"
+                                        class="h-44 w-full rounded-xl border-2 border-gray-300"
                                         type="text"
                                         id="about"
                                         placeholder="A very passionate human being!"
                                     >
-{{investor.about if investor.about else ''}}</textarea
+{{ investor.about if investor.about else '' }}</textarea
                                     >
                                 </div>
                                 <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
                                 <div class="relative col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="location">Rounds</label>
                                     <button
-                                        class="flex h-12 w-full items-center justify-center gap-1 rounded-xl border-2 border-stone-300 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                                        class="flex h-12 w-full items-center justify-center gap-1 rounded-xl border-2 border-gray-300 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                                         id="round-options"
                                         aria-haspopup="true"
                                         aria-expanded="true"
@@ -627,7 +630,7 @@
                                                     type="checkbox"
                                                     name="selected_rounds"
                                                     value="{{ round.id }}"
-                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-gray-200 text-sky-500"
                                                     checked
                                                 />
                                                 {% else %}
@@ -635,7 +638,7 @@
                                                     type="checkbox"
                                                     name="selected_rounds"
                                                     value="{{ round.id }}"
-                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-gray-200 text-sky-500"
                                                 />
                                                 {% endif %} {{ round.name }}
                                             </label>
@@ -646,7 +649,7 @@
                                 <div class="relative col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium text-gray-700" for="location">Industries</label>
                                     <button
-                                        class="flex h-12 w-full items-center justify-center gap-1 rounded-xl border-2 border-stone-300 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                                        class="flex h-12 w-full items-center justify-center gap-1 rounded-xl border-2 border-gray-300 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                                         id="industry-options"
                                         aria-haspopup="true"
                                         aria-expanded="true"
@@ -697,19 +700,22 @@
                                                     type="checkbox"
                                                     name="selected_industries"
                                                     value="{{ industry.id }}"
-                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-gray-200 text-sky-500"
                                                     checked
                                                 />
                                                 <span>{{ industry.name }}</span>
                                             </label>
-                                            {% endfor %} {% for category, industries_list in industries.items() %}
+                                            <!-- prettier-ignore -->
+                                            {% endfor %} 
+                                            {% for category, industries_list in industries.items() %}
                                             <label
                                                 class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                             >
                                                 {{ category }}
                                             </label>
-                                            {% for industry in industries_list %} {% if industry not in
-                                            investor.industries %}
+                                            <!-- prettier-ignore -->
+                                            {% for industry in industries_list %} 
+                                            {% if industry not in investor.industries %}
                                             <label
                                                 class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                                 role="menuitem"
@@ -718,11 +724,14 @@
                                                     type="checkbox"
                                                     name="selected_industries"
                                                     value="{{ industry.id }}"
-                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-gray-200 text-sky-500"
                                                 />
                                                 <span>{{ industry.name }}</span>
                                             </label>
-                                            {% endif %}{% endfor %} {% endfor %}
+                                            <!-- prettier-ignore -->
+                                            {% endif %} 
+                                            {% endfor %} 
+                                            {% endfor %}
                                         </div>
                                     </div>
                                 </div>
@@ -731,7 +740,7 @@
                                         >Notable Investments</label
                                     >
                                     <button
-                                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-stone-300 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                                        class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-gray-300 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
                                         id="notable-investment-options"
                                         aria-haspopup="true"
                                         aria-expanded="true"
@@ -784,7 +793,7 @@
                                                     type="checkbox"
                                                     name="selected_notable_investments"
                                                     value="{{ notable_investment.id }}"
-                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-gray-200 text-sky-500"
                                                     checked
                                                 />
                                                 {{ notable_investment.name }}
@@ -800,7 +809,7 @@
                                                     type="checkbox"
                                                     name="selected_notable_investments"
                                                     :value="notableInvestment.id"
-                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-gray-200 text-sky-500"
                                                 />
                                                 <span v-text="notableInvestment.name"></span>
                                             </label>
@@ -810,7 +819,7 @@
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="n_investments">№ Investments</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="number"
                                         id="n_investments"
                                         value="{{ investor.n_investments }}"
@@ -820,7 +829,7 @@
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="n_exits">№ Exits</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="number"
                                         id="n_exits"
                                         value="{{ investor.n_exits }}"
@@ -832,7 +841,7 @@
                                         >Minimum Investment ($)</label
                                     >
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="number"
                                         id="min_investment"
                                         value="{{ investor.min_investment }}"
@@ -844,7 +853,7 @@
                                         >Maximum Investment ($)</label
                                     >
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="number"
                                         id="max_investment"
                                         value="{{ investor.max_investment }}"
@@ -855,7 +864,7 @@
                                 <div class="col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="website">Website</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="text"
                                         id="website"
                                         value="{{ investor.website if investor.website else '' }}"
@@ -866,7 +875,7 @@
                                 <div class="col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="linkedin">Linkedin</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="text"
                                         id="investor_linkedin"
                                         value="{{ investor.linkedin if investor.linkedin else '' }}"
@@ -877,7 +886,7 @@
                                 <div class="col-span-full space-y-1">
                                     <label class="text-sm font-medium" for="twitter">Twitter</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="text"
                                         id="investor_twitter"
                                         value="{{ investor.twitter if investor.twitter else '' }}"
@@ -888,7 +897,7 @@
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="email">Email</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="text"
                                         id="investor_email"
                                         value="{{ investor.email if investor.email else '' }}"
@@ -898,7 +907,7 @@
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="phone_number">Phone Number</label>
                                     <input
-                                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent bg-white"
+                                        class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="text"
                                         id="phone_number"
                                         value="{{ investor.phone_number if investor.phone_number else '' }}"
@@ -938,51 +947,65 @@
                                 <button
                                     id="openConfirmRestore"
                                     @click="confirmRestoreOpened = true"
-                                    class="mr-auto h-fit w-fit rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
+                                    class="mr-auto h-fit w-fit rounded-xl bg-sky-500 px-4 py-3 text-white"
                                 >
                                     Restore
                                 </button>
                                 {% endif %}
                                 <a
-                                    href="/settings/investor"
-                                    class="h-full w-fit rounded-md bg-red-500 px-3 py-2 text-sm text-white transition-colors ease-in-out hover:bg-red-400"
+                                    href="/settings"
+                                    class="h-full w-fit rounded-xl bg-red-500 px-4 py-3 text-white transition-colors ease-in-out hover:bg-red-400"
                                     >Discard</a
                                 >
                                 <button
                                     id="saveButton"
                                     @click="updateInvestor"
-                                    class="h-full w-fit rounded-md bg-sky-500 px-3 py-2 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
+                                    class="h-full w-fit rounded-xl bg-sky-500 px-4 py-3 text-white transition-colors ease-in-out hover:bg-sky-400"
                                 >
                                     Save
                                 </button>
                             </div>
                         </div>
-                    </div>
-                    {% else %}
-                    <div class="flex gap-1 flex-col mt-10 px-4">
-                        <h2 class="font-medium leading-7">Investor Information</h2>
-                        <div class="flex justify-between items-center">
-                            <p class="leading-6 text-slate-700">No investor, get started by creating an investor.</p>
+                        {% else %}
+                        <div class="col-span-4">
+                            <div class="flex flex-col gap-2 rounded-xl border-2 p-5">
+                                <h2 class="text-xl font-medium">Investor Account Application</h2>
+                                <p class="text-justify text-gray-500">
+                                    If you are an investor, you can apply for an investor account. This will allow you
+                                    to create an investor profile and connect with startups. You can also check if
+                                    there's an existing account for you in our database.
+                                </p>
+                                <div class="flex gap-2 self-end">
+                                    <a
+                                        href="/search"
+                                        class="mt-4 flex items-center justify-center gap-1 rounded-lg bg-sky-500 px-4 py-3 text-white transition-colors ease-in-out hover:bg-sky-400"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 16 16"
+                                            fill="currentColor"
+                                            class="size-5"
+                                        >
+                                            <path
+                                                fill-rule="evenodd"
+                                                d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
+                                                clip-rule="evenodd"
+                                            />
+                                        </svg>
 
-                            <a
-                                class="flex items-center justify-center gap-2 rounded-lg bg-sky-500 p-2 text-white transition-colors ease-in-out hover:bg-sky-400"
-                                href="/settings/investor/create"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="size-5"
-                                >
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
-                                <span class="text-sm font-medium">Create investor</span>
-                            </a>
+                                        See existing accounts</a
+                                    >
+                                    <a
+                                        href="/settings/investor/create"
+                                        class="mt-4 flex rounded-lg bg-deep-purple px-4 py-3 text-white transition-transform duration-500 ease-in-out hover:scale-105"
+                                    >
+                                        Apply
+                                    </a>
+                                </div>
+                            </div>
                         </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </main>
             </div>
         </div>

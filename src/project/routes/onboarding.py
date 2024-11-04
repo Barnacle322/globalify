@@ -173,12 +173,12 @@ def investor():
             db.session.add(verification)
             db.session.commit()
 
-        google_pubsub.send_event(
-            "A new user has completed onboarding!",
-            email=current_user.email,
-            event_type=Events.USER_COMPLETED_ONBOARDING.value,
-            random_key=verification.token,
-        )
+            google_pubsub.send_event(
+                "A new user has completed onboarding!",
+                email=current_user.email,
+                event_type=Events.USER_COMPLETED_ONBOARDING.value,
+                random_key=verification.token,
+            )
 
         notification = Notification(
             user=current_user,

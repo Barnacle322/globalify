@@ -3,16 +3,6 @@ from enum import Enum
 from ..utils.errors.error_messages import UNKNOWN_ERROR
 
 
-class NotificationDestination(Enum):
-    ALL = "all"
-    SEARCH = "search"
-    ONBOARDING = "onboarding"
-    COMPANY = "change_company_info"
-    SETTINGS = "company_list_view"
-    VERIFICATION = "email_verification"
-    INDEX = "index"
-
-
 class NotificationType(Enum):
     INFO = "info"
     WARNING = "warning"

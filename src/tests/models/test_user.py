@@ -367,12 +367,13 @@ def test_get_by_company_id_and_email(new_user_oauth, new_company, new_user_compa
 def test_get_company_members(new_user_oauth, new_company, new_user_company, app):
     with app.app_context():
         user = User.get_by_id(1)
+        assert user
         user_company = db.session.scalar(db.select(UserCompany).where(UserCompany.id == 1))
         company_members = UserCompany.get_members(1)
 
         assert user_company
-        assert user_company.user_id == user.id  # type: ignore
-        assert any(member_user.id == user.id for member_user, _ in company_members)  # type: ignore
+        assert user_company.user_id == user.id
+        assert any(member_user.id == user.id for member_user, _ in company_members)
 
 
 def test_get_all_user_companies(new_user_oauth, new_company, new_user_company, app):

@@ -120,13 +120,15 @@ def fetch_time(user_id):
 @login_required
 @check_user_info_complete
 def verify_email():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+
     token = request.args.get("uuid", "")
     next_url = request.args.get("next")
     email_verification = EmailVerification.get_by_token(token)
     user = User.get_by_id(email_verification.user_id) if email_verification else None
 
-    if not email_verification or not user or user.id != authenticated_user.id:
+    if not email_verification or not user or user.id != current_user.id:
         statuc = Status(StatusType.ERROR, "The code you have entered is invalid").get_status()
         return redirect(url_for("auth.email_verification_required", next=next_url, _external=False, **statuc))
 
@@ -134,7 +136,7 @@ def verify_email():
         status = Status(StatusType.ERROR, "The code has already expired!").get_status()
         return redirect(url_for("auth.email_verification_required", next=next_url, _external=False, **status))
 
-    authenticated_user.is_verified = True
+    current_user.is_verified = True
     email_verification.is_used = True
     db.session.commit()
 
@@ -145,10 +147,12 @@ def verify_email():
 @login_required
 @check_user_info_complete
 def resend_verification_email(user_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+
     user = User.get_by_id(user_id)
 
-    if not user or user.id != authenticated_user.id:
+    if not user or user.id != current_user.id:
         status = Status(StatusType.ERROR, ACCOUNT_NOT_FOUND).get_status()
         return redirect(url_for("auth.login", _external=False, **status))
 
@@ -191,10 +195,12 @@ def email_verification_required():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+
     next_url = request.args.get("next")
 
-    if authenticated_user.is_verified:
+    if current_user.is_verified:
         return redirect(url_for("main.search", next=next_url))
 
     return render_template("verify_email.html", user_id=current_user.id, status_type=status_type, msg=msg)

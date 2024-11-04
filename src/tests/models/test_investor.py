@@ -403,7 +403,7 @@ def test_get_investor_full_name(new_investors_without_additional_info, app):
         investor = Investor.get_by_id(1)
         assert investor
 
-        investor_full_name = investor.full_name  # type: ignore
+        investor_full_name = investor.full_name
         assert investor_full_name == "Emily Smith"
 
 
@@ -690,7 +690,7 @@ def test_calculate_investor_completeness_score(new_investors_with_additional_inf
 def test_get_suggestions(new_company, new_investors_with_additional_info, app):
     with app.app_context():
         company = Company.get_by_id(1)
-        suggestions = Investor.get_suggestions(company, 4)  # type: ignore
+        suggestions = Investor.get_suggestions(company, 4)
 
         assert suggestions
         assert len(suggestions) == 4

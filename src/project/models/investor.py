@@ -422,7 +422,9 @@ class Investor(InvestorBase):
             SuggestionBuilder(investor_list, company).calculate_all_scores().sort_by_score().get_id_list(quantity)
         )
         suggestions = Investor.get_by_id_list(investor_ids)
-        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}  # type: ignore
+        if not suggestions:
+            return None
+        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}
         sorted_suggestions = [
             suggestions_dict[investor_id] for investor_id in investor_ids if investor_id in suggestions_dict
         ]
@@ -1139,9 +1141,7 @@ class Investor(InvestorBase):
 
 
 class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
-    user: Mapped[User] = relationship(
-        "User", back_populates="investor_bookmarks", passive_deletes=True, lazy=True, init=False
-    )
+    user: Mapped[User] = relationship("User", back_populates="investor_bookmarks", passive_deletes=True, init=False)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -1347,7 +1347,9 @@ class InvestmentFirm(db.Model):
             .get_id_list(quantity)
         )
         suggestions = InvestmentFirm.get_by_id_list(investment_firm_ids)
-        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}  # type: ignore
+        if not suggestions:
+            return None
+        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}
         sorted_suggestions = [
             suggestions_dict[investment_firm_id]
             for investment_firm_id in investment_firm_ids
@@ -1777,7 +1779,7 @@ class InvestmentFirm(db.Model):
 
 class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
     user: Mapped[User] = relationship(
-        "User", back_populates="investment_firm_bookmarks", passive_deletes=True, lazy=True, init=False
+        "User", back_populates="investment_firm_bookmarks", passive_deletes=True, init=False
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

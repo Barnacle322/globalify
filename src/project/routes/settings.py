@@ -18,7 +18,6 @@ from ..models import (
     User,
     UserCompany,
     UserInfo,
-    UserPayment,
 )
 from ..schemas.investor import InvestorOriginPointSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
@@ -102,8 +101,10 @@ def plan():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-    user_payment = UserPayment.get_by_user_id(authenticated_user.id)
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
+    user_payment = current_user.user_payment
     if user_payment and user_payment.customer_id and user_payment.subscription_id:
         subscription = user_payment.sanitize()
     else:
@@ -126,11 +127,13 @@ def plan():
 @check_user_info_complete
 @check_verification
 def billing():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
     return render_template(
         "settings/billing.html",
-        user=authenticated_user,
-        invoices=get_invoices(authenticated_user),
+        user=current_user,
+        invoices=get_invoices(current_user),
     )
 
 
@@ -139,8 +142,10 @@ def billing():
 @check_user_info_complete
 @check_verification
 def change_personal_info():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-    user_info = authenticated_user.user_info  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
+    user_info = current_user.user_info
 
     first_name = request.form.get("first-name")
     if first_name and first_name.strip() != user_info.first_name:
@@ -233,7 +238,8 @@ def change_personal_info():
 @check_user_info_complete
 @check_verification
 def delete_account():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
     if request.method == "POST":
         # NOTE: Decorators hold db session open
@@ -242,9 +248,9 @@ def delete_account():
         db.session.begin()
 
         # Access the user_info attribute to add it to the session
-        _ = authenticated_user.user_info  # type: ignore
+        _ = current_user.user_info
 
-        db.session.delete(authenticated_user)
+        db.session.delete(current_user)
         db.session.commit()
         logout_user()
 
@@ -350,9 +356,10 @@ def company_info_view(company_id):
 @check_user_info_complete
 @check_verification
 def change_company_info(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
-    user_company = UserCompany.get_by_user_and_company_id(user_id=authenticated_user.id, company_id=company_id)
+    user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not user_company:
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
@@ -457,7 +464,7 @@ def change_company_info(company_id):
     company.country_id = country_id
     company.preferred_round_id = preferred_round_id
     company.industry_id = industry_id
-    company.coordinates = Country.get_by_id(country_id).name  # type: ignore
+    company.coordinates = country.name if (country := Country.get_by_id(country_id)) else "World"
     company.is_public = is_public
 
     try:
@@ -508,7 +515,9 @@ def create_company_view():
 @check_user_info_complete
 @check_verification
 def create_company():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
     form_data = request.form
 
     if not (company_name := form_data.get("company_name")):
@@ -544,7 +553,7 @@ def create_company():
     company.preferred_round_id = preferred_round_id
     company.industry_id = industry_id
     company.country_id = country_id
-    company.coordinates = Country.get_by_id(country_id).name  # type: ignore
+    company.coordinates = country.name if (country := Country.get_by_id(country_id)) else "World"
 
     if not company.slug:
         company.set_slug()
@@ -562,11 +571,11 @@ def create_company():
         status = Status(StatusType.ERROR, str(e)).get_status()
         return redirect(url_for("settings.create_company_view", _external=False, **status))
 
-    existing_user_companies = UserCompany.get_by_user_id(user_id=authenticated_user.id)
+    existing_user_companies = UserCompany.get_by_user_id(user_id=current_user.id)
     is_primary = not existing_user_companies
 
     user_company = UserCompany(
-        user_id=authenticated_user.id,
+        user_id=current_user.id,
         company_id=company.id,
         role=CompanyRole.OWNER,
         is_primary=is_primary,
@@ -623,11 +632,13 @@ def delete_company(id):
 @check_user_info_complete
 @check_verification
 def invite_user(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
     user_companies = UserCompany.get_by_company_id_and_role(company_id=company_id, role=CompanyRole.OWNER)
     owner_id_list = [user_company.user_id for user_company in user_companies]
 
-    if authenticated_user.id not in owner_id_list:
+    if current_user.id not in owner_id_list:
         status = Status(StatusType.ERROR, COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_info_view", _external=False, **status))
 
@@ -656,15 +667,15 @@ def invite_user(company_id):
         event_type=Events.COMPANY_INVITATION.value,
         role=user_role.title(),
         message=invitation_message,
-        company_name=Company.get_by_id(company_id).name,  # type: ignore
-        invited_by=authenticated_user.user_info.username,  # type: ignore
+        company_name=company.name if (company := Company.get_by_id(company_id)) else None,
+        invited_by=current_user.user_info.username,
     )
 
     company_invitation = CompanyInvitation(
         company_id=company_id,
         email=user_email,
         role=CompanyRole(user_role),
-        invited_by=authenticated_user.id,
+        invited_by=current_user.id,
         message=invitation_message,
     )
 
@@ -680,19 +691,19 @@ def invite_user(company_id):
 @check_user_info_complete
 @check_verification
 def accept_invitation(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-    company_invitation = CompanyInvitation.get_by_company_id_and_email(
-        company_id=company_id, email=authenticated_user.email
-    )
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
+    company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id=company_id, email=current_user.email)
     if not company_invitation:
         status = Status(StatusType.ERROR, INVITATION_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    user_company = UserCompany.get_by_user_and_company_id(company_id=company_id, user_id=authenticated_user.id)
+    user_company = UserCompany.get_by_user_and_company_id(company_id=company_id, user_id=current_user.id)
     if not user_company:
-        is_primary = not UserCompany.get_by_user_id(user_id=authenticated_user.id)
+        is_primary = not UserCompany.get_by_user_id(user_id=current_user.id)
         user_company = UserCompany(
-            user_id=authenticated_user.id,
+            user_id=current_user.id,
             company_id=company_id,
             role=company_invitation.role,
             is_primary=is_primary,
@@ -710,10 +721,9 @@ def accept_invitation(company_id):
 @check_user_info_complete
 @check_verification
 def decline_invitation(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-    company_invitation = CompanyInvitation.get_by_company_id_and_email(
-        company_id=company_id, email=authenticated_user.email
-    )
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+    company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id=company_id, email=current_user.email)
     if not company_invitation:
         status = Status(StatusType.ERROR, INVITATION_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
@@ -734,12 +744,14 @@ def cancel_invitation(invitation_id):
         status = Status(StatusType.ERROR, INVITATION_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
     user_companies = UserCompany.get_by_company_id_and_role(
         company_id=company_invitation.company_id, role=CompanyRole.OWNER
     )
     owner_id_list = [user_company.user_id for user_company in user_companies]
-    if authenticated_user.id not in owner_id_list:
+    if current_user.id not in owner_id_list:
         status = Status(StatusType.ERROR, COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
@@ -754,10 +766,11 @@ def cancel_invitation(invitation_id):
 @check_user_info_complete
 @check_verification
 def get_company_members(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
     company_members = UserCompany.get_members(company_id=company_id)
     member_id_list = [user_company.user_id for user_company in company_members]
-    if not company_members or (authenticated_user.id not in member_id_list):
+    if not company_members or (current_user.id not in member_id_list):
         return jsonify({"members": []})
 
     members = []
@@ -852,14 +865,15 @@ def remove_company_member(user_id):
 @check_user_info_complete
 @check_verification
 def make_company_primary(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
-    user_company = UserCompany.get_by_user_and_company_id(user_id=authenticated_user.id, company_id=company_id)
+    user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not user_company:
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    user_company.set_primary = authenticated_user.id
+    user_company.set_primary = current_user.id
 
     return redirect(url_for("settings.company_list_view", _external=False))
 
@@ -869,8 +883,10 @@ def make_company_primary(company_id):
 @check_user_info_complete
 @check_verification
 def make_company_public(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-    user_company = UserCompany.get_by_user_and_company_id(user_id=authenticated_user.id, company_id=company_id)
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
+    user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
 
     if not user_company:
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
@@ -994,9 +1010,10 @@ def edit_investor():
 @check_user_info_complete
 @check_verification
 def investor_point_origin_data():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
-    investor = Investor.get_by_user_id(authenticated_user.id)
+    investor = Investor.get_by_user_id(current_user.id)
     if not investor:
         status = Status(StatusType.ERROR, NO_CLAIMED_INVESTOR_PROFILE).get_status()
         return redirect(url_for("settings.index", _external=True, **status))
@@ -1035,9 +1052,10 @@ def investor_point_origin_data():
 @check_user_info_complete
 @check_verification
 def restore_investor_data():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
-    investor = Investor.get_by_user_id(authenticated_user.id)
+    investor = current_user.investor
     if not investor:
         status = Status(StatusType.ERROR, NO_CLAIMED_INVESTOR_PROFILE).get_status()
         return redirect(url_for("settings.index", _external=True, **status))
@@ -1099,7 +1117,7 @@ def search_user(search_input):
         user_element = UserSchema(
             id=user.id,
             email=user.email,
-            picture_url=user.user_info.picture_url,  # type: ignore
+            picture_url=user.user_info.picture_url,
         )
         user_list.append(user_element.model_dump())
     return jsonify({"users": user_list})
@@ -1110,7 +1128,8 @@ def search_user(search_input):
 @check_user_info_complete
 @check_verification
 def investor():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
     if request.method == "POST":
         form_data = request.get_json()
@@ -1126,7 +1145,7 @@ def investor():
                 return jsonify({"error": "Email is already in use"}), 400
 
         investor = Investor(
-            user_id=authenticated_user.id,
+            user_id=current_user.id,
             first_name=first_name,
             last_name=form_data.get("lastName"),
             slug=form_data.get("slug") or None,
@@ -1167,7 +1186,7 @@ def investor():
 
     return render_template(
         "settings/create_investor.html",
-        user=authenticated_user,
+        user=current_user,
         countries=Country.get_all(),
         industries=Industry.get_all(),
         rounds=Round.get_all(),

@@ -35,7 +35,7 @@ from sqlalchemy.orm import Mapped, MappedAsDataclass, joinedload, mapped_column,
 
 from ..extensions import db
 from ..utils import suggestion
-from ..utils.enums import CompanyRole, NotificationDestination, OauthProvider, Tier
+from ..utils.enums import CompanyRole, OauthProvider, Tier
 from ..utils.suggestion import COMPANY_WEIGHTS
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
@@ -54,43 +54,37 @@ if TYPE_CHECKING:
 
 class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     user_info: Mapped[UserInfo] = relationship(
-        "UserInfo", back_populates="user", uselist=False, lazy="joined", init=False
+        "UserInfo", back_populates="user", uselist=False, init=False, lazy="joined"
     )
-    user_payment: Mapped[UserPayment] = relationship(
-        "UserPayment", back_populates="user", uselist=False, lazy="joined", init=False
-    )
+    user_payment: Mapped[UserPayment] = relationship("UserPayment", back_populates="user", uselist=False, init=False)
     user_companies: Mapped[list[UserCompany]] = relationship(
-        "UserCompany", back_populates="user", uselist=True, lazy="joined", init=False
+        "UserCompany", back_populates="user", uselist=True, init=False, lazy="joined"
     )
-    notifications: Mapped[list[Notification]] = relationship(
-        "Notification", back_populates="user", lazy="joined", init=False
-    )
+    notifications: Mapped[list[Notification]] = relationship("Notification", back_populates="user", init=False)
     email_verifications: Mapped[list[EmailVerification]] = relationship(
-        "EmailVerification", back_populates="user", lazy="joined", init=False
+        "EmailVerification", back_populates="user", init=False
     )
 
     claim_requests: Mapped[list[ClaimRequest]] = relationship(
-        "ClaimRequest", back_populates="user", uselist=True, lazy="joined", init=False
+        "ClaimRequest", back_populates="user", uselist=True, init=False
     )
     claim_verifications: Mapped[list[ClaimVerification]] = relationship(
-        "ClaimVerification", back_populates="user", lazy="joined", init=False
+        "ClaimVerification", back_populates="user", init=False
     )
 
-    investor: Mapped[Investor] = relationship(
-        "Investor", back_populates="user", uselist=False, lazy="joined", init=False
-    )
+    investor: Mapped[Investor] = relationship("Investor", back_populates="user", uselist=False, init=False)
     investor_backup: Mapped[InvestorBackup | None] = relationship(
-        "InvestorBackup", back_populates="user", uselist=False, lazy="joined", init=False
+        "InvestorBackup", back_populates="user", uselist=False, init=False
     )
 
     company_bookmarks: Mapped[list[CompanyBookmark]] = relationship(
-        "CompanyBookmark", back_populates="user", uselist=True, lazy="joined", init=False
+        "CompanyBookmark", back_populates="user", uselist=True, init=False
     )
     investor_bookmarks: Mapped[list[InvestorBookmark]] = relationship(
-        "InvestorBookmark", back_populates="user", uselist=True, lazy="joined", init=False
+        "InvestorBookmark", back_populates="user", uselist=True, init=False
     )
     investment_firm_bookmarks: Mapped[list[InvestmentFirmBookmark]] = relationship(
-        "InvestmentFirmBookmark", back_populates="user", uselist=True, lazy="joined", init=False
+        "InvestmentFirmBookmark", back_populates="user", uselist=True, init=False
     )
 
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
@@ -290,9 +284,6 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, init=False)
     json_data: Mapped[dict] = mapped_column(JSON, nullable=True, default=False)
-    destination: Mapped[NotificationDestination] = mapped_column(
-        SQLEnum(NotificationDestination), nullable=True, default=NotificationDestination.SEARCH
-    )
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def to_dict(self):
@@ -301,7 +292,6 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
             "user_id": self.user_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "json_data": self.json_data,
-            "destination": self.destination.value if isinstance(self.destination, enum.Enum) else self.destination,
             "is_read": self.is_read,
         }
 
@@ -376,7 +366,7 @@ class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class CompanySuggestionBuilder:
-    def __init__(self, company_list: list[dict], investor: Investor | None):  # noqa: F821 # type: ignore
+    def __init__(self, company_list: list[dict], investor: Investor | None):
         self.company_list = company_list
         self.investor = investor
 
@@ -439,13 +429,13 @@ class CompanySuggestionBuilder:
 
 class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     user_companies: Mapped[list[UserCompany]] = relationship(
-        "UserCompany", back_populates="company", uselist=True, init=False, lazy="joined"
+        "UserCompany", back_populates="company", uselist=True, init=False
     )
     company_invitations: Mapped[list[CompanyInvitation]] = relationship(
-        "CompanyInvitation", back_populates="company", uselist=True, init=False, lazy="joined"
+        "CompanyInvitation", back_populates="company", uselist=True, init=False
     )
     notable_investment: Mapped[NotableInvestment] = relationship(
-        "NotableInvestment", back_populates="company", uselist=False, init=False, lazy="joined"
+        "NotableInvestment", back_populates="company", uselist=False, init=False
     )
 
     country: Mapped[Country] = relationship(init=False)
@@ -549,7 +539,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalars(db.select(Company).where(Company.id.in_(ids))).all()
 
     @staticmethod
-    def get_suggestions(investor: Investor | None, quantity: int) -> Sequence[Company] | None:  # type: ignore # noqa: F821
+    def get_suggestions(investor: Investor | None, quantity: int) -> Sequence[Company] | None:
         company_list = []
         for company in Company.get_all():
             company_info = {

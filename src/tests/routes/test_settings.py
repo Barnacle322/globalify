@@ -509,7 +509,8 @@ def test_verified_user_change_personal_info_add_linkedin_url(client, app, verifi
         assert response.status_code == 200
 
         updated_user = UserInfo.get_by_user_id(1)
-        assert updated_user.linkedin_url == "https://linkedin.com/in/newLNKDN"  # type: ignore
+        assert updated_user
+        assert updated_user.linkedin_url == "https://linkedin.com/in/newLNKDN"
 
 
 def test_verified_user_change_personal_info_add_twitter_url(client, app, verified_user, monkeypatch):
@@ -531,7 +532,8 @@ def test_verified_user_change_personal_info_add_twitter_url(client, app, verifie
         assert response.status_code == 200
 
         updated_user = UserInfo.get_by_user_id(1)
-        assert updated_user.twitter_url == "https://twitter.com/newTWTR"  # type: ignore
+        assert updated_user
+        assert updated_user.twitter_url == "https://twitter.com/newTWTR"
 
 
 def test_verified_user_change_personal_info_add_instagram_url(client, app, verified_user, monkeypatch):
@@ -553,7 +555,8 @@ def test_verified_user_change_personal_info_add_instagram_url(client, app, verif
         assert response.status_code == 200
 
         updated_user = UserInfo.get_by_user_id(1)
-        assert updated_user.instagram_url == "https://instagram.com/newINSTGRM"  # type: ignore
+        assert updated_user
+        assert updated_user.instagram_url == "https://instagram.com/newINSTGRM"
 
 
 def test_verified_user_change_personal_info_taken_username(

@@ -22,7 +22,6 @@ from ..models import (
 )
 from ..utils.enums import (
     Events,
-    NotificationDestination,
     OauthProvider,
 )
 from ..utils.errors.error_messages import (
@@ -53,8 +52,9 @@ def index():
 @onboarding.route("/basic", methods=["GET", "POST"])
 @login_required
 def basic():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-    user_info = UserInfo.get_by_user_id(authenticated_user.id)
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+    user_info = UserInfo.get_by_user_id(current_user.id)
     if not user_info:
         return redirect(url_for("auth.login"))
 
@@ -82,17 +82,17 @@ def basic():
         user_info.is_complete = True
         db.session.commit()
 
-        if authenticated_user.oauth_provider == OauthProvider.GOOGLE:
-            authenticated_user.is_verified = True
+        if current_user.oauth_provider == OauthProvider.GOOGLE:
+            current_user.is_verified = True
             db.session.commit()
-        elif not authenticated_user.is_verified:
-            verification = EmailVerification(user_id=authenticated_user.id)
+        elif not current_user.is_verified:
+            verification = EmailVerification(user_id=current_user.id)
             db.session.add(verification)
             db.session.commit()
 
             google_pubsub.send_event(
                 "A new user has completed onboarding!",
-                email=authenticated_user.email,
+                email=current_user.email,
                 event_type=Events.USER_COMPLETED_ONBOARDING.value,
                 random_key=verification.token,
             )
@@ -105,9 +105,11 @@ def basic():
 @onboarding.route("/investor", methods=["GET", "POST"])
 @login_required
 def investor():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-    if authenticated_user.user_info.is_complete:  # type: ignore
-        return redirect(url_for("main.search"))
+    if not current_user or not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+
+    if current_user.user_info.is_complete:
+        return redirect(url_for("auth.login"))
 
     if request.method == "POST":
         form_data = request.get_json()
@@ -123,7 +125,7 @@ def investor():
                 return jsonify({"error": "Email is already in use"}), 400
 
         investor = Investor(
-            user_id=authenticated_user.id,
+            user_id=current_user.id,
             first_name=first_name,
             last_name=form_data.get("lastName"),
             slug=form_data.get("slug") or None,
@@ -160,33 +162,32 @@ def investor():
         except Exception:
             return redirect(url_for("onboarding.index"))
 
-        authenticated_user.user_info.is_complete = True  # type: ignore
+        current_user.user_info.is_complete = True
         db.session.commit()
 
-        if authenticated_user.oauth_provider == OauthProvider.GOOGLE:
-            authenticated_user.is_verified = True
+        if current_user.oauth_provider == OauthProvider.GOOGLE:
+            current_user.is_verified = True
             db.session.commit()
-        elif not authenticated_user.is_verified:
-            verification = EmailVerification(user_id=authenticated_user.id)
+        elif not current_user.is_verified:
+            verification = EmailVerification(user_id=current_user.id)
             db.session.add(verification)
             db.session.commit()
 
         google_pubsub.send_event(
             "A new user has completed onboarding!",
-            email=authenticated_user.email,
+            email=current_user.email,
             event_type=Events.USER_COMPLETED_ONBOARDING.value,
             random_key=verification.token,
         )
 
         notification = Notification(
-            user=authenticated_user,
+            user=current_user,
             json_data={
                 "title": "Info",
                 "msg": "Welcome to our platform. You have successfully completed registration. Explore the world of investment with us!",
                 "type": "system",
                 "item": {"type": "info", "url": "/search"},
             },
-            destination=NotificationDestination.SEARCH,
         )
         db.session.add(notification)
         db.session.commit()
@@ -195,7 +196,7 @@ def investor():
 
     return render_template(
         "onboarding/investor.html",
-        user=authenticated_user,
+        user=current_user,
         countries=Country.get_all(),
         industries=Industry.get_all(),
         rounds=Round.get_all(),

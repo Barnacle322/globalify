@@ -243,7 +243,7 @@ def test_get_investment_firm_suggestions(
 ):
     with app.app_context():
         company = Company.get_by_id(1)
-        suggestions = InvestmentFirm.get_suggestions(company, 3)  # type: ignore
+        suggestions = InvestmentFirm.get_suggestions(company, 3)
         print(suggestions)
         assert suggestions
         assert len(suggestions) == 3

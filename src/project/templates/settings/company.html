@@ -463,11 +463,11 @@
                                     </div>
                                     {% if user_role in ["owner", "admin"] %}
                                     <div class="col-span-full">
-                                        <div>
-                                            <span class="block text-sm font-medium leading-6">Visibility Settings</span>
-                                            <span class="block text-sm font-medium leading-6 text-gray-500"
-                                                >You can make your company visible in search results.</span
-                                            >
+                                        <div class="text-sm font-medium leading-6">
+                                            <span class="block">Visibility Settings</span>
+                                            <span class="text-gray-500"
+                                                >You can make your company visible in the search results.
+                                            </span>
                                         </div>
                                         <label class="inline-flex cursor-pointer items-center pt-2">
                                             {% if company.is_public %}

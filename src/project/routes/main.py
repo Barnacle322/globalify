@@ -165,8 +165,8 @@ def privacy_policy():
 @check_user_info_complete
 @check_verification
 def get_suggestions():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
     access = True
     user_payment = UserPayment.get_by_user_id(current_user.id)
     if current_user.is_admin:
@@ -179,7 +179,7 @@ def get_suggestions():
     user_company = UserCompany.get_primary_by_user_id(current_user.id)
     if not user_company:
         notification = Notification(
-            user=authenticated_user,
+            user=current_user,
             json_data=NotificationLayout(
                 title="Info",
                 msg="It looks like you don't have a primary company set! Please set a primary company to access suggestions.",
@@ -212,7 +212,8 @@ def get_suggestions():
 @check_user_info_complete
 @check_verification
 def get_suggestion_investment_firms():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
 
     access = True
     user_payment = UserPayment.get_by_user_id(current_user.id)
@@ -226,7 +227,7 @@ def get_suggestion_investment_firms():
     user_company = UserCompany.get_primary_by_user_id(current_user.id)
     if not user_company:
         notification = Notification(
-            user=authenticated_user,
+            user=current_user,
             json_data=NotificationLayout(
                 title="Info",
                 msg="Please mark a company as primary to access suggestions.",
@@ -255,8 +256,8 @@ def get_suggestion_investment_firms():
 @check_user_info_complete
 @check_verification
 def get_suggestion_companies():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
     access = True
     user_payment = UserPayment.get_by_user_id(current_user.id)
     if current_user.is_admin:
@@ -270,7 +271,7 @@ def get_suggestion_companies():
 
     return render_template(
         "suggestions_companies.html",
-        companies=Company.get_suggestions(investor=Investor.get_by_user_id(authenticated_user.id), quantity=15),
+        companies=Company.get_suggestions(investor=Investor.get_by_user_id(current_user.id), quantity=15),
         access=access,
     )
 
@@ -956,9 +957,9 @@ def get_investor_bookmarks():
 @main.get("/check-investor")
 @login_required
 def check_investor():
-    autentication_user: User = current_user._get_current_object()  # type: ignore
-
-    user_info = UserInfo.get_by_user_id(autentication_user.id)
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+    user_info = UserInfo.get_by_user_id(current_user.id)
     if not user_info:
         return jsonify({"status": "error", "message": "User Info not found."}), 404
 
@@ -1126,7 +1127,7 @@ def sitemap():
 
     # Add static pages
     for rule in current_app.url_map.iter_rules():
-        if "GET" in rule.methods and len(rule.arguments) == 0:  # type: ignore
+        if rule.methods and "GET" in rule.methods and len(rule.arguments) == 0:
             pages.append([rule.rule, ten_days_ago])
 
     # Add dynamic pages

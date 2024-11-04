@@ -8,7 +8,7 @@ from src.project.models.helpers import Industry, Round
 from src.project.models.investor import InvestmentFirm, Investor, NotableInvestment
 from src.project.models.user import Notification, User, UserInfo, UserPayment
 from src.project.schemas.notification import NotificationLayout
-from src.project.utils.enums import NotificationDestination, OauthProvider
+from src.project.utils.enums import OauthProvider
 from src.project.utils.errors.error_messages import AUTH_FIELDS_INCOMPLETE
 from src.project.utils.google_helpers import google_pubsub
 
@@ -328,7 +328,6 @@ def test_edit_notification_mismatch_user(client, app, verified_user, verified_us
         notification = Notification(
             user=user,
             json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).model_dump(),
-            destination=NotificationDestination.ONBOARDING,
         )
         db.session.add(notification)
         db.session.commit()
@@ -353,7 +352,6 @@ def test_success_edit_notification(client, app, verified_user, monkeypatch):
         notification = Notification(
             user=user,
             json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).model_dump(),
-            destination=NotificationDestination.ONBOARDING,
         )
         db.session.add(notification)
         db.session.commit()

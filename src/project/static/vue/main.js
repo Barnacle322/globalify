@@ -82,7 +82,6 @@ createApp({
             try {
                 if (data.status) {
                     this.investorBookmakrIds.push(data.investorId); // Corrected typo
-                    console.log(this.investorBookmakrIds);
                 } else {
                     this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId); // Corrected typo
                 }
@@ -402,7 +401,7 @@ createApp({
             return url;
         },
         updateLinksWithQueryParams() {
-            document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
+            document.querySelectorAll("a[href^=\"/\"]:not([href^=\"//\"])").forEach((link) => {
                 if (!link.getAttribute("href").includes("search")) return;
                 link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
             });

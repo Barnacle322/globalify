@@ -786,6 +786,19 @@ class CompanyBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
         super().__init__(**kwargs)
 
     @staticmethod
+    def get_by_user_id(user_id: int, offset: int = 1, limit: int = 10) -> Sequence[Company]:
+        return (
+            db.session.scalars(
+                db.select(Company)
+                .join(CompanyBookmark, CompanyBookmark.company_id == Company.id)
+                .where(CompanyBookmark.user_id == user_id).offset(offset)
+                .limit(limit)
+            )
+            .unique()
+            .all()
+        )
+
+    @staticmethod
     def get_id_list(user_id: int) -> Sequence[int]:
         return (
             db.session.execute(

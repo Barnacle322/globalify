@@ -35,6 +35,13 @@
                 >
                     <button>Investment Firm</button>
                 </li>
+                <li
+                    @click="selectedTab = 'company'"
+                    ref="company"
+                    class="border-gray-300 py-2 transition-all ease-in-out hover:border-b-[3px] data-[selected=true]:border-b-[3px] data-[selected=true]:border-gray-800"
+                >
+                    <button>Company</button>
+                </li>
             </ul>
         </div>
         <div class="flex flex-col gap-1 overflow-y-auto p-5 pt-3">

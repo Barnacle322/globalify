@@ -36,6 +36,7 @@ from ..models import (
     UserInfo,
     UserPayment,
 )
+from ..schemas.company import CompanyBookmarkSchema
 from ..schemas.investor import (
     InvestmentFirmBookmarkSchema,
     InvestmentFirmSchema,
@@ -1196,3 +1197,30 @@ def internal_server_error(e):
 @main.errorhandler(503)
 def service_unavailable(e):
     return render_template("errors/503.html"), 503
+
+
+
+@main.get("/companies/bookmarks")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_company_bookmarks():
+    user_id = current_user.id
+
+    page = request.args.get("page", default=1, type=int)
+    limit = 10
+    offset = (page - 1) * limit
+
+    companies = []
+    bookmarks = CompanyBookmark.get_by_user_id(user_id, offset=offset, limit=limit)
+    for db_company in bookmarks:
+        if not isinstance(db_company, Company):
+            return jsonify({"status": "error", "message": "Company not found."}), 404
+
+        company = CompanyBookmarkSchema(
+            id=db_company.id,
+            name=db_company.name,
+        )
+        companies.append(json.loads(company.model_dump_json()))
+
+    return jsonify({"bookmarks": companies})

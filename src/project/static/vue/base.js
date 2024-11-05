@@ -178,7 +178,6 @@ const NotificationComponent = defineComponent({
                         "X-CSRFToken": csrfToken,
                     },
                 });
-                console.log(response);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -300,9 +299,16 @@ const Bookmark = defineComponent({
                 this.$refs.investment_firm.setAttribute("data-selected", "false");
                 this.page = 2;
                 this.setupInfinteScroll();
-            } else {
+            } else if (newVal === "investment_firm"){
                 this.$refs.investor.setAttribute("data-selected", "false");
                 this.$refs.investment_firm.setAttribute("data-selected", "true");
+                this.$refs.company.setAttribute("data-selected", "false");
+                this.page = 2;
+                this.setupInfinteScroll();
+            } else if (newVal === "company") {
+                this.$refs.investor.setAttribute("data-selected", "false");
+                this.$refs.investment_firm.setAttribute("data-selected", "false");
+                this.$refs.company.setAttribute("data-selected", "true");
                 this.page = 2;
                 this.setupInfinteScroll();
             }
@@ -333,6 +339,13 @@ const Bookmark = defineComponent({
                 if (response.ok) {
                     this.bookmarks = data.bookmarks;
                 }
+            } else if (this.selectedTab === "company") {
+                const response = await fetch("/companies/bookmarks");
+                data = await response.json();
+
+                if (response.ok){
+                    this.bookmarks = data.bookmarks;
+                }
             }
             const options = {
                 root: null,
@@ -361,8 +374,9 @@ const Bookmark = defineComponent({
                         response = await fetch(`/investors/bookmarks?page=${this.page}`);
                     } else if (this.selectedTab === "investment_firm") {
                         response = await fetch(`/investment-firms/bookmarks?page=${this.page}`);
+                    } else if (this.selectedTab === "company"){
+                        response = await fetch(`/companies/bookmarks?page=${this.page}`);
                     }
-
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
@@ -426,7 +440,6 @@ const Bookmark = defineComponent({
         },
         updateUrlParam(paramName, paramValue, stateKey) {
             const url = new URL(window.location.href);
-            console.log(url);
             if (url.searchParams.get(paramName) !== paramValue) {
                 url.searchParams.set("investor", paramValue);
                 url.pathname = "/search";

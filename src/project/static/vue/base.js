@@ -178,7 +178,6 @@ const NotificationComponent = defineComponent({
                         "X-CSRFToken": csrfToken,
                     },
                 });
-                console.log(response);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -288,7 +287,7 @@ const AsideMobileComponent = defineComponent({
 
 const Bookmark = defineComponent({
     template: "#bookmark-template",
-    emits: ["investor-bookmarked", "firm-bookmarked", "closebookmarks"],
+    emits: ["investor-bookmarked", "firm-bookmarked", "company-bookmarked", "closebookmarks"],
     watch: {
         selectedTab(newVal, oldVal) {
             if (newVal === oldVal) {
@@ -298,11 +297,19 @@ const Bookmark = defineComponent({
             if (newVal === "investor") {
                 this.$refs.investor.setAttribute("data-selected", "true");
                 this.$refs.investment_firm.setAttribute("data-selected", "false");
+                this.$refs.company.setAttribute("data-selected", "false");
                 this.page = 2;
                 this.setupInfinteScroll();
-            } else {
+            } else if (newVal === "investment_firm"){
                 this.$refs.investor.setAttribute("data-selected", "false");
                 this.$refs.investment_firm.setAttribute("data-selected", "true");
+                this.$refs.company.setAttribute("data-selected", "false");
+                this.page = 2;
+                this.setupInfinteScroll();
+            } else if (newVal === "company") {
+                this.$refs.investor.setAttribute("data-selected", "false");
+                this.$refs.investment_firm.setAttribute("data-selected", "false");
+                this.$refs.company.setAttribute("data-selected", "true");
                 this.page = 2;
                 this.setupInfinteScroll();
             }
@@ -333,6 +340,13 @@ const Bookmark = defineComponent({
                 if (response.ok) {
                     this.bookmarks = data.bookmarks;
                 }
+            } else if (this.selectedTab === "company") {
+                const response = await fetch("/companies/bookmarks");
+                data = await response.json();
+
+                if (response.ok){
+                    this.bookmarks = data.bookmarks;
+                }
             }
             const options = {
                 root: null,
@@ -361,8 +375,9 @@ const Bookmark = defineComponent({
                         response = await fetch(`/investors/bookmarks?page=${this.page}`);
                     } else if (this.selectedTab === "investment_firm") {
                         response = await fetch(`/investment-firms/bookmarks?page=${this.page}`);
+                    } else if (this.selectedTab === "company"){
+                        response = await fetch(`/companies/bookmarks?page=${this.page}`);
                     }
-
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
@@ -424,9 +439,29 @@ const Bookmark = defineComponent({
                 console.error("Error removing bookmark:", error.message);
             }
         },
+        async UnbookmarkCompany(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/company/${companyId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+
+                if (response.ok) {
+                    this.bookmarks = this.bookmarks.filter((company) => company.id !== companyId);
+                    this.$emit("company-bookmarked", { companyId: companyId, status: false });
+                } else {
+                    console.error("Error removing bookmark:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Error removing bookmark:", error.message);
+            }
+        },
         updateUrlParam(paramName, paramValue, stateKey) {
             const url = new URL(window.location.href);
-            console.log(url);
             if (url.searchParams.get(paramName) !== paramValue) {
                 url.searchParams.set("investor", paramValue);
                 url.pathname = "/search";
@@ -438,8 +473,8 @@ const Bookmark = defineComponent({
             this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug");
             window.location.reload();
         },
-
         getTwitterHandle(url) {
+            if (!url) return;
             return url.split("/").pop();
         },
     },
@@ -477,6 +512,8 @@ const NavbarComponent = defineComponent({
                 this.$emit("bookmarked", { investorId: data.investorId, status: data.status });
             } else if (type === "firm") {
                 this.$emit("bookmarked", { firmId: data.firmId, status: data.status });
+            } else if (type === "company"){
+                this.$emit("bookmarked", { companyId: data.companyId, status: data.status })
             }
         },
         expandAside() {

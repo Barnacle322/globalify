@@ -35,6 +35,13 @@
                 >
                     <button>Investment Firm</button>
                 </li>
+                <li
+                    @click="selectedTab = 'company'"
+                    ref="company"
+                    class="border-gray-300 py-2 transition-all ease-in-out hover:border-b-[3px] data-[selected=true]:border-b-[3px] data-[selected=true]:border-gray-800"
+                >
+                    <button>Company</button>
+                </li>
             </ul>
         </div>
         <div class="flex flex-col gap-1 overflow-y-auto p-5 pt-3">
@@ -44,7 +51,7 @@
                 >
                     <a class="flex cursor-pointer" @click="selectInvestorSlug(bookmark.slug)">
                         <img
-                            v-if="bookmark.twitter && selectedTab === 'investor'"
+                            v-if="bookmark.twitter && (selectedTab === 'investor' ||  selectedTab === 'investment_firm')"
                             :src="'https://unavatar.io/twitter/' + getTwitterHandle(bookmark.twitter)"
                             class="size-10 rounded-md bg-black"
                             loading="lazy"
@@ -52,6 +59,11 @@
                         <img
                             v-else-if="selectedTab === 'investor'"
                             src="/static/elements/pfp_placeholder.jpeg"
+                            class="size-10 rounded-md bg-black"
+                        />
+                        <img
+                            v-else-if="selectedTab === 'company' || selectedTab === 'investment_firm'"
+                            src="/static/elements/company_default_logo.jpg"
                             class="size-10 rounded-md bg-black"
                         />
                         <div class="flex-col items-center px-2 text-sm">
@@ -93,7 +105,7 @@
                             >
                                 <button
                                     ref="removebookmark"
-                                    @click="selectedTab === 'investor' ? unbookmarkInvestor(bookmark.id) : selectedTab === 'investment_firm' ? UnbookmarkInvestmentFirm(bookmark.id) : null; openedDropdownId = null;"
+                                    @click="selectedTab === 'investor' ? unbookmarkInvestor(bookmark.id) : selectedTab === 'investment_firm' ? UnbookmarkInvestmentFirm(bookmark.id) : selectedTab === 'company' ? UnbookmarkCompany(bookmark.id): null; openedDropdownId = null;"
                                     class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-gray-200"
                                 >
                                     Unbookmark

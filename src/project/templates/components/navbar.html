@@ -96,6 +96,7 @@
                                     @closebookmarks="bookmarksOpened = false"
                                     @investor-bookmarked="handleBookmark($event, 'investor')"
                                     @firm-bookmarked="handleBookmark($event, 'firm')"
+                                    @company-bookmarked="handleBookmark($event, 'company')"
                                 ></bookmark>
                             </transition>
                             <button @click="bookmarksOpened ? closeBookmark() : openBookmark()" class="flex">

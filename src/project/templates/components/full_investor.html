@@ -131,6 +131,13 @@
                         class="flex h-10 w-16 items-center justify-center rounded-lg bg-sky-500 px-2 py-1 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
                         >Edit
                     </a>
+                    {% if user.is_admin %}
+                    <a
+                        :href="`/admin/investors/${investor.id}`"
+                        class="flex h-10 w-32 items-center justify-center rounded-lg bg-red-600 ml-3 px-2 py-1 text-sm text-white transition-colors ease-in-out hover:bg-red-400"
+                        >Admin edit
+                    </a>
+                    {% endif %}
                 </section>
                 <section class="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2">
                     <article
@@ -342,7 +349,10 @@
                             <b>partners@globalify.xyz</b>
                         </p>
                     </article>
-                    <article v-if="!unpaid && rendercontacts" class="shadow-card w-full rounded-xl bg-white p-5">
+                    <article
+                        v-if="!unpaid && rendercontacts && (investor.twitter || investor.linkedin || investor.website || investor.email)"
+                        class="shadow-card w-full rounded-xl bg-white p-5"
+                    >
                         <h2 class="text-xl font-medium">Contacts</h2>
                         <div class="mt-5 flex flex-col gap-2 text-sm">
                             <div v-if="investor.twitter" class="flex justify-between gap-3">

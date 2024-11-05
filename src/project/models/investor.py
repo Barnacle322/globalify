@@ -1159,7 +1159,7 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.session.scalars(
                 db.select(Investor)
                 .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
-                .where(InvestorBookmark.user_id == user_id)
+                .where(InvestorBookmark.user_id == user_id, Investor.is_public.is_(True))
                 .options(joinedload(Investor.rounds), joinedload(Investor.industries))
                 .offset(offset)
                 .limit(limit)
@@ -1174,7 +1174,7 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.session.execute(
                 db.select(Investor.id)
                 .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
-                .where(InvestorBookmark.user_id == user_id)
+                .where(InvestorBookmark.user_id == user_id, Investor.is_public.is_(True))
             )
             .scalars()
             .all()
@@ -1798,7 +1798,7 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.session.scalars(
                 db.select(InvestmentFirm)
                 .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
-                .where(InvestmentFirmBookmark.user_id == user_id)
+                .where(InvestmentFirmBookmark.user_id == user_id, InvestmentFirm.is_public.is_(True))
                 .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
                 .offset(offset)
                 .limit(limit)
@@ -1813,7 +1813,7 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.session.execute(
                 db.select(InvestmentFirm.id)
                 .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
-                .where(InvestmentFirmBookmark.user_id == user_id)
+                .where(InvestmentFirmBookmark.user_id == user_id, InvestmentFirm.is_public.is_(True))
             )
             .scalars()
             .all()

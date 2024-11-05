@@ -518,7 +518,7 @@ def investor_slug(slug):
         msg = query.get("msg")
 
     investor = Investor.get_by_slug(slug)
-    if not investor:
+    if not investor or not investor.is_public:
         return redirect(url_for("main.search"))
 
     return render_template("investor.html", investor=investor, user=current_user, status_type=status_type, msg=msg)
@@ -788,6 +788,8 @@ def get_investor(slug):
     investor = Investor.get_by_slug(slug) if not unpaid else Investor.get_by_slug_without_contacts(slug)
     if not investor:
         return jsonify({"status": "error", "message": "Investor not found."}), 404
+    if not investor.is_public:
+        return jsonify({"status": "error", "message": "Investor is not public."}), 404
 
     investor = InvestorSchema(
         id=investor.id,
@@ -820,10 +822,22 @@ def get_investor(slug):
 @check_user_info_complete
 @check_verification
 def get_investment_firm(slug):
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+
+    unpaid = False
+    if current_user.is_admin:
+        pass
+    elif not user_payment:
+        unpaid = True
+    elif user_payment and not user_payment.is_active:
+        unpaid = True
+
     investment_firm_model = InvestmentFirm.get_by_slug(slug)
 
     if not investment_firm_model:
         return jsonify({"status": "error", "message": "Investment Firm not found."}), 404
+    if not investment_firm_model.is_public:
+        return jsonify({"status": "error", "message": "Investor is not public."}), 404
 
     investment_firm = InvestmentFirmSchema(
         id=investment_firm_model.id,
@@ -846,7 +860,7 @@ def get_investment_firm(slug):
     ).model_dump()
 
     is_bookmarked = InvestmentFirmBookmark.exists(investment_firm_model.id, current_user.id)
-    return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked})
+    return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
 @main.get("/company/<slug>")
@@ -854,6 +868,16 @@ def get_investment_firm(slug):
 @check_user_info_complete
 @check_verification
 def get_company(slug):
+    user_payment = UserPayment.get_by_user_id(current_user.id)
+
+    unpaid = False
+    if current_user.is_admin:
+        pass
+    elif not user_payment:
+        unpaid = True
+    elif user_payment and not user_payment.is_active:
+        unpaid = True
+
     company_model = Company.get_by_slug(slug)
 
     if not company_model:
@@ -876,7 +900,7 @@ def get_company(slug):
     ).model_dump()
     is_bookmarked = CompanyBookmark.exists(company_model.id, current_user.id)
 
-    return jsonify({"company": company, "isBookmarked": is_bookmarked})
+    return jsonify({"company": company, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
 @main.post("/investor/<int:investor_id>/bookmark")
@@ -885,7 +909,7 @@ def get_company(slug):
 @check_verification
 def toggle_bookmark_investor(investor_id):
     investor = Investor.get_by_id(int(investor_id))
-    if not investor:
+    if not investor or not investor.is_public:
         return jsonify({"status": "error", "message": "Investor not found."}), 404
 
     bookmark = InvestorBookmark.get_by_id(investor.id, current_user.id)
@@ -1033,7 +1057,7 @@ def investment_firm_slug(slug):
 @check_verification
 def toggle_bookmark_investment_firm(firm_id):
     investment_firm = InvestmentFirm.get_by_id(int(firm_id))
-    if not investment_firm:
+    if not investment_firm or not investment_firm.is_public:
         return jsonify({"status": "error", "message": "Investment Firm not found."}), 404
 
     bookmark = InvestmentFirmBookmark.get_by_id(investment_firm.id, current_user.id)

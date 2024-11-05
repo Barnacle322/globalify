@@ -691,6 +691,7 @@ const FullInvestmentFirm = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     this.investmentFirm = data.investment_firm;
+                    this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
                 } else {
                     this.closeInvestmentFirm();
@@ -757,6 +758,7 @@ const FullInvestmentFirm = defineComponent({
             isLoading: false,
             investmentFirm: null,
             isBookmarked: false,
+            unpaid: false,
         };
     },
 });
@@ -796,6 +798,7 @@ const FullCompany = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     this.company = data.company;
+                    this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
                 } else {
                     this.closeCompany();
@@ -850,7 +853,7 @@ const FullCompany = defineComponent({
             isLoading: false,
             isBookmarked: false,
             company: null,
+            unpaid: false,
         };
     },
 });
-

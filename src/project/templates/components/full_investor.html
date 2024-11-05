@@ -349,7 +349,10 @@
                             <b>partners@globalify.xyz</b>
                         </p>
                     </article>
-                    <article v-if="!unpaid && rendercontacts" class="shadow-card w-full rounded-xl bg-white p-5">
+                    <article
+                        v-if="!unpaid && rendercontacts && (investor.twitter || investor.linkedin || investor.website || investor.email)"
+                        class="shadow-card w-full rounded-xl bg-white p-5"
+                    >
                         <h2 class="text-xl font-medium">Contacts</h2>
                         <div class="mt-5 flex flex-col gap-2 text-sm">
                             <div v-if="investor.twitter" class="flex justify-between gap-3">

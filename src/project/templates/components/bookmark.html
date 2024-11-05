@@ -61,6 +61,11 @@
                             src="/static/elements/pfp_placeholder.jpeg"
                             class="size-10 rounded-md bg-black"
                         />
+                        <img
+                            v-else-if="selectedTab === 'company'"
+                            src="/static/elements/company_default_logo.jpg"
+                            class="size-10 rounded-md bg-black"
+                        />
                         <div class="flex-col items-center px-2 text-sm">
                             <div class="flex flex-wrap items-baseline gap-x-1">
                                 <span v-if="bookmark.name" v-text="bookmark.name" class="w-max font-semibold"></span>

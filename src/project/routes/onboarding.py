@@ -20,10 +20,7 @@ from ..models import (
     User,
     UserInfo,
 )
-from ..utils.enums import (
-    Events,
-    OauthProvider,
-)
+from ..utils.enums import Events, OauthProvider, Status, StatusType
 from ..utils.errors.error_messages import (
     AUTH_FIELDS_INCOMPLETE,
     AUTH_USERNAME_USED,
@@ -48,12 +45,12 @@ def index():
     )
 
 
-# TODO: Implement status system
 @onboarding.route("/basic", methods=["GET", "POST"])
 @login_required
 def basic():
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
+
     user_info = UserInfo.get_by_user_id(current_user.id)
     if not user_info:
         return redirect(url_for("auth.login"))
@@ -66,15 +63,39 @@ def basic():
         first_name, last_name, username = f.get("first_name"), f.get("last_name"), f.get("username")
 
         if not first_name or not last_name or not username:
-            return jsonify({"error": AUTH_FIELDS_INCOMPLETE}), 400
+            status = Status(StatusType.ERROR, AUTH_FIELDS_INCOMPLETE).get_status()
+            return redirect(
+                url_for(
+                    "onboarding.basic",
+                    next=request.args.get("next"),
+                    _external=False,
+                    **status,
+                )
+            )
 
         if UserInfo.is_taken(username):
-            return jsonify({"error": AUTH_USERNAME_USED}), 400
+            status = Status(StatusType.ERROR, AUTH_USERNAME_USED).get_status()
+            return redirect(
+                url_for(
+                    "onboarding.basic",
+                    next=request.args.get("next"),
+                    _external=False,
+                    **status,
+                )
+            )
 
         if not re.match(r"^[a-zA-Z0-9]{4,20}$", username) and username != "None":
-            return jsonify(
-                {"error": "Username must be between 4 and 20 characters and contain only letters and numbers"}
-            ), 400
+            status = Status(
+                StatusType.ERROR, "Username must be between 4 and 20 characters and contain only letters and numbers"
+            ).get_status()
+            return redirect(
+                url_for(
+                    "onboarding.basic",
+                    next=request.args.get("next"),
+                    _external=False,
+                    **status,
+                )
+            )
 
         user_info.first_name = first_name
         user_info.last_name = last_name
@@ -99,7 +120,12 @@ def basic():
 
         return redirect(url_for("main.search", next=request.args.get("next")))
 
-    return render_template("onboarding/basic.html", user_info=user_info.sanitize())
+    return render_template(
+        "onboarding/basic.html",
+        user_info=user_info.sanitize(),
+        status_type=request.args.get("type"),
+        msg=request.args.get("msg"),
+    )
 
 
 @onboarding.route("/investor", methods=["GET", "POST"])

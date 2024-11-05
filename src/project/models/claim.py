@@ -119,3 +119,12 @@ class ClaimRequest(db.Model):
         return db.session.scalars(
             db.select(ClaimRequest).options(joinedload(ClaimRequest.user), joinedload(ClaimRequest.investor))
         ).all()
+
+    @staticmethod
+    def get_pending_by_user_id(user_id: int) -> Sequence[ClaimRequest]:
+        return db.session.scalars(
+            db.select(ClaimRequest)
+            .where(ClaimRequest.user_id == user_id)
+            .where(ClaimRequest.status == RequestStatus.PENDING)
+            .options(joinedload(ClaimRequest.investor))
+        ).all()

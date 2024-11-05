@@ -300,7 +300,7 @@ const Bookmark = defineComponent({
                 this.$refs.company.setAttribute("data-selected", "false");
                 this.page = 2;
                 this.setupInfinteScroll();
-            } else if (newVal === "investment_firm"){
+            } else if (newVal === "investment_firm") {
                 this.$refs.investor.setAttribute("data-selected", "false");
                 this.$refs.investment_firm.setAttribute("data-selected", "true");
                 this.$refs.company.setAttribute("data-selected", "false");
@@ -344,7 +344,7 @@ const Bookmark = defineComponent({
                 const response = await fetch("/companies/bookmarks");
                 data = await response.json();
 
-                if (response.ok){
+                if (response.ok) {
                     this.bookmarks = data.bookmarks;
                 }
             }
@@ -375,7 +375,7 @@ const Bookmark = defineComponent({
                         response = await fetch(`/investors/bookmarks?page=${this.page}`);
                     } else if (this.selectedTab === "investment_firm") {
                         response = await fetch(`/investment-firms/bookmarks?page=${this.page}`);
-                    } else if (this.selectedTab === "company"){
+                    } else if (this.selectedTab === "company") {
                         response = await fetch(`/companies/bookmarks?page=${this.page}`);
                     }
                     if (!response.ok) {
@@ -512,8 +512,8 @@ const NavbarComponent = defineComponent({
                 this.$emit("bookmarked", { investorId: data.investorId, status: data.status });
             } else if (type === "firm") {
                 this.$emit("bookmarked", { firmId: data.firmId, status: data.status });
-            } else if (type === "company"){
-                this.$emit("bookmarked", { companyId: data.companyId, status: data.status })
+            } else if (type === "company") {
+                this.$emit("bookmarked", { companyId: data.companyId, status: data.status });
             }
         },
         expandAside() {
@@ -765,6 +765,10 @@ const FullInvestmentFirm = defineComponent({
                 console.error(error);
             }
         },
+        getTwitterHandle(url) {
+            if (!url) return;
+            return url.split("/").pop();
+        },
         deleteInvestmentFirmParam() {
             const url = new URL(window.location.href);
             url.searchParams.delete("investment-firm");
@@ -876,6 +880,10 @@ const FullCompany = defineComponent({
             if (event.key === "Escape") {
                 this.$emit("close-company");
             }
+        },
+        getTwitterHandle(url) {
+            if (!url) return;
+            return url.split("/").pop();
         },
         toggleExpansion() {
             this.isExpanded = !this.isExpanded;

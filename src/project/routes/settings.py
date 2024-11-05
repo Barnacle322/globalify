@@ -19,6 +19,7 @@ from ..models import (
     UserCompany,
     UserInfo,
 )
+from ..models.claim import ClaimRequest
 from ..schemas.investor import InvestorOriginPointSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
@@ -68,12 +69,14 @@ def index():
 
     investor = Investor.get_by_user_id_with_investments(current_user.id)
     has_investor_origin = InvestorOriginPoint.exists(investor.id) if investor else False
+    pending_claim_requests = ClaimRequest.get_pending_by_user_id(current_user.id)
 
     return render_template(
         "settings/general.html",
         user=current_user._get_current_object(),
         investor=investor,
         investor_origin=has_investor_origin,
+        pending_claim_requests=pending_claim_requests,
         rounds=Round.get_all(),
         industries=Industry.get_all(),
         status_type=status_type,

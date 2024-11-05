@@ -21,6 +21,15 @@
         </a>
         <h1 class="mt-7 text-3xl font-medium text-gray-900">Let's get to know each other!</h1>
         <div class="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div class="col-span-full">
+                {% if status_type %} {% if status_type == '3' %}
+                <div class="rounded-xl text-red-500">{{ msg }}</div>
+                {% elif status_type == '2' %}
+                <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                {% elif status_type == '1' %}
+                <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                {% endif %} {% endif %}
+            </div>
             <div class="sm:col-span-3">
                 <label for="first_name" class="block text-sm font-medium leading-6 text-gray-900">First name</label>
                 <div class="mt-2">

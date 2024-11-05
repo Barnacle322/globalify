@@ -509,8 +509,8 @@
                         </form>
                     </div>
 
-                    <div class="mb-20 mt-10 grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
-                        <div class="top-36 col-span-2 h-fit sm:sticky">
+                    <div class="mb-20 mt-10 flex flex-col sm:grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
+                        <div class="top-36 col-span-2 h-fit w-full sm:sticky">
                             <h2 class="font-medium leading-7">Investor Information</h2>
                             <p class="mb-2 mt-1 text-justify leading-6 text-gray-700">
                                 Manage your investor profile information here. This information is visible to other
@@ -966,7 +966,15 @@
                                 </button>
                             </div>
                         </div>
-                        {% else %}
+                        {% elif pending_claim_requests and not investor %} {% for claim_request in
+                        pending_claim_requests %}
+                        <div class="flex justify-between items-center w-full col-span-4 rounded-xl border-2 p-3 py-6">
+                            <a href="/search?investor={{ claim_request.investor.slug }}" class="font-medium text-lg"
+                                >{{ claim_request.investor.full_name }}</a
+                            >
+                            <span class="text-orange-500 italic">{{ claim_request.status.value.title() }}</span>
+                        </div>
+                        {% endfor %} {% else %}
                         <div class="col-span-4">
                             <div class="flex flex-col gap-2 rounded-xl border-2 p-5">
                                 <h2 class="text-xl font-medium">Investor Account Application</h2>

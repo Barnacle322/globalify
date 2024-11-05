@@ -1220,6 +1220,7 @@ def get_company_bookmarks():
         company = CompanyBookmarkSchema(
             id=db_company.id,
             name=db_company.name,
+            about=db_company.about
         )
         companies.append(json.loads(company.model_dump_json()))
 

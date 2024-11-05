@@ -56,7 +56,7 @@
     {{ full_company.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
-        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <navbar-component @bookmarked="handleCompanyBookmark" @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
         <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">

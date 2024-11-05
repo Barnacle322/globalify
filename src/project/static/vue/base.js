@@ -287,7 +287,7 @@ const AsideMobileComponent = defineComponent({
 
 const Bookmark = defineComponent({
     template: "#bookmark-template",
-    emits: ["investor-bookmarked", "firm-bookmarked", "closebookmarks"],
+    emits: ["investor-bookmarked", "firm-bookmarked", "company-bookmarked", "closebookmarks"],
     watch: {
         selectedTab(newVal, oldVal) {
             if (newVal === oldVal) {
@@ -439,6 +439,27 @@ const Bookmark = defineComponent({
                 console.error("Error removing bookmark:", error.message);
             }
         },
+        async UnbookmarkCompany(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/company/${companyId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+
+                if (response.ok) {
+                    this.bookmarks = this.bookmarks.filter((company) => company.id !== companyId);
+                    this.$emit("company-bookmarked", { companyId: companyId, status: false });
+                } else {
+                    console.error("Error removing bookmark:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Error removing bookmark:", error.message);
+            }
+        },
         updateUrlParam(paramName, paramValue, stateKey) {
             const url = new URL(window.location.href);
             if (url.searchParams.get(paramName) !== paramValue) {
@@ -491,6 +512,8 @@ const NavbarComponent = defineComponent({
                 this.$emit("bookmarked", { investorId: data.investorId, status: data.status });
             } else if (type === "firm") {
                 this.$emit("bookmarked", { firmId: data.firmId, status: data.status });
+            } else if (type === "company"){
+                this.$emit("bookmarked", { companyId: data.companyId, status: data.status })
             }
         },
         expandAside() {

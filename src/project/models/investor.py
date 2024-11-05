@@ -8,18 +8,24 @@ import uuid
 from ast import literal_eval
 from collections.abc import Generator, Sequence
 from itertools import islice
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from geopy.distance import geodesic
 from more_itertools import chunked
 from slugify import slugify
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, exists, func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Mapped, MappedAsDataclass, backref, joinedload, mapped_column, relationship, validates
+from sqlalchemy.orm import (
+    Mapped,
+    MappedAsDataclass,
+    joinedload,
+    mapped_column,
+    relationship,
+    validates,
+)
 from thefuzz import fuzz
 
 from ..extensions import db
-from ..models.user import Company, User
 from ..utils.fake_data import (
     get_abouts,
     get_companies,
@@ -47,6 +53,10 @@ from ..utils.typesense_helpers.typesense_search import (
 )
 from .helpers import Industry, Round
 
+if TYPE_CHECKING:
+    from .claim import ClaimRequest, ClaimVerification
+    from .user import Company, User
+
 
 class SuggestionBuilder:
     def __init__(self, investor_list: list[dict], company: Company | None):
@@ -64,7 +74,7 @@ class SuggestionBuilder:
 
             # Calculate location score
             try:
-                if self.company.coordinates and investor["coordinates"]:  # type: ignore
+                if self.company and self.company.coordinates and investor["coordinates"]:
                     distance = float(geodesic(self.company.coordinates, investor["coordinates"]).kilometers)  # type: ignore
                     location_score = 1 - (distance / 20038)
                 else:
@@ -142,15 +152,21 @@ class SuggestionBuilder:
         return [investor["id"] for investor in self.investor_list[:quantity]]
 
 
-class NotableInvestment(db.Model):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+class NotableInvestment(MappedAsDataclass, db.Model, unsafe_hash=True):
+    company: Mapped[Company | None] = relationship(
+        "Company", back_populates="notable_investment", uselist=True, init=False
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
+    company_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("company.id"), nullable=True, init=False)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<NotableInvestment {self.name}>"
+    def to_dict(self) -> dict[str, str | int | None]:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "company_id": self.company_id,
+        }
 
     @staticmethod
     def get_all() -> Sequence[NotableInvestment]:
@@ -175,16 +191,6 @@ class NotableInvestment(db.Model):
 
     @staticmethod
     def populate() -> None:
-        """
-        Populates the notable investments.
-
-        This method adds a list of predefined notable investment names to the database session
-        and commits the changes.
-
-        Raises:
-            Exception: If an exception occurs during the population process, the changes are rolled back.
-
-        """
         try:
             notable_investments = list(set(notable_investment_list))
             db.session.add_all(list(map(lambda x: NotableInvestment(name=x), notable_investments)))
@@ -260,19 +266,30 @@ class InvestorBase(db.Model):
     min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     location: Mapped[str | None] = mapped_column(String, nullable=True)
+    is_public = mapped_column(Boolean, nullable=False, default=True)
 
 
 class Investor(InvestorBase):
+    user: Mapped[User | None] = relationship("User", back_populates="investor", uselist=False)
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_notable_investment)
+    rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=investor_industry)
+    claim_verifications: Mapped[list[ClaimVerification]] = relationship(
+        "ClaimVerification", back_populates="investor", uselist=True
+    )
+    claim_requests: Mapped[list[ClaimRequest]] = relationship("ClaimRequest", back_populates="investor", uselist=True)
+    investor_backup: Mapped[InvestorBackup | None] = relationship(
+        "InvestorBackup", back_populates="investor", uselist=False
+    )
+    origin_point: Mapped[InvestorOriginPoint | None] = relationship(
+        "InvestorOriginPoint", back_populates="investor", uselist=False
+    )
+
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
     _country: Mapped[str | None] = mapped_column(String, nullable=True)
     bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
-
-    user: Mapped[User | None] = relationship(User, backref=backref("investor", uselist=False))
-    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_notable_investment)
-    rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
-    industries: Mapped[list[Industry]] = relationship(secondary=investor_industry)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -348,6 +365,21 @@ class Investor(InvestorBase):
         return db.session.scalar(db.select(Investor).where(Investor.slug == slug))
 
     @staticmethod
+    def get_by_slug_without_contacts(slug: str) -> Investor | None:
+        result = db.session.scalar(db.select(Investor).where(Investor.slug == slug))
+
+        if result:
+            result.website = None
+            result.linkedin = None
+            result.twitter = None
+            result.email = None
+            result.phone_number = None
+
+            return result
+
+        return None
+
+    @staticmethod
     def get_by_user_id(user_id: int) -> Investor | None:
         return db.session.scalar(db.select(Investor).where(Investor.user_id == user_id))
 
@@ -390,7 +422,9 @@ class Investor(InvestorBase):
             SuggestionBuilder(investor_list, company).calculate_all_scores().sort_by_score().get_id_list(quantity)
         )
         suggestions = Investor.get_by_id_list(investor_ids)
-        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}  # type: ignore
+        if not suggestions:
+            return None
+        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}
         sorted_suggestions = [
             suggestions_dict[investor_id] for investor_id in investor_ids if investor_id in suggestions_dict
         ]
@@ -412,20 +446,24 @@ class Investor(InvestorBase):
         industries: list[str] | None = None,
         per_page: int = 12,
         page: int = 1,
+        is_public: bool | None = None,
     ):
         try:
-            results = (
+            search_builder = (
                 SearchBuilder("investors")
                 .query(query_string)
                 .query_by(query_by)
                 .filter_by_investment_range(min_investment, max_investment)
-                .filter_by_rounds(rounds, rounds_exclusive)
-                .filter_by_industries(industries, industries_exclusive)
-                .filter_by_countries(countries)
-                .sort_by(sort_by, sort_desc)
-                .page(page, per_page)
-                .search()
+                .filter_by("rounds", rounds, exclusivity=rounds_exclusive)
+                .filter_by("industries", industries, exclusivity=industries_exclusive)
+                .filter_by("countries", countries, exclusivity=False)
             )
+
+            if is_public is not None:
+                search_builder = search_builder.filter_by_public(is_public)
+
+            search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
+            results = search_builder.search()
 
         except Exception:
             results = {"found": 0, "page": page, "per_page": per_page, "hits": []}
@@ -467,6 +505,18 @@ class Investor(InvestorBase):
         return db.session.scalar(db.select(Investor).where(Investor.id == id))
 
     @staticmethod
+    def get_by_id_with_investments(id: int) -> Investor | None:
+        return db.session.scalar(
+            db.select(Investor).options(joinedload(Investor.notable_investments)).where(Investor.id == id)
+        )
+
+    @staticmethod
+    def get_by_user_id_with_investments(user_id: int) -> Investor | None:
+        return db.session.scalar(
+            db.select(Investor).options(joinedload(Investor.notable_investments)).where(Investor.user_id == user_id)
+        )
+
+    @staticmethod
     def get_by_id_list(ids: list[int]) -> Sequence[Investor] | None:
         return (
             db.session.scalars(
@@ -484,25 +534,20 @@ class Investor(InvestorBase):
 
     def set_slug(self):
         base_slug = slugify(f"{self.first_name} {self.last_name}")
-        unique_slug = base_slug
-        attempt = 0
 
-        while True:
-            if db.session.scalar(db.select(Investor).where(Investor.slug == unique_slug)) is not None:
-                unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
-                attempt += 1
-            else:
-                try:
-                    self.slug = unique_slug
-                    db.session.commit()
-                    break
-                except IntegrityError:
-                    db.session.rollback()
-                    unique_slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
-                    attempt += 1
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-                    break
+        existing_slug = db.session.scalar(db.select(Investor).where(Investor.slug == base_slug))
+
+        if existing_slug:
+            base_slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+
+        self.slug = base_slug
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            self.slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+            db.session.commit()
 
     @staticmethod
     def slugify_existing():
@@ -957,6 +1002,8 @@ class Investor(InvestorBase):
             investor_object["notable_investments"] = [
                 notable_investment.name for notable_investment in self.notable_investments
             ]
+        if self.is_public:
+            investor_object["is_public"] = self.is_public
 
         data = [investor_object]
 
@@ -1004,6 +1051,7 @@ class Investor(InvestorBase):
                     {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
                     {"name": "industries", "type": "string[]", "facet": True, "optional": True},
                     {"name": "notable_investments", "type": "string[]", "optional": True},
+                    {"name": "is_public", "type": "bool", "optional": True},
                     {
                         "name": "embedding",
                         "type": "float[]",
@@ -1067,6 +1115,8 @@ class Investor(InvestorBase):
                     investor_object["notable_investments"] = [
                         notable_investment.name for notable_investment in investor.notable_investments
                     ]
+                if investor.is_public:
+                    investor_object["is_public"] = investor.is_public
                 data.append(investor_object)
 
             result = upsert_documents("investors", data)
@@ -1091,16 +1141,14 @@ class Investor(InvestorBase):
 
 
 class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
+    user: Mapped[User] = relationship("User", back_populates="investor_bookmarks", passive_deletes=True, init=False)
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
-
-    user: Mapped[User] = relationship(
-        User, backref=backref("investor_bookmarks", passive_deletes=True), lazy=True, init=False
-    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1111,7 +1159,7 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.session.scalars(
                 db.select(Investor)
                 .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
-                .where(InvestorBookmark.user_id == user_id)
+                .where(InvestorBookmark.user_id == user_id, Investor.is_public.is_(True))
                 .options(joinedload(Investor.rounds), joinedload(Investor.industries))
                 .offset(offset)
                 .limit(limit)
@@ -1126,7 +1174,7 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.session.execute(
                 db.select(Investor.id)
                 .join(InvestorBookmark, InvestorBookmark.investor_id == Investor.id)
-                .where(InvestorBookmark.user_id == user_id)
+                .where(InvestorBookmark.user_id == user_id, Investor.is_public.is_(True))
             )
             .scalars()
             .all()
@@ -1139,6 +1187,12 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
                 InvestorBookmark.investor_id == investor_id, InvestorBookmark.user_id == user_id
             )
         ).first()
+
+    @staticmethod
+    def exists(investor_id: int, user_id: int) -> bool:
+        return db.session.scalar(
+            db.select(exists().where(InvestorBookmark.investor_id == investor_id, InvestorBookmark.user_id == user_id))
+        )
 
 
 class InvestmentFirm(db.Model):
@@ -1161,6 +1215,7 @@ class InvestmentFirm(db.Model):
     _country: Mapped[str | None] = mapped_column(String, nullable=True)
     bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investment_firm_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investment_firm_round)
@@ -1193,16 +1248,32 @@ class InvestmentFirm(db.Model):
         return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.id == id))
 
     @staticmethod
+    def get_by_id_with_investments(id: int) -> InvestmentFirm | None:
+        return db.session.scalar(
+            db.select(InvestmentFirm)
+            .options(joinedload(InvestmentFirm.notable_investments))
+            .where(InvestmentFirm.id == id)
+        )
+
+    @staticmethod
     def get_by_email(email: str) -> InvestmentFirm | None:
         return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.email == email))
 
     def set_slug(self):
+        base_slug = slugify(f"{self.name}")
+
+        existing_slug = db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.slug == base_slug))
+
+        if existing_slug:
+            base_slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+
+        self.slug = base_slug
+
         try:
-            self.slug = slugify(self.name)
             db.session.commit()
-        except Exception:
+        except IntegrityError:
             db.session.rollback()
-            self.slug = slugify(f"{self.name} {uuid.uuid4().hex[:4]}")
+            self.slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
             db.session.commit()
 
     @property
@@ -1219,8 +1290,8 @@ class InvestmentFirm(db.Model):
     def coordinates(self, location: str) -> None:
         geo_data = geocode_location(location)
         if geo_data is not None:
-            self._coordinates = geo_data["coordinates"]  # type: ignore
-            self._country = geo_data["country_name"]  # type: ignore
+            self._coordinates = geo_data.get("coordinates")
+            self._country = geo_data.get("country_name")
 
     @staticmethod
     def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[InvestmentFirm], None, None]:
@@ -1276,7 +1347,9 @@ class InvestmentFirm(db.Model):
             .get_id_list(quantity)
         )
         suggestions = InvestmentFirm.get_by_id_list(investment_firm_ids)
-        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}  # type: ignore
+        if not suggestions:
+            return None
+        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}
         sorted_suggestions = [
             suggestions_dict[investment_firm_id]
             for investment_firm_id in investment_firm_ids
@@ -1300,20 +1373,24 @@ class InvestmentFirm(db.Model):
         industries: list[str] | None = None,
         per_page: int = 12,
         page: int = 1,
+        is_public: bool | None = None,
     ):
         try:
-            results = (
+            search_builder = (
                 SearchBuilder("investment_firms")
                 .query(query_string)
                 .query_by(query_by)
                 .filter_by_investment_range(min_investment, max_investment)
-                .filter_by_rounds(rounds, rounds_exclusive)
-                .filter_by_industries(industries, industries_exclusive)
-                .filter_by_countries(countries)
-                .sort_by(sort_by, sort_desc)
-                .page(page, per_page)
-                .search()
+                .filter_by("rounds", rounds, exclusivity=rounds_exclusive)
+                .filter_by("industries", industries, exclusivity=industries_exclusive)
+                .filter_by("countries", countries, exclusivity=False)
             )
+
+            if is_public is not None:
+                search_builder = search_builder.filter_by_public(is_public)
+
+            search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
+            results = search_builder.search()
 
         except Exception as e:
             print("An error occurred while searching for investment firms. Error:", e)
@@ -1386,7 +1463,7 @@ class InvestmentFirm(db.Model):
                     n_exits=n_exits,
                     n_employees=n_employees,
                     location=locations[i],
-                    coordinates=locations[i],
+                    # coordinates=locations[i],
                     rounds=list(set(rounds)),
                     industries=list(set(industries)),
                     min_investment=min_investment,
@@ -1583,6 +1660,8 @@ class InvestmentFirm(db.Model):
             investment_firm_object["notable_investments"] = [
                 notable_investment.name for notable_investment in self.notable_investments
             ]
+        if self.is_public:
+            investment_firm_object["is_public"] = self.is_public
 
         data = [investment_firm_object]
 
@@ -1627,6 +1706,7 @@ class InvestmentFirm(db.Model):
                     {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
                     {"name": "industries", "type": "string[]", "facet": True, "optional": True},
                     {"name": "notable_investments", "type": "string[]", "optional": True},
+                    {"name": "is_public", "type": "bool", "optional": True},
                     {
                         "name": "embedding",
                         "type": "float[]",
@@ -1674,6 +1754,7 @@ class InvestmentFirm(db.Model):
                 investment_firm_object["notable_investments"] = [
                     notable_investment.name for notable_investment in investment_firm.notable_investments
                 ]
+                investment_firm_object["is_public"] = investment_firm.is_public
                 data.append(investment_firm_object)
 
             print("Upserting documents")
@@ -1697,16 +1778,16 @@ class InvestmentFirm(db.Model):
 
 
 class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
+    user: Mapped[User] = relationship(
+        "User", back_populates="investment_firm_bookmarks", passive_deletes=True, init=False
+    )
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     investment_firm_id: Mapped[int] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=False)
-
-    user: Mapped[User] = relationship(
-        User, backref=backref("investment_firm_bookmarks", passive_deletes=True), lazy=True, init=False
-    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1717,7 +1798,7 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.session.scalars(
                 db.select(InvestmentFirm)
                 .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
-                .where(InvestmentFirmBookmark.user_id == user_id)
+                .where(InvestmentFirmBookmark.user_id == user_id, InvestmentFirm.is_public.is_(True))
                 .options(joinedload(InvestmentFirm.rounds), joinedload(InvestmentFirm.industries))
                 .offset(offset)
                 .limit(limit)
@@ -1732,7 +1813,7 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.session.execute(
                 db.select(InvestmentFirm.id)
                 .join(InvestmentFirmBookmark, InvestmentFirmBookmark.investment_firm_id == InvestmentFirm.id)
-                .where(InvestmentFirmBookmark.user_id == user_id)
+                .where(InvestmentFirmBookmark.user_id == user_id, InvestmentFirm.is_public.is_(True))
             )
             .scalars()
             .all()
@@ -1746,6 +1827,17 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
                 InvestmentFirmBookmark.user_id == user_id,
             )
         ).first()
+
+    @staticmethod
+    def exists(investment_firm_id: int, user_id: int) -> bool:
+        return db.session.scalar(
+            db.select(
+                exists().where(
+                    InvestmentFirmBookmark.investment_firm_id == investment_firm_id,
+                    InvestmentFirmBookmark.user_id == user_id,
+                )
+            )
+        )
 
 
 investor_backup_round = db.Table(
@@ -1786,11 +1878,11 @@ investor_origin_point_notable_investment = db.Table(
 
 
 class InvestorBackup(InvestorBase):
+    user: Mapped[User | None] = relationship("User", back_populates="investor_backup", uselist=False)
+    investor: Mapped[Investor] = relationship(Investor, back_populates="investor_backup", uselist=False)
+
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
     investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
-
-    user: Mapped[User | None] = relationship(User, backref=backref("investor_backup", uselist=False))
-    investor: Mapped[Investor] = relationship(Investor, backref=backref("backup", uselist=False))
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_backup_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investor_backup_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investor_backup_industry)
@@ -1823,8 +1915,9 @@ class InvestorBackup(InvestorBase):
 
 
 class InvestorOriginPoint(InvestorBase):
+    investor: Mapped[Investor] = relationship(Investor, back_populates="origin_point", uselist=False)
+
     investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
-    investor: Mapped[Investor] = relationship(Investor, backref=backref("origin_point", uselist=False))
     notable_investments: Mapped[list[NotableInvestment]] = relationship(
         secondary=investor_origin_point_notable_investment
     )
@@ -1844,6 +1937,10 @@ class InvestorOriginPoint(InvestorBase):
     @staticmethod
     def get_by_investor_id(investor_id: int) -> InvestorOriginPoint | None:
         return db.session.scalar(db.select(InvestorOriginPoint).where(InvestorOriginPoint.investor_id == investor_id))
+
+    @staticmethod
+    def exists(investor_id: int) -> bool:
+        return db.session.scalar(db.select(exists().where(InvestorOriginPoint.investor_id == investor_id)))
 
     @staticmethod
     def get_all() -> Sequence[InvestorOriginPoint]:

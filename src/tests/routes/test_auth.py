@@ -45,16 +45,16 @@ def verified_user(app):
         db.session.add_all([user_info, user_payment])
         db.session.commit()
 
-        company = Company(
-            name="Test Company",
-            description="Test description",
-            number_of_employees=10,
-            website_url="https://www.example.com",
-            country_id=1,
-            preferred_round_id=1,
-            industry_id=1,
-            user=user,
-        )
+        company = Company(name="Test Company")
+
+        company.description = "Test description"
+        company.number_of_employees = 10
+        company.website_url = "https://www.example.com"
+        company.picture_url = "https://www.example.com"
+        company.country_id = 1
+        company.preferred_round_id = 1
+        company.industry_id = 1
+
         db.session.add(company)
         db.session.commit()
         return user
@@ -183,7 +183,7 @@ def test_onboarding_post_valid_data(client, app, unverified_incomplete_user, mon
                 "first_name": "John",
                 "last_name": "Doe",
                 "username": "johndoe",
-                "company_name": "Globalify",
+                #      "company_name": "Globalify",
             },
             follow_redirects=True,
         )
@@ -195,16 +195,17 @@ def test_onboarding_post_valid_data(client, app, unverified_incomplete_user, mon
         )
         assert b"Verify" in response.data
 
-        user = User.get_by_id(1)
+        user_info = UserInfo.get_by_user_id(1)
 
-        assert user.user_info.is_complete  # type: ignore
-        assert user.user_info.first_name == "John"  # type: ignore
-        assert user.user_info.last_name == "Doe"  # type: ignore
-        assert user.user_info.username == "johndoe"  # type: ignore
+        assert user_info
+        assert user_info.is_complete
+        assert user_info.first_name == "John"
+        assert user_info.last_name == "Doe"
+        assert user_info.username == "johndoe"
 
-        company = Company.get_by_id(1)
-        assert company is not None
-        assert company.name == "Globalify"
+        # company = Company.get_by_id(1)
+        # assert company is not None
+        # assert company.name == "Globalify"
 
 
 def test_onboarding_incomplete(client, app, unverified_incomplete_user, monkeypatch):
@@ -265,7 +266,7 @@ def test_logout_endpoint(client, app, verified_user, monkeypatch):
         response = client.get("/logout", follow_redirects=True)
         assert response.status_code == 200
         assert b"Globalify" in response.data
-        assert b"Your Gateway to Investors" in response.data
+        assert b"Your Gateway" in response.data
         assert (
             b"Unlock your business's potential with our extensive network of investors and partners." in response.data
         )
@@ -320,7 +321,7 @@ def test_verify_email_invalid_token(client, app, unverified_user, monkeypatch):
         response = client.get("/verify-email?uuid=invalid_token", follow_redirects=True)
         assert response.status_code == 200
         assert b"Invalid code" in response.data
-        assert b"The code you have put in is invalid" in response.data
+        assert b"The code you have entered is invalid" in response.data
 
 
 def test_verify_email_expired_token(client, app, unverified_user, monkeypatch):

@@ -4,6 +4,7 @@ createApp({
         AsideMobileComponent,
         NavbarComponent,
         Bookmark,
+        CreateNotableInvestmentComponent,
     },
     watch: {
         asideMinified(value) {
@@ -12,29 +13,10 @@ createApp({
     },
     created() {
         this.asideMinified = localStorage.getItem("asideMinified") === "true";
-    },
-    data() {
-        return {
-            asideExpanded: false,
-            asideMinified: false,
-            csrfToken: "",
-            searchQuery: localStorage.getItem("searchQuery") || "",
-            selectedRounds: [],
-            selectedIndustries: [],
-            selectedNotableInvestments: [],
-            selectedIndustry: "",
-            selectedNotableInvestment: "",
-            userList: [],
-            industryList: [],
-            dataString: "",
-            menus: [
-                { menu: "industry-options-menu", button: "industry-options" },
-                { menu: "round-options-menu", button: "round-options" },
-                { menu: "notable-investment-options-menu", button: "notable-investment-options" },
-            ],
-            showClasses: ["transform", "opacity-100", "scale-100"],
-            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
-        };
+        this.debouncedFetchNotableInvestmentListByInvestorId = this.debounce(
+            this.fetchNotableInvestmentListByInvestorId,
+            500,
+        );
     },
     methods: {
         async submitInvestorData() {
@@ -67,8 +49,9 @@ createApp({
             const selectedNotableInvestments = Array.from(
                 document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
+            const is_public = document.getElementById("is_public");
 
-            let dataString = JSON.stringify({
+            let data = {
                 first_name: first_name,
                 last_name: last_name,
                 slug: slug,
@@ -89,7 +72,13 @@ createApp({
                 rounds: selectedRounds,
                 industries: selectedIndustries,
                 notable_investments: selectedNotableInvestments,
-            });
+            };
+
+            if (is_public) {
+                data.is_public = is_public.checked;
+            }
+
+            let dataString = JSON.stringify(data);
 
             try {
                 const response = await fetch("", {
@@ -180,8 +169,9 @@ createApp({
             const selectedNotableInvestments = Array.from(
                 document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
+            const is_public = document.getElementById("is_public");
 
-            const dataString = JSON.stringify({
+            let data = {
                 name: name,
                 slug: slug,
                 about: about,
@@ -197,7 +187,13 @@ createApp({
                 rounds: selectedRounds,
                 industries: selectedIndustries,
                 notable_investments: selectedNotableInvestments,
-            });
+            };
+
+            if (is_public) {
+                data.is_public = is_public.checked;
+            }
+
+            let dataString = JSON.stringify(data);
 
             try {
                 const response = await fetch("", {
@@ -233,9 +229,81 @@ createApp({
                 window.location.href = response.url;
             }
         },
+        async submitCompanyData() {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            const name = document.getElementById("name").value;
+            const slug = document.getElementById("slug").value;
+            const description = document.getElementById("description").value;
+            const country = document.getElementById("country").value;
+            const preferred_round = document.getElementById("round").value;
+            const industry = document.getElementById("industry").value;
+            const number_of_employees = document.getElementById("number_of_employees").value;
+            const website = document.getElementById("website").value;
+            const linkedin = document.getElementById("linkedin").value;
+            const twitter = document.getElementById("twitter").value;
+            const instagram = document.getElementById("instagram").value;
+            const isPublicElement = document.getElementById("is_public");
+            const is_public = isPublicElement ? isPublicElement.checked : true;
+            const notable_investment = document.getElementById("searchInput").value;
+
+            const dataString = JSON.stringify({
+                name: name,
+                slug: slug,
+                description: description,
+                country: country,
+                preferred_round: preferred_round,
+                industry: industry,
+                number_of_employees: number_of_employees,
+                website: website,
+                linkedin: linkedin,
+                twitter: twitter,
+                instagram: instagram,
+                is_public: is_public,
+                notable_investment: notable_investment,
+            });
+
+            try {
+                const response = await fetch("", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: dataString,
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async deleteCompany(id) {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            if (!confirm("Are you sure you want to delete this company?")) {
+                return;
+            }
+
+            const response = await fetch(`/admin/company/${id}/delete`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                },
+            });
+            if (response.redirected) {
+                window.location.href = response.url;
+            }
+        },
         selectUser(email) {
             this.$refs.searchInput.value = email;
             this.userList = [];
+        },
+        selectNotableInvestment(notable_investment) {
+            this.$refs.searchInput.value = notable_investment;
+            this.notableInvestmentList = [];
         },
         selectIndustry(industry) {
             this.selectedIndustry = industry;
@@ -358,8 +426,98 @@ createApp({
                 }
             }
         },
+        debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        },
+        async fetchNotableInvestmentList(event) {
+            const searchInput = event.target.value.trim();
+
+            if (searchInput.length > 0) {
+                const response = await fetch(`/admin/companies/search_notable_investments/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.notableInvestmentList = data.notable_investments.length > 0 ? data.notable_investments : [];
+                }
+            } else {
+                this.notableInvestmentList = [...this.selectedNotableInvestments];
+            }
+        },
+        async fetchNotableInvestmentListByInvestorId(searchInput, investorId) {
+            searchInput = searchInput.trim();
+
+            if (searchInput.length > 0) {
+                const response = await fetch(
+                    `/admin/investors/search_notable_investments/${searchInput}/${investorId}`,
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    this.notableInvestmentList = data.notable_investments;
+                }
+            } else {
+                this.notableInvestmentList = [];
+            }
+        },
+        async fetchNotableInvestmentListByInvestmentFirmId(searchInput, investmentFirmId) {
+            searchInput = searchInput.trim();
+            if (searchInput.length > 0) {
+                const response = await fetch(
+                    `/admin/investment-firms/search_notable_investments/${searchInput}/${investmentFirmId}`,
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    this.notableInvestmentList = data.notable_investments;
+                }
+            } else {
+                this.notableInvestmentList = [];
+            }
+        },
+        addNotableInvestment(newNotableInvestment) {
+            this.debouncedFetchNotableInvestmentList = this.debounce(this.fetchNotableInvestmentList, 500);
+            this.debouncedFetchNotableInvestmentListByInvestorId = this.debounce(
+                this.fetchNotableInvestmentListByInvestorId,
+                500,
+            );
+            this.debouncedFetchNotableInvestmentListByInvestmentFirmId = this.debounce(
+                this.fetchNotableInvestmentListByInvestmentFirmId,
+                500,
+            );
+            this.notableInvestmentList.push(newNotableInvestment);
+        },
     },
     mounted() {
         this.setupMenuToggle();
+    },
+    data() {
+        return {
+            asideExpanded: false,
+            asideMinified: false,
+            createNotableInvestmentOpened: false,
+            csrfToken: "",
+            searchQuery: localStorage.getItem("searchQuery") || "",
+            selectedRounds: [],
+            selectedIndustries: [],
+            selectedNotableInvestments: [],
+            selectedIndustry: "",
+            selectedNotableInvestment: "",
+            debouncedFetchNotableInvestmentList: null,
+            debouncedFetchNotableInvestmentListByInvestorId: null,
+            debouncedFetchNotableInvestmentListByInvestmentFirmId: null,
+            userList: [],
+            notableInvestmentList: [],
+            industryList: [],
+            dataString: "",
+            menus: [
+                { menu: "industry-options-menu", button: "industry-options" },
+                { menu: "round-options-menu", button: "round-options" },
+                { menu: "notable-investment-options-menu", button: "notable-investment-options" },
+            ],
+            showClasses: ["transform", "opacity-100", "scale-100"],
+            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
+        };
     },
 }).mount("#app");

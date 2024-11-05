@@ -9,11 +9,15 @@ from stripe import InvalidRequestError, SignatureVerificationError
 
 from ..extensions import csrf, db
 from ..models import Notification, User, UserInfo, UserPayment
-from ..utils.enums import Events, NotificationDestination, Status, StatusType, Tier
+from ..utils.enums import Events, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
+    INVALID_TIER,
     ONBOARDING_INCOMPLETE,
     PAYMENT_EMAIL_USED,
     PAYMENT_NOT_FOUND,
+    SUBSCRIPTION_CANCELATION_ERROR,
+    SUBSCRIPTION_NOT_FOUND,
+    SUBSCRIPTION_WAITING_CANCELATION,
 )
 from ..utils.google_helpers import google_pubsub
 from .main import check_user_info_complete, check_verification
@@ -126,13 +130,6 @@ def create_checkout(
     return checkout_session
 
 
-def has_subscriptions(customer_id: str) -> bool:
-    active_subscriptions = stripe.Subscription.list(status="active", customer=customer_id)
-    trialing_subscriptions = stripe.Subscription.list(status="trialing", customer=customer_id)
-
-    return active_subscriptions or trialing_subscriptions  # type: ignore
-
-
 @payment.post("/create-checkout-session")
 @login_required
 @check_user_info_complete
@@ -141,13 +138,11 @@ def create_checkout_session():
     """
     DOCS: https://stripe.com/docs/payments/checkout/accept-a-payment
     """
-    if current_user.is_anonymous:
+    if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
     try:
-        user_payment = handle_customer(authenticated_user)
+        user_payment = handle_customer(current_user)
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
@@ -156,15 +151,10 @@ def create_checkout_session():
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    # NOTE: Removed for now as Stripe can handle it
-    # if has_subscriptions(user_payment.customer_id):
-    #     status = Status(StatusType.ERROR, SUBSCRIPTION_EXISTS).get_status()
-    #     return redirect(url_for("payment.index", _external=False, **status))
-
     tier = request.form.get("tier", "premium_monthly")
 
     if tier not in ["premium_monthly", "premium_yearly"]:
-        status = Status(StatusType.ERROR, "Invalid tier").get_status()
+        status = Status(StatusType.ERROR, INVALID_TIER).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
     try:
@@ -175,7 +165,7 @@ def create_checkout_session():
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    return redirect(checkout_session.url, code=303)  # type: ignore
+    return redirect(checkout_session.url if checkout_session.url else "/", code=303)
 
 
 @payment.post("/create-portal-session")
@@ -191,13 +181,11 @@ def customer_portal():
     else:
         return_url = request.host_url
 
-    if current_user.is_anonymous:
+    if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
     try:
-        user_payment = handle_customer(authenticated_user)
+        user_payment = handle_customer(current_user)
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
@@ -226,10 +214,11 @@ def subscription_update():
     if current_user.is_anonymous:
         return redirect(url_for("auth.login"))
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
 
     try:
-        user_payment = handle_customer(authenticated_user)
+        user_payment = handle_customer(current_user)
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
@@ -238,9 +227,9 @@ def subscription_update():
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    subscription_id = authenticated_user.user_payment.subscription_id  # type: ignore
+    subscription_id = current_user.user_payment.subscription_id
     if not subscription_id:
-        status = Status(StatusType.ERROR, "No active subscription found").get_status()
+        status = Status(StatusType.ERROR, SUBSCRIPTION_NOT_FOUND).get_status()
         return redirect(url_for("settings.plan", _external=False, **status))
 
     portal_session = stripe.billing_portal.Session.create(
@@ -264,13 +253,12 @@ def subscription_cancel():
     DOCS: https://stripe.com/docs/customer-management/integrate-customer-portal
     """
     return_url = request.host_url + "settings/plan"
-    if current_user.is_anonymous:
+
+    if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
     try:
-        user_payment = handle_customer(authenticated_user)
+        user_payment = handle_customer(current_user)
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
@@ -279,9 +267,9 @@ def subscription_cancel():
         status = Status(StatusType.ERROR, PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    subscription_id = authenticated_user.user_payment.subscription_id  # type: ignore
+    subscription_id = current_user.user_payment.subscription_id
     if not subscription_id:
-        status = Status(StatusType.ERROR, "No active subscription found").get_status()
+        status = Status(StatusType.ERROR, SUBSCRIPTION_NOT_FOUND).get_status()
         return redirect(url_for("settings.plan", _external=False, **status))
 
     try:
@@ -298,10 +286,10 @@ def subscription_cancel():
             },
         )
     except InvalidRequestError:
-        status = Status(StatusType.ERROR, "The subscription is already pending cancelation").get_status()
+        status = Status(StatusType.ERROR, SUBSCRIPTION_WAITING_CANCELATION).get_status()
         return redirect(url_for("settings.plan", _external=False, **status))
     except Exception:
-        status = Status(StatusType.ERROR, "Could not cancel subscription").get_status()
+        status = Status(StatusType.ERROR, SUBSCRIPTION_CANCELATION_ERROR).get_status()
         return redirect(url_for("settings.plan", _external=False, **status))
 
     return redirect(portal_session.url, code=303)
@@ -309,24 +297,9 @@ def subscription_cancel():
 
 @payment.route("/pricing", methods=["GET"])
 def index():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-    return render_template("payment/index.html", user=authenticated_user)
-
-
-@payment.route("/success", methods=["GET"])
-@login_required
-@check_user_info_complete
-@check_verification
-def success():
-    return render_template("payment/success.html")
-
-
-@payment.route("/cancel", methods=["GET"])
-@login_required
-@check_user_info_complete
-@check_verification
-def cancel():
-    return render_template("payment/cancel.html")
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+    return render_template("payment/index.html", user=current_user)
 
 
 def invoice_paid(data_object):
@@ -354,7 +327,7 @@ def invoice_paid(data_object):
     elif stripe_tier_price == "premium_yearly":
         user_payment.tier = Tier.PREMIUM_YEARLY
     try:
-        Notification.mark_notifications_as_read(user_payment.user.id, NotificationDestination.SEARCH)
+        Notification.mark_notifications_as_read(user_payment.user.id)
     except Exception as e:
         current_app.logger.warning(f"Could not mark notifications as read: {e}")
     db.session.commit()
@@ -397,7 +370,11 @@ def subscription_updated(data):
 
 def invoice_upcoming(data_object):
     stripe_customer_id = data_object.get("customer")
-    customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
+    user_payment = UserPayment.get_by_customer_id(stripe_customer_id)
+    if not user_payment:
+        return jsonify(success=False, error_message="Could not retrieve user payment")
+
+    customer_email = user_payment.user.email
 
     google_pubsub.send_event(
         "A user's subscription will be renewed",
@@ -408,7 +385,11 @@ def invoice_upcoming(data_object):
 
 def trial_will_end(data_object):
     stripe_customer_id = data_object.get("customer")
-    customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
+    user_payment = UserPayment.get_by_customer_id(stripe_customer_id)
+    if not user_payment:
+        return jsonify(success=False, error_message="Could not retrieve user payment")
+
+    customer_email = user_payment.user.email
 
     google_pubsub.send_event(
         "A user's trial will end soon",
@@ -419,7 +400,11 @@ def trial_will_end(data_object):
 
 def payment_failed(data_object):
     stripe_customer_id = data_object.get("customer")
-    customer_email = UserPayment.get_by_customer_id(stripe_customer_id).user.email  # type: ignore
+    user_payment = UserPayment.get_by_customer_id(stripe_customer_id)
+    if not user_payment:
+        return jsonify(success=False, error_message="Could not retrieve user payment")
+
+    customer_email = user_payment.user.email
 
     attempt_count = data_object.get("attempt_count")
 
@@ -444,9 +429,7 @@ def webhook_received():
     if webhook_secret:
         signature = request.headers.get("stripe-signature")
         try:
-            event = stripe.Webhook.construct_event(  # type: ignore
-                payload=request.data, sig_header=signature, secret=webhook_secret
-            )
+            event = stripe.Webhook.construct_event(payload=request.data, sig_header=signature, secret=webhook_secret)
             data = event["data"]
         except SignatureVerificationError as e:
             current_app.logger.warning("⚠️  Webhook signature verification failed." + str(e))

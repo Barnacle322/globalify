@@ -1,28 +1,30 @@
-{% extends "layouts/layout_app.html" %} {% block title %} {{ investor.full_name }} {% endblock %} {% block head %}
-{{super() }}
-<script src="/static/scripts/dashboard.js" defer></script>
-{% endblock %} {% block content %}
-<main class="mx-auto pt-5 flex flex-col min-h-screen items-center gap-5 pb-16 px-4 sm:px-9">
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %} 
+{% block title %} {{ investor.full_name }} {% endblock %} 
+{% block head %} {{ super() }}
+{% endblock %} 
+{% block content %}
+<main class="mx-auto flex min-h-screen w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
     {% if status_type %} {% if status_type == '3' %}
-    <div class="rounded-xl text-red-500 flex w-full">{{ msg }}</div>
+    <div class="flex w-full rounded-xl text-red-500">{{ msg }}</div>
     {% elif status_type == '2' %}
-    <div class="rounded-xl text-orange-400 flex w-full">{{ msg }}</div>
+    <div class="flex w-full rounded-xl text-orange-400">{{ msg }}</div>
     {% elif status_type == '1' %}
-    <div class="rounded-xl text-lime-500 flex w-full">{{ msg }}</div>
+    <div class="flex w-full rounded-xl text-lime-500">{{ msg }}</div>
     {% endif %} {% endif %}
-    <section class="w-full max-w-7xl flex justify-between items-center">
-        <div class="w-full max-w-7xl flex gap-4 items-center">
+    <section class="flex w-full max-w-7xl items-center justify-between">
+        <div class="flex w-full max-w-7xl items-center gap-4">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             {% if investor.twitter %}
             <img
-                class="h-20 rounded-lg shadow-card"
+                class="shadow-card h-20 rounded-lg"
                 src="https://unavatar.io/twitter/{{ investor.twitter.split('/')[-1] }}"
                 alt=""
                 loading="lazy"
             />
             {% endif %}
             <h1 class="text-4xl font-semibold">{{ investor.full_name }}</h1>
-            <div class="flex col">
+            <div class="col flex">
                 {% if not investor.user_id %}
                 <a
                     href="/investor/{{ investor.slug }}/claim"
@@ -45,16 +47,16 @@
         {% if investor.user_id == user.id %}
         <a
             href="/settings/investor"
-            class="rounded-lg bg-sky-500 px-2 py-1 h-10 w-16 text-sm text-white transition-colors ease-in-out hover:bg-sky-400 flex justify-center items-center"
+            class="flex h-10 w-16 items-center justify-center rounded-lg bg-sky-500 px-2 py-1 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
             >Edit</a
         >
         {% endif %}
     </section>
-    <section class="w-wull max-w-7xl grid grid-cols-1 md:grid-cols-2 w-full gap-4">
+    <section class="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2">
         {% if investor.location or investor.firm_name or investor.about %}
-        <article class="bg-white shadow-card p-5 rounded-xl w-full">
+        <article class="shadow-card w-full rounded-xl bg-white p-5">
             <h2 class="text-xl font-medium">General</h2>
-            <div class="flex flex-col gap-2 text-sm mt-5">
+            <div class="mt-5 flex flex-col gap-2 text-sm">
                 {% if investor.location %}
                 <div class="grid grid-cols-2">
                     <span class="inline-flex items-center gap-1 font-medium">
@@ -108,11 +110,11 @@
             </div>
         </article>
         {% endif %}
-        <article class="bg-white shadow-card p-5 rounded-xl w-full">
+        <article class="shadow-card w-full rounded-xl bg-white p-5">
             <h2 class="text-xl font-medium">Investment</h2>
             {% if investor.rounds|length != 0 %}
-            <div class="flex flex-col gap-2 mt-5">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-5 flex flex-col gap-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -131,15 +133,15 @@
                 </span>
                 <div class="flex flex-wrap gap-1">
                     {% for round in investor.rounds %}
-                    <a class="text-nowrap rounded-full bg-[#ffdcfd] px-2 font-medium py-1.5 text-xs text-[#dd70d8]"
+                    <a class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
                         >{{ round.name }}
                     </a>
                     {% endfor %}
                 </div>
             </div>
             {% endif %} {% if investor.industries|length != 0 %}
-            <div class="flex flex-col gap-2 mt-2">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-2 flex flex-col gap-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -158,15 +160,15 @@
                 </span>
                 <div class="flex flex-wrap gap-1">
                     {% for industry in investor.industries %}
-                    <a class="text-nowrap rounded-lg bg-[#ccecff] px-2 font-medium py-1.5 text-xs text-[#26a3f1]"
+                    <a class="text-nowrap rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-[#26a3f1]"
                         >{{ industry.name }}</a
                     >
                     {% endfor %}
                 </div>
             </div>
             {% endif %} {% if investor.min_max_investment %}
-            <div class="grid grid-cols-2 mt-5">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-5 grid grid-cols-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -186,8 +188,8 @@
                 <span class="text-sm text-gray-700">{{ investor.min_max_investment }}</span>
             </div>
             {% endif %} {% if investor.n_investments and investor.n_exits %}
-            <div class="grid grid-cols-2 mt-5">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-5 grid grid-cols-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -208,8 +210,8 @@
                 <span class="text-sm text-gray-700">{{ investor.n_investments }}/{{ investor.n_exits }}</span>
             </div>
             {% elif investor.n_investments %}
-            <div class="grid grid-cols-2 mt-5">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-5 grid grid-cols-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -229,8 +231,8 @@
                 <span class="text-sm text-gray-700">{{ investor.n_investments }}</span>
             </div>
             {% elif investor.n_exits %}
-            <div class="grid grid-cols-2 mt-5">
-                <span class="flex font-medium gap-1 text-sm"
+            <div class="mt-5 grid grid-cols-2">
+                <span class="flex gap-1 text-sm font-medium"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -251,23 +253,29 @@
                 <span class="text-sm text-gray-700">{{ investor.n_exits }}</span>
             </div>
             {% endif %} {% if investor.notable_investments %}
-            <div>
-                <h2 class="font-medium mt-5">Notable Investments</h2>
-                <div class="flex flex-wrap gap-1 mt-2">
-                    {% for investment in investor.notable_investments %}
-                    <a class="text-nowrap rounded-lg bg-violet-200 px-2 font-medium py-1.5 text-xs text-violet-500"
+            <div class="has-[:empty]:hidden">
+                <h2 class="mt-5 font-medium">Notable Investments</h2>
+                <div class="mt-2 flex flex-wrap gap-1">
+                    {% for investment in investor.notable_investments %} {% if investment.company %}
+                    <a
+                        href="/profile/company/{{ investment.company.slug }}"
+                        class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500 hover:bg-violet-300"
                         >{{ investment.name }}</a
                     >
-                    {% endfor %}
+                    {% elif investment.name != '' %}
+                    <a class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500"
+                        >{{ investment.name }}</a
+                    >
+                    {% endif %} {% endfor %}
                 </div>
             </div>
             {% endif %}
         </article>
-        <article class="bg-white shadow-card p-5 rounded-xl w-full">
+        <article class="shadow-card w-full rounded-xl bg-white p-5">
             <h2 class="text-xl font-medium">Contacts</h2>
-            <div class="flex flex-col gap-2 text-sm mt-5">
+            <div class="mt-5 flex flex-col gap-2 text-sm">
                 {% if investor.twitter %}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="size-5">
                             <path
@@ -279,9 +287,9 @@
                     <a
                         href="{{ investor.twitter }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                        class="flex select-text items-center gap-1 text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -293,7 +301,7 @@
                     </a>
                 </div>
                 {% endif %} {% if investor.linkedin %}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
                             <path
@@ -305,9 +313,9 @@
                     <a
                         href="{{ investor.linkedin }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                        class="flex select-text items-center gap-1 text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -319,7 +327,7 @@
                     </a>
                 </div>
                 {% endif %} {% if investor.website %}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -341,9 +349,9 @@
                     <a
                         href="{{ investor.website }}"
                         target="_blank"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                        class="flex select-text items-center gap-1 text-gray-700 underline"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
                                 d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
                             />
@@ -355,7 +363,7 @@
                     </a>
                 </div>
                 {% endif %} {% if investor.email %}
-                <div class="flex gap-3 justify-between">
+                <div class="flex justify-between gap-3">
                     <span class="inline-flex items-center gap-1 font-medium">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -376,7 +384,7 @@
                     </span>
                     <a
                         href="mailto:{{ investor.email }}"
-                        class="text-gray-700 underline select-text flex gap-1 items-center"
+                        class="flex select-text items-center gap-1 text-gray-700 underline"
                     >
                         <span>{{ investor.email }}</span>
                     </a>

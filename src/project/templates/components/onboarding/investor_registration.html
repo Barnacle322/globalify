@@ -1,0 +1,35 @@
+{% macro render() %}
+<template id="investor-registration-template">
+    <div class="mx-auto flex w-full max-w-xl flex-col gap-9">
+        <div class="flex flex-col gap-4">
+            <a class="group flex items-center gap-1.5 text-gray-500 transition-colors ease-in-out" href="/onboarding">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5 transition-colors ease-in-out group-hover:text-gray-700"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+                    />
+                </svg>
+                <span class="transition-colors ease-in-out group-hover:text-gray-700">Back</span>
+            </a>
+            <h1 class="text-3xl font-medium">Investor Account Registration</h1>
+        </div>
+        <div class="flex flex-col gap-1 rounded-lg border p-4">
+            <h2>Welcome to <b>Globalify Investors!</b></h2>
+            <p class="text-sm text-gray-500">
+                We are very excited to have you on board. Please fill out the form below to get started!
+            </p>
+            <button class="hover mt-4 w-fit rounded-md bg-black px-3 py-2 text-white" @click="openRegistrationPage">
+                Continue
+            </button>
+        </div>
+    </div>
+</template>
+{% endmacro %}

@@ -1,9 +1,9 @@
 import datetime
 import os
-import re
+import secrets
 
 import requests
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from flask_login import (
     current_user,
     login_required,
@@ -11,28 +11,25 @@ from flask_login import (
     logout_user,
 )
 
-from ..extensions import db, login_manager, oauth
+from ..extensions import csrf, db, login_manager, oauth
 from ..models import (
     CompanyInvitation,
     EmailVerification,
     Notification,
     User,
-    UserCompany,
     UserInfo,
     UserPayment,
 )
+from ..schemas.notification import NotificationItem, NotificationLayout
 from ..utils.enums import (
-    ButtonLayout,
     Events,
-    NotificationDestination,
-    NotificationLayout,
+    NotificationType,
     OauthProvider,
     Status,
     StatusType,
 )
 from ..utils.errors.error_messages import (
-    AUTH_FIELDS_INCOMPLETE,
-    AUTH_USERNAME_USED,
+    ACCOUNT_NOT_FOUND,
     OAUTH_ACCESS_TOKEN,
     OAUTH_COULD_NOT_RETRIEVE_DATA,
     OAUTH_MISMATCHED_PROVIDER,
@@ -45,6 +42,8 @@ from .main import check_user_info_complete, check_verification
 auth = Blueprint("auth", __name__)
 
 LINKEDIN_SECRET = os.environ.get("_LINKEDIN_OAUTH2_CLIENT_SECRET")
+APPLE_SECRET = os.environ.get("_APPLE_OAUTH2_CLIENT_SECRET")
+APPLE_ID = os.environ.get("_APPLE_OAUTH2_CLIENT_ID")
 LINKEDIN_EMAIL_URL = "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))"
 LINKEDIN_PERSONAL_INFO_URL = "https://api.linkedin.com/v2/me"
 
@@ -63,29 +62,27 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
         user = User(email=email, oauth_provider=oauth_provider)
 
         company_invitations = CompanyInvitation.get_by_email(email)
+
         if company_invitations:
-            for company_invitation in company_invitations:
-                user_company = UserCompany(
-                    user_id=user.id,
-                    company_id=company_invitation.company_id,
-                    role=company_invitation.role,
-                )
-                notification = Notification(
-                    user=user,
-                    json_data=NotificationLayout(
-                        title="You got invited to a company!",
-                        msg="Click here to accept the invitation.",
-                        buttons=[ButtonLayout(text="Accept", url=url_for("settings.company"))],
-                    ).get_json(),
-                    destination=NotificationDestination.ALL,
-                )
-                db.session.add_all((user_company, notification))
+            notification = Notification(
+                user=user,
+                json_data=NotificationLayout(
+                    title="You got invited to a company!",
+                    msg="Click here to accept the invitation.",
+                    type="system",
+                    item=NotificationItem(
+                        url=url_for("settings.company_list_view"),
+                        type=NotificationType.INFO.value,
+                    ),
+                ).model_dump(),
+            )
+            db.session.add(notification)
 
         db.session.add(user)
         db.session.commit()
         return user
 
-    if user.oauth_provider != oauth_provider:  # type: ignore
+    if user.oauth_provider != oauth_provider:
         raise Exception(OAUTH_MISMATCHED_PROVIDER)
 
     return user
@@ -123,68 +120,40 @@ def fetch_time(user_id):
 @login_required
 @check_user_info_complete
 def verify_email():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+
     token = request.args.get("uuid", "")
+    next_url = request.args.get("next")
     email_verification = EmailVerification.get_by_token(token)
+    user = User.get_by_id(email_verification.user_id) if email_verification else None
 
-    if not email_verification:
-        notification = Notification(
-            user=authenticated_user,
-            json_data=NotificationLayout(title="Invalid code", msg="The code you have put in is invalid").get_json(),
-            destination=NotificationDestination.VERIFICATION,
-        )
-        db.session.add(notification)
-        db.session.commit()
-        return redirect(url_for("auth.email_verification_required"))
-
-    user = User.get_by_id(email_verification.user_id)
-
-    if not user or user.id != authenticated_user.id:
-        status = Status(
-            StatusType.ERROR, "Hmm, we couldn't find your account. Please reach out to our support team!"
-        ).get_status()
-        return redirect(url_for("auth.login", _external=False, **status))
+    if not email_verification or not user or user.id != current_user.id:
+        statuc = Status(StatusType.ERROR, "The code you have entered is invalid").get_status()
+        return redirect(url_for("auth.email_verification_required", next=next_url, _external=False, **statuc))
 
     if email_verification.is_expired:
-        notification = Notification(
-            user=authenticated_user,
-            json_data=NotificationLayout(title="Error", msg="Email verification code has expired.").get_json(),
-            destination=NotificationDestination.VERIFICATION,
-        )
-        db.session.add(notification)
-        db.session.commit()
-        return redirect(url_for("auth.email_verification_required"))
+        status = Status(StatusType.ERROR, "The code has already expired!").get_status()
+        return redirect(url_for("auth.email_verification_required", next=next_url, _external=False, **status))
 
-    try:
-        authenticated_user.is_verified = True
-        email_verification.is_used = True
-        db.session.commit()
-    except Exception:
-        notification = Notification(
-            user=authenticated_user,
-            json_data=NotificationLayout(
-                title="Error", msg="Something went wrong! Please reach out to our support team!"
-            ).get_json(),
-            destination=NotificationDestination.VERIFICATION,
-        )
-        db.session.add(notification)
-        db.session.commit()
-        return redirect(url_for("auth.email_verification_required"))
+    current_user.is_verified = True
+    email_verification.is_used = True
+    db.session.commit()
 
-    return redirect(url_for("main.search"))
+    return redirect(url_for("main.search", next=next_url))
 
 
 @auth.route("/resend-verification/<int:user_id>")
 @login_required
 @check_user_info_complete
 def resend_verification_email(user_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+
     user = User.get_by_id(user_id)
 
-    if not user or user.id != authenticated_user.id:
-        status = Status(
-            StatusType.ERROR, "Hmm, we couldn't find your account. Please reach out to our support team!"
-        ).get_status()
+    if not user or user.id != current_user.id:
+        status = Status(StatusType.ERROR, ACCOUNT_NOT_FOUND).get_status()
         return redirect(url_for("auth.login", _external=False, **status))
 
     if user.is_verified:
@@ -194,16 +163,8 @@ def resend_verification_email(user_id):
 
     if last_verification:
         if not last_verification.is_resendable:
-            notification = Notification(
-                user=authenticated_user,
-                json_data=NotificationLayout(
-                    title="Hey! Slow down..", msg="You can only request a new code every minute."
-                ).get_json(),
-                destination=NotificationDestination.VERIFICATION,
-            )
-            db.session.add(notification)
-            db.session.commit()
-            return redirect(url_for("auth.email_verification_required", _external=False))
+            status = Status(StatusType.WARNING, "You can only request a new code once per minute.").get_status()
+            return redirect(url_for("auth.email_verification_required", _external=False, **status))
 
     EmailVerification.expire_all_by_user_id(user_id)
 
@@ -218,40 +179,38 @@ def resend_verification_email(user_id):
         random_key=verification.token,
     )
 
-    notification = Notification(
-        user=authenticated_user,
-        json_data=NotificationLayout(
-            title="Verification code sent!",
-            msg="Please check your email for the new verification code. It may take a few minutes to arrive.",
-        ).get_json(),
-        destination=NotificationDestination.VERIFICATION,
-    )
-    db.session.add(notification)
-    db.session.commit()
-
-    return redirect(url_for("main.search"))
+    status = Status(
+        StatusType.SUCCESS,
+        "Verification code sent! Please check your email.",
+    ).get_status()
+    return redirect(url_for("auth.email_verification_required", _external=False, **status))
 
 
 @auth.route("/email-verification", methods=["GET", "POST"])
 @login_required
 @check_user_info_complete
 def email_verification_required():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
 
-    if authenticated_user.is_verified:
-        return redirect(url_for("main.search"))
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
 
-    notifications = Notification.get_unread(
-        user_id=authenticated_user.id,
-        destination=NotificationDestination.VERIFICATION,
-    )
-    return render_template("verify_email.html", user_id=current_user.id, notifications=notifications)
+    next_url = request.args.get("next")
+
+    if current_user.is_verified:
+        return redirect(url_for("main.search", next=next_url))
+
+    return render_template("verify_email.html", user_id=current_user.id, status_type=status_type, msg=msg)
 
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("main.search"))
+
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -283,9 +242,9 @@ def linkedin_callback():
         url=LINKEDIN_EMAIL_URL,
         access_token=access_token,
     )
-    if not email_data:
+    if not email_data or "elements" not in email_data:
         status = Status(StatusType.ERROR, OAUTH_COULD_NOT_RETRIEVE_DATA).get_status()
-        return redirect(url_for("auth_login", _external=False, **status))
+        return redirect(url_for("auth.login", _external=False, **status))
 
     email = email_data.get("elements")[0].get("handle~").get("emailAddress")
     if not email:
@@ -331,7 +290,7 @@ def linkedin_callback():
     login_user(user, remember=True)
 
     if not user_info.is_complete:
-        return redirect(url_for("auth.onboarding"))
+        return redirect(url_for("onboarding.index"))
 
     return redirect(url_for("main.search"))
 
@@ -345,10 +304,13 @@ def google_login():
 
 @auth.route("/google-oauth")
 def google_callback():
-    authorization = oauth.google.authorize_access_token()  # type: ignore
-    if not authorization:
-        status = Status(StatusType.ERROR, OAUTH_ACCESS_TOKEN).get_status()
-        return redirect(url_for("auth.login", _external=False, **status))
+    try:
+        authorization = oauth.google.authorize_access_token()  # type: ignore
+        if not authorization:
+            status = Status(StatusType.ERROR, OAUTH_ACCESS_TOKEN).get_status()
+            return redirect(url_for("auth.login", _external=False, **status))
+    except Exception:
+        return redirect(url_for("auth.google_login"))
 
     google_user_info = authorization.get("userinfo")
     if not google_user_info:
@@ -386,107 +348,79 @@ def google_callback():
     login_user(user, remember=True)
 
     if not user_info.is_complete:
-        return redirect(url_for("auth.onboarding"))
+        return redirect(url_for("onboarding.index"))
 
     return redirect(url_for("main.search"))
 
 
-@auth.route("/onboarding", methods=["GET", "POST"])
-@login_required
-def onboarding():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+@auth.route("/login-apple")
+def apple_login():
+    nonce = session.get("apple_nonce")
+    if nonce:
+        del session["apple_nonce"]
 
-    notifications = Notification.get_unread(
-        user_id=authenticated_user.id,
-        destination=NotificationDestination.ONBOARDING,
-        is_read=False,
+    nonce = secrets.token_urlsafe(16)
+    session["apple_nonce"] = nonce
+
+    return oauth.apple.authorize_redirect(  # type: ignore
+        redirect_uri=url_for("auth.apple_callback", _external=True),
+        nonce=nonce,
     )
 
-    user_info = UserInfo.get_by_user_id(authenticated_user.id)
-    if not user_info:
+
+@auth.route("/apple-oauth", methods=["GET", "POST"])
+@csrf.exempt
+def apple_callback():
+    try:
+        token = oauth.apple.authorize_access_token()  # type: ignore
+        nonce = session.pop("apple_nonce", None)
+        if not nonce:
+            raise ValueError("Nonce not found in session")
+        apple_user_info = oauth.apple.parse_id_token(token, nonce=nonce)  # type: ignore
+    except Exception as e:
+        print(f"Error during Apple OAuth callback: {e}")
         return redirect(url_for("auth.login"))
 
-    if user_info.is_complete:
-        return redirect(url_for("auth.onboarding"))
+    email = apple_user_info.get("email")
+    if not email:
+        print("No email found in user info")
+        return redirect(url_for("auth.login"))
 
-    if request.method == "POST":
-        first_name, last_name, username = (
-            request.form.get("first_name"),
-            request.form.get("last_name"),
-            request.form.get("username"),
+    user_name = apple_user_info.get("name", {})
+    first_name = user_name.get("firstName")
+    last_name = user_name.get("lastName")
+
+    try:
+        user = oauth_user(email, OauthProvider.APPLE)
+    except Exception as e:
+        print(f"Error creating or fetching user: {e}")
+        return redirect(url_for("auth.login"))
+
+    login_user(user, remember=True)
+
+    user_info = UserInfo.get_by_user_id(user.id)
+    if not user_info:
+        user_info = UserInfo(
+            user=user,
+            first_name=first_name,
+            last_name=last_name,
         )
 
-        if not first_name or not last_name or not username:
-            notification = Notification(
-                user=authenticated_user,
-                json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
-                destination=NotificationDestination.ONBOARDING,
-            )
-            db.session.add(notification)
-            db.session.commit()
-            return redirect(url_for("auth.onboarding"))
-
-        if UserInfo.is_taken(username):
-            notification = Notification(
-                user=authenticated_user,
-                json_data=NotificationLayout(title="Error!", msg=AUTH_USERNAME_USED).get_json(),
-                destination=NotificationDestination.ONBOARDING,
-            )
-            db.session.add(notification)
-            db.session.commit()
-            return redirect(url_for("auth.onboarding"))
-
-        username_regex = r"^[a-zA-Z0-9]{4,20}$"
-        if not re.match(username_regex, username):
-            notification = Notification(
-                user=authenticated_user,
-                json_data=NotificationLayout(
-                    title="Error!",
-                    msg="Username should be 4 to 20 characters long and should only have alphanumeric values.",
-                ).get_json(),
-                destination=NotificationDestination.ONBOARDING,
-            )
-            db.session.add(notification)
-            db.session.commit()
-            return redirect(url_for("auth.onboarding"))
-
-        user_info.first_name = first_name
-        user_info.last_name = last_name
-        user_info.username = username.lower()
-
-        user_info.is_complete = True
-
+        db.session.add(user_info)
         db.session.commit()
 
-        notification = Notification(
-            user=authenticated_user,
-            json_data=NotificationLayout(
-                title="Welcome!",
-                msg="To get better recommendations, complete your profile.",
-                buttons=[
-                    ButtonLayout(text="Go!", url=url_for("auth.tier_selection"), dismiss=False),
-                ],
-                is_closable=True,
-            ).get_json(),
-            destination=NotificationDestination.SEARCH,
-        )
-        db.session.add(notification)
+    user_payment = UserPayment.get_by_user_id(user.id)
+    if not user_payment:
+        user_payment = UserPayment(user=user)
+        db.session.add(user_payment)
         db.session.commit()
 
-        verification = EmailVerification(user_id=authenticated_user.id)
-        db.session.add(verification)
-        db.session.commit()
+    login_user(user, remember=True)
 
-        google_pubsub.send_event(
-            "A new user has completed onboarding!",
-            email=authenticated_user.email,
-            event_type=Events.USER_COMPLETED_ONBOARDING.value,
-            random_key=verification.token,
-        )
+    if not user_info.is_complete:
+        return redirect(url_for("onboarding.index"))
 
-        return redirect(url_for("main.search"))
-
-    return render_template("auth/onboarding.html", user_info=user_info.sanitize(), notifications=notifications)
+    return redirect(url_for("main.search"))
 
 
 @auth.get("/username/<username>")

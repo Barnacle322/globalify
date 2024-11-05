@@ -1,13 +1,13 @@
 <!-- prettier-ignore -->
-{% extends "layouts/layout_app.html" %}
+{% extends "layouts/layout_clean.html" %}
 {% block additional_scripts %}
 <script src="/static/scripts/claiming/email_verification.js" defer></script>
 {% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
 content %}
 
-<main class="flex min-h-screen w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
-    <section class="mt-36 flex max-w-md flex-col items-center justify-center gap-8 md:mt-48">
-        <article class="flex flex-col gap-2">
+<main class="mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center gap-5 px-4 sm:px-9">
+    <section class="max-w-md">
+        <article class="mt-4 flex flex-col gap-2">
             <h1 class="text-3xl font-semibold md:text-5xl">Claim your profile</h1>
             <p class="max-w-xl text-base text-slate-600 md:text-lg">
                 Input your email, that you've used to sign up with Globalify.

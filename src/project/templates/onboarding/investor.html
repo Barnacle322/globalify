@@ -1,0 +1,35 @@
+{% extends "layouts/layout_clean.html" %} {% block additional_scripts %}
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="/static/vue/base.js" defer></script>
+<script src="/static/vue/investorOnboarding.js" defer></script>
+
+{% endblock %} {% block title %}Onboarding{% endblock %} {% block head %}
+<!-- prettier-ignore -->
+{% import "components/onboarding/investor_registration.html" as investor_registration %} 
+{{ investor_registration.render() }} 
+{% import "components/onboarding/investor_registration_step_0.html" as zero %} 
+{{ zero.render(user) }} 
+{% import "components/onboarding/general_info.html" as general_info %} 
+{{ general_info.render(user) }} 
+{% import "components/onboarding/investment_info.html" as investment_info %} 
+{{ investment_info.render(industries, rounds) }} 
+{% import "components/onboarding/contact_info.html" as contact_info %} 
+{{ contact_info.render(user) }} 
+{% import "components/full_investor.html" as full_investor %} 
+{{ full_investor.render(current_user) }}
+{% import "components/onboarding/claim_investor.html" as claim_investor %} 
+{{ claim_investor.render(current_user) }}
+
+
+{{ super() }} 
+{% endblock %} 
+{% block content %}
+
+<main class="mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center overflow-hidden p-4 sm:p-6">
+    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+    <transition :enter-active-class="enterClass" :leave-active-class="leaveClass" mode="out-in">
+        <component :is="currentComponent" @change-page="changePage"></component>
+    </transition>
+</main>
+
+{% endblock %}

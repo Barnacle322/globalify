@@ -1,26 +1,26 @@
-{% extends "layouts/layout_app.html" %} {% block additional_scripts %}
-<script src="/static/scripts/dashboard.js" defer></script>
-<script src="/static/scripts/bookmark.js" defer></script>
-{% endblock %} {% block title %}Investors{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
-%}
+<!-- prettier-ignore -->
+{% extends "layouts/layout_app.html" %} 
+{% block title %}Investors{% endblock %} 
+{% block head %} {{ super() }} {% endblock %} 
+{% block content %}
 <main class="mx-auto h-full min-h-screen w-full overflow-x-visible">
-    <section class="bg-[#231645] px-4 text-white py-24 rounded-3xl mt-4 mx-4">
+    <section class="mx-4 mt-4 rounded-3xl bg-deep-purple px-4 py-24 text-white">
         <div class="flex flex-col gap-4 text-center">
             <h1
-                class="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] w-fit mx-auto bg-clip-text text-transparent"
+                class="mx-auto w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"
             >
                 Best Picks
             </h1>
-            <p class="max-w-[600px] md:text-xl mx-auto">
+            <p class="mx-auto max-w-[600px] md:text-xl">
                 Based on your preferences, here are some of the best investors for your startup.
             </p>
         </div>
     </section>
-    <section class="container px-4 py-12 max-w-7xl mx-auto">
+    <section class="container mx-auto max-w-7xl px-4 py-12">
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {% if access %} {% for investor in investors %}
-            <article class="flex flex-col rounded-lg p-6 shadow-card-hover transition-shadow ease-in-out bg-white">
-                <div class="flex justify-between items-center">
+            <article class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out">
+                <div class="flex items-center justify-between">
                     <a href="/investor/{{ investor.slug }}" class="text-xl font-bold leading-none">
                         {{ investor.full_name }}
                     </a>
@@ -32,7 +32,7 @@
                             viewBox="0 0 24 24"
                             stroke-width="1.5"
                             stroke="currentColor"
-                            class="w-6 h-6"
+                            class="h-6 w-6"
                         >
                             <path
                                 stroke-linecap="round"
@@ -42,7 +42,7 @@
                         </svg>
                     </button>
                 </div>
-                <div class="flex flex-col gap-2 text-sm mt-5">
+                <div class="mt-5 flex flex-col gap-2 text-sm">
                     {% if investor.location %}
                     <div class="grid grid-cols-2">
                         <span class="inline-flex items-center gap-1 text-gray-700">
@@ -91,8 +91,8 @@
                         <span>{{ investor.firm_name }}</span>
                     </div>
                     {% endif %} {% if investor.rounds|length != 0 %}
-                    <div class="flex flex-col gap-2 mt-5">
-                        <span class="flex text-gray-700 gap-1 text-sm"
+                    <div class="mt-5 flex flex-col gap-2">
+                        <span class="flex gap-1 text-sm text-gray-700"
                             ><svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -112,15 +112,15 @@
                         <div class="flex flex-wrap gap-1">
                             {% for round in investor.rounds %}
                             <a
-                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 font-medium py-1.5 text-xs text-[#D182CD]"
+                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
                                 >{{ round.name }}
                             </a>
                             {% endfor %}
                         </div>
                     </div>
                     {% endif %} {% if investor.industries|length != 0 %}
-                    <div class="flex flex-col gap-2 mt-2">
-                        <span class="flex text-gray-700 gap-1 text-sm"
+                    <div class="mt-2 flex flex-col gap-2">
+                        <span class="flex gap-1 text-sm text-gray-700"
                             ><svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -140,7 +140,7 @@
                         <div class="flex flex-wrap gap-1">
                             {% for industry in investor.industries %}
                             <a
-                                class="text-nowrap rounded-lg bg-[#B9E5FF] px-2 font-medium py-1.5 text-xs text-[#3EB5FD]"
+                                class="text-nowrap rounded-lg bg-[#B9E5FF] px-2 py-1.5 text-xs font-medium text-[#3EB5FD]"
                                 >{{ industry.name }}</a
                             >
                             {% endfor %}

@@ -7,7 +7,8 @@ from src.project import db
 from src.project.models.helpers import Industry, Round
 from src.project.models.investor import InvestmentFirm, Investor, NotableInvestment
 from src.project.models.user import Notification, User, UserInfo, UserPayment
-from src.project.utils.enums import NotificationDestination, NotificationLayout, OauthProvider
+from src.project.schemas.notification import NotificationLayout
+from src.project.utils.enums import OauthProvider
 from src.project.utils.errors.error_messages import AUTH_FIELDS_INCOMPLETE
 from src.project.utils.google_helpers import google_pubsub
 
@@ -16,7 +17,7 @@ def test_index(client):
     response = client.get("/")
     assert response.status_code == 200
     assert b"Globalify" in response.data
-    assert b"Your Gateway to Investors" in response.data
+    assert b"Your Gateway" in response.data
     assert b"Tailored experience for specific regions" in response.data
     assert b"Unlock your business's potential with our extensive network of investors and partners." in response.data
     assert b"Finding investors with ease" in response.data
@@ -29,8 +30,8 @@ def test_about(client):
     assert b"Our Passion" in response.data
     assert b"The what, the how, the who" in response.data
     assert b"Our team" in response.data
-    assert b"info@globalify.xyz" in response.data
-    assert b"Use Globalify - Fund Your Startup" in response.data
+    assert b"partner@globalify.xyz" in response.data
+    assert b"search for and connect" in response.data
 
 
 @pytest.fixture()
@@ -123,6 +124,7 @@ def investor(app):
             about="Julie is a founder and CEO at Qwerty LLC. She is a great investor.",
             firm_name="Qwerty LLC",
             position="CEO",
+            slug="julie-doe",
             rounds=[Round.get_by_id(1), Round.get_by_id(2)],
             industries=[Industry.get_by_id(1), Industry.get_by_id(2)],
             min_investment=1_000_000,
@@ -274,13 +276,14 @@ def test_investor_verified_get(client, app, verified_user, investor, monkeypatch
         user = User.get_by_id(1)
         login_user(user)
 
-        response = client.get("/investor/1", follow_redirects=True)
+        response = client.get("/investor/julie-doe", follow_redirects=True)
+
         assert response.status_code == 200
         assert b"Julie" in response.data
         assert b"Qwerty LLC" in response.data
         assert b"Julie is a founder and CEO at Qwerty LLC. She is a great investor." in response.data
         assert b"Industries" in response.data
-        assert b"Rounds" in response.data
+        assert b"Pre-Seed" in response.data
 
 
 def test_investor_not_found(client, app, verified_user, investor, monkeypatch):
@@ -324,8 +327,7 @@ def test_edit_notification_mismatch_user(client, app, verified_user, verified_us
 
         notification = Notification(
             user=user,
-            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
-            destination=NotificationDestination.ONBOARDING,
+            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).model_dump(),
         )
         db.session.add(notification)
         db.session.commit()
@@ -349,8 +351,7 @@ def test_success_edit_notification(client, app, verified_user, monkeypatch):
 
         notification = Notification(
             user=user,
-            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).get_json(),
-            destination=NotificationDestination.ONBOARDING,
+            json_data=NotificationLayout(title="Error!", msg=AUTH_FIELDS_INCOMPLETE).model_dump(),
         )
         db.session.add(notification)
         db.session.commit()
@@ -360,29 +361,8 @@ def test_success_edit_notification(client, app, verified_user, monkeypatch):
         updated_notification = Notification.get_by_user_id(1)
 
         assert updated_notification is not None
-        assert updated_notification.is_read
+        assert updated_notification[0].is_read
         assert response.status_code == 200
-
-
-# TODO
-# def test_firm_get(client, new_user, investment_firm):
-#     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-#     response = client.get("/investment-firm/1", follow_redirects=True)
-#     assert response.status_code == 200
-#     assert b"Qwerty LLC" in response.data
-#     assert b"Qwerty LLC is a great investment firm." in response.data
-#     assert b"Industries" in response.data
-#     assert b"Rounds" in response.data
-
-# TODO
-# def test_firm_not_found(client, new_user, investment_firm):
-#     client.post("/login", data=dict(email="johndoe@example.com", password="password"), follow_redirects=True)
-#     response = client.get("/investment-firm/99999999", follow_redirects=True)
-#     assert response.status_code == 200
-#     assert b"Investors" in response.data
-#     assert b"Firms" in response.data
-#     assert b"Only show firms with selected rounds" in response.data
-#     assert b"Only show firms with selected industries" in response.data
 
 
 def test_pricing(client):
@@ -390,7 +370,7 @@ def test_pricing(client):
     assert response.status_code == 200
     assert b"Pricing" in response.data
     assert b"Flexible Pricing Options for Advanced Search Solutions" in response.data
-    assert b"Perfect for small startups" in response.data
+    assert b"Perfect for growing startups" in response.data
     assert b"Subscribe" in response.data
 
 

@@ -1,16 +1,37 @@
 {% extends "layouts/layout_clean.html" %} {% block additional_scripts%}
 <script src="/static/scripts/onboarding.js" defer></script>
 <script src="/static/scripts/idempotency.js" defer></script>
-<script src="/static/scripts/notificationHandler.js" defer></script>
 {% endblock %} {% block title %}Onboarding{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
 %}
 <main class="flex h-full flex-col items-center justify-center overflow-x-hidden p-6">
-    <form action="/onboarding" method="POST" class="max-w-md">
+    <form method="POST" class="w-full max-w-xl">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-        <h1 class="mb-4 text-center text-3xl font-semibold text-gray-900">We just need some more info</h1>
-        <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+        <a class="group flex items-center gap-1.5 text-gray-500 transition-colors ease-in-out" href="/onboarding">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5 transition-colors ease-in-out group-hover:text-gray-700"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+            </svg>
+            <span class="transition-colors ease-in-out group-hover:text-gray-700">Back</span>
+        </a>
+        <h1 class="mt-7 text-3xl font-medium text-gray-900">Let's get to know each other!</h1>
+        <div class="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div class="col-span-full">
+                {% if status_type %} {% if status_type == '3' %}
+                <div class="rounded-xl text-red-500">{{ msg }}</div>
+                {% elif status_type == '2' %}
+                <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                {% elif status_type == '1' %}
+                <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                {% endif %} {% endif %}
+            </div>
             <div class="sm:col-span-3">
-                <label for="first_name" class="block text-sm font-medium leading-6 text-gray-900">First name*</label>
+                <label for="first_name" class="block text-sm font-medium leading-6 text-gray-900">First name</label>
                 <div class="mt-2">
                     <input
                         type="text"
@@ -18,13 +39,14 @@
                         id="first_name"
                         autocomplete="given-name"
                         value="{{ user_info.first_name if user_info.first_name else ''}}"
+                        placeholder="Jane"
+                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                         required
-                        class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2"
                     />
                 </div>
             </div>
             <div class="sm:col-span-3">
-                <label for="last_name" class="block text-sm font-medium leading-6 text-gray-900">Last name*</label>
+                <label for="last_name" class="block text-sm font-medium leading-6 text-gray-900">Last name</label>
                 <div class="mt-2">
                     <input
                         type="text"
@@ -32,13 +54,14 @@
                         id="last_name"
                         autocomplete="family-name"
                         value="{{ user_info.last_name if user_info.last_name else ''}}"
+                        placeholder="Smith"
+                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2"
                         required
-                        class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2"
                     />
                 </div>
             </div>
             <div class="sm:col-span-6">
-                <label for="username" class="block text-sm font-medium leading-6 text-gray-900">Username*</label>
+                <label for="username" class="block text-sm font-medium leading-6 text-gray-900">Username</label>
                 <div class="mt-2">
                     <span class="absolute hidden h-12 select-none items-center pl-3 text-gray-500 sm:flex">
                         globalify.com/user/
@@ -49,7 +72,7 @@
                         id="username"
                         autocomplete="username"
                         pattern="[a-zA-Z0-9_]{3,20}"
-                        class="h-12 w-full rounded-xl border border-stone-300 bg-transparent px-2 sm:pl-[148px]"
+                        class="h-12 w-full rounded-xl border-2 border-stone-300 bg-transparent px-2 sm:pl-[148px]"
                         minlength="4"
                         placeholder="janesmith"
                         required
@@ -64,7 +87,5 @@
             </button>
         </div>
     </form>
-    {% import "macros/notification_macros.html" as notification_macros %} {{
-    notification_macros.render_notifications(notifications) }}
 </main>
 {% endblock %}

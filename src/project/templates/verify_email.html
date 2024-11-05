@@ -1,5 +1,4 @@
 {% extends "layouts/layout_clean.html" %} {% block additional_scripts %}
-<script src="/static/scripts/notificationHandler.js" defer></script>
 <script src="/static/scripts/idempotency.js" defer></script>
 <script src="/static/scripts/resend_veification_timer.js" defer></script>
 {% endblock %} {% block title %}Globalify{% endblock %} {% block head %} {{ super() }} {% endblock %} {% block content
@@ -14,7 +13,8 @@
             </p>
         </article>
 
-        <form action="/verify-email" method="GET" class="flex w-full flex-col items-center">
+        <form action="{{ url_for('auth.verify_email') }}" method="GET" class="flex w-full flex-col items-center">
+            <input type="hidden" id="next" name="next" value="{{ request.args.get('next') }}" />
             <input
                 type="text"
                 id="uuid"
@@ -23,12 +23,22 @@
                 class="mb-4 w-full rounded-md border border-gray-300 px-4 py-2"
                 required
             />
+
             <button
                 type="submit"
                 class="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 py-2 font-semibold text-white"
             >
                 Verify
             </button>
+
+            {% if status_type %} {% if status_type == '3' %}
+            <div class="mt-3 rounded-xl text-left text-red-500">{{ msg }}</div>
+            {% elif status_type == '2' %}
+            <div class="mt-3 rounded-xl text-orange-400">{{ msg }}</div>
+            {% elif status_type == '1' %}
+            <div class="mt-3 rounded-xl text-lime-500">{{ msg }}</div>
+            {% endif %} {% endif %}
+
             <div class="mt-3 flex justify-center gap-x-6 text-sm">
                 <a id="resendButton" href="/resend-verification/{{ user_id }}" class="underline">
                     <div id="timer-container" style="display: none">
@@ -39,8 +49,5 @@
             </div>
         </form>
     </section>
-
-    {% import "macros/notification_macros.html" as notification_macros %} {{
-    notification_macros.render_notifications(notifications) }}
 </main>
 {% endblock %}

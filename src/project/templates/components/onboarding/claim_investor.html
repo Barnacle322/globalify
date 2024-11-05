@@ -1,0 +1,50 @@
+{% macro render(user) %}
+<template id="claim-investor-template">
+    <div class="mx-auto w-full max-w-xl rounded-lg bg-white">
+        <input type="hidden" ref="userFirstName" value="{{ user.user_info.first_name }}" />
+        <input type="hidden" ref="userLastName" value="{{ user.user_info.last_name }}" />
+
+        <button
+            @click="goToPreviousPage"
+            class="group flex items-center gap-1.5 text-gray-500 transition-colors ease-in-out"
+            href="/onboarding"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5 transition-colors ease-in-out group-hover:text-gray-700"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+                ></path>
+            </svg>
+            <span class="transition-colors ease-in-out group-hover:text-gray-700">Back</span>
+        </button>
+        <h1 class="mt-2 text-3xl font-medium text-gray-800">Claim an Account</h1>
+        <p class="mt-2 text-gray-600">
+            Our database is quite big and we may already have an account ready for you. Would you like to see the
+            possible matches?
+        </p>
+
+        <div class="mt-6 flex flex-col gap-2">
+            <button
+                class="rounded-lg bg-sky-500 py-2 text-white transition-colors ease-in-out hover:bg-sky-600"
+                @click="goToSimilarInvestors"
+            >
+                Yes, show me the possible matches
+            </button>
+            <button
+                class="rounded-lg bg-green-500 py-2 text-white transition-colors ease-in-out hover:bg-green-600"
+                @click="createNewInvestor"
+            >
+                No, create a new investor profile
+            </button>
+        </div>
+    </div>
+</template>
+{% endmacro %}

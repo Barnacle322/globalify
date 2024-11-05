@@ -8,6 +8,7 @@ gmaps = googlemaps.Client(key=os.getenv("_GOOGLE_MAPS_API_KEY"))
 
 
 WEIGHTS = {"bias": 0.3, "industry": 0.25, "round": 0.07, "location": 0.25, "exits": 0.07, "completeness": 0.06}
+COMPANY_WEIGHTS = {"bias": 0.3, "industry": 0.25, "location": 0.25, "round": 0.2}
 
 
 def check_weights(weights: dict[str, float]) -> None:
@@ -15,7 +16,7 @@ def check_weights(weights: dict[str, float]) -> None:
         print("!!! The weights should sum to 1.0 !!!")
 
 
-def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str] | None:
+def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str]:
     if os.getenv("FLASK_ENV") == "testing":
         raise Exception("Geocoding is disabled in testing environment")
 
@@ -39,7 +40,7 @@ def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str]
 
     if skip_gcloud:
         print("Skipping Google Maps API")
-        return None
+        return {}
 
     print(f"Using Google Maps API for geocoding: {location}")
     try:
@@ -51,10 +52,10 @@ def geocode_location(location: str, skip_gcloud: bool = False) -> dict[str, str]
                     country_name = item.get("long_name")
                     break
             print(f"Geocoded location: {coordinates}, {country_name}")
-            return {"coordinates": coordinates, "country_name": country_name}  # type: ignore
+            return {"coordinates": coordinates, "country_name": country_name}
         else:
             print("No geocoded location found")
-            return None
+            return {}
     except Exception as e:
         print(f"Geocoding error: {e}")
-        return None
+        return {}

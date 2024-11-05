@@ -1,3 +1,4 @@
+from .claim import ClaimRequest, ClaimVerification
 from .helpers import Country, Industry, Round
 from .investor import (
     InvestmentFirm,
@@ -9,9 +10,8 @@ from .investor import (
     NotableInvestment,
 )
 from .user import (
-    ClaimRequest,
-    ClaimVerification,
     Company,
+    CompanyBookmark,
     CompanyInvitation,
     EmailVerification,
     Notification,
@@ -42,4 +42,5 @@ __all__ = [
     "ClaimVerification",
     "InvestorBackup",
     "InvestorOriginPoint",
+    "CompanyBookmark",
 ]

@@ -1,5 +1,5 @@
 <!-- prettier-ignore -->
-{% extends "layouts/layout_teaser.html" %} 
+{% extends "layouts/layout.html" %} 
 {% block additional_scripts %}
 <script src="/static/scripts/cycle.js" defer></script>
 <script src="/static/scripts/typewriter.js" defer></script>
@@ -35,7 +35,7 @@
             <span class="background-animate bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text text-transparent"
                 >Globalify</span
             ><br />Your Gateway to <br />
-            <div class="relative flex h-10 sm:h-12 lg:h-[60px] justify-center overflow-hidden">
+            <div class="relative flex h-10 justify-center overflow-hidden sm:h-12 lg:h-[60px]">
                 <span class="scroll" style="animation-delay: 2s">
                     <div>Funders</div>
                     <div>Founders</div>
@@ -113,7 +113,7 @@
     </section>
 
     <section class="fade-in flex items-center justify-center gap-2.5 px-8 pt-20" style="animation-delay: 1.2s">
-        <div class="flex max-w-7xl flex-col w-full">
+        <div class="flex w-full max-w-7xl flex-col">
             <div class="flex flex-col items-center justify-center gap-4 px-4 sm:px-6 md:text-center lg:px-8">
                 <span
                     class="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-900 shadow-xl"
@@ -126,11 +126,11 @@
                 </h2>
             </div>
             <div class="relative">
-                <div class="mt-20 flex gap-5 w-full overflow-hidden relative" id="thelist">
+                <div class="relative mt-20 flex w-full gap-5 overflow-hidden" id="thelist">
                     <article
-                        class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 min-w-full lg:min-w-[calc(50%-10px)]"
+                        class="flex min-w-full rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
                     >
-                        <div class="rounded-3xl bg-white p-8 leading-loose flex justify-between flex-col">
+                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
                             <p class="line-clamp-7">
                                 Starting my own business was awesome, but getting the funding I needed was a struggle.
                                 Globalify helped me out BIG TIME! They're a super-powered search engine that finds the
@@ -144,9 +144,9 @@
                         </div>
                     </article>
                     <article
-                        class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 min-w-full lg:min-w-[calc(50%-10px)]"
+                        class="flex min-w-full rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
                     >
-                        <div class="rounded-3xl bg-white p-8 leading-loose flex justify-between flex-col">
+                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
                             <p class="line-clamp-7">
                                 Using Globalify's search engine opened up many new opportunities for collaborations and
                                 generated even more interest in my crypto project. It felt like unlocking a door to a
@@ -159,9 +159,9 @@
                         </div>
                     </article>
                     <article
-                        class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 min-w-full lg:min-w-[calc(50%-10px)]"
+                        class="flex min-w-full rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
                     >
-                        <div class="rounded-3xl bg-white p-8 leading-loose flex justify-between flex-col">
+                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
                             <p class="line-clamp-7">
                                 Thanks to the power of Globalify's proprietary AI Search Engine, I was able to secure
                                 the funding I needed from Web2, Web3, and very famous angel investors to seed my
@@ -174,9 +174,9 @@
                         </div>
                     </article>
                     <article
-                        class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 min-w-full lg:min-w-[calc(50%-10px)]"
+                        class="flex min-w-full rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
                     >
-                        <div class="rounded-3xl bg-white p-8 leading-loose flex justify-between flex-col">
+                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
                             <p class="line-clamp-7">
                                 Globalify helped us discover hidden gems for direct investment as well as amazing Fund
                                 Managers to co-invest with. For a select few of the Funds we met via Globalify, we
@@ -189,9 +189,9 @@
                         </div>
                     </article>
                     <article
-                        class="flex rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 min-w-full lg:min-w-[calc(50%-10px)]"
+                        class="flex min-w-full rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
                     >
-                        <div class="rounded-3xl bg-white p-8 leading-loose flex justify-between flex-col">
+                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
                             <p class="line-clamp-7">
                                 I used Globalify, a cool search engine, to find people who wanted to learn about my
                                 Canadian VR startup. Eric was super helpful and made things easier for me. Thanks to
@@ -206,7 +206,7 @@
                     </article>
                 </div>
                 <button
-                    class="absolute -left-5 top-1/2 size-16 rounded-full border bg-white hover:bg-neutral-50 ease-in-out transition-colors"
+                    class="absolute -left-5 top-1/2 size-16 rounded-full border bg-white transition-colors ease-in-out hover:bg-neutral-50"
                     onclick="cycleBack()"
                 >
                     <svg
@@ -215,13 +215,13 @@
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
-                        class="size-6 mx-auto"
+                        class="mx-auto size-6"
                     >
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                     </svg>
                 </button>
                 <button
-                    class="absolute -right-5 top-1/2 size-16 rounded-full border bg-white hover:bg-neutral-50 ease-in-out transition-colors"
+                    class="absolute -right-5 top-1/2 size-16 rounded-full border bg-white transition-colors ease-in-out hover:bg-neutral-50"
                     onclick="cycleForward()"
                 >
                     <svg
@@ -230,7 +230,7 @@
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
-                        class="size-6 mx-auto"
+                        class="mx-auto size-6"
                     >
                         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                     </svg>
@@ -253,7 +253,7 @@
         >
             {% if posts %} {% for post in posts %}
             <article class="flex max-w-xl flex-col items-start">
-                <img class="mb-5 aspect-[3/2] rounded-lg object-cover w-full" src="{{ post.image }}" alt="" />
+                <img class="mb-5 aspect-[3/2] w-full rounded-lg object-cover" src="{{ post.image }}" alt="" />
                 <div class="flex flex-col items-start justify-start">
                     <div class="flex items-center gap-x-4 text-xs">
                         <time class="text-slate-500">{{ post.published }}</time>

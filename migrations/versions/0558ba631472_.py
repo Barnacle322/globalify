@@ -39,15 +39,15 @@ def upgrade():
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
-    conn = op.get_bind()
-    companies = conn.execute(text("SELECT id, user_id FROM company")).fetchall()
-    for company in companies:
-        conn.execute(
-            text(
-                "INSERT INTO user_company (user_id, company_id, role, is_primary, is_public) VALUES (:user_id, :company_id, 'OWNER', TRUE, FALSE)"
-            ),
-            {'user_id': company[1], 'company_id': company[0]}
-        )
+    # conn = op.get_bind()
+    # companies = conn.execute(text("SELECT id, user_id FROM company")).fetchall()
+    # for company in companies:
+    #     conn.execute(
+    #         text(
+    #             "INSERT INTO user_company (user_id, company_id, role, is_primary, is_public) VALUES (:user_id, :company_id, 'OWNER', TRUE, FALSE)"
+    #         ),
+    #         {'user_id': company[1], 'company_id': company[0]}
+    #     )
     op.drop_table('waitlist_charge')
     op.drop_table('waitlist')
     with op.batch_alter_table('company', schema=None) as batch_op:

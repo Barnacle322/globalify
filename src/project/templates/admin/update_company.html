@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            name="description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="og:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="twitter:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="/static/vue/base.js"></script>
+        <script src="/static/scripts/menu.js" defer></script>
+        <script src="/static/vue/admin.js" defer></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+        <title>Edit Company | Globalify</title>
+    </head>
+
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %} 
+    {{ navbar.render(current_user) }}
+
+    <body class="h-full overflow-x-clip" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component
+                    v-if="asideExpanded"
+                    @close-aside="asideExpanded = false"
+                ></aside-mobile-component>
+            </transition>
+
+            <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
+                <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="flex">
+                    <a href="/admin/companies" class="group flex items-center gap-1 text-gray-500">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            class="size-4 transition-colors ease-in-out group-hover:text-gray-700"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        <div class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Admin</div>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-6 gap-x-2 gap-y-1">
+                    <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
+                    <div class="col-span-full empty:hidden">
+                        {% if status_type %} {% if status_type == '3' %}
+                        <div class="rounded-xl text-red-500">{{ msg }}</div>
+                        {% elif status_type == '2' %}
+                        <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                        {% elif status_type == '1' %}
+                        <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                        {% endif %} {% endif %}
+                    </div>
+                    <div class="col-span-full flex items-start gap-x-8">
+                        {% if not company.picture_url %}
+                        <img
+                            class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
+                            src="/static/elements/default_pfp.svg"
+                            alt="Company picture"
+                        />
+                        {% else %}
+                        <img
+                            class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
+                            src="{{ company.picture_url }}"
+                            alt="Company picture"
+                        />
+                        {% endif %}
+                        <div class="w-full" v-if="'{{ user_role }}' !== 'employee'">
+                            <input
+                                type="file"
+                                id="picture"
+                                name="picture"
+                                accept="image/png, image/jpeg"
+                                class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
+                            />
+                            <p class="mt-2 text-xs leading-5">JPG or PNG</p>
+                        </div>
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="name">Name*</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="name"
+                            placeholder="Acme Inc."
+                            required
+                            value="{{ company.name if company.name else ''}}"
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="slug">Slug</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="slug"
+                            placeholder="acme-inc"
+                            required
+                            value="{{ company.slug if company.slug else ''}}"
+                        />
+                    </div>
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="description">Description</label>
+                        <textarea
+                            class="w-full rounded-lg"
+                            type="text"
+                            id="description"
+                            oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px';"
+                            placeholder="Describe your company here."
+                        >
+{{ company.description if company.description else ''}}</textarea
+                        >
+                    </div>
+                    <div class="sm:col-span-full">
+                        <label for="country" class="block text-sm font-medium leading-6">Country</label>
+                        <div>
+                            <select
+                                id="country"
+                                name="country"
+                                autocomplete="country-name"
+                                class="h-12 w-full rounded-xl px-2"
+                                required
+                                id="country"
+                            >
+                                <option value="" disabled selected>Select a country</option>
+                                {% if countries %} {% for country in countries %} {% if company.country_id==country.id
+                                %}
+                                <option value="{{ country.id }}" selected>{{ country.name }}</option>
+                                {% else %}
+                                <option value="{{ country.id }}">{{ country.name }}</option>
+                                {% endif %} {% endfor %} {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                    <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
+                    <div class="sm:col-span-3">
+                        <label for="round" class="block text-sm font-medium leading-6">Preferred round</label>
+                        <div>
+                            <select id="round" name="round" class="h-12 w-full rounded-xl px-2" required id="round">
+                                <option value="" disabled selected>Select a round</option>
+                                {% if rounds %} {% for round in rounds %} {% if company.preferred_round_id==round.id %}
+                                <option value="{{ round.id }}" selected>{{ round.name }}</option>
+                                {% else %}
+                                <option value="{{ round.id }}">{{ round.name }}</option>
+                                {% endif %} {% endfor %} {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="sm:col-span-3">
+                        <label for="industry" class="block text-sm font-medium leading-6 text-gray-900">Industry</label>
+                        <div>
+                            <select
+                                id="industry"
+                                name="industry"
+                                class="h-12 w-full rounded-xl px-2 pr-8"
+                                required
+                                id="industry"
+                            >
+                                <option value="" disabled selected>Select an industry</option>
+                                {% for category, industry in industries.items() %}
+                                <optgroup label="{{ category }}">
+                                    {% for ind in industry %} {% if company.industry_id==ind.id %}
+                                    <option value="{{ ind.id }}" selected>{{ ind.name }}</option>
+                                    {% else %}
+                                    <option value="{{ ind.id }}">{{ ind.name }}</option>
+                                    {% endif %} {% endfor %}
+                                </optgroup>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="relative col-span-full">
+                        <label class="text-sm font-medium text-gray-700">Notable Investment</label>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            ref="searchInput"
+                            value="{{ company.notable_investment.name }}"
+                            placeholder="Search investments..."
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            @input="debouncedFetchNotableInvestmentList($event)"
+                        />
+                        <div
+                            id="notableInvestmentList"
+                            v-show="notableInvestmentList.length > 0"
+                            class="flex max-h-60 w-full origin-top-right flex-col overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
+                        >
+                            <button
+                                v-if="notableInvestmentList.length > 0"
+                                class="rounded-lg bg-sky-500 px-4 py-2 text-sm text-white hover:bg-sky-600"
+                                @click="createNotableInvestmentOpened = true"
+                            >
+                                Create Notable Investment
+                            </button>
+                            <p
+                                v-for="(notableInvestment, index) in notableInvestmentList"
+                                :key="index"
+                                class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
+                                @click="selectNotableInvestment(notableInvestment.name)"
+                                v-text="notableInvestment.name"
+                            ></p>
+                        </div>
+                    </div>
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="number_of_employees"
+                            >Number of Employees</label
+                        >
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="number"
+                            id="number_of_employees"
+                            placeholder="50"
+                            value="{{ company.number_of_employees }}"
+                            min="0"
+                        />
+                    </div>
+                    <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="website">Website</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="website"
+                            placeholder="https://www.acme.com"
+                            value="{{ company.website_url if company.website_url else ''}}"
+                        />
+                    </div>
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="linkedin">Linkedin</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="linkedin"
+                            placeholder="https://www.linkedin.com/in/johndoe"
+                            value="{{ company.linkedin_url if company.linkedin_url else ''}}"
+                        />
+                    </div>
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="twitter">Twitter</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="twitter"
+                            placeholder="https://twitter.com/johndoe"
+                            value="{{ company.twitter_url if company.twitter_url else ''}}"
+                        />
+                    </div>
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="instagram">Instagram</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="instagram"
+                            placeholder="https://www.instagram.com/johndoe"
+                            value="{{ company.instagram_url if company.instagram_url else ''}}"
+                        />
+                    </div>
+                    <div class="col-span-full">
+                        <div class="text-sm font-medium leading-6">
+                            <span class="block">Visibility Settings</span>
+                            <span class="leading-6 text-gray-500"
+                                >You can make the company visible in the search results.
+                            </span>
+                        </div>
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if company.is_public %}
+                            <input
+                                type="checkbox"
+                                name="is_public"
+                                value="True"
+                                class="peer sr-only"
+                                checked
+                                id="is_public"
+                            />
+                            {% else %}
+                            <input type="checkbox" name="is_public" value="True" class="peer sr-only" id="is_public" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Show company in search</span>
+                        </label>
+                    </div>
+                </div>
+                <button
+                    id="saveButton"
+                    @click="submitCompanyData"
+                    class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"
+                >
+                    Save
+                </button>
+            </main>
+        </div>
+    </body>
+</html>

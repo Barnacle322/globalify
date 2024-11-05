@@ -4,6 +4,9 @@ module.exports = {
     content: ["./src/project/templates/**/*.{html,htm}"],
     theme: {
         extend: {
+            colors: {
+                "deep-purple": "#231645",
+            },
             maxWidth: {
                 "8xl": "90rem",
             },
@@ -62,6 +65,11 @@ module.exports = {
                 },
             },
         },
+
     },
-    plugins: [require("@tailwindcss/forms"), require("@tailwindcss/typography")],
+    plugins: [
+        require("@tailwindcss/forms"),
+        require("@tailwindcss/typography"),
+        require("@tailwindcss/container-queries"),
+    ],
 };

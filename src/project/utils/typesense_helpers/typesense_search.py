@@ -28,26 +28,10 @@ class SearchBuilder:
         self.filters = []
 
     def query(self, query: str):
-        """
-        Sets the query parameter.
-
-        Args:
-            query (str): The search query.
-        """
         self.parameters["q"] = query if query else "*"
         return self
 
     def query_by(self, fields: list[str], weights: list[int] | None = None):
-        """
-        Sets the query_by and query_by_weights parameters.
-
-        Args:
-            fields (list[str]): The fields to query by.
-            weights (list[int] | None): The weights for the fields.
-
-        Raises:
-            ValueError: If fields and weights have different lengths.
-        """
         if weights is not None and len(fields) != len(weights):
             raise ValueError("fields and weights must have the same length")
         self.parameters["query_by"] = ",".join(fields)
@@ -55,22 +39,13 @@ class SearchBuilder:
             self.parameters["query_by_weights"] = ",".join(str(weight) for weight in weights)
         return self
 
-    def filter_by_rounds(self, rounds: list[str] | None, exclusivity: bool = True):
-        if rounds:
+    def filter_by(self, field: str, values: list[str] | None, exclusivity: bool = True):
+        if values:
             if exclusivity:
-                for round in rounds:
-                    self.filters.append(f"rounds:={round}")
+                for value in values:
+                    self.filters.append(f"{field}:={value}")
             else:
-                self.filters.append(f'rounds:=[{",".join(rounds)}]')
-        return self
-
-    def filter_by_industries(self, industries: list[str] | None, exclusivity: bool = True):
-        if industries:
-            if exclusivity:
-                for industry in industries:
-                    self.filters.append(f"industries:={industry}")
-            else:
-                self.filters.append(f'industries:=[{",".join(industries)}]')
+                self.filters.append(f'{field}:=[{",".join(values)}]')
         return self
 
     def filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
@@ -86,28 +61,11 @@ class SearchBuilder:
             self.filters.append(f"min_investment:<={max_investment}")
         return self
 
-    def filter_by_countries(self, countries: list[str] | None):
-        if countries:
-            if len(countries) > 1:
-                self.filters.append(f"country: [{", ".join(countries)}]")
-            else:
-                self.filters.append(f"country: {countries[0]}")
-
+    def filter_by_public(self, is_public: bool):
+        self.filters.append(f"is_public:={str(is_public).lower()}")
         return self
 
     def sort_by(self, sort_by: str | None, sort_desc: bool | None):
-        """
-        Sets the sort_by parameter.
-
-        Args:
-            sorts (List[Tuple[str, str]]): The fields to sort by and their directions.
-
-        Returns:
-            SearchBuilder: The builder instance.
-
-        Raises:
-            ValueError: If more than 3 fields are provided.
-        """
         if sort_by:
             if sort_desc:
                 self.parameters["sort_by"] = f"{sort_by}:desc"
@@ -117,52 +75,18 @@ class SearchBuilder:
         return self
 
     def pinned_hits(self, hits: list[tuple[str, int]]):
-        """
-        Sets the pinned_hits parameter.
-
-        Args:
-            hits (list[tuple[str, int]]): The records to pin and their positions.
-
-        Returns:
-            SearchBuilder: The builder instance.
-        """
         self.parameters["pinned_hits"] = ",".join(f"{record_id}:{position}" for record_id, position in hits)
         return self
 
     def hidden_hits(self, hits: list[str]):
-        """
-        Sets the hidden_hits parameter.
-
-        Args:
-            hits (list[str]): The records to hide.
-
-        Returns:
-            SearchBuilder: The builder instance.
-        """
         self.parameters["hidden_hits"] = ",".join(hits)
         return self
 
     def group_by(self, fields: list[str]):
-        """
-        Sets the group_by parameter.
-
-        Args:
-            fields (list[str]): The fields to group by.
-
-        Returns:
-            SearchBuilder: The builder instance.
-        """
         self.parameters["group_by"] = ",".join(fields)
         return self
 
     def page(self, page: int, per_page: int):
-        """
-        Sets the page and per_page parameters.
-
-        Args:
-            page (int): The page number.
-            per_page (int): The number of results per page.
-        """
         self.parameters["page"] = page
         self.parameters["per_page"] = per_page
         return self

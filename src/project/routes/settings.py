@@ -2,6 +2,7 @@ import re
 
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, logout_user
+from sqlalchemy.orm import joinedload
 
 from ..extensions import db
 from ..models import (
@@ -17,23 +18,42 @@ from ..models import (
     User,
     UserCompany,
     UserInfo,
-    UserPayment,
 )
+from ..models.claim import ClaimRequest
 from ..schemas.investor import InvestorOriginPointSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
+from ..utils.errors.error_messages import (
+    AUTH_USERNAME_USED,
+    COMPANY_NOT_FOUND,
+    COMPANY_PERMISSION_DENIED,
+    DELETE_COMPANY_PERMISSION_DENIED,
+    EDIT_COMPANY_PERMISSION_DENIED,
+    EMPTY_BIO,
+    EMPTY_COMPANY_NAME,
+    EMPTY_COUNTRY_ID,
+    EMPTY_EMAIL_OR_ROLE,
+    EMPTY_FIRSTNAME,
+    EMPTY_LASTNAME,
+    EMPTY_USERNAME,
+    INVITATION_NOT_FOUND,
+    NO_BACKUP_DATA,
+    NO_CLAIMED_INVESTOR_PROFILE,
+    NO_ROUND_OR_INDUSTRY,
+    NOT_COMPANY_MEMBER,
+    NOT_COMPANY_OWNER,
+    PICTURE_NOT_LOADED,
+    REMOVE_YOURSELF_PERMISSION_DENIED,
+    USER_ALREADY_IN_COMPANY,
+    USER_ALREADY_INVITED,
+)
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
+from ..utils.scraper import add_https_prefix
 from .main import check_user_info_complete, check_verification
 from .payment import get_invoices
 
 settings = Blueprint("settings", __name__)
-
-
-def add_https_prefix(url):
-    if not url.startswith(("http://", "https://")):
-        return "https://" + url
-    return url
 
 
 @settings.route("/")
@@ -47,20 +67,18 @@ def index():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    investor = Investor.get_by_user_id(current_user.id)
-    notable_investments = NotableInvestment.get_all()
-    rounds = Round.get_all()
-    industries = Industry.get_all()
-
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    investor = Investor.get_by_user_id_with_investments(current_user.id)
+    has_investor_origin = InvestorOriginPoint.exists(investor.id) if investor else False
+    pending_claim_requests = ClaimRequest.get_pending_by_user_id(current_user.id)
 
     return render_template(
         "settings/general.html",
-        user=authenticated_user,
+        user=current_user._get_current_object(),
         investor=investor,
-        rounds=rounds,
-        industries=industries,
-        notable_investments=notable_investments,
+        investor_origin=has_investor_origin,
+        pending_claim_requests=pending_claim_requests,
+        rounds=Round.get_all(),
+        industries=Industry.get_all(),
         status_type=status_type,
         msg=msg,
     )
@@ -86,9 +104,10 @@ def plan():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
-    user_payment = UserPayment.get_by_user_id(authenticated_user.id)
+    user_payment = current_user.user_payment
     if user_payment and user_payment.customer_id and user_payment.subscription_id:
         subscription = user_payment.sanitize()
     else:
@@ -111,14 +130,13 @@ def plan():
 @check_user_info_complete
 @check_verification
 def billing():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-
-    invoices = get_invoices(authenticated_user)
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
     return render_template(
         "settings/billing.html",
-        user=authenticated_user,
-        invoices=invoices,
+        user=current_user,
+        invoices=get_invoices(current_user),
     )
 
 
@@ -127,52 +145,43 @@ def billing():
 @check_user_info_complete
 @check_verification
 def change_personal_info():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
+    user_info = current_user.user_info
 
     first_name = request.form.get("first-name")
-    email_public = request.form.get("email_public")
-    linkedin_public = request.form.get("linkedin_public")
-    instagram_public = request.form.get("instagram_public")
-    twitter_public = request.form.get("twitter_public")
-    refuse_all_invitations = request.form.get("refuse_all_invitations")
-    last_name = request.form.get("last-name")
-    username = request.form.get("username")
-    bio = request.form.get("bio")
-    linkedin_url = request.form.get("linkedin")
-    instagram_url = request.form.get("instagram")
-    twitter_url = request.form.get("twitter")
-    picture = request.files.get("picture")
-
-    user_info = authenticated_user.user_info  # type: ignore
-
     if first_name and first_name.strip() != user_info.first_name:
         if first_name == " ":
-            status = Status(StatusType.ERROR, "First name cannot be empty.").get_status()
+            status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.first_name = first_name.strip()
 
+    last_name = request.form.get("last-name")
     if last_name and last_name.strip() != user_info.last_name:
         if last_name == " ":
-            status = Status(StatusType.ERROR, "Last name cannot be empty.").get_status()
+            status = Status(StatusType.ERROR, EMPTY_LASTNAME).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.last_name = last_name.strip()
 
+    bio = request.form.get("bio")
     if bio and bio.strip() != user_info.bio:
         if bio == " ":
-            status = Status(StatusType.ERROR, "Bio cannot be empty.").get_status()
+            status = Status(StatusType.ERROR, EMPTY_BIO).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.bio = bio.strip()
 
+    username = request.form.get("username")
     if username and username.strip() != user_info.username:
         if username == " ":
-            status = Status(StatusType.ERROR, "Username cannot be empty.").get_status()
+            status = Status(StatusType.ERROR, EMPTY_USERNAME).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         if UserInfo.is_taken(username):
-            status = Status(StatusType.ERROR, "Username is taken.").get_status()
+            status = Status(StatusType.ERROR, AUTH_USERNAME_USED).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.username = username.strip()
 
-    if picture:
+    if picture := request.files.get("picture"):
         try:
             picture_url = upload_picture(picture)
             if user_info.picture_url:
@@ -183,10 +192,10 @@ def change_personal_info():
             user_info.picture_url = picture_url
         except Exception as e:
             print(e)
-            status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
+            status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
-    if linkedin_url:
+    if linkedin_url := request.form.get("linkedin"):
         linkedin_url = add_https_prefix(linkedin_url)
         try:
             user_info.linkedin_url = linkedin_url
@@ -196,7 +205,7 @@ def change_personal_info():
     else:
         user_info.linkedin_url = None
 
-    if instagram_url:
+    if instagram_url := request.form.get("instagram"):
         instagram_url = add_https_prefix(instagram_url)
         try:
             user_info.instagram_url = instagram_url
@@ -206,7 +215,7 @@ def change_personal_info():
     else:
         user_info.instagram_url = None
 
-    if twitter_url:
+    if twitter_url := request.form.get("twitter"):
         twitter_url = add_https_prefix(twitter_url)
         try:
             user_info.twitter_url = twitter_url
@@ -216,12 +225,11 @@ def change_personal_info():
     else:
         user_info.twitter_url = None
 
-    user_info.email_public = bool(email_public)
-    user_info.linkedin_public = bool(linkedin_public)
-    user_info.instagram_public = bool(instagram_public)
-    user_info.twitter_public = bool(twitter_public)
-    user_info.refuse_all_invitations = bool(refuse_all_invitations)
-
+    user_info.email_public = bool(request.form.get("email_public"))
+    user_info.linkedin_public = bool(request.form.get("linkedin_public"))
+    user_info.instagram_public = bool(request.form.get("instagram_public"))
+    user_info.twitter_public = bool(request.form.get("twitter_public"))
+    user_info.refuse_all_invitations = bool(request.form.get("refuse_all_invitations"))
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Personal info successfully changed.").get_status()
@@ -233,7 +241,8 @@ def change_personal_info():
 @check_user_info_complete
 @check_verification
 def delete_account():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
     if request.method == "POST":
         # NOTE: Decorators hold db session open
@@ -242,9 +251,9 @@ def delete_account():
         db.session.begin()
 
         # Access the user_info attribute to add it to the session
-        _ = authenticated_user.user_info  # type: ignore
+        _ = current_user.user_info
 
-        db.session.delete(authenticated_user)
+        db.session.delete(current_user)
         db.session.commit()
         logout_user()
 
@@ -258,10 +267,20 @@ def delete_account():
 @check_user_info_complete
 @check_verification
 def company_list_view():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.search"))
 
-    user_companies = UserCompany.get_by_user_id(user_id=authenticated_user.id)
-    invitations = CompanyInvitation.get_by_email(email=authenticated_user.email)
+    companies = (
+        db.session.scalars(
+            db.select(UserCompany)
+            .options(joinedload(UserCompany.company))
+            .where(UserCompany.user_id == current_user.id)
+        )
+        .unique()
+        .all()
+    )
+
+    invitations = CompanyInvitation.get_by_email(email=current_user.email)
 
     company_invitations = []
     if invitations:
@@ -275,7 +294,11 @@ def company_list_view():
             )
             company_invitations.append(company_invitation.model_dump())
 
-    return render_template("settings/company_list.html", companies=user_companies, invitations=company_invitations)
+    return render_template(
+        "settings/company_list.html",
+        companies=companies,
+        invitations=company_invitations,
+    )
 
 
 @settings.get("/company/<int:company_id>")
@@ -288,9 +311,11 @@ def company_info_view(company_id):
         status_type = query.get("type")
         msg = query.get("msg")
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.search"))
 
     company_invitations = CompanyInvitation.get_by_company_id(company_id=company_id)
+
     company_members = UserCompany.get_members(company_id=company_id)
     members = []
     if company_members:
@@ -304,11 +329,9 @@ def company_info_view(company_id):
             )
             members.append(user_element.model_dump())
 
-    user_company = UserCompany.get_by_user_id_and_company_id(
-        user_id=authenticated_user.id, company_id=company_id, get_accepted=True
-    )
+    user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not user_company:
-        status = Status(StatusType.ERROR, "Company not found.").get_status()
+        status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
     company = user_company.company
@@ -336,33 +359,34 @@ def company_info_view(company_id):
 @check_user_info_complete
 @check_verification
 def change_company_info(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
-    user_company = UserCompany.get_by_user_id_and_company_id(
-        user_id=authenticated_user.id, company_id=company_id, get_accepted=True
-    )
+    user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not user_company:
-        status = Status(StatusType.ERROR, "Company not found.").get_status()
+        status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
     if user_company.role == CompanyRole.TEAM:
-        status = Status(StatusType.ERROR, "You don't have permissions to edit this company!").get_status()
+        status = Status(StatusType.ERROR, EDIT_COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     company = user_company.company
 
     company_name = request.form.get("company-name", "")
+
     if company_name and company_name.strip() != company.name:
         if company_name == " ":
-            status = Status(StatusType.ERROR, "Company name cannot be empty.").get_status()
+            status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
             return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
         company.name = company_name.strip()
+        company.set_slug()
 
     preferred_round_id = request.form.get("round", type=int)
     industry_id = request.form.get("industry", type=int)
 
     if not preferred_round_id or not industry_id:
-        status = Status(StatusType.ERROR, "Please select rounds and industries.").get_status()
+        status = Status(StatusType.ERROR, NO_ROUND_OR_INDUSTRY).get_status()
         return redirect(
             url_for(
                 "settings.company_info_view",
@@ -372,8 +396,7 @@ def change_company_info(company_id):
             )
         )
 
-    picture = request.files.get("picture")
-    if picture:
+    if picture := request.files.get("picture"):
         try:
             picture_url = upload_picture(picture)
             if company.picture_url:
@@ -384,16 +407,14 @@ def change_company_info(company_id):
             company.picture_url = picture_url
         except Exception as e:
             print(e)
-            status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
+            status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
-    country_id = request.form.get("country", type=int)
-    if not country_id:
-        status = Status(StatusType.ERROR, "Country ID is required.").get_status()
+    if not (country_id := request.form.get("country", type=int)):
+        status = Status(StatusType.ERROR, EMPTY_COUNTRY_ID).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    website_url = request.form.get("website", "")
-    if website_url:
+    if website_url := request.form.get("website", ""):
         website_url = add_https_prefix(website_url)
         try:
             company.website_url = website_url
@@ -403,8 +424,7 @@ def change_company_info(company_id):
     else:
         company.website_url = None
 
-    linkedin_url = request.form.get("linkedin", "")
-    if linkedin_url:
+    if linkedin_url := request.form.get("linkedin", ""):
         linkedin_url = add_https_prefix(linkedin_url)
         try:
             company.linkedin_url = linkedin_url
@@ -414,8 +434,7 @@ def change_company_info(company_id):
     else:
         company.linkedin_url = None
 
-    instagram_url = request.form.get("instagram", "")
-    if instagram_url:
+    if instagram_url := request.form.get("instagram", ""):
         instagram_url = add_https_prefix(instagram_url)
         try:
             company.instagram_url = instagram_url
@@ -425,8 +444,7 @@ def change_company_info(company_id):
     else:
         company.instagram_url = None
 
-    twitter_url = request.form.get("twitter", "")
-    if twitter_url:
+    if twitter_url := request.form.get("twitter", ""):
         twitter_url = add_https_prefix(twitter_url)
         try:
             company.twitter_url = twitter_url
@@ -436,13 +454,33 @@ def change_company_info(company_id):
     else:
         company.twitter_url = None
 
+    if user_company.role in [CompanyRole.OWNER, CompanyRole.ADMIN]:
+        is_public = request.form.get("is_public", False, type=bool)
+        if is_public is False:
+            UserCompany.set_private(company_id=company_id)
+    else:
+        status = Status(StatusType.ERROR, EDIT_COMPANY_PERMISSION_DENIED).get_status()
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+
     company.description = request.form.get("description", "").strip()
     company.number_of_employees = request.form.get("number_of_employees", 0, type=int)
     company.country_id = country_id
     company.preferred_round_id = preferred_round_id
     company.industry_id = industry_id
-    company.coordinates = Country.get_by_id(country_id).name  # type: ignore
-    db.session.commit()
+    company.coordinates = country.name if (country := Country.get_by_id(country_id)) else "World"
+    company.is_public = is_public
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+
+    try:
+        company.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     status = Status(StatusType.SUCCESS, "Company successfully changed.").get_status()
     return redirect(
@@ -464,15 +502,12 @@ def create_company_view():
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
-    industries = Industry.get_all()
-    rounds = Round.get_all()
-    countries = Country.get_all()
 
     return render_template(
         "settings/create_company.html",
-        industries=industries,
-        rounds=rounds,
-        countries=countries,
+        industries=Industry.get_all(),
+        rounds=Round.get_all(),
+        countries=Country.get_all(),
         status_type=status_type,
         msg=msg,
     )
@@ -483,56 +518,116 @@ def create_company_view():
 @check_user_info_complete
 @check_verification
 def create_company():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
     form_data = request.form
 
-    company_name = form_data.get("company_name")
-    if not company_name:
-        status = Status(StatusType.ERROR, "Company name shouldn't be empty").get_status()
+    if not (company_name := form_data.get("company_name")):
+        status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("settings.create_company_view", _external=False, **status))
 
     company = Company(
         name=company_name,
     )
 
-    picture = request.files.get("picture") or None
-    if picture:
+    if picture := request.files.get("picture") or None:
         try:
             picture_url = upload_picture(picture)
             company.picture_url = picture_url
         except Exception as e:
             print(e)
-            status = Status(StatusType.ERROR, "Error loading image. Please reach out to our support team!").get_status()
+            status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
             return redirect(url_for("settings.create_company_view", _external=False, **status))
+
+    preferred_round_id = request.form.get("round", type=int)
+    industry_id = request.form.get("industry", type=int)
+    if not preferred_round_id or not industry_id:
+        status = Status(StatusType.ERROR, NO_ROUND_OR_INDUSTRY).get_status()
+        return redirect(url_for("settings.create_company_view", _external=False, **status))
+
+    if not (country_id := request.form.get("country", type=int)):
+        status = Status(StatusType.ERROR, EMPTY_COUNTRY_ID).get_status()
+        return redirect(url_for("settings.create_company_view", _external=False, **status))
 
     company.description = form_data.get("description") or None
     company.number_of_employees = form_data.get("number_of_employees", 0, type=int)
     company.website_url = form_data.get("website") or None
-    company.preferred_round_id = form_data.get("round", type=int) or None
-    company.industry_id = form_data.get("industry", type=int) or None
+    company.preferred_round_id = preferred_round_id
+    company.industry_id = industry_id
+    company.country_id = country_id
+    company.coordinates = country.name if (country := Country.get_by_id(country_id)) else "World"
 
-    if country_id := form_data.get("country", type=int):
-        company.country_id = country_id
-        company.coordinates = Country.get_by_id(country_id).name  # type: ignore
+    if not company.slug:
+        company.set_slug()
 
-    db.session.add(company)
-    db.session.commit()
+    try:
+        db.session.add(company)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.create_company_view", _external=False, **status))
 
-    existing_user_companies = UserCompany.get_by_user_id(user_id=authenticated_user.id)
-    is_primary = False if existing_user_companies else True
+    try:
+        company.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.create_company_view", _external=False, **status))
+
+    existing_user_companies = UserCompany.get_by_user_id(user_id=current_user.id)
+    is_primary = not existing_user_companies
 
     user_company = UserCompany(
-        user_id=authenticated_user.id,
+        user_id=current_user.id,
         company_id=company.id,
         role=CompanyRole.OWNER,
         is_primary=is_primary,
     )
 
-    db.session.add(user_company)
-    db.session.commit()
-
+    try:
+        db.session.add(user_company)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.create_company_view", _external=False, **status))
     status = Status(StatusType.SUCCESS, "Company created.").get_status()
     return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+
+@settings.post("/company/<int:id>/delete")
+@login_required
+@check_user_info_complete
+@check_verification
+def delete_company(id):
+    company = Company.get_by_id(id)
+    user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=id)
+    if not user_company:
+        status = Status(StatusType.ERROR, DELETE_COMPANY_PERMISSION_DENIED).get_status()
+        return redirect(url_for("settings.company_list_view", _external=True, **status))
+
+    if user_company.role != CompanyRole.OWNER:
+        status = Status(StatusType.ERROR, NOT_COMPANY_OWNER).get_status()
+        return redirect(url_for("settings.company_list_view", _external=False, **status))
+
+    if not company:
+        status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
+        return redirect(url_for("settings.company_list_view", _external=True, **status))
+
+    try:
+        company.delete_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.company_list_view", _external=True, **status))
+
+    try:
+        db.session.delete(company)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.company_list_view", _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Company deleted.").get_status()  ###
+    return redirect(url_for("settings.company_list_view", _external=True, **status))
 
 
 @settings.post("/company/<int:company_id>/invitation/create")
@@ -540,12 +635,14 @@ def create_company():
 @check_user_info_complete
 @check_verification
 def invite_user(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
     user_companies = UserCompany.get_by_company_id_and_role(company_id=company_id, role=CompanyRole.OWNER)
     owner_id_list = [user_company.user_id for user_company in user_companies]
 
-    if authenticated_user.id not in owner_id_list:
-        status = Status(StatusType.ERROR, "You don't have access!").get_status()
+    if current_user.id not in owner_id_list:
+        status = Status(StatusType.ERROR, COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_info_view", _external=False, **status))
 
     form_data = request.get_json()
@@ -554,17 +651,17 @@ def invite_user(company_id):
     invitation_message = form_data.get("invitation_message") or "Hey, join our company!"
 
     if not user_email or not user_role:
-        status = Status(StatusType.ERROR, "Email and role are required.").get_status()
+        status = Status(StatusType.ERROR, EMPTY_EMAIL_OR_ROLE).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     existing_company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id=company_id, email=user_email)
     if existing_company_invitation:
-        status = Status(StatusType.ERROR, "User already invited.").get_status()
+        status = Status(StatusType.ERROR, USER_ALREADY_INVITED).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     existing_user_company = UserCompany.get_by_company_id_and_email(email=user_email, company_id=company_id)
     if existing_user_company:
-        status = Status(StatusType.ERROR, "User already in the company.").get_status()
+        status = Status(StatusType.ERROR, USER_ALREADY_IN_COMPANY).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     send_event(
@@ -573,15 +670,15 @@ def invite_user(company_id):
         event_type=Events.COMPANY_INVITATION.value,
         role=user_role.title(),
         message=invitation_message,
-        company_name=Company.get_by_id(company_id).name,  # type: ignore
-        invited_by=authenticated_user.user_info.username,  # type: ignore
+        company_name=company.name if (company := Company.get_by_id(company_id)) else None,
+        invited_by=current_user.user_info.username,
     )
 
     company_invitation = CompanyInvitation(
         company_id=company_id,
         email=user_email,
         role=CompanyRole(user_role),
-        invited_by=authenticated_user.id,
+        invited_by=current_user.id,
         message=invitation_message,
     )
 
@@ -597,19 +694,19 @@ def invite_user(company_id):
 @check_user_info_complete
 @check_verification
 def accept_invitation(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-    company_invitation = CompanyInvitation.get_by_company_id_and_email(
-        company_id=company_id, email=authenticated_user.email
-    )
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
+    company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id=company_id, email=current_user.email)
     if not company_invitation:
-        status = Status(StatusType.ERROR, "Invitation not found.").get_status()
+        status = Status(StatusType.ERROR, INVITATION_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    user_company = UserCompany.get_by_user_id_and_company_id(company_id=company_id, user_id=authenticated_user.id)
+    user_company = UserCompany.get_by_user_and_company_id(company_id=company_id, user_id=current_user.id)
     if not user_company:
-        is_primary = not UserCompany.get_by_user_id(user_id=authenticated_user.id)
+        is_primary = not UserCompany.get_by_user_id(user_id=current_user.id)
         user_company = UserCompany(
-            user_id=authenticated_user.id,
+            user_id=current_user.id,
             company_id=company_id,
             role=company_invitation.role,
             is_primary=is_primary,
@@ -627,12 +724,11 @@ def accept_invitation(company_id):
 @check_user_info_complete
 @check_verification
 def decline_invitation(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-    company_invitation = CompanyInvitation.get_by_company_id_and_email(
-        company_id=company_id, email=authenticated_user.email
-    )
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+    company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id=company_id, email=current_user.email)
     if not company_invitation:
-        status = Status(StatusType.ERROR, "Invitation not found.").get_status()
+        status = Status(StatusType.ERROR, INVITATION_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
     company_invitation.is_used = True
@@ -648,16 +744,18 @@ def decline_invitation(company_id):
 def cancel_invitation(invitation_id):
     company_invitation = CompanyInvitation.get_by_id(id=invitation_id)
     if not company_invitation:
-        status = Status(StatusType.ERROR, "Invitation not found.").get_status()
+        status = Status(StatusType.ERROR, INVITATION_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
     user_companies = UserCompany.get_by_company_id_and_role(
         company_id=company_invitation.company_id, role=CompanyRole.OWNER
     )
     owner_id_list = [user_company.user_id for user_company in user_companies]
-    if authenticated_user.id not in owner_id_list:
-        status = Status(StatusType.ERROR, "You don't have an access!").get_status()
+    if current_user.id not in owner_id_list:
+        status = Status(StatusType.ERROR, COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
     db.session.delete(company_invitation)
@@ -671,10 +769,11 @@ def cancel_invitation(invitation_id):
 @check_user_info_complete
 @check_verification
 def get_company_members(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
     company_members = UserCompany.get_members(company_id=company_id)
     member_id_list = [user_company.user_id for user_company in company_members]
-    if not company_members or (authenticated_user.id not in member_id_list):
+    if not company_members or (current_user.id not in member_id_list):
         return jsonify({"members": []})
 
     members = []
@@ -707,19 +806,17 @@ def change_company_role(user_id):
     company_id = form_data.get("company_id")
     role = form_data.get("role")
 
-    current_user_company = UserCompany.get_by_user_id_and_company_id(
-        user_id=current_user.id, company_id=company_id, get_accepted=True
-    )
+    current_user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not current_user_company:
-        status = Status(StatusType.ERROR, "You don't have access!").get_status()
+        status = Status(StatusType.ERROR, COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
     if current_user_company.role != CompanyRole.OWNER:
-        status = Status(StatusType.ERROR, "Only the owner can change roles!").get_status()
+        status = Status(StatusType.ERROR, NOT_COMPANY_OWNER).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id, company_id, True)
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
     if not user_company:
-        status = Status(StatusType.ERROR, "Member not found.").get_status()
+        status = Status(StatusType.ERROR, NOT_COMPANY_MEMBER).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     user_company.role = CompanyRole(role)
@@ -737,22 +834,20 @@ def remove_company_member(user_id):
     form_data = request.get_json()
     company_id = form_data.get("company_id")
     if current_user.id == user_id:
-        status = Status(StatusType.ERROR, "You can't remove yourself.").get_status()
+        status = Status(StatusType.ERROR, REMOVE_YOURSELF_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    current_user_company = UserCompany.get_by_user_id_and_company_id(
-        user_id=current_user.id, company_id=company_id, get_accepted=True
-    )
+    current_user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not current_user_company:
-        status = Status(StatusType.ERROR, "You don't have access!").get_status()
+        status = Status(StatusType.ERROR, COMPANY_PERMISSION_DENIED).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
     if current_user_company.role != CompanyRole.OWNER:
-        status = Status(StatusType.ERROR, "Only the owner can change roles!").get_status()
+        status = Status(StatusType.ERROR, NOT_COMPANY_OWNER).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id=user_id, company_id=company_id, get_accepted=True)
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
     if not user_company:
-        status = Status(StatusType.ERROR, "Member not found.").get_status()
+        status = Status(StatusType.ERROR, NOT_COMPANY_MEMBER).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     company_invitation = CompanyInvitation.get_by_company_id_and_email(
@@ -773,14 +868,15 @@ def remove_company_member(user_id):
 @check_user_info_complete
 @check_verification
 def make_company_primary(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id=authenticated_user.id, company_id=company_id)
+    user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not user_company:
-        status = Status(StatusType.ERROR, "Company not found.").get_status()
+        status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
-    user_company.set_primary = authenticated_user.id
+    user_company.set_primary = current_user.id
 
     return redirect(url_for("settings.company_list_view", _external=False))
 
@@ -790,11 +886,13 @@ def make_company_primary(company_id):
 @check_user_info_complete
 @check_verification
 def make_company_public(company_id):
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
-    user_company = UserCompany.get_by_user_id_and_company_id(user_id=authenticated_user.id, company_id=company_id)
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
+    user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
 
     if not user_company:
-        status = Status(StatusType.ERROR, "Company not found.").get_status()
+        status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("settings.company_list_view", _external=False, **status))
 
     user_company.is_public = not user_company.is_public
@@ -809,16 +907,17 @@ def make_company_public(company_id):
 @check_verification
 def edit_investor():
     investor = Investor.get_by_user_id(current_user.id)
+
     if not investor:
-        return jsonify({"status": "error", "message": "Investor not found."}, 404)
+        return jsonify({"status": "error", "message": "Investor not found."}), 404
 
     if investor.user_id != current_user.id:
-        return jsonify({"status": "error", "message": "Not authorized."}, 401)
+        return jsonify({"status": "error", "message": "Not authorized."}), 401
 
     form_data = request.get_json()
 
-    first_name = form_data.get("first_name")
-    last_name = form_data.get("last_name") or None
+    first_name = form_data.get("first_name").strip()
+    last_name = form_data.get("last_name").strip() or None
     firm_name = form_data.get("firm_name") or None
     position = form_data.get("position") or None
     about = form_data.get("about") or None
@@ -831,6 +930,7 @@ def edit_investor():
     selected_round_ids = form_data.get("rounds") or []
     selected_industry_ids = form_data.get("industries") or []
     selected_notable_investment_ids = form_data.get("notable_investments") or []
+    is_public = form_data.get("is_public") or False
 
     website = form_data.get("website") or None
     linkedin = form_data.get("linkedin") or None
@@ -842,18 +942,14 @@ def edit_investor():
     selected_industries = list(Industry.get_by_id_list(selected_industry_ids))
     selected_notable_investments = list(NotableInvestment.get_by_id_list(selected_notable_investment_ids))
 
-    existing_email = User.get_by_email(email) if email else None
-    if existing_email and existing_email.id != investor.user_id:
-        status = Status(StatusType.ERROR, "Email already exists").get_status()
-        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
-
     if not first_name:
-        status = Status(StatusType.ERROR, "First name shouldn't be empty").get_status()
-        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+        status = Status(StatusType.ERROR, EMPTY_FIRSTNAME).get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
 
-    investor.first_name = first_name
-    investor.last_name = last_name
-    investor.set_slug()
+    if first_name != investor.first_name or last_name != investor.last_name:
+        investor.first_name = first_name
+        investor.last_name = last_name
+        investor.set_slug()
     investor.firm_name = firm_name
     investor.position = position
     investor.about = about
@@ -870,6 +966,7 @@ def edit_investor():
     investor.rounds = selected_rounds
     investor.industries = selected_industries
     investor.notable_investments = selected_notable_investments
+    investor.is_public = is_public
 
     investor_backup = InvestorBackup.get_by_investor_id(investor.id)
     if investor_backup:
@@ -892,14 +989,23 @@ def edit_investor():
         investor_backup.rounds = selected_rounds
         investor_backup.industries = selected_industries
         investor_backup.notable_investments = selected_notable_investments
+        investor_backup.is_public = is_public
         db.session.add(investor_backup)
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
 
-    investor.upsert_data()
+    try:
+        investor.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investor updated.").get_status()
-    return redirect(url_for("settings.edit_investor_view", _external=False, **status))
+    return redirect(url_for("settings.index", _external=False, **status))
 
 
 @settings.get("/investor/point-origin")
@@ -907,17 +1013,18 @@ def edit_investor():
 @check_user_info_complete
 @check_verification
 def investor_point_origin_data():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
-    investor = Investor.get_by_user_id(authenticated_user.id)
+    investor = Investor.get_by_user_id(current_user.id)
     if not investor:
-        status = Status(StatusType.ERROR, "You don't have claimed investor profile yet.").get_status()
+        status = Status(StatusType.ERROR, NO_CLAIMED_INVESTOR_PROFILE).get_status()
         return redirect(url_for("settings.index", _external=True, **status))
 
     investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
     if not investor_point_origin:
-        status = Status(StatusType.ERROR, "No backup data found.").get_status()
-        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+        status = Status(StatusType.ERROR, NO_BACKUP_DATA).get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
 
     data = InvestorOriginPointSchema(
         first_name=investor_point_origin.first_name,
@@ -948,11 +1055,12 @@ def investor_point_origin_data():
 @check_user_info_complete
 @check_verification
 def restore_investor_data():
-    authenticated_user: User = current_user._get_current_object()  # type: ignore
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
 
-    investor = Investor.get_by_user_id(authenticated_user.id)
+    investor = current_user.investor
     if not investor:
-        status = Status(StatusType.ERROR, "You don't have claimed investor profile yet.").get_status()
+        status = Status(StatusType.ERROR, NO_CLAIMED_INVESTOR_PROFILE).get_status()
         return redirect(url_for("settings.index", _external=True, **status))
 
     investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
@@ -981,11 +1089,11 @@ def restore_investor_data():
 
         investor.upsert_data()
     else:
-        status = Status(StatusType.ERROR, "No backup data found.").get_status()
-        return redirect(url_for("settings.edit_investor_view", _external=True, **status))
+        status = Status(StatusType.ERROR, NO_BACKUP_DATA).get_status()
+        return redirect(url_for("settings.index", _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investor data restored.").get_status()
-    return redirect(url_for("settings.edit_investor_view", _external=False, **status))
+    return redirect(url_for("settings.index", _external=False, **status))
 
 
 @settings.get("/users/search/<search_input>")
@@ -1012,7 +1120,77 @@ def search_user(search_input):
         user_element = UserSchema(
             id=user.id,
             email=user.email,
-            picture_url=user.user_info.picture_url,  # type: ignore
+            picture_url=user.user_info.picture_url,
         )
         user_list.append(user_element.model_dump())
     return jsonify({"users": user_list})
+
+
+@settings.route("/investor/create", methods=["GET", "POST"])
+@login_required
+@check_user_info_complete
+@check_verification
+def investor():
+    if not isinstance(current_user, User):
+        return redirect(url_for("main.login"))
+
+    if request.method == "POST":
+        form_data = request.get_json()
+
+        first_name = form_data.get("firstName")
+        if not first_name:
+            return jsonify({"error": "First name is required"}), 400
+
+        email = form_data.get("email") or None
+        if email:
+            existing_investor_by_email = Investor.get_by_email(email)
+            if existing_investor_by_email:
+                return jsonify({"error": "Email is already in use"}), 400
+
+        investor = Investor(
+            user_id=current_user.id,
+            first_name=first_name,
+            last_name=form_data.get("lastName"),
+            slug=form_data.get("slug") or None,
+            firm_name=form_data.get("firmName") or None,
+            position=form_data.get("position") or None,
+            about=form_data.get("about") or None,
+            location=form_data.get("location") or None,
+            n_investments=int(form_data.get("nInvestments") or 0),
+            n_exits=int(form_data.get("nIxits") or 0),
+            min_investment=int(form_data.get("minInvestment") or 0),
+            max_investment=int(form_data.get("maxInvestment") or 0),
+            website=form_data.get("website") or None,
+            linkedin=form_data.get("linkedin") or None,
+            twitter=form_data.get("twitter") or None,
+            email=email,
+            phone_number=form_data.get("phoneNumber") or None,
+            rounds=list(Round.get_by_id_list(form_data.get("selectedRounds") or [])),
+            industries=list(Industry.get_by_id_list(form_data.get("selectedIndustries") or [""])),
+            notable_investments=list(
+                NotableInvestment.get_by_id_list(form_data.get("selectedNotableInvestments") or [])
+            ),
+        )
+
+        try:
+            db.session.add(investor)
+            db.session.commit()
+        except Exception:
+            return redirect(url_for("settings.index"))
+
+        investor.set_slug()
+
+        try:
+            investor.upsert_data()
+        except Exception:
+            return redirect(url_for("settings.index"))
+
+        return redirect(url_for("settings.index"))
+
+    return render_template(
+        "settings/create_investor.html",
+        user=current_user,
+        countries=Country.get_all(),
+        industries=Industry.get_all(),
+        rounds=Round.get_all(),
+    )

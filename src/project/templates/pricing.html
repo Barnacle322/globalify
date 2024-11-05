@@ -1,5 +1,5 @@
-{% extends "layouts/layout_teaser.html" %} {% block title %}Pricing{% endblock %} {% block head %} {{ super() }} {%
-endblock %} {% block content %}
+{% extends "layouts/layout.html" %} {% block title %}Pricing{% endblock %} {% block head %} {{ super() }} {% endblock %}
+{% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden text-slate-900">
     <section class="mb-20 mt-6 flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8">
         <div class="flex w-full max-w-7xl flex-col items-center justify-center">
@@ -17,7 +17,7 @@ endblock %} {% block content %}
                 </h2>
                 <p class="text-slate-500">Flexible Pricing Options for Advanced Search Solutions</p>
             </div>
-            <div class="mt-16 max-w-6xl grid w-full grid-cols-1 gap-x-5 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
+            <div class="mt-16 grid w-full max-w-6xl grid-cols-1 gap-x-5 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
                 <article class="flex w-full flex-col gap-5">
                     <div class="flex flex-col gap-5 rounded-3xl bg-slate-50 px-5 py-7">
                         <span class="text-lg font-semibold">Community</span>
@@ -29,7 +29,7 @@ endblock %} {% block content %}
                         >
                         <p>A sneak peek into Globalify</p>
                         <a
-                            class="w-full rounded-xl py-3 text-center text-lg ring-2 ring-slate-200 font-medium mt-12"
+                            class="mt-12 w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-slate-200"
                             href="/login"
                             >Try it out</a
                         >
@@ -63,20 +63,20 @@ endblock %} {% block content %}
                             >/month</span
                         >
                         <p>Perfect for growing startups</p>
-                        <div class="flex gap-2 mx-auto items-center justify-center">
+                        <div class="mx-auto flex items-center justify-center gap-2">
                             <span class="font-medium">Monthly</span>
-                            <button onclick="openAnnual()" class="rounded-full bg-sky-500 p-1 w-12 flex justify-start">
-                                <div class="size-5 bg-white rounded-full"></div>
+                            <button onclick="openAnnual()" class="flex w-12 justify-start rounded-full bg-sky-500 p-1">
+                                <div class="size-5 rounded-full bg-white"></div>
                             </button>
-                            <span class="font-medium flex justify-center items-center gap-1"
+                            <span class="flex items-center justify-center gap-1 font-medium"
                                 >Annual
-                                <span class="text-xs text-sky-500 bg-sky-200 py-1 px-2 rounded-2xl"
+                                <span class="rounded-2xl bg-sky-200 px-2 py-1 text-xs text-sky-500"
                                     >Save 20%</span
                                 ></span
                             >
                         </div>
                         <a
-                            class="w-full rounded-xl py-3 text-center text-lg ring-2 ring-slate-200 font-medium"
+                            class="w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-slate-200"
                             href="/login"
                             >Subscribe</a
                         >
@@ -112,29 +112,29 @@ endblock %} {% block content %}
                     </script>
                     <div class="flex flex-col gap-5 rounded-3xl bg-slate-50 px-5 py-7">
                         <span class="text-lg font-semibold">Premium</span>
-                        <span class="flex justify-start items-baseline">
+                        <span class="flex items-baseline justify-start">
                             <span
-                                class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent leading"
+                                class="leading bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
                             >
                                 $280
                             </span>
                             <span> /year </span>
                         </span>
                         <p>Perfect for growing startups</p>
-                        <div class="flex gap-2 mx-auto items-center justify-center">
+                        <div class="mx-auto flex items-center justify-center gap-2">
                             <span class="font-medium">Monthly</span>
-                            <button onclick="openMonthly()" class="rounded-full bg-sky-500 p-1 w-12 flex justify-end">
-                                <div class="size-5 bg-white rounded-full"></div>
+                            <button onclick="openMonthly()" class="flex w-12 justify-end rounded-full bg-sky-500 p-1">
+                                <div class="size-5 rounded-full bg-white"></div>
                             </button>
-                            <span class="font-medium flex justify-center items-center gap-1 text-sky-500"
+                            <span class="flex items-center justify-center gap-1 font-medium text-sky-500"
                                 >Annual
-                                <span class="text-xs text-sky-500 bg-sky-200 py-1 px-2 rounded-2xl"
+                                <span class="rounded-2xl bg-sky-200 px-2 py-1 text-xs text-sky-500"
                                     >Save 20%</span
                                 ></span
                             >
                         </div>
                         <a
-                            class="w-full rounded-xl py-3 text-center text-lg ring-2 ring-slate-200 font-medium"
+                            class="w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-slate-200"
                             href="/login"
                             >Subscribe</a
                         >
@@ -160,12 +160,12 @@ endblock %} {% block content %}
                     </div>
                 </article>
                 <article class="flex w-full flex-col gap-5">
-                    <div class="flex flex-col gap-5 rounded-3xl bg-[#231645] px-5 py-7 text-white">
+                    <div class="flex flex-col gap-5 rounded-3xl bg-deep-purple px-5 py-7 text-white">
                         <span class="text-lg font-semibold">SuperConnect</span>
                         <span>
                             From
                             <span
-                                class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent w-fit"
+                                class="w-fit bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
                             >
                                 $1900</span
                             >
@@ -173,7 +173,7 @@ endblock %} {% block content %}
                         </span>
                         <p>Maximum Impact for Leaders</p>
                         <button
-                            class="w-full rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#DE7CC8] py-3 text-center text-lg font-medium mt-12"
+                            class="mt-12 w-full rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#DE7CC8] py-3 text-center text-lg font-medium"
                             onclick="openScheduler()"
                         >
                             Book a call
@@ -225,10 +225,10 @@ endblock %} {% block content %}
             </div>
         </div>
     </section>
-    <section id="schedulerContainer" class="hidden fixed top-0 right-0 bg-black/70 w-full h-full">
-        <div class="w-full h-full lg:h-[90%] lg:my-10 bg-white max-w-7xl lg:rounded-xl lg:w-3/4 mx-auto">
-            <nav class="flex items-center justify-between h-16 border-b gap-3 px-5">
-                <h2 class="font-semibold text-xl">Schedule a call</h2>
+    <section id="schedulerContainer" class="fixed right-0 top-0 hidden h-full w-full bg-black/70">
+        <div class="mx-auto h-full w-full max-w-7xl bg-white lg:my-10 lg:h-[90%] lg:w-3/4 lg:rounded-xl">
+            <nav class="flex h-16 items-center justify-between gap-3 border-b px-5">
+                <h2 class="text-xl font-semibold">Schedule a call</h2>
                 <button onclick="closeScheduler()">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -236,7 +236,7 @@ endblock %} {% block content %}
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
-                        class="w-6 h-6"
+                        class="h-6 w-6"
                     >
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                     </svg>

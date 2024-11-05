@@ -99,6 +99,13 @@
                             </svg>
                         </button>
                     </div>
+                    {% if user.is_admin %}
+                    <a
+                        :href="`/admin/company/${company.id}`"
+                        class="flex h-10 w-32 items-center justify-center rounded-lg bg-red-600 ml-3 px-2 py-1 text-sm text-white transition-colors ease-in-out hover:bg-red-400"
+                        >Admin edit
+                    </a>
+                    {% endif %}
                 </section>
                 <section
                     v-if="company.country || company.description"

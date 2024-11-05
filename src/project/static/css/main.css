@@ -1717,6 +1717,9 @@ select {
 .w-28 {
   width: 7rem;
 }
+.w-32 {
+  width: 8rem;
+}
 .w-36 {
   width: 9rem;
 }
@@ -2475,6 +2478,10 @@ select {
 .bg-red-500 {
   --tw-bg-opacity: 1;
   background-color: rgb(239 68 68 / var(--tw-bg-opacity));
+}
+.bg-red-600 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(220 38 38 / var(--tw-bg-opacity));
 }
 .bg-sky-100 {
   --tw-bg-opacity: 1;

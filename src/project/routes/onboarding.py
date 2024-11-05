@@ -111,6 +111,11 @@ def investor():
     if current_user.user_info.is_complete:
         return redirect(url_for("auth.login"))
 
+    claim_request = ClaimRequest.get_by_user_id(current_user.id)
+    if claim_request:
+        if claim_request.status.value == "pending":
+            return redirect(url_for("onboarding.index"))
+
     if request.method == "POST":
         form_data = request.get_json()
 

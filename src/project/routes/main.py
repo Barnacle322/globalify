@@ -589,10 +589,10 @@ def claiming_manual(slug):
 
     claim_request = ClaimRequest.get_by_user_id(current_user.id)
     if claim_request:
-        if claim_request.status == "pending":
+        if claim_request.status.value == "pending":
             status = Status(StatusType.ERROR, CLAIM_REQUEST_ALREADY_SUBMITTED).get_status()
             return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
-        elif claim_request.status == "approved":
+        elif claim_request.status.value == "approved":
             status = Status(StatusType.ERROR, INVESTOR_ALREADY_CLAIMED).get_status()
             return redirect(url_for("main.claiming_manual_view", slug=slug, _external=False, **status))
 

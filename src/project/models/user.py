@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import datetime
-import enum
 import json
 import re
 import uuid
@@ -308,7 +307,7 @@ class Notification(MappedAsDataclass, db.Model, unsafe_hash=True):
             .where(Notification.user_id == user_id, Notification.is_read.is_(get_read))
             .order_by(desc(Notification.created_at))
             .limit(limit)
-            .offset((offset - 1) * limit)
+            .offset(abs(offset - 1) * limit)
         ).all()
 
     @staticmethod

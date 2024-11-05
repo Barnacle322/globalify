@@ -51,7 +51,7 @@
                 >
                     <a class="flex cursor-pointer" @click="selectInvestorSlug(bookmark.slug)">
                         <img
-                            v-if="bookmark.twitter && selectedTab === 'investor'"
+                            v-if="bookmark.twitter && (selectedTab === 'investor' ||  selectedTab === 'investment_firm')"
                             :src="'https://unavatar.io/twitter/' + getTwitterHandle(bookmark.twitter)"
                             class="size-10 rounded-md bg-black"
                             loading="lazy"
@@ -62,7 +62,7 @@
                             class="size-10 rounded-md bg-black"
                         />
                         <img
-                            v-else-if="selectedTab === 'company'"
+                            v-else-if="selectedTab === 'company' || selectedTab === 'investment_firm'"
                             src="/static/elements/company_default_logo.jpg"
                             class="size-10 rounded-md bg-black"
                         />

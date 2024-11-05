@@ -1199,7 +1199,6 @@ def service_unavailable(e):
     return render_template("errors/503.html"), 503
 
 
-
 @main.get("/companies/bookmarks")
 @login_required
 @check_user_info_complete
@@ -1220,7 +1219,7 @@ def get_company_bookmarks():
         company = CompanyBookmarkSchema(
             id=db_company.id,
             name=db_company.name,
-            about=db_company.about
+            about=db_company.description,
         )
         companies.append(json.loads(company.model_dump_json()))
 

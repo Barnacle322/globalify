@@ -445,7 +445,6 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     slug: Mapped[str] = mapped_column(String, nullable=True, unique=True, init=False)
-    about: Mapped[str | None] = mapped_column(String, nullable=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True, init=False)
     website_url: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
@@ -792,7 +791,8 @@ class CompanyBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.session.scalars(
                 db.select(Company)
                 .join(CompanyBookmark, CompanyBookmark.company_id == Company.id)
-                .where(CompanyBookmark.user_id == user_id).offset(offset)
+                .where(CompanyBookmark.user_id == user_id)
+                .offset(offset)
                 .limit(limit)
             )
             .unique()

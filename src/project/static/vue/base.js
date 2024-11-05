@@ -473,8 +473,8 @@ const Bookmark = defineComponent({
             this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug");
             window.location.reload();
         },
-
         getTwitterHandle(url) {
+            if (!url) return;
             return url.split("/").pop();
         },
     },

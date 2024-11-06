@@ -895,9 +895,15 @@ def get_company(slug):
         instagram=company_model.instagram_url,
         twitter=company_model.twitter_url,
         picture_url=company_model.picture_url,
-        country=company_model.country.name,
-        preferred_round={"id": company_model.preferred_round.id, "name": company_model.preferred_round.name},
-        industry={"id": company_model.industry.id, "name": company_model.industry.name},
+        country=company_model.country.name if company_model.country else None,
+        preferred_round={
+            "id": company_model.preferred_round.id if company_model.preferred_round.id else None,
+            "name": company_model.preferred_round.name if company_model.preferred_round.name else None,
+        },
+        industry={
+            "id": company_model.industry.id if company_model.industry.id else None,
+            "name": company_model.industry.name if company_model.industry.name else None,
+        },
     ).model_dump()
     is_bookmarked = CompanyBookmark.exists(company_model.id, current_user.id)
 

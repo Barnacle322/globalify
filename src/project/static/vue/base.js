@@ -316,6 +316,9 @@ const Bookmark = defineComponent({
         },
     },
     methods: {
+        closeDropdownOutside() {
+            this.openedDropdownId = null;
+        },
         formatDate(date) {
             const options = { year: "numeric", month: "long", day: "numeric" };
             return new Date(date).toLocaleString("en-US", options);
@@ -481,10 +484,12 @@ const Bookmark = defineComponent({
     async mounted() {
         await this.setupInfinteScroll();
         window.addEventListener("click", this.closeRemoveBookmark);
+        window.addEventListener("click", this.closeDropdownOutside);
     },
     beforeUnmount() {
         this.observer.disconnect();
         window.removeEventListener("click", this.closeRemoveBookmark);
+        window.removeEventListener("click", this.closeDropdownOutside);
     },
     data() {
         return {

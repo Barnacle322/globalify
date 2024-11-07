@@ -1115,9 +1115,7 @@ def search_user(search_input):
 
     if not users:
         email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        if re.match(email_regex, search_input):
-            if search_input == current_user.email:
-                return jsonify({"users": []})
+        if re.match(email_regex, search_input) and not search_input == current_user.email:
             return jsonify({"search_input": search_input})
         return jsonify({"users": []})
 

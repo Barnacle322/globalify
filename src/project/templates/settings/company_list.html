@@ -86,7 +86,7 @@
             <div class="relative w-full">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
-                    <div class="flex h-full gap-2 px-4 text-sm w-fit">
+                    <div class="flex h-full w-fit gap-2 px-4 text-sm">
                         <a
                             href="/settings/general"
                             class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
@@ -191,7 +191,7 @@
                         </a>
                     </div>
                 </nav>
-                <main class="flex flex-col items-center justify-center sm:p-6 p-4 @container">
+                <main class="flex flex-col items-center justify-center p-4 @container sm:p-6">
                     {% if not companies %}
                     <div class="mt-14 flex w-full flex-col items-center justify-center gap-1">
                         <svg

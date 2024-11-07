@@ -125,7 +125,7 @@
             <div class="relative w-full">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
-                    <div class="flex h-full gap-2 px-4 text-sm">
+                    <div class="flex h-full gap-2 px-4 text-sm w-fit">
                         <a
                             href="/settings/general"
                             class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
@@ -230,10 +230,10 @@
                         </a>
                     </div>
                 </nav>
-                <main class="mt-10 p-4">
-                    <div class="grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
+                <main class="sm:p-6 p-4">
+                    <div class="grid gap-6 sm:grid-cols-6">
                         <div class="col-span-2">
-                            <h2 class="font-medium leading-7">Company Information</h2>
+                            <h2 class="font-bold text-2xl">Company Information</h2>
                             <p class="mb-2 mt-1 leading-6 text-gray-700">Update your company information here.</p>
                             {% if status_type %} {% if status_type == '3' %}
                             <div class="text-red-500">{{ msg }}</div>
@@ -505,9 +505,9 @@
                             </div>
                         </form>
                     </div>
-                    <div class="my-10 grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
+                    <div class="my-10 grid gap-6 sm:grid-cols-6">
                         <div class="col-span-2">
-                            <h2 class="font-medium leading-7">Member information</h2>
+                            <h2 class="font-bold text-2xl">Member information</h2>
                             <p class="mb-2 mt-1 leading-6 text-gray-700">
                                 Manage member information here. You can add, edit and delete the members here.
                             </p>
@@ -637,9 +637,9 @@
                         </div>
                     </div>
                     {% if user_role == 'owner' %}
-                    <div class="my-10 grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
+                    <div class="my-10 grid gap-6 sm:grid-cols-6">
                         <div class="col-span-2">
-                            <h2 class="font-medium leading-7">Delete company</h2>
+                            <h2 class="font-bold text-2xl">Delete company</h2>
                             <p class="mt-1 leading-6 text-gray-700">
                                 Please note, deleting your company from our system is an irreversible action. This will
                                 permanently erase all data and records associated with your company. Proceed with

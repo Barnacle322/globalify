@@ -86,7 +86,7 @@
             <div class="relative w-full">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
-                    <div class="flex h-full gap-2 px-4 text-sm">
+                    <div class="flex h-full gap-2 px-4 text-sm w-fit">
                         <a
                             href="/settings/general"
                             class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
@@ -191,7 +191,7 @@
                         </a>
                     </div>
                 </nav>
-                <main class="flex flex-col items-center justify-center p-8">
+                <main class="flex flex-col items-center justify-center sm:p-6 p-4 @container">
                     {% if not companies %}
                     <div class="mt-14 flex w-full flex-col items-center justify-center gap-1">
                         <svg
@@ -226,7 +226,7 @@
                             >
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
-                            <span class="text-sm font-medium">New Company</span>
+                            <span class="text-sm font-medium">Company</span>
                         </a>
                     </div>
                     {% else %}
@@ -249,10 +249,10 @@
                             >
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
-                            <span class="text-sm font-medium">New Company</span>
+                            <span class="text-sm font-medium">Company</span>
                         </a>
                     </div>
-                    <div class="mt-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="mt-6 grid w-full grid-cols-1 gap-4 @xl:grid-cols-2 @5xl:grid-cols-3">
                         {% for company in companies %}
                         <div class="relative flex">
                             <a
@@ -393,10 +393,8 @@
                         {% endfor %}
                     </div>
                     {% endif %} {% if not invitations %} {% else %}
-                    <div class="mt-4 w-full">
-                        <h1 class="text-xl font-bold">Invitations</h1>
-                    </div>
-                    <div class="mt-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <h1 class="mt-4 w-full text-xl font-bold">Invitations</h1>
+                    <div class="mt-6 grid w-full grid-cols-1 gap-4 @xl:grid-cols-2 @5xl:grid-cols-3">
                         {% for invitation in invitations %}
                         <div class="flex w-full justify-between rounded-xl border bg-white p-4">
                             <div class="flex gap-4 text-start">

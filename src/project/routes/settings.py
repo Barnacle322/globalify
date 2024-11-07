@@ -1101,17 +1101,21 @@ def restore_investor_data():
 @check_user_info_complete
 @check_verification
 def search_user(search_input):
-    users = db.session.scalars(
-        db.select(User)
-        .join(UserInfo, User.id == UserInfo.user_id)
-        .where(User.email.contains(search_input))
-        .where(User.id != current_user.id)
-        .where(UserInfo.refuse_all_invitations.is_(False))
-    ).all()
+    users = (
+        db.session.scalars(
+            db.select(User)
+            .join(UserInfo, User.id == UserInfo.user_id)
+            .where(User.email.contains(search_input))
+            .where(User.id != current_user.id)
+            .where(UserInfo.refuse_all_invitations.is_(False))
+        )
+        .unique()
+        .all()
+    )
 
     if not users:
         email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        if re.match(email_regex, search_input):
+        if re.match(email_regex, search_input) and not search_input == current_user.email:
             return jsonify({"search_input": search_input})
         return jsonify({"users": []})
 

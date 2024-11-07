@@ -5,9 +5,9 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func, table
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, MappedAsDataclass, joinedload, mapped_column, relationship
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 
 from ..extensions import db
 from ..utils.enums import RequestStatus
@@ -70,8 +70,8 @@ class ClaimVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class ClaimRequest(db.Model):
-    user: Mapped[User] = relationship("User", back_populates="claim_requests", uselist=True)
-    investor: Mapped[Investor] = relationship("Investor", back_populates="claim_requests", uselist=True)
+    user: Mapped[User] = relationship("User", back_populates="claim_requests", uselist=False)
+    investor: Mapped[Investor] = relationship("Investor", back_populates="claim_requests", uselist=False)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
@@ -116,15 +116,21 @@ class ClaimRequest(db.Model):
 
     @staticmethod
     def get_all() -> Sequence[ClaimRequest]:
-        return db.session.scalars(
-            db.select(ClaimRequest).options(joinedload(ClaimRequest.user), joinedload(ClaimRequest.investor))
-        ).all()
+        return (
+            db.session.scalars(
+                db.select(ClaimRequest, table("User"), table("Investor"))
+                .join(ClaimRequest.user)
+                .join(ClaimRequest.investor)
+            )
+            .unique()
+            .all()
+        )
 
     @staticmethod
     def get_pending_by_user_id(user_id: int) -> Sequence[ClaimRequest]:
         return db.session.scalars(
-            db.select(ClaimRequest)
+            db.select(ClaimRequest, table("Investor"))
             .where(ClaimRequest.user_id == user_id)
             .where(ClaimRequest.status == RequestStatus.PENDING)
-            .options(joinedload(ClaimRequest.investor))
+            .join(ClaimRequest.investor)
         ).all()

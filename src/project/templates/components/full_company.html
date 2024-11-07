@@ -75,14 +75,14 @@
 
                         <img
                             v-if="company.picture_url"
-                            class="h-20 rounded-lg mr-3"
+                            class="mr-3 h-20 rounded-lg"
                             :src="company.picture_url"
                             alt=""
                             loading="lazy"
                         />
                         <img
                             v-else-if="company.twitter"
-                            class="h-20 rounded-lg mr-3"
+                            class="mr-3 h-20 rounded-lg"
                             :src="'https://unavatar.io/twitter/' + getTwitterHandle(company.twitter)"
                             alt=""
                             loading="lazy"
@@ -110,7 +110,7 @@
                     {% if user.is_admin %}
                     <a
                         :href="`/admin/companies/${company.id}`"
-                        class="flex items-center justify-center rounded-lg bg-gray-200 ml-3 px-2 py-2 text-sm text-white transition-colors ease-in-out hover:bg-red-400"
+                        class="ml-3 flex items-center justify-center rounded-lg bg-gray-200 px-2 py-2 text-sm text-white transition-colors ease-in-out hover:bg-red-400"
                         ><svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"

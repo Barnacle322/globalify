@@ -358,7 +358,7 @@ const Bookmark = defineComponent({
             this.observer = new IntersectionObserver((entries, observer) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
-                        if (this.bookmarks.length >= 10) {
+                        if (this.bookmarks.length > 10) {
                             this.reachedEnd = true;
                             this.loadMoreBookmarks();
                         }

@@ -377,14 +377,14 @@ def apple_callback():
         if not nonce:
             raise ValueError("Nonce not found in session")
         apple_user_info = oauth.apple.parse_id_token(token, nonce=nonce)  # type: ignore
-    except Exception as e:
-        print(f"Error during Apple OAuth callback: {e}")
-        return redirect(url_for("auth.login"))
+    except Exception:
+        status = Status(StatusType.ERROR, OAUTH_ACCESS_TOKEN).get_status()
+        return redirect(url_for("auth.login", _external=False, **status))
 
     email = apple_user_info.get("email")
     if not email:
-        print("No email found in user info")
-        return redirect(url_for("auth.login"))
+        status = Status(StatusType.ERROR, OAUTH_NO_EMAIL).get_status()
+        return redirect(url_for("auth.login", _external=False, **status))
 
     user_name = apple_user_info.get("name", {})
     first_name = user_name.get("firstName")
@@ -393,8 +393,8 @@ def apple_callback():
     try:
         user = oauth_user(email, OauthProvider.APPLE)
     except Exception as e:
-        print(f"Error creating or fetching user: {e}")
-        return redirect(url_for("auth.login"))
+        status = Status(StatusType.ERROR, e.args[0]).get_status()
+        return redirect(url_for("auth.login", _external=False, **status))
 
     login_user(user, remember=True)
 

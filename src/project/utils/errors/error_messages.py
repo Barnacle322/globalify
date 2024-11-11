@@ -23,6 +23,7 @@ SUBSCRIPTION_WAITING_CANCELATION = "Your subscription is already pending cancell
 SUBSCRIPTION_CANCELATION_ERROR = "Could not cancel subscription."
 
 INVESTOR_NOT_FOUND = "Investor not found."
+USER_NOT_FOUND = "User not found."
 INVITATION_NOT_FOUND = "Invitation not found."
 COMPANY_NOT_FOUND = "No such company was found."
 SUBSCRIPTION_NOT_FOUND = "No active subscription found."

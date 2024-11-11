@@ -91,10 +91,10 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
+    created_at: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), init=False
     )
-    last_login: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    last_login: Mapped[datetime.datetime | None] = mapped_column(DateTime, default=None)
 
     @staticmethod
     def delete_by_id(id: int) -> None:
@@ -117,11 +117,16 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_all() -> Sequence[User]:
         return db.session.scalars(db.select(User)).all()
-    
 
     @staticmethod
     def update_last_login(user_id: int) -> None:
-        db.session.execute(update(User).where(User.id == user_id).values(last_login=func.now(),))
+        db.session.execute(
+            update(User)
+            .where(User.id == user_id)
+            .values(
+                last_login=func.now(),
+            )
+        )
         db.session.commit()
 
 

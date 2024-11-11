@@ -1,7 +1,7 @@
-import math
 from datetime import datetime
 
 from flask import Blueprint, redirect, render_template, request, url_for
+from sqlalchemy import or_
 
 from ...extensions import db
 from ...models import User, UserInfo, UserPayment
@@ -31,39 +31,38 @@ def index():
         msg = query.get("msg")
 
     search_string = request.args.get("search", "")
-
     page = request.args.get("page", 1, type=int)
 
-    user_query = db.session.query(User, UserInfo).join(UserInfo, User.id == UserInfo.user_id)  #######
+    base_query = db.select(User, UserInfo).join(UserInfo, User.id == UserInfo.user_id)
 
     if search_string:
-        user_query = user_query.filter(  ######
-            UserInfo.first_name.ilike(f"%{search_string}%") | UserInfo.last_name.ilike(f"%{search_string}%")
+        base_query = base_query.filter(
+            or_(UserInfo.first_name.ilike(f"%{search_string}%"), UserInfo.last_name.ilike(f"%{search_string}%"))
         )
 
-    total_users = math.ceil(user_query.count() / 9)  # flask sql alchemy pag
-    users = user_query.offset((page - 1) * 9).limit(9).all()
+    pagination = db.paginate(base_query, page=page, per_page=9, error_out=False)
 
-    user_info = [
-        {
-            "id": user.id,
-            "email": user.email,
-            "first_name": info.first_name,
-            "last_name": info.last_name,
-            "bio": info.bio,
-        }
-        for user, info in users
-    ]
+    user_info = []
+    for result in pagination.items:
+        user_info.append(
+            {
+                "id": result.id,
+                "email": result.email,
+                "first_name": result.user_info.first_name,
+                "last_name": result.user_info.last_name,
+                "bio": result.user_info.bio,
+            }
+        )
 
-    # Генерация пагинации
-    pagination = generate_pagination(page, total_users, 9)
+    total_pages = pagination.pages or 1
+    pagination_info = generate_pagination(page, total_pages, 9)
 
     return render_template(
         "admin/users.html",
         users=user_info,
         query=search_string,
-        pagination=pagination,
-        total_pages=len(pagination.get("pages", [])),
+        pagination=pagination_info,
+        total_pages=pagination.pages,
         status_type=status_type,
         msg=msg,
     )
@@ -116,31 +115,6 @@ def update_user(id):
         status = Status(StatusType.ERROR, USER_NOT_FOUND).get_status()
         return redirect(url_for("admin.user.index", _external=True, **status))
 
-    email = form_data.get("email", user.email).strip()
-    is_verified = form_data.get("is_verified", user.is_verified)
-    is_admin = form_data.get("is_admin", user.is_admin)
-
-    first_name = form_data.get("first_name", user_info.first_name).strip()
-    last_name = form_data.get("last_name", user_info.last_name).strip()
-    username = form_data.get("username", user_info.username).strip()
-    bio = form_data.get("bio", user_info.bio)
-    instagram = form_data.get("instagram", user_info.instagram_url)
-    linkedin = form_data.get("linkedin", user_info.linkedin_url)
-    twitter = form_data.get("twitter", user_info.twitter_url)
-    is_complete = form_data.get("is_complete", user_info.is_complete)
-    refuse_all_invitations = form_data.get("refuse_all_invitations", user_info.refuse_all_invitations)
-    email_public = form_data.get("email_public", user_info.email_public)
-    instagram_public = form_data.get("instagram_public", user_info.instagram_public)
-    linkedin_public = form_data.get("linkedin_public", user_info.linkedin_public)
-    twitter_public = form_data.get("twitter_public", user_info.twitter_public)
-
-    tier = form_data.get("tier", user_payment.tier)
-    is_active = form_data.get("is_active", user_payment.is_active)
-    customer_id = form_data.get("customer_id", user_payment.customer_id)
-    subscription_id = form_data.get("subscription_id", user_payment.subscription_id)
-    created = form_data.get("created", user_payment.created)
-    expires_at = form_data.get("expires_at", user_payment.expires_at)
-
     linkedin_url = form_data.get("linkedin", user_info.linkedin_url) or None
     if linkedin_url:
         linkedin_url = add_https_prefix(linkedin_url)
@@ -189,30 +163,30 @@ def update_user(id):
             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
             return redirect(url_for("admin.user_info.update_user_info_view", _external=False, **status))
 
-    user.email = email
-    user.is_admin = is_admin
-    user.is_verified = is_verified
+    user.email = form_data.get("email", user.email).strip()
+    user.is_verified = form_data.get("is_verified", user.is_verified)
+    user.is_admin = form_data.get("is_admin", user.is_admin)
 
-    user_info.first_name = first_name
-    user_info.last_name = last_name
-    user_info.username = username
-    user_info.bio = bio
-    user_info.instagram_url = instagram
-    user_info.linkedin_url = linkedin
-    user_info.twitter_url = twitter
-    user_info.is_complete = is_complete
-    user_info.refuse_all_invitations = refuse_all_invitations
-    user_info.email_public = email_public
-    user_info.instagram_public = instagram_public
-    user_info.linkedin_public = linkedin_public
-    user_info.twitter_public = twitter_public
+    user_info.first_name = form_data.get("first_name", user_info.first_name).strip()
+    user_info.last_name = form_data.get("last_name", user_info.last_name).strip()
+    user_info.username = form_data.get("username", user_info.username).strip()
+    user_info.bio = form_data.get("bio", user_info.bio)
+    user_info.instagram_url = instagram_url
+    user_info.linkedin_url = linkedin_url
+    user_info.twitter_url = twitter_url
+    user_info.is_complete = form_data.get("is_complete", user_info.is_complete)
+    user_info.refuse_all_invitations = form_data.get("refuse_all_invitations", user_info.refuse_all_invitations)
+    user_info.email_public = form_data.get("email_public", user_info.email_public)
+    user_info.instagram_public = form_data.get("instagram_public", user_info.instagram_public)
+    user_info.linkedin_public = form_data.get("linkedin_public", user_info.linkedin_public)
+    user_info.twitter_public = form_data.get("twitter_public", user_info.twitter_public)
 
-    user_payment.tier = tier
-    user_payment.is_active = is_active
-    user_payment.customer_id = customer_id
-    user_payment.subscription_id = subscription_id
-    user_payment.created = datetime.strptime(created, "%Y-%m-%d")
-    user_payment.expires_at = datetime.strptime(expires_at, "%Y-%m-%d")
+    user_payment.tier = form_data.get("tier", user_payment.tier)
+    user_payment.is_active = form_data.get("is_active", user_payment.is_active)
+    user_payment.customer_id = form_data.get("customer_id", user_payment.customer_id)
+    user_payment.subscription_id = form_data.get("subscription_id", user_payment.subscription_id)
+    user_payment.created = datetime.strptime(form_data.get("created", user_payment.created), "%Y-%m-%d")
+    user_payment.expires_at = datetime.strptime(form_data.get("expires_at", user_payment.expires_at), "%Y-%m-%d")
 
     try:
         db.session.commit()

@@ -300,6 +300,7 @@ createApp({
             this.handleBooleans(roundsExclusive, "rounds_exclusive", paramsArray);
             this.handleBooleans(industriesExclusive, "industries_exclusive", paramsArray);
             this.handleBooleans(descending, "descending", paramsArray);
+            this.createSearchHistory(searchQuery);
 
             if (searchQuery !== "") paramsArray.unshift(`search=${encodeURIComponent(searchQuery)}`);
 
@@ -499,8 +500,29 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
+                        "X-CSRFToken": csrfToken
+                    }
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (!response.ok) {
+                    console.error("An error occurred while marking the notification as read.");
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async createSearchHistory(searchQuery) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                console.log(searchQuery)
+                const response = await fetch(`/search_history`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken
                     },
+                    body: JSON.stringify({ query: searchQuery })
                 });
                 if (response.redirected) {
                     window.location.href = response.url;

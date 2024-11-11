@@ -49,6 +49,7 @@ from .helpers import Country, Industry, Round
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
     from .investor import InvestmentFirmBookmark, Investor, InvestorBackup, InvestorBookmark, NotableInvestment
+    from .search import SearchHistory
 
 
 class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
@@ -85,10 +86,11 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     investment_firm_bookmarks: Mapped[list[InvestmentFirmBookmark]] = relationship(
         "InvestmentFirmBookmark", back_populates="user", uselist=True, init=False
     )
-
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    search_histories: Mapped[list[SearchHistory]] = relationship("SearchHistory", back_populates="user",
+                                                                 default_factory=list)
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 

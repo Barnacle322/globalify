@@ -34,7 +34,7 @@ from ..models import (
     User,
     UserCompany,
     UserInfo,
-    UserPayment,
+    UserPayment, SearchHistory,
 )
 from ..schemas.company import CompanyBookmarkSchema
 from ..schemas.investor import (
@@ -44,9 +44,9 @@ from ..schemas.investor import (
     InvestorSchema,
 )
 from ..schemas.notification import NotificationItem, NotificationLayout
-from ..schemas.user import CompanySchema
+from ..schemas.user import CompanySchema, UserSearchHistorySchema
 from ..utils.decorators import check_user_info_complete, check_verification
-from ..utils.enums import Events, NotificationType, Status, StatusType
+from ..utils.enums import Events, NotificationType, Status, StatusType, SearchHistoryType
 from ..utils.errors.error_messages import (
     CLAIM_REQUEST_ALREADY_SUBMITTED,
     EXPIRED_CODE,
@@ -1254,3 +1254,27 @@ def get_company_bookmarks():
         companies.append(json.loads(company.model_dump_json()))
 
     return jsonify({"bookmarks": companies})
+
+
+@main.post("/search_history")
+@login_required
+@check_user_info_complete
+@check_verification
+def create_search_history():
+    data = request.get_json()
+    search_query = data.get("query")
+    # search_type = data.get("type")
+    new_search_history = SearchHistory(query=search_query, user_id=current_user.id, type=SearchHistoryType.INVESTOR)
+    db.session.add(new_search_history)
+    db.session.commit()
+
+    # Respond with the user's search history as JSON
+    return jsonify({'status': 'ok'})
+
+
+
+
+
+
+
+

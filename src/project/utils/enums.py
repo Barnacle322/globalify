@@ -65,3 +65,11 @@ class RequestStatus(Enum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
+
+
+class SearchHistoryType(Enum):
+    INVESTOR = "investor"
+    INVESTOR_FIRM = "investor_firm"
+    COMPANY = "company"
+
+

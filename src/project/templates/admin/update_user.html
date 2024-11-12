@@ -335,7 +335,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="date"
                             id="created"
-                            value="{{ user_payment.created.strftime('%Y-%m-%d') }}"
+                            value="{{ user_payment.created.strftime('%Y-%m-%d') if user_payment.created else '' }}"
                             required
                         />
                     </div>
@@ -345,7 +345,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="date"
                             id="expires_at"
-                            value="{{ user_payment.expires_at.strftime('%Y-%m-%d') }}"
+                            value="{{ user_payment.expires_at.strftime('%Y-%m-%d') if user_payment.expires_at else '' }}"
                             required
                         />
                     </div>
@@ -376,7 +376,8 @@
                         <div>
                             <select id="tier" name="tier" class="h-12 w-full rounded-xl px-2" required>
                                 <option value="" disabled>Select subscription tier</option>
-                                {% if tiers %} {% for tier in tiers %} {% if user_payment.tier.value==tier.value %}
+                                {% if tiers %} {% for tier in tiers %} {% if user_payment and user_payment.tier and
+                                user_payment.tier.value == tier.value %}
                                 <option value="{{ tier.name }}" selected>{{ tier.value }}</option>
                                 {% else %}
                                 <option value="{{ tier.name }}">{{ tier.value }}</option>

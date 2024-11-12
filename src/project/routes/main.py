@@ -44,7 +44,7 @@ from ..schemas.investor import (
     InvestorSchema,
 )
 from ..schemas.notification import NotificationItem, NotificationLayout
-from ..schemas.user import CompanySchema, UserSearchHistorySchema
+from ..schemas.user import CompanySchema, SearchHistorySchema
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import Events, NotificationType, Status, StatusType, SearchHistoryType
 from ..utils.errors.error_messages import (
@@ -302,6 +302,10 @@ def search_companies():
         countries=request.args.getlist("country"),
         is_public=True,
     )
+    if search_string != "":
+        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.COMPANY)
+        db.session.add(new_search_history)
+        db.session.commit()
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
     return render_template(
@@ -314,6 +318,7 @@ def search_companies():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         bookmark_ids=CompanyBookmark.get_id_list(current_user.id),
+        type="COMPANY"
     )
 
 
@@ -366,6 +371,13 @@ def search_investment_firms():
     )
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
+
+    if search_string != "":
+        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR_FIRM)
+        db.session.add(new_search_history)
+        db.session.commit()
+
+
     return render_template(
         "search_investment_firms.html",
         investment_firms=result.get("investment_firms"),
@@ -382,6 +394,7 @@ def search_investment_firms():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
+        type="INVESTOR_FIRM"
     )
 
 
@@ -449,6 +462,12 @@ def search():
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
+    if search_string != "":
+        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR)
+        db.session.add(new_search_history)
+        db.session.commit()
+
+
     return render_template(
         "search.html",
         investors=result.get("investors"),
@@ -465,6 +484,7 @@ def search():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         user=current_user,
+        type="INVESTOR"
     )
 
 
@@ -1256,20 +1276,21 @@ def get_company_bookmarks():
     return jsonify({"bookmarks": companies})
 
 
-@main.post("/search_history")
+@main.get("/search_history")
 @login_required
 @check_user_info_complete
 @check_verification
-def create_search_history():
-    data = request.get_json()
-    search_query = data.get("query")
-    # search_type = data.get("type")
-    new_search_history = SearchHistory(query=search_query, user_id=current_user.id, type=SearchHistoryType.INVESTOR)
-    db.session.add(new_search_history)
-    db.session.commit()
+def get_search_histories():
+    search_type = request.args.get("type")
 
-    # Respond with the user's search history as JSON
-    return jsonify({'status': 'ok'})
+    search_histories = db.session.scalars(
+        db.select(SearchHistory).filter(
+            SearchHistory.user_id == current_user.id,
+            SearchHistory.type == search_type
+        )
+    ).all()
+    search_histories_json = [SearchHistorySchema.from_orm(history).dict() for history in search_histories]
+    return jsonify(search_histories_json)
 
 
 

@@ -300,7 +300,6 @@ createApp({
             this.handleBooleans(roundsExclusive, "rounds_exclusive", paramsArray);
             this.handleBooleans(industriesExclusive, "industries_exclusive", paramsArray);
             this.handleBooleans(descending, "descending", paramsArray);
-            this.createSearchHistory(searchQuery);
 
             if (searchQuery !== "") paramsArray.unshift(`search=${encodeURIComponent(searchQuery)}`);
 
@@ -512,17 +511,17 @@ createApp({
                 console.error(error);
             }
         },
-        async createSearchHistory(searchQuery) {
+        async getSearchHistory(type) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
-                console.log(searchQuery)
-                const response = await fetch(`/search_history`, {
-                    method: "POST",
+                const url = new URL(`/search_history`, window.location.origin);
+                url.searchParams.append("type", type);
+                const response = await fetch(url, {
+                    method: "GET",
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": csrfToken
                     },
-                    body: JSON.stringify({ query: searchQuery })
                 });
                 if (response.redirected) {
                     window.location.href = response.url;

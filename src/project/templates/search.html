@@ -158,6 +158,7 @@
                                     aria-autocomplete="both"
                                     enterkeyhint="search"
                                     @keyup.enter="search"
+                                    @click="getSearchHistory('{{type}}')"
                                     required
                                 />
                                 <button id="search-btn" class="" type="submit" @click="search">

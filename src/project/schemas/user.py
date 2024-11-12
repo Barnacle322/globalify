@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import List
+from typing import List, Optional
+
 
 class UserSchema(BaseModel):
     id: int
@@ -40,9 +41,8 @@ class SearchHistorySchema(BaseModel):
     id: int
     query: str
     created_at: datetime
+    type: Optional[str]
 
+    class Config:
+        from_attributes = True
 
-
-class UserSearchHistorySchema(BaseModel):
-    id: int
-    search_histories: List[SearchHistorySchema] = []

@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 
-# from . import User
 from ..extensions import db
 from sqlalchemy import (
     JSON,
@@ -32,4 +31,3 @@ class SearchHistory(MappedAsDataclass, db.Model):
     query: Mapped[str] = mapped_column(String)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), init=False)
     type: Mapped[str| None] = mapped_column(SQLEnum(SearchHistoryType), nullable=True)
-

@@ -145,7 +145,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="text"
                             id="last_name"
-                            value="{{ user_info.last_name if user_info.last_name else ''}}"
+                            value="{{ user_info.last_name or ''}}"
                             placeholder="Doe"
                             required
                         />
@@ -156,9 +156,9 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="text"
                             id="username"
-                            placeholder="acme-inc"
+                            placeholder="cool username"
                             required
-                            value="{{ user_info.username if user_info.username else ''}}"
+                            value="{{ user_info.username or ''}}"
                         />
                     </div>
 
@@ -171,8 +171,7 @@
                             oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px';"
                             placeholder="Edit user's bio here."
                         >
-{{ user_info.bio if user_info.bio else ''}}
-                    </textarea
+{{  user_info.bio or ''}}</textarea
                         >
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -242,7 +241,7 @@
                             id="email"
                             placeholder="user@gmail.com"
                             required
-                            value="{{ user.email if user.email else ''}}"
+                            value="{{ user.email or ''}}"
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -252,7 +251,7 @@
                             type="text"
                             id="instagram"
                             placeholder="https://www.instagram.com/johndoe"
-                            value="{{ user_info.instagram_url if user_info.instagram_url else ''}}"
+                            value="{{ user_info.instagram_url or ''}}"
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -288,7 +287,7 @@
                             type="text"
                             id="linkedin"
                             placeholder="https://www.linkedin.com/in/johndoe"
-                            value="{{ user_info.linkedin_url if user_info.linkedin_url else ''}}"
+                            value="{{ user_info.linkedin_url or ''}}"
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -298,7 +297,7 @@
                             type="text"
                             id="twitter"
                             placeholder="https://twitter.com/johndoe"
-                            value="{{ user_info.twitter_url if user_info.twitter_url else ''}}"
+                            value="{{ user_info.twitter_url or ''}}"
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -355,7 +354,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="text"
                             id="customer_id"
-                            value="{{ user_payment.customer_id }}"
+                            value="{{ user_payment.customer_id or '' }}"
                             placeholder="0"
                             required
                         />
@@ -366,7 +365,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="text"
                             id="subscription_id"
-                            value="{{ user_payment.subscription_id }}"
+                            value="{{ user_payment.subscription_id or ''}}"
                             placeholder="0"
                             required
                         />

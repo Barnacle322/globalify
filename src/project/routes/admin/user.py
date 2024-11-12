@@ -14,7 +14,9 @@ from ...utils.enums import (
 )
 from ...utils.errors.error_messages import (
     PICTURE_NOT_LOADED,
+    USER_INFO_NOT_FOUND,
     USER_NOT_FOUND,
+    USER_PAYMENT_NOT_FOUND,
 )
 from ...utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from ...utils.scraper import add_https_prefix
@@ -108,11 +110,12 @@ def update_user(id):
 
     user_info = UserInfo.get_by_user_id(id)
     if not user_info:
-        status = Status(StatusType.ERROR, USER_NOT_FOUND).get_status()
+        status = Status(StatusType.ERROR, USER_INFO_NOT_FOUND).get_status()
         return redirect(url_for("admin.user.index", _external=True, **status))
+
     user_payment = UserPayment.get_by_user_id(id)
     if not user_payment:
-        status = Status(StatusType.ERROR, USER_NOT_FOUND).get_status()
+        status = Status(StatusType.ERROR, USER_PAYMENT_NOT_FOUND).get_status()
         return redirect(url_for("admin.user.index", _external=True, **status))
 
     linkedin_url = form_data.get("linkedin", user_info.linkedin_url) or None
@@ -171,9 +174,7 @@ def update_user(id):
     user_info.last_name = form_data.get("last_name", user_info.last_name).strip()
     user_info.username = form_data.get("username", user_info.username).strip()
     user_info.bio = form_data.get("bio", user_info.bio)
-    user_info.instagram_url = instagram_url
-    user_info.linkedin_url = linkedin_url
-    user_info.twitter_url = twitter_url
+
     user_info.is_complete = form_data.get("is_complete", user_info.is_complete)
     user_info.refuse_all_invitations = form_data.get("refuse_all_invitations", user_info.refuse_all_invitations)
     user_info.email_public = form_data.get("email_public", user_info.email_public)
@@ -185,8 +186,12 @@ def update_user(id):
     user_payment.is_active = form_data.get("is_active", user_payment.is_active)
     user_payment.customer_id = form_data.get("customer_id", user_payment.customer_id)
     user_payment.subscription_id = form_data.get("subscription_id", user_payment.subscription_id)
-    user_payment.created = datetime.strptime(form_data.get("created", user_payment.created), "%Y-%m-%d")
-    user_payment.expires_at = datetime.strptime(form_data.get("expires_at", user_payment.expires_at), "%Y-%m-%d")
+    created = form_data.get("created", user_payment.created)
+    if created:
+        user_payment.created = datetime.strptime(created, "%Y-%m-%d")
+    expires_at = form_data.get("expires_at", user_payment.expires_at)
+    if expires_at:
+        user_payment.expires_at = datetime.strptime(expires_at, "%Y-%m-%d")
 
     try:
         db.session.commit()

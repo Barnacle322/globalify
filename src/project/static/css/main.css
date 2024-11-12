@@ -1384,9 +1384,6 @@ select {
 .m-3 {
   margin: 0.75rem;
 }
-.m-auto {
-  margin: auto;
-}
 .-mx-3 {
   margin-left: -0.75rem;
   margin-right: -0.75rem;
@@ -1526,9 +1523,6 @@ select {
 }
 .mt-auto {
   margin-top: auto;
-}
-.ml-5 {
-  margin-left: 1.25rem;
 }
 .line-clamp-2 {
   overflow: hidden;
@@ -4546,6 +4540,10 @@ textarea {
     margin-bottom: 3.5rem;
   }
 
+  .sm\:ml-5 {
+    margin-left: 1.25rem;
+  }
+
   .sm\:mt-12 {
     margin-top: 3rem;
   }
@@ -4564,10 +4562,6 @@ textarea {
 
   .sm\:mt-7 {
     margin-top: 1.75rem;
-  }
-
-  .sm\:ml-5 {
-    margin-left: 1.25rem;
   }
 
   .sm\:block {

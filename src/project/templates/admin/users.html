@@ -160,9 +160,9 @@
                         >
                             <div class="relative flex w-full items-start justify-between gap-3">
                                 <div class="flex flex-col gap-2">
-                                    <span class="font-medium">{{ user.first_name }} {{ user.last_name }}</span>
+                                    <span class="font-medium">{{ user.first_name }} {{ user.last_name }} </span>
                                     <p class="line-clamp-3">{{user.email}}</p>
-                                    <p class="text-sm text-gray-500">{{user.bio}}</p>
+                                    <p class="text-sm text-gray-500">{{user.bio or ''}}</p>
                                 </div>
                                 <div class="ml-auto flex h-full flex-col gap-2">
                                     <a

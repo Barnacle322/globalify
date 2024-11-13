@@ -445,6 +445,7 @@ def search():
         per_page=9,
         countries=countries,
         is_public=True,
+        is_approved=True,
     )
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
@@ -719,6 +720,9 @@ def claim_verification_view(slug):
 @main.post("/investor/<slug>/claim/email/verify")
 @login_required
 def claim_verification(slug):
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+
     form_data = request.get_json()
     verification_code = form_data.get("code")
     user_email = form_data.get("email")
@@ -742,6 +746,15 @@ def claim_verification(slug):
 
     investor.user_id = current_user.id
     claim_verification.is_used = True
+
+    if not current_user.user_info.first_name:
+        current_user.user_info.first_name = investor.first_name
+    if not current_user.user_info.last_name:
+        current_user.user_info.last_name = investor.last_name
+    if not current_user.user_info.username:
+        current_user.user_info.set_username()
+    if not current_user.user_info.is_complete:
+        current_user.user_info.is_complete = True
 
     investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
     if not investor_point_origin:

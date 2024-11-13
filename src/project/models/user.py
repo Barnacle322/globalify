@@ -159,6 +159,29 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
+    def set_username(self):
+        base_username = slugify(f"{self.first_name} {self.last_name}")
+
+        base_username = re.sub(r"[^a-zA-Z0-9]", "", base_username)[:16]  # Trim to ensure space for 4 digits
+
+        base_username = f"{base_username}{uuid.uuid4().hex[:4]}"
+
+        if len(base_username) > 20:
+            base_username = base_username[:20]
+
+        existing_username = db.session.scalar(db.select(UserInfo).where(UserInfo.username == base_username))
+
+        if existing_username:
+            base_username = f"{base_username[:16]}{uuid.uuid4().hex[:4]}"
+        self.username = base_username
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            self.username = f"{base_username[:16]}{uuid.uuid4().hex[:4]}"
+            db.session.commit()
+
     @validates("linkedin_url")
     def validate_linkedin(self, key, linkedin):
         if not linkedin:
@@ -601,7 +624,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
             )
 
             if is_public is not None:
-                search_builder = search_builder.filter_by_public(is_public)
+                search_builder = search_builder.filter_by_boolean("is_public", is_public)
 
             search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
             results = search_builder.search()

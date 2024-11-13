@@ -32,6 +32,7 @@
                     required
                     v-model="data.lastName"
                 />
+                <span v-if="errors.lastName" class="text-sm text-red-500" v-text="errors.lastName"></span>
             </div>
 
             <div class="col-span-full">

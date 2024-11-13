@@ -61,8 +61,10 @@ class SearchBuilder:
             self.filters.append(f"min_investment:<={max_investment}")
         return self
 
-    def filter_by_public(self, is_public: bool):
-        self.filters.append(f"is_public:={str(is_public).lower()}")
+    def filter_by_boolean(self, field: str, value: bool):
+        if field in ["is_public", "is_approved"]:
+            filter_value = str(value).lower()
+            self.filters.append(f"{field}:{filter_value}")
         return self
 
     def sort_by(self, sort_by: str | None, sort_desc: bool | None):

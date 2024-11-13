@@ -38,7 +38,7 @@ def index():
     base_query = db.select(User, UserInfo).join(UserInfo, User.id == UserInfo.user_id)
 
     if search_string:
-        base_query = base_query.filter(
+        base_query = base_query.where(
             or_(UserInfo.first_name.ilike(f"%{search_string}%"), UserInfo.last_name.ilike(f"%{search_string}%"))
         )
 

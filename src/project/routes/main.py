@@ -445,7 +445,11 @@ def search():
         per_page=9,
         countries=countries,
         is_public=True,
+        is_approved=True,
     )
+
+    print("\n\n\n\n\n\n\n\n\n\n\n")
+    print(result)
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 

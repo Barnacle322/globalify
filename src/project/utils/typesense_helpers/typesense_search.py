@@ -65,6 +65,10 @@ class SearchBuilder:
         self.filters.append(f"is_public:={str(is_public).lower()}")
         return self
 
+    def filter_approved(self, is_approved: bool):
+        self.filters.append(f"is_approved:={str(is_approved).lower()}")
+        return self
+
     def sort_by(self, sort_by: str | None, sort_desc: bool | None):
         if sort_by:
             if sort_desc:

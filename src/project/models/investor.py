@@ -266,7 +266,8 @@ class InvestorBase(db.Model):
     min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     location: Mapped[str | None] = mapped_column(String, nullable=True)
-    is_public = mapped_column(Boolean, nullable=False, default=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
 
 class Investor(InvestorBase):
@@ -447,6 +448,7 @@ class Investor(InvestorBase):
         per_page: int = 12,
         page: int = 1,
         is_public: bool | None = None,
+        is_approved: bool | None = None,
     ):
         try:
             search_builder = (
@@ -458,6 +460,11 @@ class Investor(InvestorBase):
                 .filter_by("industries", industries, exclusivity=industries_exclusive)
                 .filter_by("countries", countries, exclusivity=False)
             )
+
+            if is_approved is not None:
+                print("\n\n\n\n\n\n\n\n\n\n\n")
+                print(is_approved)
+                search_builder = search_builder.filter_approved(is_approved)
 
             if is_public is not None:
                 search_builder = search_builder.filter_by_public(is_public)
@@ -1004,6 +1011,8 @@ class Investor(InvestorBase):
             ]
         if self.is_public:
             investor_object["is_public"] = self.is_public
+        if self.is_approved:
+            investor_object["is_approved"] = self.is_approved
 
         data = [investor_object]
 
@@ -1052,6 +1061,7 @@ class Investor(InvestorBase):
                     {"name": "industries", "type": "string[]", "facet": True, "optional": True},
                     {"name": "notable_investments", "type": "string[]", "optional": True},
                     {"name": "is_public", "type": "bool", "optional": True},
+                    {"name": "is_approved", "type": "bool", "optional": True},
                     {
                         "name": "embedding",
                         "type": "float[]",
@@ -1117,6 +1127,8 @@ class Investor(InvestorBase):
                     ]
                 if investor.is_public:
                     investor_object["is_public"] = investor.is_public
+                if investor.is_approved:
+                    investor_object["is_approved"] = investor.is_approved
                 data.append(investor_object)
 
             result = upsert_documents("investors", data)

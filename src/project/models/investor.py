@@ -462,13 +462,9 @@ class Investor(InvestorBase):
             )
 
             if is_approved is not None:
-                print("\n\n\n\n\n\n\n\n")
-                print("is_approved")
                 search_builder = search_builder.filter_by_boolean("is_approved", is_approved)
 
             if is_public is not None:
-                print("\n\n\n\n\n\n\n\n")
-                print("is_public")
                 search_builder = search_builder.filter_by_boolean("is_public", is_public)
 
             search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
@@ -1127,9 +1123,9 @@ class Investor(InvestorBase):
                     investor_object["notable_investments"] = [
                         notable_investment.name for notable_investment in investor.notable_investments
                     ]
-                if investor.is_public:
+                if investor.is_public is not None:
                     investor_object["is_public"] = investor.is_public
-                if investor.is_approved:
+                if investor.is_approved is not None:
                     investor_object["is_approved"] = investor.is_approved
                 data.append(investor_object)
 

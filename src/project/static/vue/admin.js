@@ -103,7 +103,7 @@ createApp({
                 return;
             }
 
-            const response = await fetch(`/admin/investor/${id}/delete`, {
+            const response = await fetch(`/admin/investors/${id}/delete`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -114,11 +114,29 @@ createApp({
                 window.location.href = response.url;
             }
         },
+        async approveInvestor(investorId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            try {
+                const response = await fetch(`/admin/investors/${investorId}/approve`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
         async undoInvestorData(investorId) {
             const csrfToken = document.getElementById("csrf_token").value;
 
             try {
-                const response = await fetch(`/admin/investor/${investorId}/undo`, {
+                const response = await fetch(`/admin/investors/${investorId}/undo`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -134,7 +152,7 @@ createApp({
         },
         async restoreOriginData(investorId) {
             try {
-                const response = await fetch(`/admin/investor/${investorId}/restore`, {
+                const response = await fetch(`/admin/investors/${investorId}/restore`, {
                     method: "GET",
                 });
                 if (response.redirected) {
@@ -218,7 +236,7 @@ createApp({
                 return;
             }
 
-            const response = await fetch(`/admin/investment-firm/${id}/delete`, {
+            const response = await fetch(`/admin/investment-firms/${id}/delete`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -286,7 +304,7 @@ createApp({
                 return;
             }
 
-            const response = await fetch(`/admin/company/${id}/delete`, {
+            const response = await fetch(`/admin/companies/${id}/delete`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

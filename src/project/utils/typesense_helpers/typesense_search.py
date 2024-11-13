@@ -64,8 +64,7 @@ class SearchBuilder:
     def filter_by_boolean(self, field: str, value: bool):
         if field in ["is_public", "is_approved"]:
             filter_value = str(value).lower()
-            self.filters.append(f"{field}:={value}")
-            print(f"Added filter: {field}:={filter_value}")
+            self.filters.append(f"{field}:{filter_value}")
         return self
 
     def sort_by(self, sort_by: str | None, sort_desc: bool | None):
@@ -105,10 +104,6 @@ class SearchBuilder:
             self.parameters["exclude_fields"] = "embedding"
         if self.filters:
             self.parameters["filter_by"] = " && ".join(self.filters)
-
-        print("\n\n\n\n\n\n\n\n\n\n\n\n")
-        print(f"Search parameters: {self.parameters}")
-        print(f"Filters applied: {self.filters}")
 
         return client.collections[self.collection].documents.search(self.parameters)
 

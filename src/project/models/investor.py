@@ -462,12 +462,14 @@ class Investor(InvestorBase):
             )
 
             if is_approved is not None:
-                print("\n\n\n\n\n\n\n\n\n\n\n")
-                print(is_approved)
-                search_builder = search_builder.filter_approved(is_approved)
+                print("\n\n\n\n\n\n\n\n")
+                print("is_approved")
+                search_builder = search_builder.filter_by_boolean("is_approved", is_approved)
 
             if is_public is not None:
-                search_builder = search_builder.filter_by_public(is_public)
+                print("\n\n\n\n\n\n\n\n")
+                print("is_public")
+                search_builder = search_builder.filter_by_boolean("is_public", is_public)
 
             search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
             results = search_builder.search()
@@ -1399,7 +1401,7 @@ class InvestmentFirm(db.Model):
             )
 
             if is_public is not None:
-                search_builder = search_builder.filter_by_public(is_public)
+                search_builder = search_builder.filter_by_boolean("is_public", is_public)
 
             search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
             results = search_builder.search()

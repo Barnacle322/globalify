@@ -586,7 +586,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
             )
 
             if is_public is not None:
-                search_builder = search_builder.filter_by_public(is_public)
+                search_builder = search_builder.filter_by_boolean("is_public", is_public)
 
             search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
             results = search_builder.search()

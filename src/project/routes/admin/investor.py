@@ -65,6 +65,49 @@ def index():
     )
 
 
+@investor.get("/approve")
+@admin_only
+def approve_investors():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    search_string = request.args.get("search", "")
+    result = Investor.get_search(
+        query_string=search_string,
+        query_by=[
+            "location",
+            "country",
+            "rounds",
+            "industries",
+            "notable_investments",
+            "name",
+            "firm_name",
+            "position",
+        ],
+        page=request.args.get("page", 1, type=int),
+        per_page=9,
+        is_approved=False,
+    )
+
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    print(result)
+
+    investors = result.get("investors")
+    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+
+    return render_template(
+        "admin/approve_investors.html",
+        investors=investors,
+        query=search_string,
+        pagination=pagination,
+        total_pages=len(pagination.get("pages", [])),
+        status_type=status_type,
+        msg=msg,
+    )
+
+
 @investor.get("/<int:id>")
 @admin_only
 def update_investor_view(id):

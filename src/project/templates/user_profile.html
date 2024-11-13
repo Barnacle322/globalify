@@ -6,7 +6,7 @@
 
 <main class="flex w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
     <!-- prettier-ignore -->
-    {% if not user_info.twitter_public and not user_info.linkedin_public and not user_info.instagram_public and not user_info.email_public and not user_info.picture_url and not companies %}
+    {% if not user_info.twitter_public and not user_info.linkedin_public and not user_info.instagram_public and not user_info.email_public and not companies %}
     <div class="mt-32 flex w-full flex-col items-center justify-center gap-1">
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -386,4 +386,3 @@
     {% endif %}
 </main>
 {% endblock %}
-

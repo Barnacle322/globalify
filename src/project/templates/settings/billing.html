@@ -5,7 +5,7 @@
 {% block content %}
 <div class="relative w-full">
     <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
-        <div class="flex h-full gap-2 px-4 text-sm">
+        <div class="flex h-full w-fit gap-2 px-4 text-sm">
             <a
                 href="/settings/general"
                 class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
@@ -110,17 +110,17 @@
             </a>
         </div>
     </nav>
-    <main class="mx-auto mt-10 flex w-full flex-col gap-5 p-4">
-        <div class="grid w-full grid-cols-1 gap-x-8 gap-y-10 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
-            <div>
-                <h2 class="font-medium leading-7">Manage billing</h2>
+    <main class="flex flex-col gap-6 p-4 sm:p-6">
+        <div class="flex flex-col gap-6 sm:grid sm:grid-cols-6">
+            <div class="top-36 col-span-2 h-fit sm:sticky">
+                <h2 class="text-2xl font-bold">Manage billing</h2>
                 <p class="mt-1 leading-6 text-slate-700">
                     Manage your billing details with
                     <a href="https://stripe.com" target="_blank" class="underline">Stripe</a>.
                 </p>
                 <img src="/static/elements/stripe_logo.svg" alt="Stripe logo" class="mt-8 w-36" />
             </div>
-            <form class="md:col-span-2" action="/payment/create-portal-session" method="POST">
+            <form class="col-span-4" action="/payment/create-portal-session" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <input type="hidden" name="return_url" value="settings/billing" />
                 <button
@@ -148,12 +148,12 @@
                 </button>
             </form>
         </div>
-        <div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-            <div>
-                <h2 class="font-medium leading-7">Invoice history</h2>
+        <div class="flex flex-col gap-6 sm:grid sm:grid-cols-6">
+            <div class="top-36 col-span-2 h-fit sm:sticky">
+                <h2 class="text-2xl font-bold">Invoice history</h2>
                 <p class="mt-1 leading-6 text-slate-700">See your invoice history here.</p>
             </div>
-            <div class="md:col-span-2">
+            <div class="col-span-4 w-full">
                 <div class="mb-2 flex justify-between rounded-xl">
                     <b>Date</b>
                     <b>Amount Due</b>

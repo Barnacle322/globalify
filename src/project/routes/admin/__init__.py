@@ -26,11 +26,13 @@ from ...utils.errors.error_messages import (
 from .company import company as company_blueprint
 from .investment_firm import investment_firm as investment_firm_blueprint
 from .investor import investor as investor_blueprint
+from .user import user as user_blueprint
 
 admin = Blueprint("admin", __name__)
 admin.register_blueprint(investor_blueprint, url_prefix="/investors")
 admin.register_blueprint(investment_firm_blueprint, url_prefix="/investment-firms")
 admin.register_blueprint(company_blueprint, url_prefix="/companies")
+admin.register_blueprint(user_blueprint, url_prefix="/users")
 
 
 @admin.get("/users/search/<search_input>")

@@ -50,6 +50,7 @@ createApp({
                 document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
             const is_public = document.getElementById("is_public");
+            const is_approved = document.getElementById("is_approved");
 
             let data = {
                 first_name: first_name,
@@ -76,6 +77,9 @@ createApp({
 
             if (is_public) {
                 data.is_public = is_public.checked;
+            }
+            if (is_approved) {
+                data.is_approved = is_approved.checked;
             }
 
             let dataString = JSON.stringify(data);

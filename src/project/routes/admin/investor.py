@@ -269,6 +269,7 @@ def update_investor(id):
         NotableInvestment.get_by_id_list(form_data.get("notable_investments", investor.notable_investments) or [])
     )
     investor.is_public = form_data.get("is_public", investor.is_public)
+    investor.is_approved = form_data.get("is_approved", investor.is_approved)
 
     try:
         db.session.commit()

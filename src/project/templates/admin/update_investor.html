@@ -555,17 +555,30 @@
                                 >You can make your investor profile visible in the search results.
                             </span>
                         </div>
-                        <label class="inline-flex cursor-pointer items-center pt-2">
-                            {% if investor.is_public %}
-                            <input id="is_public" type="checkbox" value="True" class="peer sr-only" checked />
-                            {% else %}
-                            <input type="checkbox" id="is_public" value="True" class="peer sr-only" />
-                            {% endif %}
-                            <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
-                            ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Show investor in search</span>
-                        </label>
+                        <div class="flex flex-col gap-2">
+                            <label class="inline-flex cursor-pointer items-center pt-2">
+                                {% if investor.is_public %}
+                                <input id="is_public" type="checkbox" value="True" class="peer sr-only" checked />
+                                {% else %}
+                                <input type="checkbox" id="is_public" value="True" class="peer sr-only" />
+                                {% endif %}
+                                <div
+                                    class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                ></div>
+                                <span class="ms-3 text-sm font-medium text-gray-900">Show investor in search</span>
+                            </label>
+                            <label class="inline-flex cursor-pointer items-center pt-2">
+                                {% if investor.is_approved %}
+                                <input id="is_approved" type="checkbox" value="True" class="peer sr-only" checked />
+                                {% else %}
+                                <input type="checkbox" id="is_approved" value="True" class="peer sr-only" />
+                                {% endif %}
+                                <div
+                                    class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                ></div>
+                                <span class="ms-3 text-sm font-medium text-gray-900">Approve an investor</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <button

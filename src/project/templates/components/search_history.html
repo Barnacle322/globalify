@@ -1,0 +1,9 @@
+{% macro render(user) %}
+<template id="search-history-template">
+    <div class="">
+        <ul>
+            <li v-for="history in histories" :key="history.id" v-text="history.query"></li>
+        </ul>
+    </div>
+</template>
+{% endmacro %}

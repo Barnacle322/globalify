@@ -907,3 +907,18 @@ const FullCompany = defineComponent({
         };
     },
 });
+
+const SearchHistory = defineComponent({
+    template: "#search-history-template",
+    props: {
+        histories:
+            {
+                type: Array,
+                default: () => [],
+            },
+    },
+    mounted() {
+        console.log("Initial histories:", this.histories);
+    },
+
+});

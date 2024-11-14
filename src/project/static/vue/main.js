@@ -7,6 +7,7 @@ createApp({
         FullInvestor,
         FullInvestmentFirm,
         FullCompany,
+        SearchHistory
     },
     watch: {
         asideMinified(value) {
@@ -285,7 +286,7 @@ createApp({
                 "descending",
                 "page",
                 "min_investment",
-                "max_investment",
+                "max_investment"
             ]);
 
             this.handleLists(roundValues, "round", paramsArray);
@@ -527,17 +528,33 @@ createApp({
                     window.location.href = response.url;
                 } else if (!response.ok) {
                     console.error("An error occurred while marking the notification as read.");
+                } else {
+                    const data = await response.json();
+                    this.searchHistoryData = data;
                 }
             } catch (error) {
                 console.error(error);
             }
         },
+        handleSearchHistory(type) {
+            this.getSearchHistory(type).then(() => {
+                this.isSearchHistoryVisible = !this.isSearchHistoryVisible;
+            }).catch(error => {
+                console.error("An error occurred in handleSearchHistory:", error);
+            });
+        }
     },
+
+
     data() {
         return {
             asideExpanded: false,
             asideMinified: false,
             openAdvanced: false,
+
+            isSearchHistoryVisible: false,
+            searchHistoryData: [],
+
             selectedInvestorSlug: null,
             selectedInvestmentFirmSlug: null,
             selectedCompanySlug: null,
@@ -552,10 +569,10 @@ createApp({
                 { menu: "country-options-menu", button: "country-options" },
                 { menu: "sorting-options-menu", button: "sorting-options" },
                 { menu: "filter-options-menu", button: "filter-options" },
-                { menu: "round-options-menu", button: "round-options" },
+                { menu: "round-options-menu", button: "round-options" }
             ],
             showClasses: ["transform", "opacity-100", "scale-100"],
-            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
+            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"]
         };
-    },
+    }
 }).mount("#app");

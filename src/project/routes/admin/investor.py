@@ -189,7 +189,7 @@ def update_investor(id):
     if website:
         website = add_https_prefix(website)
         try:
-            investor.website_url = website
+            investor.website = website
         except Exception as e:
             status = Status(StatusType.ERROR, str(e)).get_status()
             return redirect(url_for("admin.company.update_company_view", id=id, _external=False, **status))

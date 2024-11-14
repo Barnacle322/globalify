@@ -23,6 +23,7 @@ from ...utils.errors.error_messages import (
     INVESTOR_BACKUP_NOT_FOUND,
     INVESTOR_NOT_FOUND,
 )
+from ...utils.scraper import add_https_prefix
 
 investor = Blueprint("investor", __name__)
 
@@ -184,9 +185,20 @@ def update_investor(id):
     elif not slug:
         investor.set_slug()
 
+    website = form_data.get("website", investor.website) or None
+    if website:
+        website = add_https_prefix(website)
+        try:
+            investor.website_url = website
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("admin.company.update_company_view", id=id, _external=False, **status))
+    else:
+        investor.website = None
+
     investor.firm_name = form_data.get("firm_name", investor.firm_name) or None
     investor.position = form_data.get("position", investor.position) or None
-    investor.website = form_data.get("website", investor.website) or None
+
     investor.linkedin = form_data.get("linkedin", investor.linkedin) or None
     investor.twitter = form_data.get("twitter", investor.twitter) or None
     investor.email = form_data.get("email", investor.email) or None

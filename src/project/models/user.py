@@ -89,12 +89,12 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    last_login: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, init=False)
     created_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), init=False
     )
-    last_login: Mapped[datetime.datetime | None] = mapped_column(DateTime, default=None)
+    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="f")
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="f")
 
     @staticmethod
     def delete_by_id(id: int) -> None:
@@ -159,28 +159,26 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
-    def set_username(self):
-        base_username = slugify(f"{self.first_name} {self.last_name}")
+    def set_username(self) -> None:
+        def format_username(first_name: str | None, last_name: str | None) -> str:
+            base_username = slugify(f"{first_name}{last_name}")
+            base_username = re.sub(r"[^a-zA-Z0-9]", "", base_username)[:16]
+            base_username = f"{base_username}{uuid.uuid4().hex[:4]}"
+            return base_username
 
-        base_username = re.sub(r"[^a-zA-Z0-9]", "", base_username)[:16]  # Trim to ensure space for 4 digits
+        counter = 0
+        while True and counter < 10:
+            counter += 1
+            base_username = format_username(self.first_name, self.last_name)
+            existing_username = UserInfo.get_by_username(base_username)
 
-        base_username = f"{base_username}{uuid.uuid4().hex[:4]}"
-
-        if len(base_username) > 20:
-            base_username = base_username[:20]
-
-        existing_username = db.session.scalar(db.select(UserInfo).where(UserInfo.username == base_username))
-
-        if existing_username:
-            base_username = f"{base_username[:16]}{uuid.uuid4().hex[:4]}"
-        self.username = base_username
-
-        try:
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            self.username = f"{base_username[:16]}{uuid.uuid4().hex[:4]}"
-            db.session.commit()
+            if not existing_username:
+                self.username = base_username
+                try:
+                    db.session.commit()
+                    break
+                except IntegrityError:
+                    db.session.rollback()
 
     @validates("linkedin_url")
     def validate_linkedin(self, key, linkedin):
@@ -494,7 +492,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True, init=False)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
-    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="t", default=True)
 
     @property
     def coordinates(self):

@@ -49,6 +49,7 @@ from ..utils.typesense_helpers.typesense_search import (
     create_synonyms,
     delete_documents,
     delete_schema,
+    update_collection,
     upsert_documents,
 )
 from .helpers import Industry, Round
@@ -266,8 +267,6 @@ class InvestorBase(db.Model):
     min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     location: Mapped[str | None] = mapped_column(String, nullable=True)
-    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
 
 class Investor(InvestorBase):
@@ -291,6 +290,8 @@ class Investor(InvestorBase):
     bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="t")
+    is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="f")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1032,6 +1033,16 @@ class Investor(InvestorBase):
 
     def delete_data(self):
         delete_documents("investors", str(self.id))
+
+    @staticmethod
+    def update_typesense_collection():
+        update_schema = {
+            "fields": [
+                {"name": "is_approved", "drop": True},
+                {"name": "is_approved", "type": "bool", "optional": True},
+            ]
+        }
+        update_collection("investors", update_schema)
 
     @staticmethod
     def sync_search_index(recreate: bool = False):

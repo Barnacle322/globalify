@@ -38,7 +38,7 @@ admin.register_blueprint(user_blueprint, url_prefix="/users")
 @admin.get("/users/search/<search_input>")
 @admin_only
 def search_user(search_input):
-    users = db.session.execute(select(User).where(User.email.contains(search_input))).scalars().all()
+    users = db.session.scalars(select(User).where(User.email.contains(search_input))).unique().all()
 
     return jsonify(users=[user.email for user in users])
 
@@ -102,7 +102,7 @@ def edit_claim_request(id):
     elif claim_status == RequestStatus.APPROVED.value:
         claim_request.status = RequestStatus.APPROVED
         claim_request.approved_at = datetime.now(UTC)
-        claim_request.approved_by = current_user.user_info.username
+        claim_request.approved_by = current_user.id
         investor.user = claim_request.user
 
         if not claiming_user.user_info.first_name:

@@ -150,6 +150,15 @@ def upsert_documents(schema_name: str, data: list[dict]) -> list[dict[str, Any]]
         raise ValueError("Schema name and file path are required")
 
 
+def update_collection(schema_name: str, update_schema: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
+    if schema_name and update_schema:
+        update_return = client.collections[schema_name].update(update_schema)
+        print(f"Updated {schema_name} schema")
+        return update_return
+    else:
+        raise ValueError("Schema name and update schema are required")
+
+
 def delete_documents(schema_name: str, document_id: str) -> None:
     if schema_name and document_id:
         print(f"Deleting document from {schema_name} schema")

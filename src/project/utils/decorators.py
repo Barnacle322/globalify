@@ -10,7 +10,7 @@ def admin_only(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
         if not isinstance(current_user, User):
-            return redirect(url_for("main.login"))
+            return redirect(url_for("auth.login"))
         if not current_user.is_authenticated:
             return redirect("/login", code=302)
         if not current_user.is_admin:
@@ -25,7 +25,7 @@ def check_user_info_complete(func):
     def decorated_function(*args, **kwargs):
         next_url = request.args.get("next")
         if not isinstance(current_user, User):
-            return redirect(url_for("main.login"))
+            return redirect(url_for("auth.login"))
         if not current_user.is_authenticated:
             return redirect(url_for("auth.login"))
         elif not current_user.user_info.is_complete:
@@ -40,7 +40,7 @@ def check_verification(func):
     def decorated_function(*args, **kwargs):
         next_url = request.args.get("next")
         if not isinstance(current_user, User):
-            return redirect(url_for("main.login"))
+            return redirect(url_for("auth.login"))
         if not current_user.is_authenticated:
             return redirect(url_for("auth.login"))
         elif not current_user.is_verified:

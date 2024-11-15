@@ -85,6 +85,8 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
     if user.oauth_provider != oauth_provider:
         raise Exception(OAUTH_MISMATCHED_PROVIDER)
 
+    User.update_last_login(user.id)
+
     return user
 
 

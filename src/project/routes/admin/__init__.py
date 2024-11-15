@@ -26,17 +26,19 @@ from ...utils.errors.error_messages import (
 from .company import company as company_blueprint
 from .investment_firm import investment_firm as investment_firm_blueprint
 from .investor import investor as investor_blueprint
+from .user import user as user_blueprint
 
 admin = Blueprint("admin", __name__)
 admin.register_blueprint(investor_blueprint, url_prefix="/investors")
 admin.register_blueprint(investment_firm_blueprint, url_prefix="/investment-firms")
 admin.register_blueprint(company_blueprint, url_prefix="/companies")
+admin.register_blueprint(user_blueprint, url_prefix="/users")
 
 
 @admin.get("/users/search/<search_input>")
 @admin_only
 def search_user(search_input):
-    users = db.session.execute(select(User).where(User.email.contains(search_input))).scalars().all()
+    users = db.session.scalars(select(User).where(User.email.contains(search_input))).unique().all()
 
     return jsonify(users=[user.email for user in users])
 
@@ -72,10 +74,18 @@ def claim_requests_view():
 @admin.post("/claim-request/<int:id>")
 @admin_only
 def edit_claim_request(id):
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+
     claim_request = ClaimRequest.get_by_id(id)
 
     if not claim_request:
         status = Status(StatusType.ERROR, NO_CLAIM_REQUEST).get_status()
+        return redirect(url_for("admin.claim_requests_view", _external=True, **status))
+
+    claiming_user = User.get_by_id(claim_request.user_id)
+    if not claiming_user:
+        status = Status(StatusType.ERROR, "User not found").get_status()
         return redirect(url_for("admin.claim_requests_view", _external=True, **status))
 
     investor = Investor.get_by_id(claim_request.investor_id)
@@ -92,8 +102,18 @@ def edit_claim_request(id):
     elif claim_status == RequestStatus.APPROVED.value:
         claim_request.status = RequestStatus.APPROVED
         claim_request.approved_at = datetime.now(UTC)
-        claim_request.approved_by = current_user.user_info.username
+        claim_request.approved_by = current_user.id
         investor.user = claim_request.user
+
+        if not claiming_user.user_info.first_name:
+            claiming_user.user_info.first_name = investor.first_name
+        if not claiming_user.user_info.last_name:
+            claiming_user.user_info.last_name = investor.last_name
+        if not claiming_user.user_info.username:
+            claiming_user.user_info.set_username()
+        if not claiming_user.user_info.is_complete:
+            claiming_user.user_info.is_complete = True
+
     elif claim_status == RequestStatus.REJECTED.value:
         claim_request.status = RequestStatus.REJECTED
         investor.user = None

@@ -108,6 +108,17 @@ def update_investment_firm(id):
                 url_for("admin.investment_firm.update_investment_firm_view", id=id, _external=True, **status)
             )
 
+    website_url = form_data.get("website", investment_firm.website) or None
+    if website_url:
+        website_url = add_https_prefix(website_url)
+        try:
+            investment_firm.website = website_url
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("admin.company.update_company_view", id=id, _external=False, **status))
+    else:
+        investment_firm.website = None
+
     slug = form_data.get("slug") or None
     if slug and slug != investment_firm.slug:
         investment_firm.slug = slug
@@ -116,7 +127,6 @@ def update_investment_firm(id):
         investment_firm.set_slug()
 
     investment_firm.about = form_data.get("about", investment_firm.about) or None
-    investment_firm.website = form_data.get("website", investment_firm.website) or None
     investment_firm.email = email
     investment_firm.phone_number = form_data.get("phone_number", investment_firm.phone_number) or None
     investment_firm.n_investments = int(form_data.get("n_investments", investment_firm.n_investments) or 0)

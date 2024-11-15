@@ -1,15 +1,14 @@
 {% macro render(user) %}
-    <template id="search-history-template">
-         <div class="absolute top-full w-full  bg-white border border-gray-300 rounded-b-lg mt-1 z-50 rounded-md">
-            <ul class="max-h-48">
-                <li
-                    class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                    v-for="history in histories"
-                    :key="history.id"
-                    v-text="history.query">
-
-                </li>
-            </ul>
-        </div>
-    </template>
+<template id="search-history-template">
+    <div class="absolute top-full z-50 mt-1 w-full rounded-md rounded-b-lg border border-gray-300 bg-white">
+        <ul class="max-h-48">
+            <li
+                class="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                v-for="history in histories"
+                :key="history.id"
+                v-text="history.query"
+            ></li>
+        </ul>
+    </div>
+</template>
 {% endmacro %}

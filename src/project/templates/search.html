@@ -201,7 +201,7 @@
                         <transition>
 
                             <search-history
-                                v-if="isSearchHistoryVisible"
+                                v-if="isSearchHistoryVisible && searchHistoryData.length > 0"
                                 :histories="searchHistoryData"
                             ></search-history>
 

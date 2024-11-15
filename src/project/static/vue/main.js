@@ -537,8 +537,8 @@ createApp({
             }
         },
         handleSearchHistory(type) {
+            this.isSearchHistoryVisible = !this.isSearchHistoryVisible;
             this.getSearchHistory(type).then(() => {
-                this.isSearchHistoryVisible = !this.isSearchHistoryVisible;
             }).catch(error => {
                 console.error("An error occurred in handleSearchHistory:", error);
             });

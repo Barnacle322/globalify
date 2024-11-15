@@ -38,6 +38,6 @@ class SearchHistory(MappedAsDataclass, db.Model):
             db.select(SearchHistory).where(
                 SearchHistory.user_id == user.id,
                 SearchHistory.type == search_type
-            )).all()
+            ).order_by(SearchHistory.created_at.desc()).limit(5)).all()
         return search_history
 

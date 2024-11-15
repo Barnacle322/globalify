@@ -147,7 +147,7 @@
                                     </svg>
                                 </a>
                             </div>
-                            <div class="mx-auto mt-10 flex max-w-3xl gap-2 rounded-full bg-white py-2 pr-3 relative">
+                            <div class="relative mx-auto mt-10 flex max-w-3xl gap-2 rounded-full bg-white py-2 pr-3">
                                 <input
                                     type="search"
                                     name="search"
@@ -199,14 +199,12 @@
                                         </clipPath>
                                     </svg>
                                 </a>
-                                                        <transition>
-
-                            <search-history
-                                v-if="isSearchHistoryVisible && searchHistoryData.length > 0"
-                                :histories="searchHistoryData"
-                            ></search-history>
-
-                        </transition>
+                                <transition>
+                                    <search-history
+                                        v-if="isSearchHistoryVisible && searchHistoryData.length > 0"
+                                        :histories="searchHistoryData"
+                                    ></search-history>
+                                </transition>
                             </div>
                             <button
                                 id="open-advanced-button"
@@ -291,7 +289,7 @@
                                             type="text"
                                             id="search-countries"
                                             placeholder="Search countries..."
-                                            class="hover:bg-gray-100 hover:text-gray-900 w-full border-b border-slate-200"
+                                            class="w-full border-b border-slate-200 hover:bg-gray-100 hover:text-gray-900"
                                             v-model="selectedCountry"
                                             @input="getCountryList(selectedCountry)"
                                         />
@@ -416,7 +414,7 @@
                                             type="text"
                                             id="search-industries"
                                             placeholder="Search industries..."
-                                            class="hover:bg-gray-100 hover:text-gray-900 w-full border-b border-slate-200"
+                                            class="w-full border-b border-slate-200 hover:bg-gray-100 hover:text-gray-900"
                                             v-model="selectedIndustry"
                                             @input="getIndustryList(selectedIndustry)"
                                         />

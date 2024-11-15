@@ -1,7 +1,6 @@
 {% macro render(user) %}
 <template id="search-history-template">
-    <div class="absolute top-full z-50 mt-1 w-full rounded-md rounded-b-lg border border-gray-300 bg-white">
-        <ul class="max-h-48">
+        <ul class="z-50 w-full bg-white pb-2">
             <li
                 class="cursor-pointer px-4 py-2 hover:bg-gray-100"
                 v-for="history in histories"
@@ -9,6 +8,5 @@
                 v-text="history.query"
             ></li>
         </ul>
-    </div>
 </template>
 {% endmacro %}

@@ -1426,6 +1426,9 @@ select {
   margin-top: 2rem;
   margin-bottom: 2rem;
 }
+.-mb-3 {
+  margin-bottom: -0.75rem;
+}
 .mb-10 {
   margin-bottom: 2.5rem;
 }
@@ -2884,9 +2887,6 @@ select {
 }
 .text-center {
   text-align: center;
-}
-.text-justify {
-  text-align: justify;
 }
 .text-start {
   text-align: start;
@@ -4538,6 +4538,10 @@ textarea {
     margin-bottom: 3.5rem;
   }
 
+  .sm\:ml-5 {
+    margin-left: 1.25rem;
+  }
+
   .sm\:mt-12 {
     margin-top: 3rem;
   }
@@ -4552,6 +4556,10 @@ textarea {
 
   .sm\:mt-3 {
     margin-top: 0.75rem;
+  }
+
+  .sm\:mt-7 {
+    margin-top: 1.75rem;
   }
 
   .sm\:block {
@@ -4818,10 +4826,6 @@ textarea {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .md\:grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .md\:flex-row {
     flex-direction: row;
   }
@@ -4973,6 +4977,11 @@ textarea {
   .lg\:px-4 {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+
+  .lg\:px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 
   .lg\:px-8 {

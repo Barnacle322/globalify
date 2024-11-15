@@ -1,10 +1,14 @@
+import base64
 import os
 import time
 from datetime import timedelta
+from email.mime import base
 
 import jwt
 import sentry_sdk
 from flask import Flask
+from itsdangerous import base64_decode, base64_encode
+from jwt.exceptions import InvalidKeyError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
@@ -27,6 +31,11 @@ from .routes.settings import settings
 
 def get_apple_client_secret():
     try:
+        private_key = os.getenv("_APPLE_OAUTH2_PRIVATE_KEY", "")
+        if not private_key:
+            raise ValueError("Private key not found in environment variables")
+        private_key = base64_decode(private_key).decode("utf-8")
+
         token = jwt.encode(
             headers={"kid": "T86FS463PW"},
             payload={
@@ -36,9 +45,12 @@ def get_apple_client_secret():
                 "aud": "https://appleid.apple.com",
                 "sub": os.getenv("_APPLE_OAUTH2_CLIENT_ID"),
             },
-            key=os.getenv("_APPLE_OAUTH2_PRIVATE_KEY", ""),
+            key=private_key,
             algorithm="ES256",
         )
+    except InvalidKeyError as e:
+        print(f"Invalid key error: {e}")
+        return
     except Exception as e:
         print(f"An error occurred while generating the token: {e}")
         return

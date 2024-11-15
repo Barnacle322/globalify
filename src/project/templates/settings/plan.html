@@ -9,7 +9,7 @@
 {% block content %}
 <div class="relative w-full">
     <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
-        <div class="flex h-full gap-2 px-4 text-sm">
+        <div class="flex h-full w-fit gap-2 px-4 text-sm">
             <a
                 href="/settings/general"
                 class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
@@ -114,10 +114,10 @@
             </a>
         </div>
     </nav>
-    <main class="mx-auto mt-10 flex w-full flex-col gap-5 p-4">
-        <div class="grid w-full grid-cols-1 gap-x-8 gap-y-10 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
-            <div>
-                <h2 class="font-medium leading-7">Your subscription</h2>
+    <main class="p-4 sm:p-6">
+        <div class="flex flex-col gap-6 sm:grid sm:grid-cols-6">
+            <div class="top-36 col-span-2 h-fit sm:sticky">
+                <h2 class="text-2xl font-bold">Your subscription</h2>
                 <p class="mt-1 leading-6 text-slate-700">Manage your subscription and billing information</p>
                 {% if status_type %} {% if status_type == '3' %}
                 <div class="mt-2 rounded-xl text-sm text-red-500">{{ msg }}</div>
@@ -128,7 +128,7 @@
                 {% endif %} {% endif %}
             </div>
             <div
-                class="flex max-w-lg flex-col justify-between rounded-xl bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-300 p-4 md:col-span-2"
+                class="col-span-4 flex max-w-lg flex-col justify-between rounded-xl bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-300 p-4"
             >
                 <div class="flex justify-between">
                     <div class="flex flex-col">

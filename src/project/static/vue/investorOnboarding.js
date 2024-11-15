@@ -92,7 +92,8 @@ const GeneralInfo = defineComponent({
     methods: {
         nextPage() {
             this.validateFirstName();
-            if (!this.errors.firstName) {
+            this.validateLastName();
+            if (!this.errors.firstName && !this.errors.lastName) {
                 this.save();
                 this.$emit("change-page", 1);
             }
@@ -100,12 +101,18 @@ const GeneralInfo = defineComponent({
         previousPage() {
             this.$emit("change-page", -2);
         },
-        validateFirstName() {
-            if (this.data.firstName.trim() === "") {
-                this.errors.firstName = "The first name field is required!";
+        validateField(fieldName, errorMessage) {
+            if (this.data[fieldName].trim() === "") {
+                this.errors[fieldName] = errorMessage;
             } else {
-                this.errors.firstName = null;
+                this.errors[fieldName] = null;
             }
+        },
+        validateFirstName() {
+            this.validateField("firstName", "The first name field is required!");
+        },
+        validateLastName() {
+            this.validateField("lastName", "The last name field is required!");
         },
         save() {
             localStorage.setItem("generalInfo", JSON.stringify(this.data));
@@ -123,6 +130,7 @@ const GeneralInfo = defineComponent({
             },
             errors: {
                 firstName: null,
+                lastName: null,
             },
         };
     },
@@ -447,4 +455,3 @@ createApp({
         };
     },
 }).mount("#app");
-

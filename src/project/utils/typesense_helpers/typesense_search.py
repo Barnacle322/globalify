@@ -61,8 +61,10 @@ class SearchBuilder:
             self.filters.append(f"min_investment:<={max_investment}")
         return self
 
-    def filter_by_public(self, is_public: bool):
-        self.filters.append(f"is_public:={str(is_public).lower()}")
+    def filter_by_boolean(self, field: str, value: bool):
+        if field in ["is_public", "is_approved"]:
+            filter_value = str(value).lower()
+            self.filters.append(f"{field}:{filter_value}")
         return self
 
     def sort_by(self, sort_by: str | None, sort_desc: bool | None):
@@ -146,6 +148,15 @@ def upsert_documents(schema_name: str, data: list[dict]) -> list[dict[str, Any]]
         return import_return
     else:
         raise ValueError("Schema name and file path are required")
+
+
+def update_collection(schema_name: str, update_schema: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
+    if schema_name and update_schema:
+        update_return = client.collections[schema_name].update(update_schema)
+        print(f"Updated {schema_name} schema")
+        return update_return
+    else:
+        raise ValueError("Schema name and update schema are required")
 
 
 def delete_documents(schema_name: str, document_id: str) -> None:

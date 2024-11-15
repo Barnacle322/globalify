@@ -989,7 +989,6 @@ def edit_investor():
         investor_backup.rounds = selected_rounds
         investor_backup.industries = selected_industries
         investor_backup.notable_investments = selected_notable_investments
-        investor_backup.is_public = is_public
         db.session.add(investor_backup)
 
     try:

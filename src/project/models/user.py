@@ -86,13 +86,18 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     investment_firm_bookmarks: Mapped[list[InvestmentFirmBookmark]] = relationship(
         "InvestmentFirmBookmark", back_populates="user", uselist=True, init=False
     )
+
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     search_histories: Mapped[list[SearchHistory]] = relationship("SearchHistory", back_populates="user",
                                                                  uselist=True, init=False)
-    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    last_login: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, init=False)
+    created_at: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), init=False
+    )
+    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="f")
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="f")
 
     @staticmethod
     def delete_by_id(id: int) -> None:
@@ -115,6 +120,17 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_all() -> Sequence[User]:
         return db.session.scalars(db.select(User)).all()
+
+    @staticmethod
+    def update_last_login(user_id: int) -> None:
+        db.session.execute(
+            update(User)
+            .where(User.id == user_id)
+            .values(
+                last_login=func.now(),
+            )
+        )
+        db.session.commit()
 
 
 class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
@@ -145,6 +161,27 @@ class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
+
+    def set_username(self) -> None:
+        def format_username(first_name: str | None, last_name: str | None) -> str:
+            base_username = slugify(f"{first_name}{last_name}")
+            base_username = re.sub(r"[^a-zA-Z0-9]", "", base_username)[:16]
+            base_username = f"{base_username}{uuid.uuid4().hex[:4]}"
+            return base_username
+
+        counter = 0
+        while True and counter < 10:
+            counter += 1
+            base_username = format_username(self.first_name, self.last_name)
+            existing_username = UserInfo.get_by_username(base_username)
+
+            if not existing_username:
+                self.username = base_username
+                try:
+                    db.session.commit()
+                    break
+                except IntegrityError:
+                    db.session.rollback()
 
     @validates("linkedin_url")
     def validate_linkedin(self, key, linkedin):
@@ -458,7 +495,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True, init=False)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
-    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="t", default=True)
 
     @property
     def coordinates(self):
@@ -588,7 +625,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
             )
 
             if is_public is not None:
-                search_builder = search_builder.filter_by_public(is_public)
+                search_builder = search_builder.filter_by_boolean("is_public", is_public)
 
             search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
             results = search_builder.search()

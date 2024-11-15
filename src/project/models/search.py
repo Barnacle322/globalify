@@ -30,4 +30,14 @@ class SearchHistory(MappedAsDataclass, db.Model):
     user: Mapped["User"] = relationship("User", back_populates="search_histories", init=False)
     query: Mapped[str] = mapped_column(String)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), init=False)
-    type: Mapped[str| None] = mapped_column(SQLEnum(SearchHistoryType), nullable=True)
+    type: Mapped[SearchHistoryType] = mapped_column(SQLEnum(SearchHistoryType), nullable=True)
+
+    @staticmethod
+    def get_search_history(user, search_type):
+        search_history = db.session.scalars(
+            db.select(SearchHistory).where(
+                SearchHistory.user_id == user.id,
+                SearchHistory.type == search_type
+            )).all()
+        return search_history
+

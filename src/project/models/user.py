@@ -90,7 +90,7 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     search_histories: Mapped[list[SearchHistory]] = relationship("SearchHistory", back_populates="user",
-                                                                 default_factory=list)
+                                                                 uselist=True, init=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 

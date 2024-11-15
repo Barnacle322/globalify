@@ -303,10 +303,9 @@ def search_companies():
         is_public=True,
     )
     if search_string != "":
-        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.COMPANY)
+        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.COMPANY.value)
         db.session.add(new_search_history)
         db.session.commit()
-
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
     return render_template(
         "search_companies.html",
@@ -318,7 +317,7 @@ def search_companies():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         bookmark_ids=CompanyBookmark.get_id_list(current_user.id),
-        type="COMPANY"
+        type=SearchHistoryType.COMPANY.value
     )
 
 
@@ -373,7 +372,7 @@ def search_investment_firms():
 
 
     if search_string != "":
-        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR_FIRM)
+        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR_FIRM.value)
         db.session.add(new_search_history)
         db.session.commit()
 
@@ -394,7 +393,7 @@ def search_investment_firms():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        type="INVESTOR_FIRM"
+        type=SearchHistoryType.INVESTOR_FIRM.value
     )
 
 
@@ -463,10 +462,9 @@ def search():
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     if search_string != "":
-        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR)
+        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR.value)
         db.session.add(new_search_history)
         db.session.commit()
-
 
     return render_template(
         "search.html",
@@ -484,7 +482,7 @@ def search():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         user=current_user,
-        type="INVESTOR"
+        type=SearchHistoryType.INVESTOR.value
     )
 
 
@@ -1282,20 +1280,18 @@ def get_company_bookmarks():
 @check_verification
 def get_search_histories():
     search_type = request.args.get("type")
-
-    search_histories = db.session.scalars(
-        db.select(SearchHistory).filter(
-            SearchHistory.user_id == current_user.id,
-            SearchHistory.type == search_type
+    search_histories = []
+    db_search_histories = SearchHistory.get_search_history(current_user, search_type)
+    for db_search_history in db_search_histories:
+        if not isinstance(db_search_history, SearchHistory):
+            return jsonify({"status": "error", "message": "Search history not found."}), 404
+        search_history = SearchHistorySchema(
+            id=db_search_history.id,
+            query=db_search_history.query,
+            type=db_search_history.type,
+            created_at=db_search_history.created_at
         )
-    ).all()
-    search_histories_json = [SearchHistorySchema.from_orm(history).dict() for history in search_histories]
-    return jsonify(search_histories_json)
 
-
-
-
-
-
-
+        search_histories.append(json.loads(search_history.model_dump_json()))
+    return jsonify(search_histories)
 

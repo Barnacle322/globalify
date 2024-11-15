@@ -550,9 +550,18 @@ def create_company():
         status = Status(StatusType.ERROR, EMPTY_COUNTRY_ID).get_status()
         return redirect(url_for("settings.create_company_view", _external=False, **status))
 
+    if website := form_data.get("website", "").strip():
+        website = add_https_prefix(website)
+        try:
+            company.website_url = website
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.index", _external=True, **status))
+    else:
+        company.website_url = None
+
     company.description = form_data.get("description") or None
     company.number_of_employees = form_data.get("number_of_employees", 0, type=int)
-    company.website_url = form_data.get("website") or None
     company.preferred_round_id = preferred_round_id
     company.industry_id = industry_id
     company.country_id = country_id
@@ -931,7 +940,6 @@ def edit_investor():
     selected_industry_ids = form_data.get("industries") or []
     selected_notable_investment_ids = form_data.get("notable_investments") or []
     is_public = form_data.get("is_public") or False
-
     website = form_data.get("website") or None
     linkedin = form_data.get("linkedin") or None
     twitter = form_data.get("twitter") or None
@@ -950,6 +958,37 @@ def edit_investor():
         investor.first_name = first_name
         investor.last_name = last_name
         investor.set_slug()
+
+    if website:
+        website = add_https_prefix(website)
+        try:
+            investor.website = website
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.index", _external=True, **status))
+    else:
+        investor.website = None
+
+    if linkedin:
+        linkedin = add_https_prefix(linkedin)
+        try:
+            investor.linkedin = linkedin
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.index", _external=True, **status))
+    else:
+        investor.linkedin = None
+
+    if twitter:
+        twitter = add_https_prefix(twitter)
+        try:
+            investor.twitter = twitter
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.index", _external=True, **status))
+    else:
+        investor.twitter = None
+
     investor.firm_name = firm_name
     investor.position = position
     investor.about = about
@@ -1151,6 +1190,21 @@ def investor():
             if existing_investor_by_email:
                 return jsonify({"error": "Email is already in use"}), 400
 
+        if website := form_data.get("website"):
+            website = add_https_prefix(website)
+        else:
+            website = None
+
+        if linkedin := form_data.get("linkedin"):
+            linkedin = add_https_prefix(linkedin)
+        else:
+            linkedin = None
+
+        if twitter := form_data.get("twitter"):
+            twitter = add_https_prefix(twitter)
+        else:
+            twitter = None
+
         investor = Investor(
             user_id=current_user.id,
             first_name=first_name,
@@ -1164,9 +1218,9 @@ def investor():
             n_exits=int(form_data.get("nIxits") or 0),
             min_investment=int(form_data.get("minInvestment") or 0),
             max_investment=int(form_data.get("maxInvestment") or 0),
-            website=form_data.get("website") or None,
-            linkedin=form_data.get("linkedin") or None,
-            twitter=form_data.get("twitter") or None,
+            website=website,
+            linkedin=linkedin,
+            twitter=twitter,
             email=email,
             phone_number=form_data.get("phoneNumber") or None,
             rounds=list(Round.get_by_id_list(form_data.get("selectedRounds") or [])),

@@ -19,6 +19,7 @@ from ...utils.errors.error_messages import (
     EMPTY_INVESTMENT_FIRM_NAME,
     INVESTMENT_FIRM_NOT_FOUND,
 )
+from ...utils.scraper import add_https_prefix
 
 investment_firm = Blueprint("investment_firm", __name__)
 
@@ -186,11 +187,16 @@ def create_investment_firm():
             status = Status(StatusType.ERROR, EMAIL_ALREADY_USED).get_status()
             return redirect(url_for("admin.investment_firm.create_investment_firm_view", _external=True, **status))
 
+    if website := form_data.get("website", ""):
+        website = add_https_prefix(website)
+    else:
+        website = None
+
     investment_firm = InvestmentFirm(
         name=name,
         slug=form_data.get("slug") or None,
         about=form_data.get("about") or None,
-        website=form_data.get("website") or None,
+        website=website,
         email=email,
         phone_number=form_data.get("phone_number") or None,
         n_investments=int(form_data.get("n_investments") or 0),

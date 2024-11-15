@@ -344,10 +344,11 @@ class Investor(InvestorBase):
 
     @validates("location")
     def on_location_change(self, key, value):
-        geo_data = geocode_location(value)
-        if geo_data is not None:
-            self._coordinates = geo_data["coordinates"]  # type: ignore
-            self._country = geo_data["country_name"]  # type: ignore
+        if value != self.location:
+            geo_data = geocode_location(value)
+            if geo_data is not None:
+                self._coordinates = geo_data["coordinates"]  # type: ignore
+                self._country = geo_data["country_name"]  # type: ignore
         return value
 
     @staticmethod

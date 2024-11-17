@@ -383,7 +383,7 @@ def search_investment_firms():
     if search_string != "":
         try:
             new_search_history = SearchHistory(
-                user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR_FIRM
+                user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTMENT_FIRM
             )
             db.session.add(new_search_history)
             db.session.commit()
@@ -406,7 +406,7 @@ def search_investment_firms():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        type=SearchHistoryType.INVESTOR_FIRM.value,
+        type=SearchHistoryType.INVESTMENT_FIRM.value,
     )
 
 

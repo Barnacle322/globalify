@@ -87,11 +87,14 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
         "InvestmentFirmBookmark", back_populates="user", uselist=True, init=False
     )
 
+    search_histories: Mapped[list[SearchHistory]] = relationship(
+        "SearchHistory", back_populates="user", uselist=True, init=False
+    )
+
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    search_histories: Mapped[list[SearchHistory]] = relationship("SearchHistory", back_populates="user",
-                                                                 uselist=True, init=False)
+
     last_login: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, init=False)
     created_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), init=False

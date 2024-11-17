@@ -1,12 +1,28 @@
 {% macro render(user) %}
 <template id="search-history-template">
-        <ul class="z-50 w-full bg-white pb-2">
-            <li
-                class="cursor-pointer px-4 py-2 hover:bg-gray-100"
-                v-for="history in histories"
-                :key="history.id"
-                v-text="history.query"
-            ></li>
-        </ul>
+    <ul class="z-[49] w-full pb-2 bg-white absolute top-full shadow-md rounded-b-[30px] overflow-clip">
+        <hr class="mx-4" />
+        <li
+            class="cursor-pointer px-4 py-2 hover:bg-gray-100 flex gap-2 items-center"
+            v-for="history in searchHistoryData"
+            :key="history.id"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-4"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
+            </svg>
+            <span>[[ history.query ]]</span>
+        </li>
+    </ul>
 </template>
 {% endmacro %}

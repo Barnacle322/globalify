@@ -910,15 +910,25 @@ const FullCompany = defineComponent({
 
 const SearchHistory = defineComponent({
     template: "#search-history-template",
-    props: {
-        histories:
-            {
-                type: Array,
-                default: () => [],
-            },
+    delimiters: ["[[", "]]"],
+    props: ["type"],
+    async mounted() {
+        try {
+            const response = await fetch(`/search_history?type=${this.type}`);
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else if (!response.ok) {
+                console.error("An error occurred while marking the notification as read.");
+            } else {
+                this.searchHistoryData = await response.json();
+            }
+        } catch (error) {
+            console.error(error);
+        }
     },
-    mounted() {
-        console.log("Initial histories:", this.histories);
+    data() {
+        return {
+            searchHistoryData: [],
+        };
     },
-
 });

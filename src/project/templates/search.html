@@ -59,6 +59,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component
+            class="z-50"
             @bookmarked="handleInvestorBookmark"
             @open-aside="asideExpanded = true, asideMinified = !asideMinified"
         ></navbar-component>
@@ -147,9 +148,10 @@
                                 </a>
                             </div>
 
-                            <div class="rounded-[2rem] flex flex-col divide-y bg-white max-w-3xl mt-10 overflow-clip">
+                            <div class="flex relative flex-col max-w-3xl mt-10">
                                 <div
-                                    class="relative w-full mx-auto flex gap-2 rounded-full bg-white py-2 pr-3"
+                                    class="relative w-full mx-auto flex gap-2 bg-white py-2 pr-3 rounded-[30px]"
+                                    :class="isSearchHistoryVisible ? 'rounded-b-none shadow-md' : ''"
                                 >
                                     <input
                                         type="search"
@@ -164,7 +166,7 @@
                                         aria-autocomplete="both"
                                         enterkeyhint="search"
                                         @keyup.enter="search"
-                                        @focus="handleSearchHistory('{{ type }}')"
+                                        @focus="isSearchHistoryVisible = true"
                                         @blur="isSearchHistoryVisible = false"
                                         required
                                     />
@@ -200,12 +202,8 @@
                                         </svg>
                                     </a>
                                 </div>
-                                <transition>
-                                    <search-history
-                                        v-if="isSearchHistoryVisible && searchHistoryData.length > 0"
-                                        :histories="searchHistoryData"
-                                    ></search-history>
-                                </transition>
+
+                                <search-history v-if="isSearchHistoryVisible" :type="'{{ type }}'"></search-history>
                             </div>
                             <button
                                 id="open-advanced-button"
@@ -280,7 +278,7 @@
                                         Country
                                     </button>
                                     <div
-                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 max-w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        class="pointer-events-none absolute left-0 z-[48] mt-2 max-h-60 max-w-full origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                                         id="country-options-menu"
                                         role="menu"
                                         aria-orientation="vertical"
@@ -339,7 +337,7 @@
                                         Rounds
                                     </button>
                                     <div
-                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-y-auto overflow-x-hidden rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        class="pointer-events-none absolute left-0 z-[48] mt-2 max-h-60 origin-top-right scale-95 overflow-y-auto overflow-x-hidden rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                                         id="round-options-menu"
                                         role="menu"
                                         aria-orientation="vertical"
@@ -405,7 +403,7 @@
                                         Industries
                                     </button>
                                     <div
-                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        class="pointer-events-none absolute left-0 z-[48] mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                                         id="industry-options-menu"
                                         role="menu"
                                         aria-orientation="vertical"
@@ -486,7 +484,7 @@
                                         Sort By
                                     </button>
                                     <div
-                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        class="pointer-events-none absolute left-0 z-[48] mt-2 max-h-60 min-w-max origin-top-right scale-95 overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                                         id="sorting-options-menu"
                                         role="menu"
                                         aria-orientation="vertical"

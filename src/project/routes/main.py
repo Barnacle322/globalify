@@ -15,6 +15,7 @@ from flask import (
     url_for,
 )
 from flask_login import current_user, login_required
+from sqlalchemy.exc import IntegrityError
 
 from ..extensions import db
 from ..models import (
@@ -31,10 +32,11 @@ from ..models import (
     InvestorOriginPoint,
     Notification,
     Round,
+    SearchHistory,
     User,
     UserCompany,
     UserInfo,
-    UserPayment, SearchHistory,
+    UserPayment,
 )
 from ..schemas.company import CompanyBookmarkSchema
 from ..schemas.investor import (
@@ -46,7 +48,7 @@ from ..schemas.investor import (
 from ..schemas.notification import NotificationItem, NotificationLayout
 from ..schemas.user import CompanySchema, SearchHistorySchema
 from ..utils.decorators import check_user_info_complete, check_verification
-from ..utils.enums import Events, NotificationType, Status, StatusType, SearchHistoryType
+from ..utils.enums import Events, NotificationType, SearchHistoryType, Status, StatusType
 from ..utils.errors.error_messages import (
     CLAIM_REQUEST_ALREADY_SUBMITTED,
     EXPIRED_CODE,
@@ -282,7 +284,7 @@ def get_suggestion_companies():
 @check_user_info_complete
 @check_verification
 def search_companies():
-    search_string = request.args.get("search", "")
+    search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
     result = Company.get_search(
         query_string=search_string,
@@ -298,15 +300,23 @@ def search_companies():
         preferred_rounds=request.args.getlist("round"),
         industries=request.args.getlist("industry"),
         page=page,
-        per_page=9,
+        per_page=18,
         countries=request.args.getlist("country"),
         is_public=True,
     )
-    if search_string != "":
-        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.COMPANY.value)
-        db.session.add(new_search_history)
-        db.session.commit()
+
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+
+    if search_string != "":
+        try:
+            new_search_history = SearchHistory(
+                user_id=current_user.id, query=search_string, type=SearchHistoryType.COMPANY
+            )
+            db.session.add(new_search_history)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+
     return render_template(
         "search_companies.html",
         companies=result.get("companies"),
@@ -317,7 +327,7 @@ def search_companies():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         bookmark_ids=CompanyBookmark.get_id_list(current_user.id),
-        type=SearchHistoryType.COMPANY.value
+        type=SearchHistoryType.COMPANY.value,
     )
 
 
@@ -326,7 +336,7 @@ def search_companies():
 @check_user_info_complete
 @check_verification
 def search_investment_firms():
-    search_string = request.args.get("search", "")
+    search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
 
     rounds = []
@@ -364,18 +374,21 @@ def search_investment_firms():
         min_investment=request.args.get("min_investment", type=int),
         max_investment=request.args.get("max_investment", type=int),
         page=page,
-        per_page=9,
+        per_page=18,
         countries=countries,
         is_public=True,
     )
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-
     if search_string != "":
-        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR_FIRM.value)
-        db.session.add(new_search_history)
-        db.session.commit()
-
+        try:
+            new_search_history = SearchHistory(
+                user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR_FIRM
+            )
+            db.session.add(new_search_history)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
 
     return render_template(
         "search_investment_firms.html",
@@ -393,7 +406,7 @@ def search_investment_firms():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        type=SearchHistoryType.INVESTOR_FIRM.value
+        type=SearchHistoryType.INVESTOR_FIRM.value,
     )
 
 
@@ -414,7 +427,7 @@ def search():
     if next_url := request.args.get("next"):
         return redirect(next_url)
 
-    search_string = request.args.get("search", "")
+    search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
 
     rounds = []
@@ -454,7 +467,7 @@ def search():
         min_investment=request.args.get("min_investment", type=int),
         max_investment=request.args.get("max_investment", type=int),
         page=page,
-        per_page=9,
+        per_page=18,
         countries=countries,
         is_public=True,
         is_approved=True,
@@ -463,9 +476,14 @@ def search():
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
     if search_string != "":
-        new_search_history = SearchHistory(user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR.value)
-        db.session.add(new_search_history)
-        db.session.commit()
+        try:
+            new_search_history = SearchHistory(
+                user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR
+            )
+            db.session.add(new_search_history)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
 
     return render_template(
         "search.html",
@@ -483,7 +501,7 @@ def search():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         user=current_user,
-        type=SearchHistoryType.INVESTOR.value
+        type=SearchHistoryType.INVESTOR.value,
     )
 
 
@@ -521,7 +539,7 @@ def demo_search():
             "position",
         ],
         page=1,
-        per_page=9,
+        per_page=18,
     )
 
     return jsonify(result.get("investors"))
@@ -1029,7 +1047,7 @@ def check_investor():
         query_string=user_info.full_name,
         query_by=["name"],
         page=1,
-        per_page=9,
+        per_page=18,
     )
 
     return jsonify({"existing_investors": result.get("investors")})
@@ -1043,7 +1061,7 @@ def search_investors(search):
         query_string=search,
         query_by=["name"],
         page=1,
-        per_page=9,
+        per_page=18,
     )
 
     return jsonify({"investors": result.get("investors")})
@@ -1302,9 +1320,8 @@ def get_search_histories():
             id=db_search_history.id,
             query=db_search_history.query,
             type=db_search_history.type,
-            created_at=db_search_history.created_at
+            created_at=db_search_history.created_at,
         )
 
         search_histories.append(json.loads(search_history.model_dump_json()))
     return jsonify(search_histories)
-

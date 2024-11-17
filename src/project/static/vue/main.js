@@ -7,7 +7,7 @@ createApp({
         FullInvestor,
         FullInvestmentFirm,
         FullCompany,
-        SearchHistory
+        SearchHistory,
     },
     watch: {
         asideMinified(value) {
@@ -286,7 +286,7 @@ createApp({
                 "descending",
                 "page",
                 "min_investment",
-                "max_investment"
+                "max_investment",
             ]);
 
             this.handleLists(roundValues, "round", paramsArray);
@@ -402,7 +402,7 @@ createApp({
             return url;
         },
         updateLinksWithQueryParams() {
-            document.querySelectorAll("a[href^=\"/\"]:not([href^=\"//\"])").forEach((link) => {
+            document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
                 if (!link.getAttribute("href").includes("search")) return;
                 link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
             });
@@ -500,51 +500,19 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
-                    }
-                });
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else if (!response.ok) {
-                    console.error("An error occurred while marking the notification as read.");
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async getSearchHistory(type) {
-            try {
-                const csrfToken = document.getElementById("csrf_token").value;
-                const url = new URL(`/search_history`, window.location.origin);
-                url.searchParams.append("type", type);
-                const response = await fetch(url, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
+                        "X-CSRFToken": csrfToken,
                     },
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
                 } else if (!response.ok) {
                     console.error("An error occurred while marking the notification as read.");
-                } else {
-                    const data = await response.json();
-                    this.searchHistoryData = data;
                 }
             } catch (error) {
                 console.error(error);
             }
         },
-        handleSearchHistory(type) {
-            this.isSearchHistoryVisible = !this.isSearchHistoryVisible;
-            this.getSearchHistory(type).then(() => {
-            }).catch(error => {
-                console.error("An error occurred in handleSearchHistory:", error);
-            });
-        }
     },
-
 
     data() {
         return {
@@ -553,7 +521,6 @@ createApp({
             openAdvanced: false,
 
             isSearchHistoryVisible: false,
-            searchHistoryData: [],
 
             selectedInvestorSlug: null,
             selectedInvestmentFirmSlug: null,
@@ -569,10 +536,10 @@ createApp({
                 { menu: "country-options-menu", button: "country-options" },
                 { menu: "sorting-options-menu", button: "sorting-options" },
                 { menu: "filter-options-menu", button: "filter-options" },
-                { menu: "round-options-menu", button: "round-options" }
+                { menu: "round-options-menu", button: "round-options" },
             ],
             showClasses: ["transform", "opacity-100", "scale-100"],
-            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"]
+            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
         };
-    }
+    },
 }).mount("#app");

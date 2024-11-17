@@ -253,7 +253,6 @@ createApp({
             const filterValues = this.getCheckedValues("filter_field");
 
             let searchQuery = document.getElementById("search").value;
-            console.log(typeof query);
             if (!searchQuery && typeof query == "string") {
                 searchQuery = query;
             }

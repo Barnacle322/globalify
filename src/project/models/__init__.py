@@ -1,6 +1,5 @@
 from .claim import ClaimRequest, ClaimVerification
 from .helpers import Country, Industry, Round
-from .search import SearchHistory
 from .investor import (
     InvestmentFirm,
     InvestmentFirmBookmark,
@@ -10,6 +9,7 @@ from .investor import (
     InvestorOriginPoint,
     NotableInvestment,
 )
+from .search import SearchHistory
 from .user import (
     Company,
     CompanyBookmark,
@@ -44,5 +44,5 @@ __all__ = [
     "InvestorBackup",
     "InvestorOriginPoint",
     "CompanyBookmark",
-    "SearchHistory"
+    "SearchHistory",
 ]

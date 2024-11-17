@@ -184,6 +184,8 @@ createApp({
             document.getElementById("menu").classList.add("hidden");
         },
         initializeValuesFromParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+
             const paramsArray = [
                 "filter_field",
                 "round",
@@ -194,23 +196,24 @@ createApp({
                 "industries_exclusive",
                 "country",
             ];
-            paramsArray.forEach((param) => {
-                this.setCheckedValuesFromParams(param);
+            paramsArray.forEach((inputName) => {
+                const values = urlParams.getAll(inputName);
+                values.forEach((value) => {
+                    this.openAdvanced = true;
+                    const checkbox = document.querySelector(`input[name="${inputName}"][value="${value}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
             });
-            this.setSearchValueFromParams();
+
+            const value = urlParams.get("search");
+            if (value !== null) {
+                this.openAdvanced = true;
+                document.getElementById("search").value = value;
+            }
+
             this.setSliderValuesFromParams("min_investment");
             this.setSliderValuesFromParams("max_investment");
             if (this.openAdvanced) this.toggleAdvanced();
-        },
-        setCheckedValuesFromParams(inputName) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const values = urlParams.getAll(inputName);
-
-            values.forEach((value) => {
-                this.openAdvanced = true;
-                const checkbox = document.querySelector(`input[name="${inputName}"][value="${value}"]`);
-                if (checkbox) checkbox.checked = true;
-            });
         },
         setSliderValuesFromParams(sliderId) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -220,15 +223,6 @@ createApp({
                 this.openAdvanced = true;
                 const percentage = (value / 50000000) * 100;
                 document.getElementById(sliderId).value = percentage;
-            }
-        },
-        setSearchValueFromParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const value = urlParams.get("search");
-
-            if (value !== null) {
-                this.openAdvanced = true;
-                document.getElementById("search").value = value;
             }
         },
         toggleAdvanced() {
@@ -251,14 +245,18 @@ createApp({
                 closedAdvanced.classList.remove("hidden");
             }
         },
-        search() {
+        search(query = "") {
             const roundValues = this.getCheckedValues("round");
             const industryValues = this.getCheckedValues("industry");
             const countryValues = this.getCheckedValues("country");
             const sortValues = this.getCheckedValues("sort_field");
             const filterValues = this.getCheckedValues("filter_field");
-
-            const searchQuery = document.getElementById("search").value;
+            let searchQuery = "";
+            if (!query) {
+                searchQuery = document.getElementById("search").value;
+            } else {
+                searchQuery = query;
+            }
             const minValueElement = document.getElementById("min_investment");
             const minValue = minValueElement ? minValueElement.value : 0;
 
@@ -304,7 +302,11 @@ createApp({
 
             if (searchQuery !== "") paramsArray.unshift(`search=${encodeURIComponent(searchQuery)}`);
 
-            this.addParamsToUrl(paramsArray);
+            const paramsString = paramsArray.length > 0 ? "?" + paramsArray.join("&") : "";
+            const baseUrl = window.location.href.split("?")[0];
+            const newUrl = baseUrl + paramsString;
+
+            window.location.href = newUrl;
         },
         getCheckedValues(inputName) {
             const checkboxes = document.querySelectorAll(`input[name="${inputName}"]:checked`);
@@ -336,13 +338,6 @@ createApp({
             if (value) {
                 paramsArray.push(`${paramName}=${value ? 1 : ""}`);
             }
-        },
-        addParamsToUrl(paramsArray) {
-            const paramsString = paramsArray.length > 0 ? "?" + paramsArray.join("&") : "";
-            const baseUrl = window.location.href.split("?")[0];
-            const newUrl = baseUrl + paramsString;
-
-            window.location.href = newUrl;
         },
         handleLowerSliderInput() {
             const lowerSlider = document.getElementById("min_investment");
@@ -385,17 +380,12 @@ createApp({
                 };
             });
         },
-        getQueryParams() {
-            return new URLSearchParams(window.location.search);
-        },
-        removePageParam(params) {
+        applyQueryParams(url) {
+            const params = new URLSearchParams(window.location.search);
             params.delete("page");
             params.delete("investor");
             params.delete("company");
-            return params;
-        },
-        applyQueryParams(url) {
-            const params = this.removePageParam(this.getQueryParams());
+
             if (params.toString()) {
                 return `${url}${url.includes("?") ? "&" : "?"}${params.toString()}`;
             }
@@ -511,6 +501,15 @@ createApp({
             } catch (error) {
                 console.error(error);
             }
+        },
+        showSearchHistory() {
+            this.isSearchHistoryVisible = true;
+        },
+        hideSearchHistory() {
+            // Delay hiding to allow click event to be registered
+            setTimeout(() => {
+                this.isSearchHistoryVisible = false;
+            }, 200);
         },
     },
 

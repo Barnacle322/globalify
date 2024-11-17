@@ -1723,9 +1723,6 @@ select {
 .w-28 {
   width: 7rem;
 }
-.w-32 {
-  width: 8rem;
-}
 .w-36 {
   width: 9rem;
 }
@@ -2496,10 +2493,6 @@ select {
   --tw-bg-opacity: 1;
   background-color: rgb(239 68 68 / var(--tw-bg-opacity));
 }
-.bg-red-600 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(220 38 38 / var(--tw-bg-opacity));
-}
 .bg-sky-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(224 242 254 / var(--tw-bg-opacity));
@@ -2825,9 +2818,6 @@ select {
 }
 .pb-16 {
   padding-bottom: 4rem;
-}
-.pb-2 {
-  padding-bottom: 0.5rem;
 }
 .pb-20 {
   padding-bottom: 5rem;
@@ -4131,6 +4121,10 @@ textarea {
 .after\:content-\[\'\'\]::after {
   --tw-content: '';
   content: var(--tw-content);
+}
+
+.last\:mb-2:last-child {
+  margin-bottom: 0.5rem;
 }
 
 .even\:bg-gray-100:nth-child(even) {

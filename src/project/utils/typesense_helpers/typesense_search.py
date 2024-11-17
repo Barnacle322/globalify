@@ -40,19 +40,17 @@ class SearchBuilder:
         return self
 
     def filter_by(self, field: str, values: list[str] | None, exclusivity: bool = True):
-        if values:
-            if exclusivity:
-                for value in values:
-                    self.filters.append(f"{field}:={value}")
-            else:
-                self.filters.append(f'{field}:=[{",".join(values)}]')
+        if not values:
+            return self
+
+        if exclusivity:
+            for value in values:
+                self.filters.append(f"{field}:={value}")
+        else:
+            self.filters.append(f'{field}:=[{",".join(values)}]')
         return self
 
     def filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):
-        # if min_investment:
-        #     self.filters.append(f"min_investment:>{min_investment}")
-        # if max_investment:
-        #     self.filters.append(f"max_investment:<{max_investment}")
         if min_investment and max_investment:
             self.filters.append(f"min_investment:<={max_investment} && max_investment:>={min_investment}")
         elif min_investment is not None:
@@ -63,8 +61,7 @@ class SearchBuilder:
 
     def filter_by_boolean(self, field: str, value: bool):
         if field in ["is_public", "is_approved"]:
-            filter_value = str(value).lower()
-            self.filters.append(f"{field}:{filter_value}")
+            self.filters.append(f"{field}:{str(value).lower()}")
         return self
 
     def sort_by(self, sort_by: str | None, sort_desc: bool | None):
@@ -97,8 +94,8 @@ class SearchBuilder:
         if os.getenv("FLASK_ENV") == "testing":
             return {"found": 0, "page": 1, "per_page": 9, "hits": []}
         self.parameters["prefix"] = False
-        # IMPORTANT: Control the weight of the embedding field in the search with the distance_threshold parameter
 
+        # IMPORTANT: Control the weight of the embedding field in the search with the distance_threshold parameter
         if "embedding" in self.parameters["query_by"]:
             self.parameters["vector_query"] = "embedding:([], distance_threshold:0.50)"
             self.parameters["exclude_fields"] = "embedding"
@@ -181,58 +178,6 @@ def delete_schema(schema_name: str) -> None:
 
 
 def setup():
-    investor_schema = {
-        "name": "investors",
-        "fields": [
-            {"name": "name", "type": "string"},
-            {
-                "name": "db_id",
-                "type": "int32",
-                "facet": True,
-            },
-            {"name": "slug", "type": "string", "optional": True},
-            {"name": "firm_name", "type": "string", "optional": True},
-            {"name": "about", "type": "string", "optional": True},
-            {"name": "position", "type": "string", "facet": True, "optional": True},
-            {"name": "n_investments", "type": "int32", "optional": True, "sort": True},
-            {"name": "n_exits", "type": "int32", "optional": True, "sort": True},
-            {"name": "min_investment", "type": "int32", "optional": True, "sort": True},
-            {"name": "max_investment", "type": "int32", "optional": True, "sort": True},
-            {"name": "location", "type": "string", "facet": True, "optional": True},
-            {"name": "country", "type": "string", "facet": True, "optional": True},
-            {"name": "rounds", "type": "string[]", "facet": True, "optional": True},
-            {"name": "industries", "type": "string[]", "facet": True, "optional": True},
-            {"name": "notable_investments", "type": "string[]", "optional": True},
-            {
-                "name": "embedding",
-                "type": "float[]",
-                "embed": {
-                    "from": [
-                        "name",
-                        "firm_name",
-                        "about",
-                        "position",
-                        "location",
-                        "rounds",
-                        "industries",
-                        "notable_investments",
-                    ],
-                    "model_config": {
-                        "model_name": "ts/all-MiniLM-L12-v2",
-                    },
-                },
-            },
-        ],
-        "primary_key": "db_id",
-    }
-
-    try:
-        delete_schema("investors")
-    except Exception as e:
-        print(f"Error deleting investors schema: {e}")
-    create_schema(investor_schema)
-    # populate_schema_from_file("investors", file_path="./investor_index.jsonl")
-
     city_schema = {
         "name": "cities",
         "fields": [
@@ -285,5 +230,5 @@ def search(
 
 def create_synonyms(schema_name: str) -> None:
     for synonym in synonyms:
-        print("Creating synomym for", synonym["name"], "with items", synonym["item"])
+        print("Adding synonyms for", synonym["name"])
         client.collections[schema_name].synonyms.upsert(synonym["name"], synonym["item"])

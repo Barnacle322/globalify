@@ -1,17 +1,15 @@
-import base64
 import os
 import time
 from datetime import timedelta
-from email.mime import base
 
 import jwt
 import sentry_sdk
 from flask import Flask
-from itsdangerous import base64_decode, base64_encode
+from itsdangerous import base64_decode
 from jwt.exceptions import InvalidKeyError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
+from .extensions import csrf, db, login_manager, migrate, oauth
 from .routes.admin import admin
 from .routes.auth import auth
 from .routes.main import (

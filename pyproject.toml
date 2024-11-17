@@ -80,6 +80,7 @@ exclude = [
     ".old_venv",
     "migrations",
     "instance",
+    "typesense-stubs",
 ]
 
 # Same as Black.

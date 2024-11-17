@@ -298,21 +298,17 @@ const Bookmark = defineComponent({
                 this.$refs.investor.setAttribute("data-selected", "true");
                 this.$refs.investment_firm.setAttribute("data-selected", "false");
                 this.$refs.company.setAttribute("data-selected", "false");
-                this.page = 2;
-                this.setupInfinteScroll();
             } else if (newVal === "investment_firm") {
                 this.$refs.investor.setAttribute("data-selected", "false");
                 this.$refs.investment_firm.setAttribute("data-selected", "true");
                 this.$refs.company.setAttribute("data-selected", "false");
-                this.page = 2;
-                this.setupInfinteScroll();
             } else if (newVal === "company") {
                 this.$refs.investor.setAttribute("data-selected", "false");
                 this.$refs.investment_firm.setAttribute("data-selected", "false");
                 this.$refs.company.setAttribute("data-selected", "true");
-                this.page = 2;
-                this.setupInfinteScroll();
             }
+            this.page = 2;
+            this.setupInfinteScroll();
         },
     },
     methods: {
@@ -421,7 +417,7 @@ const Bookmark = defineComponent({
                 console.error("Error removing bookmark:", error.message);
             }
         },
-        async UnbookmarkInvestmentFirm(firmId) {
+        async unbookmarkInvestmentFirm(firmId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
                 const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
@@ -442,7 +438,7 @@ const Bookmark = defineComponent({
                 console.error("Error removing bookmark:", error.message);
             }
         },
-        async UnbookmarkCompany(companyId) {
+        async unbookmarkCompany(companyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
                 const response = await fetch(`/company/${companyId}/bookmark`, {
@@ -915,12 +911,10 @@ const SearchHistory = defineComponent({
     async mounted() {
         try {
             const response = await fetch(`/search_history?type=${this.type}`);
-            if (response.redirected) {
-                window.location.href = response.url;
-            } else if (!response.ok) {
-                console.error("An error occurred while marking the notification as read.");
-            } else {
+            if (response.ok) {
                 this.searchHistoryData = await response.json();
+            } else {
+                console.error("An error occurred while fetching the search history.");
             }
         } catch (error) {
             console.error(error);

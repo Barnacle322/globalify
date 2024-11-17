@@ -365,7 +365,7 @@
                                     Twitter
                                 </span>
                                 <a
-                                    href="investor.twitter"
+                                    :href="investor.twitter"
                                     target="_blank"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
@@ -395,7 +395,7 @@
                                     LinkedIn
                                 </span>
                                 <a
-                                    href="investor.linkedin"
+                                    :href="investor.linkedin"
                                     target="_blank"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
@@ -435,7 +435,7 @@
                                     Website
                                 </span>
                                 <a
-                                    href="investor.website"
+                                    :href="investor.website"
                                     target="_blank"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
@@ -475,7 +475,7 @@
                                     Email
                                 </span>
                                 <a
-                                    href="mailto:investor.email"
+                                    :href="`mailto:${investor.email}`"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
                                     <span v-text="investor.email"></span>

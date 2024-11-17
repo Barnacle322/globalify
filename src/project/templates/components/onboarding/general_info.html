@@ -23,7 +23,7 @@
                 <span v-if="errors.firstName" class="text-sm text-red-500" v-text="errors.firstName"></span>
             </div>
             <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="last_name">Last Name</label>
+                <label class="text-sm font-medium text-gray-700" for="last_name">Last Name*</label>
                 <input
                     class="w-full rounded-lg bg-transparent bg-white"
                     type="text"
@@ -32,6 +32,7 @@
                     required
                     v-model="data.lastName"
                 />
+                <span v-if="errors.lastName" class="text-sm text-red-500" v-text="errors.lastName"></span>
             </div>
 
             <div class="col-span-full">
@@ -80,7 +81,7 @@
         <div class="flex justify-between">
             {% if href %}
             <a
-                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-200 transition-colors ease-in-out"
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black transition-colors ease-in-out hover:bg-gray-200"
                 href="{{ href }}"
             >
                 <div class="flex items-center gap-2">
@@ -99,7 +100,7 @@
             </a>
             {% else %}
             <button
-                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black hover:bg-gray-200 transition-colors ease-in-out"
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black transition-colors ease-in-out hover:bg-gray-200"
                 @click="previousPage"
             >
                 <div class="flex items-center gap-2">

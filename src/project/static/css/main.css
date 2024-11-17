@@ -1342,8 +1342,8 @@ select {
 .top-8 {
   top: 2rem;
 }
-.top-32 {
-  top: 8rem;
+.top-full {
+  top: 100%;
 }
 .isolate {
   isolation: isolate;
@@ -1354,14 +1354,17 @@ select {
 .z-10 {
   z-index: 10;
 }
-.z-20 {
-  z-index: 20;
-}
 .z-50 {
   z-index: 50;
 }
 .z-\[100\] {
   z-index: 100;
+}
+.z-\[48\] {
+  z-index: 48;
+}
+.z-\[49\] {
+  z-index: 49;
 }
 .col-span-2 {
   grid-column: span 2 / span 2;
@@ -1430,6 +1433,9 @@ select {
 .my-8 {
   margin-top: 2rem;
   margin-bottom: 2rem;
+}
+.-mb-3 {
+  margin-bottom: -0.75rem;
 }
 .mb-10 {
   margin-bottom: 2.5rem;
@@ -2135,9 +2141,6 @@ select {
 .gap-9 {
   gap: 2.25rem;
 }
-.gap-60 {
-  gap: 15rem;
-}
 .gap-x-1 {
   -moz-column-gap: 0.25rem;
        column-gap: 0.25rem;
@@ -2179,9 +2182,6 @@ select {
 }
 .gap-y-9 {
   row-gap: 2.25rem;
-}
-.gap-y-6 {
-  row-gap: 1.5rem;
 }
 .space-x-6 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
@@ -2289,6 +2289,9 @@ select {
 .rounded-\[2rem\] {
   border-radius: 2rem;
 }
+.rounded-\[30px\] {
+  border-radius: 30px;
+}
 .rounded-full {
   border-radius: 9999px;
 }
@@ -2300,6 +2303,14 @@ select {
 }
 .rounded-xl {
   border-radius: 0.75rem;
+}
+.rounded-b-\[30px\] {
+  border-bottom-right-radius: 30px;
+  border-bottom-left-radius: 30px;
+}
+.rounded-b-none {
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
 }
 .rounded-r-xl {
   border-top-right-radius: 0.75rem;
@@ -2815,6 +2826,9 @@ select {
 .pb-16 {
   padding-bottom: 4rem;
 }
+.pb-2 {
+  padding-bottom: 0.5rem;
+}
 .pb-20 {
   padding-bottom: 5rem;
 }
@@ -2895,9 +2909,6 @@ select {
 }
 .text-center {
   text-align: center;
-}
-.text-justify {
-  text-align: justify;
 }
 .text-start {
   text-align: start;
@@ -4549,8 +4560,8 @@ textarea {
     margin-bottom: 3.5rem;
   }
 
-  .sm\:mt-10 {
-    margin-top: 2.5rem;
+  .sm\:ml-5 {
+    margin-left: 1.25rem;
   }
 
   .sm\:mt-12 {
@@ -4569,8 +4580,8 @@ textarea {
     margin-top: 0.75rem;
   }
 
-  .sm\:mt-4 {
-    margin-top: 1rem;
+  .sm\:mt-7 {
+    margin-top: 1.75rem;
   }
 
   .sm\:block {
@@ -4691,10 +4702,6 @@ textarea {
     padding: 2.25rem;
   }
 
-  .sm\:p-4 {
-    padding: 1rem;
-  }
-
   .sm\:px-12 {
     padding-left: 3rem;
     padding-right: 3rem;
@@ -4708,11 +4715,6 @@ textarea {
   .sm\:px-9 {
     padding-left: 2.25rem;
     padding-right: 2.25rem;
-  }
-
-  .sm\:px-4 {
-    padding-left: 1rem;
-    padding-right: 1rem;
   }
 
   .sm\:pl-\[148px\] {
@@ -4846,10 +4848,6 @@ textarea {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .md\:grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .md\:flex-row {
     flex-direction: row;
   }
@@ -4874,11 +4872,6 @@ textarea {
   .md\:px-16 {
     padding-left: 4rem;
     padding-right: 4rem;
-  }
-
-  .md\:px-6 {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
   }
 
   .md\:text-center {
@@ -5008,14 +5001,14 @@ textarea {
     padding-right: 1rem;
   }
 
-  .lg\:px-8 {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-
   .lg\:px-6 {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
+  }
+
+  .lg\:px-8 {
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 
   .lg\:pt-24 {

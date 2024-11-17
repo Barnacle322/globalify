@@ -1,4 +1,8 @@
+from datetime import datetime
+
 from pydantic import BaseModel
+
+from ..utils.enums import SearchHistoryType
 
 
 class UserSchema(BaseModel):
@@ -32,3 +36,10 @@ class CompanySchema(BaseModel):
     country: str | None
     preferred_round: object | None
     industry: object | None
+
+
+class SearchHistorySchema(BaseModel):
+    id: int
+    query: str
+    created_at: datetime
+    type: SearchHistoryType

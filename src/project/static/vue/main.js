@@ -7,6 +7,7 @@ createApp({
         FullInvestor,
         FullInvestmentFirm,
         FullCompany,
+        SearchHistory,
     },
     watch: {
         asideMinified(value) {
@@ -401,7 +402,7 @@ createApp({
             return url;
         },
         updateLinksWithQueryParams() {
-            document.querySelectorAll("a[href^=\"/\"]:not([href^=\"//\"])").forEach((link) => {
+            document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach((link) => {
                 if (!link.getAttribute("href").includes("search")) return;
                 link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
             });
@@ -512,11 +513,15 @@ createApp({
             }
         },
     },
+
     data() {
         return {
             asideExpanded: false,
             asideMinified: false,
             openAdvanced: false,
+
+            isSearchHistoryVisible: false,
+
             selectedInvestorSlug: null,
             selectedInvestmentFirmSlug: null,
             selectedCompanySlug: null,

@@ -36,6 +36,7 @@ def user_profile(username):
         "user_profile.html",
         user_info=user_info,
         user=user_info.user,
+        current_user=current_user,
         companies=companies,
         authenticated_user=current_user,
         investor=user_info.user.investor,

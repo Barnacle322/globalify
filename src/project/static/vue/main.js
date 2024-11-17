@@ -251,12 +251,13 @@ createApp({
             const countryValues = this.getCheckedValues("country");
             const sortValues = this.getCheckedValues("sort_field");
             const filterValues = this.getCheckedValues("filter_field");
-            let searchQuery = "";
-            if (!query) {
-                searchQuery = document.getElementById("search").value;
-            } else {
+
+            let searchQuery = document.getElementById("search").value;
+            console.log(typeof query);
+            if (!searchQuery && typeof query == "string") {
                 searchQuery = query;
             }
+
             const minValueElement = document.getElementById("min_investment");
             const minValue = minValueElement ? minValueElement.value : 0;
 

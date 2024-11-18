@@ -126,7 +126,8 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="text"
                             id="organization_name"
-                            placeholder="John"
+                            placeholder="OpenAI"
+                            value="{{funding_round.organization_name}}"
                             required
                         />
                     </div>
@@ -134,20 +135,23 @@
                     <div class="sm:col-span-3">
                         <label for="round" class="text-sm font-medium text-gray-700">Round</label>
                         <div>
-                            <select id="round" name="round" class="h-12 w-full rounded-xl px-2" id="round">
+                            <select id="round" name="round" class="h-12 w-full rounded-xl px-2" required id="round">
                                 <option value="" disabled selected>Select a round</option>
-                                {% if rounds %} {% for round in rounds %}
+                                {% if rounds %} {% for round in rounds %} {% if funding_round.round_id==round.id %}
+                                <option value="{{ round.id }}" selected>{{ round.name }}</option>
+                                {% else %}
                                 <option value="{{ round.id }}">{{ round.name }}</option>
-                                {% endfor %} {% endif %}
+                                {% endif %} {% endfor %} {% endif %}
                             </select>
                         </div>
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="first_name">Announced date</label>
+                        <label class="text-sm font-medium text-gray-700" for="announced_date">Announced date</label>
                         <input
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="date"
                             id="announced_date"
+                            value="{{funding_round.announced_date}}"
                             required
                         />
                     </div>

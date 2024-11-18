@@ -118,3 +118,66 @@ def create_funding_round():
 
     status = Status(StatusType.SUCCESS, "Funding round created successfully!").get_status()
     return redirect(url_for("admin.funding_round.index", _external=True, **status))
+
+
+@funding_round.get("/<int:id>")
+@admin_only
+def update_funding_round_view(id):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    funding_round = FundingRound.get_by_id(id)
+    if not funding_round:
+        status = Status(StatusType.ERROR, "Funding round not found!").get_status()
+        return redirect(url_for("admin.funding_round.index", _external=True, **status))
+
+    return render_template(
+        "admin/update_funding_round.html",
+        funding_round=funding_round,
+        rounds=Round.get_all(),
+        status_type=status_type,
+        msg=msg,
+    )
+
+
+@funding_round.post("/<int:id>")
+@admin_only
+def update_funding_round(id):
+    form_data = request.get_json()
+
+    funding_round = FundingRound.get_by_id(id)
+    if not funding_round:
+        status = Status(StatusType.ERROR, "Funding round not found!").get_status()
+        return redirect(url_for("admin.funding_round.index", _external=True, **status))
+
+    organization_name = form_data.get("organization_name")
+    if not organization_name:
+        status = Status(StatusType.ERROR, EMPTY_ORGANIZATION_NAME).get_status()
+        return redirect(url_for("admin.funding_round.update_funding_round_view", id=id, _external=True, **status))
+
+    announced_date = form_data.get("announced_date")
+    if not announced_date:
+        status = Status(StatusType.ERROR, EMPTY_ANNOUNCED_DATE).get_status()
+        return redirect(url_for("admin.funding_round.update_funding_round_view", id=id, _external=True, **status))
+
+    round_id = form_data.get("round_id")
+    if not round_id:
+        status = Status(StatusType.ERROR, EMPTY_ROUND_ID).get_status()
+        return redirect(url_for("admin.funding_round.update_funding_round_view", id=id, _external=True, **status))
+
+    announced_date_format = datetime.strptime(announced_date, "%Y-%m-%d")
+
+    funding_round.organization_name = organization_name
+    funding_round.announced_date = announced_date_format
+    funding_round.round_id = round_id
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.funding_round.update_funding_round_view", id=id, _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Funding round updated successfully!").get_status()
+    return redirect(url_for("admin.funding_round.update_funding_round_view", id=id, _external=True, **status))

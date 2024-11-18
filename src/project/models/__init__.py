@@ -1,5 +1,6 @@
 from .claim import ClaimRequest, ClaimVerification
 from .helpers import Country, Industry, Round
+from .investment import FundingRound, Investment
 from .investor import (
     InvestmentFirm,
     InvestmentFirmBookmark,
@@ -43,4 +44,6 @@ __all__ = [
     "InvestorBackup",
     "InvestorOriginPoint",
     "CompanyBookmark",
+    "FundingRound",
+    "Investment",
 ]

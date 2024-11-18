@@ -24,6 +24,7 @@ from ...utils.errors.error_messages import (
     NO_CLAIM_REQUEST,
 )
 from .company import company as company_blueprint
+from .funding_round import funding_round as investment_blueprint
 from .investment_firm import investment_firm as investment_firm_blueprint
 from .investor import investor as investor_blueprint
 
@@ -31,6 +32,7 @@ admin = Blueprint("admin", __name__)
 admin.register_blueprint(investor_blueprint, url_prefix="/investors")
 admin.register_blueprint(investment_firm_blueprint, url_prefix="/investment-firms")
 admin.register_blueprint(company_blueprint, url_prefix="/companies")
+admin.register_blueprint(investment_blueprint, url_prefix="/funding-rounds")
 
 
 @admin.get("/users/search/<search_input>")

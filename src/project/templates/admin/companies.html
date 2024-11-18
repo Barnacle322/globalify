@@ -98,6 +98,11 @@
                             class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
                             >Claim Requests
                         </a>
+                        <a
+                            href="/admin/funding-rounds"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            >Funding Rounds
+                        </a>
                     </div>
                 </nav>
                 <section class="mx-auto my-10 flex max-w-3xl flex-col gap-5 px-4 sm:my-14">
@@ -178,6 +183,7 @@
                                     <p class="line-clamp-3">{{company.description}}</p>
                                     {% if company.preferred_round %}
                                     <div class="flex flex-wrap gap-1">
+                                        `
                                         <a
                                             class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
                                             >{{ company.preferred_round }}

@@ -47,7 +47,7 @@
             href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
             rel="stylesheet"
         />
-        <title>Investors</title>
+        <title>Funding Rounds</title>
     </head>
 
     <!-- prettier-ignore -->
@@ -78,7 +78,8 @@
                     <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">
                         <a
                             href="/admin/investors"
-                            class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            @click="resetSearchQuery"
                             >Investors
                         </a>
                         <a
@@ -100,13 +101,13 @@
                         </a>
                         <a
                             href="/admin/funding-rounds"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
                             >Funding Rounds
                         </a>
                     </div>
                 </nav>
                 <section class="mx-auto my-10 flex max-w-3xl flex-col gap-5 px-4 sm:my-14">
-                    <h1 class="text-3xl font-bold sm:text-5xl">Investors</h1>
+                    <h1 class="text-3xl font-bold sm:text-5xl">Funding Rounds</h1>
                     {% if status_type %} {% if status_type == '3' %}
                     <div class="rounded-xl text-red-500">{{ msg }}</div>
                     {% elif status_type == '2' %}
@@ -152,10 +153,10 @@
                         </button>
                     </div>
                     <a
-                        href="/admin/investors/create"
+                        href="/admin/funding-rounds/create"
                         class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium transition-shadow ease-in-out hover:shadow-md sm:text-base"
                     >
-                        Create an Investor
+                        Create an Funding Round
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -171,32 +172,31 @@
                             />
                         </svg>
                     </a>
-                    {% if investors %}
+                    {% if funding_rounds %}
                     <div class="flex flex-col gap-3">
-                        {% for investor in investors %}
+                        {% for funding_round in funding_rounds %}
                         <div
                             class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 sm:flex-row"
                         >
                             <div class="relative flex w-full items-start justify-between gap-3">
                                 <div class="flex flex-col gap-2">
-                                    <span class="font-medium">{{ investor.name }}</span>
-                                    <p class="line-clamp-3">{{investor.about}}</p>
-                                    {% if investor.rounds %}
+                                    <span class="font-medium">{{ funding_round.organization_name }}</span>
+                                    {% if funding_round.round %}
                                     <div class="flex flex-wrap gap-1">
-                                        {% for round in investor.rounds %}
                                         <a
                                             class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
-                                            >{{ round }}
+                                            >{{ funding_round.round.name }}
                                         </a>
-                                        {% endfor %}
                                     </div>
-                                    {% endif %} {% if investor.industries %}
-                                    <p class="text-sm text-gray-500">{{ ", ".join(investor.industries) }}</p>
+                                    {% endif %} {% if funding_round.announced_date %}
+                                    <span class="text-sm text-gray-500">
+                                        Announced on: {{ funding_round.announced_date }}
+                                    </span>
                                     {% endif %}
                                 </div>
                                 <div class="ml-auto flex h-full flex-col gap-2">
                                     <a
-                                        href="/admin/investors/{{investor.id}}"
+                                        href="/admin/funding-rounds/{{funding_round.id}}"
                                         class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
                                     >
                                         <svg
@@ -214,33 +214,9 @@
                                             />
                                         </svg>
                                     </a>
-                                    <a
-                                        href="/search?investor={{ investor.slug }}"
-                                        class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.5"
-                                            stroke="currentColor"
-                                            class="size-4"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
-                                            />
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                                            />
-                                        </svg>
-                                    </a>
                                     <button
                                         class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
-                                        @click="deleteInvestor('{{investor.id}}')"
+                                        @click="deleteFundingRound('{{funding_round.id}}')"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"

@@ -99,8 +99,8 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     created_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), init=False
     )
-    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="f")
-    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="f")
+    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
 
     @staticmethod
     def delete_by_id(id: int) -> None:
@@ -498,7 +498,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     industry_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("industry.id"), nullable=True, init=False)
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
-    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="t", default=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("true"), default=True)
 
     @property
     def coordinates(self):

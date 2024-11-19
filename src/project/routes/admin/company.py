@@ -9,7 +9,6 @@ from ...models import (
     NotableInvestment,
     Round,
 )
-from ...routes.main import generate_pagination
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -20,6 +19,7 @@ from ...utils.errors.error_messages import (
     EMPTY_COMPANY_NAME,
     PICTURE_NOT_LOADED,
 )
+from ...utils.funcs import generate_pagination
 from ...utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from ...utils.scraper import add_https_prefix
 

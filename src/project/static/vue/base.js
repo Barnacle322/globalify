@@ -328,19 +328,20 @@ const Bookmark = defineComponent({
         },
         async setupInfinteScroll() {
             if (this.selectedTab === "investor") {
-                const response = await fetch("/investors/bookmarks");
+                const response = await fetch("/bookmarks/investors");
                 if (response.ok) {
                     data = await response.json();
+                    console.log(data)
                     this.bookmarks = data.bookmarks;
                 }
             } else if (this.selectedTab === "investment_firm") {
-                const response = await fetch("/investment-firms/bookmarks");
+                const response = await fetch("/bookmarks/investment-firms");
                 data = await response.json();
                 if (response.ok) {
                     this.bookmarks = data.bookmarks;
                 }
             } else if (this.selectedTab === "company") {
-                const response = await fetch("/companies/bookmarks");
+                const response = await fetch("/bookmarks/companies");
                 data = await response.json();
 
                 if (response.ok) {
@@ -371,11 +372,11 @@ const Bookmark = defineComponent({
                 try {
                     let response;
                     if (this.selectedTab === "investor") {
-                        response = await fetch(`/investors/bookmarks?page=${this.page}`);
+                        response = await fetch(`/bookmarks/investors?page=${this.page}`);
                     } else if (this.selectedTab === "investment_firm") {
-                        response = await fetch(`/investment-firms/bookmarks?page=${this.page}`);
+                        response = await fetch(`/bookmarks/investment-firms?page=${this.page}`);
                     } else if (this.selectedTab === "company") {
-                        response = await fetch(`/companies/bookmarks?page=${this.page}`);
+                        response = await fetch(`/bookmarks/companies?page=${this.page}`);
                     }
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
@@ -912,7 +913,7 @@ const SearchHistory = defineComponent({
     props: ["type"],
     async mounted() {
         try {
-            const response = await fetch(`/search_history?type=${this.type}`);
+            const response = await fetch(`/search-history?type=${this.type}`);
             if (response.ok) {
                 this.searchHistoryData = await response.json();
             } else {

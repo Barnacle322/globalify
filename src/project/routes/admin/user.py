@@ -5,7 +5,6 @@ from sqlalchemy import or_
 
 from ...extensions import db
 from ...models import User, UserInfo, UserPayment
-from ...routes.main import generate_pagination
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -18,6 +17,7 @@ from ...utils.errors.error_messages import (
     USER_NOT_FOUND,
     USER_PAYMENT_NOT_FOUND,
 )
+from ...utils.funcs import generate_pagination
 from ...utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from ...utils.scraper import add_https_prefix
 

@@ -176,7 +176,7 @@ def populate_blockchain(notable_investments_cls, industry_cls, file_name="data/g
         return investor_list
 
 
-def add_https_prefix(url):
+def add_https_prefix(url: str) -> str:
     if not url.startswith(("http://", "https://")):
         return "https://" + url
     return url

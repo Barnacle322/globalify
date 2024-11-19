@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from geopy.distance import geodesic
 from more_itertools import chunked
 from slugify import slugify
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, exists, func
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, exists, func, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import (
     Mapped,
@@ -290,8 +290,8 @@ class Investor(InvestorBase):
     bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
-    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="t")
-    is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="f")
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

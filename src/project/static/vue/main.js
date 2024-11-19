@@ -92,7 +92,7 @@ createApp({
         },
         async fetchInvestorBookmarks() {
             try {
-                const response = await fetch("/investor/bookmarks");
+                const response = await fetch("/bookmarks/investor");
                 if (response.ok) {
                     const data = await response.json();
                     this.investorBookmakrIds = data.bookmark_ids;
@@ -110,7 +110,7 @@ createApp({
         },
         async fetchInvestmentFirmBookmarks() {
             try {
-                const response = await fetch("/investment-firm/bookmarks");
+                const response = await fetch("/bookmarks/investment-firm");
                 if (response.ok) {
                     const data = await response.json();
                     this.investmentFirmBookmakrIds = data.bookmark_ids;
@@ -132,7 +132,7 @@ createApp({
         },
         async fetchCompanyBookmarks() {
             try {
-                const response = await fetch("/company/bookmarks");
+                const response = await fetch("/bookmarks/company");
                 if (response.ok) {
                     const data = await response.json();
                     this.companyBookmarkIds = data.bookmark_ids;

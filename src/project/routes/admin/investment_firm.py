@@ -8,7 +8,6 @@ from ...models import (
     NotableInvestment,
     Round,
 )
-from ...routes.main import generate_pagination
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -19,6 +18,7 @@ from ...utils.errors.error_messages import (
     EMPTY_INVESTMENT_FIRM_NAME,
     INVESTMENT_FIRM_NOT_FOUND,
 )
+from ...utils.funcs import generate_pagination
 from ...utils.scraper import add_https_prefix
 
 investment_firm = Blueprint("investment_firm", __name__)

@@ -11,7 +11,6 @@ from ...models import (
     Round,
     User,
 )
-from ...routes.main import generate_pagination
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -23,6 +22,7 @@ from ...utils.errors.error_messages import (
     INVESTOR_BACKUP_NOT_FOUND,
     INVESTOR_NOT_FOUND,
 )
+from ...utils.funcs import generate_pagination
 from ...utils.scraper import add_https_prefix
 
 investor = Blueprint("investor", __name__)

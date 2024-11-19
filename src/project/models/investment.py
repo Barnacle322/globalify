@@ -4,10 +4,12 @@ import datetime
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Date, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, Date, ForeignKey, Integer, String, asc, desc, func
 from sqlalchemy.orm import (
     Mapped,
     MappedAsDataclass,
+    aliased,
+    joinedload,
     mapped_column,
     relationship,
 )
@@ -26,6 +28,33 @@ class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     funding_round: Mapped[FundingRound] = relationship("FundingRound", back_populates="investments", init=False)
     investor: Mapped[Investor] = relationship("Investor", back_populates="investments", init=False)
+
+    @staticmethod
+    def get_all() -> Sequence[Investment] | None:
+        return db.session.scalars(db.select(Investment)).all()
+
+    @staticmethod
+    def get_by_investor_id(
+        investor_id: int, sort_by: str | None = None, descending: bool = False
+    ) -> Sequence[Investment] | None:
+        query = db.select(Investment).where(Investment.investor_id == investor_id)
+
+        if sort_by:
+            if sort_by == "announced_date":
+                funding_round_alias = aliased(FundingRound)
+                query = query.join(funding_round_alias, Investment.funding_round)
+                query = query.options(joinedload(Investment.funding_round))
+                if descending:
+                    query = query.order_by(desc(funding_round_alias.announced_date))
+                else:
+                    query = query.order_by(asc(funding_round_alias.announced_date))
+            else:
+                if descending:
+                    query = query.order_by(desc(getattr(Investment, sort_by)))
+                else:
+                    query = query.order_by(asc(getattr(Investment, sort_by)))
+
+        return db.session.scalars(query).all()
 
 
 class FundingRound(MappedAsDataclass, db.Model, unsafe_hash=True):

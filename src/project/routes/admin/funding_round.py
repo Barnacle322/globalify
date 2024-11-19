@@ -7,7 +7,7 @@ from ...models import (
     FundingRound,
     Round,
 )
-from ...schemas.funding_round import FundingRoundSchema
+from ...schemas.investment import FundingRoundSchema
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,

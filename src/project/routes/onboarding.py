@@ -34,7 +34,7 @@ onboarding = Blueprint("onboarding", __name__)
 @login_required
 def index():
     if current_user.is_authenticated and current_user.user_info.is_complete:
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     claim_requests = ClaimRequest.get_with_investor_by_user_id(current_user.id)
 
@@ -56,7 +56,7 @@ def basic():
         return redirect(url_for("auth.login"))
 
     if user_info.is_complete:
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     if request.method == "POST":
         f = request.form
@@ -118,7 +118,7 @@ def basic():
                 random_key=verification.token,
             )
 
-        return redirect(url_for("main.search", next=request.args.get("next")))
+        return redirect(url_for("search.investor_search", next=request.args.get("next")))
 
     return render_template(
         "onboarding/basic.html",
@@ -149,6 +149,10 @@ def investor():
         if not first_name:
             return jsonify({"error": "First name is required"}), 400
 
+        last_name = form_data.get("lastName")
+        if not last_name:
+            return jsonify({"error": "Last name is required"}), 400
+
         email = form_data.get("email") or None
         if email:
             existing_investor_by_email = Investor.get_by_email(email)
@@ -158,7 +162,7 @@ def investor():
         investor = Investor(
             user_id=current_user.id,
             first_name=first_name,
-            last_name=form_data.get("lastName"),
+            last_name=last_name,
             slug=form_data.get("slug") or None,
             firm_name=form_data.get("firmName") or None,
             position=form_data.get("position") or None,
@@ -194,7 +198,9 @@ def investor():
             return redirect(url_for("onboarding.index"))
 
         current_user.user_info.is_complete = True
-        db.session.commit()
+        current_user.user_info.first_name = first_name
+        current_user.user_info.last_name = last_name
+        current_user.user_info.set_username()
 
         if current_user.oauth_provider == OauthProvider.GOOGLE:
             current_user.is_verified = True
@@ -223,7 +229,7 @@ def investor():
         db.session.add(notification)
         db.session.commit()
 
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     return render_template(
         "onboarding/investor.html",

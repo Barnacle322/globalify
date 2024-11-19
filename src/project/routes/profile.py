@@ -14,11 +14,11 @@ profile = Blueprint("profile", __name__)
 @check_verification
 def user_profile(username):
     if not isinstance(current_user, User):
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     user_info = UserInfo.get_by_username(username)
     if not user_info:
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     companies = (
         db.session.scalars(
@@ -36,6 +36,7 @@ def user_profile(username):
         "user_profile.html",
         user_info=user_info,
         user=user_info.user,
+        current_user=current_user,
         companies=companies,
         authenticated_user=current_user,
         investor=user_info.user.investor,
@@ -47,11 +48,11 @@ def user_profile(username):
 @check_verification
 def company_profile(slug):
     if not isinstance(current_user, User):
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     company = Company.get_by_slug(slug)
     if not company:
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     return render_template(
         "company_profile.html",

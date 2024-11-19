@@ -1,0 +1,16 @@
+from typing import Any, Dict, Optional
+
+from .api_call import ApiCall
+from .synonym import Synonym
+
+class Synonyms(object):
+    RESOURCE_PATH: str
+    api_call: ApiCall
+    collection_name: str
+    synonyms: Dict[str, Synonym]
+
+    def __init__(self, api_call: ApiCall, collection_name: str) -> None: ...
+    def __getitem__(self, synonym_id: str) -> Synonym: ...
+    def _endpoint_path(self, synonym_id: Optional[str] = None) -> str: ...
+    def upsert(self, id: str, schema: Dict[str, Any]) -> Dict[str, Any]: ...
+    def retrieve(self) -> Dict[str, Any]: ...

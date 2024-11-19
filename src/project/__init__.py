@@ -1,19 +1,18 @@
-import base64
 import os
 import time
 from datetime import timedelta
-from email.mime import base
 
 import jwt
 import sentry_sdk
 from flask import Flask
-from itsdangerous import base64_decode, base64_encode
+from itsdangerous import base64_decode
 from jwt.exceptions import InvalidKeyError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
+from .extensions import csrf, db, login_manager, migrate, oauth
 from .routes.admin import admin
 from .routes.auth import auth
+from .routes.claim import claim
 from .routes.main import (
     bad_request,
     forbidden,
@@ -26,6 +25,7 @@ from .routes.main import (
 from .routes.onboarding import onboarding
 from .routes.payment import payment
 from .routes.profile import profile
+from .routes.search import search
 from .routes.settings import settings
 
 
@@ -90,6 +90,8 @@ def create_app(database_url="sqlite:///db.sqlite"):
 
     app.register_blueprint(auth)
     app.register_blueprint(main)
+    app.register_blueprint(claim)
+    app.register_blueprint(search)
     app.register_blueprint(payment, url_prefix="/payment")
     app.register_blueprint(settings, url_prefix="/settings")
     app.register_blueprint(profile, url_prefix="/profile")

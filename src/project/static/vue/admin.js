@@ -79,6 +79,7 @@ createApp({
                 document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
             const is_public = document.getElementById("is_public");
+            const is_approved = document.getElementById("is_approved");
 
             let data = {
                 first_name: first_name,
@@ -106,6 +107,9 @@ createApp({
             if (is_public) {
                 data.is_public = is_public.checked;
             }
+            if (is_approved) {
+                data.is_approved = is_approved.checked;
+            }
 
             let dataString = JSON.stringify(data);
 
@@ -132,7 +136,7 @@ createApp({
                 return;
             }
 
-            const response = await fetch(`/admin/investor/${id}/delete`, {
+            const response = await fetch(`/admin/investors/${id}/delete`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -143,11 +147,29 @@ createApp({
                 window.location.href = response.url;
             }
         },
+        async approveInvestor(investorId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            try {
+                const response = await fetch(`/admin/investors/${investorId}/approve`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
         async undoInvestorData(investorId) {
             const csrfToken = document.getElementById("csrf_token").value;
 
             try {
-                const response = await fetch(`/admin/investor/${investorId}/undo`, {
+                const response = await fetch(`/admin/investors/${investorId}/undo`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -163,7 +185,7 @@ createApp({
         },
         async restoreOriginData(investorId) {
             try {
-                const response = await fetch(`/admin/investor/${investorId}/restore`, {
+                const response = await fetch(`/admin/investors/${investorId}/restore`, {
                     method: "GET",
                 });
                 if (response.redirected) {
@@ -247,7 +269,7 @@ createApp({
                 return;
             }
 
-            const response = await fetch(`/admin/investment-firm/${id}/delete`, {
+            const response = await fetch(`/admin/investment-firms/${id}/delete`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -315,7 +337,104 @@ createApp({
                 return;
             }
 
-            const response = await fetch(`/admin/company/${id}/delete`, {
+            const response = await fetch(`/admin/companies/${id}/delete`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                },
+            });
+            if (response.redirected) {
+                window.location.href = response.url;
+            }
+        },
+        async submitUserData() {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            const firstName = document.getElementById("first_name").value;
+            const lastName = document.getElementById("last_name").value;
+            const email = document.getElementById("email").value;
+            const isVerifiedElement = document.getElementById("is_verified");
+            const is_verified = isVerifiedElement ? isVerifiedElement.checked : false;
+            const isAdminElement = document.getElementById("is_admin");
+            const is_admin = isAdminElement ? isAdminElement.checked : false;
+
+            const username = document.getElementById("username").value;
+            const bio = document.getElementById("bio").value;
+            const instagram = document.getElementById("instagram").value;
+            const linkedin = document.getElementById("linkedin").value;
+            const twitter = document.getElementById("twitter").value;
+            const isCompleteElement = document.getElementById("is_complete");
+            const is_complete = isCompleteElement ? isCompleteElement.checked : false;
+            const refuseAllInvitationsElement = document.getElementById("refuse_all_invitations");
+            const refuse_all_invitations = refuseAllInvitationsElement ? refuseAllInvitationsElement.checked : false;
+            const emailPublicElement = document.getElementById("email_public");
+            const email_public = emailPublicElement ? emailPublicElement.checked : false;
+            const instagramPublicElement = document.getElementById("instagram_public");
+            const instagram_public = instagramPublicElement ? instagramPublicElement.checked : false;
+            const linkedinPublicElement = document.getElementById("linkedin_public");
+            const linkedin_public = linkedinPublicElement ? linkedinPublicElement.checked : false;
+            const twitterPublicElement = document.getElementById("twitter_public");
+            const twitter_public = twitterPublicElement ? twitterPublicElement.checked : false;
+
+            const customerId = document.getElementById("customer_id").value;
+            const subscriptionId = document.getElementById("subscription_id").value;
+            const tier = document.getElementById("tier").value;
+            const isActiveElement = document.getElementById("is_active");
+            const is_active = isActiveElement ? isActiveElement.checked : false;
+            const created = document.getElementById("created").value;
+            const expires_at = document.getElementById("expires_at").value;
+
+            const dataString = JSON.stringify({
+                email: email,
+                first_name: firstName,
+                last_name: lastName,
+                is_verified: is_verified,
+                is_admin: is_admin,
+
+                username: username,
+                bio: bio,
+                instagram: instagram,
+                linkedin: linkedin,
+                twitter: twitter,
+                is_complete: is_complete,
+                refuse_all_invitations: refuse_all_invitations,
+                email_public: email_public,
+                instagram_public: instagram_public,
+                linkedin_public: linkedin_public,
+                twitter_public: twitter_public,
+
+                customer_id: customerId,
+                subscription_id: subscriptionId,
+                tier: tier,
+                is_active: is_active,
+                created: created,
+                expires_at: expires_at,
+            });
+            try {
+                const response = await fetch("", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: dataString,
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async deleteUser(id) {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            if (!confirm("Are you sure you want to delete this user?")) {
+                return;
+            }
+
+            const response = await fetch(`/admin/users/${id}/delete`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

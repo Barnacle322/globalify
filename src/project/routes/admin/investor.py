@@ -11,7 +11,6 @@ from ...models import (
     Round,
     User,
 )
-from ...routes.main import generate_pagination
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -23,6 +22,8 @@ from ...utils.errors.error_messages import (
     INVESTOR_BACKUP_NOT_FOUND,
     INVESTOR_NOT_FOUND,
 )
+from ...utils.funcs import generate_pagination
+from ...utils.scraper import add_https_prefix
 
 investor = Blueprint("investor", __name__)
 
@@ -63,6 +64,72 @@ def index():
         status_type=status_type,
         msg=msg,
     )
+
+
+@investor.get("/approve")
+@admin_only
+def approve_investors():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    search_string = request.args.get("search", "")
+    result = Investor.get_search(
+        query_string=search_string,
+        query_by=[
+            "location",
+            "country",
+            "rounds",
+            "industries",
+            "notable_investments",
+            "name",
+            "firm_name",
+            "position",
+        ],
+        page=request.args.get("page", 1, type=int),
+        per_page=9,
+        is_approved=False,
+    )
+
+    investors = result.get("investors")
+    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+
+    return render_template(
+        "admin/approve_investors.html",
+        investors=investors,
+        query=search_string,
+        pagination=pagination,
+        total_pages=len(pagination.get("pages", [])),
+        status_type=status_type,
+        msg=msg,
+    )
+
+
+@investor.post("/<int:id>/approve")
+@admin_only
+def approve_investor(id):
+    investor = Investor.get_by_id(id)
+    if not investor:
+        status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
+        return redirect(url_for("admin.investor.approve_investors", _external=True, **status))
+
+    investor.is_approved = True
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.investor.approve_investors", _external=True, **status))
+
+    try:
+        investor.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.investor.approve_investors", _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Investor approved successfully!").get_status()
+    return redirect(url_for("admin.investor.approve_investors", _external=True, **status))
 
 
 @investor.get("/<int:id>")
@@ -131,7 +198,6 @@ def update_investor(id):
     investor_backup.rounds = investor.rounds
     investor_backup.industries = investor.industries
     investor_backup.user = investor.user
-    investor_backup.is_public = investor.is_public
 
     db.session.add(investor_backup)
 
@@ -162,7 +228,6 @@ def update_investor(id):
             investor_point_origin.notable_investments = investor.notable_investments
             investor_point_origin.rounds = investor.rounds
             investor_point_origin.industries = investor.industries
-            investor_point_origin.is_public = investor.is_public
             db.session.add(investor_point_origin)
     else:
         investor.user = None
@@ -184,11 +249,24 @@ def update_investor(id):
     elif not slug:
         investor.set_slug()
 
+    if website := form_data.get("website", investor.website):
+        investor.website = add_https_prefix(website)
+    else:
+        investor.website = None
+
+    if linkedin := form_data.get("linkedin", investor.linkedin):
+        investor.linkedin = add_https_prefix(linkedin)
+    else:
+        investor.linkedin = None
+
+    if twitter := form_data.get("twitter", investor.twitter):
+        investor.twitter = add_https_prefix(twitter)
+    else:
+        investor.twitter = None
+
     investor.firm_name = form_data.get("firm_name", investor.firm_name) or None
     investor.position = form_data.get("position", investor.position) or None
-    investor.website = form_data.get("website", investor.website) or None
-    investor.linkedin = form_data.get("linkedin", investor.linkedin) or None
-    investor.twitter = form_data.get("twitter", investor.twitter) or None
+    investor.about = form_data.get("about", investor.about) or None
     investor.email = form_data.get("email", investor.email) or None
     investor.phone_number = form_data.get("phone_number", investor.phone_number) or None
     investor.location = form_data.get("location", investor.location) or None
@@ -205,6 +283,7 @@ def update_investor(id):
         NotableInvestment.get_by_id_list(form_data.get("notable_investments", investor.notable_investments) or [])
     )
     investor.is_public = form_data.get("is_public", investor.is_public)
+    investor.is_approved = form_data.get("is_approved", investor.is_approved)
 
     try:
         db.session.commit()
@@ -401,7 +480,8 @@ def delete_investor(id):
         status = Status(StatusType.ERROR, str(e)).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
-    return redirect(url_for("admin.investor.index"), code=302)
+    status = Status(StatusType.SUCCESS, "Investor deleted successfully!").get_status()
+    return redirect(url_for("admin.investor.index", _external=True, **status))
 
 
 @investor.get("/search_notable_investments/<search_input>/<int:investor_id>")

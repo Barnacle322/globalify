@@ -85,6 +85,8 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
     if user.oauth_provider != oauth_provider:
         raise Exception(OAUTH_MISMATCHED_PROVIDER)
 
+    User.update_last_login(user.id)
+
     return user
 
 
@@ -140,7 +142,7 @@ def verify_email():
     email_verification.is_used = True
     db.session.commit()
 
-    return redirect(url_for("main.search", next=next_url))
+    return redirect(url_for("search.investor_search", next=next_url))
 
 
 @auth.route("/resend-verification/<int:user_id>")
@@ -157,7 +159,7 @@ def resend_verification_email(user_id):
         return redirect(url_for("auth.login", _external=False, **status))
 
     if user.is_verified:
-        return redirect(url_for("main.search", _external=False))
+        return redirect(url_for("search.investor_search", _external=False))
 
     last_verification = EmailVerification.get_last_unused_by_user_id(user_id)
 
@@ -201,7 +203,7 @@ def email_verification_required():
     next_url = request.args.get("next")
 
     if current_user.is_verified:
-        return redirect(url_for("main.search", next=next_url))
+        return redirect(url_for("search.investor_search", next=next_url))
 
     return render_template("verify_email.html", user_id=current_user.id, status_type=status_type, msg=msg)
 
@@ -209,7 +211,7 @@ def email_verification_required():
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     status_type, msg = None, None
     if query := request.args:
@@ -292,7 +294,7 @@ def linkedin_callback():
     if not user_info.is_complete:
         return redirect(url_for("onboarding.index"))
 
-    return redirect(url_for("main.search"))
+    return redirect(url_for("search.investor_search"))
 
 
 @auth.route("/login-google")
@@ -350,7 +352,7 @@ def google_callback():
     if not user_info.is_complete:
         return redirect(url_for("onboarding.index"))
 
-    return redirect(url_for("main.search"))
+    return redirect(url_for("search.investor_search"))
 
 
 @auth.route("/login-apple")
@@ -420,7 +422,7 @@ def apple_callback():
     if not user_info.is_complete:
         return redirect(url_for("onboarding.index"))
 
-    return redirect(url_for("main.search"))
+    return redirect(url_for("search.investor_search"))
 
 
 @auth.get("/username/<username>")

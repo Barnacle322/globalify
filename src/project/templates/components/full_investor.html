@@ -78,7 +78,7 @@
                             loading="lazy"
                         />
                         <h1 class="text-4xl font-semibold" v-text="investor.name"></h1>
-                        <div class="flex">
+                        <div class="flex items-center">
                             <a
                                 v-if="!investor.user_id"
                                 :href="`/investor/${investor.slug}/claim`"
@@ -134,8 +134,21 @@
                     {% if user.is_admin %}
                     <a
                         :href="`/admin/investors/${investor.id}`"
-                        class="ml-3 flex h-10 w-32 items-center justify-center rounded-lg bg-red-600 px-2 py-1 text-sm text-white transition-colors ease-in-out hover:bg-red-400"
-                        >Admin edit
+                        class="ml-3 flex items-center justify-center rounded-lg bg-gray-200 px-2 py-2 text-sm text-white transition-colors ease-in-out hover:bg-red-400"
+                        ><svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-5 text-black"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+                            />
+                        </svg>
                     </a>
                     {% endif %}
                 </section>
@@ -273,7 +286,7 @@
                                         d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
                                     />
                                 </svg>
-                                Investment Range:
+                                Cheque Size:
                             </span>
                             <span class="text-sm text-gray-700" v-text="investor.min_max_investment"></span>
                         </div>
@@ -327,7 +340,7 @@
                         </div>
                     </article>
                     <article
-                        v-if="investor.user_id && investor.user_id != {{ user.id }}"
+                        v-if="investor.user_id && investor.user_id != {{ user.id }} && !rendercontacts"
                         class="shadow-card w-full rounded-xl bg-white p-5"
                     >
                         <h2 class="text-xl font-medium">This profile has already been claimed by another user.</h2>
@@ -365,7 +378,7 @@
                                     Twitter
                                 </span>
                                 <a
-                                    href="investor.twitter"
+                                    :href="investor.twitter"
                                     target="_blank"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
@@ -395,7 +408,7 @@
                                     LinkedIn
                                 </span>
                                 <a
-                                    href="investor.linkedin"
+                                    :href="investor.linkedin"
                                     target="_blank"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
@@ -435,7 +448,7 @@
                                     Website
                                 </span>
                                 <a
-                                    href="investor.website"
+                                    :href="investor.website"
                                     target="_blank"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
@@ -475,7 +488,7 @@
                                     Email
                                 </span>
                                 <a
-                                    href="mailto:investor.email"
+                                    :href="`mailto:${investor.email}`"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
                                     <span v-text="investor.email"></span>

@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from geopy.distance import geodesic
 from more_itertools import chunked
 from slugify import slugify
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, exists, func
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, exists, func, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import (
     Mapped,
@@ -49,6 +49,7 @@ from ..utils.typesense_helpers.typesense_search import (
     create_synonyms,
     delete_documents,
     delete_schema,
+    update_collection,
     upsert_documents,
 )
 from .helpers import Industry, Round
@@ -267,7 +268,6 @@ class InvestorBase(db.Model):
     min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     location: Mapped[str | None] = mapped_column(String, nullable=True)
-    is_public = mapped_column(Boolean, nullable=False, default=True)
 
 
 class Investor(InvestorBase):
@@ -292,6 +292,8 @@ class Investor(InvestorBase):
     bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -346,10 +348,11 @@ class Investor(InvestorBase):
 
     @validates("location")
     def on_location_change(self, key, value):
-        geo_data = geocode_location(value)
-        if geo_data is not None:
-            self._coordinates = geo_data["coordinates"]  # type: ignore
-            self._country = geo_data["country_name"]  # type: ignore
+        if value != self.location:
+            geo_data = geocode_location(value)
+            if geo_data is not None:
+                self._coordinates = geo_data["coordinates"]  # type: ignore
+                self._country = geo_data["country_name"]  # type: ignore
         return value
 
     @staticmethod
@@ -449,6 +452,7 @@ class Investor(InvestorBase):
         per_page: int = 12,
         page: int = 1,
         is_public: bool | None = None,
+        is_approved: bool | None = None,
     ):
         try:
             search_builder = (
@@ -461,8 +465,11 @@ class Investor(InvestorBase):
                 .filter_by("countries", countries, exclusivity=False)
             )
 
+            if is_approved is not None:
+                search_builder = search_builder.filter_by_boolean("is_approved", is_approved)
+
             if is_public is not None:
-                search_builder = search_builder.filter_by_public(is_public)
+                search_builder = search_builder.filter_by_boolean("is_public", is_public)
 
             search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
             results = search_builder.search()
@@ -1006,6 +1013,8 @@ class Investor(InvestorBase):
             ]
         if self.is_public:
             investor_object["is_public"] = self.is_public
+        if self.is_approved:
+            investor_object["is_approved"] = self.is_approved
 
         data = [investor_object]
 
@@ -1027,6 +1036,16 @@ class Investor(InvestorBase):
 
     def delete_data(self):
         delete_documents("investors", str(self.id))
+
+    @staticmethod
+    def update_typesense_collection():
+        update_schema = {
+            "fields": [
+                {"name": "is_approved", "drop": True},
+                {"name": "is_approved", "type": "bool", "optional": True},
+            ]
+        }
+        update_collection("investors", update_schema)
 
     @staticmethod
     def sync_search_index(recreate: bool = False):
@@ -1054,6 +1073,7 @@ class Investor(InvestorBase):
                     {"name": "industries", "type": "string[]", "facet": True, "optional": True},
                     {"name": "notable_investments", "type": "string[]", "optional": True},
                     {"name": "is_public", "type": "bool", "optional": True},
+                    {"name": "is_approved", "type": "bool", "optional": True},
                     {
                         "name": "embedding",
                         "type": "float[]",
@@ -1117,8 +1137,10 @@ class Investor(InvestorBase):
                     investor_object["notable_investments"] = [
                         notable_investment.name for notable_investment in investor.notable_investments
                     ]
-                if investor.is_public:
+                if investor.is_public is not None:
                     investor_object["is_public"] = investor.is_public
+                if investor.is_approved is not None:
+                    investor_object["is_approved"] = investor.is_approved
                 data.append(investor_object)
 
             result = upsert_documents("investors", data)
@@ -1389,7 +1411,7 @@ class InvestmentFirm(db.Model):
             )
 
             if is_public is not None:
-                search_builder = search_builder.filter_by_public(is_public)
+                search_builder = search_builder.filter_by_boolean("is_public", is_public)
 
             search_builder = search_builder.sort_by(sort_by, sort_desc).page(page, per_page)
             results = search_builder.search()

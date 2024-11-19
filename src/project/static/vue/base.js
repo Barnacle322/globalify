@@ -702,6 +702,7 @@ const FullInvestor = defineComponent({
             isBookmarked: false,
             investor: null,
             unpaid: false,
+            dropdownOpened: false,
         };
     },
 });
@@ -801,6 +802,7 @@ const FullInvestmentFirm = defineComponent({
             investmentFirm: null,
             isBookmarked: false,
             unpaid: false,
+            dropdownOpened: false,
         };
     },
 });

@@ -615,10 +615,12 @@ const FullInvestor = defineComponent({
     emits: ["close-investor", "bookmarked"],
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("click", this.handleClickOutside);
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         this.deleteInvestorParam();
+        document.removeEventListener("click", this.handleClickOutside);
     },
     created() {
         this.fetchInvestor();
@@ -669,11 +671,12 @@ const FullInvestor = defineComponent({
                     const data = await response.json();
                     var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
                     if (data[0].bookmarked) {
-                        svg.style.fill = "#FFC9FC";
                         this.$emit("bookmarked", { investorId: investorId, status: true });
+                        this.isBookmarked = !this.isBookmarked;
                     } else {
-                        svg.style.fill = "none";
+                        // svg.style.fill = "none";
                         this.$emit("bookmarked", { investorId: investorId, status: false });
+                        this.isBookmarked = !this.isBookmarked;
                     }
                 }
             } catch (error) {
@@ -694,6 +697,11 @@ const FullInvestor = defineComponent({
         getTwitterHandle(url) {
             return url.split("/").pop();
         },
+        handleClickOutside(event) {
+        const dropdownContainer = this.$refs.dropdownContainer;
+        if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+        this.dropdownOpened = false;}
+        },
     },
     data() {
         return {
@@ -713,10 +721,12 @@ const FullInvestmentFirm = defineComponent({
     emits: ["close-investment-firm", "bookmarked"],
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("click", this.handleClickOutside);
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         this.deleteInvestmentFirmParam();
+        document.removeEventListener("click", this.handleClickOutside);
     },
     created() {
         this.fetchInvestmentFirm();
@@ -756,11 +766,13 @@ const FullInvestmentFirm = defineComponent({
                     const data = await response.json();
                     var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
                     if (data[0].bookmarked) {
-                        svg.style.fill = "#FFC9FC";
                         this.$emit("bookmarked", { firmId: firmId, status: true });
+                        this.isBookmarked = !this.isBookmarked;
+
                     } else {
-                        svg.style.fill = "none";
                         this.$emit("bookmarked", { firmId: firmId, status: false });
+                        this.isBookmarked = !this.isBookmarked;
+
                     }
                 }
             } catch (error) {
@@ -793,6 +805,11 @@ const FullInvestmentFirm = defineComponent({
         },
         сloseInvestmentFirm() {
             this.$emit("close-investment-firm");
+        },
+        handleClickOutside(event) {
+        const dropdownContainer = this.$refs.dropdownContainer;
+        if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+        this.dropdownOpened = false;}
         },
     },
     data() {

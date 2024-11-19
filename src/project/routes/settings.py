@@ -268,7 +268,7 @@ def delete_account():
 @check_verification
 def company_list_view():
     if not isinstance(current_user, User):
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     companies = (
         db.session.scalars(
@@ -312,7 +312,7 @@ def company_info_view(company_id):
         msg = query.get("msg")
 
     if not isinstance(current_user, User):
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     company_invitations = CompanyInvitation.get_by_company_id(company_id=company_id)
 

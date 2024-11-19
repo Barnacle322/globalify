@@ -34,7 +34,7 @@ onboarding = Blueprint("onboarding", __name__)
 @login_required
 def index():
     if current_user.is_authenticated and current_user.user_info.is_complete:
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     claim_requests = ClaimRequest.get_with_investor_by_user_id(current_user.id)
 
@@ -56,7 +56,7 @@ def basic():
         return redirect(url_for("auth.login"))
 
     if user_info.is_complete:
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     if request.method == "POST":
         f = request.form
@@ -118,7 +118,7 @@ def basic():
                 random_key=verification.token,
             )
 
-        return redirect(url_for("main.search", next=request.args.get("next")))
+        return redirect(url_for("search.investor_search", next=request.args.get("next")))
 
     return render_template(
         "onboarding/basic.html",
@@ -229,7 +229,7 @@ def investor():
         db.session.add(notification)
         db.session.commit()
 
-        return redirect(url_for("main.search"))
+        return redirect(url_for("search.investor_search"))
 
     return render_template(
         "onboarding/investor.html",

@@ -831,10 +831,12 @@ const FullCompany = defineComponent({
     emits: ["close-company", "bookmarked"],
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("click", this.handleClickOutside);
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         this.deleteCompanyParam();
+        document.removeEventListener("click", this.handleClickOutside);
     },
     created() {
         this.fetchCompany();
@@ -886,11 +888,12 @@ const FullCompany = defineComponent({
                     const data = await response.json();
                     var svg = document.getElementById(`bookmark-svg-company-${companyId}`);
                     if (data[0].bookmarked) {
-                        svg.style.fill = "#FFC9FC";
                         this.$emit("bookmarked", { companyId: companyId, status: true });
+                        this.isBookmarked = !this.isBookmarked;
                     } else {
                         svg.style.fill = "none";
                         this.$emit("bookmarked", { companyId: companyId, status: false });
+                        this.isBookmarked = !this.isBookmarked;
                     }
                 }
             } catch (error) {
@@ -912,6 +915,11 @@ const FullCompany = defineComponent({
         closeCompany() {
             this.$emit("close-company");
         },
+        handleClickOutside(event) {
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+            this.dropdownOpened = false;}
+        },
     },
     data() {
         return {
@@ -920,6 +928,7 @@ const FullCompany = defineComponent({
             isBookmarked: false,
             company: null,
             unpaid: false,
+            dropdownOpened: false,
         };
     },
 });

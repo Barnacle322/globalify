@@ -658,7 +658,7 @@ const FullInvestor = defineComponent({
                 this.isLoading = false;
             }
         },
-        async toggleInvestorBookmark(investorId) {
+        async toggleBookmark(investorId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
                 const response = await fetch(`/investor/${investorId}/bookmark`, {
@@ -753,7 +753,7 @@ const FullInvestmentFirm = defineComponent({
                 this.isLoading = false;
             }
         },
-        async toggleInvestmentFirmBookmark(firmId) {
+        async toggleBookmark(firmId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
                 const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
@@ -874,7 +874,7 @@ const FullCompany = defineComponent({
                 this.isLoading = false;
             }
         },
-        async toggleCompanyBookmark(companyId) {
+        async toggleBookmark(companyId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
                 const response = await fetch(`/company/${companyId}/bookmark`, {

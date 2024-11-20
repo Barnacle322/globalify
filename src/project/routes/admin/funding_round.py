@@ -4,6 +4,7 @@ from flask import Blueprint, redirect, render_template, request, url_for
 
 from ...extensions import db
 from ...models import (
+    Company,
     FundingRound,
     Round,
 )
@@ -15,10 +16,10 @@ from ...utils.enums import (
 )
 from ...utils.errors.error_messages import (
     EMPTY_ANNOUNCED_DATE,
-    EMPTY_ORGANIZATION_NAME,
+    EMPTY_COMPANY_NAME,
     EMPTY_ROUND_ID,
 )
-from ..main import generate_pagination
+from ...utils.funcs import generate_pagination
 
 funding_round = Blueprint("funding_round", __name__)
 
@@ -43,7 +44,7 @@ def index():
         funding_rounds.append(
             FundingRoundSchema(
                 id=funding_round.id,
-                organization_name=funding_round.organization_name,
+                company_name=funding_round.company.name,
                 announced_date=funding_round.announced_date,
                 round={
                     "id": funding_round.round.id,
@@ -76,6 +77,7 @@ def create_funding_round_view():
     return render_template(
         "admin/create_funding_round.html",
         rounds=Round.get_all(),
+        companies=Company.get_all(),
         status_type=status_type,
         msg=msg,
     )
@@ -86,9 +88,9 @@ def create_funding_round_view():
 def create_funding_round():
     form_data = request.get_json()
 
-    organization_name = form_data.get("organization_name")
-    if not organization_name:
-        status = Status(StatusType.ERROR, EMPTY_ORGANIZATION_NAME).get_status()
+    company_id = form_data.get("company_id")
+    if not company_id:
+        status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("admin.funding_round.create_funding_round_view", _external=True, **status))
 
     announced_date = form_data.get("announced_date")
@@ -104,7 +106,7 @@ def create_funding_round():
     announced_date_format = datetime.strptime(announced_date, "%Y-%m-%d")
 
     funding_round = FundingRound(
-        organization_name=organization_name,
+        company_id=company_id,
         announced_date=announced_date_format,
         round_id=round_id,
     )
@@ -135,6 +137,7 @@ def update_funding_round_view(id):
 
     return render_template(
         "admin/update_funding_round.html",
+        companies=Company.get_all(),
         funding_round=funding_round,
         rounds=Round.get_all(),
         status_type=status_type,
@@ -152,9 +155,9 @@ def update_funding_round(id):
         status = Status(StatusType.ERROR, "Funding round not found!").get_status()
         return redirect(url_for("admin.funding_round.index", _external=True, **status))
 
-    organization_name = form_data.get("organization_name")
-    if not organization_name:
-        status = Status(StatusType.ERROR, EMPTY_ORGANIZATION_NAME).get_status()
+    company_id = form_data.get("company_id")
+    if not company_id:
+        status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("admin.funding_round.update_funding_round_view", id=id, _external=True, **status))
 
     announced_date = form_data.get("announced_date")
@@ -169,7 +172,7 @@ def update_funding_round(id):
 
     announced_date_format = datetime.strptime(announced_date, "%Y-%m-%d")
 
-    funding_round.organization_name = organization_name
+    funding_round.company_id = company_id
     funding_round.announced_date = announced_date_format
     funding_round.round_id = round_id
 

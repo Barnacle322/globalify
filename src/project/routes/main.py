@@ -169,26 +169,12 @@ def get_investor(slug):
     return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked})
 
 
-
-@main.get("/investment/<int:investor_id>")
-@login_required
-@check_user_info_complete
-@check_verification
-def investment(investor_id):
-    return render_template(
-        "investment.html",
-    )
-
-
 @main.get("/investment/<int:investor_id>/get")
 @login_required
 @check_user_info_complete
 @check_verification
 def get_investment(investor_id):
-    sort_order = request.args.get("sort_order", "asc").lower()
-    descending = sort_order == "desc"
-
-    model_investments = Investment.get_by_investor_id(investor_id, sort_by="announced_date", descending=descending)
+    model_investments = Investment.get_by_investor_id(investor_id)
 
     if not model_investments:
         return jsonify({"status": "error", "message": "Investments not found for this investor."}), 404
@@ -200,7 +186,7 @@ def get_investment(investor_id):
             id=model_investment.id,
             funding_round=InvestmentFundingRoundSchema(
                 id=model_investment.funding_round.id,
-                organization_name=model_investment.funding_round.organization_name,
+                company_name=model_investment.funding_round.company.name,
                 round=model_investment.funding_round.round.name,
                 announced_date=model_investment.funding_round.announced_date.strftime("%b %d, %Y"),
             ),
@@ -209,11 +195,13 @@ def get_investment(investor_id):
 
     return jsonify({"investments": investments, "n_of_investments": len(investments)})
 
+
 @main.get("/check-investor")
 @login_required
 def check_investor():
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
+
     user_info = UserInfo.get_by_user_id(current_user.id)
     if not user_info:
         return jsonify({"status": "error", "message": "User Info not found."}), 404

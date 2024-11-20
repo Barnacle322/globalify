@@ -91,6 +91,7 @@
                     @bookmarked="handleInvestorBookmark"
                     :slug="selectedInvestorSlug"
                     :rendercontacts="true"
+                    :id="selectedInvestorId"
                     v-if="selectedInvestorSlug"
                 ></full-investor>
             </transition>
@@ -586,7 +587,7 @@
                             >
                                 <div class="flex items-center justify-between">
                                     <button
-                                        @click="selectInvestorSlug('{{ investor.slug }}')"
+                                        @click="selectInvestorSlug('{{ investor.slug }}', {{ investor.id }})"
                                         class="text-xl font-bold leading-none"
                                     >
                                         {{ investor.name }}

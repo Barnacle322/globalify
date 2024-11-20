@@ -331,7 +331,7 @@ const Bookmark = defineComponent({
                 const response = await fetch("/bookmarks/investors");
                 if (response.ok) {
                     data = await response.json();
-                    console.log(data)
+                    console.log(data);
                     this.bookmarks = data.bookmarks;
                 }
             } else if (this.selectedTab === "investment_firm") {
@@ -612,10 +612,12 @@ const NavbarComponent = defineComponent({
 
 const FullInvestor = defineComponent({
     template: "#full-investor-template",
-    props: { slug: String, rendercontacts: Boolean },
+    props: { slug: String, rendercontacts: Boolean, id: Number },
     emits: ["close-investor", "bookmarked"],
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
+
+        this.fetchInvestments(this.id);
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
@@ -681,6 +683,31 @@ const FullInvestor = defineComponent({
                 console.error(error);
             }
         },
+        async fetchInvestments(investorId) {
+            try {
+                const response = await fetch(`/investment/${investorId}/get`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investments = data.investments;
+                    console.log(this.investments);
+                    this.n_of_investments = data.n_of_investments;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async sortInvestments(sortType) {
+            const compareDates = (a, b) => {
+                const dateA = new Date(a.announced_date);
+                const dateB = new Date(b.announced_date);
+                return sortType === "asc" ? dateA - dateB : dateB - dateA;
+            };
+
+            this.investments.sort(compareDates);
+            this.investments = [...this.investments];
+            console.log(this.investments);
+            this.sortDropdownOpened = false;
+        },
         handleKeyDown(event) {
             if (event.key === "Escape") {
                 this.$emit("close-investor");
@@ -703,6 +730,8 @@ const FullInvestor = defineComponent({
             isBookmarked: false,
             investor: null,
             unpaid: false,
+            sortDropdownOpened: false,
+            investments: [],
         };
     },
 });

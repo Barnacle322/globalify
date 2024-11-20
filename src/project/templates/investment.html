@@ -19,66 +19,6 @@
                     <span v-text="n_of_investments"></span>
                 </div>
             </div>
-            <table class="border w-full">
-                <tr class="border text-center">
-                    <td>
-                        <div class="flex p-2 justify-center items-center border-r relative">
-                            <span class="pr-4">Announced Date</span>
-                            <button class="relative" @click.stop="sortDropdownOpened = !sortDropdownOpened">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="size-5"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="m19.5 8.25-7.5 7.5-7.5-7.5"
-                                    />
-                                </svg>
-                            </button>
-                            <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
-                                <div
-                                    v-if="sortDropdownOpened"
-                                    class="absolute right-11 top-11 z-50 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1"
-                                >
-                                    <button
-                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-gray-200"
-                                        @click="sortInvestments(investmentInvestorId , 'asc')"
-                                    >
-                                        Sort ascending
-                                    </button>
-                                    <button
-                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-gray-200"
-                                        @click="sortInvestments(investmentInvestorId, 'desc')"
-                                    >
-                                        Sort descending
-                                    </button>
-                                </div>
-                            </transition>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="flex p-2 justify-center items-center border-r">
-                            <span>Organization Name</span>
-                        </div>
-                    </td>
-                    <td class="p-2">
-                        <div class="flex p-2 justify-center items-center border-r">
-                            <span>Funding Round</span>
-                        </div>
-                    </td>
-                </tr>
-
-                <tr v-for="investment in investments" :key="investment.id">
-                    <td class="text-end pr-4" v-text="investment.funding_round.announced_date"></td>
-                    <td class="text-center" v-text="investment.funding_round.organization_name"></td>
-                    <td class="text-center" v-text="investment.funding_round.round"></td>
-                </tr>
-            </table>
         </div>
     </body>
 </html>

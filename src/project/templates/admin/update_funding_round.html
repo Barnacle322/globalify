@@ -119,17 +119,18 @@
                     </div>
 
                     <div class="col-span-full">
-                        <label class="text-sm font-medium text-gray-700" for="organization_name"
-                            >Organization Name*</label
-                        >
-                        <input
-                            class="w-full rounded-lg bg-transparent bg-white"
-                            type="text"
-                            id="organization_name"
-                            placeholder="OpenAI"
-                            value="{{funding_round.organization_name}}"
-                            required
-                        />
+                        <label for="company" class="text-sm font-medium text-gray-700">Company</label>
+                        <div>
+                            <select id="company" name="company" class="h-12 w-full rounded-xl px-2" required id="round">
+                                <option value="" disabled selected>Select a company</option>
+                                {% if companies %} {% for company in companies %} {% if
+                                funding_round.company_id==company.id %}
+                                <option value="{{ company.id }}" selected>{{ company.name }}</option>
+                                {% else %}
+                                <option value="{{ company.id }}">{{ company.name }}</option>
+                                {% endif %} {% endfor %} {% endif %}
+                            </select>
+                        </div>
                     </div>
 
                     <div class="sm:col-span-3">

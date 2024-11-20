@@ -64,10 +64,6 @@ createApp({
         this.initializeValuesFromParams();
         this.updateLinksWithQueryParams();
 
-        const url = window.location.href;
-        this.investmentInvestorId = url.match(/\/investment\/(\d+)/)[1];
-        this.fetchInvestment(this.investmentInvestorId);
-
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
@@ -166,16 +162,19 @@ createApp({
                 this.$emit(closeEvent);
             }
         },
-        updateUrlParam(paramName, paramValue, stateKey) {
+        updateUrlParam(paramName, paramValue, stateKey, investorId) {
             const url = new URL(window.location.href);
             if (url.searchParams.get(paramName) !== paramValue) {
                 url.searchParams.set(paramName, paramValue);
                 window.history.pushState({}, "", url);
             }
             this[stateKey] = paramValue;
+
+            this["selectedInvestorId"] = investorId;
         },
-        selectInvestorSlug(investorSlug) {
-            this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug");
+        selectInvestorSlug(investorSlug, investorId) {
+            console.log(investorSlug, investorId);
+            this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug", investorId);
         },
         selectInvestmentFirmSlug(investmentFirmSlug) {
             this.updateUrlParam("investment-firm", investmentFirmSlug, "selectedInvestmentFirmSlug");
@@ -508,38 +507,6 @@ createApp({
                 console.error(error);
             }
         },
-        async fetchInvestment(investorId) {
-            try {
-                const response = await fetch(`/investment/${investorId}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investments = data.investments;
-                    this.n_of_investments = data.n_of_investments;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async sortInvestments(investorId, sortType) {
-            if (sortType === "asc") {
-                this.fetchInvestments(investorId);
-            } else {
-                this.fetchInvestments(investorId, (sortOrder = "desc"));
-            }
-        },
-        async fetchInvestments(investorId, sortOrder = "asc") {
-            try {
-                const response = await fetch(`/investment/${investorId}/get?sort_order=${sortOrder}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investments = data.investments;
-                } else {
-                    console.error("Failed to fetch investments:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Error fetching investments:", error);
-            }
-        },
         closeSortDropdownOutside() {
             this.sortDropdownOpened = false;
         },
@@ -559,16 +526,13 @@ createApp({
             asideExpanded: false,
             asideMinified: false,
             openAdvanced: false,
-
             isSearchHistoryVisible: false,
-
             selectedInvestorSlug: null,
+            selectedInvestorId: null,
             selectedInvestmentFirmSlug: null,
             selectedCompanySlug: null,
             bookmarkedInvestorId: null,
             investmentInvestorId: null,
-            sortDropdownOpened: false,
-            investments: [],
             n_of_investments: 0,
             investorBookmakrIds: [],
             investmentFirmBookmakrIds: [],

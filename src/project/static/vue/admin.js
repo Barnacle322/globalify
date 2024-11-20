@@ -22,12 +22,12 @@ createApp({
         async submitFundingRoundData() {
             const csrfToken = document.getElementById("csrf_token").value;
 
-            const organization_name = document.getElementById("organization_name").value;
+            const company_id = document.getElementById("company").value;
             const round_id = document.getElementById("round").value;
             const announced_date = document.getElementById("announced_date").value;
 
             const dataString = JSON.stringify({
-                organization_name: organization_name,
+                company_id: company_id,
                 round_id: round_id,
                 announced_date: announced_date,
             });

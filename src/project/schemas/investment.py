@@ -5,14 +5,14 @@ from pydantic import BaseModel
 
 class FundingRoundSchema(BaseModel):
     id: int
-    organization_name: str
+    company_name: str
     round: object
     announced_date: date
 
 
 class InvestmentFundingRoundSchema(BaseModel):
     id: int
-    organization_name: str
+    company_name: str
     round: str
     announced_date: str
 

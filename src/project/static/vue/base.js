@@ -331,7 +331,7 @@ const Bookmark = defineComponent({
                 const response = await fetch("/bookmarks/investors");
                 if (response.ok) {
                     data = await response.json();
-                    console.log(data)
+                    console.log(data);
                     this.bookmarks = data.bookmarks;
                 }
             } else if (this.selectedTab === "investment_firm") {
@@ -698,6 +698,7 @@ const FullInvestor = defineComponent({
     },
     data() {
         return {
+            showPopover: false,
             isExpanded: false,
             isLoading: true,
             isBookmarked: false,

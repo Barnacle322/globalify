@@ -612,34 +612,21 @@ const NavbarComponent = defineComponent({
 
 const FullInvestor = defineComponent({
     template: "#full-investor-template",
-    props: { slug: String, rendercontacts: Boolean, id: Number },
+    props: { slug: String, rendercontacts: Boolean },
     emits: ["close-investor", "bookmarked"],
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
-
-        this.fetchInvestments(this.id);
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         this.deleteInvestorParam();
     },
-    created() {
-        this.fetchInvestor();
+    async created() {
+        await this.fetchInvestor();
         window.removeEventListener("popstate", this.checkUrlParams);
+        this.fetchInvestments(this.investor.id);
     },
     methods: {
-        deleteInvestorParam() {
-            const url = new URL(window.location.href);
-            url.searchParams.delete("investor");
-            window.history.replaceState({}, "", url);
-        },
-        checkUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const investorSlug = urlParams.get("investor");
-            if (!investorSlug) {
-                this.$emit("close-investor");
-            }
-        },
         async fetchInvestor() {
             try {
                 const response = await fetch(`/investor/${this.slug}/get`);
@@ -689,7 +676,7 @@ const FullInvestor = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     this.investments = data.investments;
-                    console.log(this.investments);
+
                     this.n_of_investments = data.n_of_investments;
                 }
             } catch (error) {
@@ -704,9 +691,23 @@ const FullInvestor = defineComponent({
             };
 
             this.investments.sort(compareDates);
+
+            // Force re-render
             this.investments = [...this.investments];
-            console.log(this.investments);
+            this.sortOrder = sortType;
             this.sortDropdownOpened = false;
+        },
+        deleteInvestorParam() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("investor");
+            window.history.replaceState({}, "", url);
+        },
+        checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const investorSlug = urlParams.get("investor");
+            if (!investorSlug) {
+                this.$emit("close-investor");
+            }
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
@@ -731,6 +732,7 @@ const FullInvestor = defineComponent({
             investor: null,
             unpaid: false,
             sortDropdownOpened: false,
+            sortOrder: null,
             investments: [],
         };
     },
@@ -738,7 +740,7 @@ const FullInvestor = defineComponent({
 
 const FullInvestmentFirm = defineComponent({
     template: "#full-investment-firm-template",
-    props: ["slug"],
+    props: { slug: String },
     emits: ["close-investment-firm", "bookmarked"],
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
@@ -747,9 +749,10 @@ const FullInvestmentFirm = defineComponent({
         window.removeEventListener("keydown", this.handleKeyDown);
         this.deleteInvestmentFirmParam();
     },
-    created() {
-        this.fetchInvestmentFirm();
+    async created() {
+        await this.fetchInvestmentFirm();
         window.removeEventListener("popstate", this.checkUrlParams);
+        this.fetchInvestments(this.investmentFirm.id);
     },
     methods: {
         async fetchInvestmentFirm() {
@@ -796,6 +799,31 @@ const FullInvestmentFirm = defineComponent({
                 console.error(error);
             }
         },
+        async fetchInvestments(firmId) {
+            try {
+                const response = await fetch(`/investment-firm/investment/${firmId}/get`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investments = data.investments;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async sortInvestments(sortType) {
+            const compareDates = (a, b) => {
+                const dateA = new Date(a.announced_date);
+                const dateB = new Date(b.announced_date);
+                return sortType === "asc" ? dateA - dateB : dateB - dateA;
+            };
+
+            this.investments.sort(compareDates);
+
+            // Force re-render
+            this.investments = [...this.investments];
+            this.sortOrder = sortType;
+            this.sortDropdownOpened = false;
+        },
         getTwitterHandle(url) {
             if (!url) return;
             return url.split("/").pop();
@@ -831,13 +859,16 @@ const FullInvestmentFirm = defineComponent({
             investmentFirm: null,
             isBookmarked: false,
             unpaid: false,
+            sortDropdownOpened: false,
+            sortOrder: null,
+            investments: [],
         };
     },
 });
 
 const FullCompany = defineComponent({
     template: "#full-company-template",
-    props: ["slug"],
+    props: { slug: String },
     emits: ["close-company", "bookmarked"],
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
@@ -846,23 +877,12 @@ const FullCompany = defineComponent({
         window.removeEventListener("keydown", this.handleKeyDown);
         this.deleteCompanyParam();
     },
-    created() {
-        this.fetchCompany();
+    async created() {
+        await this.fetchCompany();
         window.removeEventListener("popstate", this.checkUrlParams);
+        this.fetchInvestments(this.company.id);
     },
     methods: {
-        deleteCompanyParam() {
-            const url = new URL(window.location.href);
-            url.searchParams.delete("company");
-            window.history.replaceState({}, "", url);
-        },
-        checkUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const investorSlug = urlParams.get("company");
-            if (!investorSlug) {
-                this.$emit("close-company");
-            }
-        },
         async fetchCompany() {
             this.isLoading = true;
             try {
@@ -907,6 +927,43 @@ const FullCompany = defineComponent({
                 console.error(error);
             }
         },
+        async fetchInvestments(companyId) {
+            try {
+                const response = await fetch(`/company/investment/${companyId}/get`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investments = data.investments;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async sortInvestments(sortType) {
+            const compareDates = (a, b) => {
+                const dateA = new Date(a.announced_date);
+                const dateB = new Date(b.announced_date);
+                return sortType === "asc" ? dateA - dateB : dateB - dateA;
+            };
+
+            this.investments.sort(compareDates);
+
+            // Force re-render
+            this.investments = [...this.investments];
+            this.sortOrder = sortType;
+            this.sortDropdownOpened = false;
+        },
+        deleteCompanyParam() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("company");
+            window.history.replaceState({}, "", url);
+        },
+        checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const investorSlug = urlParams.get("company");
+            if (!investorSlug) {
+                this.$emit("close-company");
+            }
+        },
         handleKeyDown(event) {
             if (event.key === "Escape") {
                 this.$emit("close-company");
@@ -930,6 +987,9 @@ const FullCompany = defineComponent({
             isBookmarked: false,
             company: null,
             unpaid: false,
+            sortDropdownOpened: false,
+            sortOrder: null,
+            investments: [],
         };
     },
 });

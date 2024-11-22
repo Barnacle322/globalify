@@ -162,19 +162,16 @@ createApp({
                 this.$emit(closeEvent);
             }
         },
-        updateUrlParam(paramName, paramValue, stateKey, investorId) {
+        updateUrlParam(paramName, paramValue, stateKey) {
             const url = new URL(window.location.href);
             if (url.searchParams.get(paramName) !== paramValue) {
                 url.searchParams.set(paramName, paramValue);
                 window.history.pushState({}, "", url);
             }
             this[stateKey] = paramValue;
-
-            this["selectedInvestorId"] = investorId;
         },
-        selectInvestorSlug(investorSlug, investorId) {
-            console.log(investorSlug, investorId);
-            this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug", investorId);
+        selectInvestorSlug(investorSlug) {
+            this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug");
         },
         selectInvestmentFirmSlug(investmentFirmSlug) {
             this.updateUrlParam("investment-firm", investmentFirmSlug, "selectedInvestmentFirmSlug");
@@ -528,7 +525,6 @@ createApp({
             openAdvanced: false,
             isSearchHistoryVisible: false,
             selectedInvestorSlug: null,
-            selectedInvestorId: null,
             selectedInvestmentFirmSlug: null,
             selectedCompanySlug: null,
             bookmarkedInvestorId: null,

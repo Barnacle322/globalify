@@ -1244,6 +1244,7 @@ class InvestmentFirm(db.Model):
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investment_firm_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investment_firm_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investment_firm_industry)
+    investments: Mapped[list[Investment]] = relationship("Investment", back_populates="investment_firm")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

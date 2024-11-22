@@ -10,13 +10,9 @@ class FundingRoundSchema(BaseModel):
     announced_date: date
 
 
-class InvestmentFundingRoundSchema(BaseModel):
-    id: int
-    company_name: str
-    round: str
-    announced_date: str
-
-
 class InvestmentSchema(BaseModel):
     id: int
-    funding_round: InvestmentFundingRoundSchema
+    name: str | None
+    amount: int | None
+    round: str | None
+    announced_date: str | None

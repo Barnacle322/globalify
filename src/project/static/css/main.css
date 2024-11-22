@@ -1349,6 +1349,33 @@ select {
 .top-full {
   top: 100%;
 }
+.right-10 {
+  right: 2.5rem;
+}
+.right-5 {
+  right: 1.25rem;
+}
+.top-12 {
+  top: 3rem;
+}
+.right-2 {
+  right: 0.5rem;
+}
+.top-1 {
+  top: 0.25rem;
+}
+.top-7 {
+  top: 1.75rem;
+}
+.top-6 {
+  top: 1.5rem;
+}
+.left-auto {
+  left: auto;
+}
+.right-full {
+  right: 100%;
+}
 .isolate {
   isolation: isolate;
 }
@@ -1700,6 +1727,9 @@ select {
 .h-full {
   height: 100%;
 }
+.h-px {
+  height: 1px;
+}
 .max-h-60 {
   max-height: 15rem;
 }
@@ -1779,6 +1809,9 @@ select {
 .w-max {
   width: -moz-max-content;
   width: max-content;
+}
+.w-40 {
+  width: 10rem;
 }
 .min-w-64 {
   min-width: 16rem;
@@ -2236,8 +2269,14 @@ select {
 .place-self-end {
   place-self: end;
 }
+.self-start {
+  align-self: flex-start;
+}
 .self-end {
   align-self: flex-end;
+}
+.self-center {
+  align-self: center;
 }
 .justify-self-end {
   justify-self: end;
@@ -2311,6 +2350,9 @@ select {
 .rounded-xl {
   border-radius: 0.75rem;
 }
+.rounded {
+  border-radius: 0.25rem;
+}
 .rounded-b-\[30px\] {
   border-bottom-right-radius: 30px;
   border-bottom-left-radius: 30px;
@@ -2322,6 +2364,10 @@ select {
 .rounded-r-xl {
   border-top-right-radius: 0.75rem;
   border-bottom-right-radius: 0.75rem;
+}
+.rounded-l {
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
 }
 .rounded-tl-3xl {
   border-top-left-radius: 1.5rem;
@@ -2550,6 +2596,10 @@ select {
   --tw-bg-opacity: 1;
   background-color: rgb(2 6 23 / var(--tw-bg-opacity));
 }
+.bg-gray-700 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(55 65 81 / var(--tw-bg-opacity));
+}
 .bg-gradient-to-b {
   background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
 }
@@ -2666,6 +2716,15 @@ select {
 }
 .fill-white {
   fill: #fff;
+}
+.fill-gray-500 {
+  fill: #6b7280;
+}
+.fill-\[\#FFC9FC\] {
+  fill: #FFC9FC;
+}
+.fill-none {
+  fill: none;
 }
 .object-contain {
   -o-object-fit: contain;
@@ -4419,6 +4478,22 @@ textarea {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.group:hover .group-hover\:fill-none {
+  fill: none;
+}
+
+.group:hover .group-hover\:fill-white {
+  fill: #fff;
+}
+
+.group:hover .group-hover\:fill-\[\#FFC9FC\] {
+  fill: #FFC9FC;
+}
+
+.group:hover .group-hover\:stroke-white {
+  stroke: #fff;
+}
+
 .group:hover .group-hover\:text-gray-700 {
   --tw-text-opacity: 1;
   color: rgb(55 65 81 / var(--tw-text-opacity));
@@ -4426,6 +4501,16 @@ textarea {
 
 .group:hover .group-hover\:text-transparent {
   color: transparent;
+}
+
+.group:hover .group-hover\:text-white {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+.group:hover .group-hover\:text-black {
+  --tw-text-opacity: 1;
+  color: rgb(0 0 0 / var(--tw-text-opacity));
 }
 
 .group:hover .group-hover\:opacity-0 {
@@ -4809,6 +4894,10 @@ textarea {
 }
 
 @media (min-width: 768px) {
+
+  .md\:left-full {
+    left: 100%;
+  }
 
   .md\:col-span-2 {
     grid-column: span 2 / span 2;

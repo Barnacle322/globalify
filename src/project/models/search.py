@@ -1,5 +1,5 @@
 import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from sqlalchemy import (
     DateTime,
@@ -31,11 +31,11 @@ class SearchHistory(MappedAsDataclass, db.Model, unsafe_hash=True):
     __table_args__ = (UniqueConstraint("user_id", "query", name="user_query"),)
 
     @staticmethod
-    def get_search_history(user, search_type):
+    def get_search_history(user, search_type, offset: int = 0, limit: int = 5):
         search_history = db.session.scalars(
             db.select(SearchHistory)
             .where(SearchHistory.user_id == user.id, SearchHistory.type == search_type)
-            .order_by(SearchHistory.created_at.desc())
-            .limit(5)
+            .order_by(SearchHistory.created_at.desc()).offset(offset)
+            .limit(limit)
         ).all()
         return search_history

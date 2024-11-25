@@ -1,0 +1,50 @@
+{% extends "layouts/layout_app.html" %}
+{% macro render(user) %}
+
+    {% block content %}
+
+        <main class="w-full flex justify-center p-5">
+
+
+            <div class="flex flex-col w-[80%] p-4 h-fit rounded-lg items-left">
+
+                <h1 class="text-4xl font-bold m-4 text-gray-600">
+                    Search History
+
+                </h1>
+
+
+                <div v-for="item in items" :key="item.id" class="flex m-4 items-center">
+                    <span class="text-[#374151]" v-text="item.created_at"></span>
+                    <span class="ml-2 text-[#374151] md:ml-12 truncate" v-text="item.query"></span>
+                    <button class="ml-auto text-[#374151]">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-6"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+                            />
+                        </svg>
+                    </button>
+                     <div v-if="loading">Loading...</div>
+                    <div v-if="!hasMore">No more results</div>
+
+                </div>
+
+
+            </div>
+
+
+        </main>
+
+
+    {% endblock %}
+
+{% endmacro %}

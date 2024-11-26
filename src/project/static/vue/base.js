@@ -587,7 +587,6 @@ const NavbarComponent = defineComponent({
     async mounted() {
         window.addEventListener("click", this.closeBookmark);
         window.addEventListener("click", this.closeNotifications);
-        await this.fetchNotificationInbox();
         if (!document.hidden) {
             this.startPolling();
         }
@@ -699,9 +698,10 @@ const FullInvestor = defineComponent({
             return url.split("/").pop();
         },
         handleClickOutside(event) {
-        const dropdownContainer = this.$refs.dropdownContainer;
-        if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-        this.dropdownOpened = false;}
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
         },
     },
     data() {
@@ -770,11 +770,9 @@ const FullInvestmentFirm = defineComponent({
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { firmId: firmId, status: true });
                         this.isBookmarked = !this.isBookmarked;
-
                     } else {
                         this.$emit("bookmarked", { firmId: firmId, status: false });
                         this.isBookmarked = !this.isBookmarked;
-
                     }
                 }
             } catch (error) {
@@ -809,9 +807,10 @@ const FullInvestmentFirm = defineComponent({
             this.$emit("close-investment-firm");
         },
         handleClickOutside(event) {
-        const dropdownContainer = this.$refs.dropdownContainer;
-        if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-        this.dropdownOpened = false;}
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
         },
     },
     data() {
@@ -919,7 +918,8 @@ const FullCompany = defineComponent({
         handleClickOutside(event) {
             const dropdownContainer = this.$refs.dropdownContainer;
             if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-            this.dropdownOpened = false;}
+                this.dropdownOpened = false;
+            }
         },
     },
     data() {

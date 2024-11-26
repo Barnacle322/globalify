@@ -39,9 +39,6 @@ createApp({
         this.checkAndSelectUrlParam("investor", this.selectInvestorSlug);
         this.checkAndSelectUrlParam("investment-firm", this.selectInvestmentFirmSlug);
         this.checkAndSelectUrlParam("company", this.selectCompanySlug);
-        this.fetchInvestorBookmarks();
-        this.fetchInvestmentFirmBookmarks();
-        this.fetchCompanyBookmarks();
     },
     mounted() {
         const lowerSlider = document.getElementById("min_investment");

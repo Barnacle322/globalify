@@ -75,9 +75,6 @@ def demo_search():
 
 
 @search.route("/search", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
 def investor_search():
     if next_url := request.args.get("next"):
         return redirect(next_url)
@@ -130,7 +127,7 @@ def investor_search():
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-    if search_string != "":
+    if search_string != "" and current_user.is_authenticated:
         try:
             new_search_history = SearchHistory(
                 user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR
@@ -155,15 +152,12 @@ def investor_search():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        user=current_user,
+        user=current_user if current_user.is_authenticated else None,
         type=SearchHistoryType.INVESTOR.value,
     )
 
 
 @search.route("/search/investment-firms", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
 def search_investment_firms():
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
@@ -209,7 +203,7 @@ def search_investment_firms():
     )
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-    if search_string != "":
+    if search_string != "" and current_user.is_authenticated:
         try:
             new_search_history = SearchHistory(
                 user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTMENT_FIRM
@@ -236,13 +230,11 @@ def search_investment_firms():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         type=SearchHistoryType.INVESTMENT_FIRM.value,
+        user=current_user if current_user.is_authenticated else None,
     )
 
 
 @search.route("/search/companies", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
 def search_companies():
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
@@ -267,7 +259,7 @@ def search_companies():
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-    if search_string != "":
+    if search_string != "" and current_user.is_authenticated:
         try:
             new_search_history = SearchHistory(
                 user_id=current_user.id, query=search_string, type=SearchHistoryType.COMPANY
@@ -286,8 +278,8 @@ def search_companies():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        bookmark_ids=CompanyBookmark.get_id_list(current_user.id),
         type=SearchHistoryType.COMPANY.value,
+        user=current_user if current_user.is_authenticated else None,
     )
 
 

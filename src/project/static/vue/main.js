@@ -534,9 +534,7 @@ createApp({
                 }
 
                 this.searchHistories.push(...newItems);
-                console.log(this.searchHistories)
                 this.page++;
-                console.log(this.page)
             } catch (error) {
                 console.error('Failed to fetch items:', error);
             } finally {

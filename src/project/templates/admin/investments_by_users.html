@@ -47,7 +47,7 @@
             href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
             rel="stylesheet"
         />
-        <title>Users</title>
+        <title>Investments</title>
     </head>
 
     <!-- prettier-ignore -->
@@ -96,7 +96,7 @@
                         </a>
                         <a
                             href="/admin/users"
-                            class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
                             >Users
                         </a>
                         <a
@@ -111,13 +111,13 @@
                         </a>
                         <a
                             href="/admin/investments"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
                             >Investments
                         </a>
                     </div>
                 </nav>
                 <section class="mx-auto my-10 flex max-w-3xl flex-col gap-5 px-4 sm:my-14">
-                    <h1 class="text-3xl font-bold sm:text-5xl">Users</h1>
+                    <h1 class="text-3xl font-bold sm:text-5xl">Investments</h1>
                     {% if status_type %} {% if status_type == '3' %}
                     <div class="rounded-xl text-red-500">{{ msg }}</div>
                     {% elif status_type == '2' %}
@@ -162,21 +162,63 @@
                             Search
                         </button>
                     </div>
-                    {% if users %}
+                    <div class="flex justify-center gap-4">
+                        <a
+                            class="w-full text-center rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium"
+                            href="/admin/investments"
+                            >By admin</a
+                        >
+                        <a
+                            class="w-full text-center rounded-lg border p-3 py-4 text-sm font-medium bg-sky-500 text-white border-sky-500"
+                            href="/admin/investments/by-users"
+                            >By user</a
+                        >
+                    </div>
+                    <a
+                        href="/admin/investments/create"
+                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium transition-shadow ease-in-out hover:shadow-md sm:text-base"
+                    >
+                        Create an Investment
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                            />
+                        </svg>
+                    </a>
+                    {% if investments %}
                     <div class="flex flex-col gap-3">
-                        {% for user in users %}
+                        {% for investment in investments %}
                         <div
                             class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 sm:flex-row"
                         >
                             <div class="relative flex w-full items-start justify-between gap-3">
                                 <div class="flex flex-col gap-2">
-                                    <span class="font-medium">{{ user.first_name }} {{ user.last_name }} </span>
-                                    <p class="line-clamp-3">{{user.email}}</p>
-                                    <p class="text-sm text-gray-500">{{user.bio or ''}}</p>
+                                    <span class="font-medium">{{ investment.name }}</span>
+                                    {% if investment.round %}
+                                    <div class="flex flex-wrap gap-1">
+                                        <a
+                                            class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
+                                            >{{ investment.round }}
+                                        </a>
+                                    </div>
+                                    {% endif %} {% if investment.announced_date %}
+                                    <span class="text-sm text-gray-500">
+                                        Announced on: {{ investment.announced_date }}
+                                    </span>
+                                    {% endif %}
                                 </div>
                                 <div class="ml-auto flex h-full flex-col gap-2">
                                     <a
-                                        href="/admin/users/{{user.id}}"
+                                        href="/admin/investments/{{investment.id}}"
                                         class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
                                     >
                                         <svg
@@ -194,10 +236,9 @@
                                             />
                                         </svg>
                                     </a>
-
                                     <button
                                         class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
-                                        @click="deleteuser('{{user.id}}')"
+                                        @click="deleteInvestment('{{investment.id}}')"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -224,7 +265,7 @@
                         {% if pagination and pagination.has_other_pages %} {% if pagination.has_prev %}
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/users?page=1&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors?page=1&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -244,7 +285,7 @@
                         <a
                             id="prev"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/users?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -261,7 +302,7 @@
                         <a
                             id="current"
                             class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500 transition-opacity duration-200 ease-in-out hover:opacity-90"
-                            href="/admin/users?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ pagination.current_page }}
                         </a>
@@ -269,7 +310,7 @@
                         <a
                             id="page"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white text-sm font-medium"
-                            href="/admin/users?page={{ page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors?page={{ page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ page }}
                         </a>
@@ -277,7 +318,7 @@
                         <a
                             id="next"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/users?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -292,7 +333,7 @@
                         </a>
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/users?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"

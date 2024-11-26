@@ -4,7 +4,7 @@ import datetime
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Date, ForeignKey, Integer
+from sqlalchemy import Boolean, Date, ForeignKey, Integer, text
 from sqlalchemy.orm import (
     Mapped,
     MappedAsDataclass,
@@ -19,11 +19,13 @@ if TYPE_CHECKING:
 
 
 class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     funding_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("funding_round.id"), nullable=True)
     investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=True)
     investment_firm_id: Mapped[int] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=True)
     amount: Mapped[int] = mapped_column(Integer, nullable=True)
+    created_by_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
 
     funding_round: Mapped[FundingRound] = relationship("FundingRound", back_populates="investments", init=False)
     investor: Mapped[Investor] = relationship("Investor", back_populates="investments", init=False)
@@ -32,6 +34,10 @@ class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_all() -> Sequence[Investment] | None:
         return db.session.scalars(db.select(Investment)).all()
+
+    @staticmethod
+    def get_by_id(id: int) -> Investment | None:
+        return db.session.scalar(db.select(Investment).where(Investment.id == id))
 
     @staticmethod
     def get_by_investor_id(investor_id: int) -> Sequence[Investment] | None:

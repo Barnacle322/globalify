@@ -6,8 +6,8 @@ from pydantic import BaseModel
 class FundingRoundSchema(BaseModel):
     id: int
     company_name: str
-    round: object
-    announced_date: date
+    round: object | None
+    announced_date: date | None
 
 
 class InvestmentSchema(BaseModel):

@@ -47,7 +47,7 @@
             href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
             rel="stylesheet"
         />
-        <title>Update Funding Round | Globalify</title>
+        <title>Update Investment | Globalify</title>
     </head>
 
     <!-- prettier-ignore -->
@@ -88,7 +88,7 @@
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <div class="flex">
-                    <a href="/admin/funding-rounds" class="group flex items-center gap-1 text-gray-500">
+                    <a href="/admin/investments" class="group flex items-center gap-1 text-gray-500">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 16 16"
@@ -117,47 +117,110 @@
                     </div>
 
                     <div class="col-span-full">
-                        <label for="company" class="text-sm font-medium text-gray-700">Company</label>
+                        <label for="investor" class="text-sm font-medium text-gray-700">Investor</label>
                         <div>
-                            <select id="company" name="company" class="h-12 w-full rounded-xl px-2" required id="round">
-                                <option value="" disabled selected>Select a company</option>
-                                {% if companies %} {% for company in companies %} {% if
-                                funding_round.company_id==company.id %}
-                                <option value="{{ company.id }}" selected>{{ company.name }}</option>
+                            <select
+                                id="investor"
+                                name="investor"
+                                class="h-12 w-full rounded-xl px-2"
+                                required
+                                id="investor"
+                            >
+                                <option value="" disabled selected>Select an investor</option>
+                                {% if investors %} {% for investor in investors %} {% if
+                                investment.investor_id==investor.id %}
+                                <option value="{{ investor.id }}" selected>{{ investor.full_name }}</option>
                                 {% else %}
-                                <option value="{{ company.id }}">{{ company.name }}</option>
+                                <option value="{{ investor.id }}">{{ investor.full_name }}</option>
                                 {% endif %} {% endfor %} {% endif %}
                             </select>
                         </div>
                     </div>
 
-                    <div class="sm:col-span-3">
-                        <label for="round" class="text-sm font-medium text-gray-700">Round</label>
+                    <div class="col-span-full">
+                        <label for="investment_firm" class="text-sm font-medium text-gray-700">Investment Firm</label>
                         <div>
-                            <select id="round" name="round" class="h-12 w-full rounded-xl px-2" required id="round">
-                                <option value="" disabled selected>Select a round</option>
-                                {% if rounds %} {% for round in rounds %} {% if funding_round.round_id==round.id %}
-                                <option value="{{ round.id }}" selected>{{ round.name }}</option>
+                            <select
+                                id="investment_firm"
+                                name="investment_firm"
+                                class="h-12 w-full rounded-xl px-2"
+                                required
+                                id="investment_firm"
+                            >
+                                <option value="" disabled selected>Select an investment firm</option>
+                                {% if investment_firms %} {% for investment_firm in investment_firms %} {% if
+                                investment.investment_firm_id==investment_firm.id %}
+                                <option value="{{ investment_firm.id }}" selected>{{ investment_firm.name }}</option>
                                 {% else %}
-                                <option value="{{ round.id }}">{{ round.name }}</option>
+                                <option value="{{ investment_firm.id }}">{{ investment_firm.name }}</option>
                                 {% endif %} {% endfor %} {% endif %}
                             </select>
                         </div>
                     </div>
-                    <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="announced_date">Announced date</label>
+
+                    <div class="col-span-full">
+                        <label for="funding_round" class="text-sm font-medium text-gray-700">Funding Round</label>
+                        <div>
+                            <select
+                                id="funding_round"
+                                name="funding_round"
+                                class="h-12 w-full rounded-xl px-2"
+                                required
+                                id="funding_round"
+                            >
+                                <option value="" disabled selected>Select an investment firm</option>
+                                {% if funding_rounds %} {% for funding_round in funding_rounds %} {% if
+                                investment.funding_round_id==funding_round.id %}
+                                <option value="{{ funding_round.id }}" selected>
+                                    {{ funding_round.company.name }}
+                                </option>
+                                {% else %}
+                                <option value="{{ funding_round.id }}">{{ funding_round.company.name }}</option>
+                                {% endif %} {% endfor %} {% endif %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="amount">Amount</label>
                         <input
                             class="w-full rounded-lg bg-transparent bg-white"
-                            type="date"
-                            id="announced_date"
-                            value="{{funding_round.announced_date}}"
-                            required
+                            type="number"
+                            id="amount"
+                            value="{{ investment.amount }}"
+                            placeholder="14"
                         />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if investment.created_by_admin %}
+                            <input id="created_by_admin" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="created_by_admin" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Created by admin</span>
+                        </label>
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if investment.is_verified %}
+                            <input id="is_verified" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="is_verified" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Investment is verified</span>
+                        </label>
                     </div>
                 </div>
                 <button
                     id="saveButton"
-                    @click="submitFundingRoundData"
+                    @click="submitInvestmentData"
                     class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"
                 >
                     Save

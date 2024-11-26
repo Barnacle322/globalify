@@ -10,6 +10,7 @@ from ..models import (
     CompanyInvitation,
     Country,
     Industry,
+    Investment,
     Investor,
     InvestorBackup,
     InvestorOriginPoint,
@@ -316,6 +317,8 @@ def company_info_view(company_id):
 
     company_invitations = CompanyInvitation.get_by_company_id(company_id=company_id)
 
+    investments = Investment.get_by_company_id(company_id=company_id)
+
     company_members = UserCompany.get_members(company_id=company_id)
     members = []
     if company_members:
@@ -345,6 +348,7 @@ def company_info_view(company_id):
         rounds=Round.get_all(),
         countries=Country.get_all(),
         company=company,
+        investments=investments,
         members=members,
         users_in_company=users_in_company,
         company_invitations=company_invitations,

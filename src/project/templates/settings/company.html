@@ -64,6 +64,8 @@
     {{ cancel_invitation.render() }}
     {% import "components/delete_company.html" as delete_company %}
     {{ delete_company.render(company.id) }}
+    {% import "components/create_investment.html" as create_investment %}
+    {{ create_investment.render(company.id) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />
@@ -120,6 +122,15 @@
                     v-if="deleteCompanyOpened"
                     @close-delete-company="deleteCompanyOpened = null"
                 ></delete-company-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="createInvestmentOpened"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <create-investment-component
+                    v-if="createInvestmentOpened"
+                    @close-create-investment="createInvestmentOpened = null"
+                ></create-investment-component>
             </transition>
 
             <div class="relative w-full">
@@ -252,6 +263,9 @@
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                             <div class="space-y-12">
                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+                                    <div class="col-span-full flex justify-between">
+                                        <h2 class="col-span-full text-2xl font-medium">General info</h2>
+                                    </div>
                                     <div class="col-span-full flex items-start gap-x-8">
                                         {% if not company.picture_url %}
                                         <img
@@ -350,6 +364,7 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
                                     <div class="sm:col-span-3">
                                         <label for="round" class="block text-sm font-medium leading-6"
                                             >Preferred round*</label
@@ -397,6 +412,119 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="col-span-full">
+                                        <label
+                                            for="investment"
+                                            class="block text-sm font-medium leading-6 text-gray-900"
+                                            >Investments</label
+                                        >
+                                        {% if investments %}
+                                        <div
+                                            class="col-span-4 flex w-full flex-col rounded-xl h-96 overflow-y-auto border-2 mt-2"
+                                        >
+                                            <header class="border-b bg-gray-50 p-5">
+                                                <input
+                                                    type="search"
+                                                    class="n w-full rounded-lg border-gray-300 py-2"
+                                                    placeholder="Search investments"
+                                                    @input="searchMembers"
+                                                />
+                                            </header>
+
+                                            <button
+                                                class="mx-5 my-2 flex items-center justify-center gap-2 rounded-lg border p-3 transition-shadow hover:shadow-md"
+                                                @click.prevent="createInvestmentOpened = true"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke-width="1.5"
+                                                    stroke="currentColor"
+                                                    class="size-6"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                                    />
+                                                </svg>
+                                                <span class="text-sm font-medium">Add an investment</span>
+                                            </button>
+                                            {% for investment in investments %}
+                                            <div
+                                                class="flex flex-col justify-between gap-2 border-t border-b bg-white p-4 sm:flex-row"
+                                            >
+                                                <div class="relative flex w-full items-start justify-between gap-3">
+                                                    <div class="flex flex-col gap-2">
+                                                        {% if investment.investor %}
+                                                        <span class="font-medium"
+                                                            >{{ investment.investor.full_name }}</span
+                                                        >
+                                                        {% elif investment.investment_firm %}
+                                                        <span class="font-medium"
+                                                            >{{ investment.investment_firm.name }}</span
+                                                        >
+                                                        {% endif %} {% if investment.funding_round.round %}
+                                                        <div class="flex flex-wrap gap-1">
+                                                            <a
+                                                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
+                                                                >{{ investment.funding_round.round.name }}
+                                                            </a>
+                                                        </div>
+                                                        {% endif %} {% if investment.funding_round.announced_date %}
+                                                        <span class="text-sm text-gray-500">
+                                                            Announced on: {{ investment.funding_round.announced_date }}
+                                                        </span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="ml-auto flex h-full flex-col gap-2">
+                                                        <a
+                                                            href=""
+                                                            class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke-width="1.5"
+                                                                stroke="currentColor"
+                                                                class="size-4"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+                                                                />
+                                                            </svg>
+                                                        </a>
+                                                        <button
+                                                            class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                                            @click=""
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke-width="1.5"
+                                                                stroke="currentColor"
+                                                                class="size-4"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                                                                />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
                                     <div class="col-span-full">
                                         <label for="website" class="block text-sm font-medium leading-6">Website</label>
                                         <div class="mt-2">

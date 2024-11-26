@@ -19,6 +19,41 @@ createApp({
         );
     },
     methods: {
+        async submitInvestmentData() {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            const investor_id = document.getElementById("investor").value;
+            const investment_firm_id = document.getElementById("investment_firm").value;
+            const funding_round_id = document.getElementById("funding_round").value;
+            const createdByAdminElement = document.getElementById("created_by_admin");
+            const created_by_admin = createdByAdminElement ? createdByAdminElement.checked : false;
+            const isVerifiedElement = document.getElementById("is_verified");
+            const is_verified = isVerifiedElement ? isVerifiedElement.checked : false;
+
+            const dataString = JSON.stringify({
+                investor_id: investor_id,
+                investment_firm_id: investment_firm_id,
+                funding_round_id: funding_round_id,
+                created_by_admin: created_by_admin,
+                is_verified: is_verified,
+            });
+
+            try {
+                const response = await fetch("", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: dataString,
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
         async submitFundingRoundData() {
             const csrfToken = document.getElementById("csrf_token").value;
 

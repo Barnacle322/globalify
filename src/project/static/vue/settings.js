@@ -704,6 +704,58 @@ const ContactInfo = defineComponent({
     },
 });
 
+const CreateInvestmentComponent = defineComponent({
+    template: "#create-investment-template",
+    props: ["company_id"],
+    methods: {
+        async createNotableInvestment() {
+            const csrf_token = document.getElementById("csrf_token").value;
+
+            try {
+                const response = await fetch("/admin/create/notable-investment", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ name }),
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    this.$emit("notable-investment-created", data.notable_investment.name);
+                    this.closeCreateNotableInvestmentModal();
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        closeCreateInvestmentModal() {
+            this.$emit("close-create-investment");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeCreateInvestmentModal();
+            }
+        },
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    data() {
+        return {
+            selectedNotableInvestment: "",
+            notableInvestmentList: [],
+        };
+    },
+});
+
 createApp({
     emits: ["close-confirm-restore", "close-invite-member", "close-change-role"],
     components: {
@@ -720,6 +772,7 @@ createApp({
         GeneralInfo,
         InvestmentInfo,
         ContactInfo,
+        CreateInvestmentComponent,
     },
 
     watch: {
@@ -1056,6 +1109,7 @@ createApp({
             openedDropdownCompanyId: null,
             ignoreNextOutsideClick: false,
             createNotableInvestmentOpened: false,
+            createInvestmentOpened: false,
             csrfToken: "",
             selectedRounds: [],
             selectedIndustries: [],

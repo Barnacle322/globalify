@@ -69,7 +69,7 @@ createApp({
             this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
-        this.fetchItems();
+        this.loadMoreSearchHistories();
         window.addEventListener('scroll', this.handleScroll);
     },
     updated() {
@@ -519,12 +519,12 @@ createApp({
             }, 200);
         },
 
-        async fetchItems() {
+        async loadMoreSearchHistories() {
             if (this.loading || !this.hasMore) return;
             this.loading = true;
 
             try {
-                const response = await fetch(`/search-history?page=${this.page}&type=${"INVESTOR"}`);
+                const response = await fetch(`/search-history?page=${this.page}`);
                 if (!response.ok) throw new Error('Failed to fetch data');
 
                 const newItems = await response.json();
@@ -533,8 +533,8 @@ createApp({
                   this.hasMore = false;
                 }
 
-                this.items.push(...newItems);
-                // console.log(this.items)
+                this.searchHistories.push(...newItems);
+                console.log(this.searchHistories)
                 this.page++;
                 console.log(this.page)
             } catch (error) {
@@ -547,7 +547,7 @@ createApp({
         handleScroll() {
             const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
             if (scrollTop + clientHeight >= scrollHeight - 10) {
-                this.fetchItems();
+                this.loadMoreSearchHistories();
             }
             },
     },
@@ -579,8 +579,9 @@ createApp({
             showClasses: ["transform", "opacity-100", "scale-100"],
             hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
 
-            items: [],
-            page: 0,
+
+            searchHistories: [],
+            page: 2,
             loading: false,
             hasMore: true,
         };

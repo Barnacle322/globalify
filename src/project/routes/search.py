@@ -414,12 +414,14 @@ def get_suggestion_companies():
 def get_search_histories():
     search_type = request.args.get("type")
     page = request.args.get("page", default=1, type=int)
-    limit = 10
+    limit = 20
     offset = (page - 1) * limit
     search_histories = []
-    if page <= 1:
-        db_search_histories = SearchHistory.get_search_history(current_user, search_type)
+
+    if page >= 2:
+        db_search_histories = SearchHistory.get_search_histories_json(current_user, offset, limit)
         for db_search_history in db_search_histories:
+
             if not isinstance(db_search_history, SearchHistory):
                 return jsonify({"status": "error", "message": "Search history not found."}), 404
             search_history = SearchHistorySchema(
@@ -428,13 +430,13 @@ def get_search_histories():
                 type=db_search_history.type,
                 created_at=db_search_history.created_at,
             )
-
             search_histories.append(json.loads(search_history.model_dump_json()))
-        return jsonify(search_histories)
+            return jsonify(search_histories)
 
-    db_search_histories = SearchHistory.get_search_history(current_user, search_type, offset, limit)
-    print(len(db_search_histories))
+
+    db_search_histories = SearchHistory.get_search_history(current_user, search_type)
     for db_search_history in db_search_histories:
+
         if not isinstance(db_search_history, SearchHistory):
             return jsonify({"status": "error", "message": "Search history not found."}), 404
         search_history = SearchHistorySchema(
@@ -455,5 +457,7 @@ def get_search_histories():
 @check_user_info_complete
 @check_verification
 def get_full_search_history():
-    return render_template("components/full_search_history.html")
+    user = current_user
+    search_histories = SearchHistory.get_search_histories_json(user)
+    return render_template("components/full_search_history.html", search_histories=search_histories)
 

@@ -78,7 +78,7 @@
                     />
                     <h1 class="text-4xl font-semibold" v-text="investmentFirm.name"></h1>
 
-                    <div class="ml-auto self-start relative" ref="dropdownContainer">
+                    <div class="relative ml-auto self-start" ref="dropdownContainer">
                         <button @click.stop="dropdownOpened = !dropdownOpened">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -98,7 +98,7 @@
                         <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
                             <div
                                 v-if="dropdownOpened"
-                                class="top-6 absolute right-2 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
+                                class="absolute right-2 top-6 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
                             >
                                 <button
                                     @click="toggleBookmark(investmentFirm.id)"

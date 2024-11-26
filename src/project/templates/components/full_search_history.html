@@ -1,50 +1,46 @@
-{% extends "layouts/layout_app.html" %}
-{% macro render(user) %}
+{% extends "layouts/layout_app.html" %} {% macro render(user) %} {% block content %}
 
-    {% block content %}
+<main class="flex w-full justify-center p-4 sm:p-6">
+    <div class="absolute right-0 top-0 p-4">
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="h-6 w-6"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
+            />
+        </svg>
+    </div>
 
-        <main class="w-full flex justify-center p-5">
+    <div class="flex w-full justify-between">
+        <div class="top-20 col-span-2 h-fit w-1/6 pt-4 sm:sticky">
+            <h2 class="top-5 text-2xl font-bold">Search Histories</h2>
+        </div>
 
+        <div class="mt-8 w-3/5">
+            {% for history in search_histories %}
 
-            <div class="flex flex-col w-[80%] p-4 h-fit rounded-lg items-left">
+            <ul class="flex justify-between py-2">
+                <li class="text-grey-700">{{ history.created_at }}</li>
+                <li class="text-grey-700">{{ history.query }}</li>
+                <li class="text-grey-700">:</li>
+            </ul>
 
-                <h1 class="text-4xl font-bold m-4 text-gray-600">
-                    Search History
+            {% endfor %}
 
-                </h1>
+            <ul v-for="item in searchHistories" :key="item.id" class="flex justify-between py-2">
+                <li class="text-grey-700" v-text="item.created_at"></li>
+                <li class="text-grey-700" v-text="item.query"></li>
+                <li class="text-grey-700">:</li>
+            </ul>
+        </div>
+    </div>
+</main>
 
-
-                <div v-for="item in items" :key="item.id" class="flex m-4 items-center">
-                    <span class="text-[#374151]" v-text="item.created_at"></span>
-                    <span class="ml-2 text-[#374151] md:ml-12 truncate" v-text="item.query"></span>
-                    <button class="ml-auto text-[#374151]">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="size-6"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
-                            />
-                        </svg>
-                    </button>
-                     <div v-if="loading">Loading...</div>
-                    <div v-if="!hasMore">No more results</div>
-
-                </div>
-
-
-            </div>
-
-
-        </main>
-
-
-    {% endblock %}
-
-{% endmacro %}
+{% endblock %} {% endmacro %}

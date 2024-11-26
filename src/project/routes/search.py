@@ -418,7 +418,7 @@ def get_search_histories():
     offset = (page - 1) * limit
     search_histories = []
 
-    if page >= 2:
+    if page > 1:
         db_search_histories = SearchHistory.get_search_histories_json(current_user, offset, limit)
         for db_search_history in db_search_histories:
 
@@ -431,7 +431,7 @@ def get_search_histories():
                 created_at=db_search_history.created_at,
             )
             search_histories.append(json.loads(search_history.model_dump_json()))
-            return jsonify(search_histories)
+        return jsonify(search_histories)
 
 
     db_search_histories = SearchHistory.get_search_history(current_user, search_type)

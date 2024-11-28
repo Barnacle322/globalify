@@ -99,7 +99,7 @@
                     <span v-if="!minified" class="min-w-max">SuperConnect</span>
                 </transition>
             </a>
-            {% if user.is_admin %}
+            {% if user.is_authenticated and user.is_admin %}
             <a
                 href="https://hub.globalify.xyz/admin"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-gray-700 transition-colors ease-in-out hover:bg-gray-50"
@@ -146,6 +146,7 @@
                     <span v-if="!minified" class="min-w-max"> Search Engine </span>
                 </transition>
             </a>
+            {% if user.is_authenticated %}
             <a
                 ref="profile"
                 href="/profile/{{ user.user_info.username }}"
@@ -219,7 +220,7 @@
                     <span v-if="!minified" class="min-w-max">Admin Panel</span>
                 </transition>
             </a>
-            {% endif %}
+            {% endif %} {% endif %}
         </nav>
     </aside>
 </template>

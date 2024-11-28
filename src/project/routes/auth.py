@@ -432,9 +432,6 @@ def username(username: str):
 
 
 @auth.route("/tier-selection")
-@login_required
-@check_verification
-@check_user_info_complete
 def tier_selection():
     return render_template("auth/tier_selection.html")
 

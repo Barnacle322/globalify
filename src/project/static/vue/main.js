@@ -39,9 +39,11 @@ createApp({
         this.checkAndSelectUrlParam("investor", this.selectInvestorSlug);
         this.checkAndSelectUrlParam("investment-firm", this.selectInvestmentFirmSlug);
         this.checkAndSelectUrlParam("company", this.selectCompanySlug);
-        this.fetchInvestorBookmarks();
-        this.fetchInvestmentFirmBookmarks();
-        this.fetchCompanyBookmarks();
+        if (this.isAuthenticated()) {
+            this.fetchInvestorBookmarks();
+            this.fetchInvestmentFirmBookmarks();
+            this.fetchCompanyBookmarks();
+        }
     },
     mounted() {
         const lowerSlider = document.getElementById("min_investment");
@@ -510,6 +512,9 @@ createApp({
             setTimeout(() => {
                 this.isSearchHistoryVisible = false;
             }, 200);
+        },
+        isAuthenticated() {
+            return localStorage.getItem("authToken") !== null;
         },
     },
 

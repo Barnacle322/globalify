@@ -105,6 +105,7 @@
                     <!-- rendercontacts variable is false during the onboarding process.  -->
                     <!-- The additional check is to prevent an almost impossible edge case -->
                     <!-- Where a user with claimed invesor profile is doing onboarding again -->
+                    {% if user.is_authenticated %}
                     <a
                         v-if="investor.user_id == {{ user.id }} && rendercontacts"
                         href="/settings/investor"
@@ -206,6 +207,7 @@
                             </div>
                         </transition>
                     </div>
+                    {% endif %}
                 </section>
                 <section class="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2">
                     <article
@@ -394,6 +396,7 @@
                             </div>
                         </div>
                     </article>
+                    {% if user.is_authenticated %}
                     <article
                         v-if="investor.user_id && investor.user_id != {{ user.id }} && !rendercontacts"
                         class="shadow-card w-full rounded-xl bg-white p-5"
@@ -551,6 +554,7 @@
                             </div>
                         </div>
                     </article>
+                    {% endif %}
                     <article v-if="unpaid && rendercontacts" class="shadow-card col-span-full w-full rounded-2xl p-5">
                         <h2 class="pb-5 text-xl font-medium" v-text="'Find more contacts for ' + investor.name"></h2>
                         <div class="flex flex-col items-center gap-9 sm:flex-row">

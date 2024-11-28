@@ -54,8 +54,6 @@
 {{ navbar.render(current_user) }}
 {% import "components/full_investor.html" as full_investor %}
 {{ full_investor.render(current_user) }}
-{% import "components/search_history.html" as search_history %}
-{{ search_history.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component
@@ -591,6 +589,7 @@
                                     >
                                         {{ investor.name }}
                                     </button>
+                                    {% if user.is_authenticated %}
                                     <button @click="toggleInvestorBookmark({{ investor.id }})">
                                         <svg
                                             id="bookmark-svg-investor-{{ investor.id }}"
@@ -608,6 +607,7 @@
                                             />
                                         </svg>
                                     </button>
+                                    {% endif %}
                                 </div>
                                 <div class="mt-5 flex flex-col gap-2 text-sm">
                                     {% if investor.location %}

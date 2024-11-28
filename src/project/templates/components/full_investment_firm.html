@@ -78,6 +78,7 @@
                     />
                     <h1 class="text-4xl font-semibold" v-text="investmentFirm.name"></h1>
 
+                    {% if user.is_authenticated %}
                     <div class="ml-auto self-start relative" ref="dropdownContainer">
                         <button @click.stop="dropdownOpened = !dropdownOpened">
                             <svg
@@ -150,6 +151,7 @@
                             </div>
                         </transition>
                     </div>
+                    {% endif %}
                 </section>
                 <section class="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2">
                     <article class="shadow-card w-full rounded-xl bg-white p-5">

@@ -9,6 +9,7 @@ from flask import (
     url_for,
 )
 from flask_login import current_user, login_required
+from flask_migrate import current
 from sqlalchemy.exc import IntegrityError
 
 from ..extensions import db
@@ -39,8 +40,6 @@ search = Blueprint("search", __name__)
 
 
 @search.get("/search/investors/<search>")
-@login_required
-@check_verification
 def search_investors_onboarding(search):
     result = Investor.get_search(
         query_string=search,
@@ -75,9 +74,6 @@ def demo_search():
 
 
 @search.route("/search", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
 def investor_search():
     if next_url := request.args.get("next"):
         return redirect(next_url)
@@ -129,8 +125,7 @@ def investor_search():
     )
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
-
-    if search_string != "":
+    if current_user.is_authenticated and search_string != "":
         try:
             new_search_history = SearchHistory(
                 user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR
@@ -155,15 +150,12 @@ def investor_search():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        user=current_user,
+        user=current_user if current_user.is_authenticated else None,
         type=SearchHistoryType.INVESTOR.value,
     )
 
 
 @search.route("/search/investment-firms", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
 def search_investment_firms():
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
@@ -209,7 +201,7 @@ def search_investment_firms():
     )
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-    if search_string != "":
+    if current_user.is_authenticated and search_string != "":
         try:
             new_search_history = SearchHistory(
                 user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTMENT_FIRM
@@ -240,9 +232,6 @@ def search_investment_firms():
 
 
 @search.route("/search/companies", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
 def search_companies():
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
@@ -267,7 +256,7 @@ def search_companies():
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-    if search_string != "":
+    if current_user.is_authenticated and search_string != "":
         try:
             new_search_history = SearchHistory(
                 user_id=current_user.id, query=search_string, type=SearchHistoryType.COMPANY
@@ -286,7 +275,7 @@ def search_companies():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        bookmark_ids=CompanyBookmark.get_id_list(current_user.id),
+        bookmark_ids=CompanyBookmark.get_id_list(current_user.id) if current_user.is_authenticated else None,
         type=SearchHistoryType.COMPANY.value,
     )
 
@@ -408,9 +397,6 @@ def get_suggestion_companies():
 
 
 @search.get("/search-history")
-@login_required
-@check_user_info_complete
-@check_verification
 def get_search_histories():
     search_type = request.args.get("type")
     search_histories = []

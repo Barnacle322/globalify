@@ -589,6 +589,8 @@
                                     >
                                         {{ investment_firm.name }}
                                     </button>
+                                    {% if current_user.is_authenticated %}
+
                                     <button @click="toggleInvestmentFirmBookmark({{investment_firm.id}})">
                                         <svg
                                             id="bookmark-svg-firm-{{ investment_firm.id }}"
@@ -606,6 +608,7 @@
                                             />
                                         </svg>
                                     </button>
+                                    {% endif %}
                                 </div>
                                 <div class="mt-5 flex flex-col gap-2 text-sm">
                                     <div class="grid grid-cols-2">

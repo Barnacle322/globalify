@@ -25,7 +25,7 @@
             {% endif %}
             <h1 class="text-4xl font-semibold">{{ investor.full_name }}</h1>
             <div class="col flex">
-                {% if not investor.user_id %}
+                {% if user.is_authenticated and not investor.user_id %}
                 <a
                     href="/investor/{{ investor.slug }}/claim"
                     class="rounded-lg bg-sky-500 px-2 py-1 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        {% if investor.user_id == user.id %}
+        {% if user.is_authenticated and investor.user_id == user.id %}
         <a
             href="/settings/investor"
             class="flex h-10 w-16 items-center justify-center rounded-lg bg-sky-500 px-2 py-1 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"

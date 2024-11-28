@@ -1,13 +1,7 @@
 {% macro render(user) %}
 <!-- prettier-ignore -->
 {% import "components/aside.html" as aside %} 
-{{ aside.render(user) }} 
-{% import "components/aside_mobile.html" as aside_mobile %} 
-{{ aside_mobile.render(user) }}
-{% import "components/bookmark.html" as bookmark %} 
-{{ bookmark.render(user) }}
-{% import "components/notifications.html" as notifications %} 
-{{ notifications.render() }}
+{{ aside.render(user if user else None) }}
 
 <template id="navbar-template">
     <header class="sticky top-0 z-50 w-full bg-white">
@@ -47,8 +41,8 @@
                     class="pointer-events-none absolute left-1/2 top-10 w-full -translate-x-1/2 opacity-0 transition-opacity ease-in-out hover:pointer-events-auto hover:opacity-100 peer-has-[:focus]:pointer-events-auto peer-has-[:focus]:opacity-100"
                 ></div>
             </div> -->
-
             <div class="flex gap-5 justify-self-end">
+                {% if user.is_authenticated %}
                 <div class="flex items-center justify-center gap-4">
                     <div class="flex items-center justify-center gap-2">
                         <div class="relative">
@@ -88,6 +82,7 @@
                                 </div>
                             </button>
                         </div>
+
                         <div class="relative">
                             <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
                                 <bookmark
@@ -127,6 +122,29 @@
                         src="/static/elements/pfp_placeholder.jpeg"
                         class="size-8 rounded-full border border-gray-200 bg-gray-50"
                     />
+                    {% endif %} {% else %}
+                    <a
+                        href="/login"
+                        class="hidden min-w-max items-center justify-center gap-2 rounded-full bg-sky-500 w-24 py-2 text-sm text-white transition-colors ease-in-out hover:bg-sky-400 sm:flex"
+                    >
+                        <div class="flex size-6 items-center justify-center rounded-full bg-white text-slate-900">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-3"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                                />
+                            </svg>
+                        </div>
+                        Login
+                    </a>
                     {% endif %}
                 </div>
             </div>

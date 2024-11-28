@@ -13,10 +13,9 @@ createApp({
     },
     created() {
         this.asideMinified = localStorage.getItem("asideMinified") === "true";
-        this.debouncedFetchNotableInvestmentListByInvestorId = this.debounce(
-            this.fetchNotableInvestmentListByInvestorId,
-            500,
-        );
+        this.debouncedInvestments = this.debounce(this.fetchNotableInvestments, 500);
+        this.debouncedInvestorInvestments = this.debounce(this.fetchNotableInvestmentsByInvestorId, 500);
+        this.debouncedInvestmentFirmInvestments = this.debounce(this.fetchNotableInvestmentsByInvestmentFirmId, 500);
     },
     methods: {
         async submitInvestmentData() {
@@ -331,7 +330,10 @@ createApp({
             const instagram = document.getElementById("instagram").value;
             const isPublicElement = document.getElementById("is_public");
             const is_public = isPublicElement ? isPublicElement.checked : true;
-            const notable_investment = document.getElementById("searchInput").value;
+
+            const selectedNotableInvestments = Array.from(
+                document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
+            ).map((input) => parseInt(input.value, 10));
 
             const dataString = JSON.stringify({
                 name: name,
@@ -346,7 +348,7 @@ createApp({
                 twitter: twitter,
                 instagram: instagram,
                 is_public: is_public,
-                notable_investment: notable_investment,
+                notable_investment: selectedNotableInvestments,
             });
 
             try {
@@ -486,7 +488,7 @@ createApp({
         },
         selectNotableInvestment(notable_investment) {
             this.$refs.searchInput.value = notable_investment;
-            this.notableInvestmentList = [];
+            this.notableInvestments = [];
         },
         selectIndustry(industry) {
             this.selectedIndustry = industry;
@@ -598,78 +600,54 @@ createApp({
                 }
             }
         },
-        async getNotableInvestmentList(searchInput) {
-            let notable_investment_list = this.$refs.notableInvestmentListElement;
+        async getNotableInvestments(searchInput) {
+            const notableInvestments = this.$refs.notableInvestmentsElement.children;
+            const searchTerm = searchInput.toUpperCase();
 
-            for (let i = 0; i < notable_investment_list.children.length; i++) {
-                if (notable_investment_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
-                    notable_investment_list.children[i].classList.remove("hidden");
-                } else {
-                    notable_investment_list.children[i].classList.add("hidden");
+            for (let item of notableInvestments) {
+                item.classList.toggle("hidden", !item.textContent.toUpperCase().includes(searchTerm));
+            }
+        },
+        async fetchData(url) {
+            const searchInput = url.split("/").slice(-2, -1)[0].trim();
+            if (searchInput.length > 0) {
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.notable_investments || [];
                 }
             }
+            return [];
+        },
+        async fetchNotableInvestments(searchInput) {
+            if (!searchInput) {
+                this.notableInvestments = [];
+                return;
+            }
+
+            this.notableInvestments = await this.fetchData(
+                `/admin/companies/search_notable_investments/${searchInput.trim()}`,
+            );
+        },
+        async fetchNotableInvestmentsByInvestorId(searchInput, investorId) {
+            this.notableInvestments = await this.fetchData(
+                `/admin/investors/search_notable_investments/${searchInput.trim()}/${investorId}`,
+            );
+        },
+        async fetchNotableInvestmentsByInvestmentFirmId(searchInput, investmentFirmId) {
+            this.notableInvestments = await this.fetchData(
+                `/admin/investment-firms/search_notable_investments/${searchInput.trim()}/${investmentFirmId}`,
+            );
+        },
+        addNotableInvestment(newInvestment) {
+            this.notableInvestments.push(newInvestment);
         },
         debounce(func, wait) {
             let timeout;
             return function (...args) {
-                const context = this;
                 clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(context, args), wait);
+                timeout = setTimeout(() => func.apply(this, args), wait);
             };
-        },
-        async fetchNotableInvestmentList(event) {
-            const searchInput = event.target.value.trim();
-
-            if (searchInput.length > 0) {
-                const response = await fetch(`/admin/companies/search_notable_investments/${searchInput}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.notableInvestmentList = data.notable_investments.length > 0 ? data.notable_investments : [];
-                }
-            } else {
-                this.notableInvestmentList = [...this.selectedNotableInvestments];
-            }
-        },
-        async fetchNotableInvestmentListByInvestorId(searchInput, investorId) {
-            searchInput = searchInput.trim();
-
-            if (searchInput.length > 0) {
-                const response = await fetch(
-                    `/admin/investors/search_notable_investments/${searchInput}/${investorId}`,
-                );
-                if (response.ok) {
-                    const data = await response.json();
-                    this.notableInvestmentList = data.notable_investments;
-                }
-            } else {
-                this.notableInvestmentList = [];
-            }
-        },
-        async fetchNotableInvestmentListByInvestmentFirmId(searchInput, investmentFirmId) {
-            searchInput = searchInput.trim();
-            if (searchInput.length > 0) {
-                const response = await fetch(
-                    `/admin/investment-firms/search_notable_investments/${searchInput}/${investmentFirmId}`,
-                );
-                if (response.ok) {
-                    const data = await response.json();
-                    this.notableInvestmentList = data.notable_investments;
-                }
-            } else {
-                this.notableInvestmentList = [];
-            }
-        },
-        addNotableInvestment(newNotableInvestment) {
-            this.debouncedFetchNotableInvestmentList = this.debounce(this.fetchNotableInvestmentList, 500);
-            this.debouncedFetchNotableInvestmentListByInvestorId = this.debounce(
-                this.fetchNotableInvestmentListByInvestorId,
-                500,
-            );
-            this.debouncedFetchNotableInvestmentListByInvestmentFirmId = this.debounce(
-                this.fetchNotableInvestmentListByInvestmentFirmId,
-                500,
-            );
-            this.notableInvestmentList.push(newNotableInvestment);
         },
     },
     mounted() {
@@ -687,11 +665,8 @@ createApp({
             selectedNotableInvestments: [],
             selectedIndustry: "",
             selectedNotableInvestment: "",
-            debouncedFetchNotableInvestmentList: null,
-            debouncedFetchNotableInvestmentListByInvestorId: null,
-            debouncedFetchNotableInvestmentListByInvestmentFirmId: null,
             userList: [],
-            notableInvestmentList: [],
+            notableInvestments: [],
             industryList: [],
             dataString: "",
             menus: [

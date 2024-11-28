@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from ..models import Company, InvestmentFirm, Investor, Round
 
 
+# TODO
 class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     funding_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("funding_round.id"), nullable=True)
@@ -62,6 +63,7 @@ class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
         ).all()
 
 
+# TODO
 class FundingRound(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id"), nullable=False)

@@ -21,7 +21,7 @@ from ..models import (
     UserInfo,
 )
 from ..models.claim import ClaimRequest
-from ..schemas.investor import InvestorOriginPointSchema
+from ..schemas.investor import InvestorOriginPointSchema, InvestorSchema, MiniInvestorSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
@@ -495,6 +495,28 @@ def change_company_info(company_id):
             **status,
         )
     )
+
+
+@settings.get("/investors")
+@login_required
+@check_user_info_complete
+@check_verification
+def investor_list_view():
+    if not isinstance(current_user, User):
+        return redirect(url_for("search.investor_search"))
+
+    investor_models = Investor.get_all()
+
+    investors = []
+
+    for investor in investor_models:
+        investor_schema = MiniInvestorSchema(
+            id=investor.id,
+            name=investor.full_name,
+        )
+        investors.append(investor_schema.model_dump())
+
+    return jsonify({"investors": investors})
 
 
 @settings.get("/company/create")

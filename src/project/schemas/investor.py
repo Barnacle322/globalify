@@ -38,6 +38,11 @@ class InvestorSchema(BaseModel):
     user_id: int | None
 
 
+class MiniInvestorSchema(BaseModel):
+    id: int
+    name: str | None
+
+
 class InvestmentFirmSchema(BaseModel):
     id: int
     name: str | None

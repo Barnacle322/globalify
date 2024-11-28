@@ -410,46 +410,22 @@ def get_search_histories():
     offset = (page - 1) * limit
     search_histories = []
 
-    if page > 1:
-        db_search_histories = SearchHistory.get_search_histories_json(current_user, offset, limit)
-        for db_search_history in db_search_histories:
+    db_search_histories = SearchHistory.paginate_history(
+        user=current_user, search_type=search_type, offset=offset, limit=limit
+    )
 
-            if not isinstance(db_search_history, SearchHistory):
-                return jsonify({"status": "error", "message": "Search history not found."}), 404
-            search_history = SearchHistorySchema(
-                id=db_search_history.id,
-                query=db_search_history.query,
-                type=db_search_history.type,
-                created_at=db_search_history.created_at,
-            )
-            search_histories.append(json.loads(search_history.model_dump_json()))
-        return jsonify(search_histories)
+    search_histories = [
+        SearchHistorySchema.model_validate(history, from_attributes=True).model_dump()
+        for history in db_search_histories
+    ]
 
-
-    db_search_histories = SearchHistory.get_search_history(current_user, search_type)
-    for db_search_history in db_search_histories:
-
-        if not isinstance(db_search_history, SearchHistory):
-            return jsonify({"status": "error", "message": "Search history not found."}), 404
-        search_history = SearchHistorySchema(
-            id=db_search_history.id,
-            query=db_search_history.query,
-            type=db_search_history.type,
-            created_at=db_search_history.created_at,
-        )
-
-        search_histories.append(json.loads(search_history.model_dump_json()))
     return jsonify(search_histories)
 
 
-
-
-@search.get("/full-search-history")
+@search.get("/history")
 @login_required
 @check_user_info_complete
 @check_verification
 def get_full_search_history():
-    user = current_user
-    search_histories = SearchHistory.get_search_histories_json(user)
+    search_histories = SearchHistory.paginate_history(current_user)
     return render_template("components/full_search_history.html", search_histories=search_histories)
-

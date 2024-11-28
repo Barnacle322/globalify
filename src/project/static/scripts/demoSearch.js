@@ -40,7 +40,7 @@ class Button {
             "items-center",
             "justify-center",
             "rounded-xl",
-            "bg-blue-600",
+            "bg-sky-600",
             "p-4",
             "mt-10",
             "font-semibold",
@@ -64,7 +64,6 @@ function getSearch() {
                     .getElementById("results")
                     .parentElement.removeChild(document.getElementById("results").parentElement.lastChild);
             }
-            console.log(data);
             data.forEach((investor) => {
                 const card = new Card(investor);
                 document.getElementById("results").appendChild(card.render());

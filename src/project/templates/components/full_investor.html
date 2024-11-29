@@ -551,6 +551,11 @@
                             </div>
                         </div>
                     </article>
+                    <article v-if="investor.twitter" class="shadow-card w-full rounded-xl bg-white p-5 col-span-full">
+                        <section class="w-full">
+                            <a class="twitter-timeline" data-dnt="true" :href="investor.twitter" data-height="500"></a>
+                        </section>
+                    </article>
                     <article v-if="unpaid && rendercontacts" class="shadow-card col-span-full w-full rounded-2xl p-5">
                         <h2 class="pb-5 text-xl font-medium" v-text="'Find more contacts for ' + investor.name"></h2>
                         <div class="flex flex-col items-center gap-9 sm:flex-row">

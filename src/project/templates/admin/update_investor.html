@@ -56,7 +56,7 @@
     {% import "components/create_notable_investment.html" as createNotableInvestment %}
     {{ createNotableInvestment.render() }}
     {% import "components/create_investment.html" as create_investment %}
-    {{ create_investment.render(investor.id, "investor") }}
+    {{ create_investment.render(investor.id, "investor", true) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>

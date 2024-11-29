@@ -1046,44 +1046,101 @@ const SearchHistory = defineComponent({
     },
 });
 
-const CreateInvestmentComponent = defineComponent({
-    template: "#create-investment-template",
-    props: { type: String },
-    async created() {
-        if (this.type === "company") {
-            this.fetchInvestors();
-            this.fetchInvestmentFirms();
-        } else {
-            console.log("Fetching funding rounds");
-            this.fetchFundingRounds();
-        }
+const DeleteInvestmentComponent = defineComponent({
+    template: "#delete-investment-template",
+    props: ["investment-id"],
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
     },
-    async mounted() {
-        if (this.type === "company") {
-            this.fetchInvestors();
-            this.fetchInvestmentFirms();
-        } else {
-            console.log("Fetching funding rounds");
-            this.fetchFundingRounds();
-        }
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
     },
     methods: {
-        async createNotableInvestment() {
-            const csrf_token = document.getElementById("csrf_token").value;
-
+        async deleteInvestment(investmentId) {
+            const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch("/admin/create/notable-investment", {
+                const response = await fetch(`/investment/${investmentId}/delete`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": csrfToken,
                     },
-                    body: JSON.stringify({ name }),
                 });
                 if (response.ok) {
-                    const data = await response.json();
-                    this.$emit("notable-investment-created", data.notable_investment.name);
-                    this.closeCreateNotableInvestmentModal();
+                    window.location.reload();
+                } else {
+                    console.error("An error occurred while deleting the investment.");
+                }
+            } catch (error) {
+                console.error("Error cancelling invitation:", error.message);
+            }
+        },
+        closeDeleteInvestment() {
+            this.$emit("close-delete-investment");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeDeleteInvestment();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeDeleteInvestment();
+            }
+        },
+    },
+});
+
+const CreateInvestmentComponent = defineComponent({
+    template: "#create-investment-template",
+    props: { type: String },
+    async created() {
+        console.log(this.type);
+        // if (this.type === "company") {
+        //     this.fetchInvestors();
+        //     this.fetchInvestmentFirms();
+        // } else {
+        //     console.log("Fetching funding rounds");
+        //     this.fetchFundingRounds();
+        // }
+    },
+    async mounted() {
+        console.log(this.type);
+    },
+    methods: {
+        async createInvestment(id, type, isAdmin) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            const amount = document.getElementById("amount").value;
+            const payload = {
+                funding_round_id: this.selectedFundingRound,
+                amount: amount,
+                created_by_admin: isAdmin,
+            };
+
+            if (type === "investor") {
+                payload.investor_id = id;
+            } else if (type === "investment_firm") {
+                payload.investment_firm_id = id;
+            } else {
+                payload.investor_id = this.selectedInvestor;
+                payload.investment_firm_id = this.selectedInvestmentFirm;
+            }
+
+            try {
+                const response = await fetch("/investment/create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: JSON.stringify(payload),
+                });
+                if (response.ok) {
+                    window.location.reload();
                 }
             } catch (error) {
                 console.error("Error:", error);
@@ -1107,6 +1164,7 @@ const CreateInvestmentComponent = defineComponent({
                 if (response.ok) {
                     data = await response.json();
                     this.investors = data.investors;
+                    console.log(this.investors);
                 }
             } catch (error) {
                 console.error("Error fetching investors:", error);
@@ -1147,6 +1205,9 @@ const CreateInvestmentComponent = defineComponent({
             selectedNotableInvestment: "",
             notableInvestmentList: [],
             fundingRounds: [],
+            selectedInvestor: null,
+            selectedInvestmentFirm: null,
+            selectedFundingRound: null,
         };
     },
 });

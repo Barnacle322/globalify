@@ -721,6 +721,7 @@ createApp({
         InvestmentInfo,
         ContactInfo,
         CreateInvestmentComponent,
+        DeleteInvestmentComponent,
     },
 
     watch: {
@@ -1058,6 +1059,7 @@ createApp({
             ignoreNextOutsideClick: false,
             createNotableInvestmentOpened: false,
             createInvestmentOpened: false,
+            deleteInvestmentOpened: false,
             csrfToken: "",
             selectedRounds: [],
             selectedIndustries: [],

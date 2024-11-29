@@ -460,6 +460,55 @@ def get_company_investment(company_id):
     return jsonify({"investments": investments})
 
 
+@main.post("/investment/create")
+@login_required
+@check_user_info_complete
+@check_verification
+def create_investment():
+    form_data = request.get_json()
+
+    investor_id = form_data.get("investor_id")
+    investment_firm_id = form_data.get("investment_firm_id")
+    amount = form_data.get("amount")
+    funding_round_id = form_data.get("funding_round_id")
+    created_by_admin = form_data.get("created_by_admin")
+    is_verified = form_data.get("is_verified")
+
+    created_by_admin = True if created_by_admin == "True" else False
+
+    new_investment = Investment(
+        investor_id=investor_id,
+        investment_firm_id=investment_firm_id,
+        funding_round_id=funding_round_id,
+        amount=amount,
+        created_by_admin=created_by_admin,
+        is_verified=is_verified,
+    )
+
+    try:
+        db.session.add(new_investment)
+        db.session.commit()
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+    return jsonify({"status": "success"}), 200
+
+
+@main.post("/investment/<int:investment_id>/delete")
+@login_required
+@check_user_info_complete
+@check_verification
+def delete_investment(investment_id):
+    investment = Investment.get_by_id(investment_id)
+    if not investment:
+        return jsonify({"status": "error", "message": "Investment not found."}), 404
+
+    db.session.delete(investment)
+    db.session.commit()
+
+    return jsonify({"status": "success"}), 200
+
+
 @main.get("/bookmarks/company")
 @login_required
 @check_user_info_complete

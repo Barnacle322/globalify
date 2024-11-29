@@ -1,8 +1,9 @@
-{% macro render(id, type) %}
+{% macro render(id, type, created_by_admin) %}
 <template id="create-investment-template">
     <article
         class="fixed right-1/2 top-1/2 z-50 flex w-10/12 -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
     >
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="grid grid-cols-6 gap-x-2 gap-y-1">
             <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
             <div class="col-span-full empty:hidden">
@@ -15,7 +16,7 @@
                 {% endif %} {% endif %}
             </div>
 
-            {% if type != 'investor' %}
+            {% if type != 'investor' and type != 'investment_firm' %}
             <div class="col-span-full">
                 <label for="investor" class="text-sm font-medium text-gray-700">Investor</label>
                 <div>
@@ -33,6 +34,7 @@
                     </select>
                 </div>
             </div>
+
             {% endif %} {% if type != 'investment_firm' and type != 'investor' %}
             <div class="col-span-full">
                 <label for="investment_firm" class="text-sm font-medium text-gray-700">Investment Firm</label>
@@ -41,18 +43,22 @@
                         id="investment_firm"
                         name="investment_firm"
                         class="h-12 w-full rounded-xl px-2"
+                        v-model="selectedInvestmentFirm"
                         required
-                        id="investment_firm"
                     >
                         <option value="" disabled selected>Select an investment firm</option>
-                        {% if investment_firms %} {% for investment_firm in investment_firms %}
-                        <option value="{{ investment_firm.id }}">{{ investment_firm.name }}</option>
-                        {% endfor %} {% endif %}
+                        <option
+                            v-for="investment_firm in investmentFirms"
+                            :key="investment_firm.id"
+                            :value="investment_firm.id"
+                        >
+                            <span v-text="investment_firm.name"></span>
+                        </option>
                     </select>
                 </div>
             </div>
-            {% endif %}
 
+            {% endif %} {% if type != 'company' %}
             <div class="col-span-full">
                 <label for="funding_round" class="text-sm font-medium text-gray-700">Funding Round</label>
                 <div>
@@ -74,6 +80,7 @@
                     </select>
                 </div>
             </div>
+            {% endif %}
 
             <div class="col-span-full">
                 <label class="text-sm font-medium text-gray-700" for="amount">Amount</label>
@@ -84,7 +91,10 @@
             <button @click="closeCreateInvestmentModal" class="rounded-lg border border-gray-300 px-3 py-2">
                 Cancel
             </button>
-            <button @click="createInvestment" class="rounded-lg bg-sky-500 px-3 py-2 text-white hover:bg-sky-600">
+            <button
+                @click="createInvestment({{id}}, '{{type}}', '{{created_by_admin}}')"
+                class="rounded-lg bg-sky-500 px-3 py-2 text-white hover:bg-sky-600"
+            >
                 Create
             </button>
         </div>

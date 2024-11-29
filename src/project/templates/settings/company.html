@@ -65,7 +65,9 @@
     {% import "components/delete_company.html" as delete_company %}
     {{ delete_company.render(company.id) }}
     {% import "components/create_investment.html" as create_investment %}
-    {{ create_investment.render(company.id) }}
+    {{ create_investment.render(company.id, "'company'", false) }}
+    {% import "components/delete_investment.html" as delete_investment %}
+    {{ delete_investment.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />
@@ -130,7 +132,18 @@
                 <create-investment-component
                     v-if="createInvestmentOpened"
                     @close-create-investment="createInvestmentOpened = null"
+                    :type="company"
                 ></create-investment-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="deleteInvestmentOpened"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <delete-investment-component
+                    v-if="deleteInvestmentOpened"
+                    @close-delete-investment="deleteInvestmentOpened = null"
+                    :investment-id="investmentId"
+                ></delete-investment-component>
             </transition>
 
             <div class="relative w-full">
@@ -500,7 +513,7 @@
                                                         </a>
                                                         <button
                                                             class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
-                                                            @click=""
+                                                            @click.prevent="deleteInvestmentOpened = true, investmentId = {{ investment.id }}"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"

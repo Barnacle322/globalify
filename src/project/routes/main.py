@@ -1,7 +1,6 @@
 import json
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
-from re import L
 
 from flask import (
     Blueprint,

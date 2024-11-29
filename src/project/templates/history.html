@@ -1,0 +1,55 @@
+{% extends "layouts/layout_app.html" %} {% block content %}
+<main class="flex flex-col w-full p-4 sm:p-6">
+    <h2 class="text-4xl font-bold">Search History</h2>
+    <div class="flex flex-col gap-4 mt-10">
+        {% for history in search_histories %}
+        <div class="flex gap-8">
+            <div class="flex gap-3 justify-center items-center">
+                <input class="rounded-sm border-2" type="checkbox" />
+                <span class="text-gray-600">{{ history.created_at.strftime("%I:%M %p") }}</span>
+            </div>
+            <span class="flex gap-2 justify-center items-center">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                    />
+                </svg>
+                <span class="font-medium">{{ history.query }}</span>
+                <span class="text-sm text-gray-600">{{ history.type.value.title() }}</span>
+            </span>
+        </div>
+        {% endfor %}
+        <div v-for="item in searchHistories" :key="item.id" class="flex gap-4 py-2">
+            <span v-text="item.created_at"></span>
+            <span>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                    />
+                </svg>
+
+                <span v-text="item.query"></span>
+                <span v-text="item.type"></span>
+            </span>
+        </div>
+    </div>
+</main>
+{% endblock %}

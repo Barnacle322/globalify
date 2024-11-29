@@ -50,6 +50,6 @@ class SearchHistorySchema(BaseModel):
         if self.type is not None:
             data["type"] = self.type.name
         if self.created_at:
-            data["created_at"] = self.created_at.strftime("%l:%M %p")
+            data["created_at"] = self.created_at.strftime("%I:%M %p")
             data["date"] = self.created_at.isoformat()
         return data

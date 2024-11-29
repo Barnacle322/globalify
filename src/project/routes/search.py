@@ -1,5 +1,3 @@
-import json
-
 from flask import (
     Blueprint,
     jsonify,
@@ -14,7 +12,6 @@ from sqlalchemy.exc import IntegrityError
 from ..extensions import db
 from ..models import (
     Company,
-    CompanyBookmark,
     Country,
     Industry,
     InvestmentFirm,
@@ -428,4 +425,4 @@ def get_search_histories():
 @check_verification
 def get_full_search_history():
     search_histories = SearchHistory.paginate_history(current_user)
-    return render_template("components/full_search_history.html", search_histories=search_histories)
+    return render_template("history.html", search_histories=search_histories)

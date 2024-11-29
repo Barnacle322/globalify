@@ -13,31 +13,32 @@ profile = Blueprint("profile", __name__)
 # @login_required
 # @check_verification
 def user_profile(username):
-    if not isinstance(current_user, User):
-        return redirect(url_for("search.investor_search"))
+    # if not isinstance(current_user, User):
+    #     return redirect(url_for("search.investor_search"))
 
     user_info = UserInfo.get_by_username(username)
-    if not user_info:
-        return redirect(url_for("search.investor_search"))
+    print(user_info)
+    # if not user_info:
+    #     return redirect(url_for("search.investor_search"))
 
-    companies = (
-        db.session.scalars(
-            db.select(UserCompany, Company)
-            .options(joinedload(Company.preferred_round), joinedload(Company.industry), joinedload(Company.country))
-            .join(Company)
-            .where(UserCompany.user_id == user_info.user_id, UserCompany.is_public.is_(True))
-            .order_by(UserCompany.is_primary.desc())
-        )
-        .unique()
-        .all()
-    )
+    # companies = (
+    #     db.session.scalars(
+    #         db.select(UserCompany, Company)
+    #         .options(joinedload(Company.preferred_round), joinedload(Company.industry), joinedload(Company.country))
+    #         .join(Company)
+    #         .where(UserCompany.user_id == user_info.user_id, UserCompany.is_public.is_(True))
+    #         .order_by(UserCompany.is_primary.desc())
+    #     )
+    #     .unique()
+    #     .all()
+    # )
 
     return render_template(
         "user_profile.html",
         user_info=user_info,
         user=user_info.user,
         current_user=current_user,
-        companies=companies,
+        # companies=companies,
         authenticated_user=current_user,
         investor=user_info.user.investor,
     )

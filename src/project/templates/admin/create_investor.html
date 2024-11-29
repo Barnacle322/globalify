@@ -340,10 +340,10 @@
                                 placeholder="Search notable investments..."
                                 class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
                                 v-model="selectedNotableInvestment"
-                                @input="debouncedFetchNotableInvestmentList($event)"
+                                @input="event => debouncedInvestments(event.target.value)"
                             />
                             <button
-                                v-if="notableInvestmentList.length > 0"
+                                v-if="notableInvestments.length > 0"
                                 class="w-full rounded-lg bg-sky-500 px-4 py-2 text-sm text-white hover:bg-sky-600"
                                 @click="createNotableInvestmentOpened = true"
                             >
@@ -351,8 +351,8 @@
                             </button>
                             <div
                                 role="none"
-                                ref="notableInvestmentListElement"
-                                v-for="(notableInvestment, index) in notableInvestmentList"
+                                ref="notableInvestmentsElement"
+                                v-for="(notableInvestment, index) in notableInvestments"
                                 :key="index"
                             >
                                 <label

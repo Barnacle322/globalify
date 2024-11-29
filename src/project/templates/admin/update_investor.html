@@ -389,11 +389,11 @@
                                 placeholder="Search notable investments..."
                                 class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
                                 v-model="selectedNotableInvestment"
-                                @input="event => debouncedFetchNotableInvestmentListByInvestorId(event.target.value, {{ investor.id }})"
+                                @input="event => debouncedInvestorInvestments(event.target.value, {{ investor.id }})"
                             />
-                            <div role="none" ref="notableInvestmentListElement">
+                            <div role="none" ref="notableInvestmentsElement">
                                 <button
-                                    v-if="notableInvestmentList.length > 0"
+                                    v-if="notableInvestments.length > 0"
                                     class="w-full rounded-lg bg-sky-500 px-4 py-2 text-sm text-white hover:bg-sky-600"
                                     @click="createNotableInvestmentOpened = true"
                                 >
@@ -417,7 +417,7 @@
                                 <label
                                     class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
-                                    v-for="(notableInvestment, index) in notableInvestmentList"
+                                    v-for="(notableInvestment, index) in notableInvestments"
                                     :key="index"
                                 >
                                     <input

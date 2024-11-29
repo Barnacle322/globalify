@@ -41,5 +41,15 @@ class CompanySchema(BaseModel):
 class SearchHistorySchema(BaseModel):
     id: int
     query: str
+    type: SearchHistoryType | None
     created_at: datetime
-    type: SearchHistoryType
+    date: datetime | None = None
+
+    def model_dump(self, **kwargs):
+        data = super().model_dump(**kwargs)
+        if self.type is not None:
+            data["type"] = self.type.value
+        if self.created_at:
+            data["created_at"] = self.created_at.strftime("%I:%M %p")
+            data["date"] = self.created_at.date().isoformat()
+        return data

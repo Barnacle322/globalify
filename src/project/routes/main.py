@@ -55,17 +55,26 @@ def faq():
     return render_template("faq.html")
 
 
-@main.get("/about/eric")
+@main.get("/eric")
+@main.get("/ericfung")
+@main.get("/ericclfung")
+@main.get("/ceo")
 def eric():
     return render_template("eric.html")
 
 
-@main.get("/about/jennifer")
+@main.get("/jennifer")
+@main.get("/jenn")
+@main.get("/jenniferchenglo")
+@main.get("/jennifer-cheng-lo")
+@main.get("/princess")
+@main.get("/cgo")
 def jennifer():
     return render_template("jennifer.html")
 
 
-@main.get("/about/arstan")
+@main.get("/arstan")
+@main.get("/cto")
 def arstan():
     return render_template("arstan.html")
 
@@ -104,9 +113,6 @@ def privacy_policy():
 
 
 @main.route("/investor/<slug>")
-@login_required
-@check_user_info_complete
-@check_verification
 def investor_slug(slug):
     status_type, msg = None, None
     if query := request.args:
@@ -121,16 +127,18 @@ def investor_slug(slug):
 
 
 @main.get("/investor/<slug>/get")
-@login_required
 def get_investor(slug):
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-
     unpaid = False
-    if current_user.is_admin:
-        pass
-    elif not user_payment:
-        unpaid = True
-    elif user_payment and not user_payment.is_active:
+
+    if current_user.is_authenticated:
+        user_payment = UserPayment.get_by_user_id(current_user.id)
+        if current_user.is_admin:
+            pass
+        elif not user_payment:
+            unpaid = True
+        elif user_payment and not user_payment.is_active:
+            unpaid = True
+    else:
         unpaid = True
 
     investor = Investor.get_by_slug(slug) if not unpaid else Investor.get_by_slug_without_contacts(slug)
@@ -161,7 +169,11 @@ def get_investor(slug):
         user_id=investor.user_id,
     )
 
-    is_bookmarked = InvestorBookmark.exists(investor.id, current_user.id)
+    if current_user.is_authenticated:
+        is_bookmarked = InvestorBookmark.exists(investor.id, current_user.id)
+    else:
+        is_bookmarked = False
+
     return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked})
 
 
@@ -247,18 +259,18 @@ def get_investor_bookmark_ids():
 
 
 @main.get("/investment-firm/<slug>")
-@login_required
-@check_user_info_complete
-@check_verification
 def get_investment_firm(slug):
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-
     unpaid = False
-    if current_user.is_admin:
-        pass
-    elif not user_payment:
-        unpaid = True
-    elif user_payment and not user_payment.is_active:
+
+    if current_user.is_authenticated:
+        user_payment = UserPayment.get_by_user_id(current_user.id)
+        if current_user.is_admin:
+            pass
+        elif not user_payment:
+            unpaid = True
+        elif user_payment and not user_payment.is_active:
+            unpaid = True
+    else:
         unpaid = True
 
     investment_firm_model = InvestmentFirm.get_by_slug(slug)
@@ -266,7 +278,7 @@ def get_investment_firm(slug):
     if not investment_firm_model:
         return jsonify({"status": "error", "message": "Investment Firm not found."}), 404
     if not investment_firm_model.is_public:
-        return jsonify({"status": "error", "message": "Investor is not public."}), 404
+        return jsonify({"status": "error", "message": "Investment Firm is not public."}), 404
 
     investment_firm = InvestmentFirmSchema(
         id=investment_firm_model.id,
@@ -288,23 +300,27 @@ def get_investment_firm(slug):
         industries=[{"id": i.id, "name": i.name} for i in investment_firm_model.industries],
     ).model_dump()
 
-    is_bookmarked = InvestmentFirmBookmark.exists(investment_firm_model.id, current_user.id)
+    if current_user.is_authenticated:
+        is_bookmarked = InvestmentFirmBookmark.exists(investment_firm_model.id, current_user.id)
+    else:
+        is_bookmarked = False
+
     return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
 @main.get("/company/<slug>")
-@login_required
-@check_user_info_complete
-@check_verification
 def get_company(slug):
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-
     unpaid = False
-    if current_user.is_admin:
-        pass
-    elif not user_payment:
-        unpaid = True
-    elif user_payment and not user_payment.is_active:
+
+    if current_user.is_authenticated:
+        user_payment = UserPayment.get_by_user_id(current_user.id)
+        if current_user.is_admin:
+            pass
+        elif not user_payment:
+            unpaid = True
+        elif user_payment and not user_payment.is_active:
+            unpaid = True
+    else:
         unpaid = True
 
     company_model = Company.get_by_slug(slug)
@@ -333,7 +349,11 @@ def get_company(slug):
             "name": company_model.industry.name if company_model.industry.name else None,
         },
     ).model_dump()
-    is_bookmarked = CompanyBookmark.exists(company_model.id, current_user.id)
+
+    if current_user.is_authenticated:
+        is_bookmarked = CompanyBookmark.exists(company_model.id, current_user.id)
+    else:
+        is_bookmarked = False
 
     return jsonify({"company": company, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 

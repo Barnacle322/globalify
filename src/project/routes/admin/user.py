@@ -85,7 +85,7 @@ def update_user_view(id):
 
     user_info = UserInfo.get_by_user_id(id)
     user_payment = UserPayment.get_by_user_id(id)
-    tiers = [tier for tier in Tier]  ########
+    tiers = [tier for tier in Tier]
 
     return render_template(
         "admin/update_user.html",

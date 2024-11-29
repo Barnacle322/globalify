@@ -8,14 +8,21 @@
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
         <title>Privacy Policy | Globalify</title>
     </head>
-    <body class="flex h-full flex-col items-center justify-center gap-3 bg-black text-white">
-        <nav class="absolute left-0 top-0 flex h-24 w-full items-center justify-start px-9">
-            <a href="/"><img class="h-[30px] w-[113px]" src="/static/elements/globalify.png" /></a>
+    <body class="flex h-full flex-col items-center justify-center gap-3 max-w-7xl mx-auto">
+        <nav class="flex h-24 w-full items-center justify-start px-9">
+            <a href="/" class="relative flex items-center gap-1"
+                ><img class="h-6" src="/static/elements/logo-black.png" />
+                <div
+                    class="h-fit w-fit rounded-full bg-sky-500 px-1 py-1 text-[8px] font-medium leading-none tracking-tight text-white"
+                >
+                    BETA
+                </div></a
+            >
         </nav>
-        <main class="mt-24 px-6">
-            <h1 class="mt-10 text-6xl sm:text-8xl">Privacy Policy</h1>
-            <article class="prose prose-invert mx-auto mb-16 lg:prose-lg">
-                <p>Last updated July 16, 2023</p>
+        <main class="my-10 px-6">
+            <article class="prose mx-auto lg:prose-lg">
+                <h1>Privacy Policy</h1>
+                <p>Last updated Nov 26, 2024</p>
                 <hr />
                 <p>
                     This privacy notice for Globalify ("we," "us," or "our"), describes how and why we might collect,
@@ -121,8 +128,8 @@
                 <p>
                     <strong>Payment Data.</strong> We may collect data necessary to process your payment if you make
                     purchases, such as your payment instrument number, and the security code associated with your
-                    payment instrument. All payment data is stored by __________. You may find their privacy notice
-                    link(s) here: __________.
+                    payment instrument. All payment data is stored by Stripe. You may find their privacy notice link(s)
+                    here: <a href="https://stripe.com/privacy">Stripe Privacy Policy</a>.
                 </p>
                 <p>
                     <strong>Social Media Login Data.</strong> We may provide you with the option to register with us

@@ -196,18 +196,6 @@ def update_company(id):
     company.industry_id = form_data.get("industry", company.industry) or None
     company.is_public = form_data.get("is_public", company.is_public) or False
 
-    notable_investment_name = form_data.get("notable_investment") or None
-    if notable_investment_name:
-        notable_investment = NotableInvestment.get_by_name(notable_investment_name)
-        if notable_investment:
-            if notable_investment.company:
-                status = Status(
-                    StatusType.ERROR, "Notable investment already associated with another company"
-                ).get_status()
-                return redirect(url_for("admin.company.update_company_view", id=id, _external=True, **status))
-            if notable_investment.company != company:
-                notable_investment.company = company
-
     try:
         db.session.commit()
     except Exception as e:

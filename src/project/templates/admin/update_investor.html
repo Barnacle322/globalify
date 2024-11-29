@@ -57,6 +57,8 @@
     {{ createNotableInvestment.render() }}
     {% import "components/create_investment.html" as create_investment %}
     {{ create_investment.render(investor.id, "investor", true) }}
+    {% import "components/delete_investment.html" as delete_investment %}
+    {{ delete_investment.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -76,19 +78,6 @@
                 ></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
-                    v-if="createNotableInvestmentOpened"
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <create-notable-investment-component
-                    v-if="createNotableInvestmentOpened"
-                    @close-create-notable-investment-modal="createNotableInvestmentOpened = false"
-                    @notable-investment-created="addNotableInvestment"
-                ></create-notable-investment-component
-            ></transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="createInvestmentOpened"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
@@ -97,6 +86,16 @@
                     @close-create-investment="createInvestmentOpened = null"
                     :type="investor"
                 ></create-investment-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="deleteInvestmentOpened"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <delete-investment-component
+                    v-if="deleteInvestmentOpened"
+                    @close-delete-investment="deleteInvestmentOpened = null"
+                    :investment-id="investmentId"
+                ></delete-investment-component>
             </transition>
 
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
@@ -438,7 +437,7 @@
                                         </a>
                                         <button
                                             class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
-                                            @click=""
+                                            @click.prevent="deleteInvestmentOpened = true, investmentId = {{ investment.id }}"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"

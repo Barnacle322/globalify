@@ -1097,19 +1097,19 @@ const DeleteInvestmentComponent = defineComponent({
 
 const CreateInvestmentComponent = defineComponent({
     template: "#create-investment-template",
-    props: { type: String },
+    props: ["type"],
     async created() {
         console.log(this.type);
-        // if (this.type === "company") {
-        //     this.fetchInvestors();
-        //     this.fetchInvestmentFirms();
-        // } else {
-        //     console.log("Fetching funding rounds");
-        //     this.fetchFundingRounds();
-        // }
+        if (this.type === "company") {
+            this.fetchInvestors();
+            this.fetchInvestmentFirms();
+        } else {
+            console.log("Fetching funding rounds");
+            this.fetchFundingRounds();
+        }
     },
     async mounted() {
-        console.log(this.type);
+        console.log(this.investment);
     },
     methods: {
         async createInvestment(id, type, isAdmin) {
@@ -1152,7 +1152,6 @@ const CreateInvestmentComponent = defineComponent({
                 if (response.ok) {
                     data = await response.json();
                     this.fundingRounds = data.funding_rounds;
-                    console.log(this.fundingRounds);
                 }
             } catch (error) {
                 console.error("Error fetching funding rounds:", error);
@@ -1164,7 +1163,6 @@ const CreateInvestmentComponent = defineComponent({
                 if (response.ok) {
                     data = await response.json();
                     this.investors = data.investors;
-                    console.log(this.investors);
                 }
             } catch (error) {
                 console.error("Error fetching investors:", error);
@@ -1175,7 +1173,7 @@ const CreateInvestmentComponent = defineComponent({
                 const response = await fetch("/settings/investment-firms");
                 if (response.ok) {
                     data = await response.json();
-                    this.investmentFirms = data.investment_firms;
+                    this.investment_firms = data.investment_firms;
                 }
             } catch (error) {
                 console.error("Error fetching investment firms:", error);
@@ -1205,6 +1203,8 @@ const CreateInvestmentComponent = defineComponent({
             selectedNotableInvestment: "",
             notableInvestmentList: [],
             fundingRounds: [],
+            investment_firms: [],
+            investors: [],
             selectedInvestor: null,
             selectedInvestmentFirm: null,
             selectedFundingRound: null,

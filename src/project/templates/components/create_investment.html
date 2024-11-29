@@ -28,9 +28,12 @@
                         required
                     >
                         <option value="" disabled selected>Select an investor</option>
-                        <option v-for="investor in investors" :key="investor.id" :value="investor.id">
-                            <span v-text="investor.name"></span>
-                        </option>
+                        <option
+                            v-for="investor in investors"
+                            :key="investor.id"
+                            :value="investor.id"
+                            v-text="investor.name"
+                        ></option>
                     </select>
                 </div>
             </div>
@@ -48,12 +51,11 @@
                     >
                         <option value="" disabled selected>Select an investment firm</option>
                         <option
-                            v-for="investment_firm in investmentFirms"
+                            v-for="investment_firm in investment_firms"
                             :key="investment_firm.id"
                             :value="investment_firm.id"
-                        >
-                            <span v-text="investment_firm.name"></span>
-                        </option>
+                            v-text="investment_firm.name"
+                        ></option>
                     </select>
                 </div>
             </div>
@@ -74,11 +76,20 @@
                             v-for="funding_round in fundingRounds"
                             :key="funding_round.id"
                             :value="funding_round.id"
-                        >
-                            <span v-text="funding_round.company_name"></span>
-                        </option>
+                            v-text="funding_round.company_name"
+                        ></option>
                     </select>
                 </div>
+            </div>
+            <div class="col-span-full">
+                <label class="text-sm font-medium text-gray-700" for="company_name">Custom Company name</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="company_name"
+                    placeholder="Globalify"
+                    required
+                />
             </div>
             {% endif %}
 

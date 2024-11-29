@@ -11,6 +11,7 @@ from ..models import (
     Country,
     Industry,
     Investment,
+    InvestmentFirm,
     Investor,
     InvestorBackup,
     InvestorOriginPoint,
@@ -517,6 +518,28 @@ def investor_list_view():
         investors.append(investor_schema.model_dump())
 
     return jsonify({"investors": investors})
+
+
+@settings.get("/investment-firms")
+@login_required
+@check_user_info_complete
+@check_verification
+def investment_firms_list_view():
+    if not isinstance(current_user, User):
+        return redirect(url_for("search.investor_search"))
+
+    investment_firm_models = InvestmentFirm.get_all()
+
+    investment_firms = []
+
+    for investment_firm_model in investment_firm_models:
+        investment_firm_schema = MiniInvestorSchema(
+            id=investment_firm_model.id,
+            name=investment_firm_model.name,
+        )
+        investment_firms.append(investment_firm_schema.model_dump())
+
+    return jsonify({"investment_firms": investment_firms})
 
 
 @settings.get("/company/create")

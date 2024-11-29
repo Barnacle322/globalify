@@ -3,7 +3,6 @@ createApp({
         AsideComponent,
         AsideMobileComponent,
         NavbarComponent,
-        Bookmark,
         FullInvestor,
         FullInvestmentFirm,
         FullCompany,
@@ -67,7 +66,6 @@ createApp({
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
         this.loadMoreSearchHistories();
-        window.addEventListener('scroll', this.handleScroll);
     },
     updated() {
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
@@ -76,10 +74,6 @@ createApp({
             this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
-    },
-
-    beforeUnmount(){
-        window.removeEventListener('scroll', this.handleScroll);
     },
 
     methods: {
@@ -521,30 +515,23 @@ createApp({
             this.loading = true;
 
             try {
-                const response = await fetch(`/search-history?page=${this.page}`);
-                if (!response.ok) throw new Error('Failed to fetch data');
+                const response = await fetch("/search-history?page=1&limit=5");
+                if (!response.ok) throw new Error("Failed to fetch data");
 
                 const newItems = await response.json();
 
                 if (newItems.length < this.page) {
-                  this.hasMore = false;
+                    this.hasMore = false;
                 }
 
                 this.searchHistories.push(...newItems);
                 this.page++;
             } catch (error) {
-                console.error('Failed to fetch items:', error);
+                console.error("Failed to fetch items:", error);
             } finally {
                 this.loading = false;
             }
-            },
-
-        handleScroll() {
-            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-            if (scrollTop + clientHeight >= scrollHeight - 10) {
-                this.loadMoreSearchHistories();
-            }
-            },
+        },
     },
 
     data() {
@@ -574,11 +561,7 @@ createApp({
             showClasses: ["transform", "opacity-100", "scale-100"],
             hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
 
-
             searchHistories: [],
-            page: 2,
-            loading: false,
-            hasMore: true,
         };
     },
 }).mount("#app");

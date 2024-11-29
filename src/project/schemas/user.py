@@ -48,8 +48,8 @@ class SearchHistorySchema(BaseModel):
     def model_dump(self, **kwargs):
         data = super().model_dump(**kwargs)
         if self.type is not None:
-            data["type"] = self.type.name
+            data["type"] = self.type.value
         if self.created_at:
             data["created_at"] = self.created_at.strftime("%I:%M %p")
-            data["date"] = self.created_at.isoformat()
+            data["date"] = self.created_at.date().isoformat()
         return data

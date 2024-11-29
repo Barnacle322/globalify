@@ -403,7 +403,9 @@ def get_suggestion_companies():
 def get_search_histories():
     search_type = request.args.get("type")
     page = request.args.get("page", default=1, type=int)
-    limit = 20
+    limit = request.args.get("limit", default=5, type=int)
+    if limit > 100:
+        limit = 100
     offset = (page - 1) * limit
     search_histories = []
 
@@ -416,7 +418,27 @@ def get_search_histories():
         for history in db_search_histories
     ]
 
-    return jsonify(search_histories)
+    # day_dict = {}
+    # for history in search_histories:
+    #     day = history["date"]
+    #     if day not in day_dict:
+    #         day_dict[day] = []
+    #     day_dict[day].append(history)
+
+    # day_list = []
+    # for day, histories in day_dict.items():
+    #     day_list.append({"day": day, "histories": histories})
+
+    day_list = []
+    for history in search_histories:
+        day = history["date"]
+        if not any(day == day_item["day"] for day_item in day_list):
+            day_list.append({"day": day, "histories": []})
+        for day_item in day_list:
+            if day_item["day"] == day:
+                day_item["histories"].append(history)
+
+    return jsonify(day_list)
 
 
 @search.get("/history")
@@ -424,5 +446,4 @@ def get_search_histories():
 @check_user_info_complete
 @check_verification
 def get_full_search_history():
-    search_histories = SearchHistory.paginate_history(current_user)
-    return render_template("history.html", search_histories=search_histories)
+    return render_template("history.html")

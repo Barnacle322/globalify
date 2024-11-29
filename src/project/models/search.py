@@ -28,8 +28,6 @@ class SearchHistory(MappedAsDataclass, db.Model, unsafe_hash=True):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), init=False)
     type: Mapped[SearchHistoryType] = mapped_column(SQLEnum(SearchHistoryType), nullable=True)
 
-    __table_args__ = (UniqueConstraint("user_id", "query", name="user_query"),)
-
     @staticmethod
     def paginate_history(user, search_type: bool | SearchHistoryType = False, offset: int = 0, limit: int = 20):
         if search_type:

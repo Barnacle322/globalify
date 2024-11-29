@@ -3,7 +3,9 @@ from sqlalchemy import select
 
 from ...extensions import db
 from ...models import (
+    FundingRound,
     Industry,
+    Investment,
     Investor,
     InvestorBackup,
     InvestorOriginPoint,
@@ -11,6 +13,7 @@ from ...models import (
     Round,
     User,
 )
+from ...schemas.investment import FundingRoundSchema
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -145,9 +148,12 @@ def update_investor_view(id):
         status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
+    investments = Investment.get_by_investor_id(investor.id)
+
     return render_template(
         "admin/update_investor.html",
         investor=investor,
+        investments=investments,
         rounds=Round.get_all(),
         industries=Industry.get_all(),
         status_type=status_type,
@@ -503,3 +509,27 @@ def search_notable_investments(search_input, investor_id):
     )
 
     return {"notable_investments": [ni.to_dict() for ni in notable_investments]}
+
+
+@investor.get("/funding-rounds")
+def get_funding_rounds():
+    funding_round_models = FundingRound.get_all()
+
+    if not funding_round_models:
+        return {"funding_rounds": []}
+
+    funding_rounds = []
+
+    for funding_round in funding_round_models:
+        funding_rounds.append(
+            FundingRoundSchema(
+                id=funding_round.id,
+                company_name=funding_round.company.name,
+                announced_date=funding_round.announced_date,
+                round={
+                    "id": funding_round.round.id,
+                    "name": funding_round.round.name,
+                },
+            ).model_dump()
+        )
+    return {"funding_rounds": funding_rounds}

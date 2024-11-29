@@ -1349,6 +1349,21 @@ select {
 .top-full {
   top: 100%;
 }
+.left-auto {
+  left: auto;
+}
+.right-2 {
+  right: 0.5rem;
+}
+.right-full {
+  right: 100%;
+}
+.top-5 {
+  top: 1.25rem;
+}
+.top-6 {
+  top: 1.5rem;
+}
 .isolate {
   isolation: isolate;
 }

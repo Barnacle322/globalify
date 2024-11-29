@@ -1,84 +1,85 @@
-{% macro render(company_id) %}
+{% macro render(id, type) %}
 <template id="create-investment-template">
     <article
         class="fixed right-1/2 top-1/2 z-50 flex w-10/12 -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
     >
-    <div class="grid grid-cols-6 gap-x-2 gap-y-1">
-        <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
-        <div class="col-span-full empty:hidden">
-            {% if status_type %} {% if status_type == '3' %}
-            <div class="rounded-xl text-red-500">{{ msg }}</div>
-            {% elif status_type == '2' %}
-            <div class="rounded-xl text-orange-400">{{ msg }}</div>
-            {% elif status_type == '1' %}
-            <div class="rounded-xl text-lime-500">{{ msg }}</div>
-            {% endif %} {% endif %}
-        </div>
+        <div class="grid grid-cols-6 gap-x-2 gap-y-1">
+            <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
+            <div class="col-span-full empty:hidden">
+                {% if status_type %} {% if status_type == '3' %}
+                <div class="rounded-xl text-red-500">{{ msg }}</div>
+                {% elif status_type == '2' %}
+                <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                {% elif status_type == '1' %}
+                <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                {% endif %} {% endif %}
+            </div>
 
-        <div class="col-span-full">
-            <label for="investor" class="text-sm font-medium text-gray-700">Investor</label>
-            <div>
-                <select
-                    id="investor"
-                    name="investor"
-                    class="h-12 w-full rounded-xl px-2"
-                    required
-                    id="investor"
-                >
-                    <option value="" disabled selected>Select an investor</option>
-                    {% if investors %} {% for investor in investors %}
-                    <option value="{{ investor.id }}">{{ investor.full_name }}</option>
-                    {% endfor %} {% endif %}
-                </select>
+            {% if type != 'investor' %}
+            <div class="col-span-full">
+                <label for="investor" class="text-sm font-medium text-gray-700">Investor</label>
+                <div>
+                    <select
+                        id="investor"
+                        name="investor"
+                        class="h-12 w-full rounded-xl px-2"
+                        v-model="selectedInvestor"
+                        required
+                    >
+                        <option value="" disabled selected>Select an investor</option>
+                        <option v-for="investor in investors" :key="investor.id" :value="investor.id">
+                            <span v-text="investor.name"></span>
+                        </option>
+                    </select>
+                </div>
+            </div>
+            {% endif %} {% if type != 'investment_firm' and type != 'investor' %}
+            <div class="col-span-full">
+                <label for="investment_firm" class="text-sm font-medium text-gray-700">Investment Firm</label>
+                <div>
+                    <select
+                        id="investment_firm"
+                        name="investment_firm"
+                        class="h-12 w-full rounded-xl px-2"
+                        required
+                        id="investment_firm"
+                    >
+                        <option value="" disabled selected>Select an investment firm</option>
+                        {% if investment_firms %} {% for investment_firm in investment_firms %}
+                        <option value="{{ investment_firm.id }}">{{ investment_firm.name }}</option>
+                        {% endfor %} {% endif %}
+                    </select>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="col-span-full">
+                <label for="funding_round" class="text-sm font-medium text-gray-700">Funding Round</label>
+                <div>
+                    <select
+                        id="funding_round"
+                        name="funding_round"
+                        class="h-12 w-full rounded-xl px-2"
+                        v-model="selectedFundingRound"
+                        required
+                    >
+                        <option value="" disabled selected>Select a funding round</option>
+                        <option
+                            v-for="funding_round in fundingRounds"
+                            :key="funding_round.id"
+                            :value="funding_round.id"
+                        >
+                            <span v-text="funding_round.company_name"></span>
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-span-full">
+                <label class="text-sm font-medium text-gray-700" for="amount">Amount</label>
+                <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="amount" placeholder="14" />
             </div>
         </div>
-
-        <div class="col-span-full">
-            <label for="investment_firm" class="text-sm font-medium text-gray-700">Investment Firm</label>
-            <div>
-                <select
-                    id="investment_firm"
-                    name="investment_firm"
-                    class="h-12 w-full rounded-xl px-2"
-                    required
-                    id="investment_firm"
-                >
-                    <option value="" disabled selected>Select an investment firm</option>
-                    {% if investment_firms %} {% for investment_firm in investment_firms %}
-                    <option value="{{ investment_firm.id }}">{{ investment_firm.name }}</option>
-                    {% endfor %} {% endif %}
-                </select>
-            </div>
-        </div>
-
-        <div class="col-span-full">
-            <label for="funding_round" class="text-sm font-medium text-gray-700">Funding Round</label>
-            <div>
-                <select
-                    id="funding_round"
-                    name="funding_round"
-                    class="h-12 w-full rounded-xl px-2"
-                    required
-                    id="funding_round"
-                >
-                    <option value="" disabled selected>Select an investment firm</option>
-                    {% if funding_rounds %} {% for funding_round in funding_rounds %}
-                    <option value="{{ funding_round.id }}">{{ funding_round.company.name }}</option>
-                    {% endfor %} {% endif %}
-                </select>
-            </div>
-        </div>
-
-        <div class="col-span-full">
-            <label class="text-sm font-medium text-gray-700" for="amount">Amount</label>
-            <input
-                class="w-full rounded-lg bg-transparent bg-white"
-                type="number"
-                id="amount"
-                placeholder="14"
-            />
-        </div>
-    </div>
         <div class="flex justify-end gap-5">
             <button @click="closeCreateInvestmentModal" class="rounded-lg border border-gray-300 px-3 py-2">
                 Cancel

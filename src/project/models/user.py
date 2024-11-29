@@ -910,9 +910,13 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_by_user_id(user_id: int) -> Sequence[UserCompany]:
-        return db.session.scalars(
-            db.select(UserCompany).where(UserCompany.user_id == user_id).order_by(UserCompany.is_primary.desc())
-        ).all()
+        return (
+            db.session.scalars(
+                db.select(UserCompany).where(UserCompany.user_id == user_id).order_by(UserCompany.is_primary.desc())
+            )
+            .unique()
+            .all()
+        )
 
     @staticmethod
     def get_by_company_id(company_id: int) -> Sequence[UserCompany]:

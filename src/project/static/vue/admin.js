@@ -5,6 +5,7 @@ createApp({
         NavbarComponent,
         Bookmark,
         CreateNotableInvestmentComponent,
+        CreateInvestmentComponent,
     },
     watch: {
         asideMinified(value) {
@@ -658,6 +659,7 @@ createApp({
             asideExpanded: false,
             asideMinified: false,
             createNotableInvestmentOpened: false,
+            createInvestmentOpened: false,
             csrfToken: "",
             searchQuery: localStorage.getItem("searchQuery") || "",
             selectedRounds: [],

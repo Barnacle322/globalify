@@ -644,14 +644,42 @@ const FullInvestor = defineComponent({
                     this.investor = data.investor;
                     this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
+                    this.loadTwitterTimeline();
                 } else {
                     this.closeInvestor();
                     return;
                 }
             } catch (error) {
                 console.error("Error fetching investor:", error);
+                this.closeInvestor();
             } finally {
                 this.isLoading = false;
+            }
+        },
+        loadTwitterTimeline() {
+            if (!this.investor?.twitter) return;
+            this.ensureTwitterScriptLoaded(() => {
+                const timeline = document.querySelector(".twitter-timeline");
+                if (timeline) {
+                    timeline.innerHTML = "";
+                    timeline.setAttribute("href", this.investor.twitter);
+                    timeline.setAttribute("data-tweet-limit", 15);
+                    window.twttr?.widgets.load();
+                }
+            });
+        },
+        ensureTwitterScriptLoaded(callback) {
+            if (!this.twitterScriptLoaded) {
+                const script = document.createElement("script");
+                script.src = "https://platform.twitter.com/widgets.js";
+                script.async = true;
+                script.onload = () => {
+                    this.twitterScriptLoaded = true;
+                    callback();
+                };
+                document.body.appendChild(script);
+            } else {
+                callback();
             }
         },
         async toggleBookmark(investorId) {
@@ -710,6 +738,7 @@ const FullInvestor = defineComponent({
             investor: null,
             unpaid: false,
             dropdownOpened: false,
+            twitterScriptLoaded: false,
         };
     },
 });

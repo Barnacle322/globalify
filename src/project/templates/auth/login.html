@@ -1,6 +1,6 @@
 {% extends "layouts/layout_auth.html" %} {% block title %}Login{% endblock %} {% block head %} {{ super() }} {% endblock
 %} {% block content %}
-<main class="flex h-full w-full flex-row text-slate-900 sm:items-center">
+<main class="flex h-full w-full flex-row text-gray-900 items-center">
     <div class="max w-full justify-center px-9 md:w-1/2 md:justify-start md:px-16">
         <article class="flex max-w-[400px] flex-col gap-2">
             <div class="mb-4 flex flex-col gap-1 font-medium">
@@ -9,7 +9,7 @@
             </div>
             <a
                 href="/login-linkedin"
-                class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-stone-300 bg-white p-3 transition-colors ease-in-out hover:bg-slate-100"
+                class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-gray-300 bg-white p-3 transition-colors ease-in-out hover:bg-gray-100"
                 onclick="this.classList.add('idempotency');"
             >
                 <img class="w-4" src="/static/elements/linkedin.svg" alt="" />
@@ -17,7 +17,7 @@
             </a>
             <a
                 href="/login-google"
-                class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-stone-300 bg-white p-3 transition-colors ease-in-out hover:bg-slate-100"
+                class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-gray-300 bg-white p-3 transition-colors ease-in-out hover:bg-gray-100"
                 onclick="this.classList.add('idempotency');"
             >
                 <img src="/static/elements/google.svg" alt="" />
@@ -25,7 +25,7 @@
             </a>
             <a
                 href="/login-apple"
-                class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-stone-300 bg-white p-3 transition-colors ease-in-out hover:bg-slate-100"
+                class="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-gray-300 bg-white p-3 transition-colors ease-in-out hover:bg-gray-100"
                 onclick="this.classList.add('idempotency');"
             >
                 <img src="/static/elements/apple.svg" alt="" />
@@ -38,7 +38,7 @@
             {% endif %} {% if status_type == '1' %}
             <div class="rounded-xl text-lime-500">{{ msg }}</div>
             {% endif %} {% endif %}
-            <div class="my-2 text-xs text-slate-400">
+            <div class="my-2 text-xs text-gray-400">
                 <span>By signing in, you agree to </span
                 ><a href="/terms-of-service" class="underline">Terms of Service</a><span> and </span
                 ><a href="/privacy-policy" class="underline">Privacy Policy</a>

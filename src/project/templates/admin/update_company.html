@@ -220,38 +220,6 @@
                             </select>
                         </div>
                     </div>
-                    <div class="relative col-span-full">
-                        <label class="text-sm font-medium text-gray-700">Notable Investment</label>
-                        <input
-                            type="text"
-                            id="searchInput"
-                            ref="searchInput"
-                            value="{{ company.notable_investment.name }}"
-                            placeholder="Search investments..."
-                            class="w-full rounded-lg bg-transparent bg-white"
-                            @input="debouncedFetchNotableInvestmentList($event)"
-                        />
-                        <div
-                            id="notableInvestmentList"
-                            v-show="notableInvestmentList.length > 0"
-                            class="flex max-h-60 w-full origin-top-right flex-col overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
-                        >
-                            <button
-                                v-if="notableInvestmentList.length > 0"
-                                class="rounded-lg bg-sky-500 px-4 py-2 text-sm text-white hover:bg-sky-600"
-                                @click="createNotableInvestmentOpened = true"
-                            >
-                                Create Notable Investment
-                            </button>
-                            <p
-                                v-for="(notableInvestment, index) in notableInvestmentList"
-                                :key="index"
-                                class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
-                                @click="selectNotableInvestment(notableInvestment.name)"
-                                v-text="notableInvestment.name"
-                            ></p>
-                        </div>
-                    </div>
                     <div class="col-span-full">
                         <label class="text-sm font-medium text-gray-700" for="number_of_employees"
                             >Number of Employees</label

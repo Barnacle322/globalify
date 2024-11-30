@@ -63,14 +63,12 @@ const NotificationComponent = defineComponent({
             if (newVal === "inbox") {
                 this.$refs.inbox.setAttribute("data-selected", "true");
                 this.$refs.archive.setAttribute("data-selected", "false");
-                this.page = 2;
-                this.setupInfinteScroll();
             } else {
                 this.$refs.inbox.setAttribute("data-selected", "false");
                 this.$refs.archive.setAttribute("data-selected", "true");
-                this.page = 2;
-                this.setupInfinteScroll();
             }
+            this.page = 2;
+            this.setupInfinteScroll();
         },
     },
     methods: {
@@ -257,7 +255,7 @@ const AsideComponent = defineComponent({
     template: "#aside-template",
     mounted() {
         this.currentPath = window.location.pathname.split("/")[1];
-        if (["suggestions", "investor", "investment-firm"].includes(this.currentPath)) {
+        if (["suggestions", "investor", "investment-firm", "history"].includes(this.currentPath)) {
             this.currentPath = "search";
         }
     },
@@ -331,7 +329,6 @@ const Bookmark = defineComponent({
                 const response = await fetch("/bookmarks/investors");
                 if (response.ok) {
                     data = await response.json();
-                    console.log(data);
                     this.bookmarks = data.bookmarks;
                 }
             } else if (this.selectedTab === "investment_firm") {
@@ -587,7 +584,6 @@ const NavbarComponent = defineComponent({
     async mounted() {
         window.addEventListener("click", this.closeBookmark);
         window.addEventListener("click", this.closeNotifications);
-        await this.fetchNotificationInbox();
         if (!document.hidden) {
             this.startPolling();
         }
@@ -699,9 +695,10 @@ const FullInvestor = defineComponent({
             return url.split("/").pop();
         },
         handleClickOutside(event) {
-        const dropdownContainer = this.$refs.dropdownContainer;
-        if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-        this.dropdownOpened = false;}
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
         },
     },
     data() {
@@ -770,11 +767,9 @@ const FullInvestmentFirm = defineComponent({
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { firmId: firmId, status: true });
                         this.isBookmarked = !this.isBookmarked;
-
                     } else {
                         this.$emit("bookmarked", { firmId: firmId, status: false });
                         this.isBookmarked = !this.isBookmarked;
-
                     }
                 }
             } catch (error) {
@@ -809,9 +804,10 @@ const FullInvestmentFirm = defineComponent({
             this.$emit("close-investment-firm");
         },
         handleClickOutside(event) {
-        const dropdownContainer = this.$refs.dropdownContainer;
-        if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-        this.dropdownOpened = false;}
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
         },
     },
     data() {
@@ -919,7 +915,8 @@ const FullCompany = defineComponent({
         handleClickOutside(event) {
             const dropdownContainer = this.$refs.dropdownContainer;
             if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-            this.dropdownOpened = false;}
+                this.dropdownOpened = false;
+            }
         },
     },
     data() {

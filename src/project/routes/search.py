@@ -1,5 +1,3 @@
-import json
-
 from flask import (
     Blueprint,
     jsonify,
@@ -14,7 +12,6 @@ from sqlalchemy.exc import IntegrityError
 from ..extensions import db
 from ..models import (
     Company,
-    CompanyBookmark,
     Country,
     Industry,
     InvestmentFirm,
@@ -75,9 +72,6 @@ def demo_search():
 
 
 @search.route("/search", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
 def investor_search():
     if next_url := request.args.get("next"):
         return redirect(next_url)
@@ -130,7 +124,7 @@ def investor_search():
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-    if search_string != "":
+    if search_string != "" and current_user.is_authenticated:
         try:
             new_search_history = SearchHistory(
                 user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR
@@ -155,15 +149,12 @@ def investor_search():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        user=current_user,
+        user=current_user if current_user.is_authenticated else None,
         type=SearchHistoryType.INVESTOR.value,
     )
 
 
 @search.route("/search/investment-firms", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
 def search_investment_firms():
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
@@ -209,7 +200,7 @@ def search_investment_firms():
     )
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-    if search_string != "":
+    if search_string != "" and current_user.is_authenticated:
         try:
             new_search_history = SearchHistory(
                 user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTMENT_FIRM
@@ -236,13 +227,11 @@ def search_investment_firms():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         type=SearchHistoryType.INVESTMENT_FIRM.value,
+        user=current_user if current_user.is_authenticated else None,
     )
 
 
 @search.route("/search/companies", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
 def search_companies():
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
@@ -267,7 +256,7 @@ def search_companies():
 
     pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
 
-    if search_string != "":
+    if search_string != "" and current_user.is_authenticated:
         try:
             new_search_history = SearchHistory(
                 user_id=current_user.id, query=search_string, type=SearchHistoryType.COMPANY
@@ -286,8 +275,8 @@ def search_companies():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        bookmark_ids=CompanyBookmark.get_id_list(current_user.id),
         type=SearchHistoryType.COMPANY.value,
+        user=current_user if current_user.is_authenticated else None,
     )
 
 
@@ -413,17 +402,48 @@ def get_suggestion_companies():
 @check_verification
 def get_search_histories():
     search_type = request.args.get("type")
+    page = request.args.get("page", default=1, type=int)
+    limit = request.args.get("limit", default=5, type=int)
+    if limit > 100:
+        limit = 100
+    offset = (page - 1) * limit
     search_histories = []
-    db_search_histories = SearchHistory.get_search_history(current_user, search_type)
-    for db_search_history in db_search_histories:
-        if not isinstance(db_search_history, SearchHistory):
-            return jsonify({"status": "error", "message": "Search history not found."}), 404
-        search_history = SearchHistorySchema(
-            id=db_search_history.id,
-            query=db_search_history.query,
-            type=db_search_history.type,
-            created_at=db_search_history.created_at,
-        )
 
-        search_histories.append(json.loads(search_history.model_dump_json()))
-    return jsonify(search_histories)
+    db_search_histories = SearchHistory.paginate_history(
+        user=current_user, search_type=search_type, offset=offset, limit=limit
+    )
+
+    search_histories = [
+        SearchHistorySchema.model_validate(history, from_attributes=True).model_dump()
+        for history in db_search_histories
+    ]
+
+    # day_dict = {}
+    # for history in search_histories:
+    #     day = history["date"]
+    #     if day not in day_dict:
+    #         day_dict[day] = []
+    #     day_dict[day].append(history)
+
+    # day_list = []
+    # for day, histories in day_dict.items():
+    #     day_list.append({"day": day, "histories": histories})
+
+    day_list = []
+    for history in search_histories:
+        day = history["date"]
+        if not any(day == day_item["day"] for day_item in day_list):
+            day_list.append({"day": day, "histories": []})
+        for day_item in day_list:
+            if day_item["day"] == day:
+                day_item["histories"].append(history)
+
+    return jsonify(day_list)
+
+
+@search.get("/history")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_full_search_history():
+    return render_template("history.html")

@@ -1,5 +1,5 @@
-{% macro render(id, type, created_by_admin) %}
-<template id="create-investment-template">
+{% macro render(id, type, updated_by_admin) %}
+<template id="update-investment-template">
     <article
         class="fixed right-1/2 top-1/2 z-50 flex w-10/12 -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
     >
@@ -60,7 +60,7 @@
                 </div>
             </div>
 
-            {% endif %}
+            {% endif %} {% if type != 'company' %}
             <div class="col-span-full">
                 <label for="funding_round" class="text-sm font-medium text-gray-700">Funding Round</label>
                 <div>
@@ -81,7 +81,6 @@
                     </select>
                 </div>
             </div>
-            {% if type != 'company' %}
             <div class="col-span-full">
                 <label class="text-sm font-medium text-gray-700" for="company_name">Custom Company name</label>
                 <input
@@ -96,18 +95,24 @@
 
             <div class="col-span-full">
                 <label class="text-sm font-medium text-gray-700" for="amount">Amount</label>
-                <input class="w-full rounded-lg bg-transparent bg-white" type="number" id="amount" placeholder="14" />
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="number"
+                    id="amount"
+                    placeholder="14"
+                    :value="investment.amount"
+                />
             </div>
         </div>
         <div class="flex justify-end gap-5">
-            <button @click="closeCreateInvestmentModal" class="rounded-lg border border-gray-300 px-3 py-2">
+            <button @click="closeUpdateInvestmentModal" class="rounded-lg border border-gray-300 px-3 py-2">
                 Cancel
             </button>
             <button
-                @click="createInvestment({{id}}, '{{type}}', '{{created_by_admin}}')"
+                @click="updateInvestment(id, '{{updated_by_admin}}')"
                 class="rounded-lg bg-sky-500 px-3 py-2 text-white hover:bg-sky-600"
             >
-                Create
+                Update
             </button>
         </div>
     </article>

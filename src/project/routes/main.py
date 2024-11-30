@@ -30,7 +30,7 @@ from ..models import (
     UserPayment,
 )
 from ..schemas.company import CompanyBookmarkSchema
-from ..schemas.investment import InvestmentSchema
+from ..schemas.investment import FullInvestmentSchema, InvestmentSchema
 from ..schemas.investor import (
     InvestmentFirmBookmarkSchema,
     InvestmentFirmSchema,
@@ -175,7 +175,7 @@ def get_investor(slug):
 @login_required
 @check_user_info_complete
 @check_verification
-def get_investment(investor_id):
+def get_investment_investor(investor_id):
     model_investments = Investment.get_by_investor_id(investor_id)
 
     if not model_investments:
@@ -460,6 +460,29 @@ def get_company_investment(company_id):
     return jsonify({"investments": investments})
 
 
+@main.get("/investment/<int:investment_id>")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investment(investment_id):
+    model_investment = Investment.get_by_id(investment_id)
+
+    if not model_investment:
+        return jsonify({"status": "error", "message": "Investment not found."}), 404
+
+    investment = FullInvestmentSchema(
+        id=model_investment.id,
+        funding_round_id=model_investment.funding_round_id,
+        investor_id=model_investment.investor_id,
+        investment_firm_id=model_investment.investment_firm_id,
+        amount=model_investment.amount,
+        created_by_admin=model_investment.created_by_admin,
+        is_verified=model_investment.is_verified,
+    ).model_dump()
+
+    return jsonify({"investment": investment})
+
+
 @main.post("/investment/create")
 @login_required
 @check_user_info_complete
@@ -490,6 +513,38 @@ def create_investment():
         db.session.commit()
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+    return jsonify({"status": "success"}), 200
+
+
+@main.post("/investmenttt/<int:investment_id>/update")
+@login_required
+@check_user_info_complete
+@check_verification
+def update_investment(investment_id):
+    form_data = request.get_json()
+
+    investment = Investment.get_by_id(investment_id)
+    if not investment:
+        return jsonify({"status": "error", "message": "Investment not found."}), 404
+
+    investor_id = form_data.get("investor_id")
+    investment_firm_id = form_data.get("investment_firm_id")
+    amount = form_data.get("amount")
+    funding_round_id = form_data.get("funding_round_id")
+    created_by_admin = form_data.get("created_by_admin")
+    is_verified = form_data.get("is_verified")
+
+    created_by_admin = True if created_by_admin == "True" else False
+
+    investment.investor_id = investor_id
+    investment.investment_firm_id = investment_firm_id
+    investment.amount = amount
+    investment.funding_round_id = funding_round_id
+    investment.created_by_admin = created_by_admin
+    investment.is_verified = is_verified
+
+    db.session.commit()
 
     return jsonify({"status": "success"}), 200
 

@@ -1095,18 +1095,143 @@ const DeleteInvestmentComponent = defineComponent({
     },
 });
 
+const UpdateInvestmentComponent = defineComponent({
+    template: "#update-investment-template",
+    props: ["type", "id"],
+    async created() {
+        console.log(this.id);
+        await this.fetchInvestment(this.id);
+        console.log(this.investment.investor_id);
+        console.log(this.investment.investment_firm_id);
+        this.fetchInvestors();
+        this.fetchInvestmentFirms();
+        this.selectedInvestor = this.investment.investor_id;
+        this.selectedInvestmentFirm = this.investment.investment_firm_id;
+        console.log("agahan", this.selectedInvestmentFirm);
+
+        this.fetchFundingRounds();
+        this.selectedFundingRound = this.investment.funding_round_id;
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async updateInvestment(id, isAdmin) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            const amount = document.getElementById("amount").value;
+            const payload = {
+                funding_round_id: this.selectedFundingRound,
+                amount: amount,
+                created_by_admin: isAdmin,
+                is_verified: this.investment.is_verified,
+                investor_id: this.selectedInvestor,
+                investment_firm_id: this.selectedInvestmentFirm,
+            };
+
+            try {
+                const response = await fetch(`/investmenttt/${id}/update`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: JSON.stringify(payload),
+                });
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async fetchFundingRounds() {
+            try {
+                const response = await fetch("/admin/investors/funding-rounds");
+                if (response.ok) {
+                    data = await response.json();
+                    this.fundingRounds = data.funding_rounds;
+                }
+            } catch (error) {
+                console.error("Error fetching funding rounds:", error);
+            }
+        },
+        async fetchInvestors() {
+            try {
+                const response = await fetch("/settings/investors");
+                if (response.ok) {
+                    data = await response.json();
+                    this.investors = data.investors;
+                }
+            } catch (error) {
+                console.error("Error fetching investors:", error);
+            }
+        },
+        async fetchInvestmentFirms() {
+            try {
+                const response = await fetch("/settings/investment-firms");
+                if (response.ok) {
+                    data = await response.json();
+                    this.investment_firms = data.investment_firms;
+                }
+            } catch (error) {
+                console.error("Error fetching investment firms:", error);
+            }
+        },
+        async fetchInvestment(investmentId) {
+            try {
+                const response = await fetch(`/investment/${investmentId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                    this.investment = data.investment;
+                }
+            } catch (error) {
+                console.error("Error fetching investment:", error);
+            }
+        },
+        closeUpdateInvestmentModal() {
+            this.$emit("close-update-investment");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeUpdateInvestmentModal();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeUpdateInvestmentModal();
+            }
+        },
+    },
+    data() {
+        return {
+            selectedNotableInvestment: "",
+            notableInvestmentList: [],
+            fundingRounds: [],
+            investment_firms: [],
+            investors: [],
+            selectedInvestor: null,
+            selectedInvestmentFirm: null,
+            selectedFundingRound: null,
+            investment: {},
+        };
+    },
+});
+
 const CreateInvestmentComponent = defineComponent({
     template: "#create-investment-template",
     props: ["type"],
     async created() {
-        console.log(this.type);
-        if (this.type === "company") {
-            this.fetchInvestors();
-            this.fetchInvestmentFirms();
-        } else {
-            console.log("Fetching funding rounds");
-            this.fetchFundingRounds();
-        }
+        this.fetchInvestors();
+        this.fetchInvestmentFirms();
+        this.fetchFundingRounds();
     },
     async mounted() {
         console.log(this.investment);
@@ -1125,9 +1250,6 @@ const CreateInvestmentComponent = defineComponent({
                 payload.investor_id = id;
             } else if (type === "investment_firm") {
                 payload.investment_firm_id = id;
-            } else {
-                payload.investor_id = this.selectedInvestor;
-                payload.investment_firm_id = this.selectedInvestmentFirm;
             }
 
             try {

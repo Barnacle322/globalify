@@ -16,3 +16,13 @@ class InvestmentSchema(BaseModel):
     amount: int | None
     round: str | None
     announced_date: str | None
+
+
+class FullInvestmentSchema(BaseModel):
+    id: int
+    funding_round_id: int | None
+    investor_id: int | None
+    investment_firm_id: int | None
+    amount: int | None
+    created_by_admin: bool | None
+    is_verified: bool | None

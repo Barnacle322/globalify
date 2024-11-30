@@ -7,6 +7,7 @@ createApp({
         CreateNotableInvestmentComponent,
         CreateInvestmentComponent,
         DeleteInvestmentComponent,
+        UpdateInvestmentComponent,
     },
     watch: {
         asideMinified(value) {
@@ -20,6 +21,12 @@ createApp({
         this.debouncedInvestmentFirmInvestments = this.debounce(this.fetchNotableInvestmentsByInvestmentFirmId, 500);
     },
     methods: {
+        openUpdateInvestment(investment) {
+            this.investment = investment;
+
+            console.log(this.investment);
+            this.updateInvestmentOpened = true;
+        },
         async submitInvestmentData() {
             const csrfToken = document.getElementById("csrf_token").value;
 
@@ -662,6 +669,8 @@ createApp({
             createNotableInvestmentOpened: false,
             createInvestmentOpened: false,
             deleteInvestmentOpened: false,
+            updateInvestmentOpened: false,
+            investment: {},
             csrfToken: "",
             searchQuery: localStorage.getItem("searchQuery") || "",
             selectedRounds: [],

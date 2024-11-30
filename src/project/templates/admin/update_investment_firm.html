@@ -57,6 +57,8 @@
     {{ create_investment.render(investment_firm.id, "investment_firm", true) }}
     {% import "components/delete_investment.html" as delete_investment %}
     {{ delete_investment.render() }}
+    {% import "components/update_investment.html" as update_investment %}
+    {{ update_investment.render(investment_firm.id, "investment_firm", true) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -94,6 +96,17 @@
                     @close-delete-investment="deleteInvestmentOpened = null"
                     :investment-id="investmentId"
                 ></delete-investment-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="updateInvestmentOpened"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <update-investment-component
+                    v-if="updateInvestmentOpened"
+                    @close-update-investment="updateInvestmentOpened = null"
+                    :investment="investment"
+                    :id="investmentId"
+                ></update-investment-component>
             </transition>
 
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
@@ -320,7 +333,9 @@
                             >Investments</label
                         >
                         {% if investments %}
-                        <div class="col-span-4 flex w-full flex-col rounded-xl h-96 overflow-y-auto border-2 mt-2">
+                        <div
+                            class="col-span-4 flex w-full flex-col rounded-xl h-96 overflow-y-auto border border-gray-700"
+                        >
                             <header class="border-b bg-gray-50 p-5">
                                 <input
                                     type="search"
@@ -370,8 +385,8 @@
                                         {% endif %}
                                     </div>
                                     <div class="ml-auto flex h-full flex-col gap-2">
-                                        <a
-                                            href=""
+                                        <button
+                                            @click.prevent="updateInvestmentOpened = true, investmentId = {{ investment.id }}"
                                             class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
                                         >
                                             <svg
@@ -388,7 +403,7 @@
                                                     d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
                                                 />
                                             </svg>
-                                        </a>
+                                        </button>
                                         <button
                                             class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
                                             @click.prevent="deleteInvestmentOpened = true, investmentId = {{ investment.id }}"
@@ -413,6 +428,30 @@
                             </div>
                             {% endfor %}
                         </div>
+                        {% else %}
+                        <div class="col-span-full">
+                            <button
+                                class="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-700 p-3 transition-shadow hover:shadow-md"
+                                @click.prevent="createInvestmentOpened = true"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-6"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                    />
+                                </svg>
+                                <span class="text-sm font-medium">Add an investment</span>
+                            </button>
+                        </div>
+
                         {% endif %}
                     </div>
                     <div class="col-span-full sm:col-span-3">

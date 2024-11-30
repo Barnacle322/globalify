@@ -14,6 +14,8 @@ def user_profile(username):
 
     user_info = UserInfo.get_by_username(username)
 
+    if not user_info:
+        return redirect(url_for("search.investor_search"))
 
     companies = (
         db.session.scalars(

@@ -31,6 +31,8 @@
         />
         <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
 
+        <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
         <link rel="stylesheet" href="/static/css/main.css" />
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
 
@@ -198,7 +200,7 @@
                                     @search="search"
                                     v-show="isSearchHistoryVisible"
                                     @mousedown.prevent
-                                    :type="'{{ type }}'"
+                                    type="{{ type }}"
                                 ></search-history>
                                 {% endif %}
                             </div>

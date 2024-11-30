@@ -106,64 +106,71 @@
                                     Globalify Startups
                                 </h1>
                             </div>
-                            <div class="relative mx-auto mt-10 flex max-w-3xl gap-2 rounded-full bg-white py-2 pr-3">
-                                <input
-                                    type="search"
-                                    name="search"
-                                    id="search"
-                                    class="w-full border-0 bg-transparent py-3 pl-6 pr-0 text-sm focus:ring-0"
-                                    placeholder="Search"
-                                    value="{{ query }}"
-                                    autocapitalize="off"
-                                    autocorrect="off"
-                                    autocomplete="off"
-                                    aria-autocomplete="both"
-                                    enterkeyhint="search"
-                                    @keyup.enter="search"
-                                    @focus="{{ 'handleSearchHistory' + '(' + type + ')' if user else '' }}"
-                                    @blur="isSearchHistoryVisible = false"
-                                    required
-                                />
-                                <button id="search-btn" class="" type="submit">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke-width="1.5"
-                                        stroke="currentColor"
-                                        class="size-5"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                                        />
-                                    </svg>
-                                </button>
-                                <a
-                                    href="/suggestions/investment-firms"
-                                    class="flex flex-col items-center justify-center pr-3"
+                            <div class="relative mt-10 flex max-w-3xl flex-col">
+                                <div
+                                    class="relative mx-auto flex w-full gap-2 rounded-[30px] bg-white py-2 pr-3"
+                                    :class="isSearchHistoryVisible ? 'rounded-b-none shadow-md' : ''"
                                 >
-                                    <div
-                                        class="size-6 animate-border bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%]"
-                                        style="clip-path: url(#magic-icon)"
-                                    ></div>
-                                    <svg height="0" width="0">
-                                        <clipPath id="magic-icon">
+                                    <input
+                                        type="search"
+                                        name="search"
+                                        id="search"
+                                        class="w-full border-0 bg-transparent py-3 pl-6 pr-0 text-sm focus:ring-0"
+                                        placeholder="Search"
+                                        value="{{ query }}"
+                                        autocapitalize="off"
+                                        autocorrect="off"
+                                        autocomplete="off"
+                                        aria-autocomplete="both"
+                                        enterkeyhint="search"
+                                        @keyup.enter="search"
+                                        @focus="isSearchHistoryVisible = {{ (not not user) | lower  }}"
+                                        @blur="isSearchHistoryVisible = false"
+                                        required
+                                    />
+                                    <button id="search-btn" class="" type="submit">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="size-5"
+                                        >
                                             <path
                                                 stroke-linecap="round"
                                                 stroke-linejoin="round"
-                                                d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
+                                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
                                             />
-                                        </clipPath>
-                                    </svg>
-                                </a>
-                                <transition>
-                                    <search-history
-                                        v-if="isSearchHistoryVisible && searchHistoryData.length > 0"
-                                        :histories="searchHistoryData"
-                                    ></search-history>
-                                </transition>
+                                        </svg>
+                                    </button>
+                                    <a
+                                        href="/suggestions/investment-firms"
+                                        class="flex flex-col items-center justify-center pr-3"
+                                    >
+                                        <div
+                                            class="size-6 animate-border bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%]"
+                                            style="clip-path: url(#magic-icon)"
+                                        ></div>
+                                        <svg height="0" width="0">
+                                            <clipPath id="magic-icon">
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
+                                                />
+                                            </clipPath>
+                                        </svg>
+                                    </a>
+                                </div>
+                                {% if user %}
+                                <search-history
+                                    @search="search"
+                                    v-show="isSearchHistoryVisible"
+                                    @mousedown.prevent
+                                    type="{{ type }}"
+                                ></search-history>
+                                {% endif %}
                             </div>
                             <button
                                 id="open-advanced-button"

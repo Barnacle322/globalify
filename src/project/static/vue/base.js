@@ -275,6 +275,9 @@ const AsideMobileComponent = defineComponent({
     },
     mounted() {
         this.currentPath = window.location.pathname.split("/")[1];
+        if (["suggestions", "investor", "investment-firm", "history"].includes(this.currentPath)) {
+            this.currentPath = "search";
+        }
     },
     data() {
         return {
@@ -966,9 +969,13 @@ const SearchHistory = defineComponent({
     props: ["type"],
     async mounted() {
         try {
-            const response = await fetch(`/search-history?type=${this.type}`);
+            const response = await fetch(`/search-history?type=${this.type}&page=1&limit=5`);
             if (response.ok) {
-                this.searchHistoryData = await response.json();
+                console.log(this.type);
+                const data = await response.json();
+                for (let item of data) {
+                    this.searchHistoryData.push(...item.histories);
+                }
             } else {
                 console.error("An error occurred while fetching the search history.");
             }

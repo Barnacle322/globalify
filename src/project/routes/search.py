@@ -150,7 +150,7 @@ def investor_search():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         user=current_user if current_user.is_authenticated else None,
-        type=SearchHistoryType.INVESTOR.value,
+        type=SearchHistoryType.INVESTOR.value.lower(),
     )
 
 
@@ -226,7 +226,7 @@ def search_investment_firms():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        type=SearchHistoryType.INVESTMENT_FIRM.value,
+        type=SearchHistoryType.INVESTMENT_FIRM.value.lower(),
         user=current_user if current_user.is_authenticated else None,
     )
 
@@ -275,7 +275,7 @@ def search_companies():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        type=SearchHistoryType.COMPANY.value,
+        type=SearchHistoryType.COMPANY.value.lower(),
         user=current_user if current_user.is_authenticated else None,
     )
 
@@ -409,8 +409,19 @@ def get_search_histories():
     offset = (page - 1) * limit
     search_histories = []
 
+    print(search_type)
+    match search_type:
+        case "investor":
+            type = SearchHistoryType.INVESTOR
+        case "investmentfirm":
+            type = SearchHistoryType.INVESTMENT_FIRM
+        case "company":
+            type = SearchHistoryType.COMPANY
+        case _:
+            type = False
+
     db_search_histories = SearchHistory.paginate_history(
-        user=current_user, search_type=search_type, offset=offset, limit=limit
+        user=current_user, search_type=type, offset=offset, limit=limit
     )
 
     search_histories = [

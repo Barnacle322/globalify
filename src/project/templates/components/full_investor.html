@@ -729,6 +729,9 @@
                         </div>
                     </article>
                 </section>
+                <section v-if="investor.twitter" class="w-full">
+                    <a class="twitter-timeline" :href="investor.twitter"></a>
+                </section>
             </main>
         </div>
     </article>

@@ -251,7 +251,7 @@ const NotificationComponent = defineComponent({
 });
 
 const AsideComponent = defineComponent({
-    props: ["place", "minified"],
+    props: ["minified"],
     template: "#aside-template",
     mounted() {
         this.currentPath = window.location.pathname.split("/")[1];
@@ -268,6 +268,7 @@ const AsideComponent = defineComponent({
 
 const AsideMobileComponent = defineComponent({
     template: "#aside-mobile-template",
+    props: ["minified"],
     methods: {
         closeAside() {
             this.$emit("close-aside");
@@ -621,6 +622,8 @@ const FullInvestor = defineComponent({
         window.removeEventListener("keydown", this.handleKeyDown);
         this.deleteInvestorParam();
         document.removeEventListener("click", this.handleClickOutside);
+        const script_element = document.getElementById("twitter-script");
+        if (script_element) script_element.remove();
     },
     created() {
         this.fetchInvestor();
@@ -647,7 +650,7 @@ const FullInvestor = defineComponent({
                     this.investor = data.investor;
                     this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
-                    this.loadTwitterTimeline();
+                    await this.loadTwitterTimeline();
                 } else {
                     this.closeInvestor();
                     return;
@@ -659,22 +662,38 @@ const FullInvestor = defineComponent({
                 this.isLoading = false;
             }
         },
-        loadTwitterTimeline() {
+        async loadTwitterTimeline() {
             if (!this.investor?.twitter) return;
+            this.loadingTwitter = true; // Set loading state to true
             this.ensureTwitterScriptLoaded(() => {
                 const timeline = document.querySelector(".twitter-timeline");
                 if (timeline) {
                     timeline.innerHTML = "";
                     timeline.setAttribute("href", this.investor.twitter);
-                    timeline.setAttribute("data-tweet-limit", 15);
                     window.twttr?.widgets.load();
+
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            const twitterWidget = document.querySelector("[id^='twitter-widget-']");
+                            if (twitterWidget && twitterWidget.offsetHeight > 0) {
+                                this.loadingTwitter = false;
+                                observer.disconnect();
+                            }
+                        });
+                    });
+
+                    observer.observe(document.body, { childList: true, subtree: true });
                 }
             });
         },
         ensureTwitterScriptLoaded(callback) {
+            const script_element = document.getElementById("twitter-script");
+            if (script_element) script_element.remove();
+
             if (!this.twitterScriptLoaded) {
                 const script = document.createElement("script");
                 script.src = "https://platform.twitter.com/widgets.js";
+                script.id = "twitter-script";
                 script.async = true;
                 script.onload = () => {
                     this.twitterScriptLoaded = true;
@@ -742,6 +761,7 @@ const FullInvestor = defineComponent({
             unpaid: false,
             dropdownOpened: false,
             twitterScriptLoaded: false,
+            loadingTwitter: false,
         };
     },
 });
@@ -971,7 +991,6 @@ const SearchHistory = defineComponent({
         try {
             const response = await fetch(`/search-history?type=${this.type}&page=1&limit=5`);
             if (response.ok) {
-                console.log(this.type);
                 const data = await response.json();
                 for (let item of data) {
                     this.searchHistoryData.push(...item.histories);

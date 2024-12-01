@@ -508,10 +508,6 @@ createApp({
                 this.isSearchHistoryVisible = false;
             }, 200);
         },
-        handleSearchHistory(type) {
-            console.log(type);
-            this.isSearchHistoryVisible = true;
-        },
     },
     data() {
         return {

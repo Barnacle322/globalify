@@ -409,11 +409,10 @@ def get_search_histories():
     offset = (page - 1) * limit
     search_histories = []
 
-    print(search_type)
     match search_type:
         case "investor":
             type = SearchHistoryType.INVESTOR
-        case "investmentfirm":
+        case "investment_firm":
             type = SearchHistoryType.INVESTMENT_FIRM
         case "company":
             type = SearchHistoryType.COMPANY
@@ -428,17 +427,6 @@ def get_search_histories():
         SearchHistorySchema.model_validate(history, from_attributes=True).model_dump()
         for history in db_search_histories
     ]
-
-    # day_dict = {}
-    # for history in search_histories:
-    #     day = history["date"]
-    #     if day not in day_dict:
-    #         day_dict[day] = []
-    #     day_dict[day].append(history)
-
-    # day_list = []
-    # for day, histories in day_dict.items():
-    #     day_list.append({"day": day, "histories": histories})
 
     day_list = []
     for history in search_histories:

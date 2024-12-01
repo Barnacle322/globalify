@@ -1025,6 +1025,14 @@ createApp({
                 this.notableInvestmentList = [];
             }
         },
+        toggleFundingRound(id) {
+            this.selectedFundingRound = this.selectedFundingRound === id ? null : id;
+            localStorage.setItem("selectedFundingRound", this.selectedFundingRound);
+        },
+        toggleInvestment(id) {
+            this.selectedInvestment = this.selectedInvestment === id ? null : id;
+            localStorage.setItem("selectedInvestment", this.selectedInvestment);
+        },
     },
     mounted() {
         this.debouncedFetchNotableInvestmentList = this.debounce(this.fetchNotableInvestmentList, 500);
@@ -1062,6 +1070,8 @@ createApp({
             createInvestmentOpened: false,
             deleteInvestmentOpened: false,
             updateInvestmentOpened: false,
+            selectedInvestment: null,
+            selectedFundingRound: null,
             csrfToken: "",
             selectedRounds: [],
             selectedIndustries: [],

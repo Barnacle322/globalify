@@ -9,6 +9,7 @@ from ..models import (
     Company,
     CompanyInvitation,
     Country,
+    FundingRound,
     Industry,
     Investment,
     InvestmentFirm,
@@ -320,6 +321,11 @@ def company_info_view(company_id):
 
     investments = Investment.get_by_company_id(company_id=company_id)
 
+    funding_rounds = FundingRound.get_by_company_id(company_id=company_id)
+
+    print("\n\n\n\n\n\n\n\n\n\n\n\n")
+    print("funding_rounds", funding_rounds)
+
     company_members = UserCompany.get_members(company_id=company_id)
     members = []
     if company_members:
@@ -350,6 +356,7 @@ def company_info_view(company_id):
         countries=Country.get_all(),
         company=company,
         investments=investments,
+        funding_rounds=funding_rounds,
         members=members,
         users_in_company=users_in_company,
         company_invitations=company_invitations,

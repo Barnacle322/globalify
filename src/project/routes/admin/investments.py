@@ -138,10 +138,10 @@ def create_investment():
     form_data = request.get_json()
 
     investment = Investment(
-        investor_id=form_data.get("investor_id"),
-        investment_firm_id=form_data.get("investment_firm_id"),
-        amount=form_data.get("amount"),
-        funding_round_id=form_data.get("funding_round_id"),
+        investor_id=form_data.get("investor_id") or None,
+        investment_firm_id=form_data.get("investment_firm_id") or None,
+        amount=form_data.get("amount") or None,
+        funding_round_id=form_data.get("funding_round_id") or None,
         created_by_admin=True,
         is_verified=True,
     )
@@ -191,10 +191,10 @@ def update_funding_round(id):
         status = Status(StatusType.ERROR, "Investment not found!").get_status()
         return redirect(url_for("admin.investment.index", _external=True, **status))
 
-    investmet.investor_id = form_data.get("investor_id")
-    investmet.investment_firm_id = form_data.get("investment_firm_id")
-    investmet.amount = form_data.get("amount")
-    investmet.funding_round_id = form_data.get("funding_round_id")
+    investmet.investor_id = form_data.get("investor_id" or None)
+    investmet.investment_firm_id = form_data.get("investment_firm_id") or None
+    investmet.amount = form_data.get("amount") or None
+    investmet.funding_round_id = form_data.get("funding_round_id") or None
     investmet.created_by_admin = form_data.get("created_by_admin")
     investmet.is_verified = form_data.get("is_verified")
 

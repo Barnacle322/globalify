@@ -162,7 +162,7 @@
                                 required
                                 id="funding_round"
                             >
-                                <option value="" disabled selected>Select an investment firm</option>
+                                <option value="" disabled selected>Select a Funding Round</option>
                                 {% if funding_rounds %} {% for funding_round in funding_rounds %}
                                 <option value="{{ funding_round.id }}">{{ funding_round.company.name }}</option>
                                 {% endfor %} {% endif %}

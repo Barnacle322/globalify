@@ -33,6 +33,7 @@ createApp({
             const investor_id = document.getElementById("investor").value;
             const investment_firm_id = document.getElementById("investment_firm").value;
             const funding_round_id = document.getElementById("funding_round").value;
+            const amount = document.getElementById("amount").value;
             const createdByAdminElement = document.getElementById("created_by_admin");
             const created_by_admin = createdByAdminElement ? createdByAdminElement.checked : false;
             const isVerifiedElement = document.getElementById("is_verified");
@@ -42,6 +43,7 @@ createApp({
                 investor_id: investor_id,
                 investment_firm_id: investment_firm_id,
                 funding_round_id: funding_round_id,
+                amount: amount,
                 created_by_admin: created_by_admin,
                 is_verified: is_verified,
             });

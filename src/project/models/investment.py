@@ -21,10 +21,10 @@ if TYPE_CHECKING:
 # TODO
 class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    funding_round_id: Mapped[int] = mapped_column(Integer, ForeignKey("funding_round.id"), nullable=True)
-    investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=True)
-    investment_firm_id: Mapped[int] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=True)
-    amount: Mapped[int] = mapped_column(Integer, nullable=True)
+    funding_round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("funding_round.id"), nullable=True)
+    investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=True)
+    investment_firm_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=True)
+    amount: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_by_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
 
@@ -71,7 +71,9 @@ class FundingRound(MappedAsDataclass, db.Model, unsafe_hash=True):
     round_id: Mapped[int] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
 
     company: Mapped[Company] = relationship("Company", back_populates="funding_rounds", init=False)
-    investments: Mapped[Investment] = relationship("Investment", back_populates="funding_round", init=False)
+    investments: Mapped[list[Investment]] = relationship(
+        "Investment", back_populates="funding_round", init=False, uselist=True
+    )
     round: Mapped[Round] = relationship("Round", back_populates="funding_rounds", init=False)
 
     @staticmethod
@@ -81,3 +83,7 @@ class FundingRound(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_all() -> Sequence[FundingRound] | None:
         return db.session.scalars(db.select(FundingRound)).all()
+
+    @staticmethod
+    def get_by_company_id(company_id: int) -> Sequence[FundingRound] | None:
+        return db.session.scalars(db.select(FundingRound).where(FundingRound.company_id == company_id)).all()

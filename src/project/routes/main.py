@@ -1,7 +1,6 @@
 import json
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
-from re import L
 
 from flask import (
     Blueprint,
@@ -58,17 +57,26 @@ def faq():
     return render_template("faq.html")
 
 
-@main.get("/about/eric")
+@main.get("/eric")
+@main.get("/ericfung")
+@main.get("/ericclfung")
+@main.get("/ceo")
 def eric():
     return render_template("eric.html")
 
 
-@main.get("/about/jennifer")
+@main.get("/jennifer")
+@main.get("/jenn")
+@main.get("/jenniferchenglo")
+@main.get("/jennifer-cheng-lo")
+@main.get("/princess")
+@main.get("/cgo")
 def jennifer():
     return render_template("jennifer.html")
 
 
-@main.get("/about/arstan")
+@main.get("/arstan")
+@main.get("/cto")
 def arstan():
     return render_template("arstan.html")
 

@@ -1,5 +1,3 @@
-import json
-
 from flask import (
     Blueprint,
     jsonify,
@@ -14,7 +12,6 @@ from sqlalchemy.exc import IntegrityError
 from ..extensions import db
 from ..models import (
     Company,
-    CompanyBookmark,
     Country,
     Industry,
     InvestmentFirm,
@@ -153,7 +150,7 @@ def investor_search():
         round_list=Round.get_all(),
         countries=Country.get_all(),
         user=current_user if current_user.is_authenticated else None,
-        type=SearchHistoryType.INVESTOR.value,
+        type=SearchHistoryType.INVESTOR.value.lower(),
     )
 
 
@@ -229,7 +226,7 @@ def search_investment_firms():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        type=SearchHistoryType.INVESTMENT_FIRM.value,
+        type=SearchHistoryType.INVESTMENT_FIRM.value.lower(),
         user=current_user if current_user.is_authenticated else None,
     )
 
@@ -278,7 +275,7 @@ def search_companies():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        type=SearchHistoryType.COMPANY.value,
+        type=SearchHistoryType.COMPANY.value.lower(),
         user=current_user if current_user.is_authenticated else None,
     )
 
@@ -406,50 +403,46 @@ def get_suggestion_companies():
 def get_search_histories():
     search_type = request.args.get("type")
     page = request.args.get("page", default=1, type=int)
-    limit = 20
+    limit = request.args.get("limit", default=5, type=int)
+    if limit > 100:
+        limit = 100
     offset = (page - 1) * limit
     search_histories = []
 
-    if page > 1:
-        db_search_histories = SearchHistory.get_search_histories_json(current_user, offset, limit)
-        for db_search_history in db_search_histories:
+    match search_type:
+        case "investor":
+            type = SearchHistoryType.INVESTOR
+        case "investment_firm":
+            type = SearchHistoryType.INVESTMENT_FIRM
+        case "company":
+            type = SearchHistoryType.COMPANY
+        case _:
+            type = False
 
-            if not isinstance(db_search_history, SearchHistory):
-                return jsonify({"status": "error", "message": "Search history not found."}), 404
-            search_history = SearchHistorySchema(
-                id=db_search_history.id,
-                query=db_search_history.query,
-                type=db_search_history.type,
-                created_at=db_search_history.created_at,
-            )
-            search_histories.append(json.loads(search_history.model_dump_json()))
-        return jsonify(search_histories)
+    db_search_histories = SearchHistory.paginate_history(
+        user=current_user, search_type=type, offset=offset, limit=limit
+    )
 
+    search_histories = [
+        SearchHistorySchema.model_validate(history, from_attributes=True).model_dump()
+        for history in db_search_histories
+    ]
 
-    db_search_histories = SearchHistory.get_search_history(current_user, search_type)
-    for db_search_history in db_search_histories:
+    day_list = []
+    for history in search_histories:
+        day = history["date"]
+        if not any(day == day_item["day"] for day_item in day_list):
+            day_list.append({"day": day, "histories": []})
+        for day_item in day_list:
+            if day_item["day"] == day:
+                day_item["histories"].append(history)
 
-        if not isinstance(db_search_history, SearchHistory):
-            return jsonify({"status": "error", "message": "Search history not found."}), 404
-        search_history = SearchHistorySchema(
-            id=db_search_history.id,
-            query=db_search_history.query,
-            type=db_search_history.type,
-            created_at=db_search_history.created_at,
-        )
-
-        search_histories.append(json.loads(search_history.model_dump_json()))
-    return jsonify(search_histories)
-
+    return jsonify(day_list)
 
 
-
-@search.get("/full-search-history")
+@search.get("/history")
 @login_required
 @check_user_info_complete
 @check_verification
 def get_full_search_history():
-    user = current_user
-    search_histories = SearchHistory.get_search_histories_json(user)
-    return render_template("components/full_search_history.html", search_histories=search_histories)
-
+    return render_template("history.html")

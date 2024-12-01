@@ -1,5 +1,5 @@
-import datetime
-from typing import TYPE_CHECKING, Sequence
+from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     DateTime,
@@ -25,28 +25,26 @@ class SearchHistory(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))
     query: Mapped[str] = mapped_column(String)
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now(), init=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), init=False)
     type: Mapped[SearchHistoryType] = mapped_column(SQLEnum(SearchHistoryType), nullable=True)
 
-    __table_args__ = (UniqueConstraint("user_id", "query", name="user_query"),)
-
-
     @staticmethod
-    def get_search_history(user, search_type):
-        search_history = db.session.scalars(
-            db.select(SearchHistory)
-            .where(SearchHistory.user_id == user.id, SearchHistory.type == search_type)
-            .order_by(SearchHistory.created_at.desc())
-            .limit(5)
-        ).all()
-        return search_history
+    def paginate_history(user, search_type: bool | SearchHistoryType = False, offset: int = 0, limit: int = 20):
+        if search_type:
+            search_histories = db.session.scalars(
+                db.select(SearchHistory)
+                .where(SearchHistory.user_id == user.id, SearchHistory.type == search_type)
+                .order_by(SearchHistory.created_at.desc())
+                .offset(offset)
+                .limit(limit)
+            ).all()
+        else:
+            search_histories = db.session.scalars(
+                db.select(SearchHistory)
+                .where(SearchHistory.user_id == user.id)
+                .order_by(SearchHistory.created_at.desc())
+                .offset(offset)
+                .limit(limit)
+            ).all()
 
-
-    @staticmethod
-    def get_search_histories_json(user, offset: int = 1, limit: int = 20):
-        search_histories = db.session.scalars(
-            db.select(SearchHistory)
-            .where(SearchHistory.user_id == user.id)
-            .order_by(SearchHistory.created_at.desc()).offset(offset).limit(limit)
-        ).all()
         return search_histories

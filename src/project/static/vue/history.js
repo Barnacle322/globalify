@@ -10,9 +10,9 @@ createApp({
         },
     },
     mounted() {
-        this.asideMinified = localStorage.getItem("asideMinified") === "true";
+        this.asideMinified = localStorage.getItem("asideMinified") == "true";
+        this.searchType = new URLSearchParams(window.location.search).get("filter");
 
-        this.loadMoreSearchHistories();
         this.setupInfiniteScroll();
     },
     methods: {
@@ -31,7 +31,12 @@ createApp({
             if (this.loading || this.noMoreItems) return;
             this.loading = true;
             try {
-                const response = await fetch(`/search-history?page=${this.page}&limit=100`);
+                console.log(
+                    `/search-history?${this.searchType ? "type=" + this.searchType : ""}page=${this.page}&limit=100`,
+                );
+                const response = await fetch(
+                    `/search-history?${this.searchType ? "type=" + this.searchType + "&" : ""}page=${this.page}&limit=100`,
+                );
                 if (!response.ok) {
                     throw new Error("Failed to fetch data");
                 }
@@ -82,6 +87,8 @@ createApp({
             asideExpanded: false,
             asideMinified: false,
             openAdvanced: false,
+
+            searchType: false,
 
             searchHistories: new Map(),
             page: 1,

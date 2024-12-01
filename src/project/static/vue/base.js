@@ -614,6 +614,7 @@ const FullInvestor = defineComponent({
     template: "#full-investor-template",
     props: { slug: String, rendercontacts: Boolean },
     emits: ["close-investor", "bookmarked"],
+    delimiters: ["[[", "]]"],
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
         document.addEventListener("click", this.handleClickOutside);
@@ -938,6 +939,7 @@ const FullCompany = defineComponent({
     template: "#full-company-template",
     props: { slug: String },
     emits: ["close-company", "bookmarked"],
+    delimiters: ["[[", "]]"],
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
         document.addEventListener("click", this.handleClickOutside);

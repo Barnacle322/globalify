@@ -3,7 +3,6 @@ createApp({
         AsideComponent,
         AsideMobileComponent,
         NavbarComponent,
-        Bookmark,
         FullInvestor,
         FullInvestmentFirm,
         FullCompany,
@@ -39,9 +38,6 @@ createApp({
         this.checkAndSelectUrlParam("investor", this.selectInvestorSlug);
         this.checkAndSelectUrlParam("investment-firm", this.selectInvestmentFirmSlug);
         this.checkAndSelectUrlParam("company", this.selectCompanySlug);
-        this.fetchInvestorBookmarks();
-        this.fetchInvestmentFirmBookmarks();
-        this.fetchCompanyBookmarks();
     },
     mounted() {
         const lowerSlider = document.getElementById("min_investment");
@@ -78,6 +74,7 @@ createApp({
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
     },
+
     methods: {
         async handleInvestorBookmark(data) {
             try {
@@ -512,7 +509,6 @@ createApp({
             }, 200);
         },
     },
-
     data() {
         return {
             asideExpanded: false,

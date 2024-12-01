@@ -68,6 +68,6 @@ class RequestStatus(Enum):
 
 
 class SearchHistoryType(Enum):
-    INVESTOR = "INVESTOR"
-    INVESTMENT_FIRM = "INVESTMENT_FIRM"
-    COMPANY = "COMPANY"
+    INVESTOR = "investor"
+    INVESTMENT_FIRM = "investment_firm"
+    COMPANY = "company"

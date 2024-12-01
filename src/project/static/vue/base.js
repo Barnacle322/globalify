@@ -63,14 +63,12 @@ const NotificationComponent = defineComponent({
             if (newVal === "inbox") {
                 this.$refs.inbox.setAttribute("data-selected", "true");
                 this.$refs.archive.setAttribute("data-selected", "false");
-                this.page = 2;
-                this.setupInfinteScroll();
             } else {
                 this.$refs.inbox.setAttribute("data-selected", "false");
                 this.$refs.archive.setAttribute("data-selected", "true");
-                this.page = 2;
-                this.setupInfinteScroll();
             }
+            this.page = 2;
+            this.setupInfinteScroll();
         },
     },
     methods: {
@@ -253,11 +251,11 @@ const NotificationComponent = defineComponent({
 });
 
 const AsideComponent = defineComponent({
-    props: ["place", "minified"],
+    props: ["minified"],
     template: "#aside-template",
     mounted() {
         this.currentPath = window.location.pathname.split("/")[1];
-        if (["suggestions", "investor", "investment-firm"].includes(this.currentPath)) {
+        if (["suggestions", "investor", "investment-firm", "history"].includes(this.currentPath)) {
             this.currentPath = "search";
         }
     },
@@ -270,6 +268,7 @@ const AsideComponent = defineComponent({
 
 const AsideMobileComponent = defineComponent({
     template: "#aside-mobile-template",
+    props: ["minified"],
     methods: {
         closeAside() {
             this.$emit("close-aside");
@@ -277,6 +276,9 @@ const AsideMobileComponent = defineComponent({
     },
     mounted() {
         this.currentPath = window.location.pathname.split("/")[1];
+        if (["suggestions", "investor", "investment-firm", "history"].includes(this.currentPath)) {
+            this.currentPath = "search";
+        }
     },
     data() {
         return {
@@ -331,7 +333,6 @@ const Bookmark = defineComponent({
                 const response = await fetch("/bookmarks/investors");
                 if (response.ok) {
                     data = await response.json();
-                    console.log(data);
                     this.bookmarks = data.bookmarks;
                 }
             } else if (this.selectedTab === "investment_firm") {
@@ -587,7 +588,6 @@ const NavbarComponent = defineComponent({
     async mounted() {
         window.addEventListener("click", this.closeBookmark);
         window.addEventListener("click", this.closeNotifications);
-        await this.fetchNotificationInbox();
         if (!document.hidden) {
             this.startPolling();
         }
@@ -622,6 +622,8 @@ const FullInvestor = defineComponent({
         window.removeEventListener("keydown", this.handleKeyDown);
         this.deleteInvestorParam();
         document.removeEventListener("click", this.handleClickOutside);
+        const script_element = document.getElementById("twitter-script");
+        if (script_element) script_element.remove();
     },
     created() {
         this.fetchInvestor();
@@ -648,14 +650,58 @@ const FullInvestor = defineComponent({
                     this.investor = data.investor;
                     this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
+                    await this.loadTwitterTimeline();
                 } else {
                     this.closeInvestor();
                     return;
                 }
             } catch (error) {
                 console.error("Error fetching investor:", error);
+                this.closeInvestor();
             } finally {
                 this.isLoading = false;
+            }
+        },
+        async loadTwitterTimeline() {
+            if (!this.investor?.twitter) return;
+            this.loadingTwitter = true; // Set loading state to true
+            this.ensureTwitterScriptLoaded(() => {
+                const timeline = document.querySelector(".twitter-timeline");
+                if (timeline) {
+                    timeline.innerHTML = "";
+                    timeline.setAttribute("href", this.investor.twitter);
+                    window.twttr?.widgets.load();
+
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            const twitterWidget = document.querySelector("[id^='twitter-widget-']");
+                            if (twitterWidget && twitterWidget.offsetHeight > 0) {
+                                this.loadingTwitter = false;
+                                observer.disconnect();
+                            }
+                        });
+                    });
+
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+        },
+        ensureTwitterScriptLoaded(callback) {
+            const script_element = document.getElementById("twitter-script");
+            if (script_element) script_element.remove();
+
+            if (!this.twitterScriptLoaded) {
+                const script = document.createElement("script");
+                script.src = "https://platform.twitter.com/widgets.js";
+                script.id = "twitter-script";
+                script.async = true;
+                script.onload = () => {
+                    this.twitterScriptLoaded = true;
+                    callback();
+                };
+                document.body.appendChild(script);
+            } else {
+                callback();
             }
         },
         async toggleBookmark(investorId) {
@@ -699,9 +745,10 @@ const FullInvestor = defineComponent({
             return url.split("/").pop();
         },
         handleClickOutside(event) {
-        const dropdownContainer = this.$refs.dropdownContainer;
-        if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-        this.dropdownOpened = false;}
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
         },
     },
     data() {
@@ -713,6 +760,8 @@ const FullInvestor = defineComponent({
             investor: null,
             unpaid: false,
             dropdownOpened: false,
+            twitterScriptLoaded: false,
+            loadingTwitter: false,
         };
     },
 });
@@ -770,11 +819,9 @@ const FullInvestmentFirm = defineComponent({
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { firmId: firmId, status: true });
                         this.isBookmarked = !this.isBookmarked;
-
                     } else {
                         this.$emit("bookmarked", { firmId: firmId, status: false });
                         this.isBookmarked = !this.isBookmarked;
-
                     }
                 }
             } catch (error) {
@@ -809,9 +856,10 @@ const FullInvestmentFirm = defineComponent({
             this.$emit("close-investment-firm");
         },
         handleClickOutside(event) {
-        const dropdownContainer = this.$refs.dropdownContainer;
-        if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-        this.dropdownOpened = false;}
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
         },
     },
     data() {
@@ -919,7 +967,8 @@ const FullCompany = defineComponent({
         handleClickOutside(event) {
             const dropdownContainer = this.$refs.dropdownContainer;
             if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-            this.dropdownOpened = false;}
+                this.dropdownOpened = false;
+            }
         },
     },
     data() {
@@ -940,9 +989,12 @@ const SearchHistory = defineComponent({
     props: ["type"],
     async mounted() {
         try {
-            const response = await fetch(`/search-history?type=${this.type}`);
+            const response = await fetch(`/search-history?type=${this.type}&page=1&limit=5`);
             if (response.ok) {
-                this.searchHistoryData = await response.json();
+                const data = await response.json();
+                for (let item of data) {
+                    this.searchHistoryData.push(...item.histories);
+                }
             } else {
                 console.error("An error occurred while fetching the search history.");
             }

@@ -10,13 +10,10 @@ profile = Blueprint("profile", __name__)
 
 
 @profile.route("/<username>", methods=["GET"])
-@login_required
-@check_verification
 def user_profile(username):
-    if not isinstance(current_user, User):
-        return redirect(url_for("search.investor_search"))
 
     user_info = UserInfo.get_by_username(username)
+
     if not user_info:
         return redirect(url_for("search.investor_search"))
 
@@ -36,7 +33,7 @@ def user_profile(username):
         "user_profile.html",
         user_info=user_info,
         user=user_info.user,
-        current_user=current_user,
+        current_user=current_user if current_user.is_authenticated else None,
         companies=companies,
         authenticated_user=current_user,
         investor=user_info.user.investor,

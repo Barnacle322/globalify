@@ -21,6 +21,7 @@ module.exports = {
                 "zoom-in": "zoom-in 0.1s ease",
                 "zoom-out": "zoom-out 0.1s ease",
                 "disappear-instantly": "disappear-instantly 0.1s ease-in-out",
+                breathe: "breathe 1.5s ease infinite",
             },
             keyframes: {
                 border: {
@@ -63,9 +64,12 @@ module.exports = {
                     "0%": { opacity: "1" },
                     "100%": { opacity: "0" },
                 },
+                breathe: {
+                    "0%, 100%": { transform: "scale(1)", opacity: "0.4" },
+                    "50%": { transform: "scale(1.10)", opacity: "1" },
+                },
             },
         },
-
     },
     plugins: [
         require("@tailwindcss/forms"),

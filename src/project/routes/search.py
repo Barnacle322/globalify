@@ -226,7 +226,7 @@ def search_investment_firms():
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
         countries=Country.get_all(),
-        type=SearchHistoryType.INVESTMENT_FIRM.value.lower(),
+        type=SearchHistoryType.INVESTMENT_FIRM.value.lower().replace("_", ""),
         user=current_user if current_user.is_authenticated else None,
     )
 
@@ -412,7 +412,7 @@ def get_search_histories():
     match search_type:
         case "investor":
             type = SearchHistoryType.INVESTOR
-        case "investment_firm":
+        case "investmentfirm":
             type = SearchHistoryType.INVESTMENT_FIRM
         case "company":
             type = SearchHistoryType.COMPANY

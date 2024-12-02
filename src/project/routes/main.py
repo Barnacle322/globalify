@@ -308,6 +308,18 @@ def get_investment_firm(slug):
     return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
+@main.route("/company/<slug>")
+@login_required
+@check_user_info_complete
+@check_verification
+def company_slug(slug):
+    company = Company.get_by_slug(slug)
+    if not company:
+        return redirect(url_for("search.investor_search"))
+
+    return render_template("company.html", company=company, user=current_user)
+
+
 @main.get("/company/<slug>")
 def get_company(slug):
     unpaid = False

@@ -1,10 +1,56 @@
 <!-- prettier-ignore -->
 {% extends "layouts/layout_app.html" %}
 {% block title %} {{ user_info.full_name }} {% endblock %}
-{% block head %} {{ super() }} {% endblock %}
-{% block content %}
+{% block head %}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-{% set is_profile_empty = not user_info.twitter_public and not user_info.linkedin_public and not user_info.instagram_public and not user_info.email_public and not companies %}
+<!-- Primary Meta Tags -->
+<meta name="title" content="Globalify — Connect to the whole world of investment" />
+<meta
+    name="description"
+    content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+/>
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://globalify.xyz/" />
+<meta property="og:title" content="Globalify — Connect to the whole world of investment" />
+<meta
+    property="og:description"
+    content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+/>
+<meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content="https://globalify.xyz/" />
+<meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+<meta
+    property="twitter:description"
+    content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+/>
+<meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+<link rel="stylesheet" href="/static/css/main.css" />
+<link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+<!-- Vue -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="/static/vue/base.js"></script>
+<script defer src="/static/vue/main.js"></script>
+
+<!-- Font -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+    rel="stylesheet"
+/>
+
+{% block additional_scripts %}{% endblock %} {% endblock %} {% block content %} {% set is_profile_empty = not
+user_info.twitter_public and not user_info.linkedin_public and not user_info.instagram_public and not
+user_info.email_public and not companies %}
 
 <main class="flex w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
     <!-- prettier-ignore -->

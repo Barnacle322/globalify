@@ -123,7 +123,9 @@ def investor_slug(slug):
     if not investor or not investor.is_public:
         return redirect(url_for("search.investor_search"))
 
-    return render_template("investor.html", investor=investor, user=current_user, status_type=status_type, msg=msg)
+    return render_template(
+        "investor.html", investor=investor, current_user=current_user, status_type=status_type, msg=msg
+    )
 
 
 @main.get("/investor/<slug>/get")
@@ -317,7 +319,7 @@ def company_slug(slug):
     if not company:
         return redirect(url_for("search.investor_search"))
 
-    return render_template("company.html", company=company, user=current_user)
+    return render_template("company.html", company=company, current_user=current_user)
 
 
 @main.get("/company/<slug>")

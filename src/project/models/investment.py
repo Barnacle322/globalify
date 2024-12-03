@@ -67,8 +67,8 @@ class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
 class FundingRound(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id"), nullable=False)
-    announced_date: Mapped[datetime.date] = mapped_column(Date, nullable=True)
-    round_id: Mapped[int] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
+    announced_date: Mapped[datetime.date | None] = mapped_column(Date, nullable=True)
+    round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
 
     company: Mapped[Company] = relationship("Company", back_populates="funding_rounds", init=False)
     investments: Mapped[list[Investment]] = relationship(

@@ -1072,8 +1072,8 @@ const UpdateFundingRoundComponent = defineComponent({
     async created() {
         this.fetchRounds();
         await this.fetchFundingRound(this.id);
-        console.log(this.fundingRound);
         this.selectedRound = this.fundingRound.round_id;
+        this.selectedCompany = this.fundingRound.company_id;
         this.selectedAnnouncedDate = this.fundingRound.announced_date;
     },
     mounted() {
@@ -1092,13 +1092,13 @@ const UpdateFundingRoundComponent = defineComponent({
             const announced_date = document.getElementById("announced_date").value;
 
             const dataString = JSON.stringify({
-                company_id: companyId,
+                company_id: this.selectedCompany,
                 round_id: this.selectedRound,
                 announced_date: announced_date,
             });
 
             try {
-                const response = await fetch(`/investment/funding-round/${id}/create`, {
+                const response = await fetch(`/investment/funding-round/${id}/update`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -1176,10 +1176,10 @@ const DeleteFundingRoundComponent = defineComponent({
         document.removeEventListener("click", this.handleOutsideClick);
     },
     methods: {
-        async deleteInvestment(investmentId) {
+        async deleteFundingRound(fundingRoundId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/investment/${investmentId}/delete`, {
+                const response = await fetch(`/investment/funding-round/${fundingRoundId}/delete`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import (
     Blueprint,
     jsonify,
@@ -34,6 +36,84 @@ def get_funding_round(round_id):
     ).model_dump()
 
     return jsonify({"funding_round": funding_round})
+
+
+@investment.post("/funding-round/create")
+@login_required
+@check_user_info_complete
+@check_verification
+def create_funding_round():
+    form_data = request.get_json()
+
+    company_id = form_data.get("company_id")
+    if not company_id:
+        return jsonify({"status": "error", "message": "Company ID is required."}), 400
+
+    round_id = form_data.get("round_id") or None
+    announced_date = form_data.get("announced_date") or None
+
+    if announced_date:
+        announced_date_format = datetime.strptime(announced_date, "%Y-%m-%d")
+    else:
+        announced_date_format = None
+
+    new_funding_round = FundingRound(
+        company_id=company_id,
+        round_id=round_id,
+        announced_date=announced_date_format,
+    )
+
+    try:
+        db.session.add(new_funding_round)
+        db.session.commit()
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+    return jsonify({"status": "success"}), 200
+
+
+@investment.post("/funding-round/<int:round_id>/update")
+@login_required
+@check_user_info_complete
+@check_verification
+def update_funding_round(round_id):
+    form_data = request.get_json()
+
+    funding_round = FundingRound.get_by_id(round_id)
+    if not funding_round:
+        return jsonify({"status": "error", "message": "Funding Round not found."}), 404
+
+    if not form_data.get("company_id"):
+        return jsonify({"status": "error", "message": "Company ID is required."}), 400
+
+    funding_round.company_id = form_data.get("company_id", funding_round.company_id)
+    funding_round.round_id = form_data.get("round_id", funding_round.round_id) or None
+    announced_date_str = form_data.get("announced_date")
+    if announced_date_str:
+        try:
+            funding_round.announced_date = datetime.strptime(announced_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"status": "error", "message": "Invalid date format. Use YYYY-MM-DD."}), 400
+    else:
+        funding_round.announced_date = None
+    db.session.commit()
+
+    return jsonify({"status": "success"}), 200
+
+
+@investment.post("/funding-round/<int:round_id>/delete")
+@login_required
+@check_user_info_complete
+@check_verification
+def delete_funding_round(round_id):
+    funding_round = FundingRound.get_by_id(round_id)
+    if not funding_round:
+        return jsonify({"status": "error", "message": "Funding Round not found."}), 404
+
+    db.session.delete(funding_round)
+    db.session.commit()
+
+    return jsonify({"status": "success"}), 200
 
 
 @investment.get("/investment/<int:investment_id>")

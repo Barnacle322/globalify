@@ -704,6 +704,513 @@ const ContactInfo = defineComponent({
     },
 });
 
+const DeleteInvestmentComponent = defineComponent({
+    template: "#delete-investment-template",
+    props: ["investment-id"],
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async deleteInvestment(investmentId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investment/${investmentId}/delete`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error("An error occurred while deleting the investment.");
+                }
+            } catch (error) {
+                console.error("Error cancelling invitation:", error.message);
+            }
+        },
+        closeDeleteInvestment() {
+            this.$emit("close-delete-investment");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeDeleteInvestment();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeDeleteInvestment();
+            }
+        },
+    },
+});
+
+const UpdateInvestmentComponent = defineComponent({
+    template: "#update-investment-template",
+    props: ["type", "id"],
+    async created() {
+        await this.fetchInvestment(this.id);
+        this.fetchInvestors();
+        this.fetchInvestmentFirms();
+        this.selectedInvestor = this.investment.investor_id;
+        this.selectedInvestmentFirm = this.investment.investment_firm_id;
+        this.fetchFundingRounds();
+        this.selectedFundingRound = this.investment.funding_round_id;
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async updateInvestment(id, isAdmin) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            const amount = document.getElementById("amount").value;
+            const payload = {
+                funding_round_id: this.selectedFundingRound,
+                amount: amount,
+                created_by_admin: isAdmin,
+                is_verified: this.investment.is_verified,
+                investor_id: this.selectedInvestor,
+                investment_firm_id: this.selectedInvestmentFirm,
+            };
+
+            try {
+                const response = await fetch(`/investment/${id}/update`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: JSON.stringify(payload),
+                });
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async fetchFundingRounds() {
+            try {
+                const response = await fetch("/settings/funding-rounds");
+                if (response.ok) {
+                    data = await response.json();
+                    this.fundingRounds = data.funding_rounds;
+                }
+            } catch (error) {
+                console.error("Error fetching funding rounds:", error);
+            }
+        },
+        async fetchInvestors() {
+            try {
+                const response = await fetch("/settings/investors");
+                if (response.ok) {
+                    data = await response.json();
+                    this.investors = data.investors;
+                }
+            } catch (error) {
+                console.error("Error fetching investors:", error);
+            }
+        },
+        async fetchInvestmentFirms() {
+            try {
+                const response = await fetch("/settings/investment-firms");
+                if (response.ok) {
+                    data = await response.json();
+                    this.investment_firms = data.investment_firms;
+                }
+            } catch (error) {
+                console.error("Error fetching investment firms:", error);
+            }
+        },
+        async fetchInvestment(investmentId) {
+            try {
+                const response = await fetch(`/investment/${investmentId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investment = data.investment;
+                }
+            } catch (error) {
+                console.error("Error fetching investment:", error);
+            }
+        },
+        closeUpdateInvestmentModal() {
+            this.$emit("close-update-investment");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeUpdateInvestmentModal();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeUpdateInvestmentModal();
+            }
+        },
+    },
+    data() {
+        return {
+            selectedNotableInvestment: "",
+            notableInvestmentList: [],
+            fundingRounds: [],
+            investment_firms: [],
+            investors: [],
+            selectedInvestor: null,
+            selectedInvestmentFirm: null,
+            selectedFundingRound: null,
+            investment: {},
+        };
+    },
+});
+
+const CreateInvestmentComponent = defineComponent({
+    template: "#create-investment-template",
+    props: ["type"],
+    async created() {
+        this.fetchInvestors();
+        this.fetchInvestmentFirms();
+        this.fetchFundingRounds();
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async createInvestment(id, type, isAdmin) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            const amount = document.getElementById("amount").value;
+            const payload = {
+                funding_round_id: this.selectedFundingRound,
+                amount: amount,
+                created_by_admin: isAdmin,
+            };
+
+            if (type === "investor") {
+                payload.investor_id = id;
+            } else if (type === "investment_firm") {
+                payload.investment_firm_id = id;
+            }
+
+            try {
+                const response = await fetch("/investment/create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: JSON.stringify(payload),
+                });
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async fetchFundingRounds() {
+            try {
+                const response = await fetch("/settings/funding-rounds");
+                if (response.ok) {
+                    data = await response.json();
+                    this.fundingRounds = data.funding_rounds;
+                }
+            } catch (error) {
+                console.error("Error fetching funding rounds:", error);
+            }
+        },
+        async fetchInvestors() {
+            try {
+                const response = await fetch("/settings/investors");
+                if (response.ok) {
+                    data = await response.json();
+                    this.investors = data.investors;
+                }
+            } catch (error) {
+                console.error("Error fetching investors:", error);
+            }
+        },
+        async fetchInvestmentFirms() {
+            try {
+                const response = await fetch("/settings/investment-firms");
+                if (response.ok) {
+                    data = await response.json();
+                    this.investment_firms = data.investment_firms;
+                }
+            } catch (error) {
+                console.error("Error fetching investment firms:", error);
+            }
+        },
+        closeCreateInvestmentModal() {
+            this.$emit("close-create-investment");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeCreateInvestmentModal();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeCreateInvestmentModal();
+            }
+        },
+    },
+
+    data() {
+        return {
+            selectedNotableInvestment: "",
+            notableInvestmentList: [],
+            fundingRounds: [],
+            investment_firms: [],
+            investors: [],
+            selectedInvestor: null,
+            selectedInvestmentFirm: null,
+            selectedFundingRound: null,
+        };
+    },
+});
+
+const CreateFundingRoundComponent = defineComponent({
+    template: "#create-funding-round-template",
+    async created() {
+        this.fetchRounds();
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async createFundingRound(companyId) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            const announced_date = document.getElementById("announced_date").value;
+
+            const dataString = JSON.stringify({
+                company_id: companyId,
+                round_id: this.selectedRound,
+                announced_date: announced_date,
+            });
+
+            try {
+                const response = await fetch("/investment/funding-round/create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: dataString,
+                });
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async fetchRounds() {
+            try {
+                const response = await fetch("/settings/rounds");
+                if (response.ok) {
+                    data = await response.json();
+                    this.rounds = data.rounds;
+                }
+            } catch (error) {
+                console.error("Error fetching rounds:", error);
+            }
+        },
+        closeCreateFundingRoundModal() {
+            this.$emit("close-create-funding-round");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeCreateFundingRoundModal();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeCreateFundingRoundModal();
+            }
+        },
+    },
+
+    data() {
+        return {
+            rounds: [],
+            selectedCompany: null,
+            selectedRound: null,
+        };
+    },
+});
+
+const UpdateFundingRoundComponent = defineComponent({
+    template: "#update-funding-round-template",
+    props: ["id"],
+    async created() {
+        this.fetchRounds();
+        await this.fetchFundingRound(this.id);
+        console.log(this.fundingRound);
+        this.selectedRound = this.fundingRound.round_id;
+        this.selectedAnnouncedDate = this.fundingRound.announced_date;
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async updateFundingRound(id) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            const announced_date = document.getElementById("announced_date").value;
+
+            const dataString = JSON.stringify({
+                company_id: companyId,
+                round_id: this.selectedRound,
+                announced_date: announced_date,
+            });
+
+            try {
+                const response = await fetch(`/investment/funding-round/${id}/create`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: dataString,
+                });
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async fetchRounds() {
+            try {
+                const response = await fetch("/settings/rounds");
+                if (response.ok) {
+                    data = await response.json();
+                    this.rounds = data.rounds;
+                }
+            } catch (error) {
+                console.error("Error fetching rounds:", error);
+            }
+        },
+        async fetchFundingRound(id) {
+            try {
+                const response = await fetch(`/investment/funding-round/${id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.fundingRound = data.funding_round;
+                }
+            } catch (error) {
+                console.error("Error fetching funding round:", error);
+            }
+        },
+        closeUpdateFundingRoundModal() {
+            this.$emit("close-update-funding-round");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeUpdateFundingRoundModal();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeUpdateFundingRoundModal();
+            }
+        },
+    },
+
+    data() {
+        return {
+            rounds: [],
+            selectedCompany: null,
+            selectedRound: null,
+            selectedAnnouncedDate: null,
+            fundingRoundId: null,
+            fundingRound: {},
+        };
+    },
+});
+
+const DeleteFundingRoundComponent = defineComponent({
+    template: "#delete-funding-round-template",
+    props: ["funding-round-id"],
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async deleteInvestment(investmentId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investment/${investmentId}/delete`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error("An error occurred while deleting the investment.");
+                }
+            } catch (error) {
+                console.error("Error cancelling invitation:", error.message);
+            }
+        },
+        closeDeleteFundingRound() {
+            this.$emit("close-delete-funding-round");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeDeleteFundingRound();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeDeleteFundingRound();
+            }
+        },
+    },
+});
+
 createApp({
     emits: ["close-confirm-restore", "close-invite-member", "close-change-role"],
     components: {
@@ -723,6 +1230,9 @@ createApp({
         CreateInvestmentComponent,
         DeleteInvestmentComponent,
         UpdateInvestmentComponent,
+        CreateFundingRoundComponent,
+        UpdateFundingRoundComponent,
+        DeleteFundingRoundComponent,
     },
 
     watch: {
@@ -1070,6 +1580,9 @@ createApp({
             createInvestmentOpened: false,
             deleteInvestmentOpened: false,
             updateInvestmentOpened: false,
+            createFundingRoundOpened: false,
+            updateFundingRoundOpened: false,
+            deleteFundingRoundOpened: false,
             selectedInvestment: null,
             selectedFundingRound: null,
             csrfToken: "",

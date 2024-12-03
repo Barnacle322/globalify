@@ -10,6 +10,19 @@ class FundingRoundSchema(BaseModel):
     announced_date: date | None
 
 
+class FetchFundingRoundSchema(BaseModel):
+    id: int
+    company_id: int | None
+    round_id: int | None
+    announced_date: date | None
+
+    def model_dump(self, **kwargs):
+        data = super().model_dump(**kwargs)
+        if self.announced_date:
+            data["announced_date"] = self.announced_date.isoformat()
+        return data
+
+
 class InvestmentSchema(BaseModel):
     id: int
     name: str | None

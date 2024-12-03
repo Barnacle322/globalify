@@ -13,6 +13,7 @@ from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
 from .routes.admin import admin
 from .routes.auth import auth
 from .routes.claim import claim
+from .routes.investment import investment
 from .routes.main import (
     bad_request,
     forbidden,
@@ -98,6 +99,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.register_blueprint(profile, url_prefix="/profile")
     app.register_blueprint(admin, url_prefix="/admin")
     app.register_blueprint(onboarding, url_prefix="/onboarding")
+    app.register_blueprint(investment, url_prefix="/investment")
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

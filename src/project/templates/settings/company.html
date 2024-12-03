@@ -70,6 +70,12 @@
     {{ delete_investment.render() }}
     {% import "components/update_investment.html" as update_investment %}
     {{ update_investment.render(company.id, "company", false) }}
+    {% import "components/create_funding_round.html" as create_funding_round %}
+    {{ create_funding_round.render(company.id) }}
+    {% import "components/delete_funding_round.html" as delete_funding_round %}
+    {{ delete_funding_round.render() }}
+    {% import "components/update_funding_round.html" as update_funding_round %}
+    {{ update_funding_round.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />
@@ -158,6 +164,35 @@
                     :id="investmentId"
                     type="company"
                 ></update-investment-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="createFundingRoundOpened"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <create-funding-round-component
+                    v-if="createFundingRoundOpened"
+                    @close-create-funding-round="createFundingRoundOpened = null"
+                ></create-funding-round-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="updateFundingRoundOpened"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <update-funding-round-component
+                    v-if="updateFundingRoundOpened"
+                    @close-update-funding-round="updateFundingRoundOpened = null"
+                    :id="fundingRoundId"
+                ></update-funding-round-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="deleteFundingRoundOpened"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <delete-funding-round-component
+                    v-if="deleteFundingRoundOpened"
+                    @close-delete-funding-round="deleteFundingRoundOpened = null"
+                    :funding-round-id="fundingRoundId"
+                ></delete-funding-round-component>
             </transition>
 
             <div class="relative w-full">
@@ -458,7 +493,7 @@
                                             </header>
                                             <button
                                                 class="m-3 flex items-center justify-center gap-2 rounded-lg border p-3 transition-shadow hover:shadow-md"
-                                                @click.prevent="createInvestmentOpened = true;"
+                                                @click.prevent="createFundingRoundOpened = true;"
                                             >
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -523,8 +558,9 @@
                                                         {{ funding_round.round.name }}
                                                     </h2>
                                                     <div class="ml-auto flex h-full gap-2">
-                                                        <a
+                                                        <button
                                                             class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                                            @click.prevent="updateFundingRoundOpened = true; fundingRoundId = '{{funding_round.id}}'"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
@@ -540,7 +576,7 @@
                                                                     d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
                                                                 />
                                                             </svg>
-                                                        </a>
+                                                        </button>
                                                         <a
                                                             class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
                                                         >
@@ -567,6 +603,7 @@
 
                                                         <button
                                                             class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                                            @click.prevent="deleteFundingRoundOpened = true; fundingRoundId = '{{funding_round.id}}'"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"

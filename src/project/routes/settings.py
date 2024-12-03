@@ -23,7 +23,8 @@ from ..models import (
     UserInfo,
 )
 from ..models.claim import ClaimRequest
-from ..schemas.investor import InvestorOriginPointSchema, InvestorSchema, MiniInvestorSchema
+from ..schemas.investment import FundingRoundSchema, InvestmentSchema
+from ..schemas.investor import InvestorOriginPointSchema, MiniInvestorSchema, RoundSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
@@ -323,9 +324,6 @@ def company_info_view(company_id):
 
     funding_rounds = FundingRound.get_by_company_id(company_id=company_id)
 
-    print("\n\n\n\n\n\n\n\n\n\n\n\n")
-    print("funding_rounds", funding_rounds)
-
     company_members = UserCompany.get_members(company_id=company_id)
     members = []
     if company_members:
@@ -503,6 +501,48 @@ def change_company_info(company_id):
             **status,
         )
     )
+
+
+@settings.get("/rounds")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_rounds():
+    rounds = Round.get_all()
+
+    if not rounds:
+        return {"rounds": []}
+
+    rounds = [RoundSchema(id=round.id, name=round.name).model_dump() for round in rounds]
+
+    return jsonify({"rounds": rounds})
+
+
+@settings.get("/funding-rounds")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_funding_rounds():
+    funding_round_models = FundingRound.get_all()
+
+    if not funding_round_models:
+        return {"funding_rounds": []}
+
+    funding_rounds = []
+
+    for funding_round in funding_round_models:
+        funding_rounds.append(
+            FundingRoundSchema(
+                id=funding_round.id,
+                company_name=funding_round.company.name,
+                announced_date=funding_round.announced_date,
+                round={
+                    "id": funding_round.round.id,
+                    "name": funding_round.round.name,
+                },
+            ).model_dump()
+        )
+    return {"funding_rounds": funding_rounds}
 
 
 @settings.get("/investors")

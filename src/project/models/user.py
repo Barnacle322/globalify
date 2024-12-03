@@ -90,7 +90,6 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     search_histories: Mapped[list[SearchHistory]] = relationship(
         "SearchHistory", back_populates="user", uselist=True, init=False
     )
-
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -478,7 +477,6 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     notable_investment: Mapped[NotableInvestment] = relationship(
         "NotableInvestment", back_populates="company", uselist=False, init=False
     )
-
     country: Mapped[Country] = relationship(init=False)
     preferred_round: Mapped[Round] = relationship(init=False)
     industry: Mapped[Industry] = relationship(init=False)
@@ -872,6 +870,7 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     company: Mapped[Company] = relationship(
         Company, back_populates="user_companies", uselist=True, init=False, lazy="joined"
     )
+    position: Mapped[str | None] = mapped_column(String, nullable=True)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
@@ -1019,3 +1018,7 @@ def _set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON;")
         cursor.close()
+
+
+class Position(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)

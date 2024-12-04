@@ -43,25 +43,32 @@
         </a>
     </section> -->
 
-    <section class="mx-auto mt-24 max-w-6xl bg-white">
-        <div class="mx-auto max-w-7xl px-4">
+    <section class="relative mx-auto mt-24 max-w-7xl px-6">
+        <img
+            class="pointer-events-none absolute left-1/2 -top-10 -z-50 h-fit w-fit origin-top -translate-x-1/2 scale-75 transform"
+            src="/static/elements/hero-bg.svg"
+            alt=""
+        />
+        <div class="mx-auto">
             <div
                 class="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 sm:gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-2"
             >
                 <div class="flex flex-col gap-8 lg:pt-4">
                     <div>
-                        <h2
-                            class="w-fit bg-gradient-to-r from-[#8076E7] to-[#E776C1] bg-clip-text text-base font-semibold text-transparent"
-                        >
-                            Move faster
-                        </h2>
-                        <p class="mt-2 text-4xl font-bold sm:text-5xl">SuperConnect</p>
+                        <span
+                            class="border-gray text-semibold w-fit rounded-full border border-gray-200 bg-white px-2 py-1 text-xs shadow-lg"
+                            style="animation-delay: 1.2s"
+                            ><span class="bg-gradient-to-r from-[#8076E7] to-[#E776C1] bg-clip-text text-transparent"
+                                >Move Faster
+                            </span>
+                        </span>
+                        <p class="mt-4 text-[42px] font-bold sm:text-7xl">SuperConnect</p>
                         <p class="mt-6 text-gray-500 sm:text-lg">
                             Get all the benefits of <b class="font-semibold">Premium</b>, plus a dedicated
                             SuperConnector who will prioritize your growth.
                         </p>
                     </div>
-                    <div class="flex items-center gap-5">
+                    <div class="flex items-center sm:justify-start justify-center gap-5">
                         <button
                             onclick="openScheduler()"
                             class="rounded-xl bg-sky-500 hover:bg-sky-400 px-4 py-3 font-medium tracking-wide text-white transition-all ease-in-out"
@@ -218,13 +225,15 @@
         <img class="h-12" src="/static/elements/logos/runway.svg" alt="" />
         <img class="h-16" src="/static/elements/logos/wow.svg" alt="" />
     </section> -->
-    <section class="max-w-7xl mx-auto w-full my-20 px-4">
+    <section class="max-w-7xl mx-auto w-full mt-20 mb-12 px-4">
         <h2 class="text-3xl font-semibold sm:text-4xl tracking-tight">
             Globalify helps bring your ideas into
             <span class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent">reality</span>
         </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full mt-10">
-            <div class="rounded-2xl flex flex-col gap-4 bg-[#01151d] p-6 aspect-[10/15] relative overflow-hidden">
+        <div class="flex gap-4 w-full mt-16 overflow-x-auto snap-x snap-mandatory *:snap-start">
+            <div
+                class="rounded-2xl flex flex-col gap-4 bg-[#01151d] p-6 sm:w-full min-w-[300px] aspect-[2/3] relative overflow-hidden"
+            >
                 <p class="text-gray-400 text-xs">Advisory & Partnership</p>
                 <span class="text-white font-medium">
                     Helped <u><a href="https://qubic.org" target="_blank">Qubic</a></u> organize hackathons in Central
@@ -239,7 +248,9 @@
                     <img class="size-8" src="/static/elements/logos/qubic.svg" alt="" />
                 </div>
             </div>
-            <div class="rounded-2xl flex flex-col gap-4 bg-[#edeff1] p-6 aspect-[10/15] relative overflow-hidden">
+            <div
+                class="rounded-2xl flex flex-col gap-4 bg-[#edeff1] p-6 sm:w-full min-w-[300px] aspect-[2/3] relative overflow-hidden"
+            >
                 <p class="text-gray-700 text-xs">Advisory & Series A</p>
                 <span class="text-black font-medium">
                     Globalify backed the vision by introducing
@@ -255,7 +266,9 @@
                     <img class="size-10" src="/static/elements/logos/climatex.png" alt="" />
                 </div>
             </div>
-            <div class="rounded-2xl flex flex-col gap-4 bg-[#28165c] p-6 aspect-[10/15] relative overflow-hidden">
+            <div
+                class="rounded-2xl flex flex-col gap-4 bg-[#28165c] p-6 sm:w-full min-w-[300px] aspect-[2/3] relative overflow-hidden"
+            >
                 <p class="text-gray-400 text-xs">Seed Round</p>
                 <span class="text-white font-medium">
                     Supported <u><a href="https://www.olivex.ai/" target="_blank">OliveX</a></u> with both existing and
@@ -270,7 +283,9 @@
                     <img class="size-12 object-contain" src="/static/elements/logos/olivex.png" alt="" />
                 </div>
             </div>
-            <div class="rounded-2xl flex flex-col gap-4 bg-[#f2f2f2] p-6 aspect-[10/15] relative overflow-hidden">
+            <div
+                class="rounded-2xl flex flex-col gap-4 bg-[#f2f2f2] p-6 sm:w-full min-w-[300px] aspect-[2/3] relative overflow-hidden sm:mr-0 mr-10"
+            >
                 <p class="text-gray-700 text-xs">Series C</p>
                 <span class="text-black font-medium">
                     Together with NewChicCapital helped raise
@@ -278,7 +293,7 @@
                     <b class="font-semibold">$60,000,000</b></span
                 >
                 <img
-                    class="absolute bottom-0 translate-x-20 scale-150 aspect-auto rounded-3xl"
+                    class="absolute bottom-10 translate-x-20 scale-150 aspect-auto rounded-3xl"
                     src="/static/elements/cambrianbiopharma-superconnect.jpg"
                     alt=""
                 />

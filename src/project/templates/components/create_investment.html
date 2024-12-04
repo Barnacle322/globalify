@@ -3,6 +3,15 @@
     <article
         class="fixed right-1/2 top-1/2 z-50 flex w-10/12 -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
     >
+        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+            <div v-if="searchInvestmentOpened" class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"></div>
+        </transition>
+        <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
+            <search-investment-component
+                @close-search-investment="searchInvestmentOpened = null"
+                v-if="searchInvestmentOpened"
+            ></search-investment-component>
+        </transition>
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="grid grid-cols-6 gap-x-2 gap-y-1">
             <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
@@ -10,48 +19,31 @@
             {% if type != 'investor' and type != 'investment_firm' %}
             <div class="col-span-full">
                 <label for="investor" class="text-sm font-medium text-gray-700">Investor</label>
-                <div>
-                    <select
-                        id="investor"
-                        name="investor"
-                        class="h-12 w-full rounded-xl px-2"
-                        v-model="selectedInvestor"
-                        required
-                    >
-                        <option value="" disabled selected>Select an investor</option>
-                        <option
-                            v-for="investor in investors"
-                            :key="investor.id"
-                            :value="investor.id"
-                            v-text="investor.name"
-                        ></option>
-                    </select>
-                </div>
+                <input
+                    @click="searchInvestmentOpened = true;"
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                />
             </div>
 
             {% endif %} {% if type != 'investment_firm' and type != 'investor' %}
             <div class="col-span-full">
                 <label for="investment_firm" class="text-sm font-medium text-gray-700">Investment Firm</label>
-                <div>
-                    <select
-                        id="investment_firm"
-                        name="investment_firm"
-                        class="h-12 w-full rounded-xl px-2"
-                        v-model="selectedInvestmentFirm"
-                        required
-                    >
-                        <option value="" disabled selected>Select an investment firm</option>
-                        <option
-                            v-for="investment_firm in investment_firms"
-                            :key="investment_firm.id"
-                            :value="investment_firm.id"
-                            v-text="investment_firm.name"
-                        ></option>
-                    </select>
-                </div>
+                <input class="w-full rounded-lg bg-transparent bg-white" type="text" />
             </div>
 
             {% endif %}
+
+            <div class="col-span-full">
+                <label for="custom_name">Custom Name</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    id="custom_name"
+                    placeholder="Jhone Doe"
+                    type="text"
+                />
+            </div>
+
             <div class="col-span-full">
                 <label for="funding_round" class="text-sm font-medium text-gray-700">Funding Round</label>
                 <div>

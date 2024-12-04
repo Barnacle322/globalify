@@ -70,6 +70,8 @@
     {{ delete_investment.render() }}
     {% import "components/update_investment.html" as update_investment %}
     {{ update_investment.render(company.id, "company", false) }}
+    {% import "components/search_investment.html" as search_investment %}
+    {{ search_investment.render() }}
     {% import "components/create_funding_round.html" as create_funding_round %}
     {{ create_funding_round.render(company.id) }}
     {% import "components/delete_funding_round.html" as delete_funding_round %}
@@ -710,7 +712,7 @@
                                                             />
                                                         </svg>
                                                     </button>
-                                                    <!-- {% for investment in funding_round.investments %}
+                                                    {% for investment in funding_round.investments %}
                                                     <div
                                                         @click.stop="toggleInvesmtent('{{ investment.id }}')"
                                                         class="flex cursor-pointer flex-col gap-3 divide-y overflow-hidden rounded-2xl border border-gray-200 bg-white @container"
@@ -803,7 +805,7 @@
                                                             </div>
                                                         </header>
                                                     </div>
-                                                    {% endfor %} -->
+                                                    {% endfor %}
                                                 </div>
                                             </div>
                                             {% endfor %}

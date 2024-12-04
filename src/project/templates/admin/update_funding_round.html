@@ -131,6 +131,17 @@
                         </div>
                     </div>
 
+                    <div class="col-span-full">
+                        <label for="custom_company_name">Custom Company Name</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            id="custom_company_name"
+                            placeholder="Globalify"
+                            type="text"
+                            value="{{funding_round.custom_company_name if funding_round.custom_company_name else ''}}"
+                        />
+                    </div>
+
                     <div class="sm:col-span-3">
                         <label for="round" class="text-sm font-medium text-gray-700">Round</label>
                         <div>

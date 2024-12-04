@@ -59,6 +59,7 @@ def create_funding_round():
 
     new_funding_round = FundingRound(
         company_id=company_id,
+        custom_company_name=None,
         round_id=round_id,
         announced_date=announced_date_format,
     )
@@ -146,22 +147,18 @@ def get_investment(investment_id):
 def create_investment():
     form_data = request.get_json()
 
-    investor_id = form_data.get("investor_id")
-    investment_firm_id = form_data.get("investment_firm_id")
-    amount = form_data.get("amount")
-    funding_round_id = form_data.get("funding_round_id")
     created_by_admin = form_data.get("created_by_admin")
-    is_verified = form_data.get("is_verified")
 
-    created_by_admin = True if created_by_admin == "True" else False
+    created_by_admin_format = True if created_by_admin == "True" else False
 
     new_investment = Investment(
-        investor_id=investor_id,
-        investment_firm_id=investment_firm_id,
-        funding_round_id=funding_round_id,
-        amount=amount,
-        created_by_admin=created_by_admin,
-        is_verified=is_verified,
+        investor_id=form_data.get("investor_id") or None,
+        investment_firm_id=form_data.get("investment_firm_id") or None,
+        custom_name=form_data.get("custom_name") or None,
+        funding_round_id=form_data.get("funding_round_id") or None,
+        amount=form_data.get("amount") or None,
+        created_by_admin=created_by_admin_format,
+        is_verified=form_data.get("is_verified"),
     )
 
     try:

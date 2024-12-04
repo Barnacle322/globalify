@@ -73,4 +73,3 @@ UNKNOWN_ERROR = "An unknown error occurred."
 
 EMPTY_COMPANY = "Company cannot be empty."
 EMPTY_ANNOUNCED_DATE = "Announced date cannot be empty."
-EMPTY_ROUND_ID = "Round ID cannot be empty."

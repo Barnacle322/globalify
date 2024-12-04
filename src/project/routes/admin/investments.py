@@ -140,6 +140,7 @@ def create_investment():
     investment = Investment(
         investor_id=form_data.get("investor_id") or None,
         investment_firm_id=form_data.get("investment_firm_id") or None,
+        custom_name=form_data.get("custom_name") or None,
         amount=form_data.get("amount") or None,
         funding_round_id=form_data.get("funding_round_id") or None,
         created_by_admin=True,
@@ -193,6 +194,7 @@ def update_funding_round(id):
 
     investmet.investor_id = form_data.get("investor_id" or None)
     investmet.investment_firm_id = form_data.get("investment_firm_id") or None
+    investmet.custom_name = form_data.get("custom_name") or None
     investmet.amount = form_data.get("amount") or None
     investmet.funding_round_id = form_data.get("funding_round_id") or None
     investmet.created_by_admin = form_data.get("created_by_admin")

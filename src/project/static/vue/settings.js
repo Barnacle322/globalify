@@ -704,6 +704,35 @@ const ContactInfo = defineComponent({
     },
 });
 
+const SearchInvestmentComponent = defineComponent({
+    template: "#search-investment-template",
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        closeSearchInvestment() {
+            this.$emit("close-search-investment");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeSearchInvestment();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeSearchInvestment();
+            }
+        },
+    },
+});
+
 const DeleteInvestmentComponent = defineComponent({
     template: "#delete-investment-template",
     props: ["investment-id"],
@@ -879,6 +908,9 @@ const UpdateInvestmentComponent = defineComponent({
 
 const CreateInvestmentComponent = defineComponent({
     template: "#create-investment-template",
+    components: {
+        SearchInvestmentComponent,
+    },
     props: ["type"],
     async created() {
         this.fetchInvestors();
@@ -985,6 +1017,7 @@ const CreateInvestmentComponent = defineComponent({
             selectedInvestor: null,
             selectedInvestmentFirm: null,
             selectedFundingRound: null,
+            searchInvestmentOpened: false,
         };
     },
 });
@@ -1230,6 +1263,7 @@ createApp({
         CreateInvestmentComponent,
         DeleteInvestmentComponent,
         UpdateInvestmentComponent,
+        SearchInvestmentComponent,
         CreateFundingRoundComponent,
         UpdateFundingRoundComponent,
         DeleteFundingRoundComponent,

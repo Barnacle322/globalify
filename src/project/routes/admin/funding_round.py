@@ -17,7 +17,6 @@ from ...utils.enums import (
 from ...utils.errors.error_messages import (
     EMPTY_ANNOUNCED_DATE,
     EMPTY_COMPANY_NAME,
-    EMPTY_ROUND_ID,
 )
 from ...utils.funcs import generate_pagination
 
@@ -98,17 +97,13 @@ def create_funding_round():
         status = Status(StatusType.ERROR, EMPTY_ANNOUNCED_DATE).get_status()
         return redirect(url_for("admin.funding_round.create_funding_round_view", _external=True, **status))
 
-    round_id = form_data.get("round_id")
-    if not round_id:
-        status = Status(StatusType.ERROR, EMPTY_ROUND_ID).get_status()
-        return redirect(url_for("admin.funding_round.create_funding_round_view", _external=True, **status))
-
     announced_date_format = datetime.strptime(announced_date, "%Y-%m-%d")
 
     funding_round = FundingRound(
         company_id=company_id,
+        custom_company_name=form_data.get("custom_company_name"),
         announced_date=announced_date_format,
-        round_id=round_id,
+        round_id=form_data.get("round_id"),
     )
 
     try:
@@ -165,16 +160,12 @@ def update_funding_round(id):
         status = Status(StatusType.ERROR, EMPTY_ANNOUNCED_DATE).get_status()
         return redirect(url_for("admin.funding_round.update_funding_round_view", id=id, _external=True, **status))
 
-    round_id = form_data.get("round_id")
-    if not round_id:
-        status = Status(StatusType.ERROR, EMPTY_ROUND_ID).get_status()
-        return redirect(url_for("admin.funding_round.update_funding_round_view", id=id, _external=True, **status))
-
     announced_date_format = datetime.strptime(announced_date, "%Y-%m-%d")
 
     funding_round.company_id = company_id
+    funding_round.custom_company_name = form_data.get("custom_company_name")
     funding_round.announced_date = announced_date_format
-    funding_round.round_id = round_id
+    funding_round.round_id = form_data.get("round_id")
 
     try:
         db.session.commit()

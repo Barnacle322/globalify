@@ -317,6 +317,7 @@ createApp({
 
             const investor_id = document.getElementById("investor").value;
             const investment_firm_id = document.getElementById("investment_firm").value;
+            const custom_name = document.getElementById("custom_name").value;
             const funding_round_id = document.getElementById("funding_round").value;
             const amount = document.getElementById("amount").value;
             const createdByAdminElement = document.getElementById("created_by_admin");
@@ -327,6 +328,7 @@ createApp({
             const dataString = JSON.stringify({
                 investor_id: investor_id,
                 investment_firm_id: investment_firm_id,
+                custom_name: custom_name,
                 funding_round_id: funding_round_id,
                 amount: amount,
                 created_by_admin: created_by_admin,
@@ -353,11 +355,13 @@ createApp({
             const csrfToken = document.getElementById("csrf_token").value;
 
             const company_id = document.getElementById("company").value;
+            const custom_company_name = document.getElementById("custom_company_name").value;
             const round_id = document.getElementById("round").value;
             const announced_date = document.getElementById("announced_date").value;
 
             const dataString = JSON.stringify({
                 company_id: company_id,
+                custom_company_name: custom_company_name,
                 round_id: round_id,
                 announced_date: announced_date,
             });

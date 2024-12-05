@@ -46,6 +46,7 @@ from ..utils.errors.error_messages import (
     REMOVE_YOURSELF_PERMISSION_DENIED,
     USER_ALREADY_IN_COMPANY,
     USER_ALREADY_INVITED,
+    EMPTY_COMPANY_POSITION
 )
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
@@ -526,6 +527,9 @@ def create_company():
     if not (company_name := form_data.get("company_name")):
         status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("settings.create_company_view", _external=False, **status))
+    if not (company_position := form_data.get("position")):
+        status = Status(StatusType.ERROR, EMPTY_COMPANY_POSITION).get_status()
+        return redirect(url_for("settings.create_company_view", _external=False, **status))
 
     company = Company(
         name=company_name,
@@ -593,6 +597,8 @@ def create_company():
         is_primary=is_primary,
     )
 
+    user_company.position = company_position
+
     try:
         db.session.add(user_company)
         db.session.commit()
@@ -609,6 +615,8 @@ def create_company():
 @check_verification
 def delete_company(id):
     company = Company.get_by_id(id)
+    print(id)
+    print(company)
     user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=id)
     if not user_company:
         status = Status(StatusType.ERROR, DELETE_COMPANY_PERMISSION_DENIED).get_status()

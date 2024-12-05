@@ -907,7 +907,7 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_by_user_id(user_id: int) -> Sequence[UserCompany]:
         return db.session.scalars(
             db.select(UserCompany).where(UserCompany.user_id == user_id).order_by(UserCompany.is_primary.desc())
-        ).all()
+        ).unique().all()
 
     @staticmethod
     def get_by_company_id(company_id: int) -> Sequence[UserCompany]:
@@ -1018,7 +1018,3 @@ def _set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON;")
         cursor.close()
-
-
-class Position(MappedAsDataclass, db.Model, unsafe_hash=True):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)

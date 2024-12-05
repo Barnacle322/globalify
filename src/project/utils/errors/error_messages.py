@@ -71,4 +71,3 @@ DELETE_COMPANY_PERMISSION_DENIED = "You don't have permission to delete this com
 
 PICTURE_NOT_LOADED = "Error loading image. Please reach out to our support team!"
 UNKNOWN_ERROR = "An unknown error occurred."
-

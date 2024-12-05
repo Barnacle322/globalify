@@ -11,7 +11,6 @@ profile = Blueprint("profile", __name__)
 
 @profile.route("/<username>", methods=["GET"])
 def user_profile(username):
-
     user_info = UserInfo.get_by_username(username)
 
     if not user_info:

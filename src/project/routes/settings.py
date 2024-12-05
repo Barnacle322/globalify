@@ -46,7 +46,7 @@ from ..utils.errors.error_messages import (
     REMOVE_YOURSELF_PERMISSION_DENIED,
     USER_ALREADY_IN_COMPANY,
     USER_ALREADY_INVITED,
-    EMPTY_COMPANY_POSITION
+    EMPTY_COMPANY_POSITION,
 )
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture

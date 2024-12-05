@@ -905,9 +905,13 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_by_user_id(user_id: int) -> Sequence[UserCompany]:
-        return db.session.scalars(
-            db.select(UserCompany).where(UserCompany.user_id == user_id).order_by(UserCompany.is_primary.desc())
-        ).unique().all()
+        return (
+            db.session.scalars(
+                db.select(UserCompany).where(UserCompany.user_id == user_id).order_by(UserCompany.is_primary.desc())
+            )
+            .unique()
+            .all()
+        )
 
     @staticmethod
     def get_by_company_id(company_id: int) -> Sequence[UserCompany]:
@@ -941,12 +945,16 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_by_company_id_and_role(company_id: int, role: CompanyRole) -> Sequence[UserCompany]:
-        return db.session.scalars(
-            db.select(UserCompany).where(
-                UserCompany.company_id == company_id,
-                UserCompany.role == role,
+        return (
+            db.session.scalars(
+                db.select(UserCompany).where(
+                    UserCompany.company_id == company_id,
+                    UserCompany.role == role,
+                )
             )
-        ).unique().all()
+            .unique()
+            .all()
+        )
 
     @staticmethod
     def get_by_company_id_and_email(company_id: int, email: str) -> UserCompany | None:

@@ -707,6 +707,7 @@ const ContactInfo = defineComponent({
 const SearchInvestmentComponent = defineComponent({
     template: "#search-investment-template",
     mounted() {
+        this.investors = this.debounce(this.searchInvestors, 500);
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
@@ -717,6 +718,42 @@ const SearchInvestmentComponent = defineComponent({
         document.removeEventListener("click", this.handleOutsideClick);
     },
     methods: {
+        async searchInvestors(event) {
+            const searchInput = event.target.value;
+
+            if (searchInput.length > 0) {
+                try {
+                    let searchType = this.searchType;
+                    let endpoint =
+                        searchType === "investor"
+                            ? `/search/investors/${searchInput}`
+                            : `/search/investment-firms/${searchInput}`;
+                    const response = await fetch(endpoint);
+                    const data = await response.json();
+                    this.investors = data.investors;
+                } catch (error) {
+                    console.log(error);
+                }
+            } else {
+                this.investors = [];
+            }
+        },
+        selectInvestor(investor, searchType) {
+            this.$emit("investor-selected", investor, searchType);
+        },
+        debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        },
+        updateSearchType(event) {
+            this.searchType = event.target.value;
+            this.$refs.searchInput.value = "";
+            this.investors = [];
+        },
         closeSearchInvestment() {
             this.$emit("close-search-investment");
         },
@@ -730,6 +767,9 @@ const SearchInvestmentComponent = defineComponent({
                 this.closeSearchInvestment();
             }
         },
+    },
+    data() {
+        return { investors: [], searchType: "investor" };
     },
 });
 
@@ -992,6 +1032,11 @@ const CreateInvestmentComponent = defineComponent({
                 console.error("Error fetching investment firms:", error);
             }
         },
+        handleInvestorSelected(investor, searchType) {
+            this.selectedInvestor = investor;
+            this.searchType = searchType;
+            this.searchInvestmentOpened = false;
+        },
         closeCreateInvestmentModal() {
             this.$emit("close-create-investment");
         },
@@ -1005,8 +1050,13 @@ const CreateInvestmentComponent = defineComponent({
                 this.closeCreateInvestmentModal();
             }
         },
+        clearSelectedInvestor() {
+            this.selectedInvestor = null;
+        },
+        checkCustomName() {
+            this.isCustomNameFilled = this.customName.trim() !== "";
+        },
     },
-
     data() {
         return {
             selectedNotableInvestment: "",
@@ -1018,6 +1068,9 @@ const CreateInvestmentComponent = defineComponent({
             selectedInvestmentFirm: null,
             selectedFundingRound: null,
             searchInvestmentOpened: false,
+            searchType: "investor",
+            customName: "",
+            isCustomNameFilled: false,
         };
     },
 });

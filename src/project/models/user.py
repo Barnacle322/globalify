@@ -870,7 +870,7 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     company: Mapped[Company] = relationship(
         Company, back_populates="user_companies", uselist=True, init=False, lazy="joined"
     )
-    position: Mapped[str | None] = mapped_column(String, nullable=True)
+    position: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)

@@ -615,8 +615,6 @@ def create_company():
 @check_verification
 def delete_company(id):
     company = Company.get_by_id(id)
-    print(id)
-    print(company)
     user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=id)
     if not user_company:
         status = Status(StatusType.ERROR, DELETE_COMPANY_PERMISSION_DENIED).get_status()
@@ -652,7 +650,6 @@ def delete_company(id):
 @check_user_info_complete
 @check_verification
 def invite_user(company_id):
-    print(company_id)
     if not isinstance(current_user, User):
         return redirect(url_for("main.login"))
 

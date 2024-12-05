@@ -652,6 +652,7 @@ def delete_company(id):
 @check_user_info_complete
 @check_verification
 def invite_user(company_id):
+    print(company_id)
     if not isinstance(current_user, User):
         return redirect(url_for("main.login"))
 
@@ -666,9 +667,13 @@ def invite_user(company_id):
     user_email = form_data.get("email") or None
     user_role = form_data.get("role") or None
     invitation_message = form_data.get("invitation_message") or "Hey, join our company!"
+    company_position = form_data.get("position")
 
     if not user_email or not user_role:
         status = Status(StatusType.ERROR, EMPTY_EMAIL_OR_ROLE).get_status()
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+    if not company_position or not user_role:
+        status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     existing_company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id=company_id, email=user_email)
@@ -698,6 +703,7 @@ def invite_user(company_id):
         invited_by=current_user.id,
         message=invitation_message,
     )
+    company_invitation.position = company_position
 
     db.session.add(company_invitation)
     db.session.commit()
@@ -728,6 +734,7 @@ def accept_invitation(company_id):
             role=company_invitation.role,
             is_primary=is_primary,
         )
+        user_company.position = company_invitation.position
         db.session.add(user_company)
 
     company_invitation.is_used = True

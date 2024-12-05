@@ -946,7 +946,7 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
                 UserCompany.company_id == company_id,
                 UserCompany.role == role,
             )
-        ).all()
+        ).unique().all()
 
     @staticmethod
     def get_by_company_id_and_email(company_id: int, email: str) -> UserCompany | None:
@@ -973,6 +973,7 @@ class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
     role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.TEAM)
     message: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    position: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
 
     INVITATION_VALIDITY = 7
 

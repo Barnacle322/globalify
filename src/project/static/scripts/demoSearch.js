@@ -54,7 +54,7 @@ class Button {
 
 function getSearch() {
     let searchInput = document.getElementById("search").value;
-    fetch(`/demo_search?search=${searchInput}`)
+    fetch(`/demo-search?search=${searchInput}`)
         .then((response) => response.json())
         .then((data) => {
             document.getElementById("results").innerHTML = "";

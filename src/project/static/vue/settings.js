@@ -124,6 +124,7 @@ const ChangeRoleComponent = defineComponent({
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
                 const role = this.$refs.roleChange.value;
+                const position =this.$refs.positionChange.value
 
                 const response = await fetch(`/settings/company/member/${userId}/role`, {
                     method: "POST",
@@ -133,7 +134,8 @@ const ChangeRoleComponent = defineComponent({
                     },
                     body: JSON.stringify({
                         role: role,
-                        company_id: companyId
+                        company_id: companyId,
+                        position: position,
                     })
                 });
 
@@ -325,7 +327,7 @@ const InviteMemberComponent = defineComponent({
                         email: email,
                         role: role,
                         invitation_message: invitationMessage,
-                        position : position
+                        position: position
                     })
                 });
 

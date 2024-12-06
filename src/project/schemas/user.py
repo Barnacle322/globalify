@@ -16,6 +16,7 @@ class MemberSchema(BaseModel):
     name: str
     picture_url: str | None
     role: str
+    position: str
 
 
 class CompanyInvitationSchema(MemberSchema):

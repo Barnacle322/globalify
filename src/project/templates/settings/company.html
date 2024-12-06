@@ -54,16 +54,16 @@
     </head>
 
     <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %} 
-    {{ navbar.render(current_user) }}
-    {% import "components/invite_member.html" as invite_member %} 
-    {{ invite_member.render(company, users_in_company) }}
-    {% import "components/change_role.html" as change_role %}
-    {{ change_role.render(company, current_user) }}
-    {% import "components/cancel_invitation.html" as cancel_invitation %}
-    {{ cancel_invitation.render() }}
-    {% import "components/delete_company.html" as delete_company %}
-    {{ delete_company.render(company.id) }}
+    {% import "components/navbar.html" as navbar %}
+{{ navbar.render(current_user) }}
+{% import "components/invite_member.html" as invite_member %}
+{{ invite_member.render(company, users_in_company) }}
+{% import "components/change_role.html" as change_role %}
+{{ change_role.render(company, current_user) }}
+{% import "components/cancel_invitation.html" as cancel_invitation %}
+{{ cancel_invitation.render() }}
+{% import "components/delete_company.html" as delete_company %}
+{{ delete_company.render(company.id) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />
@@ -90,8 +90,8 @@
                 <invite-member-component
                     v-if="inviteMemberOpened"
                     @close-invite-member="inviteMemberOpened = null"
-                ></invite-member-component
-            ></transition>
+                ></invite-member-component>
+            </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="selectedUser"></div>
             </transition>
@@ -129,7 +129,8 @@
                         <a
                             href="/settings/general"
                             class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
-                            ><svg
+                        >
+                            <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -149,7 +150,8 @@
                         <a
                             href="/settings/companies"
                             class="flex items-center justify-center gap-2 border-b-2 border-sky-500 px-3 py-2 font-medium transition-colors ease-in-out"
-                            ><svg
+                        >
+                            <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -245,7 +247,7 @@
                         </div>
                         <form
                             class="col-span-4"
-                            action="/settings/company/{{company.id}}"
+                            action="/settings/company/{{ company.id }}"
                             method="POST"
                             enctype="multipart/form-data"
                         >
@@ -289,7 +291,7 @@
                                                 autocomplete="organization-title"
                                                 required
                                                 class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
-                                                value="{{ company.name if company.name else ''}}"
+                                                value="{{ company.name if company.name else '' }}"
                                                 :disabled="'{{ user_role }}' == 'employee'"
                                             />
                                         </div>
@@ -323,7 +325,7 @@
                                                 placeholder="Describe your company here."
                                                 :disabled="'{{ user_role }}' == 'employee'"
                                             >
-{{ company.description if company.description else ''}}</textarea
+{{ company.description if company.description else '' }}</textarea
                                             >
                                         </div>
                                     </div>
@@ -574,7 +576,7 @@
                                     <div class="ml-auto flex items-center justify-center">
                                         <button
                                             class="rounded-lg border bg-white px-2 py-1"
-                                            @click="selectedInvitationId = {{invitation.id}};"
+                                            @click="selectedInvitationId = {{ invitation.id }};"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -603,16 +605,17 @@
                                             alt=""
                                         />
                                         {% endif %}
-                                        <div>
+                                        <div class="flex flex-col">
                                             <h3 class="text-md font-medium">{{ user.name }}</h3>
                                             <span class="text-sm text-gray-700">{{ user.role.title() }}</span>
+                                            <span class="text-sm text-gray-700">{{ user.position }}</span>
                                         </div>
                                     </div>
                                     {% if user_role == "owner" and current_user.id != user.id %}
                                     <div class="ml-auto flex items-center justify-center">
                                         <button
                                             class="rounded-lg border bg-white px-2 py-1"
-                                            @click="this.selectedUser = {{ user.id }};"
+                                            @click="this.selectedUser = {{ user }};"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"

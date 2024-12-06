@@ -327,6 +327,8 @@ def company_info_view(company_id):
                 name=user_info.full_name,
                 picture_url=user_info.picture_url,
                 role=user_company.role.value,
+                position=user_company.position
+
             )
             members.append(user_element.model_dump())
 
@@ -826,6 +828,7 @@ def change_company_role(user_id):
 
     company_id = form_data.get("company_id")
     role = form_data.get("role")
+    position = form_data.get("position")
 
     current_user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not current_user_company:
@@ -840,7 +843,8 @@ def change_company_role(user_id):
         status = Status(StatusType.ERROR, NOT_COMPANY_MEMBER).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    user_company.role = CompanyRole(role)
+    user_company.role = role
+    user_company.position = position
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Member's role has been modified!").get_status()

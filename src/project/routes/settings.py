@@ -23,7 +23,7 @@ from ..models import (
     UserInfo,
 )
 from ..models.claim import ClaimRequest
-from ..schemas.investment import FundingRoundSchema, InvestmentSchema
+from ..schemas.investment import FundingRoundSchema
 from ..schemas.investor import InvestorOriginPointSchema, MiniInvestorSchema, RoundSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier

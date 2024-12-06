@@ -1,4 +1,3 @@
-from datetime import datetime
 
 from flask import Blueprint, redirect, render_template, request, url_for
 
@@ -9,7 +8,7 @@ from ...models import (
     InvestmentFirm,
     Investor,
 )
-from ...schemas.investment import FundingRoundSchema, InvestmentSchema
+from ...schemas.investment import InvestmentSchema
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,

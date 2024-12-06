@@ -4,37 +4,43 @@
         class="fixed right-1/2 top-1/2 z-50 flex w-10/12 -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
     >
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-        <div class="grid grid-cols-6 gap-x-2 gap-y-1">
-            <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
+        <div class="grid gap-2">
+            <h2 class="col-span-full mt-3 text-2xl font-medium">Funding Round Info</h2>
 
-            <div class="col-span-full">
-                <label for="round" class="text-sm font-medium text-gray-700">Round</label>
-                <div>
-                    <select
-                        v-model="selectedRound"
-                        id="round"
-                        name="round"
-                        class="h-12 w-full rounded-xl px-2"
-                        id="round"
-                    >
-                        <option value="" disabled selected>Select a round</option>
-
-                        <option v-for="round in rounds" :key="round.id" :value="round.id" v-text="round.name"></option>
-                    </select>
-                </div>
+            <div>
+                <label for="round" class="text-sm font-medium text-gray-700">Series</label>
+                <select
+                    v-model="selectedRound"
+                    id="round"
+                    name="round"
+                    class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                    id="round"
+                >
+                    <option value="" disabled selected hidden>Select a round</option>
+                    <option v-for="round in rounds" :key="round.id" :value="round.id" v-text="round.name"></option>
+                </select>
             </div>
-            <div class="col-span-full">
-                <label class="text-sm font-medium text-gray-700" for="announced_date">Announced date</label>
-                <input class="w-full rounded-lg bg-transparent bg-white" type="date" id="announced_date" required />
+            <div>
+                <label class="text-sm font-medium text-gray-700" for="announced_date">Date</label>
+                <input
+                    class="w-full rounded-lg border-2 border-gray-300 bg-transparent bg-white"
+                    type="date"
+                    id="announced_date"
+                    value=""
+                    required
+                />
             </div>
         </div>
-        <div class="flex justify-end gap-5">
-            <button @click="closeCreateFundingRoundModal" class="rounded-lg border border-gray-300 px-3 py-2">
+        <div class="flex justify-end gap-4">
+            <button
+                @click="closeCreateFundingRoundModal"
+                class="rounded-lg border border-gray-300 px-3 py-2 transition-shadow ease-in-out hover:shadow-md"
+            >
                 Cancel
             </button>
             <button
                 @click="createFundingRound({{ companyId }})"
-                class="rounded-lg bg-sky-500 px-3 py-2 text-white hover:bg-sky-600"
+                class="rounded-lg bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
             >
                 Create
             </button>

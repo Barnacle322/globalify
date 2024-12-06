@@ -514,7 +514,7 @@
                     </article>
                     <article
                         v-if="investmentFirm.rounds || investmentFirm.industries || investmentFirm.min_max_investment || investmentFirm.n_investments || investmentFirm.n_exits"
-                        class="shadow-card w-full rounded-xl bg-white p-5 col-span-full"
+                        class="shadow-card col-span-full w-full rounded-xl bg-white p-5"
                     >
                         <h2 class="text-xl font-medium">Investment</h2>
                         <div v-if="investmentFirm.rounds.length !== 0" class="mt-5 flex flex-col gap-2">
@@ -630,11 +630,11 @@
                                 ></a>
                             </div>
                         </div>
-                        <div class="border rounded-lg mt-5" v-show="investments.length !== 0" class="mt-5">
+                        <div class="mt-5 rounded-lg border" v-show="investments.length !== 0" class="mt-5">
                             <table class="w-full">
                                 <tr class="text-center">
                                     <td>
-                                        <div class="flex p-2 justify-center items-center border-r relative">
+                                        <div class="relative flex items-center justify-center border-r p-2">
                                             <span class="pr-4">Announced Date</span>
                                             <button
                                                 class="relative"
@@ -680,36 +680,36 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="flex p-2 justify-center items-center border-r">
+                                        <div class="flex items-center justify-center border-r p-2">
                                             <span>Organization Name</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="flex p-2 justify-center items-center border-r">
+                                        <div class="flex items-center justify-center border-r p-2">
                                             <span>Amount</span>
                                         </div>
                                     </td>
                                     <td class="p-2">
-                                        <div class="flex p-2 justify-center items-center">
+                                        <div class="flex items-center justify-center p-2">
                                             <span>Funding Round</span>
                                         </div>
                                     </td>
                                 </tr>
-                                <tr class="border-t border-b" v-for="investment in investments" :key="investment.id">
+                                <tr class="border-b border-t" v-for="investment in investments" :key="investment.id">
                                     <td
-                                        class="text-end pr-4"
+                                        class="pr-4 text-end"
                                         v-text="investment.announced_date !== null ? investment.announced_date : 'N/A'"
                                     ></td>
                                     <td
-                                        class="text-start pl-4"
+                                        class="pl-4 text-start"
                                         v-text="investment.name !== null ? investment.name : 'N/A'"
                                     ></td>
                                     <td
-                                        class="text-start pl-4"
+                                        class="pl-4 text-start"
                                         v-text="investment.amount !== null ? investment.amount : 'N/A'"
                                     ></td>
                                     <td
-                                        class="text-start pl-4"
+                                        class="pl-4 text-start"
                                         v-text="investment.round !== null ? investment.round : 'N/A'"
                                     ></td>
                                 </tr>

@@ -700,13 +700,13 @@
                                 v-text="`${investor.n_investments}/${investor.n_exits}`"
                             ></span>
                         </div>
-                        <div class="border rounded-lg mt-5 overflow-auto" v-show="investments.length !== 0">
-                            <table class="w-full table-auto overflow-hidden relative">
-                                <tr class="border-b bg-gray-50 font-medium *:px-4 *:text-nowrap">
+                        <div class="mt-5 overflow-auto rounded-lg border" v-show="investments.length !== 0">
+                            <table class="relative w-full table-auto overflow-hidden">
+                                <tr class="border-b bg-gray-50 font-medium *:text-nowrap *:px-4">
                                     <td class="py-4 pl-4">Company</td>
                                     <td class="py-4">Amount</td>
                                     <td class="py-4">Funding Round</td>
-                                    <td class="relative justify-between items-center flex py-4 pr-4">
+                                    <td class="relative flex items-center justify-between py-4 pr-4">
                                         <span class="font-semibold text-gray-700">Date</span>
                                         <button
                                             class="relative flex items-center"
@@ -730,10 +730,10 @@
                                         >
                                             <div
                                                 v-if="sortDropdownOpened"
-                                                class="absolute right-4 top-10 z-50 flex w-40 origin-top-right flex-col gap-1 rounded-lg border bg-white shadow-lg p-2"
+                                                class="absolute right-4 top-10 z-50 flex w-40 origin-top-right flex-col gap-1 rounded-lg border bg-white p-2 shadow-lg"
                                             >
                                                 <button
-                                                    class="flex gap-1 items-center rounded-md p-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                    class="flex items-center gap-1 rounded-md p-2 text-sm text-gray-700 hover:bg-gray-100"
                                                     @click="sortInvestments('asc')"
                                                 >
                                                     <span>Sort ascending</span>
@@ -753,7 +753,7 @@
                                                     </svg>
                                                 </button>
                                                 <button
-                                                    class="flex gap-1 items-center rounded-md p-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                    class="flex items-center gap-1 rounded-md p-2 text-sm text-gray-700 hover:bg-gray-100"
                                                     @click="sortInvestments('desc')"
                                                 >
                                                     <span>Sort descending</span>
@@ -779,22 +779,22 @@
                                     </td>
                                 </tr>
                                 <tr
-                                    class="last:border-0 border-b odd:bg-gray-50 text-sm text-gray-700 *:px-4"
+                                    class="border-b text-sm text-gray-700 *:px-4 last:border-0 odd:bg-gray-50"
                                     v-for="investment in investments"
                                     :key="investment.id"
                                 >
-                                    <td class="py-4 pl-4 max-w-72 min-w-52 text-wrap">
+                                    <td class="min-w-52 max-w-72 text-wrap py-4 pl-4">
                                         [[ investment.name ? investment.name : 'N/A' ]]
                                     </td>
-                                    <td class="py-4 text-nowrap">
+                                    <td class="text-nowrap py-4">
                                         $[[ investment.amount ? investment.amount : 'N/A' ]]
                                     </td>
-                                    <td class="py-4 text-nowrap">
-                                        <span class="text-[#dd70d8] bg-[#ffdcfd] rounded-full px-2 py-1.5 text-xs"
+                                    <td class="text-nowrap py-4">
+                                        <span class="rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs text-[#dd70d8]"
                                             >[[ investment.round ? investment.round : 'N/A' ]]</span
                                         >
                                     </td>
-                                    <td class="py-4 pr-4 text-nowrap">
+                                    <td class="text-nowrap py-4 pr-4">
                                         [[ investment.announced_date ? investment.announced_date : 'N/A' ]]
                                     </td>
                                 </tr>
@@ -824,12 +824,12 @@
                             <b>partners@globalify.xyz</b>
                         </p>
                     </article>
-                    <article v-if="investor.twitter" class="shadow-card w-full rounded-xl bg-white p-5 col-span-full">
+                    <article v-if="investor.twitter" class="shadow-card col-span-full w-full rounded-xl bg-white p-5">
                         <section class="w-full">
                             <a class="twitter-timeline" :href="investor.twitter" data-height="1000"></a>
                             <div
                                 v-if="loadingTwitter"
-                                class="flex w-full h-full justify-center items-center gap-2 my-10"
+                                class="my-10 flex h-full w-full items-center justify-center gap-2"
                             >
                                 <svg
                                     viewBox="0 0 1200 1227"

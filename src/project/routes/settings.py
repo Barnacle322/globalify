@@ -529,9 +529,8 @@ def create_company():
     if not (company_name := form_data.get("company_name")):
         status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("settings.create_company_view", _external=False, **status))
-    if not (company_position := form_data.get("position")):
-        status = Status(StatusType.ERROR, EMPTY_COMPANY_POSITION).get_status()
-        return redirect(url_for("settings.create_company_view", _external=False, **status))
+
+    company_position = form_data.get("position")
 
     company = Company(
         name=company_name,
@@ -597,9 +596,8 @@ def create_company():
         company_id=company.id,
         role=CompanyRole.OWNER,
         is_primary=is_primary,
+        position = company_position
     )
-
-    user_company.position = company_position
 
     try:
         db.session.add(user_company)
@@ -671,9 +669,6 @@ def invite_user(company_id):
     if not user_email or not user_role:
         status = Status(StatusType.ERROR, EMPTY_EMAIL_OR_ROLE).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
-    if not company_position or not user_role:
-        status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
-        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
     existing_company_invitation = CompanyInvitation.get_by_company_id_and_email(company_id=company_id, email=user_email)
     if existing_company_invitation:
@@ -701,8 +696,9 @@ def invite_user(company_id):
         role=CompanyRole(user_role),
         invited_by=current_user.id,
         message=invitation_message,
+        position = company_position
+
     )
-    company_invitation.position = company_position
 
     db.session.add(company_invitation)
     db.session.commit()
@@ -732,8 +728,8 @@ def accept_invitation(company_id):
             company_id=company_id,
             role=company_invitation.role,
             is_primary=is_primary,
+            position = company_invitation.position
         )
-        user_company.position = company_invitation.position
         db.session.add(user_company)
 
     company_invitation.is_used = True

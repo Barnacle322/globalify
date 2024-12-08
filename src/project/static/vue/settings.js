@@ -100,7 +100,6 @@ const ChangeRoleComponent = defineComponent({
     template: "#change-role-template",
     props: ["user"],
     emits: ["close-change-role"],
-    delimiters: ["[[", "]]"],
     data() {
         return {
             roles: [],
@@ -825,6 +824,9 @@ const DeleteInvestmentComponent = defineComponent({
 const UpdateInvestmentComponent = defineComponent({
     template: "#update-investment-template",
     props: ["type", "id"],
+    components: {
+        SearchInvestmentComponent,
+    },
     async created() {
         await this.fetchInvestment(this.id);
         this.fetchInvestors();
@@ -972,10 +974,19 @@ const CreateInvestmentComponent = defineComponent({
             const csrf_token = document.getElementById("csrf_token").value;
             const amount = document.getElementById("amount").value;
             const payload = {
+                custom_name: this.customName,
                 funding_round_id: this.selectedFundingRound,
                 amount: amount,
                 created_by_admin: isAdmin,
             };
+
+            if (this.selectedInvestor && this.selectedInvestor.id) {
+                payload.investor_id = this.selectedInvestor.id;
+            }
+
+            if (this.selectedInvestmentFirm && this.selectedInvestmentFirm.id) {
+                payload.investment_firm_id = this.selectedInvestmentFirm.id;
+            }
 
             if (type === "investor") {
                 payload.investor_id = id;
@@ -1033,7 +1044,15 @@ const CreateInvestmentComponent = defineComponent({
             }
         },
         handleInvestorSelected(investor, searchType) {
-            this.selectedInvestor = investor;
+            console.log(investor);
+            console.log(searchType);
+            if (searchType === "investor") {
+                this.selectedInvestor = investor;
+                this.selectedInvestmentFirm = null;
+            } else if (searchType === "investment_firm") {
+                this.selectedInvestmentFirm = investor;
+                this.selectedInvestor = null;
+            }
             this.searchType = searchType;
             this.searchInvestmentOpened = false;
         },

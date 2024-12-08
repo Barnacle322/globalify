@@ -117,7 +117,7 @@ def delete_funding_round(round_id):
     return jsonify({"status": "success"}), 200
 
 
-@investment.get("/investment/<int:investment_id>")
+@investment.get("/<int:investment_id>")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -140,7 +140,7 @@ def get_investment(investment_id):
     return jsonify({"investment": investment})
 
 
-@investment.post("/investment/create")
+@investment.post("/create")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -170,7 +170,7 @@ def create_investment():
     return jsonify({"status": "success"}), 200
 
 
-@investment.post("/investment/<int:investment_id>/update")
+@investment.post("/<int:investment_id>/update")
 @login_required
 @check_user_info_complete
 @check_verification
@@ -202,7 +202,7 @@ def update_investment(investment_id):
     return jsonify({"status": "success"}), 200
 
 
-@investment.post("/investment/<int:investment_id>/delete")
+@investment.post("/<int:investment_id>/delete")
 @login_required
 @check_user_info_complete
 @check_verification

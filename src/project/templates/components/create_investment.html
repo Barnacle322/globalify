@@ -37,7 +37,7 @@
                         :placeholder="searchType === 'investor' ? 'Search for an investor' : 'Search for an investment firm'"
                         class="w-full rounded-lg bg-transparent bg-white"
                         type="text"
-                        :value="selectedInvestor && selectedInvestor.name ? selectedInvestor.name : ''"
+                        :value="selectedInvestor && selectedInvestor.name ? selectedInvestor.name : (selectedInvestmentFirm && selectedInvestmentFirm.name ? selectedInvestmentFirm.name : '')"
                         readonly
                     />
                     <button
@@ -50,8 +50,8 @@
                 </div>
             </div>
 
-            <div v-if="selectedInvestor === null">
-                <label for="custom_name" class="text-sm font-medium text-gray-700">Custom Name</label>
+            <div class="col-span-full" v-if="selectedInvestor === null && selectedInvestmentFirm === null">
+                <label for="custom_name">Custom Name</label>
                 <input
                     class="w-full rounded-lg bg-transparent bg-white"
                     id="custom_name"

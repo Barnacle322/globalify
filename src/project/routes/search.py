@@ -63,7 +63,7 @@ def search_investment_firms_onboarding(search):
     return jsonify({"investors": result.get("investment_firms")})
 
 
-@search.get("/demo_search")
+@search.get("/demo-search")
 def demo_search():
     result = Investor.get_search(
         query_string=request.args.get("search", ""),

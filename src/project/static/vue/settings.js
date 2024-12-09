@@ -704,7 +704,7 @@ const ContactInfo = defineComponent({
 });
 
 const SearchInvestmentComponent = defineComponent({
-    template: "#search-investment-template",
+    template: "#search-investors-template",
     mounted() {
         this.investors = this.debounce(this.searchInvestors, 500);
         window.addEventListener("keydown", this.handleKeyDown);
@@ -823,17 +823,16 @@ const DeleteInvestmentComponent = defineComponent({
 
 const UpdateInvestmentComponent = defineComponent({
     template: "#update-investment-template",
-    props: ["type", "id"],
+    props: ["id"],
     components: {
         SearchInvestmentComponent,
     },
     async created() {
-        await this.fetchInvestment(this.id);
+        this.fetchInvestment(this.id);
         this.fetchInvestors();
         this.fetchInvestmentFirms();
         this.selectedInvestor = this.investment.investor_id;
         this.selectedInvestmentFirm = this.investment.investment_firm_id;
-        this.fetchFundingRounds();
         this.selectedFundingRound = this.investment.funding_round_id;
     },
     mounted() {
@@ -873,17 +872,6 @@ const UpdateInvestmentComponent = defineComponent({
                 }
             } catch (error) {
                 console.error("Error:", error);
-            }
-        },
-        async fetchFundingRounds() {
-            try {
-                const response = await fetch("/settings/funding-rounds");
-                if (response.ok) {
-                    data = await response.json();
-                    this.fundingRounds = data.funding_rounds;
-                }
-            } catch (error) {
-                console.error("Error fetching funding rounds:", error);
             }
         },
         async fetchInvestors() {
@@ -937,7 +925,6 @@ const UpdateInvestmentComponent = defineComponent({
         return {
             selectedNotableInvestment: "",
             notableInvestmentList: [],
-            fundingRounds: [],
             investment_firms: [],
             investors: [],
             selectedInvestor: null,
@@ -953,10 +940,8 @@ const CreateInvestmentComponent = defineComponent({
     components: {
         SearchInvestmentComponent,
     },
-    props: ["type"],
+    props: ["type", "companyid"],
     async created() {
-        this.fetchInvestors();
-        this.fetchInvestmentFirms();
         this.fetchFundingRounds();
     },
     mounted() {
@@ -1012,40 +997,25 @@ const CreateInvestmentComponent = defineComponent({
         },
         async fetchFundingRounds() {
             try {
-                const response = await fetch("/settings/funding-rounds");
+                const response = await fetch(`/settings/company/${this.companyid}/funding-rounds`);
                 if (response.ok) {
                     data = await response.json();
                     this.fundingRounds = data.funding_rounds;
+                    this.fundingRounds.forEach((fundingRound) => {
+                        fundingRound.announced_date = new Date(
+                            fundingRound.announced_date.split("T")[0],
+                        ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                        });
+                    });
                 }
             } catch (error) {
                 console.error("Error fetching funding rounds:", error);
             }
         },
-        async fetchInvestors() {
-            try {
-                const response = await fetch("/settings/investors");
-                if (response.ok) {
-                    data = await response.json();
-                    this.investors = data.investors;
-                }
-            } catch (error) {
-                console.error("Error fetching investors:", error);
-            }
-        },
-        async fetchInvestmentFirms() {
-            try {
-                const response = await fetch("/settings/investment-firms");
-                if (response.ok) {
-                    data = await response.json();
-                    this.investment_firms = data.investment_firms;
-                }
-            } catch (error) {
-                console.error("Error fetching investment firms:", error);
-            }
-        },
         handleInvestorSelected(investor, searchType) {
-            console.log(investor);
-            console.log(searchType);
             if (searchType === "investor") {
                 this.selectedInvestor = investor;
                 this.selectedInvestmentFirm = null;
@@ -1056,17 +1026,17 @@ const CreateInvestmentComponent = defineComponent({
             this.searchType = searchType;
             this.searchInvestmentOpened = false;
         },
-        closeCreateInvestmentModal() {
-            this.$emit("close-create-investment");
+        close() {
+            this.$emit("close");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
-                this.closeCreateInvestmentModal();
+                this.close();
             }
         },
         handleOutsideClick(event) {
             if (!this.$el.contains(event.target)) {
-                this.closeCreateInvestmentModal();
+                this.close();
             }
         },
         clearSelectedInvestor() {

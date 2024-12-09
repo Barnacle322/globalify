@@ -14,6 +14,7 @@ from ...models import (
     User,
 )
 from ...schemas.investment import FundingRoundSchema
+from ...schemas.investor import RoundSchema
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -491,6 +492,7 @@ def delete_investor(id):
 
 
 @investor.get("/search_notable_investments/<search_input>/<int:investor_id>")
+@admin_only
 def search_notable_investments(search_input, investor_id):
     investor = Investor.get_by_id(investor_id)
     if not investor:
@@ -512,6 +514,7 @@ def search_notable_investments(search_input, investor_id):
 
 
 @investor.get("/funding-rounds")
+@admin_only
 def get_funding_rounds():
     funding_round_models = FundingRound.get_all()
 
@@ -526,10 +529,10 @@ def get_funding_rounds():
                 id=funding_round.id,
                 company_name=funding_round.company.name,
                 announced_date=funding_round.announced_date,
-                round={
-                    "id": funding_round.round.id,
-                    "name": funding_round.round.name,
-                },
+                round=RoundSchema(
+                    id=funding_round.round.id,
+                    name=funding_round.round.name,
+                ),
             ).model_dump()
         )
     return {"funding_rounds": funding_rounds}

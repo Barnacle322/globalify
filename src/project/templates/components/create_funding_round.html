@@ -1,11 +1,11 @@
 {% macro render(companyId) %}
 <template id="create-funding-round-template">
     <article
-        class="fixed right-1/2 top-1/2 z-50 flex w-10/12 -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
+        class="fixed right-0 top-0 z-50 h-full w-full bg-white p-8 gap-4 flex flex-col sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
     >
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="grid gap-2">
-            <h2 class="col-span-full mt-3 text-2xl font-medium">Funding Round Info</h2>
+            <h2 class="col-span-full text-2xl font-medium">Funding Round Info</h2>
 
             <div>
                 <label for="round" class="text-sm font-medium text-gray-700">Series</label>
@@ -23,7 +23,7 @@
             <div>
                 <label class="text-sm font-medium text-gray-700" for="announced_date">Date</label>
                 <input
-                    class="w-full rounded-lg border-2 border-gray-300 bg-transparent bg-white"
+                    class="w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                     type="date"
                     id="announced_date"
                     value=""
@@ -31,7 +31,7 @@
                 />
             </div>
         </div>
-        <div class="flex justify-end gap-4">
+        <div class="flex justify-end gap-4 mt-auto">
             <button
                 @click="closeCreateFundingRoundModal"
                 class="rounded-lg border border-gray-300 px-3 py-2 transition-shadow ease-in-out hover:shadow-md"

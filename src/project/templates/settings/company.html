@@ -98,7 +98,10 @@
                 ></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="inviteMemberOpened"></div>
+                <div
+                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    v-if="inviteMemberOpened || selectedUser || selectedInvitationId || deleteCompanyOpened || createInvestmentOpened || deleteInvestmentOpened || createFundingRoundOpened || updateFundingRoundOpened || deleteFundingRoundOpened || updateInvestmentOpened"
+                ></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <invite-member-component
@@ -107,17 +110,11 @@
                 ></invite-member-component
             ></transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="selectedUser"></div>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <change-role-component
                     v-if="selectedUser"
                     :user="selectedUser"
                     @close-change-role="selectedUser = null"
                 ></change-role-component>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="selectedInvitationId"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <cancel-invitation-component
@@ -127,26 +124,18 @@
                 ></cancel-invitation-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="deleteCompanyOpened"></div>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <delete-company-component
                     v-if="deleteCompanyOpened"
                     @close-delete-company="deleteCompanyOpened = null"
                 ></delete-company-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="createInvestmentOpened"></div>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <create-investment-component
+                    companyid="{{ company.id }}"
                     v-if="createInvestmentOpened"
-                    @close-create-investment="createInvestmentOpened = null"
+                    @close="createInvestmentOpened = null"
                     type="company"
                 ></create-investment-component>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="deleteInvestmentOpened"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <delete-investment-component
@@ -156,19 +145,12 @@
                 ></delete-investment-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="updateInvestmentOpened"></div>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <update-investment-component
                     v-if="updateInvestmentOpened"
                     @close-update-investment="updateInvestmentOpened = null"
                     :investment="investment"
                     :id="investmentId"
-                    type="company"
                 ></update-investment-component>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="createFundingRoundOpened"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <create-funding-round-component
@@ -177,17 +159,11 @@
                 ></create-funding-round-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="updateFundingRoundOpened"></div>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <update-funding-round-component
                     v-if="updateFundingRoundOpened"
                     @close-update-funding-round="updateFundingRoundOpened = null"
                     :id="fundingRoundId"
                 ></update-funding-round-component>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="deleteFundingRoundOpened"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <delete-funding-round-component
@@ -307,7 +283,7 @@
                 </nav>
                 <main class="p-4 sm:p-6">
                     <div class="grid gap-6 sm:grid-cols-6">
-                        <div class="col-span-2">
+                        <div class="col-span-4 sm:col-span-2">
                             <h2 class="text-2xl font-bold">Company Information</h2>
                             <p class="mb-2 mt-1 leading-6 text-gray-700">Update your company information here.</p>
                             {% if status_type %} {% if status_type == '3' %}
@@ -498,6 +474,7 @@
                                             <button
                                                 class="m-3 flex items-center justify-center gap-2 rounded-lg border p-3 transition-shadow hover:shadow-md"
                                                 @click.prevent="createFundingRoundOpened = true;"
+                                                type="button"
                                             >
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -517,7 +494,7 @@
                                             </button>
                                             {% for funding_round in funding_rounds %}
                                             <div
-                                                class="mx-3 my-1 divide-y overflow-hidden overflow-y-auto rounded-xl border bg-gray-50 shadow-sm"
+                                                class="mx-3 mb-3 divide-y overflow-hidden overflow-y-auto rounded-xl border bg-gray-50 shadow-sm"
                                             >
                                                 <header class="flex cursor-pointer gap-2 bg-white px-3 py-3">
                                                     <div
@@ -565,6 +542,7 @@
                                                         <button
                                                             class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
                                                             @click.prevent="updateFundingRoundOpened = true; fundingRoundId = '{{funding_round.id}}'"
+                                                            type="button"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
@@ -585,6 +563,7 @@
                                                         <button
                                                             class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
                                                             @click.prevent="deleteFundingRoundOpened = true; fundingRoundId = '{{funding_round.id}}'"
+                                                            type="button"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
@@ -607,10 +586,10 @@
                                                     v-if="selectedFundingRound === '{{ funding_round.id }}'"
                                                     class="flex flex-col p-3"
                                                 >
-                                                    <div class="overflow-auto rounded-lg border">
+                                                    <div class="overflow-auto rounded-t-lg border border-b-0">
                                                         <table class="relative w-full table-auto">
                                                             <tr
-                                                                class="border-b bg-gray-50 font-medium *:text-nowrap *:px-4"
+                                                                class="bg-white font-medium *:text-nowrap *:px-4 border-b"
                                                             >
                                                                 <td class="py-4 pl-4">Investor</td>
                                                                 <td class="py-4">Amount</td>
@@ -620,7 +599,10 @@
                                                                     <span class="font-semibold text-gray-700"
                                                                         >Date</span
                                                                     >
-                                                                    <button class="relative flex items-center">
+                                                                    <button
+                                                                        type="button"
+                                                                        class="relative flex items-center"
+                                                                    >
                                                                         <svg
                                                                             class="size-3"
                                                                             aria-hidden="true"
@@ -644,6 +626,7 @@
                                                                         >▼</span
                                                                     >
                                                                 </td>
+                                                                <td>Action</td>
                                                             </tr>
                                                             {% for investment in funding_round.investments %}
                                                             <tr
@@ -667,22 +650,39 @@
                                                                 <td class="text-nowrap py-4 pr-4">
                                                                     {{ investment.date if investment.date else 'N/A' }}
                                                                 </td>
+                                                                <td>
+                                                                    <button
+                                                                        @click.prevent="updateInvestmentOpened = true; investmentId = '{{ investment.id }}'"
+                                                                        class="text-blue-500 hover:text-blue-400"
+                                                                        type="button"
+                                                                    >
+                                                                        Edit
+                                                                    </button>
+                                                                </td>
                                                             </tr>
                                                             {% endfor %}
                                                         </table>
                                                     </div>
+                                                    {% if funding_round.investments | length == 0 %}
+                                                    <div
+                                                        class="flex items-center justify-center gap-2 border-x bg-white px-3 py-10 font-medium"
+                                                        type="button"
+                                                    >
+                                                        No investments recorded...
+                                                    </div>
+                                                    {% endif %}
                                                     <button
                                                         @click.prevent="createInvestmentOpened = true"
-                                                        class="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium transition-shadow ease-in-out hover:shadow-md"
+                                                        class="flex items-center justify-center gap-2 rounded-b-xl border bg-white px-3 py-2 font-medium transition-shadow ease-in-out hover:shadow-md"
+                                                        type="button"
                                                     >
-                                                        Record an Investment
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
                                                             fill="none"
                                                             viewBox="0 0 24 24"
                                                             stroke-width="1.5"
                                                             stroke="currentColor"
-                                                            class="size-4"
+                                                            class="size-6"
                                                         >
                                                             <path
                                                                 stroke-linecap="round"
@@ -690,8 +690,9 @@
                                                                 d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                                                             />
                                                         </svg>
+                                                        Record an Investment
                                                     </button>
-                                                    {% for investment in funding_round.investments %}
+                                                    <!-- {% for investment in funding_round.investments %}
                                                     <div
                                                         @click.stop="toggleInvesmtent('{{ investment.id }}')"
                                                         class="flex cursor-pointer flex-col gap-3 divide-y overflow-hidden rounded-2xl border border-gray-200 bg-white @container"
@@ -745,6 +746,7 @@
                                                                 <button
                                                                     @click.prevent="updateInvestmentOpened = true; investmentId = '{{ investment.id }}'"
                                                                     class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                                                    type="button"
                                                                 >
                                                                     <svg
                                                                         xmlns="http://www.w3.org/2000/svg"
@@ -765,6 +767,7 @@
                                                                 <button
                                                                     @click.prevent="deleteInvestmentOpened = true; investmentId = '{{ investment.id }}'"
                                                                     class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                                                    type="button"
                                                                 >
                                                                     <svg
                                                                         xmlns="http://www.w3.org/2000/svg"
@@ -784,7 +787,7 @@
                                                             </div>
                                                         </header>
                                                     </div>
-                                                    {% endfor %}
+                                                    {% endfor %} -->
                                                 </div>
                                             </div>
                                             {% endfor %}
@@ -794,6 +797,7 @@
                                             <button
                                                 class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-700 p-3 transition-shadow hover:shadow-md"
                                                 @click.prevent="createInvestmentOpened = true"
+                                                type="button"
                                             >
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -909,17 +913,19 @@
                                     </div>
                                     {% endif %}
                                 </div>
-                                <div class="mt-8 flex gap-5" v-if="'{{ user_role }}' !== 'employee'">
+                                {% if user_role in ["owner", "admin"] %}
+                                <div class="mt-8 flex gap-5 justify-end">
+                                    <a class="flex items-center justify-center text-gray-700 underline" href=""
+                                        >Cancel</a
+                                    >
                                     <button
                                         type="submit"
                                         class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
                                     >
                                         Save
                                     </button>
-                                    <a class="flex items-center justify-center text-gray-700 underline" href=""
-                                        >Cancel</a
-                                    >
                                 </div>
+                                {% endif %}
                             </div>
                         </form>
                     </div>
@@ -1022,7 +1028,12 @@
                                         />
                                         {% endif %}
                                         <div>
-                                            <h3 class="text-md font-medium">{{ user.name }}</h3>
+                                            <h3 class="text-md font-medium">
+                                                {{ user.name }}
+                                                <span class="text-gray-400 text-xs italic">
+                                                    {{ "You" if user.id == current_user.id else "" }}
+                                                </span>
+                                            </h3>
                                             <span class="text-sm text-gray-700">{{ user.role.title() }}</span>
                                         </div>
                                     </div>

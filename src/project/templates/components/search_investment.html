@@ -1,7 +1,7 @@
 {% macro render() %}
-<template id="search-investment-template">
+<template id="search-investors-template">
     <article
-        class="fixed right-0 top-0 z-50 h-full w-full bg-white px-8 py-6 sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-3xl"
+        class="fixed right-0 top-0 z-50 h-full w-full bg-white p-8 gap-4 flex flex-col sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
     >
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
 

@@ -26,6 +26,7 @@ class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
     investment_firm_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=True)
     amount: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_by_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    # If the amount is < 40000$ then it's verified. Otherwise, it's not verified.
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
     created: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)
 

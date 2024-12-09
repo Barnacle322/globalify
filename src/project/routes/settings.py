@@ -518,28 +518,24 @@ def get_rounds():
     return jsonify({"rounds": rounds})
 
 
-@settings.get("/funding-rounds")
+@settings.get("/company/<int:company_id>/funding-rounds")
 @login_required
 @check_user_info_complete
 @check_verification
-def get_funding_rounds():
-    funding_round_models = FundingRound.get_all()
-
-    if not funding_round_models:
-        return {"funding_rounds": []}
+def get_funding_rounds(company_id: int):
+    funding_round_models = FundingRound.get_by_company_id(company_id=company_id)
 
     funding_rounds = []
-
-    for funding_round in funding_round_models:
+    for funding_round in funding_round_models if funding_round_models else []:
         funding_rounds.append(
             FundingRoundSchema(
                 id=funding_round.id,
                 company_name=funding_round.company.name,
                 announced_date=funding_round.announced_date,
-                round={
-                    "id": funding_round.round.id,
-                    "name": funding_round.round.name,
-                },
+                round=RoundSchema(
+                    id=funding_round.round.id,
+                    name=funding_round.round.name,
+                ),
             ).model_dump()
         )
     return {"funding_rounds": funding_rounds}

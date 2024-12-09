@@ -2,12 +2,20 @@ from datetime import date
 
 from pydantic import BaseModel
 
+from .investor import RoundSchema
+
 
 class FundingRoundSchema(BaseModel):
     id: int
     company_name: str
-    round: object | None
+    round: RoundSchema | None
     announced_date: date | None
+
+    def model_dump(self, **kwargs):
+        data = super().model_dump(**kwargs)
+        if self.announced_date:
+            data["announced_date"] = self.announced_date.isoformat()
+        return data
 
 
 class FetchFundingRoundSchema(BaseModel):

@@ -6,12 +6,15 @@
         <header class="sticky top-0 bg-white p-4">
             <span class="text-xl font-medium"> Modify the Role of the User Within {{ company.name }} </span>
         </header>
-        {# <span>{{ current_user }}</span>#}
 
         <div class="grid grid-cols-12 gap-2 px-4">
             <div class="col-span-full flex flex-col gap-2">
                 <label class="font-normal">Change role for user [[user.name]]</label>
-                <select class="h-12 w-full rounded-xl border border-stone-300 px-2" ref="roleChange">
+                <select
+                    class="h-12 w-full rounded-xl border border-stone-300 px-2"
+                    ref="roleChange"
+                    v-bind:disabled="user.role === 'owner'"
+                >
                     <option value="OWNER" :selected="user.role === 'owner'">Owner</option>
                     <option value="ADMIN" :selected="user.role === 'admin'">Admin</option>
                     <option value="TEAM" :selected="user.role === 'team'">Team</option>

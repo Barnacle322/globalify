@@ -138,7 +138,7 @@ def investor_slug(slug):
     if investor.location:
         description += f" Located in {investor.location}."
 
-    twitter_slug = f"@{investor.twitter.split('/')[-1]}" if investor.twitter else "@Globalify"
+    twitter_slug = f"@{investor.twitter.split('/')[-1]}" if investor.twitter else None
     picture_url = (
         f"https://unavatar.io/twitter/{investor.twitter.split('/')[-1]}"
         if investor.twitter
@@ -363,7 +363,7 @@ def company_slug(slug):
     if company.country:
         description += f" Located in {company.country.name}."
 
-    twitter_slug = f"@{company.twitter_url.split('/')[-1]}" if company.twitter_url else "@globalify"
+    twitter_slug = f"@{company.twitter_url.split('/')[-1]}" if company.twitter_url else None
 
     picture_url = (
         company.picture_url or f"https://unavatar.io/twitter/{company.twitter_url.split('/')[-1]}"
@@ -541,7 +541,7 @@ def investment_firm_slug(slug):
     if investment_firm.location:
         description += f" Located in {investment_firm.location}."
 
-    twitter_slug = f"@{investment_firm.twitter.split('/')[-1]}" if investment_firm.twitter else "@globalify"
+    twitter_slug = f"@{investment_firm.twitter.split('/')[-1]}" if investment_firm.twitter else None
 
     picture_url = (
         f"https://unavatar.io/twitter/{investment_firm.twitter.split('/')[-1]}"

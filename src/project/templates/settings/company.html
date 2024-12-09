@@ -611,7 +611,7 @@
                                             <span class="text-sm text-gray-700">{{ user.position }}</span>
                                         </div>
                                     </div>
-                                    {% if (user_role == "owner" or user_role == "admin") and current_user.id != user.id %}
+                                    {% if (user_role == "owner" and current_user.id == user.id) or (user_role in ["owner", "admin"] and current_user.id != user.id) %}
                                     <div class="ml-auto flex items-center justify-center">
                                         <button
                                             class="rounded-lg border bg-white px-2 py-1"

@@ -28,6 +28,7 @@ class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
     created_by_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
     # If the amount is < 40000$ then it's verified. Otherwise, it's not verified.
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
     created: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)
 
     funding_round: Mapped[FundingRound] = relationship("FundingRound", back_populates="investments", init=False)

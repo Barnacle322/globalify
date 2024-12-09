@@ -1,17 +1,15 @@
 {% macro render() %}
 <template id="search-investors-template">
-    <article
-        class="fixed right-0 top-0 z-50 h-full w-full bg-white p-8 gap-4 flex flex-col sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
+    <section
+        class="fixed right-0 top-0 z-50 h-full w-full bg-white p-3 gap-4 flex flex-col sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-3xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
     >
-        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-
-        <div class="flex flex-col items-center justify-center gap-2 rounded-2xl bg-deep-purple px-5 py-5">
+        <div class="flex flex-col items-center justify-center gap-6 rounded-2xl bg-deep-purple p-8">
             <h1
-                class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-3xl font-bold tracking-tight text-transparent sm:text-4xl xl:text-5xl"
+                class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text py-2 text-center font-bold tracking-tight text-transparent text-5xl"
             >
                 Globalify
             </h1>
-            <div class="flex items-center gap-4 mb-4">
+            <div class="flex items-center gap-4">
                 <div class="flex items-center gap-2">
                     <input
                         type="radio"
@@ -24,10 +22,10 @@
                     />
                     <label
                         for="investor"
-                        class="cursor-pointer rounded-full border-2 border-gray-300 px-4 py-2 transition duration-200 ease-in-out w-32 text-center"
+                        class="cursor-pointer rounded-lg px-4 py-2 transition duration-200 ease-in-out w-32 text-center font-medium"
                         :class="{'bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white': searchType === 'investor', 'bg-white text-gray-700': searchType !== 'investor'}"
                     >
-                        Investor
+                        Investors
                     </label>
                     <input
                         type="radio"
@@ -39,14 +37,13 @@
                     />
                     <label
                         for="investment_firm"
-                        class="cursor-pointer rounded-full border-2 border-gray-300 px-4 py-2 transition duration-200 ease-in-out w-32 text-center"
+                        class="cursor-pointer rounded-lg px-4 py-2 transition duration-200 ease-in-out w-32 text-center font-medium"
                         :class="{'bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white': searchType === 'investment_firm', 'bg-white text-gray-700': searchType !== 'investment_firm'}"
                     >
-                        Firm
+                        Firms
                     </label>
                 </div>
             </div>
-
             <div
                 class="mx-auto flex w-full gap-2 rounded-full border-2 bg-white py-2 pr-3 text-2xl placeholder:text-2xl"
             >
@@ -64,7 +61,7 @@
                 />
             </div>
         </div>
-        <div class="grid max-h-full grid-cols-1 gap-4 overflow-visible sm:grid-cols-2 mt-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <article
                 v-for="investor in investors"
                 :key="investor.id"
@@ -160,17 +157,12 @@
             </article>
             <article
                 v-if="Array.isArray(investors) && investors.length == 0"
-                class="col-span-full flex flex-col items-center justify-center gap-3"
+                class="col-span-full flex flex-col items-center justify-center gap-2 my-4"
             >
                 <h2 class="text-2xl font-medium">No Results Found</h2>
-                <p class="max-w-lg text-center text-gray-600">
-                    <span v-if="searchType === 'investment_firm'">
-                        We can't find any investment firms matching your search.
-                    </span>
-                    <span v-else> We can't find any investors matching your search. </span>
-                </p>
+                <p class="max-w-sm text-center text-gray-600">We couldn't find anything matching your search query</p>
             </article>
         </div>
-    </article>
+    </section>
 </template>
 {% endmacro %}

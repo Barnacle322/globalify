@@ -416,6 +416,11 @@ def create_investor():
     else:
         user = None
 
+    twitter = form_data.get("twitter") or None
+    if isinstance(twitter, str) and "x.com" in twitter:
+        slug = twitter.split("/")[-1]
+        twitter = f"https://twitter.com/{slug}"
+
     investor = Investor(
         first_name=first_name,
         last_name=form_data.get("last_name"),
@@ -425,7 +430,7 @@ def create_investor():
         about=form_data.get("about") or None,
         website=form_data.get("website") or None,
         linkedin=form_data.get("linkedin") or None,
-        twitter=form_data.get("twitter") or None,
+        twitter=twitter,
         email=form_data.get("email") or None,
         phone_number=form_data.get("phone_number") or None,
         n_investments=int(form_data.get("n_investments") or 0),

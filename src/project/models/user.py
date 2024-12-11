@@ -91,7 +91,6 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     search_histories: Mapped[list[SearchHistory]] = relationship(
         "SearchHistory", back_populates="user", uselist=True, init=False
     )
-
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -876,8 +875,8 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     company: Mapped[Company] = relationship(
         Company, back_populates="user_companies", uselist=True, init=False, lazy="joined"
     )
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    position: Mapped[str | None] = mapped_column(String, nullable=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
     role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.TEAM)
@@ -975,11 +974,11 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
     company: Mapped[Company] = relationship(Company, back_populates="company_invitations", uselist=True, init=False)
-
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), init=False
     )
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    position: Mapped[str | None] = mapped_column(String, nullable=True)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
     invited_by: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     email: Mapped[str] = mapped_column(String, nullable=False)

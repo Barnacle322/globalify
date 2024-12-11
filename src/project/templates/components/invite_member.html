@@ -91,7 +91,7 @@
                     v-if="userList.length > 0"
                     v-for="(user, index) in userList"
                     @click="selectUser(user, $event)"
-                    :class="{ 'pointer-events-none opacity-60': {{users_in_company}}.includes(user.id) }"
+                    :class="{ 'pointer-events-none opacity-60': {{ users_in_company }}.includes(user.id) }"
                 >
                     <img
                         class="size-12 rounded-lg"
@@ -140,9 +140,17 @@
                 @input="limitText"
                 @blur="invitationMessage = invitationMessage.trim()"
             ></textarea>
+            <label class="font-medium" for="position">My Position</label>
+            <textarea
+                class="w-full rounded-xl border-2 border-stone-300"
+                placeholder="CEO"
+                v-model="position"
+                @input="limitPositionText"
+                @blur="position = position.trim()"
+            ></textarea>
             <button
                 class="mt-auto w-full rounded-xl bg-sky-400 px-3 py-2 text-white disabled:bg-gray-300 sm:mt-3"
-                @click="inviteMember({{company.id}})"
+                @click="inviteMember({{ company.id }})"
                 :disabled="!(selectedRole && selectedUser)"
             >
                 Invite

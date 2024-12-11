@@ -50,6 +50,7 @@ from ..utils.errors.error_messages import (
     REMOVE_YOURSELF_PERMISSION_DENIED,
     USER_ALREADY_IN_COMPANY,
     USER_ALREADY_INVITED,
+    EMPTY_COMPANY_POSITION,
 )
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
@@ -334,6 +335,8 @@ def company_info_view(company_id):
                 name=user_info.full_name,
                 picture_url=user_info.picture_url,
                 role=user_company.role.value,
+                position=user_company.position
+
             )
             members.append(user_element.model_dump())
 
@@ -619,6 +622,8 @@ def create_company():
         status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("settings.create_company_view", _external=False, **status))
 
+    company_position = form_data.get("position")
+
     company = Company(
         name=company_name,
     )
@@ -683,6 +688,7 @@ def create_company():
         company_id=company.id,
         role=CompanyRole.OWNER,
         is_primary=is_primary,
+        position = company_position
     )
 
     try:
@@ -750,6 +756,7 @@ def invite_user(company_id):
     user_email = form_data.get("email") or None
     user_role = form_data.get("role") or None
     invitation_message = form_data.get("invitation_message") or "Hey, join our company!"
+    company_position = form_data.get("position")
 
     if not user_email or not user_role:
         status = Status(StatusType.ERROR, EMPTY_EMAIL_OR_ROLE).get_status()
@@ -781,6 +788,8 @@ def invite_user(company_id):
         role=CompanyRole(user_role),
         invited_by=current_user.id,
         message=invitation_message,
+        position = company_position
+
     )
 
     db.session.add(company_invitation)
@@ -811,6 +820,7 @@ def accept_invitation(company_id):
             company_id=company_id,
             role=company_invitation.role,
             is_primary=is_primary,
+            position = company_invitation.position
         )
         db.session.add(user_company)
 
@@ -906,6 +916,7 @@ def change_company_role(user_id):
 
     company_id = form_data.get("company_id")
     role = form_data.get("role")
+    position = form_data.get("position")
 
     current_user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not current_user_company:
@@ -920,7 +931,8 @@ def change_company_role(user_id):
         status = Status(StatusType.ERROR, NOT_COMPANY_MEMBER).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    user_company.role = CompanyRole(role)
+    user_company.role = role
+    user_company.position = position
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Member's role has been modified!").get_status()

@@ -458,7 +458,27 @@
                             </div>
                         </div>
                     </article>
-
+                    <article v-if="investor.twitter" class="shadow-card col-span-full w-full rounded-xl bg-white p-5">
+                        <section class="w-full">
+                            <a class="twitter-timeline" :href="investor.twitter" data-height="1000"></a>
+                            <div
+                                v-if="loadingTwitter"
+                                class="my-10 flex h-full w-full items-center justify-center gap-2"
+                            >
+                                <svg
+                                    viewBox="0 0 1200 1227"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    aria-hidden="true"
+                                    role="none"
+                                    class="size-5 animate-breathe"
+                                >
+                                    <path
+                                        d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z"
+                                    ></path>
+                                </svg>
+                            </div>
+                        </section>
+                    </article>
                     <article v-if="unpaid && rendercontacts" class="shadow-card col-span-full w-full rounded-2xl p-5">
                         <h2 class="pb-5 text-xl font-medium" v-text="'Find more contacts for ' + investor.name"></h2>
                         <div class="flex flex-col items-center gap-9 sm:flex-row">

@@ -1,3 +1,73 @@
+const { defineComponent, createApp } = Vue;
+
+const FullInvestor = defineComponent({
+    template: "#full-investor-template",
+    props: { slug: String, rendercontacts: Boolean },
+    emits: ["close-investor"],
+    delimiters: ["[[", "]]"],
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("click", this.handleClickOutside);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleClickOutside);
+    },
+    async created() {
+        await this.fetchInvestor();
+        window.removeEventListener("popstate", this.checkUrlParams);
+        this.fetchInvestments(this.investor.id);
+    },
+    methods: {
+        async fetchInvestor() {
+            try {
+                const response = await fetch(`/investor/${this.slug}/get`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investor = data.investor;
+                    this.isBookmarked = data.isBookmarked;
+                    this.unpaid = data.unpaid;
+                } else {
+                    this.closeInvestor();
+                    return;
+                }
+            } catch (error) {
+                console.error("Error fetching investor:", error);
+                this.closeInvestor();
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-investor");
+            }
+        },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        closeInvestor() {
+            this.$emit("close-investor");
+        },
+        handleClickOutside(event) {
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
+        },
+    },
+    data() {
+        return {
+            showPopover: false,
+            isExpanded: false,
+            isLoading: true,
+            investor: null,
+            unpaid: true,
+            dropdownOpened: false,
+        };
+    },
+});
+
 const InvestorRegistration = defineComponent({
     template: "#investor-registration-template",
     methods: {

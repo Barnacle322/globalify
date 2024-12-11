@@ -1,0 +1,120 @@
+{% macro render(id, type, updated_by_admin) %}
+<template id="update-investment-template">
+    <article
+        class="fixed right-1/2 top-1/2 z-50 flex w-10/12 -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
+    >
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="grid grid-cols-6 gap-x-2 gap-y-1">
+            <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
+            <div class="col-span-full empty:hidden">
+                {% if status_type %} {% if status_type == '3' %}
+                <div class="rounded-xl text-red-500">{{ msg }}</div>
+                {% elif status_type == '2' %}
+                <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                {% elif status_type == '1' %}
+                <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                {% endif %} {% endif %}
+            </div>
+
+            {% if type != 'investor' and type != 'investment_firm' %}
+            <div class="col-span-full">
+                <label for="investor" class="text-sm font-medium text-gray-700">Investor</label>
+                <div>
+                    <select
+                        id="investor"
+                        name="investor"
+                        class="h-12 w-full rounded-xl px-2"
+                        v-model="selectedInvestor"
+                        required
+                    >
+                        <option value="" disabled selected>Select an investor</option>
+                        <option
+                            v-for="investor in investors"
+                            :key="investor.id"
+                            :value="investor.id"
+                            v-text="investor.name"
+                        ></option>
+                    </select>
+                </div>
+            </div>
+
+            {% endif %} {% if type != 'investment_firm' and type != 'investor' %}
+            <div class="col-span-full">
+                <label for="investment_firm" class="text-sm font-medium text-gray-700">Investment Firm</label>
+                <div>
+                    <select
+                        id="investment_firm"
+                        name="investment_firm"
+                        class="h-12 w-full rounded-xl px-2"
+                        v-model="selectedInvestmentFirm"
+                        required
+                    >
+                        <option value="" disabled selected>Select an investment firm</option>
+                        <option
+                            v-for="investment_firm in investment_firms"
+                            :key="investment_firm.id"
+                            :value="investment_firm.id"
+                            v-text="investment_firm.name"
+                        ></option>
+                    </select>
+                </div>
+            </div>
+
+            {% endif %} {% if type != 'company' %}
+            <div class="col-span-full">
+                <label for="funding_round" class="text-sm font-medium text-gray-700">Funding Round</label>
+                <div>
+                    <select
+                        id="funding_round"
+                        name="funding_round"
+                        class="h-12 w-full rounded-xl px-2"
+                        v-model="selectedFundingRound"
+                        required
+                    >
+                        <option value="" disabled selected>Select a funding round</option>
+                        <option
+                            v-for="funding_round in fundingRounds"
+                            :key="funding_round.id"
+                            :value="funding_round.id"
+                            v-text="funding_round.company_name"
+                        ></option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-span-full">
+                <label class="text-sm font-medium text-gray-700" for="company_name">Custom Company name</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="text"
+                    id="company_name"
+                    placeholder="Globalify"
+                    required
+                />
+            </div>
+            {% endif %}
+
+            <div class="col-span-full">
+                <label class="text-sm font-medium text-gray-700" for="amount">Amount</label>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    type="number"
+                    id="amount"
+                    placeholder="14"
+                    :value="investment.amount"
+                />
+            </div>
+        </div>
+        <div class="flex justify-end gap-5">
+            <button @click="closeUpdateInvestmentModal" class="rounded-lg border border-gray-300 px-3 py-2">
+                Cancel
+            </button>
+            <button
+                @click="updateInvestment(id, '{{updated_by_admin}}')"
+                class="rounded-lg bg-sky-500 px-3 py-2 text-white hover:bg-sky-600"
+            >
+                Update
+            </button>
+        </div>
+    </article>
+</template>
+{% endmacro %}

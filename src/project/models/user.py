@@ -48,6 +48,7 @@ from .helpers import Country, Industry, Round
 
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
+    from .investment import FundingRound
     from .investor import InvestmentFirmBookmark, Investor, InvestorBackup, InvestorBookmark, NotableInvestment
     from .search import SearchHistory
 
@@ -477,6 +478,10 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     notable_investment: Mapped[NotableInvestment] = relationship(
         "NotableInvestment", back_populates="company", uselist=False, init=False
     )
+    funding_rounds: Mapped[list[FundingRound]] = relationship(
+        "FundingRound", back_populates="company", uselist=True, init=False
+    )
+
     country: Mapped[Country] = relationship(init=False)
     preferred_round: Mapped[Round] = relationship(init=False)
     industry: Mapped[Industry] = relationship(init=False)

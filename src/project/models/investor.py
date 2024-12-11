@@ -56,6 +56,7 @@ from .helpers import Industry, Round
 
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
+    from .investment import Investment
     from .user import Company, User
 
 
@@ -284,6 +285,7 @@ class Investor(InvestorBase):
     origin_point: Mapped[InvestorOriginPoint | None] = relationship(
         "InvestorOriginPoint", back_populates="investor", uselist=False
     )
+    investments: Mapped[list[Investment]] = relationship("Investment", back_populates="investor", uselist=True)
 
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
     _country: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -1242,6 +1244,7 @@ class InvestmentFirm(db.Model):
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investment_firm_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investment_firm_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investment_firm_industry)
+    investments: Mapped[list[Investment]] = relationship("Investment", back_populates="investment_firm")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

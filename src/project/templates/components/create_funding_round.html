@@ -1,0 +1,50 @@
+{% macro render(companyId) %}
+<template id="create-funding-round-template">
+    <article
+        class="fixed right-0 top-0 z-50 h-full w-full bg-white p-8 gap-4 flex flex-col sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
+    >
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="grid gap-2">
+            <h2 class="col-span-full text-2xl font-medium">Funding Round Info</h2>
+
+            <div>
+                <label for="round" class="text-sm font-medium text-gray-700">Series</label>
+                <select
+                    v-model="selectedRound"
+                    id="round"
+                    name="round"
+                    class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                    id="round"
+                >
+                    <option value="" disabled selected hidden>Select a round</option>
+                    <option v-for="round in rounds" :key="round.id" :value="round.id" v-text="round.name"></option>
+                </select>
+            </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700" for="announced_date">Date</label>
+                <input
+                    class="w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
+                    type="date"
+                    id="announced_date"
+                    value=""
+                    required
+                />
+            </div>
+        </div>
+        <div class="flex justify-end gap-4 mt-auto">
+            <button
+                @click="closeCreateFundingRoundModal"
+                class="rounded-lg border border-gray-300 px-3 py-2 transition-shadow ease-in-out hover:shadow-md"
+            >
+                Cancel
+            </button>
+            <button
+                @click="createFundingRound({{ companyId }})"
+                class="rounded-lg bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+            >
+                Create
+            </button>
+        </div>
+    </article>
+</template>
+{% endmacro %}

@@ -1,3 +1,493 @@
+const FullInvestor = defineComponent({
+    template: "#full-investor-template",
+    props: { slug: String, rendercontacts: Boolean },
+    emits: ["close-investor", "bookmarked"],
+    delimiters: ["[[", "]]"],
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("click", this.handleClickOutside);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        this.deleteInvestorParam();
+        document.removeEventListener("click", this.handleClickOutside);
+        const script_element = document.getElementById("twitter-script");
+        if (script_element) script_element.remove();
+    },
+    async created() {
+        await this.fetchInvestor();
+        window.removeEventListener("popstate", this.checkUrlParams);
+        this.fetchInvestments(this.investor.id);
+    },
+    methods: {
+        async fetchInvestor() {
+            try {
+                const response = await fetch(`/investor/${this.slug}/get`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investor = data.investor;
+                    this.isBookmarked = data.isBookmarked;
+                    this.unpaid = data.unpaid;
+                    await this.loadTwitterTimeline();
+                } else {
+                    this.closeInvestor();
+                    return;
+                }
+            } catch (error) {
+                console.error("Error fetching investor:", error);
+                this.closeInvestor();
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async loadTwitterTimeline() {
+            if (!this.investor?.twitter) return;
+            this.loadingTwitter = true; // Set loading state to true
+            this.ensureTwitterScriptLoaded(() => {
+                const timeline = document.querySelector(".twitter-timeline");
+                if (timeline) {
+                    timeline.innerHTML = "";
+                    timeline.setAttribute("href", this.investor.twitter);
+                    window.twttr?.widgets.load();
+
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            const twitterWidget = document.querySelector("[id^='twitter-widget-']");
+                            if (twitterWidget && twitterWidget.offsetHeight > 0) {
+                                this.loadingTwitter = false;
+                                observer.disconnect();
+                            }
+                        });
+                    });
+
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+        },
+        ensureTwitterScriptLoaded(callback) {
+            const script_element = document.getElementById("twitter-script");
+            if (script_element) script_element.remove();
+
+            if (!this.twitterScriptLoaded) {
+                const script = document.createElement("script");
+                script.src = "https://platform.twitter.com/widgets.js";
+                script.id = "twitter-script";
+                script.async = true;
+                script.onload = () => {
+                    this.twitterScriptLoaded = true;
+                    callback();
+                };
+                document.body.appendChild(script);
+            } else {
+                callback();
+            }
+        },
+        async toggleBookmark(investorId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investor/${investorId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
+                    if (data[0].bookmarked) {
+                        this.$emit("bookmarked", { investorId: investorId, status: true });
+                        this.isBookmarked = !this.isBookmarked;
+                    } else {
+                        // svg.style.fill = "none";
+                        this.$emit("bookmarked", { investorId: investorId, status: false });
+                        this.isBookmarked = !this.isBookmarked;
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async fetchInvestments(investorId) {
+            try {
+                const response = await fetch(`/investment/${investorId}/get`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investments = data.investments;
+
+                    this.n_of_investments = data.n_of_investments;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async sortInvestments(sortType) {
+            const compareDates = (a, b) => {
+                const dateA = new Date(a.announced_date);
+                const dateB = new Date(b.announced_date);
+                return sortType === "asc" ? dateA - dateB : dateB - dateA;
+            };
+
+            this.investments.sort(compareDates);
+
+            // Force re-render
+            this.investments = [...this.investments];
+            this.sortOrder = sortType;
+            this.sortDropdownOpened = false;
+        },
+        deleteInvestorParam() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("investor");
+            window.history.replaceState({}, "", url);
+        },
+        checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const investorSlug = urlParams.get("investor");
+            if (!investorSlug) {
+                this.$emit("close-investor");
+            }
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-investor");
+            }
+        },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        closeInvestor() {
+            this.$emit("close-investor");
+        },
+        getTwitterHandle(url) {
+            return url.split("/").pop();
+        },
+        handleClickOutside(event) {
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
+        },
+    },
+    data() {
+        return {
+            showPopover: false,
+            isExpanded: false,
+            isLoading: true,
+            isBookmarked: false,
+            investor: null,
+            unpaid: false,
+            sortDropdownOpened: false,
+            sortOrder: null,
+            investments: [],
+            dropdownOpened: false,
+            twitterScriptLoaded: false,
+            loadingTwitter: false,
+        };
+    },
+});
+
+const SearchHistory = defineComponent({
+    template: "#search-history-template",
+    delimiters: ["[[", "]]"],
+    props: ["type"],
+    async mounted() {
+        try {
+            const response = await fetch(`/search-history?type=${this.type}&page=1&limit=5`);
+            if (response.ok) {
+                const data = await response.json();
+                for (let item of data) {
+                    this.searchHistoryData.push(...item.histories);
+                }
+            } else {
+                console.error("An error occurred while fetching the search history.");
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    },
+    data() {
+        return {
+            searchHistoryData: [],
+        };
+    },
+});
+
+const FullInvestmentFirm = defineComponent({
+    template: "#full-investment-firm-template",
+    props: { slug: String },
+    emits: ["close-investment-firm", "bookmarked"],
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("click", this.handleClickOutside);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        this.deleteInvestmentFirmParam();
+        document.removeEventListener("click", this.handleClickOutside);
+    },
+    async created() {
+        await this.fetchInvestmentFirm();
+        window.removeEventListener("popstate", this.checkUrlParams);
+        this.fetchInvestments(this.investmentFirm.id);
+    },
+    methods: {
+        async fetchInvestmentFirm() {
+            this.isLoading = true;
+            try {
+                const response = await fetch(`/investment-firm/${this.slug}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investmentFirm = data.investment_firm;
+                    this.unpaid = data.unpaid;
+                    this.isBookmarked = data.isBookmarked;
+                } else {
+                    this.closeInvestmentFirm();
+                    return;
+                }
+            } catch (error) {
+                console.error("Error fetching investment firm:", error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async toggleBookmark(firmId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
+                    if (data[0].bookmarked) {
+                        this.$emit("bookmarked", { firmId: firmId, status: true });
+                        this.isBookmarked = !this.isBookmarked;
+                    } else {
+                        this.$emit("bookmarked", { firmId: firmId, status: false });
+                        this.isBookmarked = !this.isBookmarked;
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async fetchInvestments(firmId) {
+            try {
+                const response = await fetch(`/investment-firm/investment/${firmId}/get`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investments = data.investments;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async sortInvestments(sortType) {
+            const compareDates = (a, b) => {
+                const dateA = new Date(a.announced_date);
+                const dateB = new Date(b.announced_date);
+                return sortType === "asc" ? dateA - dateB : dateB - dateA;
+            };
+
+            this.investments.sort(compareDates);
+
+            // Force re-render
+            this.investments = [...this.investments];
+            this.sortOrder = sortType;
+            this.sortDropdownOpened = false;
+        },
+        getTwitterHandle(url) {
+            if (!url) return;
+            return url.split("/").pop();
+        },
+        deleteInvestmentFirmParam() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("investment-firm");
+            window.history.replaceState({}, "", url);
+        },
+        checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const investorSlug = urlParams.get("investment-firm");
+            if (!investorSlug) {
+                this.$emit("close-investment-firm");
+            }
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-investment-firm");
+            }
+        },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        сloseInvestmentFirm() {
+            this.$emit("close-investment-firm");
+        },
+        handleClickOutside(event) {
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
+        },
+    },
+    data() {
+        return {
+            isExpanded: false,
+            isLoading: false,
+            investmentFirm: null,
+            isBookmarked: false,
+            unpaid: false,
+            sortDropdownOpened: false,
+            sortOrder: null,
+            investments: [],
+            dropdownOpened: false,
+        };
+    },
+});
+
+const FullCompany = defineComponent({
+    template: "#full-company-template",
+    props: { slug: String },
+    emits: ["close-company", "bookmarked"],
+    delimiters: ["[[", "]]"],
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("click", this.handleClickOutside);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        this.deleteCompanyParam();
+        document.removeEventListener("click", this.handleClickOutside);
+    },
+    async created() {
+        await this.fetchCompany();
+        window.removeEventListener("popstate", this.checkUrlParams);
+        this.fetchInvestments(this.company.id);
+    },
+    methods: {
+        async fetchCompany() {
+            this.isLoading = true;
+            try {
+                const response = await fetch(`/company/${this.slug}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.company = data.company;
+                    this.unpaid = data.unpaid;
+                    this.isBookmarked = data.isBookmarked;
+                } else {
+                    this.closeCompany();
+                    return;
+                }
+            } catch (error) {
+                console.error("Error fetching company:", error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async toggleBookmark(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/company/${companyId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    var svg = document.getElementById(`bookmark-svg-company-${companyId}`);
+                    if (data[0].bookmarked) {
+                        this.$emit("bookmarked", { companyId: companyId, status: true });
+                        this.isBookmarked = !this.isBookmarked;
+                    } else {
+                        svg.style.fill = "none";
+                        this.$emit("bookmarked", { companyId: companyId, status: false });
+                        this.isBookmarked = !this.isBookmarked;
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async fetchInvestments(companyId) {
+            try {
+                const response = await fetch(`/company/investment/${companyId}/get`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investments = data.investments;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async sortInvestments(sortType) {
+            const compareDates = (a, b) => {
+                const dateA = new Date(a.announced_date);
+                const dateB = new Date(b.announced_date);
+                return sortType === "asc" ? dateA - dateB : dateB - dateA;
+            };
+
+            this.investments.sort(compareDates);
+
+            // Force re-render
+            this.investments = [...this.investments];
+            this.sortOrder = sortType;
+            this.sortDropdownOpened = false;
+        },
+        deleteCompanyParam() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("company");
+            window.history.replaceState({}, "", url);
+        },
+        checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const investorSlug = urlParams.get("company");
+            if (!investorSlug) {
+                this.$emit("close-company");
+            }
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-company");
+            }
+        },
+        getTwitterHandle(url) {
+            if (!url) return;
+            return url.split("/").pop();
+        },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        closeCompany() {
+            this.$emit("close-company");
+        },
+        handleClickOutside(event) {
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
+        },
+    },
+    data() {
+        return {
+            isExpanded: false,
+            isLoading: false,
+            isBookmarked: false,
+            company: null,
+            unpaid: false,
+            sortDropdownOpened: false,
+            sortOrder: null,
+            investments: [],
+            dropdownOpened: false,
+        };
+    },
+});
+
 createApp({
     components: {
         AsideComponent,
@@ -59,12 +549,15 @@ createApp({
         this.setupMenuToggle();
         this.initializeValuesFromParams();
         this.updateLinksWithQueryParams();
+
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
             this.checkUrlParams("investment-firm", this.selectInvestmentFirmSlug, "close-investment-firm"),
         );
         window.addEventListener("popstate", this.checkUrlParams("company", this.selectCompanySlug, "close-company"));
+        window.addEventListener("click", this.closeSortDropdownOutside);
+        window.addEventListener("scroll", this.handleScroll);
     },
     updated() {
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
@@ -499,6 +992,9 @@ createApp({
                 console.error(error);
             }
         },
+        closeSortDropdownOutside() {
+            this.sortDropdownOpened = false;
+        },
         showSearchHistory() {
             this.isSearchHistoryVisible = true;
         },
@@ -514,13 +1010,13 @@ createApp({
             asideExpanded: false,
             asideMinified: false,
             openAdvanced: false,
-
             isSearchHistoryVisible: false,
-
             selectedInvestorSlug: null,
             selectedInvestmentFirmSlug: null,
             selectedCompanySlug: null,
             bookmarkedInvestorId: null,
+            investmentInvestorId: null,
+            n_of_investments: 0,
             investorBookmakrIds: [],
             investmentFirmBookmakrIds: [],
             companyBookmarkIds: [],

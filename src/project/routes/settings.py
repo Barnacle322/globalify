@@ -9,7 +9,10 @@ from ..models import (
     Company,
     CompanyInvitation,
     Country,
+    FundingRound,
     Industry,
+    Investment,
+    InvestmentFirm,
     Investor,
     InvestorBackup,
     InvestorOriginPoint,
@@ -20,7 +23,8 @@ from ..models import (
     UserInfo,
 )
 from ..models.claim import ClaimRequest
-from ..schemas.investor import InvestorOriginPointSchema
+from ..schemas.investment import FundingRoundSchema
+from ..schemas.investor import InvestorOriginPointSchema, MiniInvestorSchema, RoundSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
@@ -317,6 +321,10 @@ def company_info_view(company_id):
 
     company_invitations = CompanyInvitation.get_by_company_id(company_id=company_id)
 
+    investments = Investment.get_by_company_id(company_id=company_id)
+
+    funding_rounds = FundingRound.get_by_company_id(company_id=company_id)
+
     company_members = UserCompany.get_members(company_id=company_id)
     members = []
     if company_members:
@@ -348,6 +356,8 @@ def company_info_view(company_id):
         rounds=Round.get_all(),
         countries=Country.get_all(),
         company=company,
+        investments=investments,
+        funding_rounds=funding_rounds,
         members=members,
         users_in_company=users_in_company,
         company_invitations=company_invitations,
@@ -494,6 +504,88 @@ def change_company_info(company_id):
             **status,
         )
     )
+
+
+@settings.get("/rounds")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_rounds():
+    rounds = Round.get_all()
+
+    if not rounds:
+        return {"rounds": []}
+
+    rounds = [RoundSchema(id=round.id, name=round.name).model_dump() for round in rounds]
+
+    return jsonify({"rounds": rounds})
+
+
+@settings.get("/company/<int:company_id>/funding-rounds")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_funding_rounds(company_id: int):
+    funding_round_models = FundingRound.get_by_company_id(company_id=company_id)
+
+    funding_rounds = []
+    for funding_round in funding_round_models if funding_round_models else []:
+        funding_rounds.append(
+            FundingRoundSchema(
+                id=funding_round.id,
+                company_name=funding_round.company.name,
+                announced_date=funding_round.announced_date,
+                round=RoundSchema(
+                    id=funding_round.round.id,
+                    name=funding_round.round.name,
+                ),
+            ).model_dump()
+        )
+    return {"funding_rounds": funding_rounds}
+
+
+@settings.get("/investors")
+@login_required
+@check_user_info_complete
+@check_verification
+def investor_list_view():
+    if not isinstance(current_user, User):
+        return redirect(url_for("search.investor_search"))
+
+    investor_models = Investor.get_all()
+
+    investors = []
+
+    for investor in investor_models:
+        investor_schema = MiniInvestorSchema(
+            id=investor.id,
+            name=investor.full_name,
+        )
+        investors.append(investor_schema.model_dump())
+
+    return jsonify({"investors": investors})
+
+
+@settings.get("/investment-firms")
+@login_required
+@check_user_info_complete
+@check_verification
+def investment_firms_list_view():
+    if not isinstance(current_user, User):
+        return redirect(url_for("search.investor_search"))
+
+    investment_firm_models = InvestmentFirm.get_all()
+
+    investment_firms = []
+
+    for investment_firm_model in investment_firm_models:
+        investment_firm_schema = MiniInvestorSchema(
+            id=investment_firm_model.id,
+            name=investment_firm_model.name,
+        )
+        investment_firms.append(investment_firm_schema.model_dump())
+
+    return jsonify({"investment_firms": investment_firms})
 
 
 @settings.get("/company/create")

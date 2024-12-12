@@ -590,17 +590,16 @@ createApp({
         async getCompanyList(event) {
             const searchInput = event.target.value;
             if (searchInput.length > 0) {
-                const response = await fetch(`/admin/users/search/${searchInput}`);
+                const response = await fetch(`/admin/search_companies/${searchInput}`);
                 if (response.ok) {
                     const data = await response.json();
-                    this.userList = data.users;
+                    console.log(data)
+                    this.companyList = data.companies;
                 }
             } else {
-                this.userList = [];
+                this.companyList = [];
             }
         }
-
-
     },
     mounted() {
         this.setupMenuToggle();
@@ -618,6 +617,7 @@ createApp({
             selectedIndustry: "",
             selectedNotableInvestment: "",
             userList: [],
+            companyList: [],
             notableInvestments: [],
             industryList: [],
             dataString: "",

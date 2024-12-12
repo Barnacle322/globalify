@@ -10,7 +10,7 @@ from ...models import (
     Industry,
     Investor,
     NotableInvestment,
-    User,
+    User, Company,
 )
 from ...utils.decorators import admin_only
 from ...utils.enums import (
@@ -41,6 +41,14 @@ def search_user(search_input):
     users = db.session.scalars(select(User).where(User.email.contains(search_input))).unique().all()
 
     return jsonify(users=[user.email for user in users])
+
+
+@admin.get("/search_companies/<search_input>")
+@admin_only
+def search_companies(search_input):
+    companies = db.session.scalars(select(Company).where(Company.name.contains(search_input))).unique().all()
+    return jsonify(companies=[company.name for company in companies])
+
 
 
 @admin.get("/search_industries/<search_input>")

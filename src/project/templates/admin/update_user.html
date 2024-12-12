@@ -412,15 +412,15 @@
                     />
                     <div
                         id="userList"
-                        v-show="userList.length > 0"
+                        v-show="companyList.length > 0"
                         class="flex max-h-60 w-full origin-top-right flex-col gap-1 overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
                     >
                         <p
-                            v-for="(email, index) in userList"
+                            v-for="(name, index) in companyList"
                             :key="index"
                             class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
                             @click="selectUser(email)"
-                            v-text="email"
+                            v-text="name"
                         ></p>
                     </div>
                 </div>

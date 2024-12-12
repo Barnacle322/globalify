@@ -573,12 +573,12 @@
                             </div>
                         </div>
                     </article>
-                    <article v-if="investor.twitter" class="shadow-card w-full rounded-xl bg-white p-5 col-span-full">
+                    <article v-if="investor.twitter" class="shadow-card col-span-full w-full rounded-xl bg-white p-5">
                         <section class="w-full">
                             <a class="twitter-timeline" :href="investor.twitter" data-height="1000"></a>
                             <div
                                 v-if="loadingTwitter"
-                                class="flex w-full h-full justify-center items-center gap-2 my-10"
+                                class="my-10 flex h-full w-full items-center justify-center gap-2"
                             >
                                 <svg
                                     viewBox="0 0 1200 1227"

@@ -4,12 +4,12 @@ createApp({
         AsideMobileComponent,
         NavbarComponent,
         Bookmark,
-        CreateNotableInvestmentComponent,
+        CreateNotableInvestmentComponent
     },
     watch: {
         asideMinified(value) {
             localStorage.setItem("asideMinified", value);
-        },
+        }
     },
     created() {
         this.asideMinified = localStorage.getItem("asideMinified") === "true";
@@ -39,14 +39,14 @@ createApp({
             const location = document.getElementById("location").value;
             const user_email = document.getElementById("searchInput").value;
 
-            const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map(
-                (input) => parseInt(input.value, 10),
+            const selectedRounds = Array.from(document.querySelectorAll("input[name=\"selected_rounds\"]:checked")).map(
+                (input) => parseInt(input.value, 10)
             );
             const selectedIndustries = Array.from(
-                document.querySelectorAll('input[name="selected_industries"]:checked'),
+                document.querySelectorAll("input[name=\"selected_industries\"]:checked")
             ).map((input) => parseInt(input.value, 10));
             const selectedNotableInvestments = Array.from(
-                document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
+                document.querySelectorAll("input[name=\"selected_notable_investments\"]:checked")
             ).map((input) => parseInt(input.value, 10));
             const is_public = document.getElementById("is_public");
             const is_approved = document.getElementById("is_approved");
@@ -71,7 +71,7 @@ createApp({
                 user_email: user_email,
                 rounds: selectedRounds,
                 industries: selectedIndustries,
-                notable_investments: selectedNotableInvestments,
+                notable_investments: selectedNotableInvestments
             };
 
             if (is_public) {
@@ -88,9 +88,9 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
+                        "X-CSRFToken": csrfToken
                     },
-                    body: dataString,
+                    body: dataString
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -110,8 +110,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken,
-                },
+                    "X-CSRFToken": csrfToken
+                }
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -125,8 +125,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
+                        "X-CSRFToken": csrfToken
+                    }
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -143,8 +143,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
+                        "X-CSRFToken": csrfToken
+                    }
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -156,7 +156,7 @@ createApp({
         async restoreOriginData(investorId) {
             try {
                 const response = await fetch(`/admin/investors/${investorId}/restore`, {
-                    method: "GET",
+                    method: "GET"
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -181,14 +181,14 @@ createApp({
             const max_investment = document.getElementById("max_investment").value;
             const location = document.getElementById("location").value;
 
-            const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map(
-                (input) => parseInt(input.value, 10),
+            const selectedRounds = Array.from(document.querySelectorAll("input[name=\"selected_rounds\"]:checked")).map(
+                (input) => parseInt(input.value, 10)
             );
             const selectedIndustries = Array.from(
-                document.querySelectorAll('input[name="selected_industries"]:checked'),
+                document.querySelectorAll("input[name=\"selected_industries\"]:checked")
             ).map((input) => parseInt(input.value, 10));
             const selectedNotableInvestments = Array.from(
-                document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
+                document.querySelectorAll("input[name=\"selected_notable_investments\"]:checked")
             ).map((input) => parseInt(input.value, 10));
             const is_public = document.getElementById("is_public");
 
@@ -207,7 +207,7 @@ createApp({
                 location: location,
                 rounds: selectedRounds,
                 industries: selectedIndustries,
-                notable_investments: selectedNotableInvestments,
+                notable_investments: selectedNotableInvestments
             };
 
             if (is_public) {
@@ -221,9 +221,9 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
+                        "X-CSRFToken": csrfToken
                     },
-                    body: dataString,
+                    body: dataString
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -243,8 +243,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken,
-                },
+                    "X-CSRFToken": csrfToken
+                }
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -266,9 +266,10 @@ createApp({
             const instagram = document.getElementById("instagram").value;
             const isPublicElement = document.getElementById("is_public");
             const is_public = isPublicElement ? isPublicElement.checked : true;
+            const user_email = document.getElementById("searchInput").value;
 
             const selectedNotableInvestments = Array.from(
-                document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
+                document.querySelectorAll("input[name=\"selected_notable_investments\"]:checked")
             ).map((input) => parseInt(input.value, 10));
 
             const dataString = JSON.stringify({
@@ -285,6 +286,7 @@ createApp({
                 instagram: instagram,
                 is_public: is_public,
                 notable_investment: selectedNotableInvestments,
+                user_email: user_email
             });
 
             try {
@@ -292,9 +294,9 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
+                        "X-CSRFToken": csrfToken
                     },
-                    body: dataString,
+                    body: dataString
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -314,8 +316,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken,
-                },
+                    "X-CSRFToken": csrfToken
+                }
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -382,16 +384,16 @@ createApp({
                 tier: tier,
                 is_active: is_active,
                 created: created,
-                expires_at: expires_at,
+                expires_at: expires_at
             });
             try {
                 const response = await fetch("", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
+                        "X-CSRFToken": csrfToken
                     },
-                    body: dataString,
+                    body: dataString
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -411,8 +413,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken,
-                },
+                    "X-CSRFToken": csrfToken
+                }
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -462,9 +464,9 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken,
+                    "X-CSRFToken": csrfToken
                 },
-                body: JSON.stringify({ status: "rejected" }),
+                body: JSON.stringify({ status: "rejected" })
             })
                 .then((response) => {
                     if (response.ok) {
@@ -480,9 +482,9 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken,
+                    "X-CSRFToken": csrfToken
                 },
-                body: JSON.stringify({ status: "approved" }),
+                body: JSON.stringify({ status: "approved" })
             })
                 .then((response) => {
                     if (response.ok) {
@@ -562,17 +564,17 @@ createApp({
             }
 
             this.notableInvestments = await this.fetchData(
-                `/admin/companies/search_notable_investments/${searchInput.trim()}`,
+                `/admin/companies/search_notable_investments/${searchInput.trim()}`
             );
         },
         async fetchNotableInvestmentsByInvestorId(searchInput, investorId) {
             this.notableInvestments = await this.fetchData(
-                `/admin/investors/search_notable_investments/${searchInput.trim()}/${investorId}`,
+                `/admin/investors/search_notable_investments/${searchInput.trim()}/${investorId}`
             );
         },
         async fetchNotableInvestmentsByInvestmentFirmId(searchInput, investmentFirmId) {
             this.notableInvestments = await this.fetchData(
-                `/admin/investment-firms/search_notable_investments/${searchInput.trim()}/${investmentFirmId}`,
+                `/admin/investment-firms/search_notable_investments/${searchInput.trim()}/${investmentFirmId}`
             );
         },
         addNotableInvestment(newInvestment) {
@@ -580,11 +582,25 @@ createApp({
         },
         debounce(func, wait) {
             let timeout;
-            return function (...args) {
+            return function(...args) {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
         },
+        async getCompanyList(event) {
+            const searchInput = event.target.value;
+            if (searchInput.length > 0) {
+                const response = await fetch(`/admin/users/search/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.userList = data.users;
+                }
+            } else {
+                this.userList = [];
+            }
+        }
+
+
     },
     mounted() {
         this.setupMenuToggle();
@@ -608,10 +624,10 @@ createApp({
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
                 { menu: "round-options-menu", button: "round-options" },
-                { menu: "notable-investment-options-menu", button: "notable-investment-options" },
+                { menu: "notable-investment-options-menu", button: "notable-investment-options" }
             ],
             showClasses: ["transform", "opacity-100", "scale-100"],
-            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
+            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"]
         };
-    },
+    }
 }).mount("#app");

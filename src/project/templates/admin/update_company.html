@@ -51,8 +51,8 @@
     </head>
 
     <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %} 
-    {{ navbar.render(current_user) }}
+    {% import "components/navbar.html" as navbar %}
+{{ navbar.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -136,7 +136,7 @@
                             id="name"
                             placeholder="Acme Inc."
                             required
-                            value="{{ company.name if company.name else ''}}"
+                            value="{{ company.name if company.name else '' }}"
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -147,7 +147,7 @@
                             id="slug"
                             placeholder="acme-inc"
                             required
-                            value="{{ company.slug if company.slug else ''}}"
+                            value="{{ company.slug if company.slug else '' }}"
                         />
                     </div>
                     <div class="col-span-full">
@@ -159,7 +159,7 @@
                             oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px';"
                             placeholder="Describe your company here."
                         >
-{{ company.description if company.description else ''}}</textarea
+{{ company.description if company.description else '' }}</textarea
                         >
                     </div>
                     <div class="sm:col-span-full">
@@ -241,7 +241,7 @@
                             type="text"
                             id="website"
                             placeholder="https://www.acme.com"
-                            value="{{ company.website_url if company.website_url else ''}}"
+                            value="{{ company.website_url if company.website_url else '' }}"
                         />
                     </div>
                     <div class="col-span-full">
@@ -251,7 +251,7 @@
                             type="text"
                             id="linkedin"
                             placeholder="https://www.linkedin.com/in/johndoe"
-                            value="{{ company.linkedin_url if company.linkedin_url else ''}}"
+                            value="{{ company.linkedin_url if company.linkedin_url else '' }}"
                         />
                     </div>
                     <div class="col-span-full">
@@ -261,7 +261,7 @@
                             type="text"
                             id="twitter"
                             placeholder="https://twitter.com/johndoe"
-                            value="{{ company.twitter_url if company.twitter_url else ''}}"
+                            value="{{ company.twitter_url if company.twitter_url else '' }}"
                         />
                     </div>
                     <div class="col-span-full">
@@ -271,7 +271,7 @@
                             type="text"
                             id="instagram"
                             placeholder="https://www.instagram.com/johndoe"
-                            value="{{ company.instagram_url if company.instagram_url else ''}}"
+                            value="{{ company.instagram_url if company.instagram_url else '' }}"
                         />
                     </div>
                     <div class="col-span-full">
@@ -299,6 +299,31 @@
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Show company in search</span>
                         </label>
+                    </div>
+                </div>
+                <div class="relative col-span-full">
+                    <label class="text-sm font-medium text-gray-700">User</label>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        ref="searchInput"
+                        value=""
+                        class="w-full rounded-lg bg-transparent bg-white"
+                        placeholder="jennifer@gmail.com"
+                        @input="getUserList"
+                    />
+                    <div
+                        id="userList"
+                        v-show="userList.length > 0"
+                        class="flex max-h-60 w-full origin-top-right flex-col gap-1 overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
+                    >
+                        <p
+                            v-for="(email, index) in userList"
+                            :key="index"
+                            class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
+                            @click="selectUser(email)"
+                            v-text="email"
+                        ></p>
                     </div>
                 </div>
                 <button

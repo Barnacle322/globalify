@@ -7,7 +7,7 @@ from ...models import (
     Country,
     Industry,
     NotableInvestment,
-    Round,
+    Round, User, UserCompany,
 )
 from ...utils.decorators import admin_only
 from ...utils.enums import (
@@ -108,6 +108,7 @@ def update_company_view(id):
 @admin_only
 def update_company(id):
     form_data = request.get_json()
+    user = User.get_by_email(form_data.get("user_email"))
 
     company = Company.get_by_id(id)
     if not company:
@@ -195,6 +196,17 @@ def update_company(id):
     company.preferred_round_id = form_data.get("preferred_round", company.preferred_round) or None
     company.industry_id = form_data.get("industry", company.industry) or None
     company.is_public = form_data.get("is_public", company.is_public) or False
+
+    user_company = UserCompany.get_by_user_and_company_id(company_id=company.id, user_id=user.id)
+    print(user_company)
+    if user_company is None:
+        user_company = UserCompany(
+            user_id=user.id,
+            company_id=company.id,
+        )
+        db.session.add(user_company)
+        db.session.commit()
+
 
     try:
         db.session.commit()

@@ -170,6 +170,8 @@ def change_personal_info():
             status = Status(StatusType.ERROR, EMPTY_BIO).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
         user_info.bio = bio.strip()
+    else:
+        user_info.bio = None
 
     username = request.form.get("username")
     if username and username.strip() != user_info.username:

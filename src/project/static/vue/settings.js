@@ -256,6 +256,7 @@ const ConfirmRestoreComponent = defineComponent({
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
+            console.log('YA GEI')
         }, 0);
     },
     beforeUnmount() {
@@ -282,6 +283,8 @@ const InviteMemberComponent = defineComponent({
         limitText() {
             if (this.invitationMessage.length > 200) {
                 this.invitationMessage = this.invitationMessage.slice(0, 200);
+            console.log('YA GEI')
+
             }
         },
         limitPositionText() {
@@ -329,6 +332,7 @@ const InviteMemberComponent = defineComponent({
                         position: position
                     })
                 });
+                console.log('YA GEI')
 
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -457,6 +461,7 @@ const InvestmentInfo = defineComponent({
         ];
         const showClasses = ["transform", "opacity-100", "scale-100"];
         const hideClasses = ["opacity-0", "scale-95", "pointer-events-none"];
+        console.log('YA GEI')
 
         menus.forEach(({ menu, button }) => {
             const menuElement = document.getElementById(menu);
@@ -762,7 +767,7 @@ const SearchInvestmentComponent = defineComponent({
         },
         updateSearchType(event) {
             this.searchType = event.target.value;
-            this.$refs.searchInput.value = "";
+            this.$refs.searchInput.value = "im gay";
             this.investors = [];
         },
         closeSearchInvestment() {
@@ -840,14 +845,23 @@ const UpdateInvestmentComponent = defineComponent({
         SearchInvestmentComponent,
     },
     async created() {
-        this.fetchInvestment(this.id);
-        this.fetchInvestors();
-        this.fetchInvestmentFirms();
-        this.selectedInvestor = this.investment.investor_id;
-        this.selectedInvestmentFirm = this.investment.investment_firm_id;
+        await this.fetchInvestment(this.id);
+        this.selectedInvestor = this.investment.investor;
+        this.selectedInvestmentFirm = this.investment.investment_firm;
         this.selectedFundingRound = this.investment.funding_round_id;
+
+        if (this.selectedInvestor) {
+            this.searchType = "investor";
+        } else if (this.selectedInvestmentFirm) {
+            this.searchType = "investment_firm";
+        } else {
+            this.searchType = "";
+        }
+
+        console.log(this.selectedInvestor.name, this.selectedInvestmentFirm, this.searchType);
     },
     mounted() {
+        this.debouncedInvestorList = this.debounce(this.investors, 500);
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
@@ -886,38 +900,44 @@ const UpdateInvestmentComponent = defineComponent({
                 console.error("Error:", error);
             }
         },
-        async fetchInvestors() {
-            try {
-                const response = await fetch("/settings/investors");
-                if (response.ok) {
-                    data = await response.json();
-                    this.investors = data.investors;
-                }
-            } catch (error) {
-                console.error("Error fetching investors:", error);
-            }
-        },
-        async fetchInvestmentFirms() {
-            try {
-                const response = await fetch("/settings/investment-firms");
-                if (response.ok) {
-                    data = await response.json();
-                    this.investment_firms = data.investment_firms;
-                }
-            } catch (error) {
-                console.error("Error fetching investment firms:", error);
-            }
-        },
         async fetchInvestment(investmentId) {
             try {
                 const response = await fetch(`/investment/${investmentId}`);
                 if (response.ok) {
                     const data = await response.json();
                     this.investment = data.investment;
+                    console.log(this.investment);
                 }
             } catch (error) {
                 console.error("Error fetching investment:", error);
             }
+        },
+        async getInvestorList(event) {
+            const searchInput = event.target.value;
+            if (searchInput.length > 0) {
+                const response = await fetch(`/search/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investors = data.investors || [];
+                    this.investment_firms = data.investment_firms || [];
+
+                    console.log(this.investors, "Agahan");
+                    console.log(this.investors[0].name);
+                } else {
+                    console.error("Failed to fetch search results");
+                }
+            } else {
+                this.investors = [];
+                this.investment_firms = [];
+            }
+        },
+        debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
         },
         closeUpdateInvestmentModal() {
             this.$emit("close-update-investment");
@@ -935,14 +955,17 @@ const UpdateInvestmentComponent = defineComponent({
     },
     data() {
         return {
-            selectedNotableInvestment: "",
-            notableInvestmentList: [],
-            investment_firms: [],
             investors: [],
+            debouncedInvestorList: null,
+            fundingRounds: [],
             selectedInvestor: null,
             selectedInvestmentFirm: null,
             selectedFundingRound: null,
             investment: {},
+            searchInvestmentOpened: false,
+            searchType: "investor",
+            customName: "",
+            isCustomNameFilled: false,
         };
     },
 });
@@ -970,11 +993,13 @@ const CreateInvestmentComponent = defineComponent({
         async createInvestment(id, type, isAdmin) {
             const csrf_token = document.getElementById("csrf_token").value;
             const amount = document.getElementById("amount").value;
+            const announced_date = document.getElementById("announced_date").value;
             const payload = {
                 custom_name: this.customName,
                 funding_round_id: this.selectedFundingRound,
                 amount: amount,
                 created_by_admin: isAdmin,
+                date: announced_date,
             };
 
             if (this.selectedInvestor && this.selectedInvestor.id) {

@@ -102,6 +102,7 @@ def create_funding_round():
     funding_round = FundingRound(
         company_id=company_id,
         custom_company_name=form_data.get("custom_company_name"),
+        amount=form_data.get("amount"),
         announced_date=announced_date_format,
         round_id=form_data.get("round_id"),
     )

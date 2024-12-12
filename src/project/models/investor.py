@@ -735,6 +735,8 @@ class Investor(InvestorBase):
                     max_investment=max_investment,
                     rounds=list(set(round_list)),
                     notable_investments=notable_investment_list,
+                    is_public=True,
+                    is_approved=True,
                 )
                 investor.set_slug()
                 db.session.add(investor)

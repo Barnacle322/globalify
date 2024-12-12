@@ -12,7 +12,7 @@ from ..models import (
     FundingRound,
     Investment,
 )
-from ..schemas.investment import FetchFundingRoundSchema, FullInvestmentSchema
+from ..schemas.investment import FetchFundingRoundSchema, FullInvestmentSchema, InvestorSchema
 from ..utils.decorators import check_user_info_complete, check_verification
 
 investment = Blueprint("investment", __name__)
@@ -60,6 +60,7 @@ def create_funding_round():
     new_funding_round = FundingRound(
         company_id=company_id,
         custom_company_name=None,
+        amount=form_data.get("amount"),
         round_id=round_id,
         announced_date=announced_date_format,
     )
@@ -130,8 +131,18 @@ def get_investment(investment_id):
     investment = FullInvestmentSchema(
         id=model_investment.id,
         funding_round_id=model_investment.funding_round_id,
-        investor_id=model_investment.investor_id,
-        investment_firm_id=model_investment.investment_firm_id,
+        investor=InvestorSchema(
+            id=model_investment.investor.id,
+            name=model_investment.investor.full_name,
+        )
+        if model_investment.investor
+        else None,
+        investment_firm=InvestorSchema(
+            id=model_investment.investment_firm.id,
+            name=model_investment.investment_firm.name,
+        )
+        if model_investment.investment_firm
+        else None,
         amount=model_investment.amount,
         created_by_admin=model_investment.created_by_admin,
         is_verified=model_investment.is_verified,
@@ -154,9 +165,11 @@ def create_investment():
     new_investment = Investment(
         investor_id=form_data.get("investor_id") or None,
         investment_firm_id=form_data.get("investment_firm_id") or None,
+        description=form_data.get("description") or None,
         custom_name=form_data.get("custom_name") or None,
         funding_round_id=form_data.get("funding_round_id") or None,
         amount=form_data.get("amount") or None,
+        date=datetime.strptime(form_data.get("date"), "%Y-%m-%d"),
         created_by_admin=created_by_admin_format,
         is_verified=form_data.get("is_verified"),
     )

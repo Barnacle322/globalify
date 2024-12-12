@@ -22,6 +22,7 @@ class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     funding_round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("funding_round.id"), nullable=True)
     investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=True)
+    description: Mapped[str | None] = mapped_column(String, nullable=True)
     custom_name: Mapped[str | None] = mapped_column(String, nullable=True)
     investment_firm_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=True)
     amount: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -70,6 +71,7 @@ class FundingRound(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id"), nullable=False)
     custom_company_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    amount: Mapped[int | None] = mapped_column(Integer, nullable=True)
     announced_date: Mapped[datetime.date | None] = mapped_column(Date, nullable=True)
     round_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("round.id"), nullable=True)
 

@@ -1,0 +1,124 @@
+{% macro render(id, type, created_by_admin) %}
+<template id="create-investment-template">
+    <article
+        ref="createInvestment"
+        class="fixed right-0 top-0 z-50 h-full w-full bg-white p-8 gap-4 flex flex-col sm:left-0 sm:right-0 sm:bottom-0 sm:top-0 mx-auto my-auto sm:h-fit sm:max-w-2xl sm:rounded-xl"
+    >
+        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+            <div v-if="searchInvestmentOpened" class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"></div>
+        </transition>
+        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+            <search-investment-component
+                v-if="searchInvestmentOpened"
+                ref="searchInvestment"
+                @close-search-investment="searchInvestmentOpened = null"
+                @investor-selected="handleInvestorSelected"
+            ></search-investment-component>
+        </transition>
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="grid gap-2">
+            <h2 class="text-2xl font-medium">Investment info</h2>
+
+            <div v-if="!isCustomNameFilled">
+                <label
+                    :for="searchType"
+                    class="text-sm font-medium text-gray-700"
+                    v-text="searchType === 'investor' ? 'Investor' : 'Investment Firm'"
+                ></label>
+
+                <div class="flex items-center">
+                    <input
+                        @click="searchInvestmentOpened = true;"
+                        :id="searchType"
+                        :placeholder="searchType === 'investor' ? 'Search for an investor' : 'Search for an investment firm'"
+                        class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                        type="text"
+                        :value="selectedInvestor && selectedInvestor.name ? selectedInvestor.name : (selectedInvestmentFirm && selectedInvestmentFirm.name ? selectedInvestmentFirm.name : '')"
+                        readonly
+                    />
+                    <button
+                        v-if="selectedInvestor"
+                        @click.prevent.stop="clearSelectedInvestor"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 transform text-gray-500 hover:text-gray-700"
+                    >
+                        &times;
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-span-full" v-if="selectedInvestor === null && selectedInvestmentFirm === null">
+                <label for="custom_name" class="text-sm font-medium text-gray-700">Custom Name</label>
+                <input
+                    class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                    id="custom_name"
+                    placeholder="John Doe"
+                    type="text"
+                    v-model="customName"
+                    @input="checkCustomName"
+                />
+            </div>
+
+            <div>
+                <label for="funding_round" class="text-sm font-medium text-gray-700">Funding Round</label>
+                <div>
+                    <select
+                        id="funding_round"
+                        name="funding_round"
+                        class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                        v-model="selectedFundingRound"
+                        required
+                    >
+                        <option value="" disabled selected>Select a funding round</option>
+                        <option
+                            v-for="funding_round in fundingRounds"
+                            :key="funding_round.id"
+                            :value="funding_round.id"
+                            v-text="funding_round.round.name + ' - ' + funding_round.announced_date"
+                        ></option>
+                    </select>
+                </div>
+            </div>
+            {% if type != 'company' %}
+            <div>
+                <label class="text-sm font-medium text-gray-700" for="company_name">Custom Company name</label>
+                <input
+                    class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                    type="text"
+                    id="company_name"
+                    placeholder="Globalify"
+                    required
+                />
+            </div>
+            {% endif %}
+
+            <div>
+                <label class="text-sm font-medium text-gray-700" for="amount">Amount</label>
+                <input
+                    class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                    type="number"
+                    id="amount"
+                    placeholder="14"
+                />
+            </div>
+            <div class="col-span-full">
+                <label class="text-sm font-medium text-gray-700" for="announced_date">Announced date</label>
+                <input class="w-full rounded-lg bg-transparent bg-white" type="date" id="announced_date" required />
+            </div>
+        </div>
+        <div class="flex justify-end gap-5 mt-auto">
+            <button
+                @click="close"
+                class="rounded-lg border border-gray-300 px-3 py-2 transition-shadow ease-in-out hover:shadow-md"
+            >
+                Cancel
+            </button>
+            <button
+                @click="createInvestment({{ id }}, '{{ type }}', '{{ created_by_admin }}')"
+                class="rounded-lg bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+            >
+                Create
+            </button>
+        </div>
+    </article>
+</template>
+{% endmacro %}

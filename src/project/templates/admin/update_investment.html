@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            name="description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="og:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="twitter:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="/static/vue/base.js"></script>
+        <script src="/static/scripts/menu.js" defer></script>
+        <script src="/static/vue/admin.js" defer></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+        <title>Update Investment | Globalify</title>
+    </head>
+
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %} 
+    {{ navbar.render(current_user) }}
+
+    <body class="h-full overflow-x-clip" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component
+                    v-if="asideExpanded"
+                    @close-aside="asideExpanded = false"
+                ></aside-mobile-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div
+                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    v-if="createNotableInvestmentOpened"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <create-notable-investment-component
+                    v-if="createNotableInvestmentOpened"
+                    @close-create-notable-investment-modal="createNotableInvestmentOpened = false"
+                    @notable-investment-created="addNotableInvestment"
+                ></create-notable-investment-component
+            ></transition>
+
+            <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
+                <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="flex">
+                    <a href="/admin/investments" class="group flex items-center gap-1 text-gray-500">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            class="size-4 transition-colors ease-in-out group-hover:text-gray-700"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        <div class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Admin</div>
+                    </a>
+                </div>
+                <div class="grid grid-cols-6 gap-x-2 gap-y-1">
+                    <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
+                    <div class="col-span-full empty:hidden">
+                        {% if status_type %} {% if status_type == '3' %}
+                        <div class="rounded-xl text-red-500">{{ msg }}</div>
+                        {% elif status_type == '2' %}
+                        <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                        {% elif status_type == '1' %}
+                        <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                        {% endif %} {% endif %}
+                    </div>
+
+                    <div class="col-span-full">
+                        <label for="investor" class="text-sm font-medium text-gray-700">Investor</label>
+                        <div>
+                            <select
+                                id="investor"
+                                name="investor"
+                                class="h-12 w-full rounded-xl px-2"
+                                required
+                                id="investor"
+                            >
+                                <option value="" disabled selected>Select an investor</option>
+                                {% if investors %} {% for investor in investors %} {% if
+                                investment.investor_id==investor.id %}
+                                <option value="{{ investor.id }}" selected>{{ investor.full_name }}</option>
+                                {% else %}
+                                <option value="{{ investor.id }}">{{ investor.full_name }}</option>
+                                {% endif %} {% endfor %} {% endif %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-span-full">
+                        <label for="investment_firm" class="text-sm font-medium text-gray-700">Investment Firm</label>
+                        <div>
+                            <select
+                                id="investment_firm"
+                                name="investment_firm"
+                                class="h-12 w-full rounded-xl px-2"
+                                required
+                                id="investment_firm"
+                            >
+                                <option value="" disabled selected>Select an investment firm</option>
+                                {% if investment_firms %} {% for investment_firm in investment_firms %} {% if
+                                investment.investment_firm_id==investment_firm.id %}
+                                <option value="{{ investment_firm.id }}" selected>{{ investment_firm.name }}</option>
+                                {% else %}
+                                <option value="{{ investment_firm.id }}">{{ investment_firm.name }}</option>
+                                {% endif %} {% endfor %} {% endif %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-span-full">
+                        <label for="custom_name">Custom Name</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            id="custom_name"
+                            placeholder="Jhone Doe"
+                            type="text"
+                            value="{{ investment.custom_name if investment.custom_name else '' }}"
+                        />
+                    </div>
+
+                    <div class="col-span-full">
+                        <label for="funding_round" class="text-sm font-medium text-gray-700">Funding Round</label>
+                        <div>
+                            <select
+                                id="funding_round"
+                                name="funding_round"
+                                class="h-12 w-full rounded-xl px-2"
+                                required
+                                id="funding_round"
+                            >
+                                <option value="" disabled selected>Select a Funding Round</option>
+                                {% if funding_rounds %} {% for funding_round in funding_rounds %} {% if
+                                investment.funding_round_id==funding_round.id %}
+                                <option value="{{ funding_round.id }}" selected>
+                                    {{ funding_round.company.name }}
+                                </option>
+                                {% else %}
+                                <option value="{{ funding_round.id }}">{{ funding_round.company.name }}</option>
+                                {% endif %} {% endfor %} {% endif %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="amount">Amount</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="number"
+                            id="amount"
+                            value="{{ investment.amount }}"
+                            placeholder="14"
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if investment.created_by_admin %}
+                            <input id="created_by_admin" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="created_by_admin" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Created by admin</span>
+                        </label>
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if investment.is_verified %}
+                            <input id="is_verified" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="is_verified" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Investment is verified</span>
+                        </label>
+                    </div>
+                </div>
+                <button
+                    id="saveButton"
+                    @click="submitInvestmentData"
+                    class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"
+                >
+                    Save
+                </button>
+            </main>
+        </div>
+    </body>
+</html>

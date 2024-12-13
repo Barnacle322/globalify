@@ -9,12 +9,25 @@
 
         <div class="grid grid-cols-12 gap-2 px-4">
             <div class="col-span-full flex flex-col gap-2">
-                <label class="font-normal">Change role for [[user.name]]</label>
-                <select class="h-12 w-full rounded-xl border border-stone-300 px-2" ref="roleChange">
-                    <option value="owner" :selected="user.role === 'owner'">Owner</option>
-                    <option value="admin" :selected="user.role === 'admin'">Admin</option>
-                    <option value="employee" :selected="user.role === 'employee'">Employee</option>
+                <label class="font-normal">Change role for user [[user.name]]</label>
+                <select
+                    class="h-12 w-full rounded-xl border border-stone-300 px-2"
+                    ref="roleChange"
+                    v-bind:disabled="user.role === 'owner'"
+                >
+                    <option value="OWNER" :selected="user.role === 'owner'">Owner</option>
+                    <option value="ADMIN" :selected="user.role === 'admin'">Admin</option>
+                    <option value="TEAM" :selected="user.role === 'team'">Team</option>
                 </select>
+
+                <label class="font-normal">Change position for [[user.name]]</label>
+
+                <input
+                    class="h-12 w-full rounded-xl border border-stone-300 px-2"
+                    ref="positionChange"
+                    v-text="user.position"
+                    :value="[[user.position]]"
+                />
             </div>
         </div>
         <div class="mt-auto flex justify-end gap-5 p-4">
@@ -26,7 +39,7 @@
                 Remove
             </button>
             <button @click="closeChangeRole" class="rounded-lg border border-gray-300 px-3 py-2">Cancel</button>
-            <button @click="changeRole(user.id, {{company.id}})" class="rounded-lg bg-sky-400 px-3 py-2 text-white">
+            <button @click="changeRole([[user.id]], {{company.id}})" class="rounded-lg bg-sky-400 px-3 py-2 text-white">
                 Confirm
             </button>
         </div>

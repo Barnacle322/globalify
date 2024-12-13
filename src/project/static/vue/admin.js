@@ -1,10 +1,298 @@
+const DeleteInvestmentComponent = defineComponent({
+    template: "#delete-investment-template",
+    props: ["investment-id"],
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async deleteInvestment(investmentId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investment/${investmentId}/delete`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error("An error occurred while deleting the investment.");
+                }
+            } catch (error) {
+                console.error("Error cancelling invitation:", error.message);
+            }
+        },
+        closeDeleteInvestment() {
+            this.$emit("close-delete-investment");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeDeleteInvestment();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeDeleteInvestment();
+            }
+        },
+    },
+});
+
+const UpdateInvestmentComponent = defineComponent({
+    template: "#update-investment-template",
+    props: ["type", "id"],
+    async created() {
+        await this.fetchInvestment(this.id);
+        this.fetchInvestors();
+        this.fetchInvestmentFirms();
+        this.selectedInvestor = this.investment.investor_id;
+        this.selectedInvestmentFirm = this.investment.investment_firm_id;
+        this.fetchFundingRounds();
+        this.selectedFundingRound = this.investment.funding_round_id;
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async updateInvestment(id, isAdmin) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            const amount = document.getElementById("amount").value;
+            const payload = {
+                funding_round_id: this.selectedFundingRound,
+                amount: amount,
+                created_by_admin: isAdmin,
+                is_verified: this.investment.is_verified,
+                investor_id: this.selectedInvestor,
+                investment_firm_id: this.selectedInvestmentFirm,
+            };
+
+            try {
+                const response = await fetch(`/investment/${id}/update`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: JSON.stringify(payload),
+                });
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async fetchFundingRounds() {
+            try {
+                const response = await fetch("/settings/funding-rounds");
+                if (response.ok) {
+                    data = await response.json();
+                    this.fundingRounds = data.funding_rounds;
+                }
+            } catch (error) {
+                console.error("Error fetching funding rounds:", error);
+            }
+        },
+        async fetchInvestors() {
+            try {
+                const response = await fetch("/settings/investors");
+                if (response.ok) {
+                    data = await response.json();
+                    this.investors = data.investors;
+                }
+            } catch (error) {
+                console.error("Error fetching investors:", error);
+            }
+        },
+        async fetchInvestmentFirms() {
+            try {
+                const response = await fetch("/settings/investment-firms");
+                if (response.ok) {
+                    data = await response.json();
+                    this.investment_firms = data.investment_firms;
+                }
+            } catch (error) {
+                console.error("Error fetching investment firms:", error);
+            }
+        },
+        async fetchInvestment(investmentId) {
+            try {
+                const response = await fetch(`/investment/${investmentId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investment = data.investment;
+                }
+            } catch (error) {
+                console.error("Error fetching investment:", error);
+            }
+        },
+        closeUpdateInvestmentModal() {
+            this.$emit("close-update-investment");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeUpdateInvestmentModal();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeUpdateInvestmentModal();
+            }
+        },
+    },
+    data() {
+        return {
+            selectedNotableInvestment: "",
+            notableInvestmentList: [],
+            fundingRounds: [],
+            investment_firms: [],
+            investors: [],
+            selectedInvestor: null,
+            selectedInvestmentFirm: null,
+            selectedFundingRound: null,
+            investment: {},
+        };
+    },
+});
+
+const CreateInvestmentComponent = defineComponent({
+    template: "#create-investment-template",
+    props: ["type"],
+    async created() {
+        this.fetchInvestors();
+        this.fetchInvestmentFirms();
+        this.fetchFundingRounds();
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async createInvestment(id, type, isAdmin) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            const amount = document.getElementById("amount").value;
+            const payload = {
+                funding_round_id: this.selectedFundingRound,
+                amount: amount,
+                created_by_admin: isAdmin,
+            };
+
+            if (type === "investor") {
+                payload.investor_id = id;
+            } else if (type === "investment_firm") {
+                payload.investment_firm_id = id;
+            }
+
+            try {
+                const response = await fetch("/investment/create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: JSON.stringify(payload),
+                });
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async fetchFundingRounds() {
+            try {
+                const response = await fetch("/settings/funding-rounds");
+                if (response.ok) {
+                    data = await response.json();
+                    this.fundingRounds = data.funding_rounds;
+                }
+            } catch (error) {
+                console.error("Error fetching funding rounds:", error);
+            }
+        },
+        async fetchInvestors() {
+            try {
+                const response = await fetch("/settings/investors");
+                if (response.ok) {
+                    data = await response.json();
+                    this.investors = data.investors;
+                }
+            } catch (error) {
+                console.error("Error fetching investors:", error);
+            }
+        },
+        async fetchInvestmentFirms() {
+            try {
+                const response = await fetch("/settings/investment-firms");
+                if (response.ok) {
+                    data = await response.json();
+                    this.investment_firms = data.investment_firms;
+                }
+            } catch (error) {
+                console.error("Error fetching investment firms:", error);
+            }
+        },
+        closeCreateInvestmentModal() {
+            this.$emit("close-create-investment");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeCreateInvestmentModal();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeCreateInvestmentModal();
+            }
+        },
+    },
+
+    data() {
+        return {
+            selectedNotableInvestment: "",
+            notableInvestmentList: [],
+            fundingRounds: [],
+            investment_firms: [],
+            investors: [],
+            selectedInvestor: null,
+            selectedInvestmentFirm: null,
+            selectedFundingRound: null,
+        };
+    },
+});
+
 createApp({
     components: {
         AsideComponent,
         AsideMobileComponent,
         NavbarComponent,
         Bookmark,
-        CreateNotableInvestmentComponent
+        CreateNotableInvestmentComponent,
+        CreateInvestmentComponent,
+        DeleteInvestmentComponent,
+        UpdateInvestmentComponent,
     },
     watch: {
         asideMinified(value) {
@@ -18,6 +306,82 @@ createApp({
         this.debouncedInvestmentFirmInvestments = this.debounce(this.fetchNotableInvestmentsByInvestmentFirmId, 500);
     },
     methods: {
+        openUpdateInvestment(investment) {
+            this.investment = investment;
+
+            console.log(this.investment);
+            this.updateInvestmentOpened = true;
+        },
+        async submitInvestmentData() {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            const investor_id = document.getElementById("investor").value;
+            const investment_firm_id = document.getElementById("investment_firm").value;
+            const custom_name = document.getElementById("custom_name").value;
+            const funding_round_id = document.getElementById("funding_round").value;
+            const amount = document.getElementById("amount").value;
+            const createdByAdminElement = document.getElementById("created_by_admin");
+            const created_by_admin = createdByAdminElement ? createdByAdminElement.checked : false;
+            const isVerifiedElement = document.getElementById("is_verified");
+            const is_verified = isVerifiedElement ? isVerifiedElement.checked : false;
+
+            const dataString = JSON.stringify({
+                investor_id: investor_id,
+                investment_firm_id: investment_firm_id,
+                custom_name: custom_name,
+                funding_round_id: funding_round_id,
+                amount: amount,
+                created_by_admin: created_by_admin,
+                is_verified: is_verified,
+            });
+
+            try {
+                const response = await fetch("", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: dataString,
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async submitFundingRoundData() {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            const company_id = document.getElementById("company").value;
+            const custom_company_name = document.getElementById("custom_company_name").value;
+            const round_id = document.getElementById("round").value;
+            const announced_date = document.getElementById("announced_date").value;
+
+            const dataString = JSON.stringify({
+                company_id: company_id,
+                custom_company_name: custom_company_name,
+                round_id: round_id,
+                announced_date: announced_date,
+            });
+
+            try {
+                const response = await fetch("", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: dataString,
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
         async submitInvestorData() {
             const csrfToken = document.getElementById("csrf_token").value;
 
@@ -39,14 +403,14 @@ createApp({
             const location = document.getElementById("location").value;
             const user_email = document.getElementById("searchInput").value;
 
-            const selectedRounds = Array.from(document.querySelectorAll("input[name=\"selected_rounds\"]:checked")).map(
-                (input) => parseInt(input.value, 10)
+            const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map(
+                (input) => parseInt(input.value, 10),
             );
             const selectedIndustries = Array.from(
-                document.querySelectorAll("input[name=\"selected_industries\"]:checked")
+                document.querySelectorAll('input[name="selected_industries"]:checked'),
             ).map((input) => parseInt(input.value, 10));
             const selectedNotableInvestments = Array.from(
-                document.querySelectorAll("input[name=\"selected_notable_investments\"]:checked")
+                document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
             const is_public = document.getElementById("is_public");
             const is_approved = document.getElementById("is_approved");
@@ -71,7 +435,7 @@ createApp({
                 user_email: user_email,
                 rounds: selectedRounds,
                 industries: selectedIndustries,
-                notable_investments: selectedNotableInvestments
+                notable_investments: selectedNotableInvestments,
             };
 
             if (is_public) {
@@ -88,9 +452,9 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
+                        "X-CSRFToken": csrfToken,
                     },
-                    body: dataString
+                    body: dataString,
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -110,8 +474,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
-                }
+                    "X-CSRFToken": csrfToken,
+                },
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -125,8 +489,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
-                    }
+                        "X-CSRFToken": csrfToken,
+                    },
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -143,8 +507,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
-                    }
+                        "X-CSRFToken": csrfToken,
+                    },
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -156,7 +520,7 @@ createApp({
         async restoreOriginData(investorId) {
             try {
                 const response = await fetch(`/admin/investors/${investorId}/restore`, {
-                    method: "GET"
+                    method: "GET",
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -181,14 +545,14 @@ createApp({
             const max_investment = document.getElementById("max_investment").value;
             const location = document.getElementById("location").value;
 
-            const selectedRounds = Array.from(document.querySelectorAll("input[name=\"selected_rounds\"]:checked")).map(
-                (input) => parseInt(input.value, 10)
+            const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map(
+                (input) => parseInt(input.value, 10),
             );
             const selectedIndustries = Array.from(
-                document.querySelectorAll("input[name=\"selected_industries\"]:checked")
+                document.querySelectorAll('input[name="selected_industries"]:checked'),
             ).map((input) => parseInt(input.value, 10));
             const selectedNotableInvestments = Array.from(
-                document.querySelectorAll("input[name=\"selected_notable_investments\"]:checked")
+                document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
             const is_public = document.getElementById("is_public");
 
@@ -207,7 +571,7 @@ createApp({
                 location: location,
                 rounds: selectedRounds,
                 industries: selectedIndustries,
-                notable_investments: selectedNotableInvestments
+                notable_investments: selectedNotableInvestments,
             };
 
             if (is_public) {
@@ -221,9 +585,9 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
+                        "X-CSRFToken": csrfToken,
                     },
-                    body: dataString
+                    body: dataString,
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -243,8 +607,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
-                }
+                    "X-CSRFToken": csrfToken,
+                },
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -269,7 +633,7 @@ createApp({
             const user_email = document.getElementById("searchInput").value;
 
             const selectedNotableInvestments = Array.from(
-                document.querySelectorAll("input[name=\"selected_notable_investments\"]:checked")
+                document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
 
             const dataString = JSON.stringify({
@@ -294,9 +658,9 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
+                        "X-CSRFToken": csrfToken,
                     },
-                    body: dataString
+                    body: dataString,
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -316,8 +680,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
-                }
+                    "X-CSRFToken": csrfToken,
+                },
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -360,7 +724,6 @@ createApp({
             const created = document.getElementById("created").value;
             const expires_at = document.getElementById("expires_at").value;
             const companyId = this.companyId
-            console.log(companyId)
 
             const dataString = JSON.stringify({
                 email: email,
@@ -396,7 +759,7 @@ createApp({
                         "Content-Type": "application/json",
                         "X-CSRFToken": csrfToken
                     },
-                    body: dataString
+                    body: dataString,
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -416,8 +779,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
-                }
+                    "X-CSRFToken": csrfToken,
+                },
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -473,9 +836,9 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
+                    "X-CSRFToken": csrfToken,
                 },
-                body: JSON.stringify({ status: "rejected" })
+                body: JSON.stringify({ status: "rejected" }),
             })
                 .then((response) => {
                     if (response.ok) {
@@ -491,9 +854,9 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
+                    "X-CSRFToken": csrfToken,
                 },
-                body: JSON.stringify({ status: "approved" })
+                body: JSON.stringify({ status: "approved" }),
             })
                 .then((response) => {
                     if (response.ok) {
@@ -573,17 +936,17 @@ createApp({
             }
 
             this.notableInvestments = await this.fetchData(
-                `/admin/companies/search_notable_investments/${searchInput.trim()}`
+                `/admin/companies/search_notable_investments/${searchInput.trim()}`,
             );
         },
         async fetchNotableInvestmentsByInvestorId(searchInput, investorId) {
             this.notableInvestments = await this.fetchData(
-                `/admin/investors/search_notable_investments/${searchInput.trim()}/${investorId}`
+                `/admin/investors/search_notable_investments/${searchInput.trim()}/${investorId}`,
             );
         },
         async fetchNotableInvestmentsByInvestmentFirmId(searchInput, investmentFirmId) {
             this.notableInvestments = await this.fetchData(
-                `/admin/investment-firms/search_notable_investments/${searchInput.trim()}/${investmentFirmId}`
+                `/admin/investment-firms/search_notable_investments/${searchInput.trim()}/${investmentFirmId}`,
             );
         },
         addNotableInvestment(newInvestment) {
@@ -591,7 +954,7 @@ createApp({
         },
         debounce(func, wait) {
             let timeout;
-            return function(...args) {
+            return function (...args) {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
@@ -618,6 +981,10 @@ createApp({
             asideExpanded: false,
             asideMinified: false,
             createNotableInvestmentOpened: false,
+            createInvestmentOpened: false,
+            deleteInvestmentOpened: false,
+            updateInvestmentOpened: false,
+            investment: {},
             csrfToken: "",
             searchQuery: localStorage.getItem("searchQuery") || "",
             selectedRounds: [],
@@ -634,10 +1001,10 @@ createApp({
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
                 { menu: "round-options-menu", button: "round-options" },
-                { menu: "notable-investment-options-menu", button: "notable-investment-options" }
+                { menu: "notable-investment-options-menu", button: "notable-investment-options" },
             ],
             showClasses: ["transform", "opacity-100", "scale-100"],
-            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"]
+            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
         };
-    }
+    },
 }).mount("#app");

@@ -48,6 +48,7 @@ from .helpers import Country, Industry, Round
 
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
+    from .investment import FundingRound
     from .investor import InvestmentFirmBookmark, Investor, InvestorBackup, InvestorBookmark, NotableInvestment
     from .search import SearchHistory
 
@@ -90,7 +91,6 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     search_histories: Mapped[list[SearchHistory]] = relationship(
         "SearchHistory", back_populates="user", uselist=True, init=False
     )
-
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -477,6 +477,9 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     )
     notable_investment: Mapped[NotableInvestment] = relationship(
         "NotableInvestment", back_populates="company", uselist=False, init=False
+    )
+    funding_rounds: Mapped[list[FundingRound]] = relationship(
+        "FundingRound", back_populates="company", uselist=True, init=False
     )
 
     country: Mapped[Country] = relationship(init=False)
@@ -872,8 +875,8 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     company: Mapped[Company] = relationship(
         Company, back_populates="user_companies", uselist=True, init=False, lazy="joined"
     )
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    position: Mapped[str | None] = mapped_column(String, nullable=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
     role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.TEAM)
@@ -906,9 +909,13 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_by_user_id(user_id: int) -> Sequence[UserCompany]:
-        return db.session.scalars(
-            db.select(UserCompany).where(UserCompany.user_id == user_id).order_by(UserCompany.is_primary.desc())
-        ).all()
+        return (
+            db.session.scalars(
+                db.select(UserCompany).where(UserCompany.user_id == user_id).order_by(UserCompany.is_primary.desc())
+            )
+            .unique()
+            .all()
+        )
 
     @staticmethod
     def get_by_company_id(company_id: int) -> Sequence[UserCompany]:
@@ -942,12 +949,16 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_by_company_id_and_role(company_id: int, role: CompanyRole) -> Sequence[UserCompany]:
-        return db.session.scalars(
-            db.select(UserCompany).where(
-                UserCompany.company_id == company_id,
-                UserCompany.role == role,
+        return (
+            db.session.scalars(
+                db.select(UserCompany).where(
+                    UserCompany.company_id == company_id,
+                    UserCompany.role == role,
+                )
             )
-        ).all()
+            .unique()
+            .all()
+        )
 
     @staticmethod
     def get_by_company_id_and_email(company_id: int, email: str) -> UserCompany | None:
@@ -963,11 +974,11 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
     company: Mapped[Company] = relationship(Company, back_populates="company_invitations", uselist=True, init=False)
-
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), init=False
     )
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    position: Mapped[str | None] = mapped_column(String, nullable=True)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
     invited_by: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     email: Mapped[str] = mapped_column(String, nullable=False)

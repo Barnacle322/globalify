@@ -49,6 +49,45 @@ def search_investors_onboarding(search):
     return jsonify({"investors": result.get("investors")})
 
 
+@search.get("/search/investment-firms/<search>")
+@login_required
+@check_verification
+def search_investment_firms_onboarding(search):
+    result = InvestmentFirm.get_search(
+        query_string=search,
+        query_by=["name"],
+        page=1,
+        per_page=18,
+    )
+
+    return jsonify({"investors": result.get("investment_firms")})
+
+
+@search.get("/search/<search_input>")
+@login_required
+@check_verification
+def search_entities(search_input):
+    # Search investors
+    investor_result = Investor.get_search(
+        query_string=search_input,
+        query_by=["name"],
+        page=1,
+        per_page=18,
+    )
+    investors = investor_result.get("investors", [])
+
+    # Search investment firms
+    investment_firm_result = InvestmentFirm.get_search(
+        query_string=search_input,
+        query_by=["name"],
+        page=1,
+        per_page=18,
+    )
+    investment_firms = investment_firm_result.get("investment_firms", [])
+
+    return jsonify({"investors": investors, "investment_firms": investment_firms})
+
+
 @search.get("/demo-search")
 def demo_search():
     result = Investor.get_search(

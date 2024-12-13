@@ -53,29 +53,18 @@
         <title>Company | Globalify</title>
     </head>
 
-    {% import "components/navbar.html" as navbar %} 
-    {{ navbar.render(current_user) }}
-    {% import "components/invite_member.html" as invite_member %} 
-    {{ invite_member.render(company, users_in_company) }}
-    {% import "components/change_role.html" as change_role %}
-    {{ change_role.render(company, current_user) }}
-    {% import "components/cancel_invitation.html" as cancel_invitation %}
-    {{ cancel_invitation.render() }}
-    {% import "components/delete_company.html" as delete_company %}
-    {{ delete_company.render(company.id) }}
-    {% import "components/create_investment.html" as create_investment %}
-    {{ create_investment.render(company.id, "company", false) }}
-    {% import "components/delete_investment.html" as delete_investment %}
-    {{ delete_investment.render() }}
-    {% import "components/update_investment.html" as update_investment %}
-    {{ update_investment.render(company.id, "company", false) }}
-    {% import "components/search_investment.html" as search_investment %}
-    {{ search_investment.render() }}
-    {% import "components/create_funding_round.html" as create_funding_round %}
-    {{ create_funding_round.render(company.id) }}
-    {% import "components/delete_funding_round.html" as delete_funding_round %}
-    {{ delete_funding_round.render() }}
-    {% import "components/update_funding_round.html" as update_funding_round %}
+    {% import "components/navbar.html" as navbar %} {{ navbar.render(current_user) }} {% import
+    "components/invite_member.html" as invite_member %} {{ invite_member.render(company, users_in_company) }} {% import
+    "components/change_role.html" as change_role %} {{ change_role.render(company, current_user) }} {% import
+    "components/cancel_invitation.html" as cancel_invitation %} {{ cancel_invitation.render() }} {% import
+    "components/delete_company.html" as delete_company %} {{ delete_company.render(company.id) }} {% import
+    "components/create_investment.html" as create_investment %} {{ create_investment.render(company.id, "company",
+    false) }} {% import "components/delete_investment.html" as delete_investment %} {{ delete_investment.render() }} {%
+    import "components/update_investment.html" as update_investment %} {{ update_investment.render(company.id,
+    "company", false) }} {% import "components/search_investment.html" as search_investment %} {{
+    search_investment.render() }} {% import "components/create_funding_round.html" as create_funding_round %} {{
+    create_funding_round.render(company.id) }} {% import "components/delete_funding_round.html" as delete_funding_round
+    %} {{ delete_funding_round.render() }} {% import "components/update_funding_round.html" as update_funding_round %}
     {{ update_funding_round.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
@@ -590,7 +579,7 @@
                                                     <div class="overflow-auto rounded-t-lg border border-b-0">
                                                         <table class="relative w-full table-auto">
                                                             <tr
-                                                                class="bg-white font-medium *:text-nowrap *:px-4 border-b"
+                                                                class="border-b bg-white font-medium *:text-nowrap *:px-4"
                                                             >
                                                                 <td class="py-4 pl-4">Investor</td>
                                                                 <td class="py-4">Amount</td>
@@ -915,7 +904,7 @@
                                     {% endif %}
                                 </div>
                                 {% if user_role in ["owner", "admin"] %}
-                                <div class="mt-8 flex gap-5 justify-end">
+                                <div class="mt-8 flex justify-end gap-5">
                                     <a class="flex items-center justify-center text-gray-700 underline" href=""
                                         >Cancel</a
                                     >
@@ -1031,7 +1020,7 @@
                                         <div class="flex flex-col">
                                             <h3 class="text-md font-medium">
                                                 {{ user.name }}
-                                                <span class="text-gray-400 text-xs italic">
+                                                <span class="text-xs italic text-gray-400">
                                                     {{ "You" if user.id == current_user.id else "" }}
                                                 </span>
                                             </h3>

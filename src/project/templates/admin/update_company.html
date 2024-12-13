@@ -51,14 +51,14 @@
     </head>
 
     <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %} 
-    {{ navbar.render(current_user) }}
-    {% import "components/create_investment.html" as create_investment %}
-    {{ create_investment.render(company.id, "company", true) }}
-    {% import "components/delete_investment.html" as delete_investment %}
-    {{ delete_investment.render() }}
-    {% import "components/update_investment.html" as update_investment %}
-    {{ update_investment.render(company.id, "company", true) }}
+    {% import "components/navbar.html" as navbar %}
+{{ navbar.render(current_user) }}
+{% import "components/create_investment.html" as create_investment %}
+{{ create_investment.render(company.id, "company", true) }}
+{% import "components/delete_investment.html" as delete_investment %}
+{{ delete_investment.render() }}
+{% import "components/update_investment.html" as update_investment %}
+{{ update_investment.render(company.id, "company", true) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -491,30 +491,35 @@
 
                     <div>
                         <label class="text-sm font-medium text-gray-700">Company Members</label>
-                        <table class="mt-2 min-w-full divide-y divide-gray-200 border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">First Name</th>
-                                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Last Name</th>
-                                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Role</th>
-                                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Position</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 bg-white">
-                                {% for user_company in company.user_companies %}
-                                <tr>
-                                    <td class="px-4 py-2 text-sm text-gray-700">
-                                        {{ user_company.user.user_info.first_name }}
-                                    </td>
-                                    <td class="px-4 py-2 text-sm text-gray-900">
-                                        {{ user_company.user.user_info.last_name }}
-                                    </td>
-                                    <td class="px-4 py-2 text-sm text-gray-900">{{ user_company.role.value }}</td>
-                                    <td class="px-4 py-2 text-sm text-gray-900">{{ user_company.position }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <!-- Wrapper with rounded corners -->
+                        <div class="mt-2 overflow-hidden rounded-lg border border-gray-300">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                                            First Name
+                                        </th>
+                                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Last Name</th>
+                                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Role</th>
+                                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Position</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 bg-white">
+                                    {% for user_company in company.user_companies %}
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-700">
+                                            {{ user_company.user.user_info.first_name }}
+                                        </td>
+                                        <td class="px-4 py-2 text-sm text-gray-900">
+                                            {{ user_company.user.user_info.last_name }}
+                                        </td>
+                                        <td class="px-4 py-2 text-sm text-gray-900">{{ user_company.role.value }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900">{{ user_company.position }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 

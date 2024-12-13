@@ -1,11 +1,11 @@
 {% macro render() %}
 <template id="search-investors-template">
     <section
-        class="fixed right-0 top-0 z-50 h-full w-full bg-white p-3 gap-4 flex flex-col sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-3xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
+        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col gap-4 bg-white p-3 sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-3xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
     >
         <div class="flex flex-col items-center justify-center gap-6 rounded-2xl bg-deep-purple p-8">
             <h1
-                class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text py-2 text-center font-bold tracking-tight text-transparent text-5xl"
+                class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text py-2 text-center text-5xl font-bold tracking-tight text-transparent"
             >
                 Globalify
             </h1>
@@ -22,7 +22,7 @@
                     />
                     <label
                         for="investor"
-                        class="cursor-pointer rounded-lg px-4 py-2 transition duration-200 ease-in-out w-32 text-center font-medium"
+                        class="w-32 cursor-pointer rounded-lg px-4 py-2 text-center font-medium transition duration-200 ease-in-out"
                         :class="{'bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white': searchType === 'investor', 'bg-white text-gray-700': searchType !== 'investor'}"
                     >
                         Investors
@@ -37,7 +37,7 @@
                     />
                     <label
                         for="investment_firm"
-                        class="cursor-pointer rounded-lg px-4 py-2 transition duration-200 ease-in-out w-32 text-center font-medium"
+                        class="w-32 cursor-pointer rounded-lg px-4 py-2 text-center font-medium transition duration-200 ease-in-out"
                         :class="{'bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white': searchType === 'investment_firm', 'bg-white text-gray-700': searchType !== 'investment_firm'}"
                     >
                         Firms
@@ -157,7 +157,7 @@
             </article>
             <article
                 v-if="Array.isArray(investors) && investors.length == 0"
-                class="col-span-full flex flex-col items-center justify-center gap-2 my-4"
+                class="col-span-full my-4 flex flex-col items-center justify-center gap-2"
             >
                 <h2 class="text-2xl font-medium">No Results Found</h2>
                 <p class="max-w-sm text-center text-gray-600">We couldn't find anything matching your search query</p>

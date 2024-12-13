@@ -4,7 +4,7 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from sqlalchemy import or_
 
 from ...extensions import db
-from ...models import User, UserInfo, UserPayment
+from ...models import User, UserInfo, UserPayment, UserCompany
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -102,6 +102,7 @@ def update_user_view(id):
 @admin_only
 def update_user(id):
     form_data = request.get_json()
+    company_id = form_data.get("company_id")
 
     user = User.get_by_id(id)
     if not user:
@@ -192,6 +193,16 @@ def update_user(id):
     expires_at = form_data.get("expires_at", user_payment.expires_at)
     if expires_at:
         user_payment.expires_at = datetime.strptime(expires_at, "%Y-%m-%d")
+
+    user_company = UserCompany.get_by_user_and_company_id(company_id=company_id, user_id=user.id)
+    if user_company is None:
+        user_company = UserCompany(
+            user_id=user.id,
+            company_id=company_id,
+        )
+        db.session.add(user_company)
+        db.session.commit()
+
 
     try:
         db.session.commit()

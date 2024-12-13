@@ -359,6 +359,8 @@ createApp({
             const is_active = isActiveElement ? isActiveElement.checked : false;
             const created = document.getElementById("created").value;
             const expires_at = document.getElementById("expires_at").value;
+            const companyId = this.companyId
+            console.log(companyId)
 
             const dataString = JSON.stringify({
                 email: email,
@@ -384,7 +386,8 @@ createApp({
                 tier: tier,
                 is_active: is_active,
                 created: created,
-                expires_at: expires_at
+                expires_at: expires_at,
+                company_id: companyId
             });
             try {
                 const response = await fetch("", {
@@ -423,6 +426,12 @@ createApp({
         selectUser(email) {
             this.$refs.searchInput.value = email;
             this.userList = [];
+        },
+        selectCompany(companyName, companyId) {
+            this.$refs.searchInput.value = companyName;
+            this.companyId = companyId
+            this.companyList = [];
+            console.log(this.companyList)
         },
         selectNotableInvestment(notable_investment) {
             this.$refs.searchInput.value = notable_investment;
@@ -593,7 +602,7 @@ createApp({
                 const response = await fetch(`/admin/search_companies/${searchInput}`);
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(data)
+                    console.log(data);
                     this.companyList = data.companies;
                 }
             } else {
@@ -618,6 +627,7 @@ createApp({
             selectedNotableInvestment: "",
             userList: [],
             companyList: [],
+            companyId: null,
             notableInvestments: [],
             industryList: [],
             dataString: "",

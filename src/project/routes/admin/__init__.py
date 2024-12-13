@@ -47,7 +47,7 @@ def search_user(search_input):
 @admin_only
 def search_companies(search_input):
     companies = db.session.scalars(select(Company).where(Company.name.contains(search_input))).unique().all()
-    return jsonify(companies=[company.name for company in companies])
+    return jsonify(companies=[{"id": company.id, "name": company.name} for company in companies])
 
 
 

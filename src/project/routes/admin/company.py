@@ -198,7 +198,6 @@ def update_company(id):
     company.is_public = form_data.get("is_public", company.is_public) or False
 
     user_company = UserCompany.get_by_user_and_company_id(company_id=company.id, user_id=user.id)
-    print(user_company)
     if user_company is None:
         user_company = UserCompany(
             user_id=user.id,

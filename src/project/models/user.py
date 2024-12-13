@@ -876,7 +876,7 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
         Company, back_populates="user_companies", uselist=True, init=False, lazy="joined"
     )
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    position: Mapped[str | None] = mapped_column(String, nullable=True)
+    position: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
     role: Mapped[CompanyRole] = mapped_column(SQLEnum(CompanyRole), nullable=False, default=CompanyRole.TEAM)

@@ -53,6 +53,7 @@
         <title>Company | Globalify</title>
     </head>
 
+    <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
     {% import "components/invite_member.html" as invite_member %} 
@@ -931,7 +932,7 @@
                         </form>
                     </div>
                     <div class="my-10 grid gap-6 sm:grid-cols-6">
-                        <div class="col-span-2">
+                        <div class="sm:col-span-2 col-span-4">
                             <h2 class="text-2xl font-bold">Member information</h2>
                             <p class="mb-2 mt-1 leading-6 text-gray-700">
                                 Manage member information here. You can add, edit and delete the members here.
@@ -1035,13 +1036,15 @@
                                                     {{ "You" if user.id == current_user.id else "" }}
                                                 </span>
                                             </h3>
-                                            <span class="text-sm text-gray-700">{{ user.position }},</span>
-                                            <span class="text-sm text-gray-700">{{ user.role.title() }}</span>
+                                            <span>
+                                                {% if user.position %}
+                                                <span class="text-sm text-gray-700">{{ user.position }}, </span>
+                                                {% endif %}
+                                                <span class="text-sm text-gray-700">{{ user.role.title() }}</span>
+                                            </span>
                                         </div>
                                     </div>
-                                    {% if (user_role in ["owner", "admin"] and current_user.id == user.id) or (user_role
-                                    in ["owner", "admin"] and current_user.id != user.id) %}
-
+                                    {% if user_role in ["owner", "admin"] %}
                                     <div class="ml-auto flex items-center justify-center">
                                         <button
                                             class="rounded-lg border bg-white px-2 py-1"

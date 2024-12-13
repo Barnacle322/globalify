@@ -423,6 +423,31 @@
                             v-text="company.name"
                         ></p>
                     </div>
+                                        <div>
+                        <label class="text-sm font-medium text-gray-700">Company Members</label>
+                        <table class="mt-2 min-w-full divide-y divide-gray-200 border border-gray-300 rounded-lg">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Company name</th>
+                                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Role</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white">
+                                {% for user_company in user.user_companies %}
+                                <tr>
+                                    <td class="px-4 py-2 text-sm text-gray-700">
+                                        {{ user_company.company.name}}
+                                    </td>
+                                    <td class="px-4 py-2 text-sm text-gray-900">
+                                        {{ user_company.role.value}}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
                 </div>
                 <button
                     id="saveButton"

@@ -50,7 +50,6 @@ def search_companies(search_input):
     return jsonify(companies=[{"id": company.id, "name": company.name} for company in companies])
 
 
-
 @admin.get("/search_industries/<search_input>")
 @admin_only
 def search_industry(search_input):

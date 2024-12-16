@@ -96,6 +96,7 @@ const CancelInvitationComponent = defineComponent({
     },
 });
 
+
 const ChangeRoleComponent = defineComponent({
     template: "#change-role-template",
     props: ["user"],

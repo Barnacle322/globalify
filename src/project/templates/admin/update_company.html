@@ -60,6 +60,11 @@
 {% import "components/update_investment.html" as update_investment %}
 {{ update_investment.render(company.id, "company", true) }}
 
+
+
+{#{% import "components/change_role.html" as change_role %}#}
+{#{{ change_role.render(company, current_user) }}#}
+
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
         <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
@@ -464,61 +469,86 @@
                         </label>
                     </div>
                 </div>
-                <div class="relative col-span-full">
-                    <label class="text-sm font-medium text-gray-700">User</label>
-                    <input
-                        type="text"
-                        id="searchInput"
-                        ref="searchInput"
-                        value=""
-                        class="w-full rounded-lg bg-transparent bg-white"
-                        placeholder="jennifer@gmail.com"
-                        @input="getUserList"
-                    />
-                    <div
-                        id="userList"
-                        v-show="userList.length > 0"
-                        class="flex max-h-60 w-full origin-top-right flex-col gap-1 overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
-                    >
-                        <p
-                            v-for="(email, index) in userList"
-                            :key="index"
-                            class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
-                            @click="selectUser(email)"
-                            v-text="email"
-                        ></p>
-                    </div>
 
-                    <div>
-                        <label class="text-sm font-medium text-gray-700">Company Members</label>
-                        <!-- Wrapper with rounded corners -->
-                        <div class="mt-2 overflow-hidden rounded-lg border border-gray-300">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">
-                                            First Name
-                                        </th>
-                                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Last Name</th>
-                                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Role</th>
-                                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Position</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 bg-white">
-                                    {% for user_company in company.user_companies %}
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-700">
-                                            {{ user_company.user.user_info.first_name }}
-                                        </td>
-                                        <td class="px-4 py-2 text-sm text-gray-900">
-                                            {{ user_company.user.user_info.last_name }}
-                                        </td>
-                                        <td class="px-4 py-2 text-sm text-gray-900">{{ user_company.role.value }}</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900">{{ user_company.position }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                <h2 class="col-span-full mb-2 mt-3 text-2xl font-medium">Company's members</h2>
+
+                <div class="col-span-4 flex w-full flex-col overflow-hidden rounded-xl border-2">
+                    <div class="relative col-span-full">
+                        <header class="border-b bg-gray-50 p-5">
+                            <input
+                                type="text"
+                                id="searchInput"
+                                ref="searchInput"
+                                value=""
+                                class="w-full rounded-lg border-gray-300 py-2"
+                                placeholder="jennifer@gmail.com"
+                                @input="getUserList"
+                            />
+                        </header>
+                        <div
+                            id="userList"
+                            v-show="userList.length > 0"
+                            class="flex max-h-60 w-full origin-top-right flex-col gap-1 overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
+                        >
+                            <p
+                                v-for="(email, index) in userList"
+                                :key="index"
+                                class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
+                                @click="selectUser(email)"
+                                v-text="email"
+                            ></p>
+                        </div>
+
+                        <div class="flex flex-col divide-y">
+                            {% for user_company in company.user_companies %}
+                            <div class="flex gap-2 px-5 py-2 even:bg-gray-100">
+                                <div class="flex gap-2">
+                                    {% if user_company.user.id %}
+                                    <img
+                                        class="size-12 rounded-lg"
+                                        src="{{ user_company.user.user_info.picture_url if user_company.user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
+                                        alt=""
+                                    />
+                                    {% endif %}
+                                    <div class="flex flex-col">
+                                        <h3 class="text-md font-medium">
+                                            {{ user_company.user.user_info.first_name}}
+                                            <span class="text-xs italic text-gray-400">
+                                                {{ "You" if user_company.user.id == current_user.id else "" }}
+                                            </span>
+                                        </h3>
+                                        <span>
+                                            {% if user_company.position %}
+                                            <span class="text-sm text-gray-700">{{ user_company.position }}, </span>
+                                            {% endif %}
+                                            <span class="text-sm text-gray-700">{{ user_company.role.value }}</span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="ml-auto flex items-center justify-center">
+                                    <button
+                                        class="rounded-lg border bg-white px-2 py-1"
+                                        @click="this.selectedUser = {{user_company.user.id}}"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="size-4"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>

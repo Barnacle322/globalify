@@ -1,459 +1,494 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Primary Meta Tags -->
-    <meta name="title" content="Globalify — Connect to the whole world of investment" />
-    <meta
-        name="bio"
-        content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-    />
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            name="bio"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://globalify.xyz/" />
-    <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
-    <meta
-        property="og:bio"
-        content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-    />
-    <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="og:bio"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://globalify.xyz/" />
-    <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
-    <meta
-        property="twitter:bio"
-        content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-    />
-    <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="twitter:bio"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
 
-    <link rel="stylesheet" href="/static/css/main.css" />
-    <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
 
-    <!-- Vue -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="/static/vue/base.js"></script>
-    <script src="/static/scripts/menu.js" defer></script>
-    <script src="/static/vue/admin.js" defer></script>
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="/static/vue/base.js"></script>
+        <script src="/static/scripts/menu.js" defer></script>
+        <script src="/static/vue/admin.js" defer></script>
 
-    <!-- Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-        rel="stylesheet"
-    />
-    <title>Edit User | Globalify</title>
-</head>
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+        <title>Edit User | Globalify</title>
+    </head>
 
-<!-- prettier-ignore -->
-{% import "components/navbar.html" as navbar %}
-{{ navbar.render(current_user) }}
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %}
+    {{ navbar.render(current_user) }}
 
-<body class="h-full overflow-x-clip" id="app">
-<navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-<div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
-    <aside-component :minified="asideMinified"></aside-component>
-    <transition enter-active-class="pop-in" leave-active-class="pop-out">
-        <div
-            v-if="asideExpanded"
-            @click="asideExpanded = false"
-            class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
-        ></div>
-    </transition>
-    <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-        <aside-mobile-component
-            v-if="asideExpanded"
-            @close-aside="asideExpanded = false"
-        ></aside-mobile-component>
-    </transition>
+    <body class="h-full overflow-x-clip" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component
+                    v-if="asideExpanded"
+                    @close-aside="asideExpanded = false"
+                ></aside-mobile-component>
+            </transition>
 
-    <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
-        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-        <div class="flex">
-            <a href="/admin/users" class="group flex items-center gap-1 text-gray-500">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 16 16"
-                    fill="currentColor"
-                    class="size-4 transition-colors ease-in-out group-hover:text-gray-700"
-                >
-                    <path
-                        fill-rule="evenodd"
-                        d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
-                <div class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Admin</div>
-            </a>
-        </div>
-
-        <div class="grid grid-cols-6 gap-x-2 gap-y-1">
-            <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
-            <div class="col-span-full empty:hidden">
-                {% if status_type %} {% if status_type == '3' %}
-                    <div class="rounded-xl text-red-500">{{ msg }}</div>
-                {% elif status_type == '2' %}
-                    <div class="rounded-xl text-orange-400">{{ msg }}</div>
-                {% elif status_type == '1' %}
-                    <div class="rounded-xl text-lime-500">{{ msg }}</div>
-                {% endif %} {% endif %}
-            </div>
-            <div class="col-span-full flex items-start gap-x-8">
-                {% if not user_info.picture_url %}
-                    <img
-                        class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
-                        src="/static/elements/default_pfp.svg"
-                        alt="User picture"
-                    />
-                {% else %}
-                    <img
-                        class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
-                        src="{{ user_info.picture_url }}"
-                        alt="User picture"
-                    />
-                {% endif %}
-                <div class="w-full">
-                    <input
-                        type="file"
-                        id="picture"
-                        name="picture"
-                        accept="image/png, image/jpeg"
-                        class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
-                    />
-                    <p class="mt-2 text-xs leading-5">JPG or PNG</p>
+            <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
+                <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="flex">
+                    <a href="/admin/users" class="group flex items-center gap-1 text-gray-500">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            class="size-4 transition-colors ease-in-out group-hover:text-gray-700"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        <div class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Admin</div>
+                    </a>
                 </div>
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="first_name">First Name</label>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    type="text"
-                    id="first_name"
-                    value="{{ user_info.first_name }}"
-                    placeholder="John"
-                    required
-                />
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="last_name">Last Name</label>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    type="text"
-                    id="last_name"
-                    value="{{ user_info.last_name or '' }}"
-                    placeholder="Doe"
-                    required
-                />
-            </div>
-            <div class="col-span-full">
-                <label class="text-sm font-medium text-gray-700" for="slug">Username</label>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    type="text"
-                    id="username"
-                    placeholder="cool username"
-                    required
-                    value="{{ user_info.username or '' }}"
-                />
-            </div>
 
-            <div class="col-span-full">
-                <label class="text-sm font-medium text-gray-700" for="bio">Bio</label>
-                <textarea
-                    class="w-full rounded-lg"
-                    type="text"
-                    id="bio"
-                    oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px';"
-                    placeholder="Edit user's bio here."
-                >
-{{ user_info.bio or '' }}</textarea
-                >
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="inline-flex cursor-pointer items-center pt-2">
-                    {% if user.is_verified %}
-                        <input id="is_verified" type="checkbox" value="True" class="peer sr-only" checked />
-                    {% else %}
-                        <input type="checkbox" id="is_verified" value="True" class="peer sr-only" />
-                    {% endif %}
-                    <div
-                        class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
-                    ></div>
-                    <span class="ms-3 text-sm font-medium text-gray-900">User is verified</span>
-                </label>
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="inline-flex cursor-pointer items-center pt-2">
-                    {% if user_info.is_complete %}
-                        <input id="is_complete" type="checkbox" value="True" class="peer sr-only" checked />
-                    {% else %}
-                        <input type="checkbox" id="is_complete" value="True" class="peer sr-only" />
-                    {% endif %}
-                    <div
-                        class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
-                    ></div>
-                    <span class="ms-3 text-sm font-medium text-gray-900">User is completed</span>
-                </label>
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="inline-flex cursor-pointer items-center pt-2">
-                    {% if user.is_admin %}
-                        <input id="is_admin" type="checkbox" value="True" class="peer sr-only" checked />
-                    {% else %}
-                        <input type="checkbox" id="is_admin" value="True" class="peer sr-only" />
-                    {% endif %}
-                    <div
-                        class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
-                    ></div>
-                    <span class="ms-3 text-sm font-medium text-gray-900">User is admin</span>
-                </label>
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="inline-flex cursor-pointer items-center pt-2">
-                    {% if user_info.refuse_all_invitations %}
-                        <input
-                            id="refuse_all_invitations"
-                            type="checkbox"
-                            value="True"
-                            class="peer sr-only"
-                            checked
+                <div class="grid grid-cols-6 gap-x-2 gap-y-1">
+                    <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
+                    <div class="col-span-full empty:hidden">
+                        {% if status_type %} {% if status_type == '3' %}
+                        <div class="rounded-xl text-red-500">{{ msg }}</div>
+                        {% elif status_type == '2' %}
+                        <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                        {% elif status_type == '1' %}
+                        <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                        {% endif %} {% endif %}
+                    </div>
+                    <div class="col-span-full flex items-start gap-x-8">
+                        {% if not user_info.picture_url %}
+                        <img
+                            class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
+                            src="/static/elements/default_pfp.svg"
+                            alt="User picture"
                         />
-                    {% else %}
-                        <input type="checkbox" id="refuse_all_invitations" value="True" class="peer sr-only" />
-                    {% endif %}
-                    <div
-                        class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
-                    ></div>
-                    <span class="ms-3 text-sm font-medium text-gray-900">User refuse all invitations</span>
-                </label>
-            </div>
-            <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
-            <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="email">Email*</label>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    type="text"
-                    id="email"
-                    placeholder="user@gmail.com"
-                    required
-                    value="{{ user.email or '' }}"
-                />
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="instagram">Instagram</label>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    type="text"
-                    id="instagram"
-                    placeholder="https://www.instagram.com/johndoe"
-                    value="{{ user_info.instagram_url or '' }}"
-                />
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="inline-flex cursor-pointer items-center pt-2">
-                    {% if user_info.email_public %}
-                        <input id="email_public" type="checkbox" value="True" class="peer sr-only" checked />
-                    {% else %}
-                        <input type="checkbox" id="email_public" value="True" class="peer sr-only" />
-                    {% endif %}
-                    <div
-                        class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
-                    ></div>
-                    <span class="ms-3 text-sm font-medium text-gray-900">Show user's Email</span>
-                </label>
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="inline-flex cursor-pointer items-center pt-2">
-                    {% if user_info.instagram_public %}
-                        <input id="instagram_public" type="checkbox" value="True" class="peer sr-only" checked />
-                    {% else %}
-                        <input type="checkbox" id="instagram_public" value="True" class="peer sr-only" />
-                    {% endif %}
-                    <div
-                        class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
-                    ></div>
-                    <span class="ms-3 text-sm font-medium text-gray-900">Show user's Intargam</span>
-                </label>
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="linkedin">Linkedin</label>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    type="text"
-                    id="linkedin"
-                    placeholder="https://www.linkedin.com/in/johndoe"
-                    value="{{ user_info.linkedin_url or '' }}"
-                />
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="twitter">Twitter</label>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    type="text"
-                    id="twitter"
-                    placeholder="https://twitter.com/johndoe"
-                    value="{{ user_info.twitter_url or '' }}"
-                />
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="inline-flex cursor-pointer items-center pt-2">
-                    {% if user_info.linkedin_public %}
-                        <input id="linkedin_public" type="checkbox" value="True" class="peer sr-only" checked />
-                    {% else %}
-                        <input type="checkbox" id="linkedin_public" value="True" class="peer sr-only" />
-                    {% endif %}
-                    <div
-                        class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
-                    ></div>
-                    <span class="ms-3 text-sm font-medium text-gray-900">Show user's Linkedin</span>
-                </label>
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="inline-flex cursor-pointer items-center pt-2">
-                    {% if user_info.twitter_public %}
-                        <input id="twitter_public" type="checkbox" value="True" class="peer sr-only" checked />
-                    {% else %}
-                        <input type="checkbox" id="twitter_public" value="True" class="peer sr-only" />
-                    {% endif %}
-                    <div
-                        class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
-                    ></div>
-                    <span class="ms-3 text-sm font-medium text-gray-900">Show user's Twitter</span>
-                </label>
-            </div>
-
-            <h2 class="col-span-full mt-3 text-2xl font-medium">Payment info</h2>
-            <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="first_name">Created at</label>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    type="date"
-                    id="created"
-                    value="{{ user_payment.created.strftime('%Y-%m-%d') if user_payment.created else '' }}"
-                    required
-                />
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="first_name">Expires at</label>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    type="date"
-                    id="expires_at"
-                    value="{{ user_payment.expires_at.strftime('%Y-%m-%d') if user_payment.expires_at else '' }}"
-                    required
-                />
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="first_name"> Customer id</label>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    type="text"
-                    id="customer_id"
-                    value="{{ user_payment.customer_id or '' }}"
-                    placeholder="0"
-                    required
-                />
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label class="text-sm font-medium text-gray-700" for="first_name">Subscription id</label>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    type="text"
-                    id="subscription_id"
-                    value="{{ user_payment.subscription_id or '' }}"
-                    placeholder="0"
-                    required
-                />
-            </div>
-            <div class="col-span-full sm:col-span-3">
-                <label for="tier" class="block text-sm font-medium leading-6">Subscription tier</label>
-                <div>
-                    <select id="tier" name="tier" class="h-12 w-full rounded-xl px-2" required>
-                        <option value="" disabled>Select subscription tier</option>
-                        {% if tiers %} {% for tier in tiers %} {% if user_payment and user_payment.tier and
-                                user_payment.tier.value == tier.value %}
-                            <option value="{{ tier.name }}" selected>{{ tier.value }}</option>
                         {% else %}
-                            <option value="{{ tier.name }}">{{ tier.value }}</option>
-                        {% endif %} {% endfor %} {% endif %}
-                    </select>
-                </div>
-            </div>
-            <div class="col-span-full sm:col-span-3 sm:ml-5 sm:mt-7">
-                <label class="inline-flex cursor-pointer items-center pt-2">
-                    {% if user_payment.is_active %}
-                        <input id="is_active" type="checkbox" value="True" class="peer sr-only" checked />
-                    {% else %}
-                        <input type="checkbox" id="is_active" value="True" class="peer sr-only" />
-                    {% endif %}
-                    <div
-                        class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
-                    ></div>
-                    <span class="ms-3 text-sm font-medium text-gray-900">Subscription is active</span>
-                </label>
-            </div>
-        </div>
+                        <img
+                            class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
+                            src="{{ user_info.picture_url }}"
+                            alt="User picture"
+                        />
+                        {% endif %}
+                        <div class="w-full">
+                            <input
+                                type="file"
+                                id="picture"
+                                name="picture"
+                                accept="image/png, image/jpeg"
+                                class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
+                            />
+                            <p class="mt-2 text-xs leading-5">JPG or PNG</p>
+                        </div>
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="first_name">First Name</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="first_name"
+                            value="{{ user_info.first_name }}"
+                            placeholder="John"
+                            required
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="last_name">Last Name</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="last_name"
+                            value="{{ user_info.last_name or ''}}"
+                            placeholder="Doe"
+                            required
+                        />
+                    </div>
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="slug">Username</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="username"
+                            placeholder="cool username"
+                            required
+                            value="{{ user_info.username or ''}}"
+                        />
+                    </div>
 
-        <div class="relative col-span-full">
-            <label class="text-sm font-medium text-gray-700">Companies</label>
-            <input
-                type="text"
-                id="searchInput"
-                ref="searchInput"
-                value=""
-                class="w-full rounded-lg bg-transparent bg-white"
-                placeholder="jennifer@gmail.com"
-                @input="getCompanyList"
-            />
-            <div
-                id="userList"
-                v-show="companyList.length > 0"
-                class="flex max-h-60 w-full origin-top-right flex-col gap-1 overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
-            >
-                <p
-                    v-for="company in companyList"
-                    :key="company.id"
-                    class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
-                    @click="selectCompany(company.name, company.id)"
-                    v-text="company.name"
-                ></p>
-            </div>
-            <div>
-                <label class="text-sm font-medium text-gray-700">User's Companies</label>
-                <div class="overflow-hidden rounded-lg border border-gray-300 mt-2">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Company name</th>
-                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Role</th>
-                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Position</th>
-                        </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                        {% for user_company in user.user_companies %}
-                            <tr>
-                                <td class="px-4 py-2 text-sm text-gray-700">{{ user_company.company.name }}</td>
-                                <td class="px-4 py-2 text-sm text-gray-900">{{ user_company.role.value }}</td>
-                                <td class="px-4 py-2 text-sm text-gray-900">{{ user_company.position }}</td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="bio">Bio</label>
+                        <textarea
+                            class="w-full rounded-lg"
+                            type="text"
+                            id="bio"
+                            oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px';"
+                            placeholder="Edit user's bio here."
+                        >
+{{  user_info.bio or ''}}</textarea
+                        >
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if user.is_verified %}
+                            <input id="is_verified" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="is_verified" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">User is verified</span>
+                        </label>
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if user_info.is_complete %}
+                            <input id="is_complete" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="is_complete" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">User is completed</span>
+                        </label>
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if user.is_admin %}
+                            <input id="is_admin" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="is_admin" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">User is admin</span>
+                        </label>
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if user_info.refuse_all_invitations %}
+                            <input
+                                id="refuse_all_invitations"
+                                type="checkbox"
+                                value="True"
+                                class="peer sr-only"
+                                checked
+                            />
+                            {% else %}
+                            <input type="checkbox" id="refuse_all_invitations" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">User refuse all invitations</span>
+                        </label>
+                    </div>
+                    <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="email">Email*</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="email"
+                            placeholder="user@gmail.com"
+                            required
+                            value="{{ user.email or ''}}"
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="instagram">Instagram</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="instagram"
+                            placeholder="https://www.instagram.com/johndoe"
+                            value="{{ user_info.instagram_url or ''}}"
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if user_info.email_public %}
+                            <input id="email_public" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="email_public" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Show user's Email</span>
+                        </label>
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if user_info.instagram_public %}
+                            <input id="instagram_public" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="instagram_public" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Show user's Intargam</span>
+                        </label>
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="linkedin">Linkedin</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="linkedin"
+                            placeholder="https://www.linkedin.com/in/johndoe"
+                            value="{{ user_info.linkedin_url or ''}}"
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="twitter">Twitter</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="twitter"
+                            placeholder="https://twitter.com/johndoe"
+                            value="{{ user_info.twitter_url or ''}}"
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if user_info.linkedin_public %}
+                            <input id="linkedin_public" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="linkedin_public" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Show user's Linkedin</span>
+                        </label>
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if user_info.twitter_public %}
+                            <input id="twitter_public" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="twitter_public" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Show user's Twitter</span>
+                        </label>
+                    </div>
+
+                    <h2 class="col-span-full mt-3 text-2xl font-medium">Payment info</h2>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="first_name">Created at</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="date"
+                            id="created"
+                            value="{{ user_payment.created.strftime('%Y-%m-%d') if user_payment.created else '' }}"
+                            required
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="first_name">Expires at</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="date"
+                            id="expires_at"
+                            value="{{ user_payment.expires_at.strftime('%Y-%m-%d') if user_payment.expires_at else '' }}"
+                            required
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="first_name"> Customer id</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="customer_id"
+                            value="{{ user_payment.customer_id or '' }}"
+                            placeholder="0"
+                            required
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="first_name">Subscription id</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent bg-white"
+                            type="text"
+                            id="subscription_id"
+                            value="{{ user_payment.subscription_id or ''}}"
+                            placeholder="0"
+                            required
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label for="tier" class="block text-sm font-medium leading-6">Subscription tier</label>
+                        <div>
+                            <select id="tier" name="tier" class="h-12 w-full rounded-xl px-2" required>
+                                <option value="" disabled>Select subscription tier</option>
+                                {% if tiers %} {% for tier in tiers %} {% if user_payment and user_payment.tier and
+                                user_payment.tier.value == tier.value %}
+                                <option value="{{ tier.name }}" selected>{{ tier.value }}</option>
+                                {% else %}
+                                <option value="{{ tier.name }}">{{ tier.value }}</option>
+                                {% endif %} {% endfor %} {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-span-full sm:col-span-3 sm:ml-5 sm:mt-7">
+                        <label class="inline-flex cursor-pointer items-center pt-2">
+                            {% if user_payment.is_active %}
+                            <input id="is_active" type="checkbox" value="True" class="peer sr-only" checked />
+                            {% else %}
+                            <input type="checkbox" id="is_active" value="True" class="peer sr-only" />
+                            {% endif %}
+                            <div
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                            ></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Subscription is active</span>
+                        </label>
+                    </div>
                 </div>
-            </div>
-            <button
-                id="saveButton"
-                @click="submitUserData"
-                class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"
-            >
-                Save
-            </button>
-    </main>
-</div>
-</body>
+
+                <h2 class="col-span-full mb-2 mt-3 text-2xl font-medium">User's companies</h2>
+                <div class="col-span-4 flex w-full flex-col overflow-hidden rounded-xl border-2">
+                    <div class="relative col-span-full">
+                        <header class="border-b bg-gray-50 p-5">
+                            <input
+                                type="text"
+                                id="searchInput"
+                                ref="searchInput"
+                                value=""
+                                class="w-full rounded-lg bg-transparent bg-white"
+                                placeholder="Apple"
+                                @input="getCompanyList"
+                            />
+                        </header>
+                        <div
+                            id="userList"
+                            v-show="companyList.length > 0"
+                            class="flex max-h-60 w-full origin-top-right flex-col gap-1 overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
+                        >
+                            <p
+                                v-for="company in companyList"
+                                :key="company.id"
+                                class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
+                                @click="selectCompany(company.name, company.id)"
+                                v-text="company.name"
+                            ></p>
+                        </div>
+
+                        <div class="flex flex-col divide-y">
+                            {% for user_company in user.user_companies %}
+                            <div class="flex gap-2 px-5 py-2 even:bg-gray-100">
+                                <div class="flex gap-2">
+                                    {% if user_company.user.id %}
+                                    <img
+                                        class="size-12 rounded-lg"
+                                        src="{{ user_company.company.picture_url if user_company.company.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
+                                        alt=""
+                                    />
+                                    {% endif %}
+                                    <div class="flex flex-col">
+                                        <h3 class="text-md font-medium">
+                                            {{ user_company.company.name }}
+                                            <span class="text-xs italic text-gray-400">
+                                                {{ "You" if user_company.user.id == current_user.id else "" }}
+                                            </span>
+                                        </h3>
+                                        <span>
+                                            {% if user_company.position %}
+                                            <span class="text-sm text-gray-700">{{ user_company.position }}, </span>
+                                            {% endif %}
+                                            <span class="text-sm text-gray-700">{{ user_company.role.value }}</span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="ml-auto flex items-center justify-center">
+                                    <button
+                                        class="rounded-lg border bg-white px-2 py-1"
+                                        @click="this.selectedUser = {{ user_company.company.id}}"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="size-4"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    id="saveButton"
+                    @click="submitUserData"
+                    class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"
+                >
+                    Save
+                </button>
+            </main>
+        </div>
+    </body>
 </html>

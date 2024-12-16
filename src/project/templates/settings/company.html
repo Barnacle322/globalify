@@ -932,7 +932,7 @@
                         </form>
                     </div>
                     <div class="my-10 grid gap-6 sm:grid-cols-6">
-                        <div class="sm:col-span-2 col-span-4">
+                        <div class="col-span-4 sm:col-span-2">
                             <h2 class="text-2xl font-bold">Member information</h2>
                             <p class="mb-2 mt-1 leading-6 text-gray-700">
                                 Manage member information here. You can add, edit and delete the members here.
@@ -942,11 +942,12 @@
                             <header class="border-b bg-gray-50 p-5">
                                 <input
                                     type="search"
-                                    class="n w-full rounded-lg border-gray-300 py-2"
+                                    class="w-full rounded-lg border-gray-300 py-2"
                                     placeholder="Search members"
                                     @input="searchMembers"
                                 />
                             </header>
+
                             <div class="flex flex-col divide-y" ref="memberListElement">
                                 <button
                                     class="mx-5 my-2 flex items-center justify-center gap-2 rounded-lg border p-3 transition-shadow hover:shadow-md"

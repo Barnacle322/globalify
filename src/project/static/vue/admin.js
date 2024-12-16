@@ -47,6 +47,8 @@ const DeleteInvestmentComponent = defineComponent({
     },
 });
 
+
+
 const UpdateInvestmentComponent = defineComponent({
     template: "#update-investment-template",
     props: ["type", "id"],
@@ -171,6 +173,7 @@ const UpdateInvestmentComponent = defineComponent({
     },
 });
 
+
 const CreateInvestmentComponent = defineComponent({
     template: "#create-investment-template",
     props: ["type"],
@@ -284,6 +287,7 @@ const CreateInvestmentComponent = defineComponent({
 });
 
 createApp({
+    emits: ["close-change-role"],
     components: {
         AsideComponent,
         AsideMobileComponent,
@@ -978,6 +982,7 @@ createApp({
     },
     data() {
         return {
+            selectedUser: null,
             asideExpanded: false,
             asideMinified: false,
             createNotableInvestmentOpened: false,

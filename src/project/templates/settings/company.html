@@ -65,7 +65,7 @@
     {% import "components/delete_company.html" as delete_company %}
     {{ delete_company.render(company.id) }}
     {% import "components/create_investment.html" as create_investment %}
-    {{ create_investment.render(company.id, "company", false) }}
+    {{ create_investment.render("company", false) }}
     {% import "components/delete_investment.html" as delete_investment %}
     {{ delete_investment.render() }}
     {% import "components/update_investment.html" as update_investment %}

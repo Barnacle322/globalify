@@ -286,6 +286,103 @@ const CreateInvestmentComponent = defineComponent({
     },
 });
 
+const AdminChangeRoleComponent = defineComponent({
+    template: "#admin-change-role-template",
+    props: ["user"],
+    emits: ["close-change-role"],
+    delimiters: ["[[", "]]"],
+    data() {
+        return {
+            roles: [],
+        };
+    },
+    methods: {
+        closeChangeRole() {
+            this.$emit("close-change-role");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeChangeRole();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeChangeRole();
+            }
+        },
+        async changeRole(userId, companyId) {
+
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const role = this.$refs.roleChange.value;
+                const position = this.$refs.positionChange.value;
+                const is_primary = this.$refs.isPrimaryChange.value
+                const is_public = this.$refs.isPublicChange.value
+
+                console.log(is_public)
+                console.log(is_primary)
+
+
+                const response = await fetch(`/settings/company/member/${this.user.id}/role`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({
+                        role: role,
+                        company_id: companyId,
+                        position: position,
+                        is_primary: is_primary,
+                        is_public: is_public
+                    }),
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-change-role");
+                }
+            } catch (error) {
+                console.error("Error changing role:", error.message);
+            }
+        },
+        async removeMember(userId, companyId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const response = await fetch(`/settings/company/member/${userId}/remove`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({
+                        company_id: companyId,
+                    }),
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-change-role");
+                }
+            } catch (error) {
+                console.error("Error removing member:", error.message);
+            }
+        },
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+});
+
 createApp({
     emits: ["close-change-role"],
     components: {
@@ -297,11 +394,19 @@ createApp({
         CreateInvestmentComponent,
         DeleteInvestmentComponent,
         UpdateInvestmentComponent,
+        AdminChangeRoleComponent,
     },
     watch: {
         asideMinified(value) {
             localStorage.setItem("asideMinified", value);
-        }
+        },
+        changeRoleOpened(value) {
+            if (value) {
+                document.body.classList.add("overflow-hidden");
+            } else {
+                document.body.classList.remove("overflow-hidden");
+            }
+        },
     },
     created() {
         this.asideMinified = localStorage.getItem("asideMinified") === "true";

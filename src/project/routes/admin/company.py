@@ -9,6 +9,7 @@ from ...models import (
     NotableInvestment,
     Round, User, UserCompany,
 )
+from ...schemas.user import MemberSchema, AdminMemberSchema
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -93,6 +94,22 @@ def update_company_view(id):
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("admin.company.index", _external=True, **status))
 
+    company_members = UserCompany.get_members(company_id=id)
+
+    members = []
+    if company_members:
+        for user, user_company in company_members:
+            user_info = user.user_info
+            user_element = AdminMemberSchema(
+                id=user.id,
+                name=user_info.full_name,
+                picture_url=user_info.picture_url,
+                role=user_company.role.value,
+                position=user_company.position,
+                is_primary=user_company.is_primary,
+                is_public=user_company.is_public
+            )
+            members.append(user_element.model_dump())
     return render_template(
         "admin/update_company.html",
         company=company,
@@ -100,6 +117,7 @@ def update_company_view(id):
         industries=Industry.get_all(),
         countries=Country.get_all(),
         status_type=status_type,
+        members=members,
         msg=msg,
     )
 

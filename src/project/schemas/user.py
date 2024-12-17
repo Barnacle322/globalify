@@ -19,6 +19,11 @@ class MemberSchema(BaseModel):
     position: str
 
 
+class AdminMemberSchema(MemberSchema):
+    is_primary: bool
+    is_public: bool
+
+
 class CompanyInvitationSchema(MemberSchema):
     company_id: int
 

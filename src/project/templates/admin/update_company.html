@@ -59,11 +59,8 @@
 {{ delete_investment.render() }}
 {% import "components/update_investment.html" as update_investment %}
 {{ update_investment.render(company.id, "company", true) }}
-
-
-
-{#{% import "components/change_role.html" as change_role %}#}
-{#{{ change_role.render(company, current_user) }}#}
+{% import "components/admin_change_role.html" as change_role %}
+{{ change_role.render(company, current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -113,6 +110,17 @@
                     :id="investmentId"
                     type="company"
                 ></update-investment-component>
+            </transition>
+
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="selectedUser"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <admin-change-role-component
+                    v-if="selectedUser"
+                    :user="selectedUser"
+                    @close-change-role="selectedUser = null"
+                ></admin-change-role-component>
             </transition>
 
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
@@ -500,28 +508,28 @@
                         </div>
 
                         <div class="flex flex-col divide-y">
-                            {% for user_company in company.user_companies %}
+                            {% for user in members %}
                             <div class="flex gap-2 px-5 py-2 even:bg-gray-100">
                                 <div class="flex gap-2">
-                                    {% if user_company.user.id %}
+                                    {% if user.id %}
                                     <img
                                         class="size-12 rounded-lg"
-                                        src="{{ user_company.user.user_info.picture_url if user_company.user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
+                                        src="{{ user.picture_url if user.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
                                         alt=""
                                     />
                                     {% endif %}
                                     <div class="flex flex-col">
                                         <h3 class="text-md font-medium">
-                                            {{ user_company.user.user_info.first_name}}
+                                            {{ user.name}}
                                             <span class="text-xs italic text-gray-400">
-                                                {{ "You" if user_company.user.id == current_user.id else "" }}
+                                                {{ "You" if user.id == current_user.id else "" }}
                                             </span>
                                         </h3>
                                         <span>
-                                            {% if user_company.position %}
-                                            <span class="text-sm text-gray-700">{{ user_company.position }}, </span>
+                                            {% if user.position %}
+                                            <span class="text-sm text-gray-700">{{ user.position }} </span>
                                             {% endif %}
-                                            <span class="text-sm text-gray-700">{{ user_company.role.value }}</span>
+                                            <span class="text-sm text-gray-700">{{ user.role }}</span>
                                         </span>
                                     </div>
                                 </div>
@@ -529,7 +537,7 @@
                                 <div class="ml-auto flex items-center justify-center">
                                     <button
                                         class="rounded-lg border bg-white px-2 py-1"
-                                        @click="this.selectedUser = {{user_company.user.id}}"
+                                        @click="this.selectedUser = {{ user }}"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"

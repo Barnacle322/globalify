@@ -148,6 +148,7 @@
                 <update-investment-component
                     v-if="updateInvestmentOpened"
                     @close-update-investment="updateInvestmentOpened = null"
+                    companyid="{{ company.id }}"
                     :investment="investment"
                     :id="investmentId"
                 ></update-investment-component>

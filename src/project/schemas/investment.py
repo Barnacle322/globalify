@@ -49,6 +49,14 @@ class FullInvestmentSchema(BaseModel):
     funding_round_id: int | None
     investor: InvestorSchema | None
     investment_firm: InvestorSchema | None
+    custom_name: str | None
     amount: int | None
+    date: date | None
     created_by_admin: bool | None
     is_verified: bool | None
+
+    def model_dump(self, **kwargs):
+        data = super().model_dump(**kwargs)
+        if self.date:
+            data["date"] = self.date.isoformat()
+        return data

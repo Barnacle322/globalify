@@ -85,7 +85,11 @@ def search_entities(search_input):
     )
     investment_firms = investment_firm_result.get("investment_firms", [])
 
-    return jsonify({"investors": investors, "investment_firms": investment_firms})
+    combined_results = [
+        {"id": investor.get("id"), "name": investor.get("name"), "type": "investor"} for investor in investors
+    ] + [{"id": firm.get("id"), "name": firm.get("name"), "type": "investment_firm"} for firm in investment_firms]
+
+    return jsonify({"results": combined_results})
 
 
 @search.get("/demo-search")

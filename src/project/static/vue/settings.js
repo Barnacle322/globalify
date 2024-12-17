@@ -374,7 +374,6 @@ const InviteMemberComponent = defineComponent({
             this.selectedUser = user;
         },
         clearUser() {
-            event.stopPropagation();
             this.selectedUser = null;
         },
         async fetchRoles() {
@@ -839,28 +838,26 @@ const DeleteInvestmentComponent = defineComponent({
 
 const UpdateInvestmentComponent = defineComponent({
     template: "#update-investment-template",
-    props: ["id"],
+    props: ["id", "companyid"],
     components: {
         SearchInvestmentComponent,
     },
     async created() {
         await this.fetchInvestment(this.id);
+        await this.fetchFundingRounds();
         this.selectedInvestor = this.investment.investor;
         this.selectedInvestmentFirm = this.investment.investment_firm;
         this.selectedFundingRound = this.investment.funding_round_id;
 
-        if (this.selectedInvestor) {
-            this.searchType = "investor";
-        } else if (this.selectedInvestmentFirm) {
-            this.searchType = "investment_firm";
-        } else {
-            this.searchType = "";
+        if (this.investment.custom_name) {
+            this.customName = this.investment.custom_name;
+            this.selectedCustomName = true;
         }
 
         console.log(this.selectedInvestor.name, this.selectedInvestmentFirm, this.searchType);
     },
     mounted() {
-        this.debouncedInvestorList = this.debounce(this.investors, 500);
+        this.debouncedInvestorList = this.debounce(this.getInvestorList, 500);
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
@@ -872,15 +869,18 @@ const UpdateInvestmentComponent = defineComponent({
     },
     methods: {
         async updateInvestment(id, isAdmin) {
-            const csrf_token = document.getElementById("csrf_token").value;
-            const amount = document.getElementById("amount").value;
+            const { value: csrf_token } = document.getElementById("csrf_token");
+            const { value: amount } = document.getElementById("amount");
+            const { value: date } = document.getElementById("date");
+
             const payload = {
+                custom_name: this.customName,
                 funding_round_id: this.selectedFundingRound,
-                amount: amount,
+                amount,
+                date,
                 created_by_admin: isAdmin,
-                is_verified: this.investment.is_verified,
-                investor_id: this.selectedInvestor,
-                investment_firm_id: this.selectedInvestmentFirm,
+                investor_id: this.selectedInvestor?.id || null,
+                investment_firm_id: this.selectedInvestmentFirm?.id || null,
             };
 
             try {
@@ -892,8 +892,11 @@ const UpdateInvestmentComponent = defineComponent({
                     },
                     body: JSON.stringify(payload),
                 });
+
                 if (response.ok) {
                     window.location.reload();
+                } else {
+                    console.error("Failed to update investment:", response.statusText);
                 }
             } catch (error) {
                 console.error("Error:", error);
@@ -905,10 +908,29 @@ const UpdateInvestmentComponent = defineComponent({
                 if (response.ok) {
                     const data = await response.json();
                     this.investment = data.investment;
-                    console.log(this.investment);
                 }
             } catch (error) {
                 console.error("Error fetching investment:", error);
+            }
+        },
+        async fetchFundingRounds() {
+            try {
+                const response = await fetch(`/settings/company/${this.companyid}/funding-rounds`);
+                if (response.ok) {
+                    data = await response.json();
+                    this.fundingRounds = data.funding_rounds;
+                    this.fundingRounds.forEach((fundingRound) => {
+                        fundingRound.announced_date = new Date(
+                            fundingRound.announced_date.split("T")[0],
+                        ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching funding rounds:", error);
             }
         },
         async getInvestorList(event) {
@@ -917,18 +939,40 @@ const UpdateInvestmentComponent = defineComponent({
                 const response = await fetch(`/search/${searchInput}`);
                 if (response.ok) {
                     const data = await response.json();
-                    this.investors = data.investors || [];
-                    this.investment_firms = data.investment_firms || [];
-
-                    console.log(this.investors, "Agahan");
-                    console.log(this.investors[0].name);
+                    this.investors = data.results || [];
+                    this.searchPerformed = true;
                 } else {
                     console.error("Failed to fetch search results");
                 }
             } else {
                 this.investors = [];
-                this.investment_firms = [];
+                this.searchPerformed = false;
             }
+        },
+        selectAsCustomName() {
+            this.selectedCustomName = true;
+            this.customName = this.searchQuery;
+            this.searchPerformed = false;
+            this.selectedInvestor = null;
+        },
+        selectInvestor(investor) {
+            this.investors = [];
+            if (investor.type === "investor") {
+                this.selectedInvestor = investor;
+                this.selectedInvestmentFirm = null;
+            } else if (investor.type === "investment_firm") {
+                this.selectedInvestmentFirm = investor;
+                this.selectedInvestor = null;
+            }
+            this.customName = "";
+        },
+        clearInput() {
+            this.searchQuery = "";
+            this.customName = "";
+            this.selectedInvestor = null;
+            this.selectedInvestmentFirm = null;
+            this.selectedCustomName = false;
+            this.showInvestorList = false;
         },
         debounce(func, wait) {
             let timeout;
@@ -951,6 +995,9 @@ const UpdateInvestmentComponent = defineComponent({
                 this.closeUpdateInvestmentModal();
             }
         },
+        hideInvestorList() {
+            this.showInvestorList = false;
+        },
     },
     data() {
         return {
@@ -959,12 +1006,14 @@ const UpdateInvestmentComponent = defineComponent({
             fundingRounds: [],
             selectedInvestor: null,
             selectedInvestmentFirm: null,
+            selectedCustomName: false,
             selectedFundingRound: null,
             investment: {},
             searchInvestmentOpened: false,
-            searchType: "investor",
+            searchPerformed: false,
+            showInvestorList: false,
             customName: "",
-            isCustomNameFilled: false,
+            searchQuery: "",
         };
     },
 });
@@ -992,11 +1041,13 @@ const CreateInvestmentComponent = defineComponent({
         async createInvestment(id, type, isAdmin) {
             const csrf_token = document.getElementById("csrf_token").value;
             const amount = document.getElementById("amount").value;
+            const date = document.getElementById("announced_date").value;
             const announced_date = document.getElementById("announced_date").value;
             const payload = {
                 custom_name: this.customName,
                 funding_round_id: this.selectedFundingRound,
                 amount: amount,
+                date: date,
                 created_by_admin: isAdmin,
                 date: announced_date,
             };

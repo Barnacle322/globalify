@@ -1,74 +1,80 @@
 {% macro render(id, type, updated_by_admin) %}
 <template id="update-investment-template">
     <article
-        class="fixed right-0 top-0 z-50 h-full w-full bg-white p-8 gap-4 flex flex-col sm:left-0 sm:right-0 sm:bottom-0 sm:top-0 mx-auto my-auto sm:h-fit sm:max-w-2xl sm:rounded-xl"
+        class="fixed right-0 top-0 z-50 h-full w-full bg-white p-8 gap-4 flex flex-col sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
     >
-        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-            <div v-if="searchInvestmentOpened" class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"></div>
-        </transition>
-        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-            <search-investment-component
-                v-if="searchInvestmentOpened"
-                ref="searchInvestment"
-                @close-search-investment="searchInvestmentOpened = null"
-                @investor-selected="handleInvestorSelected"
-            ></search-investment-component>
-        </transition>
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="grid gap-2">
             <h2 class="text-2xl font-medium">Investment info</h2>
-            <span v-text="investors"></span>
 
-            <div v-if="!isCustomNameFilled">
-                <label
-                    :for="searchType"
-                    class="text-sm font-medium text-gray-700"
-                    v-text="searchType === 'investor' ? 'Investor' : 'Investment Firm'"
-                ></label>
+            <div>
+                <label for="investor" class="text-sm font-medium text-gray-700">Investor</label>
 
-                <div class="flex items-center">
+                <div class="flex items-center flex-col relative">
+                    <div
+                        class="relative flex w-full items-center gap-4 rounded-xl border-2 border-sky-300 bg-sky-200 p-2 text-start text-sky-500"
+                        v-if="selectedInvestor || selectedInvestmentFirm || selectedCustomName"
+                    >
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3
+                                    class="text-md font-semibold"
+                                    v-text="selectedInvestor ? selectedInvestor.name : (selectedInvestmentFirm ? selectedInvestmentFirm.name : customName)"
+                                ></h3>
+                            </div>
+                        </div>
+                        <button class="absolute right-3" @click.stop="clearInput()">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-6"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
                     <input
-                        ref="searchInput"
-                        class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                        class="w-full bg-transparent py-3 pr-0 text-sm focus:ring-0 rounded-xl border-2 border-gray-300"
                         type="text"
-                        :placeholder="searchType === 'investor' ? 'Search for an investor' : 'Search for an investment firm'"
+                        placeholder="Search for an investor"
                         @input="debouncedInvestorList"
+                        @focus="showInvestorList = true"
+                        @blur="hideInvestorList"
+                        v-model="searchQuery"
+                        v-else
                     />
-                    <ul class="max-h-60 space-y-2 overflow-y-auto">
+
+                    <ul
+                        v-if="showInvestorList"
+                        class="absolute top-full z-[49] w-full overflow-clip rounded-b-[30px] bg-white shadow-md"
+                    >
                         <li
-                            class="flex w-full cursor-pointer items-center gap-4 rounded-xl border-2 border-stone-300 p-2 text-start hover:bg-stone-100"
+                            class="flex cursor-pointer items-center gap-2 px-4 py-2 last:mb-2 hover:bg-gray-100"
                             v-if="investors.length > 0"
                             v-for="(investor, index) in investors"
+                            :key="index"
+                            @mousedown.prevent="selectInvestor(investor)"
                         >
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h3 class="text-md font-semibold" v-text="investor.name"></h3>
-                                </div>
-                                <p class="text-gray-500">Invite to group</p>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-md font-semibold" v-text="investor.name"></h3>
                             </div>
+                            <p class="text-gray-500">Add this investor to your selection</p>
+                        </li>
+                        <li v-else-if="searchPerformed" class="flex flex-col text-gray-500 text-center p-4">
+                            <span>No investors found. Please try a different search.</span>
+                            <button
+                                @mousedown.prevent="selectAsCustomName"
+                                class="mt-2 rounded-lg bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+                            >
+                                Select as Custom Name
+                            </button>
                         </li>
                     </ul>
-
-                    <button
-                        v-if="selectedInvestor"
-                        @click.prevent.stop="clearSelectedInvestor"
-                        class="absolute right-2 top-1/2 -translate-y-1/2 transform text-gray-500 hover:text-gray-700"
-                    >
-                        &times;
-                    </button>
                 </div>
-            </div>
-
-            <div class="col-span-full" v-if="selectedInvestor === null && selectedInvestmentFirm === null">
-                <label for="custom_name" class="text-sm font-medium text-gray-700">Custom Name</label>
-                <input
-                    class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
-                    id="custom_name"
-                    placeholder="John Doe"
-                    type="text"
-                    v-model="customName"
-                    @input="checkCustomName"
-                />
             </div>
 
             <div>
@@ -110,26 +116,33 @@
                     class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
                     type="number"
                     id="amount"
+                    :value="investment.amount"
                     placeholder="14"
                 />
             </div>
             <div class="col-span-full">
                 <label class="text-sm font-medium text-gray-700" for="announced_date">Announced date</label>
-                <input class="w-full rounded-lg bg-transparent bg-white" type="date" id="announced_date" required />
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    :value="investment.date"
+                    type="date"
+                    id="date"
+                    required
+                />
             </div>
         </div>
         <div class="flex justify-end gap-5 mt-auto">
             <button
-                @click="close"
+                @click="closeUpdateInvestmentModal"
                 class="rounded-lg border border-gray-300 px-3 py-2 transition-shadow ease-in-out hover:shadow-md"
             >
                 Cancel
             </button>
             <button
-                @click="createInvestment({{ id }}, '{{ type }}', '{{ created_by_admin }}')"
+                @click="updateInvestment(id, '{{ updated_by_admin }}')"
                 class="rounded-lg bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
             >
-                Create
+                Update
             </button>
         </div>
     </article>

@@ -143,7 +143,9 @@ def get_investment(investment_id):
         )
         if model_investment.investment_firm
         else None,
+        custom_name=model_investment.custom_name,
         amount=model_investment.amount,
+        date=model_investment.date,
         created_by_admin=model_investment.created_by_admin,
         is_verified=model_investment.is_verified,
     ).model_dump()
@@ -190,22 +192,29 @@ def create_investment():
 def update_investment(investment_id):
     form_data = request.get_json()
 
+    print("\n\n\n\n\n\n\n\n\n\n\n\n")
+    print(form_data)
+
     investment = Investment.get_by_id(investment_id)
     if not investment:
         return jsonify({"status": "error", "message": "Investment not found."}), 404
 
-    investor_id = form_data.get("investor_id")
-    investment_firm_id = form_data.get("investment_firm_id")
-    amount = form_data.get("amount")
-    funding_round_id = form_data.get("funding_round_id")
-    created_by_admin = form_data.get("created_by_admin")
-    is_verified = form_data.get("is_verified")
+    investor_id = form_data.get("investor_id", investment.investor_id) or None
+    investment_firm_id = form_data.get("investment_firm_id", investment.investment_firm_id) or None
+    custom_name = form_data.get("custom_name", investment.custom_name) or None
+    amount = form_data.get("amount", investment.amount) or None
+    date = datetime.strptime(form_data.get("date", investment.date), "%Y-%m-%d")
+    funding_round_id = form_data.get("funding_round_id", investment.funding_round_id) or None
+    created_by_admin = form_data.get("created_by_admin", investment.created_by_admin)
+    is_verified = form_data.get("is_verified", investment.is_verified)
 
     created_by_admin = True if created_by_admin == "True" else False
 
     investment.investor_id = investor_id
     investment.investment_firm_id = investment_firm_id
+    investment.custom_name = custom_name
     investment.amount = amount
+    investment.date = date
     investment.funding_round_id = funding_round_id
     investment.created_by_admin = created_by_admin
     investment.is_verified = is_verified

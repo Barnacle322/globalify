@@ -35,6 +35,7 @@ from ..utils.errors.error_messages import (
     EDIT_COMPANY_PERMISSION_DENIED,
     EMPTY_BIO,
     EMPTY_COMPANY_NAME,
+    EMPTY_COMPANY_POSITION,
     EMPTY_COUNTRY_ID,
     EMPTY_EMAIL_OR_ROLE,
     EMPTY_FIRSTNAME,
@@ -50,7 +51,6 @@ from ..utils.errors.error_messages import (
     REMOVE_YOURSELF_PERMISSION_DENIED,
     USER_ALREADY_IN_COMPANY,
     USER_ALREADY_INVITED,
-    EMPTY_COMPANY_POSITION,
 )
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
@@ -73,6 +73,8 @@ def index():
         msg = query.get("msg")
 
     investor = Investor.get_by_user_id_with_investments(current_user.id)
+    investments_by_round = Investment.get_investments_grouped_by_round(investor_id=investor.id) if investor else None
+
     has_investor_origin = InvestorOriginPoint.exists(investor.id) if investor else False
     pending_claim_requests = ClaimRequest.get_pending_by_user_id(current_user.id)
 
@@ -80,6 +82,7 @@ def index():
         "settings/general.html",
         user=current_user._get_current_object(),
         investor=investor,
+        investments_by_round=investments_by_round,
         investor_origin=has_investor_origin,
         pending_claim_requests=pending_claim_requests,
         rounds=Round.get_all(),
@@ -335,8 +338,7 @@ def company_info_view(company_id):
                 name=user_info.full_name,
                 picture_url=user_info.picture_url,
                 role=user_company.role.value,
-                position=user_company.position
-
+                position="sex",
             )
             members.append(user_element.model_dump())
 
@@ -688,7 +690,7 @@ def create_company():
         company_id=company.id,
         role=CompanyRole.OWNER,
         is_primary=is_primary,
-        position = company_position
+        position=company_position,
     )
 
     try:
@@ -788,8 +790,7 @@ def invite_user(company_id):
         role=CompanyRole(user_role),
         invited_by=current_user.id,
         message=invitation_message,
-        position = company_position
-
+        position=company_position,
     )
 
     db.session.add(company_invitation)
@@ -820,7 +821,7 @@ def accept_invitation(company_id):
             company_id=company_id,
             role=company_invitation.role,
             is_primary=is_primary,
-            position = company_invitation.position
+            position=company_invitation.position,
         )
         db.session.add(user_company)
 
@@ -892,6 +893,7 @@ def get_company_members(company_id):
         user_element = MemberSchema(
             id=user.id,
             name=user.user_info.full_name,
+            position="sex",
             picture_url=user.user_info.picture_url,
             role=user_company.role.value,
         )

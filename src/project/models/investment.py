@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+from collections import defaultdict
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
@@ -65,6 +66,24 @@ class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalars(
             db.select(Investment).join(FundingRound).where(FundingRound.company_id == company_id)
         ).all()
+
+    @staticmethod
+    def get_investments_grouped_by_round(investor_id: int):
+        # Получаем все инвестиции для инвестора
+        investments = db.session.scalars(
+            db.select(Investment).join(FundingRound).where(Investment.investor_id == investor_id)
+        ).all()
+
+        # Группируем инвестиции по ID и названию
+        grouped_investments = defaultdict(list)
+        for investment in investments:
+            round_key = (
+                investment.funding_round.round.id if investment.funding_round.round else None,
+                investment.funding_round.round.name if investment.funding_round.round else "Unknown Round",
+            )
+            grouped_investments[round_key].append(investment)
+
+        return grouped_investments
 
 
 class FundingRound(MappedAsDataclass, db.Model, unsafe_hash=True):

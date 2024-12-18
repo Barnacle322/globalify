@@ -56,7 +56,7 @@
     {% import "components/create_notable_investment.html" as createNotableInvestment %}
     {{ createNotableInvestment.render() }}
     {% import "components/create_investment.html" as create_investment %}
-    {{ create_investment.render(investor.id, "investor", true) }}
+    {{ create_investment.render("investor", true) }}
     {% import "components/delete_investment.html" as delete_investment %}
     {{ delete_investment.render() }}
     {% import "components/update_investment.html" as update_investment %}

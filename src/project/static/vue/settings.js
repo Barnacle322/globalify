@@ -789,7 +789,7 @@ const SearchInvestmentComponent = defineComponent({
 
 const DeleteInvestmentComponent = defineComponent({
     template: "#delete-investment-template",
-    props: ["investment-id"],
+    props: ["id"],
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
@@ -839,6 +839,9 @@ const DeleteInvestmentComponent = defineComponent({
 const UpdateInvestmentComponent = defineComponent({
     template: "#update-investment-template",
     props: ["id", "companyid"],
+    components: {
+        DeleteInvestmentComponent,
+    },
     async created() {
         await this.fetchInvestment(this.id);
         await this.fetchFundingRounds();
@@ -1006,6 +1009,7 @@ const UpdateInvestmentComponent = defineComponent({
             selectedCustomName: false,
             searchPerformed: false,
             showInvestorList: false,
+            deleteInvestmentOpened: false,
             customName: "",
             searchQuery: "",
         };

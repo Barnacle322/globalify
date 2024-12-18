@@ -917,8 +917,6 @@ def change_company_role(user_id):
     company_id = form_data.get("company_id")
     role = form_data.get("role")
     position = form_data.get("position")
-    is_primary = form_data.get("is_primary") == "True"
-    is_public = form_data.get("is_public") == "True"
 
     current_user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not current_user_company:
@@ -935,8 +933,8 @@ def change_company_role(user_id):
 
     user_company.role = role
     user_company.position = position
-    user_company.is_primary = is_primary
-    user_company.is_public = is_public
+    user_company.is_primary = form_data.get("is_primary", user_company.is_primary) == "True"
+    user_company.is_public = form_data.get("is_public", user_company.is_public) == "True"
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Member's role has been modified!").get_status()

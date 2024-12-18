@@ -1,10 +1,13 @@
 from datetime import datetime
+from flask import jsonify
+
 
 from flask import Blueprint, redirect, render_template, request, url_for
 from sqlalchemy import or_
 
 from ...extensions import db
 from ...models import User, UserInfo, UserPayment, UserCompany
+from ...schemas.company import UserCompanySchema
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -236,3 +239,26 @@ def delete_user(id):
         return redirect(url_for("admin.user.index", _external=True, **status))
 
     return redirect(url_for("admin.user.index"), code=302)
+
+
+@user.post("/user_company/<int:company_id>")
+@admin_only
+def user_company(company_id):
+    form_data = request.get_json()
+    user_id = form_data.get("user_id")
+    user_company_data = UserCompany.get_by_user_and_company_id(company_id=company_id, user_id=user_id)
+
+    user_company = UserCompanySchema(
+        id=user_company_data.company_id,
+        role=user_company_data.role,
+        position=user_company_data.position,
+        is_primary=user_company_data.is_primary,
+        is_public=user_company_data.is_public,
+        company_id=user_company_data.company_id
+    ).model_dump()
+
+    return jsonify(user_company)
+
+
+
+

@@ -288,12 +288,18 @@ const CreateInvestmentComponent = defineComponent({
 
 const AdminChangeRoleComponent = defineComponent({
     template: "#admin-change-role-template",
-    props: ["user"],
+    props: ["user", "companyid"],
     emits: ["close-change-role"],
     delimiters: ["[[", "]]"],
     data() {
         return {
             roles: [],
+            company: null,
+            position: null,
+            role: null,
+            is_primary: null,
+            is_active: null,
+            company_id: null,
         };
     },
     methods: {
@@ -310,7 +316,7 @@ const AdminChangeRoleComponent = defineComponent({
                 this.closeChangeRole();
             }
         },
-        async changeRole(userId, companyId) {
+        async changeRole(userId, companyId, company_id) {
 
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
@@ -319,11 +325,8 @@ const AdminChangeRoleComponent = defineComponent({
                 const is_primary = this.$refs.isPrimaryChange.value
                 const is_public = this.$refs.isPublicChange.value
 
-                console.log(is_public)
-                console.log(is_primary)
 
-
-                const response = await fetch(`/settings/company/member/${this.user.id}/role`, {
+                const response = await fetch(`/admin/companies/company/member/${this.user.id}/role`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -370,12 +373,47 @@ const AdminChangeRoleComponent = defineComponent({
                 console.error("Error removing member:", error.message);
             }
         },
+        async fetchCompany(companyId){
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const response = await fetch(`/admin/users/user_company/${companyId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({
+                        user_id: this.user,
+                    }),
+                });
+
+
+                const data = await response.json();
+                console.log("Response Data:", data);
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.position = data.position
+                    this.role = data.role
+                    this.is_primary = data.is_primary
+                    this.is_active = data.is_active
+                    this.company_id = data.company_id
+
+                }
+            } catch (error) {
+                console.error("Error removing member:", error.message);
+            }
+
+        },
     },
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
         }, 0);
+    },
+    async created(){
+        await this.fetchCompany(this.companyid);
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
@@ -1087,6 +1125,7 @@ createApp({
     },
     data() {
         return {
+            selectedCompanyId: null,
             selectedUser: null,
             asideExpanded: false,
             asideMinified: false,

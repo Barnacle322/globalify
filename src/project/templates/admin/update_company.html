@@ -60,7 +60,7 @@
 {% import "components/update_investment.html" as update_investment %}
 {{ update_investment.render(company.id, "company", true) }}
 {% import "components/admin_change_role.html" as change_role %}
-{{ change_role.render(company, current_user) }}
+{{ change_role.render(company) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>

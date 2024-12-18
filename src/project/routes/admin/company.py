@@ -18,7 +18,7 @@ from ...utils.enums import (
 from ...utils.errors.error_messages import (
     COMPANY_NOT_FOUND,
     EMPTY_COMPANY_NAME,
-    PICTURE_NOT_LOADED,
+    PICTURE_NOT_LOADED, NOT_COMPANY_MEMBER,
 )
 from ...utils.funcs import generate_pagination
 from ...utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
@@ -107,9 +107,10 @@ def update_company_view(id):
                 role=user_company.role.value,
                 position=user_company.position,
                 is_primary=user_company.is_primary,
-                is_public=user_company.is_public
+                is_public=user_company.is_public,
             )
             members.append(user_element.model_dump())
+
     return render_template(
         "admin/update_company.html",
         company=company,
@@ -214,16 +215,17 @@ def update_company(id):
     company.preferred_round_id = form_data.get("preferred_round", company.preferred_round) or None
     company.industry_id = form_data.get("industry", company.industry) or None
     company.is_public = form_data.get("is_public", company.is_public) or False
-
-    user_company = UserCompany.get_by_user_and_company_id(company_id=company.id, user_id=user.id)
-    if user_company is None:
-        user_company = UserCompany(
-            user_id=user.id,
-            company_id=company.id,
-        )
-        db.session.add(user_company)
-        db.session.commit()
-
+    try:
+        user_company = UserCompany.get_by_user_and_company_id(company_id=company.id, user_id=user.id)
+        if user_company is None:
+            user_company = UserCompany(
+                user_id=user.id,
+                company_id=company.id,
+            )
+            db.session.add(user_company)
+            db.session.commit()
+    except AttributeError:
+        pass
 
     try:
         db.session.commit()
@@ -390,3 +392,30 @@ def delete_company(id):
 
     status = Status(StatusType.SUCCESS, "Company deleted successfully!").get_status()
     return redirect(url_for("admin.company.index", _external=True, **status))
+
+
+@company.post("/company/member/<int:user_id>/role")
+@admin_only
+def update_user_company(user_id):
+    form_data = request.get_json()
+
+    company_id = form_data.get("company_id")
+    role = form_data.get("role")
+    position = form_data.get("position")
+
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
+
+    if not user_company:
+        status = Status(StatusType.ERROR, NOT_COMPANY_MEMBER).get_status()
+        return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
+
+    user_company.role = role
+    user_company.position = position
+    user_company.is_primary = form_data.get("is_primary", user_company.is_primary) == "True"
+    user_company.is_public = form_data.get("is_public", user_company.is_public) == "True"
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Member's role has been modified!").get_status()
+    return redirect(url_for("admin.company.update_company_view", id=company_id, _external=False, **status))
+
+

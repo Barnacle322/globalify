@@ -38,7 +38,7 @@
                     placeholder="CEO"
                     ref="positionChange"
                     v-text="user.position"
-                    :value="[[ user.position ]]"
+                    :value="user.position"
                 />
                 <label class="inline-flex cursor-pointer items-center pt-2">
                     <input
@@ -47,7 +47,7 @@
                         class="peer sr-only"
                         id="is_public"
                         ref="isPublicChange"
-                        :checked="[[user.is_public]]"
+                        :checked="user.is_public"
                         @change="user.is_primary = $event.target.checked"
                     />
                     <div
@@ -63,7 +63,7 @@
                         class="peer sr-only"
                         id="is_primary"
                         ref="isPrimaryChange"
-                        :checked="[[ user.is_primary ]]"
+                        :checked="user.is_primary"
                         @change="user.is_primary = $event.target.checked"
                     />
                     <div

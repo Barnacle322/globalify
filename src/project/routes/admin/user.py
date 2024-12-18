@@ -241,7 +241,7 @@ def delete_user(id):
     return redirect(url_for("admin.user.index"), code=302)
 
 
-@user.post("/user_company/<int:company_id>")
+@user.post("/user/company/<int:company_id>")
 @admin_only
 def user_company(company_id):
     form_data = request.get_json()

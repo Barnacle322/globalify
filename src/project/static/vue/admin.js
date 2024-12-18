@@ -326,7 +326,7 @@ const AdminChangeRoleComponent = defineComponent({
                 const is_public = this.$refs.isPublicChange.value
 
 
-                const response = await fetch(`/admin/companies/company/member/${this.user.id}/role`, {
+                const response = await fetch(`/admin/companies/company/member/${this.user}/role`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -376,7 +376,7 @@ const AdminChangeRoleComponent = defineComponent({
         async fetchCompany(companyId){
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
-                const response = await fetch(`/admin/users/user_company/${companyId}`, {
+                const response = await fetch(`/admin/users/user/company/${companyId}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -389,7 +389,6 @@ const AdminChangeRoleComponent = defineComponent({
 
 
                 const data = await response.json();
-                console.log("Response Data:", data);
                 if (response.redirected) {
                     window.location.href = response.url;
                 } else if (response.ok) {

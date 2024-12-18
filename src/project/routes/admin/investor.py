@@ -149,12 +149,12 @@ def update_investor_view(id):
         status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
-    investments = Investment.get_by_investor_id(investor.id)
+    investments_by_round = Investment.get_investments_grouped_by_round(investor_id=investor.id)
 
     return render_template(
         "admin/update_investor.html",
         investor=investor,
-        investments=investments,
+        investments_by_round=investments_by_round,
         rounds=Round.get_all(),
         industries=Industry.get_all(),
         status_type=status_type,

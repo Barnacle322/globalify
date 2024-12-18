@@ -5,6 +5,7 @@ from ...extensions import db
 from ...models import (
     Company,
     Country,
+    FundingRound,
     Industry,
     NotableInvestment,
     Round,
@@ -93,9 +94,12 @@ def update_company_view(id):
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("admin.company.index", _external=True, **status))
 
+    funding_rounds = FundingRound.get_by_company_id(company_id=id)
+
     return render_template(
         "admin/update_company.html",
         company=company,
+        funding_rounds=funding_rounds,
         rounds=Round.get_all(),
         industries=Industry.get_all(),
         countries=Country.get_all(),

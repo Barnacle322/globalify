@@ -63,8 +63,6 @@
     {{ delete_investment.render() }}
     {% import "components/update_investment.html" as update_investment %}
     {{ update_investment.render(investor.id, "investor", false) }}
-    {% import "components/search_investment.html" as search_investment %}
-    {{ search_investment.render() }}
     {% import "components/create_funding_round.html" as create_funding_round %}
     {{ create_funding_round.render(investor.id) }}
     {% import "components/delete_funding_round.html" as delete_funding_round %}
@@ -119,13 +117,6 @@
                     @close="createInvestmentOpened = null"
                     type="company"
                 ></create-investment-component>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <delete-investment-component
-                    v-if="deleteInvestmentOpened"
-                    @close-delete-investment="deleteInvestmentOpened = null"
-                    :investment-id="investmentId"
-                ></delete-investment-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <update-investment-component

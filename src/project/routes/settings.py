@@ -324,8 +324,6 @@ def company_info_view(company_id):
 
     company_invitations = CompanyInvitation.get_by_company_id(company_id=company_id)
 
-    investments = Investment.get_by_company_id(company_id=company_id)
-
     funding_rounds = FundingRound.get_by_company_id(company_id=company_id)
 
     company_members = UserCompany.get_members(company_id=company_id)
@@ -358,7 +356,6 @@ def company_info_view(company_id):
         rounds=Round.get_all(),
         countries=Country.get_all(),
         company=company,
-        investments=investments,
         funding_rounds=funding_rounds,
         members=members,
         users_in_company=users_in_company,

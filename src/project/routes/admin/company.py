@@ -2,14 +2,7 @@ from flask import Blueprint, jsonify, redirect, render_template, request, url_fo
 from sqlalchemy import select
 
 from ...extensions import db
-from ...models import (
-    Company,
-    Country,
-    FundingRound,
-    Industry,
-    NotableInvestment,
-    Round,
-)
+from ...models import Company, Country, FundingRound, Industry, NotableInvestment, Round, UserCompany
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -95,10 +88,12 @@ def update_company_view(id):
         return redirect(url_for("admin.company.index", _external=True, **status))
 
     funding_rounds = FundingRound.get_by_company_id(company_id=id)
+    user_companies = UserCompany.get_by_company_id(company_id=id)
 
     return render_template(
         "admin/update_company.html",
         company=company,
+        user_companies=user_companies,
         funding_rounds=funding_rounds,
         rounds=Round.get_all(),
         industries=Industry.get_all(),
@@ -365,3 +360,17 @@ def delete_company(id):
 
     status = Status(StatusType.SUCCESS, "Company deleted successfully!").get_status()
     return redirect(url_for("admin.company.index", _external=True, **status))
+
+
+# TODO
+@company.post("/members/<int:user_id>")
+@admin_only
+def modify_member(user_id: int):
+    return jsonify({"message": "Member modified"}), 200
+
+
+# TODO
+@company.post("/members/<int:user_id>/remove")
+@admin_only
+def remove_member(user_id: int):
+    return jsonify({"message": "Member removed"}), 200

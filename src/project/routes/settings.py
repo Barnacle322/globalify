@@ -299,6 +299,7 @@ def company_list_view():
                 picture_url=invitation.company.picture_url,
                 role=invitation.role.value,
                 company_id=invitation.company.id,
+                position=invitation.position,
             )
             company_invitations.append(company_invitation.model_dump())
 
@@ -336,7 +337,7 @@ def company_info_view(company_id):
                 name=user_info.full_name,
                 picture_url=user_info.picture_url,
                 role=user_company.role.value,
-                position="sex",
+                position=user_company.position,
             )
             members.append(user_element.model_dump())
 

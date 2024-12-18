@@ -602,6 +602,94 @@ const DeleteFundingRoundComponent = defineComponent({
     },
 });
 
+const EditMemberComponent = defineComponent({
+    template: "#edit-member-template",
+    props: ["user"],
+    emits: ["close"],
+    delimiters: ["[[", "]]"],
+    data() {
+        return {
+            roles: [],
+        };
+    },
+    methods: {
+        close() {
+            this.$emit("close");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.close();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.close();
+            }
+        },
+        async editMember(userId, companyId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const role = this.$refs.roleChange.value;
+                const position = this.$refs.positionChange.value;
+
+                const response = await fetch(`/admin/companies/members/${userId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({
+                        role: role,
+                        company_id: companyId,
+                        position: position,
+                    }),
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-change-role");
+                }
+            } catch (error) {
+                console.error("Error changing role:", error.message);
+            }
+        },
+        async removeMember(userId, companyId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const response = await fetch(`/admin/companies/members/${userId}/remove`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({
+                        company_id: companyId,
+                    }),
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-change-role");
+                }
+            } catch (error) {
+                console.error("Error removing member:", error.message);
+            }
+        },
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+});
+
 createApp({
     components: {
         AsideComponent,
@@ -615,6 +703,7 @@ createApp({
         CreateFundingRoundComponent,
         UpdateFundingRoundComponent,
         DeleteFundingRoundComponent,
+        EditMemberComponent,
     },
     watch: {
         asideMinified(value) {
@@ -1294,6 +1383,7 @@ createApp({
             createFundingRoundOpened: false,
             updateFundingRoundOpened: false,
             deleteFundingRoundOpened: false,
+            editMemberOpened: false,
             investment: {},
             csrfToken: "",
             searchQuery: localStorage.getItem("searchQuery") || "",

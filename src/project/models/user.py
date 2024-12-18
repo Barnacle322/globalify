@@ -919,7 +919,7 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_by_company_id(company_id: int) -> Sequence[UserCompany]:
-        return db.session.scalars(db.select(UserCompany).where(UserCompany.company_id == company_id)).all()
+        return db.session.scalars(db.select(UserCompany).where(UserCompany.company_id == company_id)).unique().all()
 
     @staticmethod
     def get_all() -> Sequence[UserCompany]:

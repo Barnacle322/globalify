@@ -65,6 +65,8 @@
     {{ delete_funding_round.render() }}
     {% import "components/update_funding_round.html" as update_funding_round %}
     {{ update_funding_round.render() }}
+    {% import "components/edit_member.html" as edit_member %}
+    {{ edit_member.render(company) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -86,7 +88,7 @@
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
                     class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
-                    v-if="createInvestmentOpened || updateInvestmentOpened || createFundingRoundOpened || updateFundingRoundOpened || deleteFundingRoundOpened"
+                    v-if="createInvestmentOpened || updateInvestmentOpened || createFundingRoundOpened || updateFundingRoundOpened || deleteFundingRoundOpened || editMemberOpened"
                 ></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
@@ -125,6 +127,13 @@
                     @close-delete-funding-round="deleteFundingRoundOpened = null"
                     :funding-round-id="fundingRoundId"
                 ></delete-funding-round-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <edit-member-component
+                    v-if="editMemberOpened"
+                    @close="editMemberOpened = null"
+                    :user="selectedUser"
+                ></edit-member-component>
             </transition>
 
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
@@ -598,6 +607,67 @@
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Show company in search</span>
                         </label>
+                    </div>
+                    <h2 class="col-span-full mt-3 text-2xl font-medium">Member info</h2>
+                    <div class="col-span-full">
+                        <div class="col-span-4 mt-2 flex w-full flex-col overflow-hidden rounded-xl border-2">
+                            <header class="border-b bg-gray-50 p-5">
+                                <input
+                                    type="search"
+                                    class="w-full rounded-lg border-gray-300 py-2"
+                                    placeholder="Search members"
+                                />
+                            </header>
+                            <button
+                                class="m-3 flex items-center justify-center gap-2 rounded-lg border p-3 transition-shadow hover:shadow-md"
+                                type="button"
+                            >
+                                <span class="text-sm font-medium">Add members</span>
+                            </button>
+                            {% for user_company in user_companies %}
+                            <div class="flex gap-2 px-5 py-2 even:bg-gray-100">
+                                <div class="flex gap-2">
+                                    <img
+                                        class="size-12 rounded-lg"
+                                        src="{{ user_company.user.user_info.picture_url if user_company.user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
+                                        alt=""
+                                    />
+                                    <div class="flex flex-col">
+                                        <h3 class="text-md font-medium">{{ user_company.user.user_info.full_name }}</h3>
+                                        <span>
+                                            {% if user_company.position %}
+                                            <span class="text-sm text-gray-700">{{ user_company.position }}, </span>
+                                            {% endif %}
+                                            <span class="text-sm text-gray-700">
+                                                {{ user_company.role.value.title() }}
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="ml-auto flex items-center justify-center">
+                                    <button
+                                        @click="selectedUser = {{ {'id': user_company.user.id, 'role': user_company.role.value, 'position': user_company.position, 'name': user_company.user.user_info.full_name} }}; editMemberOpened = true"
+                                        class="rounded-lg border bg-white px-2 py-1"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="size-4"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+                                            ></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
                 <button

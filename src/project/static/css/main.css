@@ -1622,6 +1622,9 @@ select {
 .mt-40 {
   margin-top: 10rem;
 }
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
 .line-clamp-2 {
   overflow: hidden;
   display: -webkit-box;

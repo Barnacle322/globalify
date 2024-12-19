@@ -640,8 +640,8 @@ const EditMemberComponent = defineComponent({
                     },
                     body: JSON.stringify({
                         role: role,
-                        company_id: companyId,
                         position: position,
+                        company_id: companyId,
                     }),
                 });
 

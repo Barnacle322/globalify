@@ -1,9 +1,9 @@
 {% macro render(company, users_in_company) %}
-<template id="invite-member-template">
+<template id="add-member-template">
     <article
         class="fixed right-0 top-0 z-50 h-full w-full bg-white p-8 gap-4 flex flex-col sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
     >
-        <button class="absolute right-3 top-3" @click="closeInviteMember">
+        <button class="absolute right-3 top-3" @click="close">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -15,23 +15,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
         </button>
-        <div class="flex flex-col items-center justify-center gap-2">
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="size-9"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                />
-            </svg>
-            <span class="font-medium">Invite a member to your company</span>
-        </div>
+
+        <span class="font-medium">Add a member to the company</span>
         <div class="flex flex-col gap-2 h-full">
             <label class="font-medium" for="email">Search by email*</label>
             <div
@@ -132,26 +117,17 @@
                 <option v-for="role in roles" v-text="role[0].toUpperCase() + role.slice(1)" :value="role"></option>
             </select>
 
-            <label class="font-medium" for="invitationMessage">Invitation Message</label>
-            <textarea
-                class="w-full rounded-xl border-2 border-stone-300"
-                placeholder="Hey, join our company!"
-                v-model="invitationMessage"
-                @input="limitText"
-                @blur="invitationMessage = invitationMessage.trim()"
-            ></textarea>
             <label class="font-medium" for="position">Position</label>
-            <input
+            <textarea
                 class="w-full rounded-xl border-2 border-stone-300"
                 placeholder="CEO"
                 v-model="position"
                 @input="limitPositionText"
                 @blur="position = position.trim()"
-            />
+            ></textarea>
             <button
                 class="mt-auto w-full rounded-xl bg-sky-400 px-3 py-2 text-white disabled:bg-gray-300 sm:mt-3"
                 @click="inviteMember({{ company.id }})"
-                :disabled="!(selectedRole && selectedUser)"
             >
                 Invite
             </button>

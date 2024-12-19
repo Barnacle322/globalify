@@ -993,26 +993,3 @@
         </div>
     </body>
 </html>
-
-<div class="investments-group">
-    <h1>Investments Grouped by Funding Round</h1>
-    {% if investments_by_round %} {% for round_name, investments in investments_by_round.items() %}
-    <div class="round">
-        <h2>{{ round_name }}</h2>
-        <ul>
-            {% for investment in investments %}
-            <li>
-                <strong>Company:</strong>
-                {{ investment.funding_round.company.name if investment.funding_round.company else "Unknown" }}
-                <br />
-                <strong>Amount:</strong> ${{ investment.amount or "N/A" }}
-                <br />
-                <strong>Date:</strong> {{ investment.date or "N/A" }}
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endfor %} {% else %}
-    <p>No investments available for this investor.</p>
-    {% endif %}
-</div>

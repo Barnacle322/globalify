@@ -362,15 +362,57 @@ def delete_company(id):
     return redirect(url_for("admin.company.index", _external=True, **status))
 
 
-# TODO
 @company.post("/members/<int:user_id>")
 @admin_only
 def modify_member(user_id: int):
-    return jsonify({"message": "Member modified"}), 200
+    form_data = request.get_json()
+
+    company_id = form_data.get("company_id")
+    role = form_data.get("role")
+    position = form_data.get("position")
+
+    if not company_id and not role:
+        status = Status(StatusType.ERROR, "Data fields missing").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
+    if not user_company:
+        status = Status(StatusType.ERROR, "Member not found").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    try:
+        user_company.role = role
+        user_company.position = position
+
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, f"An error occurred: {e}").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Member updated successfully!").get_status()
+    return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
 
 
-# TODO
 @company.post("/members/<int:user_id>/remove")
 @admin_only
 def remove_member(user_id: int):
-    return jsonify({"message": "Member removed"}), 200
+    form_data = request.get_json()
+    company_id = form_data.get("company_id")
+
+    if not company_id:
+        status = Status(StatusType.ERROR, "Data fields missing").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
+    if not user_company:
+        status = Status(StatusType.ERROR, "Member not found").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    try:
+        db.session.delete(user_company)
+        db.session.commit()
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
+
+    status = Status(StatusType.SUCCESS, "Member deleted successfully!").get_status()
+    return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))

@@ -48,6 +48,27 @@ LINKEDIN_EMAIL_URL = "https://api.linkedin.com/v2/emailAddress?q=members&project
 LINKEDIN_PERSONAL_INFO_URL = "https://api.linkedin.com/v2/me"
 
 
+def track_event(event_name, properties, distinct_id):
+    posthog_api_key = "phc_OYnEo3PANvSj9HM4MFbRiG5IQVyhxw3iSZXxHUOI13F"
+    posthog_url = "https://app.posthog.com/capture"
+
+    data = {
+        "api_key": posthog_api_key,
+        "event": event_name,
+        "properties": properties,
+        "distinct_id": distinct_id,
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Referer": "http://127.0.0.1:5000/",
+    }
+
+    response = requests.post(posthog_url, json=data, headers=headers)
+    if response.status_code != 200:
+        print(f"Failed to track event: {response.text}")
+
+
 @login_manager.user_loader
 def load_user(user_id: int) -> User | None:
     user = User.get_by_id(id=int(user_id))
@@ -351,6 +372,16 @@ def google_callback():
 
     if not user_info.is_complete:
         return redirect(url_for("onboarding.index"))
+
+    track_event(
+        "user_registered",
+        {
+            "source": "google_oauth",
+            "user_id": user.id,
+            "email": user.email,
+        },
+        distinct_id=user.id,
+    )
 
     return redirect(url_for("search.investor_search"))
 

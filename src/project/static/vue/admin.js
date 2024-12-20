@@ -626,11 +626,14 @@ const EditMemberComponent = defineComponent({
                 this.close();
             }
         },
-        async editMember(userId, companyId) {
+        async addMember(userId, companyId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
                 const role = this.$refs.roleChange.value;
                 const position = this.$refs.positionChange.value;
+                const is_primary = this.$refs.is_primary.value
+                const is_active = this.$refs.is_active.value
+
 
                 const response = await fetch(`/admin/companies/members/${userId}`, {
                     method: "POST",
@@ -642,6 +645,8 @@ const EditMemberComponent = defineComponent({
                         role: role,
                         position: position,
                         company_id: companyId,
+                        is_active: is_active,
+                        is_primary: is_primary
                     }),
                 });
 

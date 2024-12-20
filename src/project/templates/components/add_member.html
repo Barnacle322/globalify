@@ -129,6 +129,21 @@
                 @input="limitPositionText"
                 @blur="position = position.trim()"
             ></textarea>
+            <label class="inline-flex cursor-pointer items-center pt-2">
+                <input type="checkbox" ref="is_primary" name="is_primary" value="True" class="peer sr-only" id="is_primary" />
+                <div
+                    class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                ></div>
+                <span class="ms-3 text-sm font-medium text-gray-900">Is primary</span>
+            </label>
+            <label class="inline-flex cursor-pointer items-center pt-2">
+                <input type="checkbox" ref="is_active" name="is_active" value="True" class="peer sr-only" id="is_active" />
+                <div
+                    class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                ></div>
+                <span class="ms-3 text-sm font-medium text-gray-900">Is active</span>
+            </label>
+
             <button
                 class="mt-auto w-full rounded-xl bg-sky-400 px-3 py-2 text-white disabled:bg-gray-300 sm:mt-3"
                 @click="inviteMember({{ company.id }})"

@@ -429,6 +429,8 @@ def add_member(user_id: int):
     company_id = form_data.get("company_id")
     role = form_data.get("role")
     position = form_data.get("position")
+    # is_primary = form_data.get("is_primary")
+    # is_active = form_data.get("is_active")
 
     if not company_id and not role:
         status = Status(StatusType.ERROR, "Data fields missing").get_status()

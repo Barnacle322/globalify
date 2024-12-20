@@ -104,44 +104,7 @@
                     {% elif status_type == '1' %}
                     <div class="rounded-xl text-lime-500">{{ msg }}</div>
                     {% endif %} {% endif %}
-                    <div class="mx-auto flex w-full gap-2 rounded-full border bg-white py-2 pr-3">
-                        <div class="relative w-full">
-                            <input
-                                type="search"
-                                name="search"
-                                id="search"
-                                class="w-full border-0 bg-transparent p-3 pl-12 text-sm focus:ring-0"
-                                placeholder="Search"
-                                v-model="searchQuery"
-                                required
-                            />
-                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="size-5"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                                    />
-                                </svg>
-                            </div>
-                        </div>
-                        <button
-                            id="search-btn"
-                            class="w-fit text-nowrap rounded-full bg-blue-500 px-4 text-sm font-medium text-white transition-colors ease-in-out"
-                            type="submit"
-                            @click="search"
-                        >
-                            Search
-                        </button>
-                    </div>
-                    <nav class="sticky top-20 z-10 h-auto min-h-12 w-full overflow-x-auto border-b bg-white">
+                    <nav class="h-auto min-h-12 w-full overflow-x-auto border-b bg-white">
                         <div class="flex h-full flex-wrap items-center gap-4 px-5 py-3 text-sm sm:pr-9">
                             <div class="flex flex-wrap items-center gap-4">
                                 <div class="flex items-center gap-2">

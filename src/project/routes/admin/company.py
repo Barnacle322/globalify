@@ -421,7 +421,6 @@ def remove_member(user_id: int):
     return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
 
 
-
 @company.post("add/members/<int:user_id>")
 @admin_only
 def add_member(user_id: int):
@@ -430,7 +429,6 @@ def add_member(user_id: int):
     company_id = form_data.get("company_id")
     role = form_data.get("role")
     position = form_data.get("position")
-    print(role)
 
     if not company_id and not role:
         status = Status(StatusType.ERROR, "Data fields missing").get_status()

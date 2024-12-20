@@ -583,7 +583,7 @@
                                                     <div class="overflow-auto rounded-t-lg border border-b-0">
                                                         <table class="relative w-full table-auto">
                                                             <tr
-                                                                class="bg-white font-medium *:text-nowrap *:px-4 border-b"
+                                                                class="border-b bg-white font-medium *:text-nowrap *:px-4"
                                                             >
                                                                 <td class="py-4 pl-4">Investor</td>
                                                                 <td class="py-4">Amount</td>
@@ -812,7 +812,7 @@
                                     {% endif %}
                                 </div>
                                 {% if user_role in ["owner", "admin"] %}
-                                <div class="mt-8 flex gap-5 justify-end">
+                                <div class="mt-8 flex justify-end gap-5">
                                     <a class="flex items-center justify-center text-gray-700 underline" href=""
                                         >Cancel</a
                                     >
@@ -828,7 +828,7 @@
                         </form>
                     </div>
                     <div class="my-10 grid gap-6 sm:grid-cols-6">
-                        <div class="sm:col-span-2 col-span-4">
+                        <div class="col-span-4 sm:col-span-2">
                             <h2 class="text-2xl font-bold">Member information</h2>
                             <p class="mb-2 mt-1 leading-6 text-gray-700">
                                 Manage member information here. You can add, edit and delete the members here.
@@ -928,7 +928,7 @@
                                         <div class="flex flex-col">
                                             <h3 class="text-md font-medium">
                                                 {{ user.name }}
-                                                <span class="text-gray-400 text-xs italic">
+                                                <span class="text-xs italic text-gray-400">
                                                     {{ "You" if user.id == current_user.id else "" }}
                                                 </span>
                                             </h3>

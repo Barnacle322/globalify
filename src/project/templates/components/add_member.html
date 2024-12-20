@@ -1,7 +1,7 @@
 {% macro render(company, users_in_company) %}
 <template id="add-member-template">
     <article
-        class="fixed right-0 top-0 z-50 h-full w-full bg-white p-8 gap-4 flex flex-col sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
+        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col gap-4 bg-white p-8 sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
     >
         <button class="absolute right-3 top-3" @click="close">
             <svg
@@ -17,7 +17,7 @@
         </button>
 
         <span class="font-medium">Add a member to the company</span>
-        <div class="flex flex-col gap-2 h-full">
+        <div class="flex h-full flex-col gap-2">
             <label class="font-medium" for="email">Search by email*</label>
             <div
                 class="relative flex w-full items-center gap-4 rounded-xl border-2 border-sky-300 bg-sky-200 p-2 text-start text-sky-500"
@@ -114,7 +114,11 @@
             <label class="font-medium" for="role">Select a role*</label>
             <select class="w-full rounded-xl border-2 border-stone-300" v-model="selectedRole">
                 <option class="text-gray-500" disabled selected value>Select a role</option>
-                <option v-for="role in roles" v-text="role[0].toUpperCase() + role.slice(1)" :value="role"></option>
+                <option
+                    v-for="role in roles"
+                    v-text="role[0].toUpperCase() + role.slice(1)"
+                    :value="role.toUpperCase()"
+                ></option>
             </select>
 
             <label class="font-medium" for="position">Position</label>
@@ -129,7 +133,7 @@
                 class="mt-auto w-full rounded-xl bg-sky-400 px-3 py-2 text-white disabled:bg-gray-300 sm:mt-3"
                 @click="inviteMember({{ company.id }})"
             >
-                Invite
+                Add
             </button>
         </div>
     </article>

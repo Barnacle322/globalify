@@ -67,6 +67,8 @@
     {{ update_funding_round.render() }}
     {% import "components/edit_member.html" as edit_member %}
     {{ edit_member.render(company) }}
+    {% import "components/add_member.html" as add_member %}
+    {{ add_member.render(company, users_in_company) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -134,6 +136,10 @@
                     @close="editMemberOpened = null"
                     :user="selectedUser"
                 ></edit-member-component>
+            </transition>
+
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <add-member-component v-if="addMemberOpened" @close="addMemberOpened = null"></add-member-component>
             </transition>
 
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
@@ -409,7 +415,7 @@
                                 <div v-if="selectedFundingRound === '{{ funding_round.id }}'" class="flex flex-col p-3">
                                     <div class="overflow-auto rounded-t-lg border border-b-0">
                                         <table class="relative w-full table-auto">
-                                            <tr class="bg-white font-medium *:text-nowrap *:px-4 border-b">
+                                            <tr class="border-b bg-white font-medium *:text-nowrap *:px-4">
                                                 <td class="py-4 pl-4">Investor</td>
                                                 <td class="py-4">Amount</td>
                                                 <td class="relative flex items-center justify-between py-4 pr-4">
@@ -618,6 +624,7 @@
                                 />
                             </header>
                             <button
+                                @click="addMemberOpened = true"
                                 class="m-3 flex items-center justify-center gap-2 rounded-lg border p-3 transition-shadow hover:shadow-md"
                                 type="button"
                             >
@@ -669,6 +676,7 @@
                         </div>
                     </div>
                 </div>
+
                 <button
                     id="saveButton"
                     @click="submitCompanyData"

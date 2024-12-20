@@ -4,7 +4,7 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from sqlalchemy import or_
 
 from ...extensions import db
-from ...models import User, UserInfo, UserPayment
+from ...models import User, UserInfo, UserPayment, UserCompany
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -87,9 +87,12 @@ def update_user_view(id):
     user_payment = UserPayment.get_by_user_id(id)
     tiers = [tier for tier in Tier]
 
+    user_companies = UserCompany.get_by_user_id(user.id)
+
     return render_template(
         "admin/update_user.html",
         user=user,
+        user_companies=user_companies,
         user_info=user_info,
         user_payment=user_payment,
         tiers=tiers,

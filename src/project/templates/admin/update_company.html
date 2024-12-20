@@ -130,12 +130,16 @@
                     :funding-round-id="fundingRoundId"
                 ></delete-funding-round-component>
             </transition>
+
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <edit-member-component
                     v-if="editMemberOpened"
                     @close="editMemberOpened = null"
                     :user="selectedUser"
                 ></edit-member-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="addMemberOpened"></div>
             </transition>
 
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">

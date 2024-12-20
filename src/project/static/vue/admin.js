@@ -585,9 +585,36 @@ createApp({
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
         },
+        applyFilters() {
+            // Собираем только активные фильтры
+            const activeFilters = Object.entries(this.filters).reduce((acc, [key, value]) => {
+                if (value !== false) {
+                    acc[key] = value;
+                }
+                return acc;
+            }, {});
+
+            // Формируем строку параметров запроса
+            const queryParams = new URLSearchParams({
+                ...activeFilters,
+                page: this.currentPage,
+            }).toString();
+
+            // Перенаправляем на URL с фильтрами
+            window.location.href = `/admin/investors/filter?${queryParams}`;
+        },
     },
     mounted() {
         this.setupMenuToggle();
+        const urlParams = new URLSearchParams(window.location.search);
+        for (const [key, value] of urlParams.entries()) {
+            if (key in this.filters) {
+                this.filters[key] = value === "true";
+            }
+            if (key === "page") {
+                this.currentPage = parseInt(value) || 1;
+            }
+        }
     },
     data() {
         return {
@@ -612,6 +639,13 @@ createApp({
             ],
             showClasses: ["transform", "opacity-100", "scale-100"],
             hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
+            filters: {
+                check_twitter: false,
+                check_linkedin: false,
+                check_website: false,
+                check_about: false,
+                check_email: false,
+            },
         };
     },
 }).mount("#app");

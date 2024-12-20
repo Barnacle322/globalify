@@ -141,62 +141,62 @@
                             Search
                         </button>
                     </div>
-                    <a
-                        href="/admin/investors/create"
-                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium transition-shadow ease-in-out hover:shadow-md sm:text-base"
-                    >
-                        Create an Investor
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="size-5"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                            />
-                        </svg>
-                    </a>
-                    <a
-                        href="/admin/investors/approve"
-                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium transition-shadow ease-in-out hover:shadow-md sm:text-base"
-                    >
-                        Approve an Investor
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            height="24px"
-                            viewBox="0 -960 960 960"
-                            width="24px"
-                            fill="#5f6368"
-                            class="size-5"
-                        >
-                            <path
-                                d="m424-312 282-282-56-56-226 226-114-114-56 56 170 170ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"
-                            />
-                        </svg>
-                    </a>
-                    <a
-                        href="/admin/investors/filter/"
-                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium transition-shadow ease-in-out hover:shadow-md sm:text-base"
-                    >
-                        Investor Errors section
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            height="24px"
-                            viewBox="0 -960 960 960"
-                            width="24px"
-                            fill="#5f6368"
-                            class="size-5"
-                        >
-                            <path
-                                d="m424-312 282-282-56-56-226 226-114-114-56 56 170 170ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"
-                            />
-                        </svg>
-                    </a>
+                    <nav class="sticky top-20 z-10 h-auto min-h-12 w-full overflow-x-auto border-b bg-white">
+                        <div class="flex h-full flex-wrap items-center gap-4 px-5 py-3 text-sm sm:pr-9">
+                            <div class="flex flex-wrap items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_twitter"
+                                            class="rounded border-gray-300"
+                                        />
+                                        Twitter
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_linkedin"
+                                            class="rounded border-gray-300"
+                                        />
+                                        LinkedIn
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_website"
+                                            class="rounded border-gray-300"
+                                        />
+                                        Website
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_about"
+                                            class="rounded border-gray-300"
+                                        />
+                                        About
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_email"
+                                            class="rounded border-gray-300"
+                                        />
+                                        Email
+                                    </label>
+                                </div>
+
+                                <button
+                                    @click="applyFilters"
+                                    class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
+                                >
+                                    Show
+                                </button>
+                                <label class="flex items-center gap-2"> Total: {{total }} </label>
+                            </div>
+                        </div>
+                    </nav>
                     {% if investors %}
                     <div class="flex flex-col gap-3">
                         {% for investor in investors %}
@@ -204,21 +204,80 @@
                             class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 sm:flex-row"
                         >
                             <div class="relative flex w-full items-start justify-between gap-3">
-                                <div class="flex flex-col gap-2">
-                                    <span class="font-medium">{{ investor.name }}</span>
-                                    <p class="line-clamp-3">{{investor.about}}</p>
-                                    {% if investor.rounds %}
-                                    <div class="flex flex-wrap gap-1">
-                                        {% for round in investor.rounds %}
-                                        <a
-                                            class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
-                                            >{{ round }}
-                                        </a>
-                                        {% endfor %}
+                                <div class="flex flex-col gap-3 flex-grow">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg font-medium">{{ investor.name }}</span>
+                                        <span class="text-sm text-gray-500">#{{ investor.id }}</span>
                                     </div>
-                                    {% endif %} {% if investor.industries %}
-                                    <p class="text-sm text-gray-500">{{ ", ".join(investor.industries) }}</p>
-                                    {% endif %}
+                                    <div class="grid gap-2 text-sm">
+                                        {% if investor.about %}
+                                        <div class="flex gap-2">
+                                            <p class="line-clamp-2 text-gray-600">{{investor.about}}</p>
+                                        </div>
+                                        {% else %}
+                                        <div class="flex gap-2">
+                                            <p class="line-clamp-2 text-red-800">About</p>
+                                        </div>
+                                        {% endif %}
+
+                                        <div class="flex flex-wrap gap-4">
+                                            {% if investor.email %}
+                                            <div class="flex gap-2 items-center">
+                                                <a
+                                                    href="mailto:{{investor.email}}"
+                                                    class="text-blue-600 hover:underline"
+                                                    >{{investor.email}}</a
+                                                >
+                                            </div>
+                                            {% else %}
+                                            <div class="flex gap-2">
+                                                <p class="line-clamp-2 text-red-800">Email</p>
+                                            </div>
+                                            {% endif %} {% if investor.twitter %}
+                                            <div class="flex items-center gap-2">
+                                                <a
+                                                    href="https://twitter.com/{{investor.twitter}}"
+                                                    target="_blank"
+                                                    class="text-blue-600 hover:underline"
+                                                >
+                                                    {{investor.twitter}}
+                                                </a>
+                                            </div>
+                                            {% else %}
+                                            <div class="flex gap-2">
+                                                <p class="line-clamp-2 text-red-800">Twitter</p>
+                                            </div>
+                                            {% endif %} {% if investor.linkedin %}
+                                            <div class="flex items-center gap-2">
+                                                <a
+                                                    href="{{investor.linkedin}}"
+                                                    target="_blank"
+                                                    class="text-blue-600 hover:underline"
+                                                >
+                                                    {{investor.linkedin}}
+                                                </a>
+                                            </div>
+                                            {% else %}
+                                            <div class="flex gap-2">
+                                                <p class="line-clamp-2 text-red-800">Linkedin</p>
+                                            </div>
+                                            {% endif %} {% if investor.website %}
+                                            <div class="flex items-center gap-2">
+                                                <a
+                                                    href="{{investor.website}}"
+                                                    target="_blank"
+                                                    class="text-blue-600 hover:underline"
+                                                >
+                                                    {{investor.website}}
+                                                </a>
+                                            </div>
+                                            {% else %}
+                                            <div class="flex gap-2">
+                                                <p class="line-clamp-2 text-red-800">Website</p>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="ml-auto flex h-full flex-col gap-2">
                                     <a
@@ -293,7 +352,7 @@
                         {% if pagination and pagination.has_other_pages %} {% if pagination.has_prev %}
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors?page=1&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors/filter?page=1&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -313,7 +372,7 @@
                         <a
                             id="prev"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors/filter?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -330,7 +389,7 @@
                         <a
                             id="current"
                             class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500 transition-opacity duration-200 ease-in-out hover:opacity-90"
-                            href="/admin/investors?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors/filter?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ pagination.current_page }}
                         </a>
@@ -338,7 +397,7 @@
                         <a
                             id="page"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white text-sm font-medium"
-                            href="/admin/investors?page={{ page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors/filter?page={{ page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ page }}
                         </a>
@@ -346,7 +405,7 @@
                         <a
                             id="next"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors/filter?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -361,7 +420,7 @@
                         </a>
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/investors/filter?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"

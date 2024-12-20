@@ -1,5 +1,5 @@
 from flask import Blueprint, redirect, render_template, request, url_for
-from sqlalchemy import select
+from sqlalchemy import and_, select
 
 from ...extensions import db
 from ...models import (
@@ -508,92 +508,42 @@ def search_notable_investments(search_input, investor_id):
 @investor.get("/filter")
 @admin_only
 def filter_investors():
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
-
-    page = request.args.get("page", 1, type=int)
-
-    stmt = db.select(Investor.id).where(Investor.slug.is_(None))
-
-    batch_count = 1
-    for investors in Investor.get_batches(batch_size=100, stmt=stmt):
-        print(f"Processing batch {batch_count}")
-        for investor in investors:
-            print(investor)
-        batch_count += 1
-
-    pagination = db.paginate(stmt, page=page, per_page=9, error_out=False)
-
-    total_pages = pagination.pages or 1
-    pagination_info = generate_pagination(page, total_pages, 9)
-
-    return render_template(
-        "admin/filter_investors.html",
-        investors=investors,
-        pagination=pagination_info,
-        total_pages=total_pages,
-        status_type=status_type,
-        msg=msg,
-    )
-
-
-@investor.get("/filter")
-@admin_only
-def filter_investors2():
     query_params = request.args
     page = query_params.get("page", 1, type=int)
     per_page = query_params.get("per_page", 12, type=int)
 
-    filters = {
-        "has_twitter": query_params.get("has_twitter", type=bool),
-        "has_linkedin": query_params.get("has_linkedin", type=bool),
-        "has_website": query_params.get("has_website", type=bool),
-        "is_public": query_params.get("is_public", type=bool),
-        "is_approved": query_params.get("is_approved", type=bool),
-        "has_investments": query_params.get("has_investments", type=bool),
-        "has_rounds": query_params.get("has_rounds", type=bool),
-        "has_industries": query_params.get("has_industries", type=bool),
+    active_filters = {
+        key: value
+        for key, value in {
+            "check_twitter": query_params.get("check_twitter") == "true",
+            "check_linkedin": query_params.get("check_linkedin") == "true",
+            "check_website": query_params.get("check_website") == "true",
+            "check_about": query_params.get("check_about") == "true",
+            "check_email": query_params.get("check_email") == "true",
+        }.items()
+        if value is True
     }
 
     base_query = db.select(Investor)
+    conditions = []
 
-    if filters.get("has_twitter") is True:
-        base_query = base_query.where(Investor.twitter.is_not(None) & (Investor.twitter != ""))
-    elif filters.get("has_twitter") is False:
-        base_query = base_query.where((Investor.twitter.is_(None)) | (Investor.twitter == ""))
+    if "check_about" in active_filters:
+        conditions.append((Investor.about.is_(None)) | (Investor.about == ""))
 
-    if filters.get("has_linkedin") is True:
-        base_query = base_query.where(Investor.linkedin.is_not(None) & (Investor.linkedin != ""))
-    elif filters.get("has_linkedin") is False:
-        base_query = base_query.where((Investor.linkedin.is_(None)) | (Investor.linkedin == ""))
+    if "check_email" in active_filters:
+        conditions.append((Investor.email.is_(None)) | (Investor.email == ""))
 
-    if filters.get("has_website") is True:
-        base_query = base_query.where(Investor.website.is_not(None) & (Investor.website != ""))
-    elif filters.get("has_website") is False:
-        base_query = base_query.where((Investor.website.is_(None)) | (Investor.website == ""))
+    if "check_twitter" in active_filters:
+        conditions.append((Investor.twitter.is_(None)) | (Investor.twitter == ""))
 
-    if filters.get("is_public") is not None:
-        base_query = base_query.where(Investor.is_public == filters["is_public"])
+    if "check_linkedin" in active_filters:
+        conditions.append((Investor.linkedin.is_(None)) | (Investor.linkedin == ""))
 
-    if filters.get("is_approved") is not None:
-        base_query = base_query.where(Investor.is_approved == filters["is_approved"])
+    if "check_website" in active_filters:
+        conditions.append((Investor.website.is_(None)) | (Investor.website == ""))
 
-    if filters.get("has_investments") is True:
-        base_query = base_query.where(Investor.notable_investments.any())
-    elif filters.get("has_investments") is False:
-        base_query = base_query.where(~Investor.notable_investments.any())
-
-    if filters.get("has_rounds") is True:
-        base_query = base_query.where(Investor.rounds.any())
-    elif filters.get("has_rounds") is False:
-        base_query = base_query.where(~Investor.rounds.any())
-
-    if filters.get("has_industries") is True:
-        base_query = base_query.where(Investor.industries.any())
-    elif filters.get("has_industries") is False:
-        base_query = base_query.where(~Investor.industries.any())
+    if conditions:
+        base_query = base_query.where(and_(*conditions))
 
     pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
 
@@ -602,15 +552,12 @@ def filter_investors2():
         investors_data.append(
             {
                 "id": investor.id,
-                "name": investor.name,
+                "name": investor.full_name,
+                "about": investor.about,
+                "email": investor.email,
                 "twitter": investor.twitter,
                 "linkedin": investor.linkedin,
                 "website": investor.website,
-                "is_public": investor.is_public,
-                "is_approved": investor.is_approved,
-                "n_investments": len(investor.notable_investments),
-                "n_rounds": len(investor.rounds),
-                "n_industries": len(investor.industries),
             }
         )
 
@@ -620,6 +567,7 @@ def filter_investors2():
     return render_template(
         "admin/filter_investors.html",
         investors=investors_data,
+        total=pagination.total,
         pagination=pagination_info,
         total_pages=total_pages,
         total_investors=pagination.total,

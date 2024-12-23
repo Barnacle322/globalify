@@ -1,5 +1,5 @@
 from flask import Blueprint, redirect, render_template, request, url_for
-from sqlalchemy import and_, select
+from sqlalchemy import or_, select
 
 from ...extensions import db
 from ...models import (
@@ -325,7 +325,7 @@ def filter_investment_firms():
         conditions.append((InvestmentFirm.website.is_(None)) | (InvestmentFirm.website == ""))
 
     if conditions:
-        base_query = base_query.where(and_(*conditions))
+        base_query = base_query.where(or_(*conditions))
 
     pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
 

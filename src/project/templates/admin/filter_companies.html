@@ -118,10 +118,10 @@
                                     <label class="flex items-center gap-2">
                                         <input
                                             type="checkbox"
-                                            v-model="filters.check_email"
+                                            v-model="filters.check_instagram"
                                             class="rounded border-gray-300"
                                         />
-                                        Email
+                                        Instagram
                                     </label>
                                     <label class="flex items-center gap-2">
                                         <input
@@ -173,7 +173,7 @@
                                     <div class="grid gap-2 text-sm">
                                         {% if company.description %}
                                         <div class="flex gap-2">
-                                            <p class="line-clamp-2 text-gray-600">{{company.description}}</p>
+                                            <p class="line-clamp-1 text-gray-600">{{company.description}}</p>
                                         </div>
                                         {% else %}
                                         <div class="flex gap-2">

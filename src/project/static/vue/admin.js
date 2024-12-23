@@ -631,11 +631,13 @@ createApp({
             showClasses: ["transform", "opacity-100", "scale-100"],
             hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
             filters: {
-                check_twitter: false,
-                check_linkedin: false,
-                check_website: false,
                 check_about: false,
                 check_email: false,
+                check_twitter: false,
+                check_website: false,
+                check_linkedin: false,
+                check_instagram: false,
+                check_description: false,
             },
         };
     },

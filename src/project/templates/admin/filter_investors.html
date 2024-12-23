@@ -77,20 +77,24 @@
                 <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
                     <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">
                         <a
+                            href="/admin/investors"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                        >
+                            << Back
+                        </a>
+                        <a
                             href="/admin/investors/filter"
                             class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
-                            >Investors filter
+                            >filter
                         </a>
                         <a
                             href="/admin/investors/duplicates"
                             class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
-                            @click="resetSearchQuery"
                             >Duplicates
                         </a>
                         <a
                             href="/admin/arstan-gay"
                             class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
-                            @click="resetSearchQuery"
                             >Arstan geay
                         </a>
                     </div>
@@ -108,6 +112,22 @@
                         <div class="flex h-full flex-wrap items-center gap-4 px-5 py-3 text-sm sm:pr-9">
                             <div class="flex flex-wrap items-center gap-4">
                                 <div class="flex items-center gap-2">
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_about"
+                                            class="rounded border-gray-300"
+                                        />
+                                        About
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_email"
+                                            class="rounded border-gray-300"
+                                        />
+                                        Email
+                                    </label>
                                     <label class="flex items-center gap-2">
                                         <input
                                             type="checkbox"
@@ -132,24 +152,7 @@
                                         />
                                         Website
                                     </label>
-                                    <label class="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            v-model="filters.check_about"
-                                            class="rounded border-gray-300"
-                                        />
-                                        About
-                                    </label>
-                                    <label class="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            v-model="filters.check_email"
-                                            class="rounded border-gray-300"
-                                        />
-                                        Email
-                                    </label>
                                 </div>
-
                                 <button
                                     @click="applyFilters"
                                     class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
@@ -199,7 +202,7 @@
                                             {% endif %} {% if investor.twitter %}
                                             <div class="flex items-center gap-2">
                                                 <a
-                                                    href="https://twitter.com/{{investor.twitter}}"
+                                                    href="{{investor.twitter}}"
                                                     target="_blank"
                                                     class="text-blue-600 hover:underline"
                                                 >

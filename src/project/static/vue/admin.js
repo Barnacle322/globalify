@@ -586,22 +586,13 @@ createApp({
             };
         },
         applyFilters() {
-            // Собираем только активные фильтры
-            const activeFilters = Object.entries(this.filters).reduce((acc, [key, value]) => {
-                if (value !== false) {
-                    acc[key] = value;
-                }
-                return acc;
-            }, {});
-
-            // Формируем строку параметров запроса
             const queryParams = new URLSearchParams({
-                ...activeFilters,
+                ...Object.fromEntries(Object.entries(this.filters).filter(([, value]) => value !== false)),
                 page: this.currentPage,
             }).toString();
 
-            // Перенаправляем на URL с фильтрами
-            window.location.href = `/admin/investors/filter?${queryParams}`;
+            const basePath = window.location.pathname.split("/filter")[0];
+            window.location.href = `${basePath}/filter?${queryParams}`;
         },
     },
     mounted() {

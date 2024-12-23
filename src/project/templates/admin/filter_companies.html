@@ -77,31 +77,20 @@
                 <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
                     <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">
                         <a
-                            href="/admin/investors"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
-                            @click="resetSearchQuery"
-                            >Investors
-                        </a>
-                        <a
-                            href="/admin/investment-firms"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
-                            @click="resetSearchQuery"
-                            >Investment Firms
-                        </a>
-                        <a
                             href="/admin/companies"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                        >
+                            << Back
+                        </a>
+                        <a
+                            href="/admin/companies/filter"
                             class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
-                            >Companies
+                            >filter
                         </a>
                         <a
-                            href="/admin/users"
+                            href="/admin/companies/duplicates"
                             class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
-                            >Users
-                        </a>
-                        <a
-                            href="/admin/claim-requests"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
-                            >Claim Requests
+                            >Duplicates
                         </a>
                     </div>
                 </nav>
@@ -114,81 +103,61 @@
                     {% elif status_type == '1' %}
                     <div class="rounded-xl text-lime-500">{{ msg }}</div>
                     {% endif %} {% endif %}
-                    <div class="mx-auto flex w-full gap-2 rounded-full border bg-white py-2 pr-3">
-                        <div class="relative w-full">
-                            <input
-                                type="search"
-                                name="search"
-                                id="search"
-                                class="w-full border-0 bg-transparent p-3 pl-12 text-sm focus:ring-0"
-                                placeholder="Search"
-                                v-model="searchQuery"
-                                required
-                            />
-                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="size-5"
+                    <nav class="h-auto min-h-12 w-full overflow-x-auto border-b bg-white">
+                        <div class="flex h-full flex-wrap items-center gap-4 px-5 py-3 text-sm sm:pr-9">
+                            <div class="flex flex-wrap items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_description"
+                                            class="rounded border-gray-300"
+                                        />
+                                        Description
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_email"
+                                            class="rounded border-gray-300"
+                                        />
+                                        Email
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_twitter"
+                                            class="rounded border-gray-300"
+                                        />
+                                        Twitter
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_linkedin"
+                                            class="rounded border-gray-300"
+                                        />
+                                        LinkedIn
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            v-model="filters.check_website"
+                                            class="rounded border-gray-300"
+                                        />
+                                        Website
+                                    </label>
+                                </div>
+                                <button
+                                    @click="applyFilters"
+                                    class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
                                 >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                                    />
-                                </svg>
+                                    Show
+                                </button>
+                                <label class="flex items-center gap-2"> Total: {{ total }} </label>
                             </div>
                         </div>
-                        <button
-                            id="search-btn"
-                            class="w-fit text-nowrap rounded-full bg-blue-500 px-4 text-sm font-medium text-white transition-colors ease-in-out"
-                            type="submit"
-                            @click="search"
-                        >
-                            Search
-                        </button>
-                    </div>
-                    <a
-                        href="/admin/companies/create"
-                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium transition-shadow ease-in-out hover:shadow-md sm:text-base"
-                    >
-                        Create an Company
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="size-5"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                            />
-                        </svg>
-                    </a>
-                    <a
-                        href="/admin/companies/filter"
-                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium transition-shadow ease-in-out hover:shadow-md sm:text-base"
-                    >
-                        Companies Errors section
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            height="24px"
-                            viewBox="0 -960 960 960"
-                            width="24px"
-                            fill="#5f6368"
-                            class="size-5"
-                        >
-                            <path
-                                d="m40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm302-40q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm-40-120h80v-200h-80v200Zm40-100Z"
-                            />
-                        </svg>
-                    </a>
+                    </nav>
                     {% if companies %}
                     <div class="flex flex-col gap-3">
                         {% for company in companies %}
@@ -196,19 +165,80 @@
                             class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 sm:flex-row"
                         >
                             <div class="relative flex w-full items-start justify-between gap-3">
-                                <div class="flex flex-col gap-2">
-                                    <span class="font-medium">{{ company.name }}</span>
-                                    <p class="line-clamp-3">{{company.description}}</p>
-                                    {% if company.preferred_round %}
-                                    <div class="flex flex-wrap gap-1">
-                                        <a
-                                            class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
-                                            >{{ company.preferred_round }}
-                                        </a>
+                                <div class="flex flex-col gap-3 flex-grow">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg font-medium">{{ company.name }}</span>
+                                        <span class="text-sm text-gray-500">#{{ company.id }}</span>
                                     </div>
-                                    {% endif %} {% if company.industry %}
-                                    <p class="text-sm text-gray-500">{{ company.industry }}</p>
-                                    {% endif %}
+                                    <div class="grid gap-2 text-sm">
+                                        {% if company.description %}
+                                        <div class="flex gap-2">
+                                            <p class="line-clamp-2 text-gray-600">{{company.description}}</p>
+                                        </div>
+                                        {% else %}
+                                        <div class="flex gap-2">
+                                            <p class="line-clamp-2 text-red-800">Description</p>
+                                        </div>
+                                        {% endif %}
+
+                                        <div class="flex flex-wrap gap-4">
+                                            {% if company.instagram %}
+                                            <div class="flex gap-2 items-center">
+                                                <a
+                                                    href="mailto:{{company.instagram}}"
+                                                    class="text-blue-600 hover:underline"
+                                                    >{{company.instagram}}</a
+                                                >
+                                            </div>
+                                            {% else %}
+                                            <div class="flex gap-2">
+                                                <p class="line-clamp-2 text-red-800">Instagram</p>
+                                            </div>
+                                            {% endif %} {% if company.twitter %}
+                                            <div class="flex items-center gap-2">
+                                                <a
+                                                    href="{{company.twitter}}"
+                                                    target="_blank"
+                                                    class="text-blue-600 hover:underline"
+                                                >
+                                                    {{company.twitter}}
+                                                </a>
+                                            </div>
+                                            {% else %}
+                                            <div class="flex gap-2">
+                                                <p class="line-clamp-2 text-red-800">Twitter</p>
+                                            </div>
+                                            {% endif %} {% if company.linkedin %}
+                                            <div class="flex items-center gap-2">
+                                                <a
+                                                    href="{{company.linkedin}}"
+                                                    target="_blank"
+                                                    class="text-blue-600 hover:underline"
+                                                >
+                                                    {{company.linkedin}}
+                                                </a>
+                                            </div>
+                                            {% else %}
+                                            <div class="flex gap-2">
+                                                <p class="line-clamp-2 text-red-800">Linkedin</p>
+                                            </div>
+                                            {% endif %} {% if company.website %}
+                                            <div class="flex items-center gap-2">
+                                                <a
+                                                    href="{{company.website}}"
+                                                    target="_blank"
+                                                    class="text-blue-600 hover:underline"
+                                                >
+                                                    {{company.website}}
+                                                </a>
+                                            </div>
+                                            {% else %}
+                                            <div class="flex gap-2">
+                                                <p class="line-clamp-2 text-red-800">Website</p>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="ml-auto flex h-full flex-col gap-2">
                                     <a
@@ -283,7 +313,7 @@
                         {% if pagination and pagination.has_other_pages %} {% if pagination.has_prev %}
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/companies?page=1&search={{ request.args.get('search', '') }}"
+                            href="/admin/companies/filter?page=1&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -303,7 +333,7 @@
                         <a
                             id="prev"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/companies?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/companies/filter?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -320,7 +350,7 @@
                         <a
                             id="current"
                             class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500 transition-opacity duration-200 ease-in-out hover:opacity-90"
-                            href="/admin/companies?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/companies/filter?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ pagination.current_page }}
                         </a>
@@ -328,7 +358,7 @@
                         <a
                             id="page"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white text-sm font-medium"
-                            href="/admin/companies?page={{ page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/companies/filter?page={{ page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ page }}
                         </a>
@@ -336,7 +366,7 @@
                         <a
                             id="next"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/companies?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/companies/filter?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -351,7 +381,7 @@
                         </a>
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/companies?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/companies/filter?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"

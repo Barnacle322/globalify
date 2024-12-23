@@ -570,5 +570,4 @@ def filter_investors():
         total=pagination.total,
         pagination=pagination_info,
         total_pages=total_pages,
-        total_investors=pagination.total,
     )

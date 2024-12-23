@@ -1,5 +1,5 @@
 from flask import Blueprint, redirect, render_template, request, url_for
-from sqlalchemy import select
+from sqlalchemy import and_, select
 
 from ...extensions import db
 from ...models import (
@@ -285,3 +285,71 @@ def search_notable_investments(search_input, investor_id):
     )
 
     return {"notable_investments": [ni.to_dict() for ni in notable_investments]}
+
+
+@investment_firm.get("/filter")
+@admin_only
+def filter_investment_firms():
+    query_params = request.args
+    page = query_params.get("page", 1, type=int)
+    per_page = query_params.get("per_page", 12, type=int)
+
+    active_filters = {
+        key: value
+        for key, value in {
+            "check_twitter": query_params.get("check_twitter") == "true",
+            "check_linkedin": query_params.get("check_linkedin") == "true",
+            "check_website": query_params.get("check_website") == "true",
+            "check_about": query_params.get("check_about") == "true",
+            "check_email": query_params.get("check_email") == "true",
+        }.items()
+        if value is True
+    }
+
+    base_query = db.select(InvestmentFirm)
+    conditions = []
+
+    if "check_about" in active_filters:
+        conditions.append((InvestmentFirm.about.is_(None)) | (InvestmentFirm.about == ""))
+
+    if "check_email" in active_filters:
+        conditions.append((InvestmentFirm.email.is_(None)) | (InvestmentFirm.email == ""))
+
+    if "check_twitter" in active_filters:
+        conditions.append((InvestmentFirm.twitter.is_(None)) | (InvestmentFirm.twitter == ""))
+
+    if "check_linkedin" in active_filters:
+        conditions.append((InvestmentFirm.linkedin.is_(None)) | (InvestmentFirm.linkedin == ""))
+
+    if "check_website" in active_filters:
+        conditions.append((InvestmentFirm.website.is_(None)) | (InvestmentFirm.website == ""))
+
+    if conditions:
+        base_query = base_query.where(and_(*conditions))
+
+    pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
+
+    investment_firms_data = []
+    for investment_firm in pagination.items:
+        investment_firms_data.append(
+            {
+                "id": investment_firm.id,
+                "name": investment_firm.name,
+                "about": investment_firm.about,
+                "email": investment_firm.email,
+                "twitter": investment_firm.twitter,
+                "linkedin": investment_firm.linkedin,
+                "website": investment_firm.website,
+            }
+        )
+
+    total_pages = pagination.pages or 1
+    pagination_info = generate_pagination(page, total_pages, per_page)
+
+    return render_template(
+        "admin/filter_investment_firms.html",
+        investment_firms=investment_firms_data,
+        total=pagination.total,
+        pagination=pagination_info,
+        total_pages=total_pages,
+    )

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
-from sqlalchemy import select
+from sqlalchemy import and_, select
 
 from ...extensions import db
 from ...models import (
@@ -361,3 +361,71 @@ def delete_company(id):
 
     status = Status(StatusType.SUCCESS, "Company deleted successfully!").get_status()
     return redirect(url_for("admin.company.index", _external=True, **status))
+
+
+@company.get("/filter")
+@admin_only
+def filter_companies():
+    query_params = request.args
+    page = query_params.get("page", 1, type=int)
+    per_page = query_params.get("per_page", 12, type=int)
+
+    active_filters = {
+        key: value
+        for key, value in {
+            "check_twitter": query_params.get("check_twitter") == "true",
+            "check_linkedin": query_params.get("check_linkedin") == "true",
+            "check_website": query_params.get("check_website") == "true",
+            "check_description": query_params.get("check_description") == "true",
+            "check_instagram": query_params.get("check_instagram") == "true",
+        }.items()
+        if value is True
+    }
+
+    base_query = db.select(Company)
+    conditions = []
+
+    if "check_description" in active_filters:
+        conditions.append((Company.description.is_(None)) | (Company.description == ""))
+
+    if "check_instagram" in active_filters:
+        conditions.append((Company.instagram_url.is_(None)) | (Company.instagram_url == ""))
+
+    if "check_twitter" in active_filters:
+        conditions.append((Company.twitter_url.is_(None)) | (Company.twitter_url == ""))
+
+    if "check_linkedin" in active_filters:
+        conditions.append((Company.linkedin_url.is_(None)) | (Company.linkedin_url == ""))
+
+    if "check_website" in active_filters:
+        conditions.append((Company.website_url.is_(None)) | (Company.website_url == ""))
+
+    if conditions:
+        base_query = base_query.where(and_(*conditions))
+
+    pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
+
+    companies_data = []
+    for company in pagination.items:
+        companies_data.append(
+            {
+                "id": company.id,
+                "name": company.name,
+                "description": company.description,
+                "instagram": company.instagram_url,
+                "twitter": company.twitter_url,
+                "linkedin": company.linkedin_url,
+                "website": company.website_url,
+            }
+        )
+
+    total_pages = pagination.pages or 1
+    pagination_info = generate_pagination(page, total_pages, per_page)
+
+    return render_template(
+        "admin/filter_companies.html",
+        companies=companies_data,
+        total=pagination.total,
+        pagination=pagination_info,
+        total_pages=total_pages,
+    )

@@ -54,11 +54,12 @@
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
     {% import "components/create_investment.html" as create_investment %}
-    {{ create_investment.render(investment_firm.id, "investment_firm", true) }}
+    {% import "components/create_investment.html" as create_investment %}
+    {{ create_investment.render("investment_firm", false) }}
     {% import "components/delete_investment.html" as delete_investment %}
     {{ delete_investment.render() }}
     {% import "components/update_investment.html" as update_investment %}
-    {{ update_investment.render(investment_firm.id, "investment_firm", true) }}
+    {{ update_investment.render(investment_firm.id, "investment_firm", false) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>

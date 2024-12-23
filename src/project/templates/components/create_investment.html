@@ -7,13 +7,8 @@
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="grid gap-2">
             <h2 class="text-2xl font-medium">Investment info</h2>
-
-            <div v-if="!isCustomNameFilled">
-                <label
-                    :for="searchType"
-                    class="text-sm font-medium text-gray-700"
-                    v-text="searchType === 'investor' ? 'Investor' : 'Investment Firm'"
-                ></label>
+            <div>
+                <label for="investor" class="text-sm font-medium text-gray-700">Investor</label>
 
                 <div class="relative flex flex-col items-center">
                     <div

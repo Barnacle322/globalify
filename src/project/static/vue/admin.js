@@ -626,13 +626,12 @@ const EditMemberComponent = defineComponent({
                 this.close();
             }
         },
-        async addMember(userId, companyId) {
+        async inviteMember(userId, companyId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
                 const role = this.$refs.roleChange.value;
                 const position = this.$refs.positionChange.value;
-                const is_primary = this.$refs.is_primary.value
-                const is_active = this.$refs.is_active.value
+
 
 
                 const response = await fetch(`/admin/companies/members/${userId}`, {
@@ -645,8 +644,6 @@ const EditMemberComponent = defineComponent({
                         role: role,
                         position: position,
                         company_id: companyId,
-                        is_active: is_active,
-                        is_primary: is_primary
                     }),
                 });
 
@@ -731,13 +728,15 @@ const AddMemberComponent = defineComponent({
                 this.close();
             }
         },
-        async inviteMember(companyId) {
+        async addMember(companyId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
                 const userId = this.selectedUser.id;
                 const role = this.selectedRole;
                 const invitationMessage = this.invitationMessage;
                 const position = this.position;
+                const is_primary = this.$refs.is_primary.checked;
+                const is_active = this.$refs.is_public.checked;
 
                 const response = await fetch(`/admin/companies/add/members/${userId}`, {
                     method: "POST",
@@ -749,10 +748,12 @@ const AddMemberComponent = defineComponent({
                         company_id: companyId,
                         role: role,
                         invitation_message: invitationMessage,
-                        position: position
+                        position: position,
+                        is_public: is_active,
+                        is_primary: is_primary,
+
                     })
                 });
-                console.log("YA GEI");
 
                 if (response.redirected) {
                     window.location.href = response.url;

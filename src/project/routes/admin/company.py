@@ -429,8 +429,8 @@ def add_member(user_id: int):
     company_id = form_data.get("company_id")
     role = form_data.get("role")
     position = form_data.get("position")
-    # is_primary = form_data.get("is_primary")
-    # is_active = form_data.get("is_active")
+    is_primary = form_data.get("is_primary")
+    is_public = form_data.get("is_public")
 
     if not company_id and not role:
         status = Status(StatusType.ERROR, "Data fields missing").get_status()
@@ -442,7 +442,12 @@ def add_member(user_id: int):
         status = Status(StatusType.ERROR, "Member already exists").get_status()
         return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
 
-    user_company = UserCompany(user_id=user_id, company_id=company_id, position=position, role=role)
+    user_company = UserCompany(user_id=user_id,
+                               company_id=company_id,
+                               position=position,
+                               role=role,
+                               is_public=is_public,
+                               is_primary=is_primary)
     db.session.add(user_company)
     db.session.commit()
 

@@ -53,6 +53,8 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %}
     {{ navbar.render(current_user) }}
+    {% import "components/edit_company_member.html" as edit_company_member %}
+    {{ edit_company_member.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -72,12 +74,16 @@
                 ></aside-mobile-component>
             </transition>
 
+
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <edit-member-component
-                    v-if="editMemberOpened"
-                    @close="editMemberOpened = null"
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="editCompanyMemberOpened"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <edit-company-member-component
+                    v-if="editCompanyMemberOpened"
+                    @close="editCompanyMemberOpened = null"
                     :user="selectedUser"
-                ></edit-member-component>
+                ></edit-company-member-component>
             </transition>
 
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
@@ -419,6 +425,7 @@
                         <button
                             class="m-3 flex items-center justify-center gap-2 rounded-lg border p-3 transition-shadow hover:shadow-md"
                             type="button"
+                            @click="addMemberOpened = true"
                         >
                             <span class="text-sm font-medium">Add companies</span>
                         </button>
@@ -444,7 +451,7 @@
                             </div>
                             <div class="ml-auto flex items-center justify-center">
                                 <button
-                                    @click="selectedUser = {{ {'id': user_company.user.id, 'role': user_company.role.value, 'position': user_company.position, 'name': user_company.user.user_info.full_name} }}; editMemberOpened = true"
+                                    @click="selectedUser = {{ {'id': user_company.user.id, 'role': user_company.role.value, 'position': user_company.position, 'name': user_company.user.user_info.full_name, "company_id": user_company.company.id, "company_name": user_company.company.name} }}; editCompanyMemberOpened = true"
                                     class="rounded-lg border bg-white px-2 py-1"
                                 >
                                     <svg

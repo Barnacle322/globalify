@@ -724,7 +724,7 @@ const EditCompanyMemberComponent = defineComponent({
                 const position = this.$refs.positionChange.value;
 
 
-                const response = await fetch(`/admin/companies/members/${userId}`, {
+                const response = await fetch(`/admin/users/user/company/members/${userId}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

@@ -228,3 +228,33 @@ def delete_user(id):
         return redirect(url_for("admin.user.index", _external=True, **status))
 
     return redirect(url_for("admin.user.index"), code=302)
+
+@user.post("/user/company/members/<int:user_id>")
+@admin_only
+def modify_user_company_member(user_id: int):
+    form_data = request.get_json()
+
+    company_id = form_data.get("company_id")
+    role = form_data.get("role")
+    position = form_data.get("position")
+
+    if not company_id and not role:
+        status = Status(StatusType.ERROR, "Data fields missing").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
+    if not user_company:
+        status = Status(StatusType.ERROR, "Member not found").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    try:
+        user_company.role = role
+        user_company.position = position
+
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, f"An error occurred: {e}").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Member updated successfully!").get_status()
+    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))

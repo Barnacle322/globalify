@@ -1,6 +1,5 @@
 {% macro render() %}
 <template id="edit-company-member-template">
-
     <article
         class="fixed right-0 top-0 z-50 flex h-full w-full flex-col gap-4 bg-white p-8 sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
     >
@@ -16,14 +15,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
         </button>
-        <h2 class="text-xl font-medium">Edit [[ user.name ]] in [[user.company_name]]</h2>
+        <h2 class="text-xl font-medium">Edit [[ user_company.user_name ]] in [[user_company.company_name]]</h2>
         <div class="grid grid-cols-12 gap-2">
             <div class="col-span-full flex flex-col gap-2">
                 <label class="font-normal">Role</label>
                 <select class="h-12 w-full rounded-xl border border-stone-300 px-2" ref="roleChange">
-                    <option value="OWNER" :selected="user.role === 'owner'">Owner</option>
-                    <option value="ADMIN" :selected="user.role === 'admin'">Admin</option>
-                    <option value="TEAM" :selected="user.role === 'team'">Team</option>
+                    <option value="OWNER" :selected="user_company.user_role === 'owner'">Owner</option>
+                    <option value="ADMIN" :selected="user_company.user_role === 'admin'">Admin</option>
+                    <option value="TEAM" :selected="user_company.user_role === 'team'">Team</option>
                 </select>
 
                 <label class="font-normal">Position</label>
@@ -31,14 +30,19 @@
                     class="h-12 w-full rounded-xl border border-stone-300 px-2"
                     placeholder="CEO"
                     ref="positionChange"
-                    v-text="user.position"
-                    :value="user.position"
+                    v-text="user_company.position"
+                    :value="user_company.position"
                 />
             </div>
         </div>
-        <button @click="removeMember(user.id, company.id)" class="w-fit text-red-500 underline">Remove User</button>
         <button
-            @click="editMember(user.id, user.company_id)"
+            @click="removeMember(user_company.user_id, user_company.company_id)"
+            class="w-fit text-red-500 underline"
+        >
+            Remove User
+        </button>
+        <button
+            @click="editMember(user_company.user_id, user_company.company_id)"
             class="mt-auto w-full rounded-xl bg-sky-400 px-3 py-2 text-white disabled:bg-gray-300 sm:mt-3"
         >
             Confirm

@@ -1776,6 +1776,7 @@ createApp({
             selectedIndustry: "",
             selectedNotableInvestment: "",
             selectedUser: null,
+            selectedUserCompany: null,
             selectedInvitationId: null,
             dataString: "",
             currentPage: parseInt(localStorage.getItem("currentPage")) || 1,

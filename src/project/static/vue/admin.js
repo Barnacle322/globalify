@@ -695,7 +695,7 @@ const EditMemberComponent = defineComponent({
 
 const EditCompanyMemberComponent = defineComponent({
     template: "#edit-company-member-template",
-    props: ["user"],
+    props: ["user_company"],
     emits: ["close"],
     delimiters: ["[[", "]]"],
     data() {

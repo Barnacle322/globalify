@@ -82,7 +82,7 @@
                 <edit-company-member-component
                     v-if="editCompanyMemberOpened"
                     @close="editCompanyMemberOpened = null"
-                    :user="selectedUser"
+                    :user_company="selectedUserCompany"
                 ></edit-company-member-component>
             </transition>
 
@@ -451,7 +451,7 @@
                             </div>
                             <div class="ml-auto flex items-center justify-center">
                                 <button
-                                    @click="selectedUser = {{ {'id': user_company.user.id, 'role': user_company.role.value, 'position': user_company.position, 'name': user_company.user.user_info.full_name, "company_id": user_company.company.id, "company_name": user_company.company.name} }}; editCompanyMemberOpened = true"
+                                    @click="selectedUserCompany = {{ {'user_id': user_company.user.id, 'user_role': user_company.role.value, 'user_position': user_company.position, 'user_name': user_company.user.user_info.full_name, "company_id": user_company.company.id, "company_name": user_company.company.name} }}; editCompanyMemberOpened = true"
                                     class="rounded-lg border bg-white px-2 py-1"
                                 >
                                     <svg

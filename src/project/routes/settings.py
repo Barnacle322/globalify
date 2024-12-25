@@ -25,7 +25,7 @@ from ..models import (
 from ..models.claim import ClaimRequest
 from ..schemas.investment import FundingRoundSchema
 from ..schemas.investor import InvestorOriginPointSchema, MiniInvestorSchema, RoundSchema
-from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
+from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema, CompanySchema, SearchCompanySchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
     AUTH_USERNAME_USED,
@@ -1355,3 +1355,23 @@ def investor():
         industries=Industry.get_all(),
         rounds=Round.get_all(),
     )
+
+
+@settings.get("/companies/search/<search_input>")
+@login_required
+@check_user_info_complete
+@check_verification
+def search_company(search_input):
+    companies = db.session.scalars(db.select(Company).where(Company.name.contains(search_input))).unique().all()
+
+    company_list = []
+    for company in companies:
+        company_element = SearchCompanySchema(
+            id=company.id,
+            name=company.name,
+            picture_url=company.picture_url,
+        )
+        company_list.append(company_element.model_dump())
+
+    print(company_list)
+    return jsonify({"companies": company_list})

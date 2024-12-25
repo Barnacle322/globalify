@@ -967,10 +967,10 @@ const AddCompanyToMemberComponent = defineComponent({
                 this.close();
             }
         },
-        async addMember(companyId) {
+        async addCompany(userId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
-                const userId = this.selectedUser.id;
+                const companyId = this.selectedCompany.id;
                 const role = this.selectedRole;
                 const invitationMessage = this.invitationMessage;
                 const position = this.position;
@@ -1011,31 +1011,31 @@ const AddCompanyToMemberComponent = defineComponent({
                 timeout = setTimeout(() => func.apply(context, args), wait);
             };
         },
-        async getUserList(event) {
+        async getCompanyList(event) {
             const searchInput = event.target.value;
             if (searchInput.length > 0) {
-                const response = await fetch(`/settings/users/search/${searchInput}`);
+                const response = await fetch(`/settings/companies/search/${searchInput}`);
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.users && data.users.length > 0) {
-                        this.userList = data.users;
+                    if (data.companies && data.companies.length > 0) {
+                        this.companyList = data.companies;
                     } else if (data.search_input) {
-                        this.userList = [{ email: data.search_input }];
+                        this.companyList = [{ email: data.search_input }];
                     } else {
-                        this.userList = [];
+                        this.companyList = [];
                     }
                 }
             } else {
-                this.userList = [];
+                this.companyList = [];
             }
         },
-        selectUser(user, event) {
+        selectCompany(company, event) {
             event.stopPropagation();
-            this.userList = [];
-            this.selectedUser = user;
+            this.companyList = [];
+            this.selectedCompany = company;
         },
         clearUser() {
-            this.selectedUser = null;
+            this.companyList = null;
         },
         async fetchRoles() {
             try {
@@ -1053,7 +1053,7 @@ const AddCompanyToMemberComponent = defineComponent({
 
     },
     mounted() {
-        this.debouncedGetUserList = this.debounce(this.getUserList, 500);
+        this.debouncedGetCompanyList = this.debounce(this.getCompanyList, 500);
         this.fetchRoles();
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
@@ -1066,8 +1066,8 @@ const AddCompanyToMemberComponent = defineComponent({
     },
     data() {
         return {
-            selectedUser: null,
-            userList: [],
+            selectedCompany: null,
+            companyList: [],
             roles: [],
             debouncedGetUserList: null,
             selectedRole: "",

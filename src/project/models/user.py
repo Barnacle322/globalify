@@ -902,6 +902,10 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalars(db.select(UserCompany.user_id).where(UserCompany.company_id == company_id)).all()
 
     @staticmethod
+    def get_company_ids_by_user_id(user_id: int) -> Sequence[int] | None:
+        return db.session.scalars(db.select(UserCompany.company_id).where(UserCompany.user_id == user_id)).all()
+
+    @staticmethod
     def get_primary_by_user_id(user_id: int) -> UserCompany | None:
         return db.session.scalar(
             db.select(UserCompany).where(UserCompany.user_id == user_id, UserCompany.is_primary.is_(True))

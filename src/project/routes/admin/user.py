@@ -88,6 +88,7 @@ def update_user_view(id):
     tiers = [tier for tier in Tier]
 
     user_companies = UserCompany.get_by_user_id(user.id)
+    companies_in_user = UserCompany.get_company_ids_by_user_id(user_id=user.id)
 
     return render_template(
         "admin/update_user.html",
@@ -98,6 +99,7 @@ def update_user_view(id):
         tiers=tiers,
         status_type=status_type,
         msg=msg,
+        companies_in_user=companies_in_user
     )
 
 

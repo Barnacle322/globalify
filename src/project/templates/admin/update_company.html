@@ -82,15 +82,12 @@
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
+                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
                     class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
-                    v-if="createInvestmentOpened || updateInvestmentOpened || createFundingRoundOpened || updateFundingRoundOpened || deleteFundingRoundOpened || editMemberOpened"
+                    v-if="createInvestmentOpened || updateInvestmentOpened || createFundingRoundOpened || updateFundingRoundOpened || deleteFundingRoundOpened || editMemberOpened || addMemberOpened"
                 ></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
@@ -104,7 +101,7 @@
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <update-investment-component
                     v-if="updateInvestmentOpened"
-                    @close-update-investment="updateInvestmentOpened = null"
+                    @close="updateInvestmentOpened = null"
                     companyid="{{ company.id }}"
                     :investment="investment"
                     :id="investmentId"
@@ -113,7 +110,7 @@
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <create-funding-round-component
                     v-if="createFundingRoundOpened"
-                    @close-create-funding-round="createFundingRoundOpened = null"
+                    @close="createFundingRoundOpened = null"
                 ></create-funding-round-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
@@ -126,11 +123,13 @@
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <delete-funding-round-component
                     v-if="deleteFundingRoundOpened"
-                    @close-delete-funding-round="deleteFundingRoundOpened = null"
+                    @close="deleteFundingRoundOpened = null"
                     :funding-round-id="fundingRoundId"
                 ></delete-funding-round-component>
             </transition>
-
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <add-member-component v-if="addMemberOpened" @close="addMemberOpened = null"></add-member-component>
+            </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <edit-member-component
                     v-if="editMemberOpened"
@@ -138,15 +137,8 @@
                     :user="selectedUser"
                 ></edit-member-component>
             </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="addMemberOpened"></div>
-            </transition>
 
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <add-member-component v-if="addMemberOpened" @close="addMemberOpened = null"></add-member-component>
-            </transition>
-
-            <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
+            <main class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <div class="flex">
                     <a href="/admin/companies" class="group flex items-center gap-1 text-gray-500">
@@ -656,7 +648,7 @@
                                 </div>
                                 <div class="ml-auto flex items-center justify-center">
                                     <button
-                                        @click="selectedUser = {{ {'id': user_company.user.id, 'role': user_company.role.value, 'position': user_company.position, 'name': user_company.user.user_info.full_name} }}; editMemberOpened = true"
+                                        @click="selectedUser = {{ {'id': user_company.user.id, 'role': user_company.role.value, 'position': user_company.position, 'name': user_company.user.user_info.full_name, 'is_public': 1 if user_company.is_public else 0, 'is_primary': 1 if user_company.is_primary else 0} }}; editMemberOpened = true"
                                         class="rounded-lg border bg-white px-2 py-1"
                                     >
                                         <svg

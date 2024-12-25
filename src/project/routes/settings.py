@@ -25,7 +25,7 @@ from ..models import (
 from ..models.claim import ClaimRequest
 from ..schemas.investment import FundingRoundSchema
 from ..schemas.investor import InvestorOriginPointSchema, MiniInvestorSchema, RoundSchema
-from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema, CompanySchema, SearchCompanySchema
+from ..schemas.user import CompanyInvitationSchema, MemberSchema, SearchCompanySchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
     AUTH_USERNAME_USED,
@@ -35,7 +35,6 @@ from ..utils.errors.error_messages import (
     EDIT_COMPANY_PERMISSION_DENIED,
     EMPTY_BIO,
     EMPTY_COMPANY_NAME,
-    EMPTY_COMPANY_POSITION,
     EMPTY_COUNTRY_ID,
     EMPTY_EMAIL_OR_ROLE,
     EMPTY_FIRSTNAME,

@@ -6,7 +6,7 @@
         <div class="flex items-start justify-between">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <span class="text-dark text-xl font-medium">Are you sure you want to delete funding round?</span>
-            <button @click="closeDeleteFundingRound">
+            <button @click="close">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -21,7 +21,7 @@
         </div>
         <span class="text-dark">This action will delete the funding round.</span>
         <div class="flex justify-end gap-5">
-            <button @click="closeDeleteFundingRound" class="rounded-lg border border-gray-300 px-3 py-2">Close</button>
+            <button @click="close" class="rounded-lg border border-gray-300 px-3 py-2">Close</button>
             <button @click="deleteFundingRound(fundingRoundId)" class="rounded-lg bg-red-500 px-3 py-2 text-white">
                 Confirm
             </button>

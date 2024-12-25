@@ -4,7 +4,7 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from sqlalchemy import or_
 
 from ...extensions import db
-from ...models import User, UserInfo, UserPayment, UserCompany
+from ...models import User, UserCompany, UserInfo, UserPayment
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -99,7 +99,7 @@ def update_user_view(id):
         tiers=tiers,
         status_type=status_type,
         msg=msg,
-        companies_in_user=companies_in_user
+        companies_in_user=companies_in_user,
     )
 
 
@@ -231,38 +231,8 @@ def delete_user(id):
 
     return redirect(url_for("admin.user.index"), code=302)
 
-@user.post("/user/company/members/<int:user_id>")
-@admin_only
-def modify_user_company_member(user_id: int):
-    form_data = request.get_json()
 
-    company_id = form_data.get("company_id")
-    role = form_data.get("role")
-    position = form_data.get("position")
-
-    if not company_id and not role:
-        status = Status(StatusType.ERROR, "Data fields missing").get_status()
-        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
-
-    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
-    if not user_company:
-        status = Status(StatusType.ERROR, "Member not found").get_status()
-        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
-
-    try:
-        user_company.role = role
-        user_company.position = position
-
-        db.session.commit()
-    except Exception as e:
-        status = Status(StatusType.ERROR, f"An error occurred: {e}").get_status()
-        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
-
-    status = Status(StatusType.SUCCESS, "Member updated successfully!").get_status()
-    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))
-
-
-@user.post("/add/companies/members/<int:user_id>")
+@user.post("/<int:user_id>/companies/add")
 @admin_only
 def add_member(user_id: int):
     form_data = request.get_json()
@@ -275,22 +245,74 @@ def add_member(user_id: int):
 
     if not company_id and not role:
         status = Status(StatusType.ERROR, "Data fields missing").get_status()
-        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+        return redirect(url_for("admin.company.update_user_view", id=company_id, _external=True, **status))
 
     user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
 
     if user_company:
         status = Status(StatusType.ERROR, "Member already exists").get_status()
-        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+        return redirect(url_for("admin.company.update_user_view", id=company_id, _external=True, **status))
 
-    user_company = UserCompany(user_id=user_id,
-                               company_id=company_id,
-                               position=position,
-                               role=role,
-                               is_public=is_public,
-                               is_primary=is_primary)
+    user_company = UserCompany(
+        user_id=user_id, company_id=company_id, position=position, role=role, is_public=is_public, is_primary=is_primary
+    )
     db.session.add(user_company)
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Member was added successfully!").get_status()
+    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))
+
+
+@user.post("/<int:user_id>/companies")
+@admin_only
+def edit_user_company(user_id: int):
+    form_data = request.get_json()
+
+    company_id = form_data.get("company_id")
+    role = form_data.get("role")
+    position = form_data.get("position")
+    is_primary = form_data.get("is_primary")
+    is_public = form_data.get("is_public")
+
+    if not company_id and not role:
+        status = Status(StatusType.ERROR, "Data fields missing").get_status()
+        return redirect(url_for("admin.company.update_user_view", id=company_id, _external=True, **status))
+
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
+    if not user_company:
+        status = Status(StatusType.ERROR, "Member not found").get_status()
+        return redirect(url_for("admin.company.update_user_view", id=company_id, _external=True, **status))
+
+    try:
+        user_company.role = role
+        user_company.position = position
+        user_company.is_primary = is_primary
+        user_company.is_public = is_public
+
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, f"An error occurred: {e}").get_status()
+        return redirect(url_for("admin.company.update_user_view", id=company_id, _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Member updated successfully!").get_status()
+    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))
+
+
+@user.get("/<int:user_id>/companies/<int:company_id>/delete")
+@admin_only
+def delete_member(user_id: int, company_id: int):
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
+
+    if not user_company:
+        status = Status(StatusType.ERROR, "Member not found").get_status()
+        return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))
+
+    try:
+        db.session.delete(user_company)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, f"An error occurred: {e}").get_status()
+        return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Member was deleted successfully!").get_status()
     return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))

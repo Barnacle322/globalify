@@ -102,17 +102,20 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h3 class="text-md font-semibold" v-text="user.email"></h3>
-                            <span v-if="{{ users_in_company }}.includes( user.id )" class="text-sm italic text-gray-500"
-                                >exists</span
+                            <span
+                                v-if="{{ users_in_company }}.includes( user.id )"
+                                class="text-sm italic text-gray-500"
                             >
+                                already added
+                            </span>
                         </div>
-                        <p class="text-gray-500">Invite to group</p>
+                        <p class="text-gray-500">Add to the company</p>
                     </div>
                 </li>
             </ul>
 
             <label class="font-medium" for="role">Select a role*</label>
-            <select class="w-full rounded-xl border-2 border-stone-300" v-model="selectedRole">
+            <select class="w-full rounded-xl border-2 border-stone-300" v-model="data.role">
                 <option class="text-gray-500" disabled selected value>Select a role</option>
                 <option
                     v-for="role in roles"
@@ -125,37 +128,23 @@
             <textarea
                 class="w-full rounded-xl border-2 border-stone-300"
                 placeholder="CEO"
-                v-model="position"
+                v-model="data.position"
                 @input="limitPositionText"
-                @blur="position = position.trim()"
+                @blur="data.position = data.position.trim()"
             ></textarea>
             <label class="inline-flex cursor-pointer items-center pt-2">
-                <input
-                    type="checkbox"
-                    ref="is_primary"
-                    value="True"
-                    name="is_primary"
-                    class="peer sr-only"
-                    id="is_primary"
-                />
+                <input class="peer sr-only" type="checkbox" v-model="data.is_primary" />
                 <div
                     class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                 ></div>
                 <span class="ms-3 text-sm font-medium text-gray-900">Is primary</span>
             </label>
             <label class="inline-flex cursor-pointer items-center pt-2">
-                <input
-                    type="checkbox"
-                    ref="is_public"
-                    value="True"
-                    name="is_public"
-                    class="peer sr-only"
-                    id="is_public"
-                />
+                <input class="peer sr-only" type="checkbox" v-model="data.is_public" />
                 <div
                     class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                 ></div>
-                <span class="ms-3 text-sm font-medium text-gray-900">Is active</span>
+                <span class="ms-3 text-sm font-medium text-gray-900">Is public</span>
             </label>
 
             <button

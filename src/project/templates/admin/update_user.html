@@ -70,14 +70,14 @@
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
+                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
             </transition>
 
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="editCompanyMemberOpened"></div>
+                <div
+                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    v-if="editCompanyMemberOpened || addMemberOpened"
+                ></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <edit-company-member-component
@@ -86,16 +86,8 @@
                     :user_company="selectedUserCompany"
                 ></edit-company-member-component>
             </transition>
-
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="addMemberOpened"></div>
-            </transition>
-
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <add-company-to-member-component
-                    v-if="addMemberOpened"
-                    @close="addMemberOpened = null"
-                ></add-company-to-member-component>
+                <add-company-component v-if="addMemberOpened" @close="addMemberOpened = null"></add-company-component>
             </transition>
 
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
@@ -119,7 +111,7 @@
                 </div>
 
                 <div class="grid grid-cols-6 gap-x-2 gap-y-1">
-                    <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
+                    <h2 class="col-span-full mt-3 text-2xl font-medium mb-2">General Info</h2>
                     <div class="col-span-full empty:hidden">
                         {% if status_type %} {% if status_type == '3' %}
                         <div class="rounded-xl text-red-500">{{ msg }}</div>
@@ -210,7 +202,7 @@
                             <div
                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">User is verified</span>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Verified</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -223,7 +215,7 @@
                             <div
                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">User is completed</span>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Profile Complete</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -236,7 +228,7 @@
                             <div
                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">User is admin</span>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Admin</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -255,12 +247,12 @@
                             <div
                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">User refuse all invitations</span>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Block Company Invitations</span>
                         </label>
                     </div>
-                    <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
+                    <h2 class="col-span-full mt-3 text-2xl font-medium mb-2">Contact Info</h2>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="email">Email*</label>
+                        <label class="text-sm font-medium text-gray-700" for="email">Email</label>
                         <input
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="text"
@@ -290,7 +282,7 @@
                             <div
                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Show user's Email</span>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -303,7 +295,7 @@
                             <div
                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Show user's Intargam</span>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -336,7 +328,7 @@
                             <div
                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Show user's Linkedin</span>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -349,13 +341,13 @@
                             <div
                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Show user's Twitter</span>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
                         </label>
                     </div>
 
-                    <h2 class="col-span-full mt-3 text-2xl font-medium">Payment info</h2>
+                    <h2 class="col-span-full mt-3 text-2xl font-medium">Payment Info</h2>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="first_name">Created at</label>
+                        <label class="text-sm font-medium text-gray-700" for="first_name">Created At</label>
                         <input
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="date"
@@ -365,7 +357,7 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="first_name">Expires at</label>
+                        <label class="text-sm font-medium text-gray-700" for="first_name">Expires At</label>
                         <input
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="date"
@@ -375,37 +367,37 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="first_name"> Customer id</label>
+                        <label class="text-sm font-medium text-gray-700" for="first_name">Stripe Customer ID</label>
                         <input
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="text"
                             id="customer_id"
                             value="{{ user_payment.customer_id or '' }}"
-                            placeholder="0"
+                            placeholder="cus_0123QWERTY"
                             required
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="first_name">Subscription id</label>
+                        <label class="text-sm font-medium text-gray-700" for="first_name">Stripe Subscription ID</label>
                         <input
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="text"
                             id="subscription_id"
                             value="{{ user_payment.subscription_id or '' }}"
-                            placeholder="0"
+                            placeholder="sub_0123QWERTY"
                             required
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label for="tier" class="block text-sm font-medium leading-6">Subscription tier</label>
+                        <label for="tier" class="block text-sm font-medium leading-6">Tier</label>
                         <div>
                             <select id="tier" name="tier" class="h-12 w-full rounded-xl px-2" required>
                                 <option value="" disabled>Select subscription tier</option>
                                 {% if tiers %} {% for tier in tiers %} {% if user_payment and user_payment.tier and
                                 user_payment.tier.value == tier.value %}
-                                <option value="{{ tier.name }}" selected>{{ tier.value }}</option>
+                                <option value="{{ tier.name }}" selected>{{ tier.value.title() }}</option>
                                 {% else %}
-                                <option value="{{ tier.name }}">{{ tier.value }}</option>
+                                <option value="{{ tier.name }}">{{ tier.value.title() }}</option>
                                 {% endif %} {% endfor %} {% endif %}
                             </select>
                         </div>
@@ -420,18 +412,18 @@
                             <div
                                 class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Subscription is active</span>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Active Subscription</span>
                         </label>
                     </div>
                 </div>
-                <h2 class="col-span-full mt-3 text-2xl font-medium">Member info</h2>
+                <h2 class="col-span-full mt-3 text-2xl font-medium mb-2">Company Info</h2>
                 <div class="col-span-full">
                     <div class="col-span-4 mt-2 flex w-full flex-col overflow-hidden rounded-xl border-2">
                         <header class="border-b bg-gray-50 p-5">
                             <input
                                 type="search"
                                 class="w-full rounded-lg border-gray-300 py-2"
-                                placeholder="Search members"
+                                placeholder="Search companies"
                             />
                         </header>
                         <button
@@ -463,7 +455,7 @@
                             </div>
                             <div class="ml-auto flex items-center justify-center">
                                 <button
-                                    @click="selectedUserCompany = {{ {'user_id': user_company.user.id, 'user_role': user_company.role.value,'user_position': user_company.position, 'user_name': user_company.user.user_info.full_name,'company_id': user_company.company.id, 'company_name': user_company.company.name} }}; editCompanyMemberOpened = true"
+                                    @click="selectedUserCompany = {{ {'user_id': user_company.user.id, 'user_role': user_company.role.value, 'user_position': user_company.position, 'user_name': user_company.user.user_info.full_name, 'company_id': user_company.company.id, 'company_name': user_company.company.name, 'is_primary': 1 if user_company.is_primary else 0, 'is_public': 1 if user_company.is_public else 0} }}; editCompanyMemberOpened = true"
                                     class="rounded-lg border bg-white px-2 py-1"
                                 >
                                     <svg

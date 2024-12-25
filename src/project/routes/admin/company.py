@@ -91,7 +91,6 @@ def update_company_view(id):
     user_companies = UserCompany.get_by_company_id(company_id=id)
     users_in_company = UserCompany.get_user_ids_by_company_id(company_id=company.id)
 
-
     return render_template(
         "admin/update_company.html",
         company=company,
@@ -365,6 +364,36 @@ def delete_company(id):
     return redirect(url_for("admin.company.index", _external=True, **status))
 
 
+@company.post("/<int:company_id>/members/add")
+@admin_only
+def add_member(company_id: int):
+    form_data = request.get_json()
+
+    user_id = form_data.get("user_id")
+    role = form_data.get("role")
+    position = form_data.get("position")
+    is_primary = form_data.get("is_primary")
+    is_public = form_data.get("is_public")
+
+    if not user_id and not role:
+        status = Status(StatusType.ERROR, "Data fields missing").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
+    if user_company:
+        status = Status(StatusType.ERROR, "Member already exists").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    user_company = UserCompany(
+        user_id=user_id, company_id=company_id, position=position, role=role, is_public=is_public, is_primary=is_primary
+    )
+    db.session.add(user_company)
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Member was added successfully!").get_status()
+    return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+
 @company.post("/members/<int:user_id>")
 @admin_only
 def modify_member(user_id: int):
@@ -373,6 +402,8 @@ def modify_member(user_id: int):
     company_id = form_data.get("company_id")
     role = form_data.get("role")
     position = form_data.get("position")
+    is_primary = form_data.get("is_primary")
+    is_public = form_data.get("is_public")
 
     if not company_id and not role:
         status = Status(StatusType.ERROR, "Data fields missing").get_status()
@@ -386,6 +417,8 @@ def modify_member(user_id: int):
     try:
         user_company.role = role
         user_company.position = position
+        user_company.is_primary = is_primary
+        user_company.is_public = is_public
 
         db.session.commit()
     except Exception as e:
@@ -396,13 +429,10 @@ def modify_member(user_id: int):
     return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
 
 
-@company.post("/members/<int:user_id>/remove")
+@company.get("/<int:company_id>/members/<int:user_id>/remove")
 @admin_only
-def remove_member(user_id: int):
-    form_data = request.get_json()
-    company_id = form_data.get("company_id")
-
-    if not company_id:
+def remove_member(company_id: int, user_id: int):
+    if not user_id:
         status = Status(StatusType.ERROR, "Data fields missing").get_status()
         return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
 
@@ -418,38 +448,4 @@ def remove_member(user_id: int):
         return jsonify({"message": str(e)}), 400
 
     status = Status(StatusType.SUCCESS, "Member deleted successfully!").get_status()
-    return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
-
-
-@company.post("add/members/<int:user_id>")
-@admin_only
-def add_member(user_id: int):
-    form_data = request.get_json()
-
-    company_id = form_data.get("company_id")
-    role = form_data.get("role")
-    position = form_data.get("position")
-    is_primary = form_data.get("is_primary")
-    is_public = form_data.get("is_public")
-
-    if not company_id and not role:
-        status = Status(StatusType.ERROR, "Data fields missing").get_status()
-        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
-
-    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
-
-    if user_company:
-        status = Status(StatusType.ERROR, "Member already exists").get_status()
-        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
-
-    user_company = UserCompany(user_id=user_id,
-                               company_id=company_id,
-                               position=position,
-                               role=role,
-                               is_public=is_public,
-                               is_primary=is_primary)
-    db.session.add(user_company)
-    db.session.commit()
-
-    status = Status(StatusType.SUCCESS, "Member was added successfully!").get_status()
     return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))

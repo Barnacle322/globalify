@@ -19,22 +19,40 @@
         <div class="grid grid-cols-12 gap-2">
             <div class="col-span-full flex flex-col gap-2">
                 <label class="font-normal">Role</label>
-                <select class="h-12 w-full rounded-xl border border-stone-300 px-2" ref="roleChange">
-                    <option value="OWNER" :selected="user_company.user_role === 'owner'">Owner</option>
-                    <option value="ADMIN" :selected="user_company.user_role === 'admin'">Admin</option>
-                    <option value="TEAM" :selected="user_company.user_role === 'team'">Team</option>
+                <select
+                    class="h-12 w-full rounded-xl border border-stone-300 px-2"
+                    ref="roleChange"
+                    v-model="data.role"
+                >
+                    <option
+                        v-for="role in roles"
+                        v-text="role[0].toUpperCase() + role.slice(1)"
+                        :value="role.toUpperCase()"
+                    ></option>
                 </select>
 
                 <label class="font-normal">Position</label>
                 <input
                     class="h-12 w-full rounded-xl border border-stone-300 px-2"
                     placeholder="CEO"
-                    ref="positionChange"
-                    v-text="user_company.position"
-                    :value="user_company.position"
+                    v-model="data.position"
                 />
             </div>
         </div>
+        <label class="inline-flex cursor-pointer items-center pt-2">
+            <input class="peer sr-only" type="checkbox" v-model="data.is_primary" />
+            <div
+                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+            ></div>
+            <span class="ms-3 text-sm font-medium text-gray-900">Is primary</span>
+        </label>
+        <label class="inline-flex cursor-pointer items-center pt-2">
+            <input class="peer sr-only" type="checkbox" v-model="data.is_public" />
+            <div
+                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+            ></div>
+            <span class="ms-3 text-sm font-medium text-gray-900">Is public</span>
+        </label>
         <button
             @click="removeMember(user_company.user_id, user_company.company_id)"
             class="w-fit text-red-500 underline"

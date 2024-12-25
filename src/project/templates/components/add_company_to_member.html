@@ -1,5 +1,5 @@
 {% macro render(user, companies_in_user) %}
-<template id="add-company-to-member-template">
+<template id="add-company-template">
     <article
         class="fixed right-0 top-0 z-50 flex h-full w-full flex-col gap-4 bg-white p-8 sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
     >
@@ -16,7 +16,7 @@
             </svg>
         </button>
 
-        <span class="font-medium">Add a company to a member</span>
+        <span class="font-medium">Add a company to a user</span>
         <div class="flex h-full flex-col gap-2">
             <label class="font-medium" for="email">Search company*</label>
             <div
@@ -105,16 +105,16 @@
                             <span
                                 v-if="{{ companies_in_user }}.includes( company.id )"
                                 class="text-sm italic text-gray-500"
-                                >exists</span
                             >
+                                already a member
+                            </span>
                         </div>
                         <p class="text-gray-500">Choose company</p>
                     </div>
                 </li>
             </ul>
-
             <label class="font-medium" for="role">Select a role*</label>
-            <select class="w-full rounded-xl border-2 border-stone-300" v-model="selectedRole">
+            <select class="w-full rounded-xl border-2 border-stone-300" v-model="data.role">
                 <option class="text-gray-500" disabled selected value>Select a role</option>
                 <option
                     v-for="role in roles"
@@ -122,38 +122,23 @@
                     :value="role.toUpperCase()"
                 ></option>
             </select>
-
             <label class="font-medium" for="position">Position</label>
-            <textarea
+            <input
                 class="w-full rounded-xl border-2 border-stone-300"
                 placeholder="CEO"
-                v-model="position"
+                v-model="data.position"
                 @input="limitPositionText"
-                @blur="position = position.trim()"
-            ></textarea>
+                @blur="data.position = data.position.trim()"
+            />
             <label class="inline-flex cursor-pointer items-center pt-2">
-                <input
-                    type="checkbox"
-                    ref="is_primary"
-                    value="True"
-                    name="is_primary"
-                    class="peer sr-only"
-                    id="is_primary"
-                />
+                <input class="peer sr-only" type="checkbox" v-model="data.is_primary" />
                 <div
                     class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                 ></div>
                 <span class="ms-3 text-sm font-medium text-gray-900">Is primary</span>
             </label>
             <label class="inline-flex cursor-pointer items-center pt-2">
-                <input
-                    type="checkbox"
-                    ref="is_public"
-                    value="True"
-                    name="is_public"
-                    class="peer sr-only"
-                    id="is_public"
-                />
+                <input class="peer sr-only" type="checkbox" v-model="data.is_public" />
                 <div
                     class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                 ></div>

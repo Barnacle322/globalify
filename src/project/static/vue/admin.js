@@ -192,7 +192,7 @@ const UpdateInvestmentComponent = defineComponent({
             };
         },
         closeUpdateInvestmentModal() {
-            this.$emit("close-update-investment");
+            this.$emit("close");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
@@ -258,7 +258,7 @@ const CreateInvestmentComponent = defineComponent({
                 created_by_admin: isAdmin,
                 date: announced_date,
                 investor_id: this.selectedInvestor?.id || null,
-                investment_firm_id: this.selectedInvestmentFirm?.id || null
+                investment_firm_id: this.selectedInvestmentFirm?.id || null,
             };
 
             try {
@@ -433,17 +433,17 @@ const CreateFundingRoundComponent = defineComponent({
                 console.error("Error fetching rounds:", error);
             }
         },
-        closeCreateFundingRoundModal() {
-            this.$emit("close-create-funding-round");
+        close() {
+            this.$emit("close");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
-                this.closeCreateFundingRoundModal();
+                this.close();
             }
         },
         handleOutsideClick(event) {
             if (!this.$el.contains(event.target)) {
-                this.closeCreateFundingRoundModal();
+                this.close();
             }
         },
     },
@@ -526,17 +526,17 @@ const UpdateFundingRoundComponent = defineComponent({
                 console.error("Error fetching funding round:", error);
             }
         },
-        closeUpdateFundingRoundModal() {
+        close() {
             this.$emit("close-update-funding-round");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
-                this.closeUpdateFundingRoundModal();
+                this.close();
             }
         },
         handleOutsideClick(event) {
             if (!this.$el.contains(event.target)) {
-                this.closeUpdateFundingRoundModal();
+                this.close();
             }
         },
     },
@@ -586,33 +586,6 @@ const DeleteFundingRoundComponent = defineComponent({
                 console.error("Error cancelling invitation:", error.message);
             }
         },
-        closeDeleteFundingRound() {
-            this.$emit("close-delete-funding-round");
-        },
-        handleKeyDown(event) {
-            if (event.key === "Escape") {
-                this.closeDeleteFundingRound();
-            }
-        },
-        handleOutsideClick(event) {
-            if (!this.$el.contains(event.target)) {
-                this.closeDeleteFundingRound();
-            }
-        },
-    },
-});
-
-const EditMemberComponent = defineComponent({
-    template: "#edit-member-template",
-    props: ["user"],
-    emits: ["close"],
-    delimiters: ["[[", "]]"],
-    data() {
-        return {
-            roles: [],
-        };
-    },
-    methods: {
         close() {
             this.$emit("close");
         },
@@ -626,185 +599,32 @@ const EditMemberComponent = defineComponent({
                 this.close();
             }
         },
-        async editMember(userId, companyId) {
-            try {
-                const csrfToken = document.getElementById("csrf_token").value;
-                const role = this.$refs.roleChange.value;
-                const position = this.$refs.positionChange.value;
-
-
-
-                const response = await fetch(`/admin/companies/members/${userId}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                    body: JSON.stringify({
-                        role: role,
-                        position: position,
-                        company_id: companyId,
-                    }),
-                });
-
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else if (response.ok) {
-                    this.$emit("close-change-role");
-                }
-            } catch (error) {
-                console.error("Error changing role:", error.message);
-            }
-        },
-        async removeMember(userId, companyId) {
-            try {
-                const csrfToken = document.getElementById("csrf_token").value;
-                const response = await fetch(`/admin/companies/members/${userId}/remove`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                    body: JSON.stringify({
-                        company_id: companyId,
-                    }),
-                });
-
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else if (response.ok) {
-                    this.$emit("close-change-role");
-                }
-            } catch (error) {
-                console.error("Error removing member:", error.message);
-            }
-        }
     },
-    mounted() {
-        window.addEventListener("keydown", this.handleKeyDown);
-        setTimeout(() => {
-            document.addEventListener("click", this.handleOutsideClick);
-        }, 0);
-    },
-    beforeUnmount() {
-        window.removeEventListener("keydown", this.handleKeyDown);
-        document.removeEventListener("click", this.handleOutsideClick);
-    }
-});
-
-const EditCompanyMemberComponent = defineComponent({
-    template: "#edit-company-member-template",
-    props: ["user_company"],
-    emits: ["close"],
-    delimiters: ["[[", "]]"],
-    data() {
-        return {
-            roles: [],
-        };
-    },
-    methods: {
-        close() {
-            this.$emit("close");
-        },
-        handleKeyDown(event) {
-            if (event.key === "Escape") {
-                this.close();
-            }
-        },
-        handleOutsideClick(event) {
-            if (!this.$el.contains(event.target)) {
-                this.close();
-            }
-        },
-        async editMember(userId, companyId) {
-            try {
-                const csrfToken = document.getElementById("csrf_token").value;
-                const role = this.$refs.roleChange.value;
-                const position = this.$refs.positionChange.value;
-
-
-                const response = await fetch(`/admin/users/user/company/members/${userId}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                    body: JSON.stringify({
-                        role: role,
-                        position: position,
-                        company_id: companyId,
-                    }),
-                });
-
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else if (response.ok) {
-                    this.$emit("close-change-role");
-                }
-            } catch (error) {
-                console.error("Error changing role:", error.message);
-            }
-        },
-        async removeMember(userId, companyId) {
-            try {
-                const csrfToken = document.getElementById("csrf_token").value;
-                const response = await fetch(`/admin/companies/members/${userId}/remove`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                    body: JSON.stringify({
-                        company_id: companyId,
-                    }),
-                });
-
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else if (response.ok) {
-                    this.$emit("close-change-role");
-                }
-            } catch (error) {
-                console.error("Error removing member:", error.message);
-            }
-        }
-    },
-    mounted() {
-        window.addEventListener("keydown", this.handleKeyDown);
-        setTimeout(() => {
-            document.addEventListener("click", this.handleOutsideClick);
-        }, 0);
-    },
-    beforeUnmount() {
-        window.removeEventListener("keydown", this.handleKeyDown);
-        document.removeEventListener("click", this.handleOutsideClick);
-    },
-    created(){
-        console.log(this.user)
-    }
 });
 
 const AddMemberComponent = defineComponent({
     template: "#add-member-template",
     emits: ["close"],
-    delimiters: ["[[", "]]"],
+    mounted() {
+        this.debouncedGetUserList = this.debounce(this.getUserList, 500);
+        this.fetchRoles();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
     methods: {
-        limitText() {
-            if (this.invitationMessage.length > 200) {
-                this.invitationMessage = this.invitationMessage.slice(0, 200);
-            }
-        },
-        limitPositionText() {
-            if (this.position.length > 200) {
-                this.position = this.position.slice(0, 200);
-            }
-        },
-        handleSubmit(event) {
-            event.preventDefault();
-            this.inviteMember(this.$refs.companyId.value);
-        },
-        closeInviteMember() {
-            this.$emit("close-invite-member");
+        debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
         },
         close() {
             this.$emit("close");
@@ -819,49 +639,40 @@ const AddMemberComponent = defineComponent({
                 this.close();
             }
         },
+        limitPositionText() {
+            if (this.data.position.length > 200) {
+                this.data.position = this.data.position.slice(0, 200);
+            }
+        },
+        selectUser(user, event) {
+            event.stopPropagation();
+            this.userList = [];
+            this.selectedUser = user;
+        },
+        clearUser() {
+            this.selectedUser = null;
+        },
         async addMember(companyId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
-                const userId = this.selectedUser.id;
-                const role = this.selectedRole;
-                const invitationMessage = this.invitationMessage;
-                const position = this.position;
-                const is_primary = this.$refs.is_primary.checked;
-                const is_active = this.$refs.is_public.checked;
 
-                const response = await fetch(`/admin/companies/add/members/${userId}`, {
+                const response = await fetch(`/admin/companies/${companyId}/members/add`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
+                        "X-CSRFToken": csrfToken,
                     },
-                    body: JSON.stringify({
-                        company_id: companyId,
-                        role: role,
-                        invitation_message: invitationMessage,
-                        position: position,
-                        is_public: is_active,
-                        is_primary: is_primary,
-
-                    })
+                    body: JSON.stringify({ ...this.data, user_id: this.selectedUser.id }),
                 });
 
                 if (response.redirected) {
                     window.location.href = response.url;
                 } else if (response.ok) {
-                    this.$emit("close-invite-member");
+                    this.$emit("close");
                 }
             } catch (error) {
                 console.error("Error inviting member:", error.message);
             }
-        },
-        debounce(func, wait) {
-            let timeout;
-            return function(...args) {
-                const context = this;
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(context, args), wait);
-            };
         },
         async getUserList(event) {
             const searchInput = event.target.value;
@@ -881,14 +692,6 @@ const AddMemberComponent = defineComponent({
                 this.userList = [];
             }
         },
-        selectUser(user, event) {
-            event.stopPropagation();
-            this.userList = [];
-            this.selectedUser = user;
-        },
-        clearUser() {
-            this.selectedUser = null;
-        },
         async fetchRoles() {
             try {
                 const response = await fetch("/settings/companies/roles");
@@ -901,11 +704,30 @@ const AddMemberComponent = defineComponent({
             } catch (error) {
                 console.error("Error fetching roles:", error.message);
             }
-        }
-
+        },
     },
+    data() {
+        return {
+            selectedUser: null,
+            userList: [],
+            roles: [],
+            debouncedGetUserList: null,
+            data: {
+                role: "",
+                position: "",
+                is_primary: false,
+                is_public: false,
+            },
+        };
+    },
+});
+
+const EditMemberComponent = defineComponent({
+    template: "#edit-member-template",
+    props: ["user"],
+    emits: ["close"],
+    delimiters: ["[[", "]]"],
     mounted() {
-        this.debouncedGetUserList = this.debounce(this.getUserList, 500);
         this.fetchRoles();
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
@@ -916,42 +738,7 @@ const AddMemberComponent = defineComponent({
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("click", this.handleOutsideClick);
     },
-    data() {
-        return {
-            selectedUser: null,
-            userList: [],
-            roles: [],
-            debouncedGetUserList: null,
-            selectedRole: "",
-            invitationMessage: "",
-            position: ""
-        };
-
-    }
-});
-
-const AddCompanyToMemberComponent = defineComponent({
-    template: "#add-company-to-member-template",
-    emits: ["close"],
-    delimiters: ["[[", "]]"],
     methods: {
-        limitText() {
-            if (this.invitationMessage.length > 200) {
-                this.invitationMessage = this.invitationMessage.slice(0, 200);
-            }
-        },
-        limitPositionText() {
-            if (this.position.length > 200) {
-                this.position = this.position.slice(0, 200);
-            }
-        },
-        handleSubmit(event) {
-            event.preventDefault();
-            this.inviteMember(this.$refs.companyId.value);
-        },
-        closeInviteMember() {
-            this.$emit("close");
-        },
         close() {
             this.$emit("close");
         },
@@ -965,66 +752,112 @@ const AddCompanyToMemberComponent = defineComponent({
                 this.close();
             }
         },
-        async addCompany(userId) {
+        async editMember(userId, companyId) {
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
-                const companyId = this.selectedCompany.id;
-                const role = this.selectedRole;
-                const invitationMessage = this.invitationMessage;
-                const position = this.position;
-                const is_primary = this.$refs.is_primary.checked;
-                const is_active = this.$refs.is_public.checked;
-
-                const response = await fetch(`/admin/users/add/companies/members/${userId}`, {
+                const response = await fetch(`/admin/companies/${companyId}/members`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
+                        "X-CSRFToken": csrfToken,
                     },
-                    body: JSON.stringify({
-                        company_id: companyId,
-                        role: role,
-                        invitation_message: invitationMessage,
-                        position: position,
-                        is_public: is_active,
-                        is_primary: is_primary,
-
-                    })
+                    body: JSON.stringify({ ...this.data, user_id: userId }),
                 });
 
                 if (response.redirected) {
                     window.location.href = response.url;
                 } else if (response.ok) {
-                    this.$emit("close-invite-member");
+                    this.$emit("close");
                 }
             } catch (error) {
-                console.error("Error inviting member:", error.message);
+                console.error("Error changing role:", error.message);
             }
         },
+        async removeMember(userId, companyId) {
+            try {
+                const response = await fetch(`/admin/companies/${companyId}/members/${userId}/remove`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close");
+                }
+            } catch (error) {
+                console.error("Error removing member:", error.message);
+            }
+        },
+        async fetchRoles() {
+            try {
+                const response = await fetch("/settings/companies/roles");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.roles = data.roles;
+                } else {
+                    console.error("Failed to fetch roles");
+                }
+            } catch (error) {
+                console.error("Error fetching roles:", error.message);
+            }
+        },
+    },
+    data() {
+        return {
+            roles: [],
+            data: {
+                role: this.user.role.toUpperCase(),
+                position: this.user.position,
+                is_primary: Boolean(this.user.is_primary),
+                is_public: Boolean(this.user.is_public),
+            },
+        };
+    },
+});
+
+const AddCompanyComponent = defineComponent({
+    template: "#add-company-template",
+    emits: ["close"],
+    delimiters: ["[[", "]]"],
+    mounted() {
+        this.debouncedGetCompanyList = this.debounce(this.getCompanyList, 500);
+        this.fetchRoles();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
         debounce(func, wait) {
             let timeout;
-            return function(...args) {
+            return function (...args) {
                 const context = this;
                 clearTimeout(timeout);
                 timeout = setTimeout(() => func.apply(context, args), wait);
             };
         },
-        async getCompanyList(event) {
-            const searchInput = event.target.value;
-            if (searchInput.length > 0) {
-                const response = await fetch(`/settings/companies/search/${searchInput}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.companies && data.companies.length > 0) {
-                        this.companyList = data.companies;
-                    } else if (data.search_input) {
-                        this.companyList = [{ email: data.search_input }];
-                    } else {
-                        this.companyList = [];
-                    }
-                }
-            } else {
-                this.companyList = [];
+        limitPositionText() {
+            if (this.data.position.length > 200) {
+                this.data.position = this.data.position.slice(0, 200);
+            }
+        },
+        close() {
+            this.$emit("close");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.close();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.close();
             }
         },
         selectCompany(company, event) {
@@ -1047,13 +880,71 @@ const AddCompanyToMemberComponent = defineComponent({
             } catch (error) {
                 console.error("Error fetching roles:", error.message);
             }
-        }
+        },
+        async addCompany(userId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
 
+                const response = await fetch(`/admin/users/${userId}/companies/add`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ ...this.data, company_id: this.selectedCompany.id }),
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-invite-member");
+                }
+            } catch (error) {
+                console.error("Error inviting member:", error.message);
+            }
+        },
+        async getCompanyList(event) {
+            const searchInput = event.target.value;
+            if (searchInput.length > 0) {
+                const response = await fetch(`/settings/companies/search/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.companies && data.companies.length > 0) {
+                        this.companyList = data.companies;
+                    } else if (data.search_input) {
+                        this.companyList = [{ email: data.search_input }];
+                    } else {
+                        this.companyList = [];
+                    }
+                }
+            } else {
+                this.companyList = [];
+            }
+        },
     },
+    data() {
+        return {
+            selectedCompany: null,
+            companyList: [],
+            roles: [],
+            debouncedGetCompanyList: null,
+            data: {
+                role: "",
+                position: "",
+                is_public: false,
+                is_primary: false,
+            },
+        };
+    },
+});
+
+const EditCompanyMemberComponent = defineComponent({
+    template: "#edit-company-member-template",
+    props: ["user_company"],
+    emits: ["close"],
+    delimiters: ["[[", "]]"],
     mounted() {
-        this.debouncedGetCompanyList = this.debounce(this.getCompanyList, 500);
-        this.fetchRoles();
         window.addEventListener("keydown", this.handleKeyDown);
+        this.fetchRoles();
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
         }, 0);
@@ -1062,18 +953,84 @@ const AddCompanyToMemberComponent = defineComponent({
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("click", this.handleOutsideClick);
     },
+
+    methods: {
+        close() {
+            this.$emit("close");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.close();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.close();
+            }
+        },
+        async fetchRoles() {
+            try {
+                const response = await fetch("/settings/companies/roles");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.roles = data.roles;
+                } else {
+                    console.error("Failed to fetch roles");
+                }
+            } catch (error) {
+                console.error("Error fetching roles:", error.message);
+            }
+        },
+        async editMember(userId, companyId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+
+                const response = await fetch(`/admin/users/${userId}/companies`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ ...this.data, company_id: companyId }),
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close");
+                }
+            } catch (error) {
+                console.error("Error changing role:", error.message);
+            }
+        },
+        async removeMember(userId, companyId) {
+            try {
+                const response = await fetch(`/admin/users/${userId}/companies/${companyId}/remove`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close");
+                }
+            } catch (error) {
+                console.error("Error removing member:", error.message);
+            }
+        },
+    },
     data() {
         return {
-            selectedCompany: null,
-            companyList: [],
             roles: [],
-            debouncedGetCompanyList: null,
-            selectedRole: "",
-            invitationMessage: "",
-            position: ""
+            data: {
+                role: this.user_company.user_role.toUpperCase(),
+                position: this.user_company.user_position,
+                is_primary: Boolean(this.user_company.is_primary),
+                is_public: Boolean(this.user_company.is_public),
+            },
         };
-
-    }
+    },
 });
 
 createApp({
@@ -1092,7 +1049,7 @@ createApp({
         EditMemberComponent,
         EditCompanyMemberComponent,
         AddMemberComponent,
-        AddCompanyToMemberComponent,
+        AddCompanyComponent,
     },
     watch: {
         asideMinified(value) {
@@ -1235,7 +1192,7 @@ createApp({
                 user_email: user_email,
                 rounds: selectedRounds,
                 industries: selectedIndustries,
-                notable_investments: selectedNotableInvestments
+                notable_investments: selectedNotableInvestments,
             };
 
             if (is_public) {
@@ -1252,9 +1209,9 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
+                        "X-CSRFToken": csrfToken,
                     },
-                    body: dataString
+                    body: dataString,
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -1274,8 +1231,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
-                }
+                    "X-CSRFToken": csrfToken,
+                },
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -1289,8 +1246,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
-                    }
+                        "X-CSRFToken": csrfToken,
+                    },
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -1307,8 +1264,8 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
-                    }
+                        "X-CSRFToken": csrfToken,
+                    },
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -1320,7 +1277,7 @@ createApp({
         async restoreOriginData(investorId) {
             try {
                 const response = await fetch(`/admin/investors/${investorId}/restore`, {
-                    method: "GET"
+                    method: "GET",
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -1345,14 +1302,14 @@ createApp({
             const max_investment = document.getElementById("max_investment").value;
             const location = document.getElementById("location").value;
 
-            const selectedRounds = Array.from(document.querySelectorAll("input[name=\"selected_rounds\"]:checked")).map(
-                (input) => parseInt(input.value, 10)
+            const selectedRounds = Array.from(document.querySelectorAll('input[name="selected_rounds"]:checked')).map(
+                (input) => parseInt(input.value, 10),
             );
             const selectedIndustries = Array.from(
-                document.querySelectorAll("input[name=\"selected_industries\"]:checked")
+                document.querySelectorAll('input[name="selected_industries"]:checked'),
             ).map((input) => parseInt(input.value, 10));
             const selectedNotableInvestments = Array.from(
-                document.querySelectorAll("input[name=\"selected_notable_investments\"]:checked")
+                document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
             const is_public = document.getElementById("is_public");
 
@@ -1371,7 +1328,7 @@ createApp({
                 location: location,
                 rounds: selectedRounds,
                 industries: selectedIndustries,
-                notable_investments: selectedNotableInvestments
+                notable_investments: selectedNotableInvestments,
             };
 
             if (is_public) {
@@ -1385,9 +1342,9 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
+                        "X-CSRFToken": csrfToken,
                     },
-                    body: dataString
+                    body: dataString,
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -1407,8 +1364,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
-                }
+                    "X-CSRFToken": csrfToken,
+                },
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -1432,7 +1389,7 @@ createApp({
             const is_public = isPublicElement ? isPublicElement.checked : true;
 
             const selectedNotableInvestments = Array.from(
-                document.querySelectorAll("input[name=\"selected_notable_investments\"]:checked")
+                document.querySelectorAll('input[name="selected_notable_investments"]:checked'),
             ).map((input) => parseInt(input.value, 10));
 
             const dataString = JSON.stringify({
@@ -1448,7 +1405,7 @@ createApp({
                 twitter: twitter,
                 instagram: instagram,
                 is_public: is_public,
-                notable_investment: selectedNotableInvestments
+                notable_investment: selectedNotableInvestments,
             });
 
             try {
@@ -1456,9 +1413,9 @@ createApp({
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
+                        "X-CSRFToken": csrfToken,
                     },
-                    body: dataString
+                    body: dataString,
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -1478,8 +1435,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
-                }
+                    "X-CSRFToken": csrfToken,
+                },
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -1546,16 +1503,16 @@ createApp({
                 tier: tier,
                 is_active: is_active,
                 created: created,
-                expires_at: expires_at
+                expires_at: expires_at,
             });
             try {
                 const response = await fetch("", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken
+                        "X-CSRFToken": csrfToken,
                     },
-                    body: dataString
+                    body: dataString,
                 });
                 if (response.redirected) {
                     window.location.href = response.url;
@@ -1575,8 +1532,8 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
-                }
+                    "X-CSRFToken": csrfToken,
+                },
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -1626,9 +1583,9 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
+                    "X-CSRFToken": csrfToken,
                 },
-                body: JSON.stringify({ status: "rejected" })
+                body: JSON.stringify({ status: "rejected" }),
             })
                 .then((response) => {
                     if (response.ok) {
@@ -1644,9 +1601,9 @@ createApp({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
+                    "X-CSRFToken": csrfToken,
                 },
-                body: JSON.stringify({ status: "approved" })
+                body: JSON.stringify({ status: "approved" }),
             })
                 .then((response) => {
                     if (response.ok) {
@@ -1726,17 +1683,17 @@ createApp({
             }
 
             this.notableInvestments = await this.fetchData(
-                `/admin/companies/search_notable_investments/${searchInput.trim()}`
+                `/admin/companies/search_notable_investments/${searchInput.trim()}`,
             );
         },
         async fetchNotableInvestmentsByInvestorId(searchInput, investorId) {
             this.notableInvestments = await this.fetchData(
-                `/admin/investors/search_notable_investments/${searchInput.trim()}/${investorId}`
+                `/admin/investors/search_notable_investments/${searchInput.trim()}/${investorId}`,
             );
         },
         async fetchNotableInvestmentsByInvestmentFirmId(searchInput, investmentFirmId) {
             this.notableInvestments = await this.fetchData(
-                `/admin/investment-firms/search_notable_investments/${searchInput.trim()}/${investmentFirmId}`
+                `/admin/investment-firms/search_notable_investments/${searchInput.trim()}/${investmentFirmId}`,
             );
         },
         addNotableInvestment(newInvestment) {
@@ -1744,7 +1701,7 @@ createApp({
         },
         debounce(func, wait) {
             let timeout;
-            return function(...args) {
+            return function (...args) {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
@@ -1756,7 +1713,7 @@ createApp({
         toggleInvestment(id) {
             this.selectedInvestment = this.selectedInvestment === id ? null : id;
             localStorage.setItem("selectedInvestment", this.selectedInvestment);
-        }
+        },
     },
     mounted() {
         this.setupMenuToggle();
@@ -1792,10 +1749,10 @@ createApp({
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },
                 { menu: "round-options-menu", button: "round-options" },
-                { menu: "notable-investment-options-menu", button: "notable-investment-options" }
+                { menu: "notable-investment-options-menu", button: "notable-investment-options" },
             ],
             showClasses: ["transform", "opacity-100", "scale-100"],
-            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"]
+            hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
         };
-    }
+    },
 }).mount("#app");

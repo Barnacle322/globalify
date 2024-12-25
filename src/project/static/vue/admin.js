@@ -1714,6 +1714,30 @@ createApp({
             this.selectedInvestment = this.selectedInvestment === id ? null : id;
             localStorage.setItem("selectedInvestment", this.selectedInvestment);
         },
+        async searchMembers(event) {
+            searchInput = event.target.value;
+            let member_list = this.$refs.memberListElement;
+
+            for (let i = 0; i < member_list.children.length; i++) {
+                if (member_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    member_list.children[i].classList.remove("hidden");
+                } else {
+                    member_list.children[i].classList.add("hidden");
+                }
+            }
+        },
+        async searchCompanies(event) {
+            searchInput = event.target.value;
+            let company_list = this.$refs.companyListElement;
+
+            for (let i = 0; i < company_list.children.length; i++) {
+                if (company_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    company_list.children[i].classList.remove("hidden");
+                } else {
+                    company_list.children[i].classList.add("hidden");
+                }
+            }
+        },
     },
     mounted() {
         this.setupMenuToggle();

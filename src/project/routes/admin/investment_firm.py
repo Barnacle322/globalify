@@ -348,8 +348,8 @@ def filter_investment_firms():
                 "twitter": investment_firm.twitter,
                 "linkedin": investment_firm.linkedin,
                 "website": investment_firm.website,
-                "industries": [industry.name for industry in investment_firm.industries],  # Extract industry names
-                "rounds": [round.name for round in investment_firm.rounds],  # Extract round names
+                "industries": investment_firm.industries,
+                "rounds": investment_firm.rounds,
             }
         )
 

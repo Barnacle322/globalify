@@ -85,7 +85,7 @@
                         <a
                             href="/admin/investment-firms/filter"
                             class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
-                            >filter
+                            >Filter
                         </a>
                         <a
                             href="/admin/investment-firms/duplicates"
@@ -166,96 +166,27 @@
                         >
                             <div class="relative flex w-full items-start justify-between gap-3">
                                 <div class="flex flex-col gap-3 flex-grow">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-lg font-medium">{{ investment_firm.name }}</span>
-                                        <span class="text-sm text-gray-500">#{{ investment_firm.id }}</span>
-                                    </div>
-                                    <div class="grid gap-2 text-sm">
-                                        {% if investment_firm.about %}
-                                        <div class="flex gap-2">
-                                            <p class="line-clamp-1 text-gray-600">{{investment_firm.about}}</p>
-                                        </div>
-                                        {% else %}
-                                        <div class="flex gap-2">
-                                            <p class="line-clamp-2 text-red-800">About</p>
-                                        </div>
-                                        {% endif %}
-
-                                        <div class="flex flex-wrap gap-4">
-                                            {% if investment_firm.email %}
-                                            <div class="flex gap-2 items-center">
-                                                <a
-                                                    href="mailto:{{investment_firm.email}}"
-                                                    class="text-blue-600 hover:underline"
-                                                    >{{investment_firm.email}}</a
-                                                >
-                                            </div>
-                                            {% else %}
-                                            <div class="flex gap-2">
-                                                <p class="line-clamp-2 text-red-800">Email</p>
-                                            </div>
-                                            {% endif %} {% if investment_firm.twitter %}
-                                            <div class="flex items-center gap-2">
-                                                <a
-                                                    href="{{investment_firm.twitter}}"
-                                                    target="_blank"
-                                                    class="text-blue-600 hover:underline"
-                                                >
-                                                    {{investment_firm.twitter}}
-                                                </a>
-                                            </div>
-                                            {% else %}
-                                            <div class="flex gap-2">
-                                                <p class="line-clamp-2 text-red-800">Twitter</p>
-                                            </div>
-                                            {% endif %} {% if investment_firm.linkedin %}
-                                            <div class="flex items-center gap-2">
-                                                <a
-                                                    href="{{investment_firm.linkedin}}"
-                                                    target="_blank"
-                                                    class="text-blue-600 hover:underline"
-                                                >
-                                                    {{investment_firm.linkedin}}
-                                                </a>
-                                            </div>
-                                            {% else %}
-                                            <div class="flex gap-2">
-                                                <p class="line-clamp-2 text-red-800">Linkedin</p>
-                                            </div>
-                                            {% endif %} {% if investment_firm.website %}
-                                            <div class="flex items-center gap-2">
-                                                <a
-                                                    href="{{investment_firm.website}}"
-                                                    target="_blank"
-                                                    class="text-blue-600 hover:underline"
-                                                >
-                                                    {{investment_firm.website}}
-                                                </a>
-                                            </div>
-                                            {% else %}
-                                            <div class="flex gap-2">
-                                                <p class="line-clamp-2 text-red-800">Website</p>
-                                            </div>
-                                            {% endif %} {% if investment_firm.industries %}
-                                            <p class="text-blue-600 hover:underline">
-                                                {{ ", ".join(investment_firm.industries) }}
-                                            </p>
-                                            {% else %}
-                                            <div class="flex gap-2">
-                                                <p class="line-clamp-1 text-red-800">Industries</p>
-                                            </div>
-                                            {% endif %} {% if investment_firm.rounds %}
-                                            <div class="flex gap-2 items-center">
-                                                <a class="text-blue-600 hover:underline"
-                                                    >{{ ", ".join(investment_firm.rounds) }}
-                                                </a>
-                                            </div>
-                                            {% else %}
-                                            <div class="flex gap-2">
-                                                <p class="line-clamp-2 text-red-800">Rounds</p>
-                                            </div>
+                                    <h2 class="text-lg font-medium">{{ investment_firm.name }}</h2>
+                                    <div class="flex gap-1">
+                                        <h3 class="text-gray-700">Missing:</h3>
+                                        <span class="line-clamp-2 text-red-800">
+                                            <!-- prettier-ignore -->
+                                            {% if not investment_firm.about %}
+                                            About
+                                            {% endif %} {% if not investment_firm.email %}
+                                            Email
+                                            {% endif %} {% if not investment_firm.twitter %}
+                                            Twitter
+                                            {% endif %} {% if not investment_firm.linkedin %}
+                                            Linkedin
+                                            {% endif %} {% if not investment_firm.website %}
+                                            Website
+                                            {% endif %}{% if not investment_firm.rounds %}
+                                            Rounds
+                                            {% endif %}{% if not investment_firm.industry %}
+                                            Industries
                                             {% endif %}
-                                        </div>
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="ml-auto flex h-full flex-col gap-2">
@@ -302,25 +233,6 @@
                                             />
                                         </svg>
                                     </a>
-                                    <button
-                                        class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
-                                        @click="deleteInvestmentFirm('{{investment_firm.id}}')"
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.5"
-                                            stroke="currentColor"
-                                            class="size-4"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                                            />
-                                        </svg>
-                                    </button>
                                 </div>
                             </div>
                         </div>

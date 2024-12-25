@@ -297,11 +297,13 @@ def filter_investment_firms():
     active_filters = {
         key: value
         for key, value in {
+            "check_about": query_params.get("check_about") == "true",
+            "check_email": query_params.get("check_email") == "true",
             "check_twitter": query_params.get("check_twitter") == "true",
             "check_linkedin": query_params.get("check_linkedin") == "true",
             "check_website": query_params.get("check_website") == "true",
-            "check_about": query_params.get("check_about") == "true",
-            "check_email": query_params.get("check_email") == "true",
+            "check_industry": query_params.get("check_industry") == "true",
+            "check_rounds": query_params.get("check_rounds") == "true",
         }.items()
         if value is True
     }
@@ -324,6 +326,12 @@ def filter_investment_firms():
     if "check_website" in active_filters:
         conditions.append((InvestmentFirm.website.is_(None)) | (InvestmentFirm.website == ""))
 
+    if "check_industry" in active_filters:
+        conditions.append(~InvestmentFirm.industries.any())  # No industries
+
+    if "check_rounds" in active_filters:
+        conditions.append(~InvestmentFirm.rounds.any())  # No rounds
+
     if conditions:
         base_query = base_query.where(or_(*conditions))
 
@@ -340,6 +348,8 @@ def filter_investment_firms():
                 "twitter": investment_firm.twitter,
                 "linkedin": investment_firm.linkedin,
                 "website": investment_firm.website,
+                "industries": [industry.name for industry in investment_firm.industries],  # Extract industry names
+                "rounds": [round.name for round in investment_firm.rounds],  # Extract round names
             }
         )
 

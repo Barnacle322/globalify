@@ -378,6 +378,8 @@ def filter_companies():
             "check_website": query_params.get("check_website") == "true",
             "check_description": query_params.get("check_description") == "true",
             "check_instagram": query_params.get("check_instagram") == "true",
+            "check_industry": query_params.get("check_industry") == "true",
+            "check_rounds": query_params.get("check_rounds") == "true",
         }.items()
         if value is True
     }
@@ -400,6 +402,12 @@ def filter_companies():
     if "check_website" in active_filters:
         conditions.append((Company.website_url.is_(None)) | (Company.website_url == ""))
 
+    if "check_industry" in active_filters:
+        conditions.append((Company.industry_id.is_(None)) | (Company.industry_id == ""))
+
+    if "check_rounds" in active_filters:
+        conditions.append((Company.preferred_round_id.is_(None)) | (Company.preferred_round_id == ""))
+
     if conditions:
         base_query = base_query.where(or_(*conditions))
 
@@ -416,6 +424,8 @@ def filter_companies():
                 "twitter": company.twitter_url,
                 "linkedin": company.linkedin_url,
                 "website": company.website_url,
+                "industry": company.industry,
+                "preferred_round": company.preferred_round,
             }
         )
 

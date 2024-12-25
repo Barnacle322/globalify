@@ -638,6 +638,8 @@ createApp({
                 check_linkedin: false,
                 check_instagram: false,
                 check_description: false,
+                check_industry: false,
+                check_rounds: false,
             },
         };
     },

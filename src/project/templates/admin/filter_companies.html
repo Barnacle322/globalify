@@ -85,7 +85,7 @@
                         <a
                             href="/admin/companies/filter"
                             class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
-                            >filter
+                            >Filter
                         </a>
                         <a
                             href="/admin/companies/duplicates"
@@ -105,57 +105,65 @@
                     {% endif %} {% endif %}
                     <nav class="h-auto min-h-12 w-full overflow-x-auto border-b bg-white">
                         <div class="flex h-full flex-wrap items-center gap-4 px-5 py-3 text-sm sm:pr-9">
-                            <div class="flex flex-wrap items-center gap-4">
-                                <div class="flex items-center gap-2">
-                                    <label class="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            v-model="filters.check_description"
-                                            class="rounded border-gray-300"
-                                        />
-                                        Description
-                                    </label>
-                                    <label class="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            v-model="filters.check_instagram"
-                                            class="rounded border-gray-300"
-                                        />
-                                        Instagram
-                                    </label>
-                                    <label class="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            v-model="filters.check_twitter"
-                                            class="rounded border-gray-300"
-                                        />
-                                        Twitter
-                                    </label>
-                                    <label class="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            v-model="filters.check_linkedin"
-                                            class="rounded border-gray-300"
-                                        />
-                                        LinkedIn
-                                    </label>
-                                    <label class="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            v-model="filters.check_website"
-                                            class="rounded border-gray-300"
-                                        />
-                                        Website
-                                    </label>
-                                </div>
-                                <button
-                                    @click="applyFilters"
-                                    class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
-                                >
-                                    Show
-                                </button>
-                                <label class="flex items-center gap-2"> Total: {{ total }} </label>
-                            </div>
+                            <label class="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.check_description"
+                                    class="rounded border-gray-300"
+                                />
+                                Description
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.check_instagram"
+                                    class="rounded border-gray-300"
+                                />
+                                Instagram
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.check_twitter"
+                                    class="rounded border-gray-300"
+                                />
+                                Twitter
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.check_linkedin"
+                                    class="rounded border-gray-300"
+                                />
+                                LinkedIn
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.check_website"
+                                    class="rounded border-gray-300"
+                                />
+                                Website
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.check_industry"
+                                    class="rounded border-gray-300"
+                                />
+                                Industry
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" v-model="filters.check_rounds" class="rounded border-gray-300" />
+                                Round
+                            </label>
+                            <button
+                                @click="applyFilters"
+                                class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
+                            >
+                                Show
+                            </button>
+                            <label class="flex items-center gap-2"> Total: {{ total }} </label>
                         </div>
                     </nav>
                     {% if companies %}
@@ -235,6 +243,22 @@
                                             {% else %}
                                             <div class="flex gap-2">
                                                 <p class="line-clamp-2 text-red-800">Website</p>
+                                            </div>
+                                            {% endif %} {% if company.industry %}
+                                            <p class="text-blue-600 hover:underline">{{ company.industry.name }}</p>
+                                            {% else %}
+                                            <div class="flex gap-2">
+                                                <p class="line-clamp-1 text-red-800">Industry</p>
+                                            </div>
+                                            {% endif %} {% if company.preferred_round %}
+                                            <div class="flex gap-2 items-center">
+                                                <a class="text-blue-600 hover:underline"
+                                                    >{{ company.preferred_round.name }}
+                                                </a>
+                                            </div>
+                                            {% else %}
+                                            <div class="flex gap-2">
+                                                <p class="line-clamp-2 text-red-800">Preferred round</p>
                                             </div>
                                             {% endif %}
                                         </div>

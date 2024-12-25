@@ -55,6 +55,8 @@
     {{ navbar.render(current_user) }}
     {% import "components/edit_company_member.html" as edit_company_member %}
     {{ edit_company_member.render() }}
+    {% import "components/add_company_to_member.html" as add_company_to_member%}
+    {{ add_company_to_member.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -84,6 +86,15 @@
                     @close="editCompanyMemberOpened = null"
                     :user_company="selectedUserCompany"
                 ></edit-company-member-component>
+            </transition>
+
+
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="addMemberOpened"></div>
+            </transition>
+
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <add-company-to-member-component v-if="addMemberOpened" @close="addMemberOpened = null"></add-company-to-member-component>
             </transition>
 
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">

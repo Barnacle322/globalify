@@ -692,7 +692,6 @@ const EditMemberComponent = defineComponent({
     }
 });
 
-
 const EditCompanyMemberComponent = defineComponent({
     template: "#edit-company-member-template",
     props: ["user_company"],
@@ -932,6 +931,153 @@ const AddMemberComponent = defineComponent({
     }
 });
 
+const AddCompanyToMemberComponent = defineComponent({
+    template: "#add-company-to-member-template",
+    emits: ["close"],
+    delimiters: ["[[", "]]"],
+    methods: {
+        limitText() {
+            if (this.invitationMessage.length > 200) {
+                this.invitationMessage = this.invitationMessage.slice(0, 200);
+                console.log("YA GEI");
+            }
+        },
+        limitPositionText() {
+            if (this.position.length > 200) {
+                this.position = this.position.slice(0, 200);
+            }
+        },
+        handleSubmit(event) {
+            event.preventDefault();
+            this.inviteMember(this.$refs.companyId.value);
+        },
+        closeInviteMember() {
+            this.$emit("close-invite-member");
+        },
+        close() {
+            this.$emit("close");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.close();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.close();
+            }
+        },
+        async addMember(companyId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const userId = this.selectedUser.id;
+                const role = this.selectedRole;
+                const invitationMessage = this.invitationMessage;
+                const position = this.position;
+                const is_primary = this.$refs.is_primary.checked;
+                const is_active = this.$refs.is_public.checked;
+
+                const response = await fetch(`/admin/companies/add/members/${userId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken
+                    },
+                    body: JSON.stringify({
+                        company_id: companyId,
+                        role: role,
+                        invitation_message: invitationMessage,
+                        position: position,
+                        is_public: is_active,
+                        is_primary: is_primary,
+
+                    })
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-invite-member");
+                }
+            } catch (error) {
+                console.error("Error inviting member:", error.message);
+            }
+        },
+        debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        },
+        async getUserList(event) {
+            const searchInput = event.target.value;
+            if (searchInput.length > 0) {
+                const response = await fetch(`/settings/users/search/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.users && data.users.length > 0) {
+                        this.userList = data.users;
+                    } else if (data.search_input) {
+                        this.userList = [{ email: data.search_input }];
+                    } else {
+                        this.userList = [];
+                    }
+                }
+            } else {
+                this.userList = [];
+            }
+        },
+        selectUser(user, event) {
+            event.stopPropagation();
+            this.userList = [];
+            this.selectedUser = user;
+        },
+        clearUser() {
+            this.selectedUser = null;
+        },
+        async fetchRoles() {
+            try {
+                const response = await fetch("/settings/companies/roles");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.roles = data.roles;
+                } else {
+                    console.error("Failed to fetch roles");
+                }
+            } catch (error) {
+                console.error("Error fetching roles:", error.message);
+            }
+        }
+
+    },
+    mounted() {
+        this.debouncedGetUserList = this.debounce(this.getUserList, 500);
+        this.fetchRoles();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    data() {
+        return {
+            selectedUser: null,
+            userList: [],
+            roles: [],
+            debouncedGetUserList: null,
+            selectedRole: "",
+            invitationMessage: "",
+            position: ""
+        };
+
+    }
+});
+
 createApp({
     components: {
         AsideComponent,
@@ -948,6 +1094,7 @@ createApp({
         EditMemberComponent,
         EditCompanyMemberComponent,
         AddMemberComponent,
+        AddCompanyToMemberComponent,
     },
     watch: {
         asideMinified(value) {

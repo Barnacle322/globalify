@@ -792,7 +792,6 @@ const AddMemberComponent = defineComponent({
         limitText() {
             if (this.invitationMessage.length > 200) {
                 this.invitationMessage = this.invitationMessage.slice(0, 200);
-                console.log("YA GEI");
             }
         },
         limitPositionText() {
@@ -939,7 +938,6 @@ const AddCompanyToMemberComponent = defineComponent({
         limitText() {
             if (this.invitationMessage.length > 200) {
                 this.invitationMessage = this.invitationMessage.slice(0, 200);
-                console.log("YA GEI");
             }
         },
         limitPositionText() {
@@ -952,7 +950,7 @@ const AddCompanyToMemberComponent = defineComponent({
             this.inviteMember(this.$refs.companyId.value);
         },
         closeInviteMember() {
-            this.$emit("close-invite-member");
+            this.$emit("close");
         },
         close() {
             this.$emit("close");
@@ -977,7 +975,7 @@ const AddCompanyToMemberComponent = defineComponent({
                 const is_primary = this.$refs.is_primary.checked;
                 const is_active = this.$refs.is_public.checked;
 
-                const response = await fetch(`/admin/companies/add/members/${userId}`, {
+                const response = await fetch(`/admin/users/add/companies/members/${userId}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -1069,7 +1067,7 @@ const AddCompanyToMemberComponent = defineComponent({
             selectedCompany: null,
             companyList: [],
             roles: [],
-            debouncedGetUserList: null,
+            debouncedGetCompanyList: null,
             selectedRole: "",
             invitationMessage: "",
             position: ""

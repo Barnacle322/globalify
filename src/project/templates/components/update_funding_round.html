@@ -36,9 +36,7 @@
         </div>
 
         <div class="flex justify-end gap-5">
-            <button @click="closeUpdateFundingRoundModal" class="rounded-lg border border-gray-300 px-3 py-2">
-                Cancel
-            </button>
+            <button @click="close" class="rounded-lg border border-gray-300 px-3 py-2">Cancel</button>
             <button
                 @click="updateFundingRound(id, {{companyId}})"
                 class="rounded-lg bg-sky-500 px-3 py-2 text-white hover:bg-sky-600"

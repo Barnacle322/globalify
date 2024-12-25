@@ -271,7 +271,7 @@ const AsideMobileComponent = defineComponent({
     props: ["minified"],
     methods: {
         closeAside() {
-            this.$emit("close-aside");
+            this.$emit("close");
         },
     },
     mounted() {

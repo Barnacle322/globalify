@@ -25,7 +25,7 @@ from ..models import (
 from ..models.claim import ClaimRequest
 from ..schemas.investment import FundingRoundSchema
 from ..schemas.investor import InvestorOriginPointSchema, MiniInvestorSchema, RoundSchema
-from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
+from ..schemas.user import CompanyInvitationSchema, MemberSchema, SearchCompanySchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
     AUTH_USERNAME_USED,
@@ -35,7 +35,6 @@ from ..utils.errors.error_messages import (
     EDIT_COMPANY_PERMISSION_DENIED,
     EMPTY_BIO,
     EMPTY_COMPANY_NAME,
-    EMPTY_COMPANY_POSITION,
     EMPTY_COUNTRY_ID,
     EMPTY_EMAIL_OR_ROLE,
     EMPTY_FIRSTNAME,
@@ -299,6 +298,7 @@ def company_list_view():
                 picture_url=invitation.company.picture_url,
                 role=invitation.role.value,
                 company_id=invitation.company.id,
+                position=invitation.position,
             )
             company_invitations.append(company_invitation.model_dump())
 
@@ -336,7 +336,7 @@ def company_info_view(company_id):
                 name=user_info.full_name,
                 picture_url=user_info.picture_url,
                 role=user_company.role.value,
-                position="sex",
+                position=user_company.position,
             )
             members.append(user_element.model_dump())
 
@@ -1354,3 +1354,23 @@ def investor():
         industries=Industry.get_all(),
         rounds=Round.get_all(),
     )
+
+
+@settings.get("/companies/search/<search_input>")
+@login_required
+@check_user_info_complete
+@check_verification
+def search_company(search_input):
+    companies = db.session.scalars(db.select(Company).where(Company.name.contains(search_input))).unique().all()
+
+    company_list = []
+    for company in companies:
+        company_element = SearchCompanySchema(
+            id=company.id,
+            name=company.name,
+            picture_url=company.picture_url,
+        )
+        company_list.append(company_element.model_dump())
+
+    print(company_list)
+    return jsonify({"companies": company_list})

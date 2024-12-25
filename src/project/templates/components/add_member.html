@@ -1,9 +1,9 @@
 {% macro render(company, users_in_company) %}
-<template id="invite-member-template">
+<template id="add-member-template">
     <article
         class="fixed right-0 top-0 z-50 flex h-full w-full flex-col gap-4 bg-white p-8 sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
     >
-        <button class="absolute right-3 top-3" @click="closeInviteMember">
+        <button class="absolute right-3 top-3" @click="close">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -15,23 +15,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
         </button>
-        <div class="flex flex-col items-center justify-center gap-2">
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="size-9"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                />
-            </svg>
-            <span class="font-medium">Invite a member to your company</span>
-        </div>
+
+        <span class="font-medium">Add a member to the company</span>
         <div class="flex h-full flex-col gap-2">
             <label class="font-medium" for="email">Search by email*</label>
             <div
@@ -117,43 +102,56 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h3 class="text-md font-semibold" v-text="user.email"></h3>
-                            <span v-if="{{ users_in_company }}.includes( user.id )" class="text-sm italic text-gray-500"
-                                >exists</span
+                            <span
+                                v-if="{{ users_in_company }}.includes( user.id )"
+                                class="text-sm italic text-gray-500"
                             >
+                                already added
+                            </span>
                         </div>
-                        <p class="text-gray-500">Invite to group</p>
+                        <p class="text-gray-500">Add to the company</p>
                     </div>
                 </li>
             </ul>
 
             <label class="font-medium" for="role">Select a role*</label>
-            <select class="w-full rounded-xl border-2 border-stone-300" v-model="selectedRole">
+            <select class="w-full rounded-xl border-2 border-stone-300" v-model="data.role">
                 <option class="text-gray-500" disabled selected value>Select a role</option>
-                <option v-for="role in roles" v-text="role[0].toUpperCase() + role.slice(1)" :value="role"></option>
+                <option
+                    v-for="role in roles"
+                    v-text="role[0].toUpperCase() + role.slice(1)"
+                    :value="role.toUpperCase()"
+                ></option>
             </select>
 
-            <label class="font-medium" for="invitationMessage">Invitation Message</label>
+            <label class="font-medium" for="position">Position</label>
             <textarea
                 class="w-full rounded-xl border-2 border-stone-300"
-                placeholder="Hey, join our company!"
-                v-model="invitationMessage"
-                @input="limitText"
-                @blur="invitationMessage = invitationMessage.trim()"
-            ></textarea>
-            <label class="font-medium" for="position">Position</label>
-            <input
-                class="w-full rounded-xl border-2 border-stone-300"
                 placeholder="CEO"
-                v-model="position"
+                v-model="data.position"
                 @input="limitPositionText"
-                @blur="position = position.trim()"
-            />
+                @blur="data.position = data.position.trim()"
+            ></textarea>
+            <label class="inline-flex cursor-pointer items-center pt-2">
+                <input class="peer sr-only" type="checkbox" v-model="data.is_primary" />
+                <div
+                    class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                ></div>
+                <span class="ms-3 text-sm font-medium text-gray-900">Is primary</span>
+            </label>
+            <label class="inline-flex cursor-pointer items-center pt-2">
+                <input class="peer sr-only" type="checkbox" v-model="data.is_public" />
+                <div
+                    class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                ></div>
+                <span class="ms-3 text-sm font-medium text-gray-900">Is public</span>
+            </label>
+
             <button
                 class="mt-auto w-full rounded-xl bg-sky-400 px-3 py-2 text-white disabled:bg-gray-300 sm:mt-3"
-                @click="inviteMember({{ company.id }})"
-                :disabled="!(selectedRole && selectedUser)"
+                @click="addMember({{ company.id }})"
             >
-                Invite
+                Add
             </button>
         </div>
     </article>

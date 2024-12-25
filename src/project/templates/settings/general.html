@@ -75,10 +75,7 @@
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
+                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div class="fixed top-0 z-50 h-full w-full" v-if="confirmRestoreOpened"></div>
@@ -106,7 +103,7 @@
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <update-investment-component
                     v-if="updateInvestmentOpened"
-                    @close-update-investment="updateInvestmentOpened = null"
+                    @close="updateInvestmentOpened = null"
                     investorid="{{ investor.id }}"
                     :investment="investment"
                     :id="investmentId"
@@ -821,7 +818,7 @@
                                             >
                                                 <div class="overflow-auto rounded-t-lg border border-b-0">
                                                     <table class="relative w-full table-auto">
-                                                        <tr class="bg-white font-medium *:text-nowrap *:px-4 border-b">
+                                                        <tr class="border-b bg-white font-medium *:text-nowrap *:px-4">
                                                             <td class="py-4 pl-4">Company</td>
                                                             <td class="py-4">Amount</td>
                                                             <td

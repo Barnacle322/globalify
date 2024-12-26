@@ -43,6 +43,7 @@ from ..utils.errors.error_messages import (
     NOT_AUTHORIZED,
 )
 from ..utils.parse_medium import parse_medium_html
+from ..utils.posthog import track_event
 
 main = Blueprint("main", __name__)
 
@@ -176,6 +177,18 @@ def get_investor(slug):
     else:
         is_bookmarked = False
 
+    track_event(
+        "investor_profile_viewed",
+        {
+            "investor_id": investor.id,
+            "slug": slug,
+            "user_id": current_user.id if current_user.is_authenticated else None,
+            "unpaid": unpaid,
+            "is_bookmarked": is_bookmarked,
+        },
+        distinct_id=current_user.email if current_user.is_authenticated else slug,
+    )
+
     return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked})
 
 
@@ -239,11 +252,32 @@ def toggle_bookmark_investor(investor_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
+        track_event(
+            event_name="investor_unbookmarked",
+            properties={
+                "user_id": current_user.id,
+                "investor_id": investor.id,
+                "investorr_name": investor.full_name,
+            },
+            distinct_id=current_user.email,
+        )
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestorBookmark(investor_id=investor.id, user_id=current_user.id)
     db.session.add(new_bookmark)
     db.session.commit()
+
+    track_event(
+        event_name="investor_bookmarked",
+        properties={
+            "user_id": current_user.id,
+            "investor_id": investor.id,
+            "investorr_name": investor.full_name,
+        },
+        distinct_id=current_user.email,
+    )
 
     return jsonify({"bookmarked": True}, 200)
 
@@ -335,6 +369,18 @@ def get_investment_firm(slug):
     else:
         is_bookmarked = False
 
+    track_event(
+        "investment_firm_profile_viewed",
+        {
+            "investment_firm_id": investment_firm_model.id,
+            "slug": slug,
+            "user_id": current_user.id if current_user.is_authenticated else None,
+            "unpaid": unpaid,
+            "is_bookmarked": is_bookmarked,
+        },
+        distinct_id=current_user.email if current_user.is_authenticated else slug,
+    )
+
     return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
@@ -412,6 +458,18 @@ def get_company(slug):
     else:
         is_bookmarked = False
 
+    track_event(
+        "company_profile_viewed",
+        {
+            "company_id": company_model.id,
+            "slug": slug,
+            "user_id": current_user.id if current_user.is_authenticated else None,
+            "unpaid": unpaid,
+            "is_bookmarked": is_bookmarked,
+        },
+        distinct_id=current_user.email if current_user.is_authenticated else slug,
+    )
+
     return jsonify({"company": company, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
@@ -428,11 +486,32 @@ def toggle_bookmark_company(company_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
+        track_event(
+            event_name="company_unbookmarked",
+            properties={
+                "user_id": current_user.id,
+                "company_id": company.id,
+                "company_name": company.name,
+            },
+            distinct_id=current_user.email,
+        )
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = CompanyBookmark(company_id=company.id, user_id=current_user.id)
     db.session.add(new_bookmark)
     db.session.commit()
+
+    track_event(
+        event_name="company_bookmarked",
+        properties={
+            "user_id": current_user.id,
+            "company_id": company.id,
+            "company_name": company.name,
+        },
+        distinct_id=current_user.email,
+    )
 
     return jsonify({"bookmarked": True}, 200)
 
@@ -517,11 +596,32 @@ def toggle_bookmark_investment_firm(firm_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
+        track_event(
+            event_name="investment_firm_unbookmarked",
+            properties={
+                "user_id": current_user.id,
+                "investment_firm_id": investment_firm.id,
+                "investment_firmr_name": investment_firm.name,
+            },
+            distinct_id=current_user.email,
+        )
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestmentFirmBookmark(investment_firm_id=investment_firm.id, user_id=current_user.id)
     db.session.add(new_bookmark)
     db.session.commit()
+
+    track_event(
+        event_name="investment_firm_bookmarked",
+        properties={
+            "user_id": current_user.id,
+            "investment_firm_id": investment_firm.id,
+            "investment_firmr_name": investment_firm.name,
+        },
+        distinct_id=current_user.email,
+    )
 
     return jsonify({"bookmarked": True}, 200)
 

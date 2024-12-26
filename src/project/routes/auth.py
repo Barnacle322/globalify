@@ -37,6 +37,7 @@ from ..utils.errors.error_messages import (
     OAUTH_NO_USER_INFO,
 )
 from ..utils.google_helpers import google_pubsub
+from ..utils.posthog import track_event
 from .main import check_user_info_complete, check_verification
 
 auth = Blueprint("auth", __name__)
@@ -46,27 +47,6 @@ APPLE_SECRET = os.environ.get("_APPLE_OAUTH2_CLIENT_SECRET")
 APPLE_ID = os.environ.get("_APPLE_OAUTH2_CLIENT_ID")
 LINKEDIN_EMAIL_URL = "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))"
 LINKEDIN_PERSONAL_INFO_URL = "https://api.linkedin.com/v2/me"
-
-
-def track_event(event_name, properties, distinct_id):
-    posthog_api_key = "phc_OYnEo3PANvSj9HM4MFbRiG5IQVyhxw3iSZXxHUOI13F"
-    posthog_url = "https://app.posthog.com/capture"
-
-    data = {
-        "api_key": posthog_api_key,
-        "event": event_name,
-        "properties": properties,
-        "distinct_id": distinct_id,
-    }
-
-    headers = {
-        "Content-Type": "application/json",
-        "Referer": "http://127.0.0.1:5000/",
-    }
-
-    response = requests.post(posthog_url, json=data, headers=headers)
-    if response.status_code != 200:
-        print(f"Failed to track event: {response.text}")
 
 
 @login_manager.user_loader
@@ -107,6 +87,16 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
         raise Exception(OAUTH_MISMATCHED_PROVIDER)
 
     User.update_last_login(user.id)
+
+    track_event(
+        "user_registered",
+        {
+            "source": "google_oauth",
+            "user_id": user.id,
+            "email": user.email,
+        },
+        distinct_id=user.email,
+    )
 
     return user
 
@@ -372,16 +362,6 @@ def google_callback():
 
     if not user_info.is_complete:
         return redirect(url_for("onboarding.index"))
-
-    track_event(
-        "user_registered",
-        {
-            "source": "google_oauth",
-            "user_id": user.id,
-            "email": user.email,
-        },
-        distinct_id=user.id,
-    )
 
     return redirect(url_for("search.investor_search"))
 

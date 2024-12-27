@@ -1,0 +1,60 @@
+{% macro render(user) %}
+<template id="profile-context-menu">
+    <div
+        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col divide-y border bg-white shadow-xl sm:absolute sm:right-0 sm:top-7 sm:h-auto sm:max-h-96 sm:w-96 sm:rounded-xl"
+    >
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+
+        <div class="flex items-center justify-between">
+            <div class="p-5 pb-0">
+                <h3 class="text-xl font-semibold">Profile</h3>
+                <svg
+                    @click="$emit('close-profile-context-menu')"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-7 cursor-pointer rounded-md p-1 hover:bg-gray-50"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="p-5 pb-0">
+            {% if user.user_info.picture_url %}
+            <img src="{{ user.user_info.picture_url }}" class="size-8 rounded-full border border-gray-200 bg-gray-50" />
+            {% else %}
+            <img
+                src="/static/elements/pfp_placeholder.jpeg"
+                class="size-8 rounded-full border border-gray-200 bg-gray-50"
+            />
+            {% endif %}
+
+            <a
+                ref="profile"
+                href="/profile/{{ user.user_info.username }}"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
+                :class="currentPath == 'profile' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                >Profile
+            </a>
+
+            <a
+                ref="profile"
+                href="/settings"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
+                :class="currentPath == 'profile' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                >Settings
+            </a>
+            <a
+                ref="profile"
+                href="/logout"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
+                :class="currentPath == 'profile' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                >Logout
+            </a>
+        </div>
+    </div>
+</template>
+{% endmacro %}

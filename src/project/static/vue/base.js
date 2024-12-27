@@ -502,12 +502,24 @@ const Bookmark = defineComponent({
     },
 });
 
+const ProfileContextMenuComponent = defineComponent({
+    template: "#profile-context-menu",
+    emits: ["close-profile-context-menu"],
+    methods:{
+
+    },
+
+
+    }
+);
+
 const NavbarComponent = defineComponent({
     template: "#navbar-template",
     emits: ["open-aside", "open-notifications", "bookmarked"],
     components: {
         Bookmark,
         NotificationComponent,
+        ProfileContextMenuComponent,
     },
     methods: {
         handleBookmark(data, type) {
@@ -544,6 +556,18 @@ const NavbarComponent = defineComponent({
                 return;
             } else if (event && this.$refs.notifications && !this.$refs.notifications.$el.contains(event.target)) {
                 this.notificationsOpened = false;
+            }
+        },
+        openProfileContextMenu(){
+            this.profileContextMenuOpened = true;
+            this.ignoreNextOutsideClickProfileContextMenu = true;
+        },
+        closeProfileContextMenu(){
+            if (this.ignoreNextOutsideClickProfileContextMenu) {
+                this.ignoreNextOutsideClickProfileContextMenu = false;
+                return;
+            } else if (event && this.$refs.profilecontextmenu && !this.$refs.profilecontextmenu.$el.contains(event.target)) {
+                this.profileContextMenuOpened = false;
             }
         },
         async fetchNotificationInbox() {
@@ -588,6 +612,7 @@ const NavbarComponent = defineComponent({
     async mounted() {
         window.addEventListener("click", this.closeBookmark);
         window.addEventListener("click", this.closeNotifications);
+        window.addEventListener("click", this.closeProfileContextMenu);
         if (!document.hidden) {
             this.startPolling();
         }
@@ -596,6 +621,7 @@ const NavbarComponent = defineComponent({
     beforeUnmount() {
         window.removeEventListener("click", this.closeBookmark);
         window.removeEventListener("click", this.closeNotifications);
+        window.removeEventListener("click", this.closeProfileContextMenu);
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     },
@@ -605,7 +631,9 @@ const NavbarComponent = defineComponent({
             ignoreNextOutsideClickBookmarks: false,
             notificationsOpened: false,
             ignoreNextOutsideClickNotifications: false,
+            ignoreNextOutsideClickProfileContextMenu: false,
             notifications: [],
+            profileContextMenuOpened: false,
         };
     },
 });

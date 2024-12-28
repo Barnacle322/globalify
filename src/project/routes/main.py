@@ -59,6 +59,7 @@ def faq():
 
 
 @main.get("/eric")
+@main.get("/ericf")
 @main.get("/ericfung")
 @main.get("/ericclfung")
 @main.get("/ceo")
@@ -69,7 +70,10 @@ def eric():
 @main.get("/jennifer")
 @main.get("/jenn")
 @main.get("/jenniferchenglo")
-@main.get("/jennifer-cheng-lo")
+@main.get("/Jennifer")
+@main.get("/Jenn")
+@main.get("/Jenniferchenglo")
+@main.get("/JenniferChengLo")
 @main.get("/princess")
 @main.get("/cgo")
 def jennifer():

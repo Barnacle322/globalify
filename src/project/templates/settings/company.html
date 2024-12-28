@@ -90,10 +90,7 @@
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
+                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
@@ -138,7 +135,7 @@
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <update-investment-component
                     v-if="updateInvestmentOpened"
-                    @close-update-investment="updateInvestmentOpened = null"
+                    @close="updateInvestmentOpened = null"
                     companyid="{{ company.id }}"
                     :investment="investment"
                     :id="investmentId"
@@ -147,7 +144,7 @@
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <create-funding-round-component
                     v-if="createFundingRoundOpened"
-                    @close-create-funding-round="createFundingRoundOpened = null"
+                    @close="createFundingRoundOpened = null"
                 ></create-funding-round-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
@@ -160,7 +157,7 @@
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <delete-funding-round-component
                     v-if="deleteFundingRoundOpened"
-                    @close-delete-funding-round="deleteFundingRoundOpened = null"
+                    @close="deleteFundingRoundOpened = null"
                     :funding-round-id="fundingRoundId"
                 ></delete-funding-round-component>
             </transition>
@@ -583,7 +580,7 @@
                                                     <div class="overflow-auto rounded-t-lg border border-b-0">
                                                         <table class="relative w-full table-auto">
                                                             <tr
-                                                                class="bg-white font-medium *:text-nowrap *:px-4 border-b"
+                                                                class="border-b bg-white font-medium *:text-nowrap *:px-4"
                                                             >
                                                                 <td class="py-4 pl-4">Investor</td>
                                                                 <td class="py-4">Amount</td>
@@ -812,7 +809,7 @@
                                     {% endif %}
                                 </div>
                                 {% if user_role in ["owner", "admin"] %}
-                                <div class="mt-8 flex gap-5 justify-end">
+                                <div class="mt-8 flex justify-end gap-5">
                                     <a class="flex items-center justify-center text-gray-700 underline" href=""
                                         >Cancel</a
                                     >
@@ -828,7 +825,7 @@
                         </form>
                     </div>
                     <div class="my-10 grid gap-6 sm:grid-cols-6">
-                        <div class="sm:col-span-2 col-span-4">
+                        <div class="col-span-4 sm:col-span-2">
                             <h2 class="text-2xl font-bold">Member information</h2>
                             <p class="mb-2 mt-1 leading-6 text-gray-700">
                                 Manage member information here. You can add, edit and delete the members here.
@@ -928,7 +925,7 @@
                                         <div class="flex flex-col">
                                             <h3 class="text-md font-medium">
                                                 {{ user.name }}
-                                                <span class="text-gray-400 text-xs italic">
+                                                <span class="text-xs italic text-gray-400">
                                                     {{ "You" if user.id == current_user.id else "" }}
                                                 </span>
                                             </h3>
@@ -993,26 +990,3 @@
         </div>
     </body>
 </html>
-
-<div class="investments-group">
-    <h1>Investments Grouped by Funding Round</h1>
-    {% if investments_by_round %} {% for round_name, investments in investments_by_round.items() %}
-    <div class="round">
-        <h2>{{ round_name }}</h2>
-        <ul>
-            {% for investment in investments %}
-            <li>
-                <strong>Company:</strong>
-                {{ investment.funding_round.company.name if investment.funding_round.company else "Unknown" }}
-                <br />
-                <strong>Amount:</strong> ${{ investment.amount or "N/A" }}
-                <br />
-                <strong>Date:</strong> {{ investment.date or "N/A" }}
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endfor %} {% else %}
-    <p>No investments available for this investor.</p>
-    {% endif %}
-</div>

@@ -192,7 +192,7 @@ const UpdateInvestmentComponent = defineComponent({
             };
         },
         closeUpdateInvestmentModal() {
-            this.$emit("close-update-investment");
+            this.$emit("close");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
@@ -433,17 +433,17 @@ const CreateFundingRoundComponent = defineComponent({
                 console.error("Error fetching rounds:", error);
             }
         },
-        closeCreateFundingRoundModal() {
-            this.$emit("close-create-funding-round");
+        close() {
+            this.$emit("close");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
-                this.closeCreateFundingRoundModal();
+                this.close();
             }
         },
         handleOutsideClick(event) {
             if (!this.$el.contains(event.target)) {
-                this.closeCreateFundingRoundModal();
+                this.close();
             }
         },
     },
@@ -526,17 +526,17 @@ const UpdateFundingRoundComponent = defineComponent({
                 console.error("Error fetching funding round:", error);
             }
         },
-        closeUpdateFundingRoundModal() {
+        close() {
             this.$emit("close-update-funding-round");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
-                this.closeUpdateFundingRoundModal();
+                this.close();
             }
         },
         handleOutsideClick(event) {
             if (!this.$el.contains(event.target)) {
-                this.closeUpdateFundingRoundModal();
+                this.close();
             }
         },
     },
@@ -586,19 +586,450 @@ const DeleteFundingRoundComponent = defineComponent({
                 console.error("Error cancelling invitation:", error.message);
             }
         },
-        closeDeleteFundingRound() {
-            this.$emit("close-delete-funding-round");
+        close() {
+            this.$emit("close");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
-                this.closeDeleteFundingRound();
+                this.close();
             }
         },
         handleOutsideClick(event) {
             if (!this.$el.contains(event.target)) {
-                this.closeDeleteFundingRound();
+                this.close();
             }
         },
+    },
+});
+
+const AddMemberComponent = defineComponent({
+    template: "#add-member-template",
+    emits: ["close"],
+    mounted() {
+        this.debouncedGetUserList = this.debounce(this.getUserList, 500);
+        this.fetchRoles();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        },
+        close() {
+            this.$emit("close");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.close();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.close();
+            }
+        },
+        limitPositionText() {
+            if (this.data.position.length > 200) {
+                this.data.position = this.data.position.slice(0, 200);
+            }
+        },
+        selectUser(user, event) {
+            event.stopPropagation();
+            this.userList = [];
+            this.selectedUser = user;
+        },
+        clearUser() {
+            this.selectedUser = null;
+        },
+        async addMember(companyId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+
+                const response = await fetch(`/admin/companies/${companyId}/members/add`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ ...this.data, user_id: this.selectedUser.id }),
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close");
+                }
+            } catch (error) {
+                console.error("Error inviting member:", error.message);
+            }
+        },
+        async getUserList(event) {
+            const searchInput = event.target.value;
+            if (searchInput.length > 0) {
+                const response = await fetch(`/settings/users/search/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.users && data.users.length > 0) {
+                        this.userList = data.users;
+                    } else if (data.search_input) {
+                        this.userList = [{ email: data.search_input }];
+                    } else {
+                        this.userList = [];
+                    }
+                }
+            } else {
+                this.userList = [];
+            }
+        },
+        async fetchRoles() {
+            try {
+                const response = await fetch("/settings/companies/roles");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.roles = data.roles;
+                } else {
+                    console.error("Failed to fetch roles");
+                }
+            } catch (error) {
+                console.error("Error fetching roles:", error.message);
+            }
+        },
+    },
+    data() {
+        return {
+            selectedUser: null,
+            userList: [],
+            roles: [],
+            debouncedGetUserList: null,
+            data: {
+                role: "",
+                position: "",
+                is_primary: false,
+                is_public: false,
+            },
+        };
+    },
+});
+
+const EditMemberComponent = defineComponent({
+    template: "#edit-member-template",
+    props: ["user"],
+    emits: ["close"],
+    delimiters: ["[[", "]]"],
+    mounted() {
+        this.fetchRoles();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        close() {
+            this.$emit("close");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.close();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.close();
+            }
+        },
+        async editMember(userId, companyId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const response = await fetch(`/admin/companies/${companyId}/members`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ ...this.data, user_id: userId }),
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close");
+                }
+            } catch (error) {
+                console.error("Error changing role:", error.message);
+            }
+        },
+        async removeMember(userId, companyId) {
+            try {
+                const response = await fetch(`/admin/companies/${companyId}/members/${userId}/remove`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close");
+                }
+            } catch (error) {
+                console.error("Error removing member:", error.message);
+            }
+        },
+        async fetchRoles() {
+            try {
+                const response = await fetch("/settings/companies/roles");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.roles = data.roles;
+                } else {
+                    console.error("Failed to fetch roles");
+                }
+            } catch (error) {
+                console.error("Error fetching roles:", error.message);
+            }
+        },
+    },
+    data() {
+        return {
+            roles: [],
+            data: {
+                role: this.user.role.toUpperCase(),
+                position: this.user.position,
+                is_primary: Boolean(this.user.is_primary),
+                is_public: Boolean(this.user.is_public),
+            },
+        };
+    },
+});
+
+const AddCompanyComponent = defineComponent({
+    template: "#add-company-template",
+    emits: ["close"],
+    delimiters: ["[[", "]]"],
+    mounted() {
+        this.debouncedGetCompanyList = this.debounce(this.getCompanyList, 500);
+        this.fetchRoles();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        },
+        limitPositionText() {
+            if (this.data.position.length > 200) {
+                this.data.position = this.data.position.slice(0, 200);
+            }
+        },
+        close() {
+            this.$emit("close");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.close();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.close();
+            }
+        },
+        selectCompany(company, event) {
+            event.stopPropagation();
+            this.companyList = [];
+            this.selectedCompany = company;
+        },
+        clearUser() {
+            this.companyList = null;
+        },
+        async fetchRoles() {
+            try {
+                const response = await fetch("/settings/companies/roles");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.roles = data.roles;
+                } else {
+                    console.error("Failed to fetch roles");
+                }
+            } catch (error) {
+                console.error("Error fetching roles:", error.message);
+            }
+        },
+        async addCompany(userId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+
+                const response = await fetch(`/admin/users/${userId}/companies/add`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ ...this.data, company_id: this.selectedCompany.id }),
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-invite-member");
+                }
+            } catch (error) {
+                console.error("Error inviting member:", error.message);
+            }
+        },
+        async getCompanyList(event) {
+            const searchInput = event.target.value;
+            if (searchInput.length > 0) {
+                const response = await fetch(`/settings/companies/search/${searchInput}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.companies && data.companies.length > 0) {
+                        this.companyList = data.companies;
+                    } else if (data.search_input) {
+                        this.companyList = [{ email: data.search_input }];
+                    } else {
+                        this.companyList = [];
+                    }
+                }
+            } else {
+                this.companyList = [];
+            }
+        },
+    },
+    data() {
+        return {
+            selectedCompany: null,
+            companyList: [],
+            roles: [],
+            debouncedGetCompanyList: null,
+            data: {
+                role: "",
+                position: "",
+                is_public: false,
+                is_primary: false,
+            },
+        };
+    },
+});
+
+const EditCompanyMemberComponent = defineComponent({
+    template: "#edit-company-member-template",
+    props: ["user_company"],
+    emits: ["close"],
+    delimiters: ["[[", "]]"],
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        this.fetchRoles();
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+
+    methods: {
+        close() {
+            this.$emit("close");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.close();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.close();
+            }
+        },
+        async fetchRoles() {
+            try {
+                const response = await fetch("/settings/companies/roles");
+                if (response.ok) {
+                    const data = await response.json();
+                    this.roles = data.roles;
+                } else {
+                    console.error("Failed to fetch roles");
+                }
+            } catch (error) {
+                console.error("Error fetching roles:", error.message);
+            }
+        },
+        async editMember(userId, companyId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+
+                const response = await fetch(`/admin/users/${userId}/companies`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ ...this.data, company_id: companyId }),
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close");
+                }
+            } catch (error) {
+                console.error("Error changing role:", error.message);
+            }
+        },
+        async removeMember(userId, companyId) {
+            try {
+                const response = await fetch(`/admin/users/${userId}/companies/${companyId}/remove`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close");
+                }
+            } catch (error) {
+                console.error("Error removing member:", error.message);
+            }
+        },
+    },
+    data() {
+        return {
+            roles: [],
+            data: {
+                role: this.user_company.user_role.toUpperCase(),
+                position: this.user_company.user_position,
+                is_primary: Boolean(this.user_company.is_primary),
+                is_public: Boolean(this.user_company.is_public),
+            },
+        };
     },
 });
 
@@ -615,6 +1046,10 @@ createApp({
         CreateFundingRoundComponent,
         UpdateFundingRoundComponent,
         DeleteFundingRoundComponent,
+        EditMemberComponent,
+        EditCompanyMemberComponent,
+        AddMemberComponent,
+        AddCompanyComponent,
     },
     watch: {
         asideMinified(value) {
@@ -1279,6 +1714,30 @@ createApp({
             this.selectedInvestment = this.selectedInvestment === id ? null : id;
             localStorage.setItem("selectedInvestment", this.selectedInvestment);
         },
+        async searchMembers(event) {
+            searchInput = event.target.value;
+            let member_list = this.$refs.memberListElement;
+
+            for (let i = 0; i < member_list.children.length; i++) {
+                if (member_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    member_list.children[i].classList.remove("hidden");
+                } else {
+                    member_list.children[i].classList.add("hidden");
+                }
+            }
+        },
+        async searchCompanies(event) {
+            searchInput = event.target.value;
+            let company_list = this.$refs.companyListElement;
+
+            for (let i = 0; i < company_list.children.length; i++) {
+                if (company_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    company_list.children[i].classList.remove("hidden");
+                } else {
+                    company_list.children[i].classList.add("hidden");
+                }
+            }
+        },
     },
     mounted() {
         this.setupMenuToggle();
@@ -1294,6 +1753,9 @@ createApp({
             createFundingRoundOpened: false,
             updateFundingRoundOpened: false,
             deleteFundingRoundOpened: false,
+            editMemberOpened: false,
+            editCompanyMemberOpened: false,
+            addMemberOpened: false,
             investment: {},
             csrfToken: "",
             searchQuery: localStorage.getItem("searchQuery") || "",

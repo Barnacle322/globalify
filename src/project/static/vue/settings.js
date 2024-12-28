@@ -269,17 +269,6 @@ const ConfirmRestoreComponent = defineComponent({
 
 const InviteMemberComponent = defineComponent({
     template: "#invite-member-template",
-    data() {
-        return {
-            selectedUser: null,
-            userList: [],
-            roles: [],
-            debouncedGetUserList: null,
-            selectedRole: "",
-            invitationMessage: "",
-            position: "",
-        };
-    },
     methods: {
         limitText() {
             if (this.invitationMessage.length > 200) {
@@ -292,7 +281,6 @@ const InviteMemberComponent = defineComponent({
                 this.position = this.position.slice(0, 200);
             }
         },
-
         handleSubmit(event) {
             event.preventDefault();
             this.inviteMember(this.$refs.companyId.value);
@@ -401,6 +389,17 @@ const InviteMemberComponent = defineComponent({
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("click", this.handleOutsideClick);
+    },
+    data() {
+        return {
+            selectedUser: null,
+            userList: [],
+            roles: [],
+            debouncedGetUserList: null,
+            selectedRole: "",
+            invitationMessage: "",
+            position: "",
+        };
     },
 });
 
@@ -981,7 +980,7 @@ const UpdateInvestmentComponent = defineComponent({
             };
         },
         closeUpdateInvestmentModal() {
-            this.$emit("close-update-investment");
+            this.$emit("close");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
@@ -1222,17 +1221,17 @@ const CreateFundingRoundComponent = defineComponent({
                 console.error("Error fetching rounds:", error);
             }
         },
-        closeCreateFundingRoundModal() {
-            this.$emit("close-create-funding-round");
+        close() {
+            this.$emit("close");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
-                this.closeCreateFundingRoundModal();
+                this.close();
             }
         },
         handleOutsideClick(event) {
             if (!this.$el.contains(event.target)) {
-                this.closeCreateFundingRoundModal();
+                this.close();
             }
         },
     },
@@ -1315,17 +1314,17 @@ const UpdateFundingRoundComponent = defineComponent({
                 console.error("Error fetching funding round:", error);
             }
         },
-        closeUpdateFundingRoundModal() {
+        close() {
             this.$emit("close-update-funding-round");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
-                this.closeUpdateFundingRoundModal();
+                this.close();
             }
         },
         handleOutsideClick(event) {
             if (!this.$el.contains(event.target)) {
-                this.closeUpdateFundingRoundModal();
+                this.close();
             }
         },
     },
@@ -1375,17 +1374,17 @@ const DeleteFundingRoundComponent = defineComponent({
                 console.error("Error cancelling invitation:", error.message);
             }
         },
-        closeDeleteFundingRound() {
-            this.$emit("close-delete-funding-round");
+        close() {
+            this.$emit("close");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
-                this.closeDeleteFundingRound();
+                this.close();
             }
         },
         handleOutsideClick(event) {
             if (!this.$el.contains(event.target)) {
-                this.closeDeleteFundingRound();
+                this.close();
             }
         },
     },
@@ -1777,6 +1776,7 @@ createApp({
             selectedIndustry: "",
             selectedNotableInvestment: "",
             selectedUser: null,
+            selectedUserCompany: null,
             selectedInvitationId: null,
             dataString: "",
             currentPage: parseInt(localStorage.getItem("currentPage")) || 1,

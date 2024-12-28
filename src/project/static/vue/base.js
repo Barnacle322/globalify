@@ -814,7 +814,7 @@ const FullInvestmentFirm = defineComponent({
         async fetchInvestmentFirm() {
             this.isLoading = true;
             try {
-                const response = await fetch(`/investment-firm/${this.slug}`);
+                const response = await fetch(`/investment-firm/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
                     this.investmentFirm = data.investment_firm;
@@ -934,7 +934,7 @@ const FullCompany = defineComponent({
         async fetchCompany() {
             this.isLoading = true;
             try {
-                const response = await fetch(`/company/${this.slug}`);
+                const response = await fetch(`/company/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
                     this.company = data.company;

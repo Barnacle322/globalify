@@ -11,7 +11,6 @@ profile = Blueprint("profile", __name__)
 
 @profile.route("/<username>", methods=["GET"])
 def user_profile(username):
-
     user_info = UserInfo.get_by_username(username)
 
     if not user_info:
@@ -29,6 +28,31 @@ def user_profile(username):
         .all()
     )
 
+    description = ""
+    if user_info.bio:
+        description = user_info.bio[:140]
+        if not description.endswith("."):
+            description += "."
+
+    company_name_list = tuple(company.company.name for company in companies)
+    if company_name_list_len := len(company_name_list) > 0:
+        description += f" {user_info.full_name} works at"
+
+        if company_name_list_len == 1:
+            description += f" {company_name_list[0]}."
+        else:
+            for index, company_name in enumerate(company_name_list):
+                if index == company_name_list_len - 1:
+                    description += f" and {company_name}."
+                elif index == company_name_list_len - 2:
+                    description += f" {company_name}"
+                else:
+                    description += f" {company_name},"
+
+    investor = user_info.user.investor
+    if investor:
+        description += f" {user_info.first_name} is also an investor."
+
     return render_template(
         "user_profile.html",
         user_info=user_info,
@@ -36,7 +60,8 @@ def user_profile(username):
         current_user=current_user if current_user.is_authenticated else None,
         companies=companies,
         authenticated_user=current_user,
-        investor=user_info.user.investor,
+        investor=investor,
+        description=description,
     )
 
 

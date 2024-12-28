@@ -159,6 +159,11 @@ def investor():
             if existing_investor_by_email:
                 return jsonify({"error": "Email is already in use"}), 400
 
+        twitter = form_data.get("twitter") or None
+        if isinstance(twitter, str) and "x.com" in twitter:
+            slug = twitter.split("/")[-1]
+            twitter = f"https://twitter.com/{slug}"
+
         investor = Investor(
             user_id=current_user.id,
             first_name=first_name,
@@ -174,7 +179,7 @@ def investor():
             max_investment=int(form_data.get("maxInvestment") or 0),
             website=form_data.get("website") or None,
             linkedin=form_data.get("linkedin") or None,
-            twitter=form_data.get("twitter") or None,
+            twitter=twitter,
             email=email,
             phone_number=form_data.get("phoneNumber") or None,
             rounds=list(Round.get_by_id_list(form_data.get("selectedRounds") or [])),

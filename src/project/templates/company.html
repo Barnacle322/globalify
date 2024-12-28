@@ -5,13 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
         <!-- Primary Meta Tags -->
-        <meta name="title" content="{{ investment_firm.name }} | Globalify Investment firm Profile" />
+        <meta name="title" content="{{ company.name }} | Globalify Company Profile" />
         <meta name="description" content="{{ description }}" />
 
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://globalify.xyz/" />
-        <meta property="og:title" content="{{ investment_firm.name }} | Globalify Investment firm Profile" />
+        <meta property="og:title" content="{{ company.name }} | Globalify Company Profile" />
         <meta property="og:description" content="{{ description }}" />
         <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
 
@@ -19,9 +19,9 @@
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://globalify.xyz/" />
         {% if twitter_slug %}
-        <meta property="twitter:creator" content="{{ twitter_slug }}" />
+            <meta property="twitter:creator" content="{{ twitter_slug }}" />
         {% endif %}
-        <meta property="twitter:title" content="{{ investment_firm.name }} | Globalify Investment firm Profile" />
+        <meta property="twitter:title" content="{{ company.name }} | Globalify Company Profile" />
         <meta property="twitter:description" content="{{ description }}" />
         <meta property="twitter:image" content="{{ picture_url }}" />
 
@@ -41,7 +41,7 @@
             rel="stylesheet"
         />
 
-        <title>{{ investment_firm.name }} | Globalify Investment firm Profile</title>
+        <title>{{ company.name }} | Globalify Company Profile</title>
     </head>
 
     <!-- prettier-ignore -->
@@ -67,13 +67,23 @@
             </transition>
             <main class="mx-auto flex min-h-screen flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
                 <section class="mx-auto flex w-full max-w-7xl items-center gap-4">
-                    <h1 class="text-4xl font-semibold">{{ investment_firm.name }}</h1>
+                    {% if company.picture_url %}
+                    <img class="shadow-card h-20 rounded-lg" src="{{ company.picture_url }}" alt="" loading="lazy" />
+                    {% elif company.twitter_url %}
+                    <img
+                        class="shadow-card h-20 rounded-lg"
+                        src="https://unavatar.io/twitter/{{ company.twitter_url.split('/')[-1] }}"
+                        alt=""
+                        loading="lazy"
+                    />
+                    {% endif %}
+                    <h1 class="text-4xl font-semibold">{{ company.name }}</h1>
                 </section>
                 <section class="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2">
                     <article class="shadow-card w-full rounded-xl bg-white p-5">
                         <h2 class="text-xl font-medium">General</h2>
                         <div class="mt-5 flex flex-col gap-3 text-sm">
-                            {% if investment_firm.location %}
+                            {% if company.country %}
                             <div class="grid grid-cols-2">
                                 <span class="inline-flex items-center gap-1 font-medium">
                                     <svg
@@ -97,9 +107,9 @@
                                     </svg>
                                     Location:
                                 </span>
-                                <span class="text-gray-700">{{ investment_firm.location }}</span>
+                                <span class="text-gray-700">{{ company.country.name }}</span>
                             </div>
-                            {% endif %} {% if investment_firm.n_employees %}
+                            {% endif %} {% if company.number_of_employees %}
                             <div class="grid grid-cols-2">
                                 <span class="inline-flex items-center gap-1 font-medium">
                                     <svg
@@ -116,22 +126,23 @@
                                             d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
                                         />
                                     </svg>
-
                                     Number of employees:
                                 </span>
-                                <span class="text-gray-700">{{ investment_firm.n_employees }}</span>
+                                <span class="text-gray-700">{{ company.number_of_employees }}</span>
                             </div>
-                            {% endif %} {% if investment_firm.about %}
-                            <p class="mt-3">{{ investment_firm.about }}</p>
+                            {% endif %} {% if company.description %}
+                            <p class="mt-3">{{ company.description }}</p>
                             {% endif %}
                         </div>
                     </article>
+
                     <article class="shadow-card w-full rounded-xl bg-white p-5">
                         <h2 class="text-xl font-medium">Investment</h2>
-                        {% if investment_firm.rounds|length != 0 %}
+
+                        {% if company.preferred_round %}
                         <div class="mt-5 flex flex-col gap-2">
-                            <span class="flex gap-1 text-sm font-medium"
-                                ><svg
+                            <span class="flex gap-1 text-sm font-medium">
+                                <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"
@@ -145,21 +156,20 @@
                                         d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"
                                     />
                                 </svg>
-                                Series:
+                                Preferred Series:
                             </span>
                             <div class="flex flex-wrap gap-1">
-                                {% for round in investment_firm.rounds %}
                                 <a
                                     class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
-                                    >{{ round.name }}
+                                >
+                                    {{ company.preferred_round.name }}
                                 </a>
-                                {% endfor %}
                             </div>
                         </div>
-                        {% endif %} {% if investment_firm.industries|length != 0 %}
+                        {% endif %} {% if company.industry %}
                         <div class="mt-2 flex flex-col gap-2">
-                            <span class="flex gap-1 text-sm font-medium"
-                                ><svg
+                            <span class="flex gap-1 text-sm font-medium">
+                                <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"
@@ -176,120 +186,20 @@
                                 Industries:
                             </span>
                             <div class="flex flex-wrap gap-1">
-                                {% for industry in investment_firm.industries %}
                                 <a
                                     class="text-nowrap rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-[#26a3f1]"
-                                    >{{ industry.name }}</a
                                 >
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %} {% if investment_firm.min_max_investment %}
-                        <div class="mt-5 grid grid-cols-2">
-                            <span class="flex gap-1 text-sm font-medium"
-                                ><svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="size-5"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
-                                    />
-                                </svg>
-                                Investment Range:
-                            </span>
-                            <span class="text-sm text-gray-700">{{ investment_firm.min_max_investment }}</span>
-                        </div>
-                        {% endif %} {% if investment_firm.n_investments and investment_firm.n_exits %}
-                        <div class="mt-5 grid grid-cols-2">
-                            <span class="flex gap-1 text-sm font-medium"
-                                ><svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="size-5"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 0 1-2.031.352 5.988 5.988 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971Zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 0 1-2.031.352 5.989 5.989 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971Z"
-                                    />
-                                </svg>
-
-                                Investments/exits:
-                            </span>
-                            <span class="text-sm text-gray-700"
-                                >{{ investment_firm.n_investments }}/{{ investment_firm.n_exits }}</span
-                            >
-                        </div>
-                        {% elif investment_firm.n_investments %}
-                        <div class="mt-5 grid grid-cols-2">
-                            <span class="flex gap-1 text-sm font-medium"
-                                ><svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="size-5"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
-                                    />
-                                </svg>
-                                Investments:
-                            </span>
-                            <span class="text-sm text-gray-700">{{ investment_firm.n_investments }}</span>
-                        </div>
-                        {% elif investment_firm.n_exits %}
-                        <div class="mt-5 grid grid-cols-2">
-                            <span class="flex gap-1 text-sm font-medium"
-                                ><svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="size-5"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"
-                                    />
-                                </svg>
-
-                                Exits:
-                            </span>
-                            <span class="text-sm text-gray-700">{{ investment_firm.n_exits }}</span>
-                        </div>
-                        {% endif %} {% if investment_firm.notable_investments %}
-                        <div>
-                            <h2 class="mt-5 font-medium">Notable Investments</h2>
-                            <div class="mt-2 flex flex-wrap gap-1">
-                                {% for investment in investment_firm.notable_investments %}
-                                <a
-                                    class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500"
-                                    >{{ investment.name }}</a
-                                >
-                                {% endfor %}
+                                    {{ company.industry.name }}
+                                </a>
                             </div>
                         </div>
                         {% endif %}
                     </article>
+
                     <article class="shadow-card w-full rounded-xl bg-white p-5">
                         <h2 class="text-xl font-medium">Contacts</h2>
                         <div class="mt-5 flex flex-col gap-2 text-sm">
-                            {% if investment_firm.twitter %}
+                            {% if company.twitter_url %}
                             <div class="flex justify-between gap-3">
                                 <span class="inline-flex items-center gap-1 font-medium">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="size-5">
@@ -300,7 +210,7 @@
                                     Twitter:
                                 </span>
                                 <a
-                                    href="{{ investment_firm.twitter }}"
+                                    href="{{ company.twitter_url }}"
                                     target="_blank"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
@@ -320,7 +230,7 @@
                                     <span>twitter.com</span>
                                 </a>
                             </div>
-                            {% endif %} {% if investment_firm.linkedin %}
+                            {% endif %} {% if company.linkedin_url %}
                             <div class="flex justify-between gap-3">
                                 <span class="inline-flex items-center gap-1 font-medium">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
@@ -331,7 +241,7 @@
                                     LinkedIn:
                                 </span>
                                 <a
-                                    href="{{ investment_firm.linkedin }}"
+                                    href="{{ company.linkedin_url }}"
                                     target="_blank"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
@@ -351,7 +261,7 @@
                                     <span>linkedin.com</span>
                                 </a>
                             </div>
-                            {% endif %} {% if investment_firm.website %}
+                            {% endif %}{% if company.website_url %}
                             <div class="flex justify-between gap-3">
                                 <span class="inline-flex items-center gap-1 font-medium">
                                     <svg
@@ -372,7 +282,7 @@
                                     Website:
                                 </span>
                                 <a
-                                    href="{{ investment_firm.website }}"
+                                    href="{{ company.website_url }}"
                                     target="_blank"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
@@ -392,31 +302,35 @@
                                     <span>Open website</span>
                                 </a>
                             </div>
-                            {% endif %} {% if investment_firm.email %}
+                            {% endif %} {% if company.instagram_url %}
                             <div class="flex justify-between gap-3">
                                 <span class="inline-flex items-center gap-1 font-medium">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke-width="1.5"
-                                        stroke="currentColor"
-                                        class="size-5"
-                                    >
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-5">
                                         <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
+                                            d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"
                                         />
                                     </svg>
-
-                                    Email:
+                                    Instagram
                                 </span>
                                 <a
-                                    href="mailto:{{ investment_firm.email }}"
+                                    href="{{ company.instagram_url }}"
+                                    target="_blank"
                                     class="flex select-text items-center gap-1 text-gray-700 underline"
                                 >
-                                    <span>{{ investment_firm.email }}</span>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 16 16"
+                                        fill="currentColor"
+                                        class="h-4 w-4"
+                                    >
+                                        <path
+                                            d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z"
+                                        />
+                                        <path
+                                            d="M3.5 6.75c0-.69.56-1.25 1.25-1.25H7A.75.75 0 0 0 7 4H4.75A2.75 2.75 0 0 0 2 6.75v4.5A2.75 2.75 0 0 0 4.75 14h4.5A2.75 2.75 0 0 0 12 11.25V9a.75.75 0 0 0-1.5 0v2.25c0 .69-.56 1.25-1.25 1.25h-4.5c-.69 0-1.25-.56-1.25-1.25v-4.5Z"
+                                        />
+                                    </svg>
+                                    <span>instagram.com</span>
                                 </a>
                             </div>
                             {% endif %}

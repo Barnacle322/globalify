@@ -284,6 +284,10 @@ def create_company():
     twitter_url = form_data.get("twitter") or None
     if twitter_url:
         twitter_url = add_https_prefix(twitter_url)
+        twitter_url = add_https_prefix(twitter_url)
+        if "x.com" in twitter_url:
+            slug = twitter_url.split("/")[-1]
+            twitter_url = f"https://twitter.com/{slug}"
         try:
             company.twitter_url = twitter_url
         except Exception as e:

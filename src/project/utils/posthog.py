@@ -1,33 +1,30 @@
+import os
 from datetime import datetime
 
-import requests
+import httpx
+import posthog
 from flask_login import current_user
 
-
-def track_event(event_name, properties, distinct_id):
-    posthog_api_key = "phc_OYnEo3PANvSj9HM4MFbRiG5IQVyhxw3iSZXxHUOI13F"
-    posthog_url = "https://app.posthog.com/capture"
-
-    data = {
-        "api_key": posthog_api_key,
-        "event": event_name,
-        "properties": properties,
-        "distinct_id": distinct_id,
-    }
-
-    headers = {
-        "Content-Type": "application/json",
-        "Referer": "http://127.0.0.1:5000/",
-    }
-
-    response = requests.post(posthog_url, json=data, headers=headers)
-    if response.status_code != 200:
-        print(f"Failed to track event: {response.text}")
+posthog.api_key = os.getenv("_POSTHOG_API_KEY")
+posthog.host = "https://app.posthog.com"
 
 
-def track_page_visit(page_name: str):
+async def track_event(event_name, properties, distinct_id):
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            f"{posthog.host}/capture/",
+            json={
+                "api_key": posthog.api_key,
+                "event": event_name,
+                "properties": properties,
+                "distinct_id": distinct_id,
+            },
+        )
+
+
+async def track_page_visit(page_name: str):
     if current_user.is_authenticated:
-        track_event(
+        await track_event(
             event_name="page_visited",
             properties={
                 "user_id": current_user.id,
@@ -37,7 +34,7 @@ def track_page_visit(page_name: str):
             distinct_id=current_user.id,
         )
     else:
-        track_event(
+        await track_event(
             event_name="page_visited",
             properties={
                 "user_id": "anonymous",
@@ -48,9 +45,9 @@ def track_page_visit(page_name: str):
         )
 
 
-def track_subscription_attempt(subscription_type):
+async def track_subscription_attempt(subscription_type):
     if current_user.is_authenticated:
-        track_event(
+        await track_event(
             event_name="subscription_purchase_attempt",
             properties={
                 "user_id": current_user.id,
@@ -60,7 +57,7 @@ def track_subscription_attempt(subscription_type):
             distinct_id=current_user.id,
         )
     else:
-        track_event(
+        await track_event(
             event_name="subscription_purchase_attempt",
             properties={
                 "user_id": "anonymous",
@@ -71,44 +68,42 @@ def track_subscription_attempt(subscription_type):
         )
 
 
-def track_subscription_success(subscription_type, amount=0):
-    if current_user.is_authenticated:
-        track_event(
+async def track_subscription_success(subscription_type, user=None):
+    if user:
+        await track_event(
             event_name="subscription_purchase_success",
             properties={
-                "user_id": current_user.id,
+                "user_id": user.id,
                 "subscription_type": subscription_type,
-                "amount": amount,
                 "timestamp": datetime.utcnow().isoformat(),
             },
-            distinct_id=current_user.id,
+            distinct_id=user.email,
         )
     else:
-        track_event(
+        await track_event(
             event_name="subscription_purchase_success",
             properties={
                 "user_id": "anonymous",
                 "subscription_type": subscription_type,
-                "amount": amount,
                 "timestamp": datetime.utcnow().isoformat(),
             },
             distinct_id="anonymous",
         )
 
 
-def track_subscription_cancellation(subscription_type):
-    if current_user.is_authenticated:
-        track_event(
+async def track_subscription_cancellation(subscription_type, user=None):
+    if user:
+        await track_event(
             event_name="subscription_cancellation",
             properties={
-                "user_id": current_user.id,
+                "user_id": user.id,
                 "subscription_type": subscription_type,
                 "timestamp": datetime.utcnow().isoformat(),
             },
-            distinct_id=current_user.id,
+            distinct_id=user.id,
         )
     else:
-        track_event(
+        await track_event(
             event_name="subscription_cancellation",
             properties={
                 "user_id": "anonymous",

@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import os
 import secrets
@@ -88,14 +89,16 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
 
     User.update_last_login(user.id)
 
-    track_event(
-        "user_registered",
-        {
-            "source": "google_oauth",
-            "user_id": user.id,
-            "email": user.email,
-        },
-        distinct_id=user.email,
+    asyncio.run(
+        track_event(
+            "user_registered",
+            {
+                "source": "google_oauth",
+                "user_id": user.id,
+                "email": user.email,
+            },
+            distinct_id=user.email,
+        )
     )
 
     return user

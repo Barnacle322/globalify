@@ -1,13 +1,15 @@
 {% macro render(user) %}
 <!-- prettier-ignore -->
-{% import "components/aside.html" as aside %} 
-{{ aside.render(user) }} 
-{% import "components/aside_mobile.html" as aside_mobile %} 
+{% import "components/aside.html" as aside %}
+{{ aside.render(user) }}
+{% import "components/aside_mobile.html" as aside_mobile %}
 {{ aside_mobile.render(user) }}
-{% import "components/bookmark.html" as bookmark %} 
+{% import "components/bookmark.html" as bookmark %}
 {{ bookmark.render(user) }}
-{% import "components/notifications.html" as notifications %} 
+{% import "components/notifications.html" as notifications %}
 {{ notifications.render() }}
+{% import "components/profile_context_menu.html" as profile_context_menu %}
+{{ profile_context_menu.render(user) }}
 
 <template id="navbar-template">
     <header class="sticky top-0 z-50 w-full bg-white">
@@ -39,15 +41,6 @@
                 </a>
             </div>
             {% if user %}
-
-            <!-- <div class="relative hidden w-full max-w-5xl justify-self-center sm:block">
-                <div id="searchbox" class="peer"></div>
-                <div
-                    id="hits"
-                    class="pointer-events-none absolute left-1/2 top-10 w-full -translate-x-1/2 opacity-0 transition-opacity ease-in-out hover:pointer-events-auto hover:opacity-100 peer-has-[:focus]:pointer-events-auto peer-has-[:focus]:opacity-100"
-                ></div>
-            </div> -->
-
             <div class="flex gap-5 justify-self-end">
                 <div class="flex items-center justify-center gap-4">
                     <div class="flex items-center justify-center gap-2">
@@ -57,13 +50,10 @@
                                     v-if="notificationsOpened"
                                     ref="notifications"
                                     @all-notifications-read="handleAllNotificationsRead"
-                                    @closenotifications="notificationsOpened = false"
+                                    @close="notificationsOpened = false"
                                 ></notification-component>
                             </transition>
-                            <button
-                                @click="notificationsOpened ? closeNotifications() : openNotifications()"
-                                class="flex"
-                            >
+                            <button @click="notificationsOpened ? close() : openNotifications()" class="flex">
                                 <div class="relative inline-block">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -93,7 +83,7 @@
                                 <bookmark
                                     v-if="bookmarksOpened"
                                     ref="bookmark"
-                                    @closebookmarks="bookmarksOpened = false"
+                                    @close="bookmarksOpened = false"
                                     @investor-bookmarked="handleBookmark($event, 'investor')"
                                     @firm-bookmarked="handleBookmark($event, 'firm')"
                                     @company-bookmarked="handleBookmark($event, 'company')"
@@ -117,17 +107,20 @@
                             </button>
                         </div>
                     </div>
-                    {% if user.user_info.picture_url %}
-                    <img
-                        src="{{ user.user_info.picture_url }}"
-                        class="size-8 rounded-full border border-gray-200 bg-gray-50"
-                    />
-                    {% else %}
-                    <img
-                        src="/static/elements/pfp_placeholder.jpeg"
-                        class="size-8 rounded-full border border-gray-200 bg-gray-50"
-                    />
-                    {% endif %}
+                    <div class="relative">
+                        <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
+                            <profile-context-menu-component
+                                v-if="profileContextMenuOpened"
+                                ref="profilecontextmenu"
+                                @close="profileContextMenuOpened = false"
+                            ></profile-context-menu-component>
+                        </transition>
+                        <img
+                            src="{{ user.user_info.picture_url if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
+                            class="size-8 rounded-full border border-gray-200 bg-gray-50 cursor-pointer"
+                            @click="profileContextMenuOpened ? closeProfileContextMenu() : openProfileContextMenu()"
+                        />
+                    </div>
                 </div>
             </div>
             {% endif %}

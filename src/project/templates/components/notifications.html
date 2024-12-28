@@ -1,14 +1,14 @@
 {% macro render() %}
 <template id="notifications-template">
     <div
-        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col divide-y border bg-white shadow-xl sm:absolute sm:right-0 sm:top-7 sm:h-auto sm:max-h-96 sm:w-96 sm:rounded-xl"
+        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col border bg-white shadow-xl sm:absolute sm:right-0 sm:top-7 sm:h-auto sm:max-h-96 sm:w-96 sm:rounded-xl"
     >
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-        <div class="p-5 pb-0">
+        <div class="p-5 pb-0 border-b">
             <div class="flex items-center justify-between">
                 <h3 class="text-xl font-semibold">Notifications</h3>
                 <svg
-                    @click="$emit('closenotifications')"
+                    @click="$emit('close')"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"

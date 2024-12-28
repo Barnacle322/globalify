@@ -1,0 +1,126 @@
+{% macro render(user) %}
+<template id="profile-context-menu">
+    <div
+        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col border bg-white shadow-xl sm:absolute sm:right-0 sm:top-9 sm:h-auto sm:max-h-96 sm:w-96 sm:rounded-xl overflow-y-auto"
+    >
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+
+        <div class="flex items-center justify-between px-5 py-3 border-b sticky top-0 bg-white">
+            <h3 class="text-xl font-semibold">Your Profiles</h3>
+            <svg
+                @click="$emit('close')"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-7 cursor-pointer rounded-md p-1 hover:bg-gray-50"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+        </div>
+        <div class="p-5 border-b flex flex-col gap-1 justify-between items-center">
+            <div class="flex flex-col justify-center items-center">
+                <a href="/settings/general">
+                    <img
+                        src="{{ user.user_info.picture_url if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
+                        class="size-16 rounded-full border border-gray-200 bg-gray-50"
+                    />
+                </a>
+                <h3 class="text-lg font-semibold mt-2">{{ user.user_info.full_name }}</h3>
+                <p class="text-sm text-gray-500">{{ user.user_info.username }}</p>
+                <a
+                    href="/settings/plan"
+                    class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-300 text-white rounded-full font-medium text-xs px-2 py-1 mt-2"
+                >
+                    {{ user.user_payment.tier.value.upper() }}
+                </a>
+            </div>
+        </div>
+        <!-- <div class="p-3 border-b flex flex-col gap-1 items-center">
+            {% if user.investor %}
+            <div
+                class="flex items-center gap-3 hover:bg-gray-50 rounded-lg w-full p-2 transition-colors ease-in-out cursor-pointer"
+            >
+                {% if user.investor.twitter %}
+                <img
+                    class="size-10 rounded-full border border-gray-200 bg-gray-50"
+                    src="https://unavatar.io/twitter/{{ user.investor.twitter.split('/')[-1] }}"
+                    alt=""
+                    loading="lazy"
+                />
+                {% else %}
+                <img
+                    src="{{ user.user_info.picture_url if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
+                    class="size-10 rounded-full border border-gray-200 bg-gray-50"
+                />
+                {% endif %}
+                <div class="flex flex-col justify-center">
+                    <h3 class="text-lg font-semibold flex gap-1 items-center">
+                        <span>{{ user.investor.full_name }}</span>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="rgb(14 165 233)"
+                            class="size-4"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.883l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
+                                clip-rule="evenodd"
+                            ></path>
+                        </svg>
+                    </h3>
+                    <p class="text-sm text-gray-500">Investor Account</p>
+                </div>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    class="size-5 ml-auto text-sky-500"
+                >
+                    <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
+                        clip-rule="evenodd"
+                    />
+                </svg>
+            </div>
+            {% endif %} {% for user_company in user.user_companies %}
+            <div
+                class="flex items-center gap-3 hover:bg-gray-50 rounded-lg w-full p-2 transition-colors ease-in-out cursor-pointer"
+            >
+                <img
+                    src="{{ user_company.company.picture_url if user_company.company.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
+                    class="size-10 rounded-full border border-gray-200 bg-gray-50"
+                />
+                <div class="flex flex-col justify-center">
+                    <h3 class="text-lg font-semibold">{{ user_company.company.name }}</h3>
+                    <p class="text-sm text-gray-500">Company Account</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div> -->
+        <div class="py-3 px-2">
+            <a
+                href="/profile/{{ user.user_info.username }}"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 transition-colors ease-in-out hover:bg-gray-50"
+            >
+                Profile
+            </a>
+            <a
+                href="/settings"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 transition-colors ease-in-out hover:bg-gray-50"
+            >
+                Settings
+            </a>
+            <a
+                href="/logout"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 transition-colors ease-in-out hover:bg-gray-50"
+            >
+                Log out {{ user.user_info.username }}
+            </a>
+        </div>
+    </div>
+</template>
+{% endmacro %}

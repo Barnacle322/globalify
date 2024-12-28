@@ -1351,9 +1351,6 @@ select {
 .top-1\/2 {
   top: 50%;
 }
-.top-10 {
-  top: 2.5rem;
-}
 .top-20 {
   top: 5rem;
 }
@@ -2329,9 +2326,6 @@ select {
 }
 .justify-self-end {
   justify-self: end;
-}
-.justify-self-center {
-  justify-self: center;
 }
 .overflow-hidden {
   overflow: hidden;
@@ -4299,10 +4293,6 @@ textarea {
   display: none;
 }
 
-.hover\:pointer-events-auto:hover {
-  pointer-events: auto;
-}
-
 .hover\:-translate-x-1:hover {
   --tw-translate-x: -0.25rem;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -4485,7 +4475,6 @@ textarea {
 .hover\:opacity-100:hover {
   opacity: 1;
 }
-
 .hover\:opacity-90:hover {
   opacity: 0.9;
 }
@@ -4647,14 +4636,6 @@ textarea {
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
-.peer:has(:focus) ~ .peer-has-\[\:focus\]\:pointer-events-auto {
-  pointer-events: auto;
-}
-
-.peer:has(:focus) ~ .peer-has-\[\:focus\]\:opacity-100 {
-  opacity: 1;
-}
-
 .data-\[selected\=true\]\:border-b-\[3px\][data-selected="true"] {
   border-bottom-width: 3px;
 }
@@ -4702,6 +4683,10 @@ textarea {
 
   .sm\:top-7 {
     top: 1.75rem;
+  }
+
+  .sm\:top-9 {
+    top: 2.25rem;
   }
 
   .sm\:col-span-3 {

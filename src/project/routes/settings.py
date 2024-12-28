@@ -112,8 +112,8 @@ def plan():
         subscription = user_payment.sanitize()
     else:
         subscription = {
-            "tier": Tier.FREE,
-            "is_active": False,
+            "tier": user_payment.tier if user_payment else Tier.FREE,
+            "is_active": user_payment.is_active if user_payment else False,
             "start_date": None,
             "end_date": None,
         }

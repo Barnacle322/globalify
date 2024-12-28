@@ -4704,11 +4704,12 @@ textarea {
   .sm\:top-7 {
     top: 1.75rem;
   }
-
   .sm\:col-span-2 {
     grid-column: span 2 / span 2;
   }
-
+  .sm\:top-9 {
+    top: 2.25rem;
+  }
   .sm\:col-span-3 {
     grid-column: span 3 / span 3;
   }
@@ -4871,6 +4872,10 @@ textarea {
 
   .sm\:gap-y-20 {
     row-gap: 5rem;
+  }
+
+  .sm\:rounded-3xl {
+    border-radius: 1.5rem;
   }
 
   .sm\:rounded-xl {

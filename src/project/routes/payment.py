@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 import json
 import os
@@ -167,7 +166,7 @@ def create_checkout_session():
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
 
-    asyncio.run(track_subscription_attempt(tier))
+    track_subscription_attempt(tier)
 
     return redirect(checkout_session.url if checkout_session.url else "/", code=303)
 
@@ -336,7 +335,7 @@ def invoice_paid(data_object):
         current_app.logger.warning(f"Could not mark notifications as read: {e}")
     db.session.commit()
 
-    asyncio.run(track_subscription_success(stripe_tier_price, user_payment.user))
+    track_subscription_success(stripe_tier_price, user_payment.user)
 
 
 def subscription_deleted(data_object):
@@ -363,7 +362,7 @@ def subscription_updated(data):
         if user_payment:
             user = user_payment.user
 
-            asyncio.run(track_subscription_cancellation(lookup_key, user))
+            track_subscription_cancellation(lookup_key, user)
 
         return jsonify(success=True, message="Subscription was canceled")
 

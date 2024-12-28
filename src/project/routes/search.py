@@ -119,7 +119,7 @@ def demo_search():
 
 @search.route("/search", methods=["GET", "POST"])
 def investor_search():
-    asyncio.run(track_page_visit("investor_search"))
+    track_page_visit("investor_search")
 
     if next_url := request.args.get("next"):
         return redirect(next_url)
@@ -180,23 +180,21 @@ def investor_search():
             db.session.add(new_search_history)
             db.session.commit()
 
-            asyncio.run(
-                track_event(
-                    event_name="search_investor_performed",
-                    properties={
-                        "search_query": search_string,
-                        "user_id": current_user.id,
-                        "page": page,
-                        "filters": {
-                            "rounds": rounds,
-                            "industries": industries,
-                            "countries": countries,
-                        },
-                        "sort_field": request.args.get("sort_field", "db_id"),
-                        "descending": request.args.get("descending", False, type=bool),
+            track_event(
+                event_name="search_investor_performed",
+                properties={
+                    "search_query": search_string,
+                    "user_id": current_user.id,
+                    "page": page,
+                    "filters": {
+                        "rounds": rounds,
+                        "industries": industries,
+                        "countries": countries,
                     },
-                    distinct_id=current_user.id,
-                )
+                    "sort_field": request.args.get("sort_field", "db_id"),
+                    "descending": request.args.get("descending", False, type=bool),
+                },
+                distinct_id=current_user.id,
             )
 
         except IntegrityError:
@@ -224,7 +222,7 @@ def investor_search():
 
 @search.route("/search/investment-firms", methods=["GET", "POST"])
 def search_investment_firms():
-    asyncio.run(track_page_visit("investment_firm_search"))
+    track_page_visit("investment_firm_search")
 
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
@@ -278,23 +276,21 @@ def search_investment_firms():
             db.session.add(new_search_history)
             db.session.commit()
 
-            asyncio.run(
-                track_event(
-                    event_name="search_investment_firm_performed",
-                    properties={
-                        "search_query": search_string,
-                        "user_id": current_user.id,
-                        "page": page,
-                        "filters": {
-                            "rounds": rounds,
-                            "industries": industries,
-                            "countries": countries,
-                        },
-                        "sort_field": request.args.get("sort_field", "db_id"),
-                        "descending": request.args.get("descending", False, type=bool),
+            track_event(
+                event_name="search_investment_firm_performed",
+                properties={
+                    "search_query": search_string,
+                    "user_id": current_user.id,
+                    "page": page,
+                    "filters": {
+                        "rounds": rounds,
+                        "industries": industries,
+                        "countries": countries,
                     },
-                    distinct_id=current_user.id,
-                )
+                    "sort_field": request.args.get("sort_field", "db_id"),
+                    "descending": request.args.get("descending", False, type=bool),
+                },
+                distinct_id=current_user.id,
             )
 
         except IntegrityError:
@@ -323,7 +319,7 @@ def search_investment_firms():
 
 @search.route("/search/companies", methods=["GET", "POST"])
 def search_companies():
-    asyncio.run(track_page_visit("company_search"))
+    track_page_visit("company_search")
 
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
@@ -356,23 +352,21 @@ def search_companies():
             db.session.add(new_search_history)
             db.session.commit()
 
-            asyncio.run(
-                track_event(
-                    event_name="search_company_performed",
-                    properties={
-                        "search_query": search_string,
-                        "user_id": current_user.id,
-                        "page": page,
-                        "filters": {
-                            "rounds": request.args.getlist("round"),
-                            "industries": request.args.getlist("industry"),
-                            "countries": request.args.getlist("country"),
-                        },
-                        "sort_field": request.args.get("sort_field", "db_id"),
-                        "descending": request.args.get("descending", False, type=bool),
+            track_event(
+                event_name="search_company_performed",
+                properties={
+                    "search_query": search_string,
+                    "user_id": current_user.id,
+                    "page": page,
+                    "filters": {
+                        "rounds": request.args.getlist("round"),
+                        "industries": request.args.getlist("industry"),
+                        "countries": request.args.getlist("country"),
                     },
-                    distinct_id=current_user.id,
-                )
+                    "sort_field": request.args.get("sort_field", "db_id"),
+                    "descending": request.args.get("descending", False, type=bool),
+                },
+                distinct_id=current_user.id,
             )
 
         except IntegrityError:

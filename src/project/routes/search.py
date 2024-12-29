@@ -1,5 +1,3 @@
-import asyncio
-
 from flask import (
     Blueprint,
     jsonify,
@@ -32,7 +30,7 @@ from ..schemas.user import SearchHistorySchema
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import NotificationType, SearchHistoryType
 from ..utils.funcs import generate_pagination
-from ..utils.posthog import track_event, track_page_visit
+from ..utils.posthog import capture_event, track_page_visit
 from ..utils.suggestion import COMPANY_WEIGHTS, WEIGHTS, check_weights
 
 search = Blueprint("search", __name__)
@@ -180,8 +178,8 @@ def investor_search():
             db.session.add(new_search_history)
             db.session.commit()
 
-            track_event(
-                event_name="search_investor_performed",
+            capture_event(
+                event="search_investor_performed",
                 properties={
                     "search_query": search_string,
                     "user_id": current_user.id,
@@ -276,8 +274,8 @@ def search_investment_firms():
             db.session.add(new_search_history)
             db.session.commit()
 
-            track_event(
-                event_name="search_investment_firm_performed",
+            capture_event(
+                event="search_investment_firm_performed",
                 properties={
                     "search_query": search_string,
                     "user_id": current_user.id,
@@ -352,8 +350,8 @@ def search_companies():
             db.session.add(new_search_history)
             db.session.commit()
 
-            track_event(
-                event_name="search_company_performed",
+            capture_event(
+                event="search_company_performed",
                 properties={
                     "search_query": search_string,
                     "user_id": current_user.id,

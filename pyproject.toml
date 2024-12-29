@@ -35,7 +35,6 @@ dependencies = [
     "more-itertools>=10.4.0",
     "pyjwt>=2.9.0",
     "posthog>=3.7.4",
-    "httpx>=0.28.1",
 ]
 
 

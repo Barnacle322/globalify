@@ -43,7 +43,7 @@ from ..utils.errors.error_messages import (
     NOT_AUTHORIZED,
 )
 from ..utils.parse_medium import parse_medium_html
-from ..utils.posthog import track_event
+from ..utils.posthog import capture_event
 
 main = Blueprint("main", __name__)
 
@@ -181,9 +181,9 @@ def get_investor(slug):
     else:
         is_bookmarked = False
 
-    track_event(
-        "investor_profile_viewed",
-        {
+    capture_event(
+        event="investor_profile_viewed",
+        properties={
             "investor_id": investor.id,
             "slug": slug,
             "user_id": current_user.id if current_user.is_authenticated else None,
@@ -263,8 +263,8 @@ def toggle_bookmark_investor(investor_id):
     db.session.add(new_bookmark)
     db.session.commit()
 
-    track_event(
-        event_name="investor_bookmarked",
+    capture_event(
+        event="investor_bookmarked",
         properties={
             "user_id": current_user.id,
             "investor_id": investor.id,
@@ -363,9 +363,9 @@ def get_investment_firm(slug):
     else:
         is_bookmarked = False
 
-    track_event(
-        "investment_firm_profile_viewed",
-        {
+    capture_event(
+        event="investment_firm_profile_viewed",
+        properties={
             "investment_firm_id": investment_firm_model.id,
             "slug": slug,
             "user_id": current_user.id if current_user.is_authenticated else None,
@@ -452,9 +452,9 @@ def get_company(slug):
     else:
         is_bookmarked = False
 
-    track_event(
-        "company_profile_viewed",
-        {
+    capture_event(
+        event="company_profile_viewed",
+        properties={
             "company_id": company_model.id,
             "slug": slug,
             "user_id": current_user.id if current_user.is_authenticated else None,
@@ -487,8 +487,8 @@ def toggle_bookmark_company(company_id):
     db.session.add(new_bookmark)
     db.session.commit()
 
-    track_event(
-        event_name="company_bookmarked",
+    capture_event(
+        event="company_bookmarked",
         properties={
             "user_id": current_user.id,
             "company_id": company.id,
@@ -587,8 +587,8 @@ def toggle_bookmark_investment_firm(firm_id):
     db.session.add(new_bookmark)
     db.session.commit()
 
-    track_event(
-        event_name="investment_firm_bookmarked",
+    capture_event(
+        event="investment_firm_bookmarked",
         properties={
             "user_id": current_user.id,
             "investment_firm_id": investment_firm.id,

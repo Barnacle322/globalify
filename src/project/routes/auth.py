@@ -37,7 +37,7 @@ from ..utils.errors.error_messages import (
     OAUTH_NO_USER_INFO,
 )
 from ..utils.google_helpers import google_pubsub
-from ..utils.posthog import track_event
+from ..utils.posthog import capture_event
 from .main import check_user_info_complete, check_verification
 
 auth = Blueprint("auth", __name__)
@@ -88,10 +88,10 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
 
     User.update_last_login(user.id)
 
-    track_event(
-        "user_registered",
-        {
-            "source": "google_oauth",
+    capture_event(
+        event="user_registered",
+        properties={
+            "source": oauth_provider.value,
             "user_id": user.id,
             "email": user.email,
         },

@@ -9,7 +9,7 @@ from itsdangerous import base64_decode
 from jwt.exceptions import InvalidKeyError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import csrf, db, login_manager, migrate, oauth
+from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
 from .routes.admin import admin
 from .routes.auth import auth
 from .routes.claim import claim
@@ -84,7 +84,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
         app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
         # app.config["SQLALCHEMY_ECHO"] = True
         # app.config["DEBUG_TB_PROFILER_ENABLED"] = True
-        # toolbar.init_app(app)
+        toolbar.init_app(app)
 
     else:
         # Reverse proxy support

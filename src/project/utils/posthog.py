@@ -1,6 +1,6 @@
 import os
-from datetime import UTC, datetime
-from typing import Any
+from datetime import datetime
+from uuid import uuid4
 
 import posthog
 from flask_login import current_user
@@ -12,11 +12,11 @@ posthog.host = "https://us.i.posthog.com"
 def capture_event(
     distinct_id: str,
     event: str,
-    properties: dict[Any, Any] | None = None,
-    context: dict[Any, Any] | None = None,
+    properties: dict | None = None,
+    context: dict | None = None,
     timestamp: datetime | None = None,
     uuid: str | None = None,
-    groups: dict[Any, Any] | None = None,
+    groups: dict | None = None,
     send_feature_flags: bool = False,
     disable_geoip: bool | None = None,
 ):
@@ -34,10 +34,10 @@ def capture_event(
 
     For example:
     ```python
-    posthog.capture('distinct id', 'opened app')
-    posthog.capture('distinct id', 'movie played', {'movie_id': '123', 'category': 'romcom'})
+    capture_event(distinct_id='distinct id', event='opened app')
+    capture_event(distinct_id='distinct id', event='movie played', {'movie_id': '123', 'category': 'romcom'})
 
-    posthog.capture('distinct id', 'purchase', groups={'company': 'id:5'})
+    capture_event(distinct_id='distinct id', event='purchase', groups={'company': 'id:5'})
     ```
     """
     posthog.capture(
@@ -53,93 +53,37 @@ def capture_event(
     )
 
 
-def track_page_visit(page_name: str):
+def capture_page_visit(page_name: str):
     if current_user.is_authenticated:
         capture_event(
             distinct_id=current_user.email,
-            event="page_visited",
+            event="$pageview",
             properties={
-                "user_id": current_user.email,
                 "page": page_name,
-                "timestamp": datetime.now(UTC).isoformat(),
             },
         )
     else:
         capture_event(
-            distinct_id="anonymous",
-            event="page_visited",
+            distinct_id=str(uuid4()),
+            event="$pageview",
             properties={
                 "$process_person_profile": False,
                 "page": page_name,
-                "timestamp": datetime.now(UTC).isoformat(),
             },
         )
 
 
-def track_subscription_attempt(subscription_type):
+def capture_profile_view(profile_type: str, properties: dict):
     if current_user.is_authenticated:
         capture_event(
             distinct_id=current_user.email,
-            event="subscription_purchase_attempt",
-            properties={
-                "user_id": current_user.email,
-                "subscription_type": subscription_type,
-                "timestamp": datetime.now(UTC).isoformat(),
-            },
+            event=f"{profile_type}_profile_view",
+            properties=properties,
         )
     else:
+        print(current_user.uuid)
         capture_event(
-            distinct_id="anonymous",
-            event="subscription_purchase_attempt",
-            properties={
-                "$process_person_profile": False,
-                "subscription_type": subscription_type,
-                "timestamp": datetime.now(UTC).isoformat(),
-            },
-        )
-
-
-def track_subscription_success(subscription_type, user=None):
-    if user:
-        capture_event(
-            distinct_id=user.email,
-            event="subscription_purchase_success",
-            properties={
-                "user_id": user.id,
-                "subscription_type": subscription_type,
-                "timestamp": datetime.now(UTC).isoformat(),
-            },
-        )
-    else:
-        capture_event(
-            distinct_id="anonymous",
-            event="subscription_purchase_success",
-            properties={
-                "$process_person_profile": False,
-                "subscription_type": subscription_type,
-                "timestamp": datetime.now(UTC).isoformat(),
-            },
-        )
-
-
-def track_subscription_cancellation(subscription_type, user=None):
-    if user:
-        capture_event(
-            distinct_id=user.id,
-            event="subscription_cancellation",
-            properties={
-                "user_id": user.id,
-                "subscription_type": subscription_type,
-                "timestamp": datetime.now(UTC).isoformat(),
-            },
-        )
-    else:
-        capture_event(
-            distinct_id="anonymous",
-            event="subscription_cancellation",
-            properties={
-                "$process_person_profile": False,
-                "subscription_type": subscription_type,
-                "timestamp": datetime.now(UTC).isoformat(),
-            },
+            distinct_id=str(uuid4()),
+            event=f"{profile_type}_profile_view",
+            properties={**properties, "$process_person_profile": False},
         )

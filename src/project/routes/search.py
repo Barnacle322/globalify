@@ -30,7 +30,7 @@ from ..schemas.user import SearchHistorySchema
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import NotificationType, SearchHistoryType
 from ..utils.funcs import generate_pagination
-from ..utils.posthog import capture_event, track_page_visit
+from ..utils.posthog import capture_event, capture_page_visit
 from ..utils.suggestion import COMPANY_WEIGHTS, WEIGHTS, check_weights
 
 search = Blueprint("search", __name__)
@@ -117,7 +117,7 @@ def demo_search():
 
 @search.route("/search", methods=["GET", "POST"])
 def investor_search():
-    track_page_visit("investor_search")
+    capture_page_visit("investor_search")
 
     if next_url := request.args.get("next"):
         return redirect(next_url)
@@ -220,7 +220,7 @@ def investor_search():
 
 @search.route("/search/investment-firms", methods=["GET", "POST"])
 def search_investment_firms():
-    track_page_visit("investment_firm_search")
+    capture_page_visit("investment_firm_search")
 
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
@@ -317,7 +317,7 @@ def search_investment_firms():
 
 @search.route("/search/companies", methods=["GET", "POST"])
 def search_companies():
-    track_page_visit("company_search")
+    capture_page_visit("company_search")
 
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)

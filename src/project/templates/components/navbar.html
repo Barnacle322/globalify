@@ -4,12 +4,14 @@
 {{ aside.render(user) }}
 {% import "components/aside_mobile.html" as aside_mobile %}
 {{ aside_mobile.render(user) }}
+{% if user.is_authenticated %}
 {% import "components/bookmark.html" as bookmark %}
 {{ bookmark.render(user) }}
 {% import "components/notifications.html" as notifications %}
 {{ notifications.render() }}
 {% import "components/profile_context_menu.html" as profile_context_menu %}
 {{ profile_context_menu.render(user) }}
+{% endif %}
 
 <template id="navbar-template">
     <header class="sticky top-0 z-50 w-full bg-white">

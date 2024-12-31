@@ -20,7 +20,6 @@ from ..utils.errors.error_messages import (
     SUBSCRIPTION_WAITING_CANCELATION,
 )
 from ..utils.google_helpers import google_pubsub
-from ..utils.posthog import track_subscription_attempt, track_subscription_cancellation, track_subscription_success
 from .main import check_user_info_complete, check_verification
 
 payment = Blueprint("payment", __name__)
@@ -165,8 +164,6 @@ def create_checkout_session():
     except Exception as e:
         status = Status(StatusType.ERROR, e.args[0]).get_status()
         return redirect(url_for("payment.index", _external=False, **status))
-
-    track_subscription_attempt(tier)
 
     return redirect(checkout_session.url if checkout_session.url else "/", code=303)
 
@@ -335,8 +332,6 @@ def invoice_paid(data_object):
         current_app.logger.warning(f"Could not mark notifications as read: {e}")
     db.session.commit()
 
-    track_subscription_success(stripe_tier_price, user_payment.user)
-
 
 def subscription_deleted(data_object):
     stripe_customer_id = data_object.get("customer")
@@ -356,14 +351,6 @@ def subscription_deleted(data_object):
 
 def subscription_updated(data):
     if data.get("object").get("cancel_at"):
-        lookup_key = data.get("object").get("items").get("data")[0].get("price").get("lookup_key")
-
-        user_payment = UserPayment.get_by_subscription_id(data.get("object").get("customer"))
-        if user_payment:
-            user = user_payment.user
-
-            track_subscription_cancellation(lookup_key, user)
-
         return jsonify(success=True, message="Subscription was canceled")
 
     stripe_customer_id = data.get("object").get("customer")
@@ -376,7 +363,7 @@ def subscription_updated(data):
     lookup_key = data.get("object").get("items").get("data")[0].get("price").get("lookup_key")
 
     user_payment.expires_at_epoch = data.get("object").get("current_period_end")
-    user_payment.tier = Tier.PREMIUM_MONTHLY if lookup_key == "premium_monthly" else Tier.PREMIUM_YEARLY
+    user_payment.tier = Tier.PREMIUM_MONTHLY if lookup_key == Tier.PREMIUM_MONTHLY.value else Tier.PREMIUM_YEARLY
     user_payment.is_active = True
     db.session.commit()
 

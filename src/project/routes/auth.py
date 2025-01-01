@@ -92,7 +92,6 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
         event="user_registered",
         properties={
             "source": oauth_provider.value,
-            "user_id": user.id,
             "email": user.email,
         },
         distinct_id=user.email,

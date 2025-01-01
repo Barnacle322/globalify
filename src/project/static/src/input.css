@@ -370,6 +370,14 @@
     view-transition-name: view-arstan;
 }
 
+.view-search {
+    view-transition-name: view-search;
+}
+
+.view-navbar {
+    view-transition-name: view-navbar;
+}
+
 .text-overflow-wrap {
     overflow-wrap: break-word;
 }
@@ -496,12 +504,11 @@ textarea {
 
 #searchTypeToggle:checked + label .toggle-dot {
     transform: translateX(100%);
-    background-color: #36B7FF; /* Match the gradient color */
+    background-color: #36b7ff; /* Match the gradient color */
 }
 #searchTypeToggle + label {
     background-color: #ccc;
 }
 #searchTypeToggle:checked + label {
-    background-color: #DE7CC8; /* Match the gradient color */
+    background-color: #de7cc8; /* Match the gradient color */
 }
-

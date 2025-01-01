@@ -14,7 +14,7 @@
 {% endif %}
 
 <template id="navbar-template">
-    <header class="sticky top-0 z-50 w-full bg-white">
+    <header class="view-navbar sticky top-0 z-50 w-full bg-white" ref="header">
         <nav class="mx-auto grid h-20 w-full max-w-8xl grid-cols-2 items-center border-b px-4 sm:grid-cols-2 lg:px-6">
             <div class="flex items-center gap-4">
                 <button @click="expandAside" class="w-fit text-lg font-medium">

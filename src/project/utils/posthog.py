@@ -1,8 +1,8 @@
 import os
 from datetime import datetime
-from uuid import uuid4
 
 import posthog
+from flask import g
 from flask_login import current_user
 
 posthog.api_key = os.getenv("_POSTHOG_API_KEY")
@@ -64,7 +64,7 @@ def capture_page_visit(page_name: str):
         )
     else:
         capture_event(
-            distinct_id=str(uuid4()),
+            distinct_id=g.anonymous_id,
             event="$pageview",
             properties={
                 "$process_person_profile": False,
@@ -81,9 +81,8 @@ def capture_profile_view(profile_type: str, properties: dict):
             properties=properties,
         )
     else:
-        print(current_user.uuid)
         capture_event(
-            distinct_id=str(uuid4()),
+            distinct_id=g.anonymous_id,
             event=f"{profile_type}_profile_view",
             properties={**properties, "$process_person_profile": False},
         )

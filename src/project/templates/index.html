@@ -55,45 +55,60 @@
     </section>
 
     <section
-        class="fade-in flex w-full flex-col items-center justify-center bg-gradient-to-b from-white to-slate-100 px-6 pb-20"
+        class="flex w-full flex-col items-center justify-center bg-gradient-to-b from-white to-slate-100 px-6 pb-20"
         style="animation-delay: 1.2s"
     >
         <div class="w-full max-w-4xl">
-            <div class="flex gap-2 rounded-xl bg-white py-4 pr-5 shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px]">
-                <div class="relative w-full">
-                    <input
-                        type="text"
-                        name="search"
-                        id="search"
-                        class="w-full border-0 py-3 pl-12 text-sm focus:ring-0"
-                        autocomplete="off"
-                        required
-                    />
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="size-5"
-                        >
+            <form
+                class="view-search relative mx-auto flex w-full gap-2 rounded-full bg-white py-4 pr-3 shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px]"
+                action="/search"
+                method="get"
+            >
+                <input
+                    type="search"
+                    id="search"
+                    name="search"
+                    class="w-full border-0 bg-transparent py-3 pl-6 pr-0 text-sm focus:ring-0"
+                    placeholder="Search"
+                    autocapitalize="off"
+                    autocorrect="off"
+                    autocomplete="off"
+                    aria-autocomplete="both"
+                    enterkeyhint="search"
+                    required
+                />
+                <button id="search-btn" type="submit">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-5"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                        />
+                    </svg>
+                </button>
+                <a href="/suggestions" class="flex flex-col items-center justify-center pr-3">
+                    <div
+                        class="size-6 animate-border bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%]"
+                        style="clip-path: url(#magic-icon)"
+                    ></div>
+                    <svg height="0" width="0">
+                        <clipPath id="magic-icon">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                                d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
                             />
-                        </svg>
-                    </div>
-                </div>
-                <button
-                    id="search-btn"
-                    onclick="getSearch()"
-                    class="w-fit text-nowrap rounded-lg bg-sky-500 px-4 py-3 text-sm font-medium text-white transition-all ease-in-out hover:scale-105 hover:bg-sky-400"
-                >
-                    Search
-                </button>
-            </div>
+                        </clipPath>
+                    </svg>
+                </a>
+            </form>
         </div>
         <div id="results" class="relative mt-10 grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-3"></div>
     </section>
@@ -354,6 +369,43 @@
                 </div>
             </article>
             {% endfor %} {% endif %}
+        </div>
+    </section>
+
+    <section class="mb-20 mt-12 w-full px-4">
+        <div
+            class="relative mx-auto flex w-full max-w-7xl flex-col gap-10 overflow-hidden rounded-3xl border-2 bg-black bg-gradient-to-b from-[#2c3050] via-deep-purple to-[#2c3050] bg-cover p-10 shadow-lg lg:flex-row"
+        >
+            <div class="flex flex-col gap-5 text-white lg:w-1/2">
+                <span class="text-[40px] font-semibold leading-tight"
+                    >Get access to our
+                    <br />
+                    <span class="bg-gradient-to-r from-sky-500 via-teal-500 to-blue-500 bg-clip-text text-transparent"
+                        >Free Startup Course
+                    </span>
+                    on Knowledge Hub!</span
+                >
+                <p class="lg:text-lg">
+                    Learn how to build a successful startup from the ground up. Our course is designed to help you
+                    understand the key concepts of entrepreneurship and how to apply them to your own business.
+                    <br /><br />
+                    Sign up now to get access to our free course and start building your dream startup today!
+                </p>
+                <!-- <p class="text-4xl">
+                    <s class="text-slate-400">$499</s>
+                    $199<span class="text-base">USD</span>
+                </p> -->
+                <a
+                    href="https://hub.globalify.xyz"
+                    target="_blank"
+                    class="mt-5 rounded-xl bg-sky-500 px-5 py-3 text-center font-medium transition-colors ease-in-out hover:bg-sky-400 lg:w-72"
+                >
+                    Go to Knowledge Hub
+                </a>
+            </div>
+            <div class="absolute hidden translate-x-1/2 lg:block">
+                <img class="origin-top-left scale-75 rounded-3xl" src="/static/elements/hub_academy.jpeg" alt="" />
+            </div>
         </div>
     </section>
 </main>

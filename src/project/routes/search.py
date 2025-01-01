@@ -93,28 +93,6 @@ def search_entities(search_input):
     return jsonify({"results": combined_results})
 
 
-@search.get("/demo-search")
-def demo_search():
-    result = Investor.get_search(
-        query_string=request.args.get("search", ""),
-        query_by=[
-            "location",
-            "country",
-            "rounds",
-            "industries",
-            "embedding",
-            "notable_investments",
-            "name",
-            "firm_name",
-            "position",
-        ],
-        page=1,
-        per_page=18,
-    )
-
-    return jsonify(result.get("investors"))
-
-
 @search.route("/search", methods=["GET", "POST"])
 def investor_search():
     capture_page_visit("investor_search")

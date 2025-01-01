@@ -696,7 +696,6 @@ def sitemap():
             and not rule.rule.startswith("/notification")
             and not rule.rule.startswith("/payment")
             and not rule.rule.startswith("/suggestion")
-            and not rule.rule.startswith("/demo-search")
             and not rule.rule.startswith("/check-investor")
             and not rule.rule.startswith("/tier-selection")
             and not rule.rule.startswith("/logout")

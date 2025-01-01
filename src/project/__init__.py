@@ -1,15 +1,17 @@
 import os
 import time
 from datetime import timedelta
+from uuid import uuid4
 
 import jwt
 import sentry_sdk
-from flask import Flask
+from flask import Flask, g, session
+from flask_login import current_user
 from itsdangerous import base64_decode
 from jwt.exceptions import InvalidKeyError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .extensions import csrf, db, login_manager, migrate, oauth
+from .extensions import csrf, db, login_manager, migrate, oauth, toolbar
 from .routes.admin import admin
 from .routes.auth import auth
 from .routes.claim import claim
@@ -141,6 +143,13 @@ def create_app(database_url="sqlite:///db.sqlite"):
             "token_endpoint_auth_method": "client_secret_post",
         },
     )
+
+    @app.before_request
+    def assign_anonymous_id():
+        if not current_user.is_authenticated:
+            if "anonymous_id" not in session:
+                session["anonymous_id"] = str(uuid4())
+            g.anonymous_id = session["anonymous_id"]
 
     @app.cli.command("setup")
     def populate():

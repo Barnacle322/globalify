@@ -39,6 +39,7 @@
         <script src="/static/vue/base.js"></script>
         <script src="/static/scripts/menu.js" defer></script>
         <script src="/static/vue/settings.js" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/posthog-js@latest/dist/posthog.umd.min.js"></script>
 
         <!-- Font -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -745,12 +746,11 @@
                                         </div>
                                     </div>
                                 </div>
+                                {% if investments_by_round.items() | length > 0 %}
                                 <div class="col-span-full">
                                     <label for="investment" class="block text-sm font-medium leading-6 text-gray-900"
                                         >Investments</label
                                     >
-                                    {% if investments_by_round %}
-
                                     <div
                                         class="col-span-4 mt-2 flex w-full flex-col overflow-hidden rounded-xl border-2"
                                     >
@@ -891,57 +891,12 @@
                                                     No investments recorded...
                                                 </div>
                                                 {% endif %}
-                                                <button
-                                                    @click.prevent="createInvestmentOpened = true"
-                                                    class="flex items-center justify-center gap-2 rounded-b-xl border bg-white px-3 py-2 font-medium transition-shadow ease-in-out hover:shadow-md"
-                                                    type="button"
-                                                >
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke-width="1.5"
-                                                        stroke="currentColor"
-                                                        class="size-6"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                                        />
-                                                    </svg>
-                                                    Record an Investment
-                                                </button>
                                             </div>
                                         </div>
                                         {% endfor %}
                                     </div>
-                                    {% else %}
-                                    <div class="col-span-full">
-                                        <button
-                                            class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-700 p-3 transition-shadow hover:shadow-md"
-                                            @click.prevent="createInvestmentOpened = true"
-                                            type="button"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke-width="1.5"
-                                                stroke="currentColor"
-                                                class="size-6"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                                />
-                                            </svg>
-                                            <span class="text-sm font-medium">Add Funding Round</span>
-                                        </button>
-                                    </div>
-                                    {% endif %}
                                 </div>
+                                {% endif %}
                                 <div class="col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="n_investments">№ Investments</label>
                                     <input

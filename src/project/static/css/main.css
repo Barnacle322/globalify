@@ -2356,9 +2356,6 @@ select {
 .justify-self-end {
   justify-self: end;
 }
-.justify-self-center {
-  justify-self: center;
-}
 .overflow-auto {
   overflow: auto;
 }
@@ -2891,6 +2888,9 @@ select {
 .p-8 {
   padding: 2rem;
 }
+.p-9 {
+  padding: 2.25rem;
+}
 .px-1 {
   padding-left: 0.25rem;
   padding-right: 0.25rem;
@@ -3049,9 +3049,6 @@ select {
 }
 .pr-4 {
   padding-right: 1rem;
-}
-.pr-5 {
-  padding-right: 1.25rem;
 }
 .pr-8 {
   padding-right: 2rem;
@@ -3854,6 +3851,14 @@ select {
     view-transition-name: view-arstan;
 }
 
+.view-search {
+    view-transition-name: view-search;
+}
+
+.view-navbar {
+    view-transition-name: view-navbar;
+}
+
 .text-overflow-wrap {
     overflow-wrap: break-word;
 }
@@ -3986,13 +3991,13 @@ textarea {
 
 #searchTypeToggle:checked + label .toggle-dot {
     transform: translateX(100%);
-    background-color: #36B7FF; /* Match the gradient color */
+    background-color: #36b7ff; /* Match the gradient color */
 }
 #searchTypeToggle + label {
     background-color: #ccc;
 }
 #searchTypeToggle:checked + label {
-    background-color: #DE7CC8; /* Match the gradient color */
+    background-color: #de7cc8; /* Match the gradient color */
 }
 @media (min-width: 1024px) {
 
@@ -4368,9 +4373,6 @@ textarea {
 .empty\:hidden:empty {
   display: none;
 }
-.hover\:pointer-events-auto:hover {
-  pointer-events: auto;
-}
 .hover\:-translate-x-1:hover {
   --tw-translate-x: -0.25rem;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -4511,9 +4513,6 @@ textarea {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
-.hover\:opacity-100:hover {
-  opacity: 1;
-}
 .hover\:opacity-90:hover {
   opacity: 0.9;
 }
@@ -4642,12 +4641,6 @@ textarea {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
-.peer:has(:focus) ~ .peer-has-\[\:focus\]\:pointer-events-auto {
-  pointer-events: auto;
-}
-.peer:has(:focus) ~ .peer-has-\[\:focus\]\:opacity-100 {
-  opacity: 1;
-}
 .data-\[selected\=true\]\:border-b-\[3px\][data-selected="true"] {
   border-bottom-width: 3px;
 }
@@ -4704,12 +4697,15 @@ textarea {
   .sm\:top-7 {
     top: 1.75rem;
   }
-  .sm\:col-span-2 {
-    grid-column: span 2 / span 2;
-  }
+
   .sm\:top-9 {
     top: 2.25rem;
   }
+
+  .sm\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+
   .sm\:col-span-3 {
     grid-column: span 3 / span 3;
   }
@@ -4757,10 +4753,6 @@ textarea {
 
   .sm\:mt-7 {
     margin-top: 1.75rem;
-  }
-
-  .sm\:block {
-    display: block;
   }
 
   .sm\:flex {
@@ -4872,10 +4864,6 @@ textarea {
 
   .sm\:gap-y-20 {
     row-gap: 5rem;
-  }
-
-  .sm\:rounded-3xl {
-    border-radius: 1.5rem;
   }
 
   .sm\:rounded-xl {
@@ -5024,8 +5012,16 @@ textarea {
     display: block;
   }
 
+  .md\:flex {
+    display: flex;
+  }
+
   .md\:grid {
     display: grid;
+  }
+
+  .md\:hidden {
+    display: none;
   }
 
   .md\:max-h-96 {
@@ -5042,6 +5038,10 @@ textarea {
 
   .md\:w-full {
     width: 100%;
+  }
+
+  .md\:max-w-sm {
+    max-width: 24rem;
   }
 
   .md\:grid-cols-2 {
@@ -5096,6 +5096,10 @@ textarea {
   .md\:text-xl {
     font-size: 1.25rem;
     line-height: 1.75rem;
+  }
+
+  .md\:ring-gray-900\/10 {
+    --tw-ring-color: rgb(17 24 39 / 0.1);
   }
 }
 @media (min-width: 1024px) {
@@ -5334,4 +5338,3 @@ textarea {
 .\[\&\:\:-webkit-slider-runnable-track\]\:h-0::-webkit-slider-runnable-track {
   height: 0px;
 }
-

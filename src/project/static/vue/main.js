@@ -488,7 +488,7 @@ const FullCompany = defineComponent({
     },
 });
 
-createApp({
+const app = createApp({
     components: {
         AsideComponent,
         AsideMobileComponent,
@@ -518,6 +518,7 @@ createApp({
         },
     },
     created() {
+        // posthog.capture("App Loaded");
         this.asideMinified = localStorage.getItem("asideMinified") === "true";
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
@@ -1033,4 +1034,8 @@ createApp({
             hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
         };
     },
-}).mount("#app");
+});
+
+// app.use(posthogPlugin);
+
+app.mount("#app");

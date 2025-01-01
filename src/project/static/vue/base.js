@@ -616,6 +616,9 @@ const NavbarComponent = defineComponent({
             this.startPolling();
         }
         document.addEventListener("visibilitychange", this.handleVisibilityChange);
+
+        const header = this.$refs.header;
+        header.setAttribute("id", "navbar");
     },
     beforeUnmount() {
         window.removeEventListener("click", this.closeBookmark);

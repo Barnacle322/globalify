@@ -43,6 +43,7 @@ from ..utils.errors.error_messages import (
     NOT_AUTHORIZED,
 )
 from ..utils.parse_medium import parse_medium_html
+from ..utils.posthog import capture_event, capture_profile_view
 
 main = Blueprint("main", __name__)
 
@@ -180,6 +181,14 @@ def get_investor(slug):
     else:
         is_bookmarked = False
 
+    capture_profile_view(
+        profile_type="investor",
+        properties={
+            "slug": slug,
+            "unpaid": unpaid,
+        },
+    )
+
     return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked})
 
 
@@ -243,6 +252,7 @@ def toggle_bookmark_investor(investor_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestorBookmark(investor_id=investor.id, user_id=current_user.id)
@@ -339,6 +349,14 @@ def get_investment_firm(slug):
     else:
         is_bookmarked = False
 
+    capture_profile_view(
+        profile_type="investment_firm",
+        properties={
+            "slug": slug,
+            "unpaid": unpaid,
+        },
+    )
+
     return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
@@ -416,6 +434,14 @@ def get_company(slug):
     else:
         is_bookmarked = False
 
+    capture_profile_view(
+        profile_type="company",
+        properties={
+            "slug": slug,
+            "unpaid": unpaid,
+        },
+    )
+
     return jsonify({"company": company, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
@@ -432,6 +458,7 @@ def toggle_bookmark_company(company_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = CompanyBookmark(company_id=company.id, user_id=current_user.id)
@@ -521,6 +548,7 @@ def toggle_bookmark_investment_firm(firm_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestmentFirmBookmark(investment_firm_id=investment_firm.id, user_id=current_user.id)
@@ -668,7 +696,6 @@ def sitemap():
             and not rule.rule.startswith("/notification")
             and not rule.rule.startswith("/payment")
             and not rule.rule.startswith("/suggestion")
-            and not rule.rule.startswith("/demo-search")
             and not rule.rule.startswith("/check-investor")
             and not rule.rule.startswith("/tier-selection")
             and not rule.rule.startswith("/logout")

@@ -43,7 +43,7 @@ from ..utils.errors.error_messages import (
     NOT_AUTHORIZED,
 )
 from ..utils.parse_medium import parse_medium_html
-from ..utils.posthog import capture_event, capture_profile_view
+from ..utils.posthog import capture_profile_view
 
 main = Blueprint("main", __name__)
 

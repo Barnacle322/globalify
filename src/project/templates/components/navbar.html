@@ -119,7 +119,7 @@
                         </transition>
                         <img
                             src="{{ user.user_info.picture_url if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
-                            class="size-8 rounded-full border border-gray-200 bg-gray-50 cursor-pointer"
+                            class="size-8 cursor-pointer rounded-full border border-gray-200 bg-gray-50"
                             @click="profileContextMenuOpened ? closeProfileContextMenu() : openProfileContextMenu()"
                         />
                     </div>

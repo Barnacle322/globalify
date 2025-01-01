@@ -578,6 +578,32 @@ class Investor(InvestorBase):
             batch_count += 1
 
     @staticmethod
+    def fix_twitter_links():
+        from ..models import Company, InvestmentFirm, Investor, UserInfo
+
+        models = [
+            (Company, "twitter_url"),
+            (UserInfo, "twitter_url"),
+            (Investor, "twitter"),
+            (InvestmentFirm, "twitter"),
+        ]
+        for model, twitter_field in models:
+            stmt = db.select(model).where(getattr(model, twitter_field).like("%x.com/%"))
+            items = db.session.scalars(stmt).all()
+
+            for item in items:
+                current_url = getattr(item, twitter_field)
+                if current_url and "x.com" in current_url:
+                    try:
+                        setattr(item, twitter_field, current_url.replace("x.com", "twitter.com"))
+                        db.session.add(item)
+                    except Exception as e:
+                        print(f"Error processing {model.__name__} ID {item.id}: {e}")
+
+            db.session.commit()
+            print(f"Processed {len(items)} {model.__name__}(s).")
+
+    @staticmethod
     def populate() -> None:
         investor_list = []
         firstnames = get_names(50)

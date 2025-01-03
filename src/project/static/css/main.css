@@ -3756,28 +3756,6 @@ select {
     }
 }
 
-@keyframes zoom-in {
-    0% {
-        transform: scale(0.5);
-        opacity: 0;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-@keyframes zoom-out {
-    0% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0.5);
-        opacity: 0;
-    }
-}
-
 .scroll {
     animation: scroll 5s ease-in-out forwards;
 }

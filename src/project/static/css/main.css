@@ -5097,10 +5097,6 @@ textarea {
     font-size: 1.25rem;
     line-height: 1.75rem;
   }
-
-  .md\:ring-gray-900\/10 {
-    --tw-ring-color: rgb(17 24 39 / 0.1);
-  }
 }
 @media (min-width: 1024px) {
 

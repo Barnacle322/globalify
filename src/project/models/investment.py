@@ -28,7 +28,6 @@ class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
     investment_firm_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=True)
     amount: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_by_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
-    # If the amount is < 40000$ then it's verified. Otherwise, it's not verified.
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
     date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
     created: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)
@@ -69,12 +68,10 @@ class Investment(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_investments_grouped_by_round(investor_id: int):
-        # Получаем все инвестиции для инвестора
         investments = db.session.scalars(
             db.select(Investment).join(FundingRound).where(Investment.investor_id == investor_id)
         ).all()
 
-        # Группируем инвестиции по ID и названию
         grouped_investments = defaultdict(list)
         for investment in investments:
             round_key = (

@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from flask import Blueprint, redirect, render_template, request, url_for
 from sqlalchemy import or_, select
 
@@ -570,4 +572,68 @@ def filter_investors():
         total=pagination.total,
         pagination=pagination_info,
         total_pages=total_pages,
+    )
+
+
+def calculate_confidence_score(investor1, investor2):
+    score = 0
+    if investor1.first_name == investor2.first_name:
+        score += 1
+    if investor1.last_name == investor2.last_name:
+        score += 1
+    if investor1.email == investor2.email:
+        score += 2
+    return score
+
+
+@investor.get("/duplicates")
+@admin_only
+def duplicates():
+    query_params = request.args
+    page = query_params.get("page", 1, type=int)
+    per_page = query_params.get("per_page", 12, type=int)
+    batch_size = 1000
+    confidence_threshold = 1
+
+    duplicate_groups = defaultdict(list)
+    offset = 0
+    count = 0
+    try:
+        while count < 100000:
+            count += 1
+            # Получение данных
+            investors = db.session.query(Investor).order_by(Investor.id).offset(offset).limit(batch_size)
+            if not investors:
+                break
+
+            # Группировка
+            for investor in investors:
+                key = (investor.first_name.lower(), investor.last_name.lower(), investor.email.lower())  # type: ignore
+                duplicate_groups[key].append(investor)
+            offset += batch_size
+
+    except Exception as e:
+        print(f"Error fetching investors at offset {offset}: {e}")
+
+    # Поиск дубликатов
+    duplicates_with_confidence = []
+    for investors in duplicate_groups.values():
+        if len(investors) <= 1:
+            continue
+        for i, inv1 in enumerate(investors[:-1]):
+            for inv2 in investors[i + 1 :]:
+                score = calculate_confidence_score(inv1, inv2)
+                if score >= confidence_threshold:
+                    duplicates_with_confidence.append((inv1, inv2, score))
+    print(duplicates_with_confidence)
+    # Пагинация
+    base_query = db.select(Investor)
+    pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
+    pagination_info = generate_pagination(page, pagination.pages, per_page)
+
+    return render_template(
+        "admin/duplicates_investors.html",
+        duplicates=duplicates_with_confidence,
+        pagination=pagination_info,
+        total_pages=pagination.pages,
     )

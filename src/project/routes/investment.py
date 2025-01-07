@@ -161,8 +161,10 @@ def create_investment():
     form_data = request.get_json()
 
     created_by_admin = form_data.get("created_by_admin")
-
     created_by_admin_format = True if created_by_admin == "True" else False
+
+    amount = form_data.get("amount") or None
+    is_verified = True if amount and float(amount) < 40000 else False
 
     new_investment = Investment(
         investor_id=form_data.get("investor_id") or None,
@@ -173,7 +175,7 @@ def create_investment():
         amount=form_data.get("amount") or None,
         date=datetime.strptime(form_data.get("date"), "%Y-%m-%d"),
         created_by_admin=created_by_admin_format,
-        is_verified=form_data.get("is_verified"),
+        is_verified=is_verified,
     )
 
     try:
@@ -192,9 +194,6 @@ def create_investment():
 def update_investment(investment_id):
     form_data = request.get_json()
 
-    print("\n\n\n\n\n\n\n\n\n\n\n\n")
-    print(form_data)
-
     investment = Investment.get_by_id(investment_id)
     if not investment:
         return jsonify({"status": "error", "message": "Investment not found."}), 404
@@ -206,9 +205,9 @@ def update_investment(investment_id):
     date = datetime.strptime(form_data.get("date", investment.date), "%Y-%m-%d")
     funding_round_id = form_data.get("funding_round_id", investment.funding_round_id) or None
     created_by_admin = form_data.get("created_by_admin", investment.created_by_admin)
-    is_verified = form_data.get("is_verified", investment.is_verified)
+    created_by_admin_format = True if created_by_admin == "True" else False
 
-    created_by_admin = True if created_by_admin == "True" else False
+    is_verified = True if amount and float(amount) < 40000 else False
 
     investment.investor_id = investor_id
     investment.investment_firm_id = investment_firm_id
@@ -216,7 +215,7 @@ def update_investment(investment_id):
     investment.amount = amount
     investment.date = date
     investment.funding_round_id = funding_round_id
-    investment.created_by_admin = created_by_admin
+    investment.created_by_admin = created_by_admin_format
     investment.is_verified = is_verified
 
     db.session.commit()

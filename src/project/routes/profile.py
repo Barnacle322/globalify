@@ -81,3 +81,29 @@ def company_profile(slug):
         company=company,
         user=current_user,
     )
+
+@profile.route("/change/investment/mode/<int:user_id>")
+@login_required
+@check_verification
+def change_to_investment_mode(user_id):
+    if not isinstance(current_user, User):
+        return redirect(url_for("search.investor_search"))
+    user = User.get_by_id(user_id)
+    if user:
+        user.is_investor_mode = True
+        db.session.commit()
+    return redirect(url_for("search.search_companies"))
+
+
+@profile.route("/change/company/mode/<int:user_id>")
+@login_required
+@check_verification
+def change_to_company_mode(user_id):
+    if not isinstance(current_user, User):
+        return redirect(url_for("search.investor_search"))
+    user = User.get_by_id(user_id)
+    if user:
+        user.is_investor_mode = False
+        db.session.commit()
+    return redirect(url_for("search.investor_search"))
+

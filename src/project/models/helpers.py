@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import pycountry
 from sqlalchemy import Integer, String, event
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..extensions import db
 from ..utils.info_lists import aggregate as industry_aggregate
@@ -14,6 +15,9 @@ from ..utils.typesense_helpers.typesense_search import (
     delete_schema,
     upsert_documents,
 )
+
+if TYPE_CHECKING:
+    from ..models import FundingRound
 
 
 class Industry(db.Model):
@@ -123,6 +127,8 @@ class Industry(db.Model):
 class Round(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
+
+    funding_rounds: Mapped[list[FundingRound]] = relationship("FundingRound", back_populates="round", uselist=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

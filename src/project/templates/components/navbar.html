@@ -4,15 +4,17 @@
 {{ aside.render(user) }}
 {% import "components/aside_mobile.html" as aside_mobile %}
 {{ aside_mobile.render(user) }}
+{% if user.is_authenticated %}
 {% import "components/bookmark.html" as bookmark %}
 {{ bookmark.render(user) }}
 {% import "components/notifications.html" as notifications %}
 {{ notifications.render() }}
 {% import "components/profile_context_menu.html" as profile_context_menu %}
 {{ profile_context_menu.render(user) }}
+{% endif %}
 
 <template id="navbar-template">
-    <header class="sticky top-0 z-50 w-full bg-white">
+    <header class="view-navbar sticky top-0 z-50 w-full bg-white" ref="header">
         <nav class="mx-auto grid h-20 w-full max-w-8xl grid-cols-2 items-center border-b px-4 sm:grid-cols-2 lg:px-6">
             <div class="flex items-center gap-4">
                 <button @click="expandAside" class="w-fit text-lg font-medium">
@@ -117,7 +119,7 @@
                         </transition>
                         <img
                             src="{{ user.user_info.picture_url if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
-                            class="size-8 rounded-full border border-gray-200 bg-gray-50 cursor-pointer"
+                            class="size-8 cursor-pointer rounded-full border border-gray-200 bg-gray-50"
                             @click="profileContextMenuOpened ? closeProfileContextMenu() : openProfileContextMenu()"
                         />
                     </div>

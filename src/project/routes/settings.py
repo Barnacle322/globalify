@@ -9,7 +9,10 @@ from ..models import (
     Company,
     CompanyInvitation,
     Country,
+    FundingRound,
     Industry,
+    Investment,
+    InvestmentFirm,
     Investor,
     InvestorBackup,
     InvestorOriginPoint,
@@ -20,8 +23,9 @@ from ..models import (
     UserInfo,
 )
 from ..models.claim import ClaimRequest
-from ..schemas.investor import InvestorOriginPointSchema
-from ..schemas.user import CompanyInvitationSchema, MemberSchema, UserSchema
+from ..schemas.investment import FundingRoundSchema
+from ..schemas.investor import InvestorOriginPointSchema, MiniInvestorSchema, RoundSchema
+from ..schemas.user import CompanyInvitationSchema, MemberSchema, SearchCompanySchema, UserSchema
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
     AUTH_USERNAME_USED,
@@ -68,6 +72,8 @@ def index():
         msg = query.get("msg")
 
     investor = Investor.get_by_user_id_with_investments(current_user.id)
+    investments_by_round = Investment.get_investments_grouped_by_round(investor_id=investor.id) if investor else None
+
     has_investor_origin = InvestorOriginPoint.exists(investor.id) if investor else False
     pending_claim_requests = ClaimRequest.get_pending_by_user_id(current_user.id)
 
@@ -75,6 +81,7 @@ def index():
         "settings/general.html",
         user=current_user._get_current_object(),
         investor=investor,
+        investments_by_round=investments_by_round,
         investor_origin=has_investor_origin,
         pending_claim_requests=pending_claim_requests,
         rounds=Round.get_all(),
@@ -296,6 +303,7 @@ def company_list_view():
                 picture_url=invitation.company.picture_url,
                 role=invitation.role.value,
                 company_id=invitation.company.id,
+                position=invitation.position,
             )
             company_invitations.append(company_invitation.model_dump())
 
@@ -321,6 +329,8 @@ def company_info_view(company_id):
 
     company_invitations = CompanyInvitation.get_by_company_id(company_id=company_id)
 
+    funding_rounds = FundingRound.get_by_company_id(company_id=company_id)
+
     company_members = UserCompany.get_members(company_id=company_id)
     members = []
     if company_members:
@@ -331,6 +341,7 @@ def company_info_view(company_id):
                 name=user_info.full_name,
                 picture_url=user_info.picture_url,
                 role=user_company.role.value,
+                position=user_company.position,
             )
             members.append(user_element.model_dump())
 
@@ -350,6 +361,7 @@ def company_info_view(company_id):
         rounds=Round.get_all(),
         countries=Country.get_all(),
         company=company,
+        funding_rounds=funding_rounds,
         members=members,
         users_in_company=users_in_company,
         company_invitations=company_invitations,
@@ -498,6 +510,88 @@ def change_company_info(company_id):
     )
 
 
+@settings.get("/rounds")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_rounds():
+    rounds = Round.get_all()
+
+    if not rounds:
+        return {"rounds": []}
+
+    rounds = [RoundSchema(id=round.id, name=round.name).model_dump() for round in rounds]
+
+    return jsonify({"rounds": rounds})
+
+
+@settings.get("/company/<int:company_id>/funding-rounds")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_funding_rounds(company_id: int):
+    funding_round_models = FundingRound.get_by_company_id(company_id=company_id)
+
+    funding_rounds = []
+    for funding_round in funding_round_models if funding_round_models else []:
+        funding_rounds.append(
+            FundingRoundSchema(
+                id=funding_round.id,
+                company_name=funding_round.company.name,
+                announced_date=funding_round.announced_date,
+                round=RoundSchema(
+                    id=funding_round.round.id,
+                    name=funding_round.round.name,
+                ),
+            ).model_dump()
+        )
+    return {"funding_rounds": funding_rounds}
+
+
+@settings.get("/investors")
+@login_required
+@check_user_info_complete
+@check_verification
+def investor_list_view():
+    if not isinstance(current_user, User):
+        return redirect(url_for("search.investor_search"))
+
+    investor_models = Investor.get_all()
+
+    investors = []
+
+    for investor in investor_models:
+        investor_schema = MiniInvestorSchema(
+            id=investor.id,
+            name=investor.full_name,
+        )
+        investors.append(investor_schema.model_dump())
+
+    return jsonify({"investors": investors})
+
+
+@settings.get("/investment-firms")
+@login_required
+@check_user_info_complete
+@check_verification
+def investment_firms_list_view():
+    if not isinstance(current_user, User):
+        return redirect(url_for("search.investor_search"))
+
+    investment_firm_models = InvestmentFirm.get_all()
+
+    investment_firms = []
+
+    for investment_firm_model in investment_firm_models:
+        investment_firm_schema = MiniInvestorSchema(
+            id=investment_firm_model.id,
+            name=investment_firm_model.name,
+        )
+        investment_firms.append(investment_firm_schema.model_dump())
+
+    return jsonify({"investment_firms": investment_firms})
+
+
 @settings.get("/company/create")
 @login_required
 @check_user_info_complete
@@ -531,6 +625,8 @@ def create_company():
     if not (company_name := form_data.get("company_name")):
         status = Status(StatusType.ERROR, EMPTY_COMPANY_NAME).get_status()
         return redirect(url_for("settings.create_company_view", _external=False, **status))
+
+    company_position = form_data.get("position")
 
     company = Company(
         name=company_name,
@@ -596,6 +692,7 @@ def create_company():
         company_id=company.id,
         role=CompanyRole.OWNER,
         is_primary=is_primary,
+        position=company_position,
     )
 
     try:
@@ -663,6 +760,7 @@ def invite_user(company_id):
     user_email = form_data.get("email") or None
     user_role = form_data.get("role") or None
     invitation_message = form_data.get("invitation_message") or "Hey, join our company!"
+    company_position = form_data.get("position")
 
     if not user_email or not user_role:
         status = Status(StatusType.ERROR, EMPTY_EMAIL_OR_ROLE).get_status()
@@ -694,6 +792,7 @@ def invite_user(company_id):
         role=CompanyRole(user_role),
         invited_by=current_user.id,
         message=invitation_message,
+        position=company_position,
     )
 
     db.session.add(company_invitation)
@@ -724,6 +823,7 @@ def accept_invitation(company_id):
             company_id=company_id,
             role=company_invitation.role,
             is_primary=is_primary,
+            position=company_invitation.position,
         )
         db.session.add(user_company)
 
@@ -795,6 +895,7 @@ def get_company_members(company_id):
         user_element = MemberSchema(
             id=user.id,
             name=user.user_info.full_name,
+            position="sex",
             picture_url=user.user_info.picture_url,
             role=user_company.role.value,
         )
@@ -819,6 +920,7 @@ def change_company_role(user_id):
 
     company_id = form_data.get("company_id")
     role = form_data.get("role")
+    position = form_data.get("position")
 
     current_user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)
     if not current_user_company:
@@ -833,7 +935,8 @@ def change_company_role(user_id):
         status = Status(StatusType.ERROR, NOT_COMPANY_MEMBER).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    user_company.role = CompanyRole(role)
+    user_company.role = role
+    user_company.position = position
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Member's role has been modified!").get_status()
@@ -1256,3 +1359,23 @@ def investor():
         industries=Industry.get_all(),
         rounds=Round.get_all(),
     )
+
+
+@settings.get("/companies/search/<search_input>")
+@login_required
+@check_user_info_complete
+@check_verification
+def search_company(search_input):
+    companies = db.session.scalars(db.select(Company).where(Company.name.contains(search_input))).unique().all()
+
+    company_list = []
+    for company in companies:
+        company_element = SearchCompanySchema(
+            id=company.id,
+            name=company.name,
+            picture_url=company.picture_url,
+        )
+        company_list.append(company_element.model_dump())
+
+    print(company_list)
+    return jsonify({"companies": company_list})

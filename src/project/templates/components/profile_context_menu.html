@@ -1,11 +1,11 @@
 {% macro render(user) %}
 <template id="profile-context-menu">
     <div
-        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col border bg-white shadow-xl sm:absolute sm:right-0 sm:top-9 sm:h-auto sm:max-h-96 sm:w-96 sm:rounded-xl overflow-y-auto"
+        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col overflow-y-auto border bg-white shadow-xl sm:absolute sm:right-0 sm:top-9 sm:h-auto sm:max-h-96 sm:w-96 sm:rounded-xl"
     >
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
 
-        <div class="flex items-center justify-between px-5 py-3 border-b sticky top-0 bg-white">
+        <div class="sticky top-0 flex items-center justify-between border-b bg-white px-5 py-3">
             <h3 class="text-xl font-semibold">Your Profiles</h3>
             <svg
                 @click="$emit('close')"
@@ -19,19 +19,19 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
         </div>
-        <div class="p-5 border-b flex flex-col gap-1 justify-between items-center">
-            <div class="flex flex-col justify-center items-center">
+        <div class="flex flex-col items-center justify-between gap-1 border-b p-5">
+            <div class="flex flex-col items-center justify-center">
                 <a href="/settings/general">
                     <img
                         src="{{ user.user_info.picture_url if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
                         class="size-16 rounded-full border border-gray-200 bg-gray-50"
                     />
                 </a>
-                <h3 class="text-lg font-semibold mt-2">{{ user.user_info.full_name }}</h3>
+                <h3 class="mt-2 text-lg font-semibold">{{ user.user_info.full_name }}</h3>
                 <p class="text-sm text-gray-500">{{ user.user_info.username }}</p>
                 <a
                     href="/settings/plan"
-                    class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-300 text-white rounded-full font-medium text-xs px-2 py-1 mt-2"
+                    class="mt-2 rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-300 px-2 py-1 text-xs font-medium text-white"
                 >
                     {{ user.user_payment.tier.value.upper() }}
                 </a>
@@ -101,7 +101,7 @@
             </div>
             {% endfor %}
         </div> -->
-        <div class="py-3 px-2">
+        <div class="px-2 py-3">
             <a
                 href="/profile/{{ user.user_info.username }}"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 transition-colors ease-in-out hover:bg-gray-50"

@@ -64,6 +64,18 @@
     {{ cancel_invitation.render() }}
     {% import "components/delete_company.html" as delete_company %}
     {{ delete_company.render(company.id) }}
+    {% import "components/create_investment.html" as create_investment %}
+    {{ create_investment.render("company", false) }}
+    {% import "components/delete_investment.html" as delete_investment %}
+    {{ delete_investment.render() }}
+    {% import "components/update_investment.html" as update_investment %}
+    {{ update_investment.render(company.id, "company", false) }}
+    {% import "components/create_funding_round.html" as create_funding_round %}
+    {{ create_funding_round.render(company.id) }}
+    {% import "components/delete_funding_round.html" as delete_funding_round %}
+    {{ delete_funding_round.render() }}
+    {% import "components/update_funding_round.html" as update_funding_round %}
+    {{ update_funding_round.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />
@@ -78,22 +90,19 @@
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
+                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="inviteMemberOpened"></div>
+                <div
+                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    v-if="inviteMemberOpened || selectedUser || selectedInvitationId || deleteCompanyOpened || createInvestmentOpened || createFundingRoundOpened || updateFundingRoundOpened || deleteFundingRoundOpened || updateInvestmentOpened"
+                ></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <invite-member-component
                     v-if="inviteMemberOpened"
                     @close-invite-member="inviteMemberOpened = null"
-                ></invite-member-component
-            ></transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="selectedUser"></div>
+                ></invite-member-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <change-role-component
@@ -103,9 +112,6 @@
                 ></change-role-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="selectedInvitationId"></div>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <cancel-invitation-component
                     v-if="selectedInvitationId"
                     :invitation="selectedInvitationId"
@@ -113,13 +119,47 @@
                 ></cancel-invitation-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="deleteCompanyOpened"></div>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <delete-company-component
                     v-if="deleteCompanyOpened"
                     @close-delete-company="deleteCompanyOpened = null"
                 ></delete-company-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <create-investment-component
+                    companyid="{{ company.id }}"
+                    v-if="createInvestmentOpened"
+                    @close="createInvestmentOpened = null"
+                    type="company"
+                ></create-investment-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <update-investment-component
+                    v-if="updateInvestmentOpened"
+                    @close="updateInvestmentOpened = null"
+                    companyid="{{ company.id }}"
+                    :investment="investment"
+                    :id="investmentId"
+                ></update-investment-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <create-funding-round-component
+                    v-if="createFundingRoundOpened"
+                    @close="createFundingRoundOpened = null"
+                ></create-funding-round-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <update-funding-round-component
+                    v-if="updateFundingRoundOpened"
+                    @close-update-funding-round="updateFundingRoundOpened = null"
+                    :id="fundingRoundId"
+                ></update-funding-round-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <delete-funding-round-component
+                    v-if="deleteFundingRoundOpened"
+                    @close="deleteFundingRoundOpened = null"
+                    :funding-round-id="fundingRoundId"
+                ></delete-funding-round-component>
             </transition>
 
             <div class="relative w-full">
@@ -129,7 +169,8 @@
                         <a
                             href="/settings/general"
                             class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
-                            ><svg
+                        >
+                            <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -149,7 +190,8 @@
                         <a
                             href="/settings/companies"
                             class="flex items-center justify-center gap-2 border-b-2 border-sky-500 px-3 py-2 font-medium transition-colors ease-in-out"
-                            ><svg
+                        >
+                            <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -232,7 +274,7 @@
                 </nav>
                 <main class="p-4 sm:p-6">
                     <div class="grid gap-6 sm:grid-cols-6">
-                        <div class="col-span-2">
+                        <div class="col-span-4 sm:col-span-2">
                             <h2 class="text-2xl font-bold">Company Information</h2>
                             <p class="mb-2 mt-1 leading-6 text-gray-700">Update your company information here.</p>
                             {% if status_type %} {% if status_type == '3' %}
@@ -245,13 +287,16 @@
                         </div>
                         <form
                             class="col-span-4"
-                            action="/settings/company/{{company.id}}"
+                            action="/settings/company/{{ company.id }}"
                             method="POST"
                             enctype="multipart/form-data"
                         >
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                             <div class="space-y-12">
                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+                                    <div class="col-span-full flex justify-between">
+                                        <h2 class="col-span-full text-2xl font-medium">General info</h2>
+                                    </div>
                                     <div class="col-span-full flex items-start gap-x-8">
                                         {% if not company.picture_url %}
                                         <img
@@ -289,7 +334,7 @@
                                                 autocomplete="organization-title"
                                                 required
                                                 class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
-                                                value="{{ company.name if company.name else ''}}"
+                                                value="{{ company.name if company.name else '' }}"
                                                 :disabled="'{{ user_role }}' == 'employee'"
                                             />
                                         </div>
@@ -323,7 +368,7 @@
                                                 placeholder="Describe your company here."
                                                 :disabled="'{{ user_role }}' == 'employee'"
                                             >
-{{ company.description if company.description else ''}}</textarea
+{{ company.description if company.description else '' }}</textarea
                                             >
                                         </div>
                                     </div>
@@ -350,6 +395,7 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
                                     <div class="sm:col-span-3">
                                         <label for="round" class="block text-sm font-medium leading-6"
                                             >Preferred round*</label
@@ -397,6 +443,277 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="col-span-full">
+                                        <label
+                                            for="investment"
+                                            class="block text-sm font-medium leading-6 text-gray-900"
+                                            >Investments</label
+                                        >
+                                        {% if True %}
+
+                                        <div
+                                            class="col-span-4 mt-2 flex w-full flex-col overflow-hidden rounded-xl border-2"
+                                        >
+                                            <header class="border-b bg-gray-50 p-5">
+                                                <input
+                                                    type="search"
+                                                    class="w-full rounded-lg border-gray-300 py-2"
+                                                    placeholder="Search funding rounds"
+                                                    @input="searchMembers"
+                                                />
+                                            </header>
+                                            <button
+                                                class="m-3 flex items-center justify-center gap-2 rounded-lg border p-3 transition-shadow hover:shadow-md"
+                                                @click.prevent="createFundingRoundOpened = true;"
+                                                type="button"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke-width="1.5"
+                                                    stroke="currentColor"
+                                                    class="size-5"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"
+                                                    />
+                                                </svg>
+                                                <span class="text-sm font-medium">Announce a round</span>
+                                            </button>
+                                            {% for funding_round in funding_rounds %}
+                                            <div
+                                                class="mx-3 mb-3 divide-y overflow-hidden overflow-y-auto rounded-xl border bg-gray-50 shadow-sm"
+                                            >
+                                                <header class="flex cursor-pointer gap-2 bg-white px-3 py-3">
+                                                    <div
+                                                        @click.stop="toggleFundingRound('{{ funding_round.id }}')"
+                                                        class="mt-1"
+                                                    >
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke-width="1.5"
+                                                            stroke="currentColor"
+                                                            class="size-5"
+                                                            v-if="selectedFundingRound === null || selectedFundingRound !== '{{ funding_round.id }}'"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                                                            />
+                                                        </svg>
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke-width="1.5"
+                                                            stroke="currentColor"
+                                                            class="size-5"
+                                                            v-if="selectedFundingRound === '{{ funding_round.id }}'"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                                                            />
+                                                        </svg>
+                                                    </div>
+                                                    <h2
+                                                        class="text-lg font-medium sm:text-xl"
+                                                        @click.stop="toggleFundingRound('{{ funding_round.id }}')"
+                                                    >
+                                                        {{ funding_round.round.name }}
+                                                    </h2>
+                                                    <div class="ml-auto flex h-full gap-2">
+                                                        <button
+                                                            class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                                            @click.prevent="updateFundingRoundOpened = true; fundingRoundId = '{{funding_round.id}}'"
+                                                            type="button"
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke-width="1.5"
+                                                                stroke="currentColor"
+                                                                class="size-4"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+                                                                />
+                                                            </svg>
+                                                        </button>
+
+                                                        <button
+                                                            class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                                            @click.prevent="deleteFundingRoundOpened = true; fundingRoundId = '{{funding_round.id}}'"
+                                                            type="button"
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke-width="1.5"
+                                                                stroke="currentColor"
+                                                                class="size-4"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                                                                />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </header>
+                                                <div
+                                                    v-if="selectedFundingRound === '{{ funding_round.id }}'"
+                                                    class="flex flex-col p-3"
+                                                >
+                                                    <div class="overflow-auto rounded-t-lg border border-b-0">
+                                                        <table class="relative w-full table-auto">
+                                                            <tr
+                                                                class="border-b bg-white font-medium *:text-nowrap *:px-4"
+                                                            >
+                                                                <td class="py-4 pl-4">Investor</td>
+                                                                <td class="py-4">Amount</td>
+                                                                <td
+                                                                    class="relative flex items-center justify-between py-4 pr-4"
+                                                                >
+                                                                    <span class="font-semibold text-gray-700"
+                                                                        >Date</span
+                                                                    >
+                                                                    <button
+                                                                        type="button"
+                                                                        class="relative flex items-center"
+                                                                    >
+                                                                        <svg
+                                                                            class="size-3"
+                                                                            aria-hidden="true"
+                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                            fill="currentColor"
+                                                                            viewBox="0 0 24 24"
+                                                                        >
+                                                                            <path
+                                                                                d="M8.574 11.024h6.852a2.075 2.075 0 0 0 1.847-1.086 1.9 1.9 0 0 0-.11-1.986L13.736 2.9a2.122 2.122 0 0 0-3.472 0L6.837 7.952a1.9 1.9 0 0 0-.11 1.986 2.074 2.074 0 0 0 1.847 1.086Zm6.852 1.952H8.574a2.072 2.072 0 0 0-1.847 1.087 1.9 1.9 0 0 0 .11 1.985l3.426 5.05a2.123 2.123 0 0 0 3.472 0l3.427-5.05a1.9 1.9 0 0 0 .11-1.985 2.074 2.074 0 0 0-1.846-1.087Z"
+                                                                            ></path>
+                                                                        </svg>
+                                                                    </button>
+                                                                    <span
+                                                                        v-if="sortOrder === 'asc'"
+                                                                        class="ml-2 text-gray-500"
+                                                                        >▲</span
+                                                                    >
+                                                                    <span
+                                                                        v-if="sortOrder === 'desc'"
+                                                                        class="ml-2 text-gray-500"
+                                                                        >▼</span
+                                                                    >
+                                                                </td>
+                                                                <td>Action</td>
+                                                            </tr>
+                                                            {% for investment in funding_round.investments %}
+                                                            <tr
+                                                                class="border-b text-sm text-gray-700 *:px-4 last:border-0 odd:bg-gray-50 even:bg-white"
+                                                            >
+                                                                {% if investment.investor %}
+                                                                <td class="min-w-52 max-w-72 text-wrap py-4 pl-4">
+                                                                    {{ investment.investor.full_name if
+                                                                    investment.investor.full_name else 'N/A' }}
+                                                                </td>
+                                                                {% else %}
+                                                                <td class="min-w-52 max-w-72 text-wrap py-4 pl-4">
+                                                                    {{ investment.investment_firm.name if
+                                                                    investment.investment_firm.name else 'N/A' }}
+                                                                </td>
+                                                                {% endif %}
+                                                                <td class="text-nowrap py-4">
+                                                                    ${{ investment.amount if investment.amount else
+                                                                    'N/A' }}
+                                                                </td>
+                                                                <td class="text-nowrap py-4 pr-4">
+                                                                    {{ investment.date if investment.date else 'N/A' }}
+                                                                </td>
+                                                                <td>
+                                                                    <button
+                                                                        @click.prevent="updateInvestmentOpened = true; investmentId = '{{ investment.id }}'"
+                                                                        class="text-blue-500 hover:text-blue-400"
+                                                                        type="button"
+                                                                    >
+                                                                        Edit
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                            {% endfor %}
+                                                        </table>
+                                                    </div>
+                                                    {% if funding_round.investments | length == 0 %}
+                                                    <div
+                                                        class="flex items-center justify-center gap-2 border-x bg-white px-3 py-10 font-medium"
+                                                        type="button"
+                                                    >
+                                                        No investments recorded...
+                                                    </div>
+                                                    {% endif %}
+                                                    <button
+                                                        @click.prevent="createInvestmentOpened = true"
+                                                        class="flex items-center justify-center gap-2 rounded-b-xl border bg-white px-3 py-2 font-medium transition-shadow ease-in-out hover:shadow-md"
+                                                        type="button"
+                                                    >
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke-width="1.5"
+                                                            stroke="currentColor"
+                                                            class="size-6"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                                            />
+                                                        </svg>
+                                                        Record an Investment
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% else %}
+                                        <div class="col-span-full">
+                                            <button
+                                                class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-700 p-3 transition-shadow hover:shadow-md"
+                                                @click.prevent="createInvestmentOpened = true"
+                                                type="button"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke-width="1.5"
+                                                    stroke="currentColor"
+                                                    class="size-6"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                                    />
+                                                </svg>
+                                                <span class="text-sm font-medium">Add Funding Round</span>
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
                                     <div class="col-span-full">
                                         <label for="website" class="block text-sm font-medium leading-6">Website</label>
                                         <div class="mt-2">
@@ -491,22 +808,24 @@
                                     </div>
                                     {% endif %}
                                 </div>
-                                <div class="mt-8 flex gap-5" v-if="'{{ user_role }}' !== 'employee'">
+                                {% if user_role in ["owner", "admin"] %}
+                                <div class="mt-8 flex justify-end gap-5">
+                                    <a class="flex items-center justify-center text-gray-700 underline" href=""
+                                        >Cancel</a
+                                    >
                                     <button
                                         type="submit"
                                         class="inline-flex h-12 items-center justify-center rounded-xl bg-sky-500 px-4 text-white transition-colors ease-in-out hover:bg-sky-400"
                                     >
                                         Save
                                     </button>
-                                    <a class="flex items-center justify-center text-gray-700 underline" href=""
-                                        >Cancel</a
-                                    >
                                 </div>
+                                {% endif %}
                             </div>
                         </form>
                     </div>
                     <div class="my-10 grid gap-6 sm:grid-cols-6">
-                        <div class="col-span-2">
+                        <div class="col-span-4 sm:col-span-2">
                             <h2 class="text-2xl font-bold">Member information</h2>
                             <p class="mb-2 mt-1 leading-6 text-gray-700">
                                 Manage member information here. You can add, edit and delete the members here.
@@ -574,7 +893,7 @@
                                     <div class="ml-auto flex items-center justify-center">
                                         <button
                                             class="rounded-lg border bg-white px-2 py-1"
-                                            @click="selectedInvitationId = {{invitation.id}};"
+                                            @click="selectedInvitationId = {{ invitation.id }};"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -603,16 +922,26 @@
                                             alt=""
                                         />
                                         {% endif %}
-                                        <div>
-                                            <h3 class="text-md font-medium">{{ user.name }}</h3>
-                                            <span class="text-sm text-gray-700">{{ user.role.title() }}</span>
+                                        <div class="flex flex-col">
+                                            <h3 class="text-md font-medium">
+                                                {{ user.name }}
+                                                <span class="text-xs italic text-gray-400">
+                                                    {{ "You" if user.id == current_user.id else "" }}
+                                                </span>
+                                            </h3>
+                                            <span>
+                                                {% if user.position %}
+                                                <span class="text-sm text-gray-700">{{ user.position }}, </span>
+                                                {% endif %}
+                                                <span class="text-sm text-gray-700">{{ user.role.title() }}</span>
+                                            </span>
                                         </div>
                                     </div>
-                                    {% if user_role == "owner" and current_user.id != user.id %}
+                                    {% if user_role in ["owner", "admin"] %}
                                     <div class="ml-auto flex items-center justify-center">
                                         <button
                                             class="rounded-lg border bg-white px-2 py-1"
-                                            @click="this.selectedUser = {{ user.id }};"
+                                            @click="this.selectedUser = {{ user }};"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"

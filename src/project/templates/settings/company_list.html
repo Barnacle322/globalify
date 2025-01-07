@@ -69,10 +69,7 @@
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
+                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="inviteMemberOpened"></div>
@@ -236,7 +233,7 @@
                             <p class="text-muted-foreground">Manage your companies here</p>
                         </div>
                         <a
-                            class="mt-auto flex h-fit w-fit shrink-0 items-center justify-center gap-2 rounded-lg bg-sky-500 p-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+                            class="flex h-fit w-fit shrink-0 items-center justify-center gap-2 rounded-lg bg-sky-500 p-2 text-white transition-colors ease-in-out hover:bg-sky-400"
                             href="/settings/company/create"
                         >
                             <svg

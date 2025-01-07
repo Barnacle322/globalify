@@ -18,6 +18,7 @@ from ..extensions import db
 from ..models import (
     Company,
     CompanyBookmark,
+    Investment,
     InvestmentFirm,
     InvestmentFirmBookmark,
     Investor,
@@ -28,6 +29,7 @@ from ..models import (
     UserPayment,
 )
 from ..schemas.company import CompanyBookmarkSchema
+from ..schemas.investment import InvestmentSchema
 from ..schemas.investor import (
     InvestmentFirmBookmarkSchema,
     InvestmentFirmSchema,
@@ -41,6 +43,7 @@ from ..utils.errors.error_messages import (
     NOT_AUTHORIZED,
 )
 from ..utils.parse_medium import parse_medium_html
+from ..utils.posthog import capture_profile_view
 
 main = Blueprint("main", __name__)
 
@@ -209,7 +212,42 @@ def get_investor(slug):
     else:
         is_bookmarked = False
 
+    capture_profile_view(
+        profile_type="investor",
+        properties={
+            "slug": slug,
+            "unpaid": unpaid,
+        },
+    )
+
     return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked})
+
+
+@main.get("/investment/<int:investor_id>/get")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investment_investor(investor_id):
+    model_investments = Investment.get_by_investor_id(investor_id)
+
+    if not model_investments:
+        return jsonify({"status": "error", "message": "Investments not found for this investor."}), 404
+
+    investments = []
+
+    for model_investment in model_investments:
+        investment = InvestmentSchema(
+            id=model_investment.id,
+            name=model_investment.funding_round.company.name,
+            round=model_investment.funding_round.round.name,
+            amount=model_investment.amount,
+            announced_date=model_investment.funding_round.announced_date.strftime("%b %d, %Y")
+            if model_investment.funding_round.announced_date
+            else None,
+        )
+        investments.append(json.loads(investment.model_dump_json()))
+
+    return jsonify({"investments": investments, "n_of_investments": len(investments)})
 
 
 @main.get("/check-investor")
@@ -217,6 +255,7 @@ def get_investor(slug):
 def check_investor():
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
+
     user_info = UserInfo.get_by_user_id(current_user.id)
     if not user_info:
         return jsonify({"status": "error", "message": "User Info not found."}), 404
@@ -244,6 +283,7 @@ def toggle_bookmark_investor(investor_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestorBookmark(investor_id=investor.id, user_id=current_user.id)
@@ -340,10 +380,45 @@ def get_investment_firm(slug):
     else:
         is_bookmarked = False
 
+    capture_profile_view(
+        profile_type="investment_firm",
+        properties={
+            "slug": slug,
+            "unpaid": unpaid,
+        },
+    )
+
     return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
-@main.route("/company/<slug>")
+@main.get("/investment-firm/investment/<int:firm_id>/get")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investment_firm_investment(firm_id):
+    model_investments = Investment.get_by_investment_firm_id(firm_id)
+
+    if not model_investments:
+        return jsonify({"status": "error", "message": "Investments not found for this company."}), 404
+
+    investments = []
+
+    for model_investment in model_investments:
+        company_investment = InvestmentSchema(
+            id=model_investment.id,
+            name=model_investment.funding_round.company.name if model_investment.funding_round.company else None,
+            amount=model_investment.amount,
+            round=model_investment.funding_round.round.name,
+            announced_date=model_investment.funding_round.announced_date.strftime("%b %d, %Y")
+            if model_investment.funding_round.announced_date
+            else None,
+        )
+        investments.append(json.loads(company_investment.model_dump_json()))
+
+    return jsonify({"investments": investments})
+
+
+@main.get("/company/<slug>")
 def company_slug(slug):
     company = Company.get_by_slug(slug)
     if not company:
@@ -432,6 +507,14 @@ def get_company(slug):
     else:
         is_bookmarked = False
 
+    capture_profile_view(
+        profile_type="company",
+        properties={
+            "slug": slug,
+            "unpaid": unpaid,
+        },
+    )
+
     return jsonify({"company": company, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
@@ -448,6 +531,7 @@ def toggle_bookmark_company(company_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = CompanyBookmark(company_id=company.id, user_id=current_user.id)
@@ -455,6 +539,37 @@ def toggle_bookmark_company(company_id):
     db.session.commit()
 
     return jsonify({"bookmarked": True}, 200)
+
+
+@main.get("/company/investment/<int:company_id>/get")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_company_investment(company_id):
+    model_investments = Investment.get_by_company_id(company_id)
+
+    if not model_investments:
+        return jsonify({"status": "error", "message": "Investments not found for this company."}), 404
+
+    investments = []
+
+    for model_investment in model_investments:
+        if model_investment.investor:
+            name = f"{model_investment.investor.first_name} {model_investment.investor.last_name}"
+        elif model_investment.investment_firm:
+            name = model_investment.investment_firm.name
+
+        company_investment = InvestmentSchema(
+            id=model_investment.id,
+            name=name,
+            amount=model_investment.amount,
+            round=model_investment.funding_round.round.name,
+            announced_date=model_investment.funding_round.announced_date.strftime("%b %d, %Y")
+            if model_investment.funding_round.announced_date
+            else None,
+        )
+        investments.append(json.loads(company_investment.model_dump_json()))
+    return jsonify({"investments": investments})
 
 
 @main.get("/bookmarks/company")
@@ -506,6 +621,7 @@ def toggle_bookmark_investment_firm(firm_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestmentFirmBookmark(investment_firm_id=investment_firm.id, user_id=current_user.id)
@@ -689,7 +805,6 @@ def sitemap():
             and not rule.rule.startswith("/notification")
             and not rule.rule.startswith("/payment")
             and not rule.rule.startswith("/suggestion")
-            and not rule.rule.startswith("/demo-search")
             and not rule.rule.startswith("/check-investor")
             and not rule.rule.startswith("/tier-selection")
             and not rule.rule.startswith("/logout")

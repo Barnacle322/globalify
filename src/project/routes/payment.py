@@ -363,7 +363,7 @@ def subscription_updated(data):
     lookup_key = data.get("object").get("items").get("data")[0].get("price").get("lookup_key")
 
     user_payment.expires_at_epoch = data.get("object").get("current_period_end")
-    user_payment.tier = Tier.PREMIUM_MONTHLY if lookup_key == "premium_monthly" else Tier.PREMIUM_YEARLY
+    user_payment.tier = Tier.PREMIUM_MONTHLY if lookup_key == Tier.PREMIUM_MONTHLY.value else Tier.PREMIUM_YEARLY
     user_payment.is_active = True
     db.session.commit()
 

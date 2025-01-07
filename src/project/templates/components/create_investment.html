@@ -1,0 +1,148 @@
+{% macro render(type, created_by_admin) %}
+<template id="create-investment-template">
+    <article
+        ref="createInvestment"
+        class="fixed right-0 top-0 z-50 mx-auto my-auto flex h-full w-full flex-col gap-4 bg-white p-8 sm:bottom-0 sm:left-0 sm:right-0 sm:top-0 sm:h-fit sm:max-w-2xl sm:rounded-xl"
+    >
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="grid gap-2">
+            <h2 class="text-2xl font-medium">Investment info</h2>
+            <div>
+                <label for="investor" class="text-sm font-medium text-gray-700">Investor</label>
+
+                <div class="relative flex flex-col items-center">
+                    <div
+                        class="relative flex w-full items-center gap-4 rounded-xl border-2 border-sky-300 bg-sky-200 p-2 text-start text-sky-500"
+                        v-if="selectedInvestor || selectedInvestmentFirm || selectedCustomName"
+                    >
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3
+                                    class="text-md font-semibold"
+                                    v-text="selectedInvestor ? selectedInvestor.name : (selectedInvestmentFirm ? selectedInvestmentFirm.name : customName)"
+                                ></h3>
+                            </div>
+                        </div>
+                        <button class="absolute right-3" @click.stop="clearInput()">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-6"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <input
+                        class="w-full rounded-xl border-2 border-gray-300 bg-transparent py-3 pr-0 text-sm focus:ring-0"
+                        type="text"
+                        placeholder="Search for an investor"
+                        @input="debouncedInvestorList"
+                        @focus="showInvestorList = true"
+                        @blur="hideInvestorList"
+                        v-model="searchQuery"
+                        v-else
+                    />
+
+                    <ul
+                        v-if="showInvestorList"
+                        class="absolute top-full z-[49] w-full overflow-clip rounded-b-[30px] bg-white shadow-md"
+                    >
+                        <li
+                            class="flex cursor-pointer items-center gap-2 px-4 py-2 last:mb-2 hover:bg-gray-100"
+                            v-if="investors.length > 0"
+                            v-for="(investor, index) in investors"
+                            :key="index"
+                            @mousedown.prevent="selectInvestor(investor)"
+                        >
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-md font-semibold" v-text="investor.name"></h3>
+                            </div>
+                            <p class="text-gray-500">Add this investor to your selection</p>
+                        </li>
+                        <li v-else-if="searchPerformed" class="flex flex-col p-4 text-center text-gray-500">
+                            <span>No investors found. Please try a different search.</span>
+                            <button
+                                @mousedown.prevent="selectAsCustomName"
+                                class="mt-2 rounded-lg bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+                            >
+                                Select as Custom Name
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div>
+                <label for="funding_round" class="text-sm font-medium text-gray-700">Funding Round</label>
+                <div>
+                    <select
+                        id="funding_round"
+                        name="funding_round"
+                        class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                        v-model="selectedFundingRound"
+                        required
+                    >
+                        <option value="" disabled selected>Select a funding round</option>
+                        <option
+                            v-for="funding_round in fundingRounds"
+                            :key="funding_round.id"
+                            :value="funding_round.id"
+                            v-text="funding_round.round.name + ' - ' + funding_round.announced_date"
+                        ></option>
+                    </select>
+                </div>
+            </div>
+            {% if type != 'company' %}
+            <div>
+                <label class="text-sm font-medium text-gray-700" for="company_name">Custom Company name</label>
+                <input
+                    class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                    type="text"
+                    id="company_name"
+                    placeholder="Globalify"
+                    required
+                />
+            </div>
+            {% endif %}
+
+            <div>
+                <label class="text-sm font-medium text-gray-700" for="amount">Amount</label>
+                <input
+                    class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                    type="number"
+                    id="amount"
+                    placeholder="14"
+                />
+            </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700" for="announced_date">Announced date</label>
+                <input
+                    class="h-12 w-full rounded-xl border-2 border-gray-300 px-2"
+                    type="date"
+                    id="announced_date"
+                    required
+                />
+            </div>
+        </div>
+        <div class="mt-auto flex justify-end gap-5">
+            <button
+                @click="close"
+                class="rounded-lg border border-gray-300 px-3 py-2 transition-shadow ease-in-out hover:shadow-md"
+            >
+                Cancel
+            </button>
+            <button
+                @click="createInvestment('{{ created_by_admin }}')"
+                class="rounded-lg bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400"
+            >
+                Create
+            </button>
+        </div>
+    </article>
+</template>
+{% endmacro %}

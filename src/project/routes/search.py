@@ -30,6 +30,7 @@ from ..schemas.user import SearchHistorySchema
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import NotificationType, SearchHistoryType
 from ..utils.funcs import generate_pagination
+from ..utils.posthog import capture_event, capture_page_visit
 from ..utils.suggestion import COMPANY_WEIGHTS, WEIGHTS, check_weights
 
 search = Blueprint("search", __name__)
@@ -49,30 +50,53 @@ def search_investors_onboarding(search):
     return jsonify({"investors": result.get("investors")})
 
 
-@search.get("/demo-search")
-def demo_search():
-    result = Investor.get_search(
-        query_string=request.args.get("search", ""),
-        query_by=[
-            "location",
-            "country",
-            "rounds",
-            "industries",
-            "embedding",
-            "notable_investments",
-            "name",
-            "firm_name",
-            "position",
-        ],
+@search.get("/search/investment-firms/<search>")
+@login_required
+@check_verification
+def search_investment_firms_onboarding(search):
+    result = InvestmentFirm.get_search(
+        query_string=search,
+        query_by=["name"],
         page=1,
         per_page=18,
     )
 
-    return jsonify(result.get("investors"))
+    return jsonify({"investors": result.get("investment_firms")})
+
+
+@search.get("/search/<search_input>")
+@login_required
+@check_verification
+def search_entities(search_input):
+    # Search investors
+    investor_result = Investor.get_search(
+        query_string=search_input,
+        query_by=["name"],
+        page=1,
+        per_page=18,
+    )
+    investors = investor_result.get("investors", [])
+
+    # Search investment firms
+    investment_firm_result = InvestmentFirm.get_search(
+        query_string=search_input,
+        query_by=["name"],
+        page=1,
+        per_page=18,
+    )
+    investment_firms = investment_firm_result.get("investment_firms", [])
+
+    combined_results = [
+        {"id": investor.get("id"), "name": investor.get("name"), "type": "investor"} for investor in investors
+    ] + [{"id": firm.get("id"), "name": firm.get("name"), "type": "investment_firm"} for firm in investment_firms]
+
+    return jsonify({"results": combined_results})
 
 
 @search.route("/search", methods=["GET", "POST"])
 def investor_search():
+    capture_page_visit("investor_search")
+
     if next_url := request.args.get("next"):
         return redirect(next_url)
 
@@ -131,6 +155,24 @@ def investor_search():
             )
             db.session.add(new_search_history)
             db.session.commit()
+
+            capture_event(
+                event="search_investor_performed",
+                properties={
+                    "search_query": search_string,
+                    "user_id": current_user.id,
+                    "page": page,
+                    "filters": {
+                        "rounds": rounds,
+                        "industries": industries,
+                        "countries": countries,
+                    },
+                    "sort_field": request.args.get("sort_field", "db_id"),
+                    "descending": request.args.get("descending", False, type=bool),
+                },
+                distinct_id=current_user.id,
+            )
+
         except IntegrityError:
             db.session.rollback()
 
@@ -156,6 +198,8 @@ def investor_search():
 
 @search.route("/search/investment-firms", methods=["GET", "POST"])
 def search_investment_firms():
+    capture_page_visit("investment_firm_search")
+
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
 
@@ -207,6 +251,24 @@ def search_investment_firms():
             )
             db.session.add(new_search_history)
             db.session.commit()
+
+            capture_event(
+                event="search_investment_firm_performed",
+                properties={
+                    "search_query": search_string,
+                    "user_id": current_user.id,
+                    "page": page,
+                    "filters": {
+                        "rounds": rounds,
+                        "industries": industries,
+                        "countries": countries,
+                    },
+                    "sort_field": request.args.get("sort_field", "db_id"),
+                    "descending": request.args.get("descending", False, type=bool),
+                },
+                distinct_id=current_user.id,
+            )
+
         except IntegrityError:
             db.session.rollback()
 
@@ -233,6 +295,8 @@ def search_investment_firms():
 
 @search.route("/search/companies", methods=["GET", "POST"])
 def search_companies():
+    capture_page_visit("company_search")
+
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
     result = Company.get_search(
@@ -263,6 +327,24 @@ def search_companies():
             )
             db.session.add(new_search_history)
             db.session.commit()
+
+            capture_event(
+                event="search_company_performed",
+                properties={
+                    "search_query": search_string,
+                    "user_id": current_user.id,
+                    "page": page,
+                    "filters": {
+                        "rounds": request.args.getlist("round"),
+                        "industries": request.args.getlist("industry"),
+                        "countries": request.args.getlist("country"),
+                    },
+                    "sort_field": request.args.get("sort_field", "db_id"),
+                    "descending": request.args.get("descending", False, type=bool),
+                },
+                distinct_id=current_user.id,
+            )
+
         except IntegrityError:
             db.session.rollback()
 

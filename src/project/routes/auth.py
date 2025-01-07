@@ -37,6 +37,7 @@ from ..utils.errors.error_messages import (
     OAUTH_NO_USER_INFO,
 )
 from ..utils.google_helpers import google_pubsub
+from ..utils.posthog import capture_event
 from .main import check_user_info_complete, check_verification
 
 auth = Blueprint("auth", __name__)
@@ -86,6 +87,15 @@ def oauth_user(email: str, oauth_provider: OauthProvider) -> User:
         raise Exception(OAUTH_MISMATCHED_PROVIDER)
 
     User.update_last_login(user.id)
+
+    capture_event(
+        event="user_registered",
+        properties={
+            "source": oauth_provider.value,
+            "email": user.email,
+        },
+        distinct_id=user.email,
+    )
 
     return user
 

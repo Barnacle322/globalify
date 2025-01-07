@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Blueprint, redirect, render_template, request, url_for
 
 from ...extensions import db
@@ -141,7 +143,7 @@ def create_investment():
         description=form_data.get("description") or None,
         custom_name=form_data.get("custom_name") or None,
         amount=form_data.get("amount") or None,
-        date=form_data.get("date") or None,
+        date=datetime.strptime(form_data.get("date"), "%Y-%m-%d"),
         funding_round_id=form_data.get("funding_round_id") or None,
         created_by_admin=True,
         is_verified=True,

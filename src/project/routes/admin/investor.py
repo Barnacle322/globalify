@@ -634,6 +634,5 @@ def duplicates():
     return render_template(
         "admin/duplicates_investors.html",
         duplicates=duplicates_with_confidence,
-        pagination=pagination_info,
-        total_pages=pagination.pages,
+        pagination=pagination,
     )

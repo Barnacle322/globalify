@@ -594,6 +594,55 @@ createApp({
             const basePath = window.location.pathname.split("/filter")[0];
             window.location.href = `${basePath}/filter?${queryParams}`;
         },
+        selectField(fieldName, investorType, value, blockIndex) {
+            if (!this.selectedFields[blockIndex]) {
+                this.selectedFields[blockIndex] = {};
+            }
+
+            this.selectedFields[blockIndex][fieldName] = {
+                type: investorType,
+                value: value,
+            };
+        },
+
+        isFieldSelected(fieldName, investorType, blockIndex) {
+            return this.selectedFields[blockIndex]?.[fieldName]?.type === investorType;
+        },
+        sendInvestorData(blockIndex) {
+            const block = this.selectedFields[blockIndex];
+
+            if (!block || Object.keys(block).length === 0) {
+                alert("Пожалуйста, выберите значения полей.");
+                return;
+            }
+
+            const selectedData = {};
+            Object.entries(block).forEach(([fieldName, selection]) => {
+                selectedData[fieldName] = selection.value;
+            });
+
+            fetch("/api/create-investor", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": this.getCookie("csrftoken"),
+                },
+                body: JSON.stringify(selectedData),
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error("Network response was not ok.");
+                })
+                .then((data) => {
+                    console.log("Success:", data);
+                    this.$delete(this.selectedFields, blockIndex);
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                });
+        },
     },
     mounted() {
         this.setupMenuToggle();
@@ -606,6 +655,23 @@ createApp({
                 this.currentPage = parseInt(value) || 1;
             }
         }
+        this.investors.forEach((investorPair, blockIndex) => {
+            Object.keys(investorPair.investor_a).forEach((fieldName) => {
+                const valueA = investorPair.investor_a[fieldName];
+                const valueB = investorPair.investor_b[fieldName];
+
+                if (!this.selectedFields[blockIndex]) {
+                    this.selectedFields[blockIndex] = {};
+                }
+                if (valueA === "None" && valueB !== "None") {
+                    this.selectField(fieldName, "B", valueB, blockIndex);
+                } else if (valueB === "None" && valueA !== "None") {
+                    this.selectField(fieldName, "A", valueA, blockIndex);
+                } else if (valueA === "None" && valueB === "None") {
+                    this.selectField(fieldName, "A", valueA, blockIndex);
+                }
+            });
+        });
     },
     data() {
         return {
@@ -641,6 +707,8 @@ createApp({
                 check_industry: false,
                 check_rounds: false,
             },
+            selectedFields: {},
+            investors: [],
         };
     },
 }).mount("#app");

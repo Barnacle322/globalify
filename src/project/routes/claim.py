@@ -15,6 +15,7 @@ from ..extensions import db
 from ..models import (
     ClaimRequest,
     ClaimVerification,
+    Company,
     Investor,
     InvestorOriginPoint,
     User,
@@ -46,6 +47,16 @@ def types_view(slug):
     return render_template("claiming/index.html", investor=investor)
 
 
+@claim.get("/company/<slug>/claim")
+@login_required
+def company_types_view(slug):
+    company = Company.get_by_slug(slug)
+    if not company:
+        return redirect(url_for("search.company_search"))
+
+    return render_template("claiming/company/index.html", company=company)
+
+
 @claim.get("/investor/<slug>/claim/manual")
 @login_required
 def manual_view(slug):
@@ -66,6 +77,31 @@ def manual_view(slug):
         status_type=status_type,
         captcha_site_key=captcha_site_key,
         msg=msg,
+        url_type="investor",
+    )
+
+
+@claim.get("/company/<slug>/claim/manual")
+@login_required
+def company_manual_view(slug):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    company = Company.get_by_slug(slug)
+    if not company:
+        return redirect(url_for("search.company_search"))
+
+    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
+
+    return render_template(
+        "claiming/company/manual.html",
+        company=company,
+        status_type=status_type,
+        captcha_site_key=captcha_site_key,
+        msg=msg,
+        url_type="company",
     )
 
 
@@ -138,6 +174,54 @@ def manual(slug):
 
     status = Status(StatusType.SUCCESS, "Claim request submitted.").get_status()
     return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
+
+
+@claim.post("/company/<slug>/claim/manual")
+@login_required
+def company_manual(slug):
+    form_data = request.get_json()
+    email = form_data.get("email")
+    recaptcha_response = form_data.get("recaptcha")
+
+    secret_key = os.getenv("_GOOGLE_RECAPTCHA_SECRET_KEY_DEV")
+    captcha_verification_url = "https://www.google.com/recaptcha/api/siteverify"
+    payload = {"secret": secret_key, "response": recaptcha_response}
+    response = requests.post(captcha_verification_url, data=payload)
+    result = response.json()
+
+    if not result.get("success"):
+        status = Status(StatusType.ERROR, "CAPTCHA verification failed.").get_status()
+        return redirect(url_for("claim.company_manual_view", slug=slug, _external=False, **status))
+
+    existing_claim = Company.get_by_user_id(current_user.id)
+    if existing_claim:
+        status = Status(StatusType.ERROR, "You can't claim another company!").get_status()
+        return redirect(url_for("claim.company_manual_view", slug=slug, _external=False, **status))
+
+    company = Company.get_by_slug(slug)
+    if not company:
+        return jsonify({"status": "error", "message": "Company not found."}), 404
+
+    claim_request = ClaimRequest.get_by_user_id(current_user.id)
+    if claim_request:
+        if claim_request.status.value == "pending":
+            status = Status(StatusType.ERROR, CLAIM_REQUEST_ALREADY_SUBMITTED).get_status()
+            return redirect(url_for("claim.manual_view", slug=slug, _external=False, **status))
+        elif claim_request.status.value == "approved":
+            status = Status(StatusType.ERROR, INVESTOR_ALREADY_CLAIMED).get_status()
+            return redirect(url_for("claim.manual_view", slug=slug, _external=False, **status))
+
+    claim_request = ClaimRequest(
+        user_id=current_user.id,
+        company_id=company.id,
+        email=email,
+    )
+
+    db.session.add(claim_request)
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Claim request submitted.").get_status()
+    return redirect(url_for("main.company_slug", slug=slug, _external=False, **status))
 
 
 @claim.get("/investor/<slug>/claim/email")

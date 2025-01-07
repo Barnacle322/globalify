@@ -78,6 +78,8 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
         "InvestorBackup", back_populates="user", uselist=False, init=False
     )
 
+    company: Mapped[Company] = relationship("Company", back_populates="user", uselist=False, init=False)
+
     company_bookmarks: Mapped[list[CompanyBookmark]] = relationship(
         "CompanyBookmark", back_populates="user", uselist=True, init=False
     )
@@ -469,6 +471,7 @@ class CompanySuggestionBuilder:
 
 
 class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
+    user: Mapped[User | None] = relationship("User", back_populates="company", uselist=False, init=False)
     user_companies: Mapped[list[UserCompany]] = relationship(
         "UserCompany", back_populates="company", uselist=True, init=False
     )
@@ -481,6 +484,9 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     funding_rounds: Mapped[list[FundingRound]] = relationship(
         "FundingRound", back_populates="company", uselist=True, init=False
     )
+    claim_requests: Mapped[list[ClaimRequest]] = relationship(
+        "ClaimRequest", back_populates="company", uselist=True, init=False
+    )
 
     country: Mapped[Country] = relationship(init=False)
     preferred_round: Mapped[Round] = relationship(init=False)
@@ -492,6 +498,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     description: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True, init=False)
     website_url: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
     linkedin_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     instagram_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     twitter_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
@@ -577,6 +584,10 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_by_id(id: int) -> Company | None:
         return db.session.scalar(db.select(Company).where(Company.id == id))
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> Sequence[Company]:
+        return db.session.scalars(db.select(Company).where(Company.user_id == user_id)).all()
 
     @staticmethod
     def get_by_id_list(ids: list[int]) -> Sequence[Company]:

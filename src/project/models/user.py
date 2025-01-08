@@ -101,7 +101,9 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     )
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
-    is_investor_mode: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
+    is_investor_mode_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false")
+    )
 
     @staticmethod
     def delete_by_id(id: int) -> None:

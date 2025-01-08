@@ -106,7 +106,7 @@ def get_profile():
     ]
 
     investor_object = InvestorSchema(
-        investor_mode=current_user.is_investor_mode,
+        investor_mode=current_user.is_investor_mode_active,
         name=investor.full_name if investor else None,
         twitter=investor.twitter if investor else None,
     ).model_dump()
@@ -121,7 +121,7 @@ def change_to_investment_mode():
     if not isinstance(current_user, User):
         return redirect(url_for("search.investor_search"))
 
-    current_user.is_investor_mode = True
+    current_user.is_investor_mode_active = True
     db.session.commit()
 
     return redirect(url_for("search.search_companies"))
@@ -134,7 +134,7 @@ def change_to_company_mode(company_id):
     if not isinstance(current_user, User):
         return redirect(url_for("search.investor_search"))
 
-    current_user.is_investor_mode = False
+    current_user.is_investor_mode_active = False
     db.session.commit()
 
     user_company = UserCompany.get_by_user_and_company_id(user_id=current_user.id, company_id=company_id)

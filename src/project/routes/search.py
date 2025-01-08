@@ -28,9 +28,9 @@ from ..models import (
 from ..schemas.notification import NotificationItem, NotificationLayout
 from ..schemas.user import SearchHistorySchema
 from ..utils.decorators import (
+    check_investor_mode,
+    check_investor_mode_for_suggestions,
     check_user_info_complete,
-    check_user_investor_mode,
-    check_user_investor_mode_for_suggestions,
     check_verification,
 )
 from ..utils.enums import NotificationType, SearchHistoryType
@@ -100,8 +100,9 @@ def search_entities(search_input):
 
 @search.route("/search", methods=["GET", "POST"])
 def investor_search():
-    if current_user.is_investor_mode_active:
-        return redirect(url_for("search.search_companies"))
+    if current_user.is_authenticated and current_user.is_investor_mode_active:
+        return redirect(url_for("search.company_search"))
+
     capture_page_visit("investor_search")
 
     if next_url := request.args.get("next"):
@@ -205,6 +206,9 @@ def investor_search():
 
 @search.route("/search/investment-firms", methods=["GET", "POST"])
 def search_investment_firms():
+    if current_user.is_authenticated and current_user.is_investor_mode_active:
+        return redirect(url_for("search.company_search"))
+
     capture_page_visit("investment_firm_search")
 
     search_string = request.args.get("search", "").strip()
@@ -301,7 +305,10 @@ def search_investment_firms():
 
 
 @search.route("/search/companies", methods=["GET", "POST"])
-@check_user_investor_mode
+@login_required
+@check_user_info_complete
+@check_verification
+@check_investor_mode
 def search_companies():
     capture_page_visit("company_search")
 
@@ -374,10 +381,11 @@ def search_companies():
 @login_required
 @check_user_info_complete
 @check_verification
-@check_user_investor_mode_for_suggestions
+@check_investor_mode_for_suggestions
 def get_suggestions():
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
+
     access = True
     user_payment = UserPayment.get_by_user_id(current_user.id)
     if current_user.is_admin:
@@ -422,7 +430,7 @@ def get_suggestions():
 @login_required
 @check_user_info_complete
 @check_verification
-@check_user_investor_mode_for_suggestions
+@check_investor_mode_for_suggestions
 def get_suggestion_investment_firms():
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
@@ -467,7 +475,7 @@ def get_suggestion_investment_firms():
 @login_required
 @check_user_info_complete
 @check_verification
-@check_user_investor_mode_for_suggestions
+@check_investor_mode_for_suggestions
 def get_suggestion_companies():
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))

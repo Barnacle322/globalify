@@ -53,7 +53,7 @@ def check_verification(func):
 def check_investor_mode(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        if current_user.is_investor_mode_active:
+        if not current_user.is_investor_mode_active:
             return redirect(url_for("search.investor_search"))
         return func(*args, **kwargs)
 

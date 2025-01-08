@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <title>AiTest</title>
+        <style>
+            .fade-in {
+                animation: fadeIn 0.1s ease-in-out;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app" class="p-4">
+            <h1 class="text-2xl font-bold mb-4">AI Response Stream</h1>
+            <div class="mb-4">
+                <input v-model="prompt" placeholder="Ask AI" type="text" class="border p-2 w-full" />
+                <button @click="startStream" class="bg-blue-500 text-white p-2 mt-2">Submit</button>
+            </div>
+            <div class="chat-container">
+                <div v-for="(char, index) in response" :key="index" class="inline-block fade-in" v-text="char"></div>
+            </div>
+        </div>
+
+        <script>
+            const { createApp } = Vue;
+
+            createApp({
+                data() {
+                    return {
+                        prompt: "",
+                        response: [],
+                        queue: [],
+                        intervalId: null,
+                    };
+                },
+                methods: {
+                    startStream() {
+                        this.response = [];
+                        this.queue = [];
+                        if (this.intervalId) {
+                            clearInterval(this.intervalId);
+                        }
+                        const eventSource = new EventSource(`/stream/${this.prompt}`);
+                        eventSource.onmessage = (event) => {
+                            this.queue.push(...event.data);
+                        };
+                        eventSource.onerror = () => {
+                            eventSource.close();
+                        };
+                        this.intervalId = setInterval(() => {
+                            if (this.queue.length > 0) {
+                                this.response.push(this.queue.shift());
+                            }
+                        }, 1); // Adjust the interval time as needed
+                    },
+                },
+            }).mount("#app");
+        </script>
+    </body>
+</html>

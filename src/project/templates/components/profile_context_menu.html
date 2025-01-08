@@ -38,27 +38,26 @@
             </div>
         </div>
         <div class="flex flex-col items-center gap-1 border-b p-3">
-            {% if user.investor %}
             <a
+                v-if="accounts.investor && accounts.investor.name"
                 class="flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors ease-in-out hover:bg-gray-50"
-                href="/profile/change/investment/mode/{{ user.id }}"
+                href="/profile/mode/investor"
             >
-                {% if user.investor.twitter %}
                 <img
+                    v-if="accounts.investor.twitter"
                     class="size-10 rounded-full border border-gray-200 bg-gray-50"
-                    src="https://unavatar.io/twitter/{{ user.investor.twitter.split('/')[-1] }}"
+                    :src="'https://unavatar.io/twitter/' + accounts.investor.twitter.split('/').pop()"
                     alt=""
                     loading="lazy"
                 />
-                {% else %}
                 <img
+                    v-else
                     src="{{ user.user_info.picture_url if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
                     class="size-10 rounded-full border border-gray-200 bg-gray-50"
                 />
-                {% endif %}
                 <div class="flex flex-col justify-center">
                     <h3 class="flex items-center gap-1 text-lg font-semibold">
-                        <span>{{ user.investor.full_name }}</span>
+                        <span v-text="accounts.investor.name"></span>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 20 20"
@@ -74,8 +73,8 @@
                     </h3>
                     <p class="text-sm text-gray-500">Investor Account</p>
                 </div>
-                {% if user.is_investor_mode %}
                 <svg
+                    v-if="accounts.investor.investor_mode"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
@@ -87,40 +86,23 @@
                         clip-rule="evenodd"
                     />
                 </svg>
-                {% endif %}
             </a>
-            {% endif %} {% for user_company in user.user_companies %}
             <a
+                v-for="user_company in accounts.user_companies"
                 class="flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors ease-in-out hover:bg-gray-50"
-                href="/profile/change/company/mode/{{ user_company.user_id }}"
+                :href="'/profile/mode/company/' + user_company.id"
             >
                 <img
-                    src="{{ user_company.company.picture_url if user_company.company.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
+                    :src="user_company.picture_url || '/static/elements/pfp_placeholder.jpeg' "
                     class="size-10 rounded-full border border-gray-200 bg-gray-50"
                 />
                 <div class="flex flex-col justify-center">
-                    <h3 class="flex items-center gap-1 text-lg font-semibold">
-                        <span>{{ user_company.company.name }}</span>
-                        {% if user_company.is_primary %}
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="rgb(14 165 233)"
-                            class="size-4"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.883l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        {% endif %}
-                    </h3>
+                    <h3 class="flex items-center gap-1 text-lg font-semibold" v-text="user_company.name"></h3>
                     <p class="text-sm text-gray-500">Company Account</p>
                 </div>
 
-                {% if not user.is_investor_mode %}
                 <svg
+                    v-if="!accounts.investor.investor_mode && user_company.is_primary"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
@@ -132,9 +114,7 @@
                         clip-rule="evenodd"
                     />
                 </svg>
-                {% endif %}
             </a>
-            {% endfor %}
         </div>
         <div class="px-2 py-3">
             <a

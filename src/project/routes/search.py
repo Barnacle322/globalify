@@ -27,8 +27,12 @@ from ..models import (
 )
 from ..schemas.notification import NotificationItem, NotificationLayout
 from ..schemas.user import SearchHistorySchema
-from ..utils.decorators import check_user_info_complete, check_verification, check_user_investor_mode, \
-    check_user_investor_mode_for_suggestions
+from ..utils.decorators import (
+    check_user_info_complete,
+    check_user_investor_mode,
+    check_user_investor_mode_for_suggestions,
+    check_verification,
+)
 from ..utils.enums import NotificationType, SearchHistoryType
 from ..utils.funcs import generate_pagination
 from ..utils.posthog import capture_event, capture_page_visit

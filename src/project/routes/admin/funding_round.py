@@ -8,7 +8,7 @@ from ...models import (
     FundingRound,
     Round,
 )
-from ...schemas.investment import FundingRoundSchema
+from ...schemas.investment import FundingRoundSchema, RoundSchema
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -45,10 +45,10 @@ def index():
                 id=funding_round.id,
                 company_name=funding_round.company.name,
                 announced_date=funding_round.announced_date,
-                round={
-                    "id": funding_round.round.id,
-                    "name": funding_round.round.name,
-                },
+                round=RoundSchema(
+                    id=funding_round.round.id,
+                    name=funding_round.round.name,
+                ),
             )
         )
 

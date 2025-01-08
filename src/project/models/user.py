@@ -960,8 +960,8 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_by_user_and_company_id(user_id: int, company_id: int) -> UserCompany | None:
         return db.session.scalar(
             db.select(UserCompany).where(
-                UserCompany.user_id == user_id,
-                UserCompany.company_id == company_id,
+                UserCompany.user_id == int(user_id),
+                UserCompany.company_id == int(company_id),
             )
         )
 

@@ -422,7 +422,7 @@ def get_investment_firm_investment(firm_id):
 def company_slug(slug):
     company = Company.get_by_slug(slug)
     if not company:
-        return redirect(url_for("search.company_search"))
+        return redirect(url_for("search.search_companies"))
 
     description = ""
     if company.description:

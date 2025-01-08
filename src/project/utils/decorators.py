@@ -50,23 +50,25 @@ def check_verification(func):
     return decorated_function
 
 
-def check_user_investor_mode(func):
+def check_investor_mode(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_investor_mode:
+        if not current_user.is_investor_mode_active:
             return redirect(url_for("search.investor_search"))
         return func(*args, **kwargs)
+
     return decorated_function
 
 
-def check_user_investor_mode_for_suggestions(func):
+def check_investor_mode_for_suggestions(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_investor_mode:
+        if not current_user.is_investor_mode_active:
             if request.endpoint != "search.get_suggestions":
                 return redirect(url_for("search.get_suggestions"))
-        elif current_user.is_investor_mode:
+        elif current_user.is_investor_mode_active:
             if request.endpoint != "search.get_suggestion_companies":
                 return redirect(url_for("search.get_suggestion_companies"))
         return func(*args, **kwargs)
+
     return decorated_function

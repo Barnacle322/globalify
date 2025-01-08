@@ -1612,6 +1612,42 @@ createApp({
                 })
                 .catch((error) => console.error("Error approving claim request:", error));
         },
+        approveClaimCompanyRequest(id) {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            fetch(`/admin/claim-company-request/${id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                },
+                body: JSON.stringify({ status: "approved" }),
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        window.location.reload();
+                    }
+                })
+                .catch((error) => console.error("Error approving claim request:", error));
+        },
+        rejectClaimCompanyRequest(id) {
+            const csrfToken = document.getElementById("csrf_token").value;
+
+            fetch(`/admin/claim-company-request/${id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                },
+                body: JSON.stringify({ status: "rejected" }),
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        window.location.reload();
+                    }
+                })
+                .catch((error) => console.error("Error denying claim request:", error));
+        },
         search() {
             const searchQuery = this.searchQuery;
             const params = new URLSearchParams(window.location.search);

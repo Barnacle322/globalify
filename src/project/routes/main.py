@@ -486,6 +486,7 @@ def get_company(slug):
         slug=company_model.slug,
         description=company_model.description,
         number_of_employees=company_model.number_of_employees,
+        user_id=company_model.user_id,
         website=company_model.website_url,
         linkedin=company_model.linkedin_url,
         instagram=company_model.instagram_url,

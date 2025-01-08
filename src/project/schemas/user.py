@@ -29,6 +29,7 @@ class CompanySchema(BaseModel):
     slug: str
     description: str | None
     number_of_employees: int | None
+    user_id: int | None
     website: str | None
     linkedin: str | None
     instagram: str | None

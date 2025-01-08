@@ -155,3 +155,23 @@ class ClaimRequest(db.Model):
             .join(ClaimRequest.investor, isouter=True)
             .join(ClaimRequest.company, isouter=True)
         ).all()
+
+    @staticmethod
+    def get_all_for_investors() -> Sequence[ClaimRequest]:
+        return (
+            db.session.execute(
+                db.select(ClaimRequest).join(ClaimRequest.investor).order_by(ClaimRequest.requested_at.desc())
+            )
+            .scalars()
+            .all()
+        )
+
+    @staticmethod
+    def get_all_for_companies() -> Sequence[ClaimRequest]:
+        return (
+            db.session.execute(
+                db.select(ClaimRequest).join(ClaimRequest.company).order_by(ClaimRequest.requested_at.desc())
+            )
+            .scalars()
+            .all()
+        )

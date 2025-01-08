@@ -370,9 +370,8 @@ const FullCompany = defineComponent({
     },
     methods: {
         async fetchCompany() {
-            this.isLoading = true;
             try {
-                const response = await fetch(`/company/${this.slug}`);
+                const response = await fetch(`/company/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
                     this.company = data.company;
@@ -475,6 +474,7 @@ const FullCompany = defineComponent({
     },
     data() {
         return {
+            showPopover: false,
             isExpanded: false,
             isLoading: false,
             isBookmarked: false,

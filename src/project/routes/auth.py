@@ -303,7 +303,6 @@ def linkedin_callback():
 
     if not user_info.is_complete:
         return redirect(url_for("onboarding.index"))
-
     if user.is_investor_mode_active:
         return redirect(url_for("search.search_companies"))
 
@@ -366,6 +365,7 @@ def google_callback():
         return redirect(url_for("onboarding.index"))
     if user.is_investor_mode_active:
         return redirect(url_for("search.search_companies"))
+
     return redirect(url_for("search.investor_search"))
 
 
@@ -437,6 +437,7 @@ def apple_callback():
         return redirect(url_for("onboarding.index"))
     if user.is_investor_mode_active:
         return redirect(url_for("search.search_companies"))
+
     return redirect(url_for("search.investor_search"))
 
 

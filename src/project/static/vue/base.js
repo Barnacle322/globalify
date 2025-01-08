@@ -505,7 +505,24 @@ const Bookmark = defineComponent({
 const ProfileContextMenuComponent = defineComponent({
     template: "#profile-context-menu",
     emits: ["close"],
-    methods: {},
+    mounted() {
+        this.getAccounts();
+    },
+    methods: {
+        async getAccounts() {
+            const response = await fetch("/profile/accounts/get");
+            if (response.ok) {
+                this.accounts = await response.json();
+            } else {
+                console.error("Fetching accounts failed:", response.statusText);
+            }
+        },
+    },
+    data() {
+        return {
+            accounts: [],
+        };
+    },
 });
 
 const NavbarComponent = defineComponent({

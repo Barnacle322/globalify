@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="/static/vue/base.js"></script>
+        <script src="/static/vue/main.js" defer></script>
+        <title>Investment</title>
+    </head>
+    <body id="app">
+        <div class="m-4 flex flex-col gap-3 rounded-md border p-4">
+            <div class="h-full w-full gap-3">
+                <h3 class="mb-5">Investments</h3>
+                <div class="flex flex-col px-5">
+                    <span>Number of investments</span>
+                    <span v-text="n_of_investments"></span>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

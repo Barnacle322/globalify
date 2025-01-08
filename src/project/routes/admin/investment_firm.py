@@ -4,6 +4,7 @@ from sqlalchemy import or_, select
 from ...extensions import db
 from ...models import (
     Industry,
+    Investment,
     InvestmentFirm,
     NotableInvestment,
     Round,
@@ -74,9 +75,12 @@ def update_investment_firm_view(id):
         status = Status(StatusType.ERROR, INVESTMENT_FIRM_NOT_FOUND).get_status()
         return redirect(url_for("admin.investment_firm.index", _external=True, **status))
 
+    investments = Investment.get_by_investment_firm_id(id)
+
     return render_template(
         "admin/update_investment_firm.html",
         investment_firm=investment_firm,
+        investments=investments,
         rounds=Round.get_all(),
         industries=Industry.get_all(),
         status_type=status_type,

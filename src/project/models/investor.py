@@ -56,6 +56,7 @@ from .helpers import Industry, Round
 
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
+    from .investment import Investment
     from .user import Company, User
 
 
@@ -284,6 +285,7 @@ class Investor(InvestorBase):
     origin_point: Mapped[InvestorOriginPoint | None] = relationship(
         "InvestorOriginPoint", back_populates="investor", uselist=False
     )
+    investments: Mapped[list[Investment]] = relationship("Investment", back_populates="investor", uselist=True)
 
     _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
     _country: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -576,6 +578,32 @@ class Investor(InvestorBase):
             batch_count += 1
 
     @staticmethod
+    def fix_twitter_links():
+        from ..models import Company, InvestmentFirm, Investor, UserInfo
+
+        models = [
+            (Company, "twitter_url"),
+            (UserInfo, "twitter_url"),
+            (Investor, "twitter"),
+            (InvestmentFirm, "twitter"),
+        ]
+        for model, twitter_field in models:
+            stmt = db.select(model).where(getattr(model, twitter_field).like("%x.com/%"))
+            items = db.session.scalars(stmt).all()
+
+            for item in items:
+                current_url = getattr(item, twitter_field)
+                if current_url and "x.com" in current_url:
+                    try:
+                        setattr(item, twitter_field, current_url.replace("x.com", "twitter.com"))
+                        db.session.add(item)
+                    except Exception as e:
+                        print(f"Error processing {model.__name__} ID {item.id}: {e}")
+
+            db.session.commit()
+            print(f"Processed {len(items)} {model.__name__}(s).")
+
+    @staticmethod
     def populate() -> None:
         investor_list = []
         firstnames = get_names(50)
@@ -733,6 +761,8 @@ class Investor(InvestorBase):
                     max_investment=max_investment,
                     rounds=list(set(round_list)),
                     notable_investments=notable_investment_list,
+                    is_public=True,
+                    is_approved=True,
                 )
                 investor.set_slug()
                 db.session.add(investor)
@@ -1242,6 +1272,7 @@ class InvestmentFirm(db.Model):
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investment_firm_notable_investment)
     rounds: Mapped[list[Round]] = relationship(secondary=investment_firm_round)
     industries: Mapped[list[Industry]] = relationship(secondary=investment_firm_industry)
+    investments: Mapped[list[Investment]] = relationship("Investment", back_populates="investment_firm")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

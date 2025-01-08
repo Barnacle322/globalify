@@ -72,10 +72,7 @@
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
+                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
@@ -575,7 +572,7 @@
                         <div class="relative grid gap-4 @xl:grid-cols-2 @5xl:grid-cols-3">
                             {% if investment_firms and not unpaid %} {% for investment_firm in investment_firms %}
                             <article
-                                class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out"
+                                class="shadow-card-hover flex flex-col rounded-2xl bg-white p-6 transition-shadow ease-in-out"
                             >
                                 <div class="flex items-center justify-between">
                                     <button

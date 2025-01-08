@@ -3,9 +3,7 @@ createApp({
         AsideComponent,
         AsideMobileComponent,
         NavbarComponent,
-        Bookmark,
     },
-
     watch: {
         asideMinified(value) {
             localStorage.setItem("asideMinified", value);
@@ -43,6 +41,5 @@ createApp({
             asideExpanded: false,
             asideMinified: false,
         };
-    }
+    },
 }).mount("#app");
-

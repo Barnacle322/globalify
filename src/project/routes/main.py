@@ -18,6 +18,7 @@ from ..extensions import db
 from ..models import (
     Company,
     CompanyBookmark,
+    Investment,
     InvestmentFirm,
     InvestmentFirmBookmark,
     Investor,
@@ -28,6 +29,7 @@ from ..models import (
     UserPayment,
 )
 from ..schemas.company import CompanyBookmarkSchema
+from ..schemas.investment import InvestmentSchema
 from ..schemas.investor import (
     InvestmentFirmBookmarkSchema,
     InvestmentFirmSchema,
@@ -41,6 +43,7 @@ from ..utils.errors.error_messages import (
     NOT_AUTHORIZED,
 )
 from ..utils.parse_medium import parse_medium_html
+from ..utils.posthog import capture_profile_view
 
 main = Blueprint("main", __name__)
 
@@ -127,7 +130,38 @@ def investor_slug(slug):
     if not investor or not investor.is_public:
         return redirect(url_for("search.investor_search"))
 
-    return render_template("investor.html", investor=investor, user=current_user, status_type=status_type, msg=msg)
+    description = ""
+    if investor.about:
+        description = investor.about[:140]
+        if not description.endswith("."):
+            description += "."
+
+    if investor.firm_name:
+        if investor.position:
+            description += f" {investor.full_name} is also a {investor.position} in {investor.firm_name}."
+        else:
+            description += f" {investor.full_name} is also working with {investor.firm_name}."
+
+    if investor.location:
+        description += f" Located in {investor.location}."
+
+    twitter_slug = f"@{investor.twitter.split('/')[-1]}" if investor.twitter else None
+    picture_url = (
+        f"https://unavatar.io/twitter/{investor.twitter.split('/')[-1]}"
+        if investor.twitter
+        else "https://globalify.xyz/static/elements/metapreview.png"
+    )
+
+    return render_template(
+        "investor.html",
+        investor=investor,
+        description=description,
+        picture_url=picture_url,
+        twitter_slug=twitter_slug,
+        current_user=current_user if current_user.is_authenticated else None,
+        status_type=status_type,
+        msg=msg,
+    )
 
 
 @main.get("/investor/<slug>/get")
@@ -178,7 +212,42 @@ def get_investor(slug):
     else:
         is_bookmarked = False
 
+    capture_profile_view(
+        profile_type="investor",
+        properties={
+            "slug": slug,
+            "unpaid": unpaid,
+        },
+    )
+
     return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked})
+
+
+@main.get("/investment/<int:investor_id>/get")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investment_investor(investor_id):
+    model_investments = Investment.get_by_investor_id(investor_id)
+
+    if not model_investments:
+        return jsonify({"status": "error", "message": "Investments not found for this investor."}), 404
+
+    investments = []
+
+    for model_investment in model_investments:
+        investment = InvestmentSchema(
+            id=model_investment.id,
+            name=model_investment.funding_round.company.name,
+            round=model_investment.funding_round.round.name,
+            amount=model_investment.amount,
+            announced_date=model_investment.funding_round.announced_date.strftime("%b %d, %Y")
+            if model_investment.funding_round.announced_date
+            else None,
+        )
+        investments.append(json.loads(investment.model_dump_json()))
+
+    return jsonify({"investments": investments, "n_of_investments": len(investments)})
 
 
 @main.get("/check-investor")
@@ -186,6 +255,7 @@ def get_investor(slug):
 def check_investor():
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
+
     user_info = UserInfo.get_by_user_id(current_user.id)
     if not user_info:
         return jsonify({"status": "error", "message": "User Info not found."}), 404
@@ -213,6 +283,7 @@ def toggle_bookmark_investor(investor_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestorBookmark(investor_id=investor.id, user_id=current_user.id)
@@ -262,7 +333,7 @@ def get_investor_bookmark_ids():
     return jsonify({"bookmark_ids": bookmarks_ids})
 
 
-@main.get("/investment-firm/<slug>")
+@main.get("/investment-firm/<slug>/get")
 def get_investment_firm(slug):
     unpaid = False
 
@@ -309,10 +380,87 @@ def get_investment_firm(slug):
     else:
         is_bookmarked = False
 
+    capture_profile_view(
+        profile_type="investment_firm",
+        properties={
+            "slug": slug,
+            "unpaid": unpaid,
+        },
+    )
+
     return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
+@main.get("/investment-firm/investment/<int:firm_id>/get")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_investment_firm_investment(firm_id):
+    model_investments = Investment.get_by_investment_firm_id(firm_id)
+
+    if not model_investments:
+        return jsonify({"status": "error", "message": "Investments not found for this company."}), 404
+
+    investments = []
+
+    for model_investment in model_investments:
+        company_investment = InvestmentSchema(
+            id=model_investment.id,
+            name=model_investment.funding_round.company.name if model_investment.funding_round.company else None,
+            amount=model_investment.amount,
+            round=model_investment.funding_round.round.name,
+            announced_date=model_investment.funding_round.announced_date.strftime("%b %d, %Y")
+            if model_investment.funding_round.announced_date
+            else None,
+        )
+        investments.append(json.loads(company_investment.model_dump_json()))
+
+    return jsonify({"investments": investments})
+
+
 @main.get("/company/<slug>")
+def company_slug(slug):
+    company = Company.get_by_slug(slug)
+    if not company:
+        return redirect(url_for("search.search_companies"))
+
+    description = ""
+    if company.description:
+        description = company.description[:140]
+        if not description.endswith("."):
+            description += "."
+
+    if company.number_of_employees:
+        description += f" {company.name} has {company.number_of_employees} employees."
+
+    if company.industry:
+        description += f" Works with {company.industry.name}."
+
+    if company.preferred_round:
+        description += f" Prefered rounds: { company.preferred_round.name}."
+
+    if company.country:
+        description += f" Located in {company.country.name}."
+
+    twitter_slug = f"@{company.twitter_url.split('/')[-1]}" if company.twitter_url else None
+
+    picture_url = (
+        company.picture_url or f"https://unavatar.io/twitter/{company.twitter_url.split('/')[-1]}"
+        if company.twitter_url
+        else "https://globalify.xyz/static/elements/metapreview.png"
+    )
+
+    return render_template(
+        "company.html",
+        company=company,
+        picture_url=picture_url,
+        description=description,
+        twitter_slug=twitter_slug,
+        current_user=current_user if current_user.is_authenticated else None,
+    )
+
+
+@main.get("/company/<slug>/get")
 def get_company(slug):
     unpaid = False
 
@@ -359,6 +507,14 @@ def get_company(slug):
     else:
         is_bookmarked = False
 
+    capture_profile_view(
+        profile_type="company",
+        properties={
+            "slug": slug,
+            "unpaid": unpaid,
+        },
+    )
+
     return jsonify({"company": company, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
 
@@ -375,6 +531,7 @@ def toggle_bookmark_company(company_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = CompanyBookmark(company_id=company.id, user_id=current_user.id)
@@ -382,6 +539,37 @@ def toggle_bookmark_company(company_id):
     db.session.commit()
 
     return jsonify({"bookmarked": True}, 200)
+
+
+@main.get("/company/investment/<int:company_id>/get")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_company_investment(company_id):
+    model_investments = Investment.get_by_company_id(company_id)
+
+    if not model_investments:
+        return jsonify({"status": "error", "message": "Investments not found for this company."}), 404
+
+    investments = []
+
+    for model_investment in model_investments:
+        if model_investment.investor:
+            name = f"{model_investment.investor.first_name} {model_investment.investor.last_name}"
+        elif model_investment.investment_firm:
+            name = model_investment.investment_firm.name
+
+        company_investment = InvestmentSchema(
+            id=model_investment.id,
+            name=name,
+            amount=model_investment.amount,
+            round=model_investment.funding_round.round.name,
+            announced_date=model_investment.funding_round.announced_date.strftime("%b %d, %Y")
+            if model_investment.funding_round.announced_date
+            else None,
+        )
+        investments.append(json.loads(company_investment.model_dump_json()))
+    return jsonify({"investments": investments})
 
 
 @main.get("/bookmarks/company")
@@ -433,6 +621,7 @@ def toggle_bookmark_investment_firm(firm_id):
     if bookmark:
         db.session.delete(bookmark)
         db.session.commit()
+
         return jsonify({"bookmarked": False}, 200)
 
     new_bookmark = InvestmentFirmBookmark(investment_firm_id=investment_firm.id, user_id=current_user.id)
@@ -449,9 +638,45 @@ def toggle_bookmark_investment_firm(firm_id):
 def investment_firm_slug(slug):
     investment_firm = InvestmentFirm.get_by_slug(slug)
     if not investment_firm:
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("search.investment_firm_search"))
 
-    return render_template("investment_firm.html", investment_firm=investment_firm, user=current_user)
+    description = ""
+    if investment_firm.about:
+        description = investment_firm.about[:140]
+        if not description.endswith("."):
+            description += "."
+
+    if investment_firm.notable_investments:
+        investments_list = ", ".join(investment.name for investment in investment_firm.notable_investments)
+        description += f" {investment_firm.name} has notable investments in companies such as: {investments_list}."
+
+    if investment_firm.industries:
+        industries_list = ", ".join(industry.name for industry in investment_firm.industries)
+        description += f" Works with {industries_list}."
+
+    if investment_firm.rounds:
+        rounds_list = ", ".join(investment_round.name for investment_round in investment_firm.rounds)
+        description += f" Prefered rounds: {rounds_list}."
+
+    if investment_firm.location:
+        description += f" Located in {investment_firm.location}."
+
+    twitter_slug = f"@{investment_firm.twitter.split('/')[-1]}" if investment_firm.twitter else None
+
+    picture_url = (
+        f"https://unavatar.io/twitter/{investment_firm.twitter.split('/')[-1]}"
+        if investment_firm.twitter
+        else "https://globalify.xyz/static/elements/metapreview.png"
+    )
+
+    return render_template(
+        "investment_firm.html",
+        description=description,
+        picture_url=picture_url,
+        twitter_slug=twitter_slug,
+        investment_firm=investment_firm,
+        current_user=current_user if current_user.is_authenticated else None,
+    )
 
 
 @main.get("/bookmarks/investment-firms")
@@ -580,7 +805,6 @@ def sitemap():
             and not rule.rule.startswith("/notification")
             and not rule.rule.startswith("/payment")
             and not rule.rule.startswith("/suggestion")
-            and not rule.rule.startswith("/demo-search")
             and not rule.rule.startswith("/check-investor")
             and not rule.rule.startswith("/tier-selection")
             and not rule.rule.startswith("/logout")

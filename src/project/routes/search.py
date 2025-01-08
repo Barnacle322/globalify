@@ -27,7 +27,8 @@ from ..models import (
 )
 from ..schemas.notification import NotificationItem, NotificationLayout
 from ..schemas.user import SearchHistorySchema
-from ..utils.decorators import check_user_info_complete, check_verification
+from ..utils.decorators import check_user_info_complete, check_verification, check_user_investor_mode, \
+    check_user_investor_mode_for_suggestions
 from ..utils.enums import NotificationType, SearchHistoryType
 from ..utils.funcs import generate_pagination
 from ..utils.posthog import capture_event, capture_page_visit
@@ -296,6 +297,7 @@ def search_investment_firms():
 
 
 @search.route("/search/companies", methods=["GET", "POST"])
+@check_user_investor_mode
 def search_companies():
     capture_page_visit("company_search")
 
@@ -368,6 +370,7 @@ def search_companies():
 @login_required
 @check_user_info_complete
 @check_verification
+@check_user_investor_mode_for_suggestions
 def get_suggestions():
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
@@ -415,6 +418,7 @@ def get_suggestions():
 @login_required
 @check_user_info_complete
 @check_verification
+@check_user_investor_mode_for_suggestions
 def get_suggestion_investment_firms():
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
@@ -459,6 +463,7 @@ def get_suggestion_investment_firms():
 @login_required
 @check_user_info_complete
 @check_verification
+@check_user_investor_mode_for_suggestions
 def get_suggestion_companies():
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))

@@ -100,7 +100,7 @@ def search_entities(search_input):
 
 @search.route("/search", methods=["GET", "POST"])
 def investor_search():
-    if current_user.is_investor_mode:
+    if current_user.is_investor_mode_active:
         return redirect(url_for("search.search_companies"))
     capture_page_visit("investor_search")
 

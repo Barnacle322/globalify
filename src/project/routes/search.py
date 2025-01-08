@@ -101,7 +101,7 @@ def search_entities(search_input):
 @search.route("/search", methods=["GET", "POST"])
 def investor_search():
     if current_user.is_authenticated and current_user.is_investor_mode_active:
-        return redirect(url_for("search.company_search"))
+        return redirect(url_for("search.search_companies"))
 
     capture_page_visit("investor_search")
 
@@ -207,7 +207,7 @@ def investor_search():
 @search.route("/search/investment-firms", methods=["GET", "POST"])
 def search_investment_firms():
     if current_user.is_authenticated and current_user.is_investor_mode_active:
-        return redirect(url_for("search.company_search"))
+        return redirect(url_for("search.search_companies"))
 
     capture_page_visit("investment_firm_search")
 

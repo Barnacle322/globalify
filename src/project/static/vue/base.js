@@ -472,18 +472,8 @@ const Bookmark = defineComponent({
             if (!url) return;
             return url.split("/").pop();
         },
-        checkIfCompanyExists(){
-            if (this.$refs.company) {
-                console.log("Company element is in the DOM.");
-                this.$refs.company.setAttribute("data-selected", "true");
-                this.selectedTab = "company"
-            } else {
-                console.log("Company element is not in the DOM.");
-        }
-        },
     },
     async mounted() {
-        // this.checkIfCompanyExists();
         await this.setupInfinteScroll();
         window.addEventListener("click", this.closeRemoveBookmark);
         window.addEventListener("click", this.closeDropdownOutside);

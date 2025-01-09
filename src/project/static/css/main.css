@@ -2485,6 +2485,9 @@ select {
 .border-t {
   border-top-width: 1px;
 }
+.border-b-\[3px\] {
+  border-bottom-width: 3px;
+}
 .border-emerald-200 {
   --tw-border-opacity: 1;
   border-color: rgb(167 243 208 / var(--tw-border-opacity));
@@ -2546,6 +2549,10 @@ select {
 .border-white {
   --tw-border-opacity: 1;
   border-color: rgb(255 255 255 / var(--tw-border-opacity));
+}
+.border-gray-800 {
+  --tw-border-opacity: 1;
+  border-color: rgb(31 41 55 / var(--tw-border-opacity));
 }
 .bg-\[\#01151d\] {
   --tw-bg-opacity: 1;

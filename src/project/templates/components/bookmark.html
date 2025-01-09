@@ -27,25 +27,25 @@
                     class="py-2 transition-all ease-in-out hover:border-b-[3px]"
                     :class="selectedTab ==='investor' ? 'border-b-[3px] border-gray-800': 'border-gray-300'"
                 >
-                    <button>Investor</button>
+                    Investor
                 </li>
 
                 <li
                     @click="selectedTab = 'investment_firm'"
                     name="investment_firm"
-                    class="border-gray-300 py-2 transition-all ease-in-out hover:border-b-[3px]"
+                    class="py-2 transition-all ease-in-out hover:border-b-[3px]"
                     :class="selectedTab ==='investment_firm' ? 'border-b-[3px] border-gray-800': 'border-gray-300'"
                 >
-                    <button>Investment Firm</button>
+                    Investment Firm
                 </li>
                 {% else %}
                 <li
                     @click="selectedTab = 'company'"
                     name="company"
-                    class="border-gray-300 py-2 transition-all ease-in-out hover:border-b-[3px]"
+                    class="py-2 transition-all ease-in-out hover:border-b-[3px]"
                     :class="selectedTab ==='company' ? 'border-b-[3px] border-gray-800': 'border-gray-300'"
                 >
-                    <button>Company</button>
+                    Company
                 </li>
                 {% endif %}
             </ul>
@@ -142,7 +142,7 @@
                     )
                 </span>
             </div>
-            <div class="h-2" id="bookmark-sentinel"></div>
+            <div class="h-2" ref="sentinel"></div>
             <div class="m-3 flex items-center justify-center" v-if="loading && reachedEnd">
                 <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

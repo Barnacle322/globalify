@@ -614,7 +614,6 @@ def duplicates():
     try:
         while count < 100000:
             count += 1
-            # Получение данных
             investors = db.session.query(Investor).order_by(Investor.id).offset(offset).limit(batch_size)
             if not investors:
                 break
@@ -628,7 +627,6 @@ def duplicates():
     except Exception as e:
         print(f"Error fetching investors at offset {offset}: {e}")
 
-    # Поиск дубликатов
     duplicates_with_confidence = []
     for investors in duplicate_groups.values():
         if len(investors) <= 1:
@@ -638,11 +636,9 @@ def duplicates():
                 score = calculate_confidence_score(inv1, inv2)
                 if score >= confidence_threshold:
                     duplicates_with_confidence.append((inv1, inv2, score))
-    print(duplicates_with_confidence)
-    # Пагинация
+
     base_query = db.select(Investor)
     pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
-    pagination_info = generate_pagination(page, pagination.pages, per_page)
 
     return render_template(
         "admin/duplicates_investors.html",

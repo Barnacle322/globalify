@@ -299,15 +299,10 @@ const Bookmark = defineComponent({
             if (newVal === "investor") {
                 this.$refs.investor.setAttribute("data-selected", "true");
                 this.$refs.investment_firm.setAttribute("data-selected", "false");
-                this.$refs.company.setAttribute("data-selected", "false");
+                // this.$refs.company.setAttribute("data-selected", "false");
             } else if (newVal === "investment_firm") {
-                this.$refs.investor.setAttribute("data-selected", "false");
                 this.$refs.investment_firm.setAttribute("data-selected", "true");
-                this.$refs.company.setAttribute("data-selected", "false");
-            } else if (newVal === "company") {
                 this.$refs.investor.setAttribute("data-selected", "false");
-                this.$refs.investment_firm.setAttribute("data-selected", "false");
-                this.$refs.company.setAttribute("data-selected", "true");
             }
             this.page = 2;
             this.setupInfinteScroll();
@@ -478,8 +473,18 @@ const Bookmark = defineComponent({
             if (!url) return;
             return url.split("/").pop();
         },
+        checkIfCompanyExists(){
+            if (this.$refs.company) {
+                console.log("Company element is in the DOM.");
+                this.$refs.company.setAttribute("data-selected", "true");
+                this.selectedTab = "company"
+            } else {
+                console.log("Company element is not in the DOM.");
+        }
+        },
     },
     async mounted() {
+        this.checkIfCompanyExists();
         await this.setupInfinteScroll();
         window.addEventListener("click", this.closeRemoveBookmark);
         window.addEventListener("click", this.closeDropdownOutside);

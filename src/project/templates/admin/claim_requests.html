@@ -125,9 +125,14 @@
                         >
                     </div>
                     {% if claim_requests %}
-
-                    <div class="flex flex-col gap-3 p-4">
-                        {% for claim_request in claim_requests %}
+                    <div class="flex flex-col gap-3">
+                        {% if status_type %} {% if status_type == '3' %}
+                        <div class="rounded-xl text-red-500">{{ msg }}</div>
+                        {% endif %} {% if status_type == '2' %}
+                        <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                        {% endif %} {% if status_type == '1' %}
+                        <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                        {% endif %} {% endif %} {% for claim_request in claim_requests %}
                         <div
                             class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 sm:flex-row"
                         >

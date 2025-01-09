@@ -38,6 +38,7 @@ INVALID_CLAIM_REQUEST = "Invalid claim status."
 NO_CLAIM_REQUEST = "Investor data restored."
 
 INVESTOR_ALREADY_CLAIMED = "You have already claimed this investor."
+COMPANY_ALREADY_CLAIMED = "You have already claimed this company."
 NO_CLAIMED_INVESTOR_PROFILE = "You don't have a claimed investor profile yet."
 NO_BACKUP_DATA = "No backup data found."
 

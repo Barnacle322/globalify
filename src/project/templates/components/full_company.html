@@ -88,30 +88,6 @@
                     />
 
                     <h1 class="text-4xl font-semibold" v-text="company.name"></h1>
-                    <div v-if="company.user_id" class="relative">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="rgb(14 165 233)"
-                            class="size-5"
-                            @mouseenter="showPopover = true"
-                            @mouseleave="showPopover = false"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.883l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
-                                clip-rule="evenodd"
-                            />
-                        </svg>
-                        <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
-                            <div
-                                v-if="showPopover"
-                                class="absolute left-auto right-full top-full z-10 mt-1 w-48 rounded border border-gray-300 bg-white p-2 shadow-lg md:left-full"
-                            >
-                                This user is verified.
-                            </div>
-                        </transition>
-                    </div>
                     <div class="relative ml-auto self-start" ref="dropdownContainer">
                         <button @click.stop="dropdownOpened = !dropdownOpened">
                             <svg

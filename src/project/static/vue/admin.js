@@ -1606,7 +1606,9 @@ createApp({
                 body: JSON.stringify({ status: "approved" }),
             })
                 .then((response) => {
-                    if (response.ok) {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else if (response.ok) {
                         window.location.reload();
                     }
                 })
@@ -1624,7 +1626,9 @@ createApp({
                 body: JSON.stringify({ status: "approved" }),
             })
                 .then((response) => {
-                    if (response.ok) {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else if (response.ok) {
                         window.location.reload();
                     }
                 })

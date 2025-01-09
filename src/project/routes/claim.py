@@ -23,6 +23,7 @@ from ..models import (
 from ..utils.enums import Events, Status, StatusType
 from ..utils.errors.error_messages import (
     CLAIM_REQUEST_ALREADY_SUBMITTED,
+    COMPANY_ALREADY_CLAIMED,
     EXPIRED_CODE,
     INVALID_CODE,
     INVALID_EMAIL,
@@ -193,11 +194,6 @@ def company_manual(slug):
         status = Status(StatusType.ERROR, "CAPTCHA verification failed.").get_status()
         return redirect(url_for("claim.company_manual_view", slug=slug, _external=False, **status))
 
-    existing_claim = Company.get_by_user_id(current_user.id)
-    if existing_claim:
-        status = Status(StatusType.ERROR, "You can't claim another company!").get_status()
-        return redirect(url_for("claim.company_manual_view", slug=slug, _external=False, **status))
-
     company = Company.get_by_slug(slug)
     if not company:
         return jsonify({"status": "error", "message": "Company not found."}), 404
@@ -208,7 +204,7 @@ def company_manual(slug):
             status = Status(StatusType.ERROR, CLAIM_REQUEST_ALREADY_SUBMITTED).get_status()
             return redirect(url_for("claim.manual_view", slug=slug, _external=False, **status))
         elif claim_request.status.value == "approved":
-            status = Status(StatusType.ERROR, INVESTOR_ALREADY_CLAIMED).get_status()
+            status = Status(StatusType.ERROR, COMPANY_ALREADY_CLAIMED).get_status()
             return redirect(url_for("claim.manual_view", slug=slug, _external=False, **status))
 
     claim_request = ClaimRequest(

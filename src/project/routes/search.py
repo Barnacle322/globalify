@@ -51,9 +51,6 @@ def home():
 
 @search.route("/stream/<prompt>")
 def streamed_response(prompt):
-    print("\n\n\n\n\n\n\n\n\n\n")
-    print(prompt)
-
     def generate():
         response = func(prompt)
         for res in response:

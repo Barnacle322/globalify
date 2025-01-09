@@ -299,7 +299,6 @@ const Bookmark = defineComponent({
             if (newVal === "investor") {
                 this.$refs.investor.setAttribute("data-selected", "true");
                 this.$refs.investment_firm.setAttribute("data-selected", "false");
-                // this.$refs.company.setAttribute("data-selected", "false");
             } else if (newVal === "investment_firm") {
                 this.$refs.investment_firm.setAttribute("data-selected", "true");
                 this.$refs.investor.setAttribute("data-selected", "false");

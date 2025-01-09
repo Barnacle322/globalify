@@ -550,7 +550,8 @@ const app = createApp({
         this.setupMenuToggle();
         this.initializeValuesFromParams();
         this.updateLinksWithQueryParams();
-
+        this.fetchInvestorBookmarks()
+        this.fetchInvestmentFirmBookmarks()
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",

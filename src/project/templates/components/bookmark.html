@@ -19,28 +19,28 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
             </div>
-            <ul class="mt-2 flex gap-3 text-sm">
+            <ul class="mt-2 flex gap-3 text-sm" ref="bookmarktabs">
                 {% if not user.is_investor_mode_active%}
                 <li
                     @click="selectedTab = 'investor'"
-                    data-selected="true"
-                    ref="investor"
-                    class="border-gray-300 py-2 transition-all ease-in-out hover:border-b-[3px] data-[selected=true]:border-b-[3px] data-[selected=true]:border-gray-800"
+                    name="investor"
+                    :class="selectedTab ==='investor' ? 'border-b-[3px] border-gray-800': 'border-gray-300'"
                 >
                     <button>Investor</button>
                 </li>
 
                 <li
                     @click="selectedTab = 'investment_firm'"
-                    ref="investment_firm"
-                    class="border-gray-300 py-2 transition-all ease-in-out hover:border-b-[3px] data-[selected=true]:border-b-[3px] data-[selected=true]:border-gray-800"
+                    name="investment_firm"
+                    :class="selectedTab ==='investment_firm' ? 'border-b-[3px] border-gray-800': 'border-gray-300'"
                 >
                     <button>Investment Firm</button>
                 </li>
-                {% endif %} {% if user.is_investor_mode_active %}
+                {% else %}
                 <li
-                    ref="company"
-                    class="border-gray-300 py-2 transition-all ease-in-out hover:border-b-[3px] data-[selected=true]:border-b-[3px] data-[selected=true]:border-gray-800"
+                    @click="selectedTab = 'company'"
+                    name="company"
+                    :class="selectedTab ==='company' ? 'border-b-[3px] border-gray-800': 'border-gray-300'"
                 >
                     <button>Company</button>
                 </li>

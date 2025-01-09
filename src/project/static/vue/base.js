@@ -296,13 +296,13 @@ const Bookmark = defineComponent({
                 return;
             }
 
-            if (newVal === "investor") {
-                this.$refs.investor.setAttribute("data-selected", "true");
-                this.$refs.investment_firm.setAttribute("data-selected", "false");
-            } else if (newVal === "investment_firm") {
-                this.$refs.investment_firm.setAttribute("data-selected", "true");
-                this.$refs.investor.setAttribute("data-selected", "false");
-            }
+            // if (newVal === "investor") {
+            //     this.$refs.investor.setAttribute("data-selected", "true");
+            //     this.$refs.investment_firm.setAttribute("data-selected", "false");
+            // } else if (newVal === "investment_firm") {
+            //     this.$refs.investment_firm.setAttribute("data-selected", "true");
+            //     this.$refs.investor.setAttribute("data-selected", "false");
+            // }
             this.page = 2;
             this.setupInfinteScroll();
         },
@@ -483,10 +483,11 @@ const Bookmark = defineComponent({
         },
     },
     async mounted() {
-        this.checkIfCompanyExists();
+        // this.checkIfCompanyExists();
         await this.setupInfinteScroll();
         window.addEventListener("click", this.closeRemoveBookmark);
         window.addEventListener("click", this.closeDropdownOutside);
+        this.selectedTab = this.$refs.bookmarktabs.children[0].getAttribute("name")
     },
     beforeUnmount() {
         this.observer.disconnect();
@@ -497,7 +498,7 @@ const Bookmark = defineComponent({
         return {
             bookmarks: [],
             openedDropdownId: null,
-            selectedTab: "investor",
+            selectedTab: "",
             observer: null,
             loading: false,
             reachedEnd: false,

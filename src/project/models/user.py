@@ -495,13 +495,19 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     preferred_round: Mapped[Round] = relationship(init=False)
     industry: Mapped[Industry] = relationship(init=False)
 
+
+
+
+
+
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     slug: Mapped[str] = mapped_column(String, nullable=True, unique=True, init=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     number_of_employees: Mapped[int | None] = mapped_column(Integer, nullable=True, init=False)
     website_url: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=True, init=False) # delete this field
     linkedin_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     instagram_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     twitter_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
@@ -884,6 +890,7 @@ class CompanyBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
         )
 
 
+# Claim I need to create UserCompany
 class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     user: Mapped[User] = relationship(User, back_populates="user_companies", uselist=True, init=False, lazy="joined")
     company: Mapped[Company] = relationship(

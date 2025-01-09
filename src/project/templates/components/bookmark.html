@@ -24,6 +24,7 @@
                 <li
                     @click="selectedTab = 'investor'"
                     name="investor"
+                    class="py-2 transition-all ease-in-out hover:border-b-[3px]"
                     :class="selectedTab ==='investor' ? 'border-b-[3px] border-gray-800': 'border-gray-300'"
                 >
                     <button>Investor</button>
@@ -32,6 +33,7 @@
                 <li
                     @click="selectedTab = 'investment_firm'"
                     name="investment_firm"
+                    class="border-gray-300 py-2 transition-all ease-in-out hover:border-b-[3px]"
                     :class="selectedTab ==='investment_firm' ? 'border-b-[3px] border-gray-800': 'border-gray-300'"
                 >
                     <button>Investment Firm</button>
@@ -40,6 +42,7 @@
                 <li
                     @click="selectedTab = 'company'"
                     name="company"
+                    class="border-gray-300 py-2 transition-all ease-in-out hover:border-b-[3px]"
                     :class="selectedTab ==='company' ? 'border-b-[3px] border-gray-800': 'border-gray-300'"
                 >
                     <button>Company</button>

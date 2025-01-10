@@ -1,3 +1,52 @@
+const GeminiComponent = defineComponent({
+    template: "#gemini-template",
+    emits: ["close-gemini"],
+    methods: {
+        startStream() {
+            this.response = [];
+            this.queue = [];
+            if (this.intervalId) {
+                clearInterval(this.intervalId);
+            }
+            const eventSource = new EventSource(`/stream/${this.prompt}`);
+            eventSource.onmessage = (event) => {
+                // Разделяем текст на слова и добавляем пробелы, если их нет
+                const cleanData = event.data.replace(/([^\s])([A-Z])/g, "$1 $2");
+                this.queue.push(cleanData);
+            };
+            eventSource.onerror = () => {
+                eventSource.close();
+            };
+            this.intervalId = setInterval(() => {
+                if (this.queue.length > 0) {
+                    this.response.push(this.queue.shift());
+                }
+            }, 1); // Adjust the interval time as needed
+        },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        closeGemini() {
+            this.$emit("close-gemini");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-gemini");
+            }
+        },
+    },
+    data() {
+        return {
+            prompt: "",
+            response: [],
+            queue: [],
+            intervalId: null,
+            isExpanded: false,
+            isGeminiOpened: true,
+        };
+    },
+});
+
 const FullInvestor = defineComponent({
     template: "#full-investor-template",
     props: { slug: String, rendercontacts: Boolean },
@@ -497,6 +546,7 @@ const app = createApp({
         FullInvestmentFirm,
         FullCompany,
         SearchHistory,
+        GeminiComponent,
     },
     watch: {
         asideMinified(value) {
@@ -1012,6 +1062,7 @@ const app = createApp({
             asideMinified: false,
             openAdvanced: false,
             isSearchHistoryVisible: false,
+            isGeminiOpened: true,
             selectedInvestorSlug: null,
             selectedInvestmentFirmSlug: null,
             selectedCompanySlug: null,

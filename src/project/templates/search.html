@@ -111,6 +111,8 @@
     {{ full_investor.render(user) }}
     {% import "components/search_history.html" as search_history %}
     {{ search_history.render(user) }}
+    {% import "components/gemini.html" as gemini %}
+    {{ gemini.render(user) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component
@@ -145,6 +147,16 @@
                     :rendercontacts="true"
                     v-if="selectedInvestorSlug"
                 ></full-investor>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div
+                    v-if="isGeminiOpened"
+                    @click="isGeminiOpened = False"
+                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
+                <gemini-component @close-gemini="isGeminiOpened = False" v-if="isGeminiOpened"></gemini-component>
             </transition>
 
             <div class="relative w-full">

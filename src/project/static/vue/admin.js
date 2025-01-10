@@ -1716,8 +1716,6 @@ createApp({
             window.location.href = `${basePath}/filter?${queryParams}`;
         },
         selectField(fieldName, investorType, value, blockIndex) {
-            if (fieldName === "id") return;
-
             if (!this.selectedFields[blockIndex]) {
                 this.selectedFields[blockIndex] = {};
             }
@@ -1726,27 +1724,14 @@ createApp({
                 type: investorType,
                 value: investorType === "none" ? null : value,
             };
-            if (!this.selectedFields[outerLoop]) {
-                this.$set(this.selectedFields, outerLoop, {});
-            }
-            this.selectedFields[outerLoop][attr] = { type, value };
         },
         isFieldSelected(attr, type, outerLoop) {
-            if (!this.selectedFields[outerLoop] || !this.selectedFields[outerLoop][attr]) {
-                return type === "A";
-            }
-
-            return this.selectedFields[outerLoop][attr].type === type;
+            const selectedField = this.selectedFields[outerLoop]?.[attr];
+            return selectedField ? selectedField.type === type : false;
         },
         getSelectedValue(attr, blockIndex) {
-            if (!this.selectedFields[blockIndex] || !this.selectedFields[blockIndex][attr]) {
-                return "---";
-            }
-
-            const field = this.selectedFields[blockIndex][attr];
-            return field.value === null ? "None" : field.value;
+            return this.selectedFields[blockIndex]?.[attr]?.value ?? "---";
         },
-
         // sendInvestorData(blockIndex) {
         //     const block = this.selectedFields[blockIndex];
         //     const selectedData = {};

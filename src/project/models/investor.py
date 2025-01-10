@@ -273,8 +273,8 @@ class InvestorBase(db.Model):
 class Investor(InvestorBase):
     user: Mapped[User | None] = relationship("User", back_populates="investor", uselist=False)
     notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=investor_notable_investment)
-    rounds: Mapped[list[Round]] = relationship(secondary=investor_round) #
-    industries: Mapped[list[Industry]] = relationship(secondary=investor_industry) #
+    rounds: Mapped[list[Round]] = relationship(secondary=investor_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=investor_industry)
     claim_verifications: Mapped[list[ClaimVerification]] = relationship(
         "ClaimVerification", back_populates="investor", uselist=True
     )

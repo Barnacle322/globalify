@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 
 from flask import Blueprint, redirect, render_template, request, url_for
 from sqlalchemy import or_, select
@@ -590,16 +590,16 @@ def filter_investors():
 
 def calculate_confidence_score(investor1, investor2):
     score = 0
-    if investor1.first_name == investor2.first_name:
+    if investor1.get("first_name") == investor2.get("first_name"):
         score += 1
-    if investor1.last_name == investor2.last_name:
+    if investor1.get("last_name") == investor2.get("last_name"):
         score += 1
-    if investor1.email == investor2.email:
+    if investor1.get("email") == investor2.get("email"):
         score += 2
     return score
 
 
-@investor.get("/duplicates")
+@investor.get("/duplicatess/")
 @admin_only
 def duplicates():
     query_params = request.args
@@ -607,21 +607,51 @@ def duplicates():
     per_page = query_params.get("per_page", 12, type=int)
     batch_size = 1000
     confidence_threshold = 1
-
     duplicate_groups = defaultdict(list)
     offset = 0
     count = 0
+
+    fields_order = [
+        "id",
+        "first_name",
+        "last_name",
+        "email",
+        "slug",
+        "firm_name",
+        "about",
+        "position",
+        "website",
+        "linkedin",
+        "twitter",
+        "phone_number",
+        "n_investments",
+        "n_exits",
+        "min_investment",
+        "max_investment",
+        "location",
+        "is_public",
+        "is_approved",
+        "rounds",
+        "industries",
+    ]
+
     try:
-        while count < 100000:
+        while count < batch_size:
             count += 1
-            investors = db.session.query(Investor).order_by(Investor.id).offset(offset).limit(batch_size)
+            investors = db.session.query(Investor).order_by(Investor.id).offset(offset).limit(batch_size).all()
             if not investors:
                 break
 
-            # Группировка
             for investor in investors:
                 key = (investor.first_name.lower(), investor.last_name.lower(), investor.email.lower())  # type: ignore
-                duplicate_groups[key].append(investor)
+
+                investor_data = OrderedDict()
+                for field in fields_order:
+                    if field not in ["bias", "coordinates", "user_id", "search_index"]:
+                        investor_data[field] = getattr(investor, field)
+
+                duplicate_groups[key].append(investor_data)
+
             offset += batch_size
 
     except Exception as e:

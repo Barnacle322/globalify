@@ -1246,6 +1246,12 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.select(exists().where(InvestorBookmark.investor_id == investor_id, InvestorBookmark.user_id == user_id))
         )
 
+    @staticmethod
+    def get_bookmarked_investors(user_id: int) -> set:
+        stmt = db.select(InvestorBookmark.investor_id).filter_by(user_id=user_id)
+        result = db.session.execute(stmt).scalars().all()
+        return set(result)
+
 
 class InvestmentFirm(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -1892,6 +1898,11 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             )
         )
 
+    @staticmethod
+    def get_bookmarked_investment_firms(user_id: int) -> set:
+        stmt = db.select(InvestmentFirmBookmark.investment_firm_id).filter_by(user_id=user_id)
+        result = db.session.execute(stmt).scalars().all()
+        return set(result)
 
 investor_backup_round = db.Table(
     "investor_backup_round",

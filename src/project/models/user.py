@@ -872,6 +872,12 @@ class CompanyBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.select(exists().where(CompanyBookmark.company_id == company_id, CompanyBookmark.user_id == user_id))
         )
 
+    @staticmethod
+    def get_bookmarked_companies(user_id: int) -> set:
+        stmt = db.select(CompanyBookmark.company_id).filter_by(user_id=user_id)
+        result = db.session.execute(stmt).scalars().all()
+        return set(result)
+
 
 class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     user: Mapped[User] = relationship(User, back_populates="user_companies", uselist=True, init=False, lazy="joined")
@@ -977,6 +983,10 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     def set_private(company_id: int) -> None:
         db.session.execute(update(UserCompany).where(UserCompany.company_id == company_id).values(is_public=False))
         db.session.commit()
+
+    @staticmethod
+    def get_bookmarked_companies(user_id: int) -> set:
+        pass
 
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):

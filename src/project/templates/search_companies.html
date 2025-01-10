@@ -431,7 +431,7 @@
                                     <button @click="toggleCompanyBookmark({{company.id}})">
                                         <svg
                                             id="bookmark-svg-company-{{ company.id }}"
-                                            :style="{ fill: companyBookmarkIds.includes({{company.id}}) ? '#FFC9FC' : 'none' }"
+                                            style="fill: {{ '#FFC9FC' if company.id in bookmarked_companies else 'none' }}"
                                             xmlns="http://www.w3.org/2000/svg"
                                             viewBox="0 0 24 24"
                                             stroke-width="1.5"

@@ -550,9 +550,6 @@ const app = createApp({
         this.setupMenuToggle();
         this.initializeValuesFromParams();
         this.updateLinksWithQueryParams();
-        this.fetchInvestorBookmarks()
-        this.fetchInvestmentFirmBookmarks()
-        this.fetchCompanyBookmarks()
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
@@ -924,8 +921,10 @@ const app = createApp({
                     const data = await response.json();
                     if (data[0].bookmarked) {
                         this.investorBookmakrIds.push(investorId);
+                         document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = '#FFC9FC';
                     } else {
                         this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== investorId);
+                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = 'none';
                     }
                 }
             } catch (error) {
@@ -946,8 +945,10 @@ const app = createApp({
                     const data = await response.json();
                     if (data[0].bookmarked) {
                         this.investmentFirmBookmakrIds.push(firmId);
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = '#FFC9FC';
                     } else {
                         this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== firmId);
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = 'none';
                     }
                 }
             } catch (error) {
@@ -968,8 +969,10 @@ const app = createApp({
                     const data = await response.json();
                     if (data[0].bookmarked) {
                         this.companyBookmarkIds.push(companyId);
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = '#FFC9FC';
                     } else {
                         this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== companyId);
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = 'none';
                     }
                 }
             } catch (error) {

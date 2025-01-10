@@ -585,7 +585,7 @@
                                     <button @click="toggleInvestmentFirmBookmark({{investment_firm.id}})">
                                         <svg
                                             id="bookmark-svg-firm-{{ investment_firm.id }}"
-                                            :style="{ fill: investmentFirmBookmakrIds.includes({{investment_firm.id}}) ? '#FFC9FC' : 'none' }"
+                                            style="fill: {{ '#FFC9FC' if investment_firm.id in bookmarked_investment_firms else 'none' }}"
                                             xmlns="http://www.w3.org/2000/svg"
                                             viewBox="0 0 24 24"
                                             stroke-width="1.5"

@@ -58,6 +58,9 @@ def streamed_response(prompt):
                 for part in candidate.content.parts:
                     yield f"data: {part.text}\n\n".encode("utf-8")  # Ensure the chunk is in bytes and formatted for SSE
 
+        print("\n\n\n\n\n\n\n\n")
+        print(response)
+
     return Response(stream_with_context(generate()), content_type="text/event-stream")
 
 

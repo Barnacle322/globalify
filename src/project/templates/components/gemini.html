@@ -93,8 +93,12 @@
                 </div>
             </div>
 
-            <div class="chat-container">
-                <div v-for="(char, index) in response" :key="index" class="inline-block fade-in" v-text="char"></div>
+            <div class="w-full mt-6 flex flex-col gap-4">
+                <div v-for="(char, index) in response" :key="index" class="flex items-start">
+                    <div class="bg-gray-100 text-gray-800 rounded-lg p-4 max-w-[75%] shadow-sm text-sm sm:text-base">
+                        <span v-text="char"></span>
+                    </div>
+                </div>
             </div>
         </main>
     </article>

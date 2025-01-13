@@ -19,6 +19,7 @@ const GeminiComponent = defineComponent({
             };
             this.intervalId = setInterval(() => {
                 if (this.queue.length > 0) {
+                    console.log(this.queue);
                     this.response.push(this.queue.shift());
                 }
             }, 1); // Adjust the interval time as needed
@@ -43,6 +44,7 @@ const GeminiComponent = defineComponent({
             intervalId: null,
             isExpanded: false,
             isGeminiOpened: true,
+            messages: Object(),
         };
     },
 });

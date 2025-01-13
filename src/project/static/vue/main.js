@@ -2,7 +2,7 @@ const GeminiComponent = defineComponent({
     template: "#gemini-template",
     emits: ["close-gemini"],
     methods: {
-        startStream() {
+        async startStream() {
             this.response = [];
             this.queue = [];
             if (this.intervalId) {
@@ -10,7 +10,6 @@ const GeminiComponent = defineComponent({
             }
             const eventSource = new EventSource(`/stream/${this.prompt}`);
             eventSource.onmessage = (event) => {
-                // Разделяем текст на слова и добавляем пробелы, если их нет
                 const cleanData = event.data.replace(/([^\s])([A-Z])/g, "$1 $2");
                 this.queue.push(cleanData);
             };
@@ -19,10 +18,37 @@ const GeminiComponent = defineComponent({
             };
             this.intervalId = setInterval(() => {
                 if (this.queue.length > 0) {
-                    console.log(this.queue);
                     this.response.push(this.queue.shift());
                 }
-            }, 1); // Adjust the interval time as needed
+            }, 1);
+        },
+        async sendMessage(userId) {
+            if (!this.prompt.trim()) return;
+
+            try {
+                const response = await fetch(`/message/chat/${userId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        message: this.prompt,
+                        type: "USER",
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("Failed to send message:", errorData.error);
+                    return;
+                }
+
+                const message = await response.json();
+                this.response.push(message.message);
+                this.prompt = "";
+            } catch (error) {
+                console.error("Error sending message:", error);
+            }
         },
         toggleExpansion() {
             this.isExpanded = !this.isExpanded;
@@ -36,6 +62,7 @@ const GeminiComponent = defineComponent({
             }
         },
     },
+
     data() {
         return {
             prompt: "",

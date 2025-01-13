@@ -67,6 +67,7 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
         "EmailVerification", back_populates="user", init=False
     )
 
+    messages: Mapped[list[Chat]] = relationship("Chat", back_populates="user", uselist=True, init=False)
     claim_requests: Mapped[list[ClaimRequest]] = relationship(
         "ClaimRequest", back_populates="user", uselist=True, init=False
     )

@@ -10,6 +10,7 @@ from .investor import (
     InvestorOriginPoint,
     NotableInvestment,
 )
+from .message import Chat, Message
 from .search import SearchHistory
 from .user import (
     Company,
@@ -48,4 +49,6 @@ __all__ = [
     "FundingRound",
     "Investment",
     "SearchHistory",
+    "Chat",
+    "Message",
 ]

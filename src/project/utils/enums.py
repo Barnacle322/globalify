@@ -3,6 +3,11 @@ from enum import Enum
 from ..utils.errors.error_messages import UNKNOWN_ERROR
 
 
+class SenderType(Enum):
+    USER = "user"
+    GEMINI = "gemini"
+
+
 class NotificationType(Enum):
     INFO = "info"
     WARNING = "warning"

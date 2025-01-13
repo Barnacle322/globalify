@@ -1248,8 +1248,7 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_bookmarked_investors(user_id: int) -> set:
-        stmt = db.select(InvestorBookmark.investor_id).filter_by(user_id=user_id)
-        result = db.session.execute(stmt).scalars().all()
+        result = db.session.execute(db.select(InvestorBookmark.investor_id).where(user_id=user_id)).scalars().all()
         return set(result)
 
 

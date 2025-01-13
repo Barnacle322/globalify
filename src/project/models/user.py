@@ -984,10 +984,6 @@ class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
         db.session.execute(update(UserCompany).where(UserCompany.company_id == company_id).values(is_public=False))
         db.session.commit()
 
-    @staticmethod
-    def get_bookmarked_companies(user_id: int) -> set:
-        pass
-
 
 class CompanyInvitation(MappedAsDataclass, db.Model, unsafe_hash=True):
     company: Mapped[Company] = relationship(Company, back_populates="company_invitations", uselist=True, init=False)

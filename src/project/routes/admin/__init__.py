@@ -182,10 +182,6 @@ def edit_claim_company_request(id):
         status = Status(StatusType.ERROR, INVALID_CLAIM_REQUEST).get_status()
         return redirect(url_for("admin.claim_company_requests_view", _external=True, **status))
     elif claim_status == RequestStatus.APPROVED.value:
-        claim_request.status = RequestStatus.APPROVED
-        claim_request.approved_at = datetime.now(UTC)
-        claim_request.approved_by = current_user.id
-
         existing_user_company = UserCompany.get_by_user_and_company_id(claiming_user.id, company.id)
         if existing_user_company:
             status = Status(StatusType.ERROR, USER_ALREADY_IN_COMPANY).get_status()
@@ -193,6 +189,10 @@ def edit_claim_company_request(id):
 
         existing_user_companies = UserCompany.get_by_user_id(user_id=current_user.id)
         is_primary = not existing_user_companies
+
+        claim_request.status = RequestStatus.APPROVED
+        claim_request.approved_at = datetime.now(UTC)
+        claim_request.approved_by = current_user.id
 
         user_company = UserCompany(
             user_id=claiming_user.id,

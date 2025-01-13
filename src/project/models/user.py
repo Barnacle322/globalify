@@ -50,6 +50,7 @@ if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
     from .investment import FundingRound
     from .investor import InvestmentFirmBookmark, Investor, InvestorBackup, InvestorBookmark, NotableInvestment
+    from .message import Chat
     from .search import SearchHistory
 
 
@@ -87,7 +88,6 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     investment_firm_bookmarks: Mapped[list[InvestmentFirmBookmark]] = relationship(
         "InvestmentFirmBookmark", back_populates="user", uselist=True, init=False
     )
-
     search_histories: Mapped[list[SearchHistory]] = relationship(
         "SearchHistory", back_populates="user", uselist=True, init=False
     )

@@ -44,7 +44,7 @@ const GeminiComponent = defineComponent({
             intervalId: null,
             isExpanded: false,
             isGeminiOpened: true,
-            messages: Object(),
+            messages: {},
         };
     },
 });

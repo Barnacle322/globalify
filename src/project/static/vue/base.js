@@ -382,69 +382,69 @@ const Bookmark = defineComponent({
                 }
             }
         },
-        async unbookmarkInvestor(investorId) {
-            try {
-                const csrfToken = document.getElementById("csrf_token").value;
-                const response = await fetch(`/investor/${investorId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-
-                if (response.ok) {
-                    this.bookmarks = this.bookmarks.filter((investor) => investor.id !== investorId);
-                    this.$emit("investor-bookmarked", { investorId: investorId, status: false });
-                } else {
-                    console.error("Error removing bookmark:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Error removing bookmark:", error.message);
-            }
-        },
-        async unbookmarkInvestmentFirm(firmId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-
-                if (response.ok) {
-                    this.bookmarks = this.bookmarks.filter((firm) => firm.id !== firmId);
-                    this.$emit("firm-bookmarked", { firmId: firmId, status: false });
-                } else {
-                    console.error("Error removing bookmark:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Error removing bookmark:", error.message);
-            }
-        },
-        async unbookmarkCompany(companyId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/company/${companyId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-
-                if (response.ok) {
-                    this.bookmarks = this.bookmarks.filter((company) => company.id !== companyId);
-                    this.$emit("company-bookmarked", { companyId: companyId, status: false });
-                } else {
-                    console.error("Error removing bookmark:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Error removing bookmark:", error.message);
-            }
-        },
+        // async unbookmarkInvestor(investorId) {
+        //     try {
+        //         const csrfToken = document.getElementById("csrf_token").value;
+        //         const response = await fetch(`/investor/${investorId}/bookmark`, {
+        //             method: "POST",
+        //             headers: {
+        //                 "Content-Type": "application/json",
+        //                 "X-CSRFToken": csrfToken,
+        //             },
+        //         });
+        //
+        //         if (response.ok) {
+        //             this.bookmarks = this.bookmarks.filter((investor) => investor.id !== investorId);
+        //             this.$emit("investor-bookmarked", { investorId: investorId, status: false });
+        //         } else {
+        //             console.error("Error removing bookmark:", response.statusText);
+        //         }
+        //     } catch (error) {
+        //         console.error("Error removing bookmark:", error.message);
+        //     }
+        // },
+        // async unbookmarkInvestmentFirm(firmId) {
+        //     const csrfToken = document.getElementById("csrf_token").value;
+        //     try {
+        //         const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
+        //             method: "POST",
+        //             headers: {
+        //                 "Content-Type": "application/json",
+        //                 "X-CSRFToken": csrfToken,
+        //             },
+        //         });
+        //
+        //         if (response.ok) {
+        //             this.bookmarks = this.bookmarks.filter((firm) => firm.id !== firmId);
+        //             this.$emit("firm-bookmarked", { firmId: firmId, status: false });
+        //         } else {
+        //             console.error("Error removing bookmark:", response.statusText);
+        //         }
+        //     } catch (error) {
+        //         console.error("Error removing bookmark:", error.message);
+        //     }
+        // },
+        // async unbookmarkCompany(companyId) {
+        //     const csrfToken = document.getElementById("csrf_token").value;
+        //     try {
+        //         const response = await fetch(`/company/${companyId}/bookmark`, {
+        //             method: "POST",
+        //             headers: {
+        //                 "Content-Type": "application/json",
+        //                 "X-CSRFToken": csrfToken,
+        //             },
+        //         });
+        //
+        //         if (response.ok) {
+        //             this.bookmarks = this.bookmarks.filter((company) => company.id !== companyId);
+        //             this.$emit("company-bookmarked", { companyId: companyId, status: false });
+        //         } else {
+        //             console.error("Error removing bookmark:", response.statusText);
+        //         }
+        //     } catch (error) {
+        //         console.error("Error removing bookmark:", error.message);
+        //     }
+        // },
         updateUrlParam(paramName, paramValue, stateKey) {
             const url = new URL(window.location.href);
             if (url.searchParams.get(paramName) !== paramValue) {

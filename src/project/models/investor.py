@@ -1248,7 +1248,8 @@ class InvestorBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_bookmarked_investors(user_id: int) -> set:
-        result = db.session.execute(db.select(InvestorBookmark.investor_id).where(user_id=user_id)).scalars().all()
+        result = db.session.execute(
+            db.select(InvestorBookmark.investor_id).where(InvestorBookmark.user_id == user_id)).scalars().all()
         return set(result)
 
 
@@ -1899,8 +1900,7 @@ class InvestmentFirmBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_bookmarked_investment_firms(user_id: int) -> set:
-        stmt = db.select(InvestmentFirmBookmark.investment_firm_id).filter_by(user_id=user_id)
-        result = db.session.execute(stmt).scalars().all()
+        result = db.session.execute(db.select(InvestmentFirmBookmark.investment_firm_id).where(InvestmentFirmBookmark.user_id == user_id)).scalars().all()
         return set(result)
 
 investor_backup_round = db.Table(

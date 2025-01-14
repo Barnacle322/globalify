@@ -38,7 +38,7 @@
         <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
         <script src="/static/vue/base.js"></script>
         <script src="/static/scripts/menu.js" defer></script>
-        <script src="/static/vue/duplicate.js" defer></script>
+        <script src="/static/vue/admin.js" defer></script>
 
         <!-- Font -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -107,35 +107,130 @@
                     <div class="rounded-xl text-orange-400">{{ msg }}</div>
                     {% elif status_type == '1' %}
                     <div class="rounded-xl text-lime-500">{{ msg }}</div>
-                    {% endif %} {% endif %}
-                    <div class="font-bold text-gray-700 text-center" v-text="comparisons"></div>
+                    d {% endif %} {% endif %} {% if duplicates %}
                     <div class="flex flex-col gap-3">
-                        <div
-                            v-for="(comparison, index) in comparisons"
-                            :key="index"
-                            class="flex flex-col gap-4 overflow-hidden rounded-xl border border-gray-200 bg-white p-6"
-                        >
-                            <!-- Header -->
+                        {% for investor_a, investor_b, score in duplicates %} {% set outer_loop = loop.index0 %}
+                        <div class="flex flex-col gap-4 overflow-hidden rounded-xl border border-gray-200 bg-white p-6">
                             <div class="grid grid-cols-5 gap-4 mb-4 text-2xl">
                                 <div class="font-bold text-gray-700">Field Name</div>
-                                <div class="font-bold text-gray-700 text-center" v-text="comparison.investorA.id"></div>
-                                <div
-                                    class="font-bold text-gray-700 text-center"
-                                    :v-text="comparison.investorA.id"
-                                ></div>
-
+                                <div class="font-bold text-gray-700 text-center">
+                                    Investor A ID: {{ investor_a.id }}
+                                </div>
+                                <div class="font-bold text-gray-700 text-center">
+                                    Investor B ID: {{ investor_b.id }}
+                                </div>
                                 <div class="font-bold text-gray-700 w-full">None Option</div>
                                 <div class="font-bold text-gray-700 w-full">Updated Investor</div>
                             </div>
 
-                            <!-- Score -->
+                            <div class="mb-4 text-center font-semibold text-gray-600">
+                                Confidence Score: {{ score }}
+                            </div>
 
-                            <!-- Fields -->
+                            {% for attr, value_a in investor_a.items() %} {% if not attr == 'id' %} {% set inner_loop =
+                            loop.index0 %} {% set value_b = investor_b[attr] %}
 
-                            <!-- Merge button -->
+                            <div class="grid grid-cols-5 gap-4 items-center border-b border-gray-100 pb-3">
+                                <div class="font-medium text-l">{{ attr }}</div>
+                                <div class="col-span-2 flex justify-center gap-4 text-ms">
+                                    {% if value_a is none and value_b is none %}
+                                    <!-- Both None Values -->
+                                    <div
+                                        class="col-span-2 w-full text-center py-2 px-4 rounded bg-blue-500 text-white"
+                                        disabled
+                                    >
+                                        None
+                                    </div>
+                                    {% elif value_a == value_b %}
+                                    <!-- Same Values -->
+                                    <button
+                                        @click="selectField('{{ attr }}', 'A', '{{ value_a }}', {{ outer_loop }}, {{ inner_loop }})"
+                                        :class="['w-full text-center py-2 px-4 rounded', 
+                                                                isFieldSelected('{{ attr }}', 'A', {{ outer_loop }}) 
+                                                                ? 'bg-blue-500 text-white' 
+                                                                : 'bg-gray-200 hover:bg-gray-300'
+                                                            ]"
+                                    >
+                                        {{ value_a }}
+                                    </button>
+                                    <!-- Special Values -->
+                                    {% elif attr in ['rounds', 'industries'] %}
+                                    <button
+                                        @click="selectField('{{ attr }}', 'A', '{{ value_a }}', {{ outer_loop }}, {{ inner_loop }})"
+                                        :class="['w-full min-h-[40px] text-center py-2 px-3 rounded break-all', 
+                                                            isFieldSelected('{{ attr }}', 'A', {{ outer_loop }}) 
+                                                            ? 'bg-blue-500 text-white' 
+                                                            : 'bg-gray-200 hover:bg-gray-300'
+                                                        ]"
+                                    >
+                                        {{ value_a }}
+                                    </button>
+                                    <button
+                                        @click="selectField('{{ attr }}', 'B', '{{ value_b }}', {{ outer_loop }}, {{ inner_loop }})"
+                                        :class="['w-full min-h-[40px] text-center py-2 px-3 rounded break-all', 
+                                                            isFieldSelected('{{ attr }}', 'B', {{ outer_loop }}) 
+                                                            ? 'bg-blue-500 text-white' 
+                                                            : 'bg-gray-200 hover:bg-gray-300'
+                                                        ]"
+                                    >
+                                        {{ (value_b | replace('<', '') | replace('>', '') | replace('[', '') |
+                                        replace(']', '') | replace('Industry', '') | replace('Round ', '')) if value_b
+                                        is not none else 'None' }}
+                                    </button>
+                                    {% else %}
+                                    <!-- Different Values -->
+                                    <button
+                                        @click="selectField('{{ attr }}', 'A', '{{ value_a }}', {{ outer_loop }}, {{ inner_loop }})"
+                                        :class="['w-full min-h-[40px] text-center py-2 px-3 rounded break-all', 
+                                                                isFieldSelected('{{ attr }}', 'A', {{ outer_loop }}) 
+                                                                ? 'bg-blue-500 text-white' 
+                                                                : 'bg-gray-200 hover:bg-gray-300'
+                                                            ]"
+                                    >
+                                        {{ value_a if value_a is not none else 'None' }}
+                                    </button>
+                                    <button
+                                        @click="selectField('{{ attr }}', 'B', '{{ value_b }}', {{ outer_loop }}, {{ inner_loop }})"
+                                        :class="['w-full min-h-[40px] text-center py-2 px-3 rounded break-all', 
+                                                                isFieldSelected('{{ attr }}', 'B', {{ outer_loop }}) 
+                                                                ? 'bg-blue-500 text-white' 
+                                                                : 'bg-gray-200 hover:bg-gray-300'
+                                                            ]"
+                                    >
+                                        {{ value_b if value_b is not none else 'None' }}
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                <!-- None Option Column -->
+                                <div class="flex">
+                                    {% if value_a is not none and value_b is not none %}
+                                    <button
+                                        @click="selectField('{{ attr }}', 'none', null, {{ outer_loop }}, {{ inner_loop }})"
+                                        :class="['w-15 text-center py-2 px-4 rounded', 
+                                                            isFieldSelected('{{ attr }}', 'none', {{ outer_loop }}) 
+                                                            ? 'bg-blue-500 text-white' 
+                                                            : 'bg-gray-200 hover:bg-gray-300'
+                                                        ]"
+                                    >
+                                        None
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                <!-- Selected Value Column -->
+                                <div class="flex">
+                                    <div
+                                        class="w-full font-medium min-h-[40px] text-center py-2 px-3 rounded bg-gray-100 break-all"
+                                    >
+                                        {% raw %} {{ getSelectedValue('{% endraw %}{{ attr }}{% raw %}', {% endraw %}{{
+                                        outer_loop }}{% raw %}) }} {% endraw %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}{% endfor %}
+                            <!-- Merge Button -->
                             <div class="flex justify-center mt-4">
                                 <button
-                                    @click="mergeInvestors(index)"
+                                    @click="sendInvestorData({{ outer_loop }})"
                                     class="flex items-center justify-center gap-2 rounded-md bg-gray-50 p-2 px-6 transition-colors ease-in-out hover:bg-gray-200"
                                 >
                                     Merge
@@ -154,7 +249,9 @@
                                 </button>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
+                    {% endif %}
                     <nav class="flex w-full items-center justify-center gap-2">
                         {% if pagination and (pagination.count != 0) %} {% if pagination.has_prev %}
                         <a
@@ -251,3 +348,69 @@
         </div>
     </body>
 </html>
+<script>
+    export default {
+        name: "DuplicateInvestors",
+        props: {
+            comparisons: {
+                type: Array,
+                required: true,
+            },
+        },
+        data() {
+            return {
+                selectedFields: {},
+            };
+        },
+        methods: {
+            isNoneValues(valueA, valueB) {
+                return valueA === null && valueB === null;
+            },
+
+            formatValue(value, field) {
+                if (value === null) return "None";
+
+                if (["rounds", "industries"].includes(field)) {
+                    return value.replace(/<|>|\[|\]|Industry|Round /g, "");
+                }
+
+                return value;
+            },
+
+            selectField(field, source, value, comparisonIndex) {
+                if (!this.selectedFields[comparisonIndex]) {
+                    this.selectedFields[comparisonIndex] = {};
+                }
+
+                this.selectedFields[comparisonIndex][field] = {
+                    source,
+                    value,
+                };
+
+                this.$emit("field-selected", {
+                    comparisonIndex,
+                    field,
+                    source,
+                    value,
+                });
+            },
+
+            getButtonClass(field, source, comparisonIndex) {
+                const isSelected = this.selectedFields[comparisonIndex]?.[field]?.source === source;
+                return [isSelected ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"];
+            },
+
+            getSelectedValue(field, comparisonIndex) {
+                return this.selectedFields[comparisonIndex]?.[field]?.value ?? "";
+            },
+
+            mergeInvestors(comparisonIndex) {
+                const mergedData = {
+                    comparisonIndex,
+                    selectedFields: this.selectedFields[comparisonIndex],
+                };
+                this.$emit("merge", mergedData);
+            },
+        },
+    };
+</script>

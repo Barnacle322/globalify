@@ -1033,6 +1033,124 @@ const EditCompanyMemberComponent = defineComponent({
     },
 });
 
+const DuplicateInvestors = defineComponent({
+    props: {
+        initialData: {
+            type: Array,
+            required: true,
+            default: () => [],
+        },
+    },
+    data() {
+        return {
+            comparisons: [],
+            selectedFields: {},
+        };
+    },
+    async created() {
+        console.log("3///////////////");
+        this.comparisons = this.initialData.map((comparison) => ({
+            investorA: comparison.investor_a,
+            investorB: comparison.investor_b,
+            score: comparison.score,
+        }));
+        await this.fetchDuplicate();
+        console.log(this.comparisons);
+        console.log("4///////////////");
+    },
+    methods: {
+        formatInvestorData(investor) {
+            console.log("1///////////////");
+            return {
+                id: investor.id,
+                first_name: investor.first_name,
+                last_name: investor.last_name,
+                email: investor.email,
+                firm_name: investor.firm_name,
+                rounds: investor.rounds || [],
+                industries: investor.industries || [],
+                position: investor.position,
+                linkedin: investor.linkedin,
+                twitter: investor.twitter,
+                location: investor.location,
+            };
+        },
+        isNoneValues(valueA, valueB) {
+            return valueA === null && valueB === null;
+        },
+        formatValue(value, field) {
+            if (value === null) return "None";
+            if (["rounds", "industries"].includes(field)) {
+                return String(value).replace(/<|>|\[|\]|Industry|Round /g, "");
+            }
+            return value;
+        },
+        selectField(field, source, value, comparisonIndex) {
+            if (!this.selectedFields[comparisonIndex]) {
+                this.selectedFields[comparisonIndex] = {};
+            }
+            this.selectedFields[comparisonIndex][field] = {
+                source,
+                value,
+            };
+        },
+        getButtonClass(field, source, comparisonIndex) {
+            const isSelected = this.selectedFields[comparisonIndex]?.[field]?.source === source;
+            return isSelected ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300";
+        },
+        getSelectedValue(field, comparisonIndex) {
+            return this.selectedFields[comparisonIndex]?.[field]?.value ?? "";
+        },
+
+        async fetchDuplicate() {
+            try {
+                const response = await fetch("/admin/investors/get/duplicates", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.comparisons = data.comparisons;
+                } else {
+                    console.error("Merge failed");
+                }
+            } catch (error) {
+                console.error("Error during merge:", error);
+            }
+        },
+
+        async mergeInvestors(comparisonIndex) {
+            const mergedData = {
+                investorA: this.comparisons[comparisonIndex].investorA.id,
+                investorB: this.comparisons[comparisonIndex].investorB.id,
+                selectedFields: this.selectedFields[comparisonIndex],
+            };
+
+            try {
+                const response = await fetch("/api/investors/merge", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(mergedData),
+                });
+
+                if (response.ok) {
+                    this.comparisons.splice(comparisonIndex, 1);
+                    delete this.selectedFields[comparisonIndex];
+                } else {
+                    console.error("Merge failed");
+                }
+            } catch (error) {
+                console.error("Error during merge:", error);
+            }
+        },
+    },
+});
+
 createApp({
     components: {
         AsideComponent,
@@ -1050,6 +1168,7 @@ createApp({
         EditCompanyMemberComponent,
         AddMemberComponent,
         AddCompanyComponent,
+        "duplicate-investors": DuplicateInvestors,
     },
     watch: {
         asideMinified(value) {
@@ -1715,23 +1834,36 @@ createApp({
             const basePath = window.location.pathname.split("/filter")[0];
             window.location.href = `${basePath}/filter?${queryParams}`;
         },
-        selectField(fieldName, investorType, value, blockIndex) {
-            if (!this.selectedFields[blockIndex]) {
-                this.selectedFields[blockIndex] = {};
-            }
+        // async fetchComparisons() {
+        //     try {
+        //         const response = await fetch("/admin/investors/duplicatess/");
+        //         if (response.ok) {
+        //             const data = await response.json();
+        //             this.comparisons = data.duplicates;
+        //         } else {
+        //             console.error("Error fetching comparisons");
+        //         }
+        //     } catch (error) {
+        //         console.error("Error fetching comparisons:", error.message);
+        //     }
+        // },
+        // selectField(fieldName, investorType, value, blockIndex) {
+        //     if (!this.selectedFields[blockIndex]) {
+        //         this.selectedFields[blockIndex] = {};
+        //     }
 
-            this.selectedFields[blockIndex][fieldName] = {
-                type: investorType,
-                value: investorType === "none" ? null : value,
-            };
-        },
-        isFieldSelected(attr, type, outerLoop) {
-            const selectedField = this.selectedFields[outerLoop]?.[attr];
-            return selectedField ? selectedField.type === type : false;
-        },
-        getSelectedValue(attr, blockIndex) {
-            return this.selectedFields[blockIndex]?.[attr]?.value ?? "---";
-        },
+        //     this.selectedFields[blockIndex][fieldName] = {
+        //         type: investorType,
+        //         value: investorType === "none" ? null : value,
+        //     };
+        // },
+        // isFieldSelected(attr, type, outerLoop) {
+        //     const selectedField = this.selectedFields[outerLoop]?.[attr];
+        //     return selectedField ? selectedField.type === type : false;
+        // },
+        // getSelectedValue(attr, blockIndex) {
+        //     return this.selectedFields[blockIndex]?.[attr]?.value ?? "---";
+        // },
         // sendInvestorData(blockIndex) {
         //     const block = this.selectedFields[blockIndex];
         //     const selectedData = {};
@@ -1855,6 +1987,7 @@ createApp({
             },
             selectedFields: {},
             investors: [],
+            comparisons: [],
         };
     },
 }).mount("#app");

@@ -501,8 +501,31 @@ def get_company(slug):
             "unpaid": unpaid,
         },
     )
+    model_investments = Investment.get_by_company_id(company_model.id)
 
-    return jsonify({"company": company, "isBookmarked": is_bookmarked, "unpaid": unpaid})
+    if not model_investments:
+        return jsonify({"company": company, "isBookmarked": is_bookmarked, "unpaid": unpaid})
+
+    investments = []
+
+    for model_investment in model_investments:
+        if model_investment.investor:
+            name = f"{model_investment.investor.first_name} {model_investment.investor.last_name}"
+        elif model_investment.investment_firm:
+            name = model_investment.investment_firm.name
+
+        company_investment = InvestmentSchema(
+            id=model_investment.id,
+            name=name,
+            amount=model_investment.amount,
+            round=model_investment.funding_round.round.name,
+            announced_date=model_investment.funding_round.announced_date.strftime("%b %d, %Y")
+            if model_investment.funding_round.announced_date
+            else None,
+        )
+        investments.append(json.loads(company_investment.model_dump_json()))
+
+    return jsonify({"company": company, "isBookmarked": is_bookmarked, "unpaid": unpaid, "investments": investments})
 
 
 @main.post("/company/<int:company_id>/bookmark")
@@ -528,35 +551,35 @@ def toggle_bookmark_company(company_id):
     return jsonify({"bookmarked": True}, 200)
 
 
-@main.get("/company/investment/<int:company_id>/get")
-@login_required
-@check_user_info_complete
-@check_verification
-def get_company_investment(company_id):
-    model_investments = Investment.get_by_company_id(company_id)
-
-    if not model_investments:
-        return jsonify({"status": "error", "message": "Investments not found for this company."}), 404
-
-    investments = []
-
-    for model_investment in model_investments:
-        if model_investment.investor:
-            name = f"{model_investment.investor.first_name} {model_investment.investor.last_name}"
-        elif model_investment.investment_firm:
-            name = model_investment.investment_firm.name
-
-        company_investment = InvestmentSchema(
-            id=model_investment.id,
-            name=name,
-            amount=model_investment.amount,
-            round=model_investment.funding_round.round.name,
-            announced_date=model_investment.funding_round.announced_date.strftime("%b %d, %Y")
-            if model_investment.funding_round.announced_date
-            else None,
-        )
-        investments.append(json.loads(company_investment.model_dump_json()))
-    return jsonify({"investments": investments})
+# @main.get("/company/investment/<int:company_id>/get")
+# @login_required
+# @check_user_info_complete
+# @check_verification
+# def get_company_investment(company_id):
+#     model_investments = Investment.get_by_company_id(company_id)
+#
+#     if not model_investments:
+#         return jsonify({"status": "error", "message": "Investments not found for this company."}), 404
+#
+#     investments = []
+#
+#     for model_investment in model_investments:
+#         if model_investment.investor:
+#             name = f"{model_investment.investor.first_name} {model_investment.investor.last_name}"
+#         elif model_investment.investment_firm:
+#             name = model_investment.investment_firm.name
+#
+#         company_investment = InvestmentSchema(
+#             id=model_investment.id,
+#             name=name,
+#             amount=model_investment.amount,
+#             round=model_investment.funding_round.round.name,
+#             announced_date=model_investment.funding_round.announced_date.strftime("%b %d, %Y")
+#             if model_investment.funding_round.announced_date
+#             else None,
+#         )
+#         investments.append(json.loads(company_investment.model_dump_json()))
+#     return jsonify({"investments": investments})
 
 
 @main.get("/bookmarks/company")

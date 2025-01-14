@@ -352,18 +352,20 @@ const FullCompany = defineComponent({
     async created() {
         await this.fetchCompany();
         window.removeEventListener("popstate", this.checkUrlParams);
-        this.fetchInvestments(this.company.id);
     },
     methods: {
         async fetchCompany() {
             this.isLoading = true;
             try {
-                const response = await fetch(`/company/${this.slug}`);
+                const response = await fetch(`/company/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
                     this.company = data.company;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
+                    if(data.investments){
+                        this.investments = data.investments
+                    }
                 } else {
                     this.closeCompany();
                     return;
@@ -400,17 +402,7 @@ const FullCompany = defineComponent({
                 console.error(error);
             }
         },
-        async fetchInvestments(companyId) {
-            try {
-                const response = await fetch(`/company/investment/${companyId}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investments = data.investments;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         async sortInvestments(sortType) {
             const compareDates = (a, b) => {
                 const dateA = new Date(a.announced_date);

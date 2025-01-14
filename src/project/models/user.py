@@ -872,11 +872,6 @@ class CompanyBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.select(exists().where(CompanyBookmark.company_id == company_id, CompanyBookmark.user_id == user_id))
         )
 
-    @staticmethod
-    def get_bookmarked_companies(user_id: int) -> set:
-        result = db.session.execute(db.select(CompanyBookmark.company_id).where(CompanyBookmark.user_id == user_id)).scalars().all()
-        return set(result)
-
 
 class UserCompany(MappedAsDataclass, db.Model, unsafe_hash=True):
     user: Mapped[User] = relationship(User, back_populates="user_companies", uselist=True, init=False, lazy="joined")

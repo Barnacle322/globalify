@@ -184,7 +184,7 @@ def investor_search():
         except IntegrityError:
             db.session.rollback()
 
-    bookmarked_investor_ids = InvestorBookmark.get_bookmarked_investors(current_user.id)
+    bookmarked_investor_ids = InvestorBookmark.get_id_list(current_user.id)
 
     return render_template(
         "search.html",
@@ -286,7 +286,7 @@ def search_investment_firms():
         except IntegrityError:
             db.session.rollback()
 
-    bookmarked_investment_firm_ids = InvestmentFirmBookmark.get_bookmarked_investment_firms(current_user.id)
+    bookmarked_investment_firm_ids = InvestmentFirmBookmark.get_id_list(current_user.id)
 
     return render_template(
         "search_investment_firms.html",
@@ -369,7 +369,7 @@ def search_companies():
         except IntegrityError:
             db.session.rollback()
 
-    bookmarked_company_ids = CompanyBookmark.get_bookmarked_companies(current_user.id)
+    bookmarked_company_ids = CompanyBookmark.get_id_list(current_user.id)
 
     return render_template(
         "search_companies.html",

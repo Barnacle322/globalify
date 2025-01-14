@@ -108,9 +108,11 @@
                     {% elif status_type == '1' %}
                     <div class="rounded-xl text-lime-500">{{ msg }}</div>
                     {% endif %} {% endif %}
-                    <div class="font-bold text-gray-700 text-center" v-text="comparisons"></div>
+
                     <div class="flex flex-col gap-3">
+                        <div v-text="comparisons"></div>
                         <div
+                            v-if="comparisons.length > 0"
                             v-for="(comparison, index) in comparisons"
                             :key="index"
                             class="flex flex-col gap-4 overflow-hidden rounded-xl border border-gray-200 bg-white p-6"

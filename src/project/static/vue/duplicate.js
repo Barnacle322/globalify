@@ -4,13 +4,8 @@ createApp({
         AsideMobileComponent,
         NavbarComponent,
     },
-    async created() {
-        console.log("3///////////////");
-        // this.comparisons = this.initialData.map((comparison) => ({
-        //     investorA: comparison.investor_a,
-        //     investorB: comparison.investor_b,
-        //     score: comparison.score,
-        // }));
+    async beforeMount() {
+        console.log("Fetching data before mount...");
         await this.fetchDuplicate();
         console.log(this.comparisons);
     },
@@ -69,7 +64,12 @@ createApp({
 
                 if (response.ok) {
                     const data = await response.json();
-                    this.comparisons = data.comparisons;
+                    this.comparisons = data.comparisons.map((comparison) => ({
+                        investorA: comparison.investor_a,
+                        investorB: comparison.investor_b,
+                        score: comparison.score,
+                    }));
+                    console.log(this.comparisons);
                 } else {
                     console.error("Merge failed");
                 }

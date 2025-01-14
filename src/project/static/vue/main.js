@@ -17,7 +17,6 @@ const FullInvestor = defineComponent({
     async created() {
         await this.fetchInvestor();
         window.removeEventListener("popstate", this.checkUrlParams);
-        this.fetchInvestments(this.investor.id);
     },
     methods: {
         async fetchInvestor() {
@@ -28,6 +27,12 @@ const FullInvestor = defineComponent({
                     this.investor = data.investor;
                     this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
+
+                    if (data.investments && data.n_of_investments){
+                        this.investments = data.investments;
+                        this.n_of_investments = data.n_of_investments;
+                    }
+
                     await this.loadTwitterTimeline();
                 } else {
                     this.closeInvestor();
@@ -108,19 +113,7 @@ const FullInvestor = defineComponent({
                 console.error(error);
             }
         },
-        async fetchInvestments(investorId) {
-            try {
-                const response = await fetch(`/investment/${investorId}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investments = data.investments;
 
-                    this.n_of_investments = data.n_of_investments;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
         async sortInvestments(sortType) {
             const compareDates = (a, b) => {
                 const dateA = new Date(a.announced_date);
@@ -228,18 +221,21 @@ const FullInvestmentFirm = defineComponent({
     async created() {
         await this.fetchInvestmentFirm();
         window.removeEventListener("popstate", this.checkUrlParams);
-        this.fetchInvestments(this.investmentFirm.id);
     },
     methods: {
         async fetchInvestmentFirm() {
             this.isLoading = true;
             try {
-                const response = await fetch(`/investment-firm/${this.slug}`);
+                const response = await fetch(`/investment-firm/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
                     this.investmentFirm = data.investment_firm;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
+
+                    if(data.investments){
+                        this.investments = data.investments;
+                    }
                 } else {
                     this.closeInvestmentFirm();
                     return;
@@ -275,17 +271,7 @@ const FullInvestmentFirm = defineComponent({
                 console.error(error);
             }
         },
-        async fetchInvestments(firmId) {
-            try {
-                const response = await fetch(`/investment-firm/investment/${firmId}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investments = data.investments;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         async sortInvestments(sortType) {
             const compareDates = (a, b) => {
                 const dateA = new Date(a.announced_date);

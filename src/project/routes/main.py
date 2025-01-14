@@ -220,18 +220,10 @@ def get_investor(slug):
         },
     )
 
-    return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked})
-
-
-@main.get("/investment/<int:investor_id>/get")
-@login_required
-@check_user_info_complete
-@check_verification
-def get_investment_investor(investor_id):
-    model_investments = Investment.get_by_investor_id(investor_id)
+    model_investments = Investment.get_by_investor_id(investor.id)
 
     if not model_investments:
-        return jsonify({"status": "error", "message": "Investments not found for this investor."}), 404
+        return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked})
 
     investments = []
 
@@ -247,7 +239,8 @@ def get_investment_investor(investor_id):
         )
         investments.append(json.loads(investment.model_dump_json()))
 
-    return jsonify({"investments": investments, "n_of_investments": len(investments)})
+    return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked,
+                    "investments": investments, "n_of_investments": len(investments)})
 
 
 @main.get("/check-investor")
@@ -388,18 +381,12 @@ def get_investment_firm(slug):
         },
     )
 
-    return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
-
-@main.get("/investment-firm/investment/<int:firm_id>/get")
-@login_required
-@check_user_info_complete
-@check_verification
-def get_investment_firm_investment(firm_id):
-    model_investments = Investment.get_by_investment_firm_id(firm_id)
+    model_investments = Investment.get_by_investment_firm_id(investment_firm_model.id)
 
     if not model_investments:
-        return jsonify({"status": "error", "message": "Investments not found for this company."}), 404
+        print(model_investments)
+        return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked, "unpaid": unpaid})
 
     investments = []
 
@@ -415,7 +402,7 @@ def get_investment_firm_investment(firm_id):
         )
         investments.append(json.loads(company_investment.model_dump_json()))
 
-    return jsonify({"investments": investments})
+    return jsonify({"investment_firm": investment_firm, "isBookmarked": is_bookmarked, "unpaid": unpaid, "investments": investments})
 
 
 @main.get("/company/<slug>")

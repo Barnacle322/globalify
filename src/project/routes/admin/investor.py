@@ -588,167 +588,34 @@ def filter_investors():
     )
 
 
-# def calculate_confidence_score(investor1, investor2):
-#     score = 0
-#     if investor1.first_name == investor2.first_name:
-#         score += 1
-#     if investor1.last_name == investor2.last_name:
-#         score += 1
-#     if investor1.email == investor2.email:
-#         score += 2
-#     return score
-
-
-# @investor.get("/duplicatess/")
-# @admin_only
-# def duplicates():
-#     query_params = request.args
-#     page = query_params.get("page", 1, type=int)
-#     per_page = query_params.get("per_page", 12, type=int)
-#     batch_size = 1000
-#     confidence_threshold = 1
-#     duplicate_groups = defaultdict(list)
-#     offset = 0
-#     count = 0
-
-#     try:
-#         while count < batch_size:
-#             count += 1
-#             investors = db.session.query(Investor).order_by(Investor.id).offset(offset).limit(batch_size).all()
-#             if not investors:
-#                 break
-
-#             for investor in investors:
-#                 key = (investor.first_name, investor.last_name, investor.email)
-#                 duplicate_groups[key].append(investor)
-
-#             offset += batch_size
-
-#     except Exception as e:
-#         print(f"Error fetching investors at offset {offset}: {e}")
-
-#     duplicates_with_confidence = []
-#     for investors in duplicate_groups.values():
-#         if len(investors) <= 1:
-#             continue
-#         for i, inv1 in enumerate(investors[:-1]):
-#             for inv2 in investors[i + 1 :]:
-#                 score = calculate_confidence_score(inv1, inv2)
-#                 if score >= confidence_threshold:
-#                     duplicates_with_confidence.append((inv1, inv2, score))
-
-#     base_query = db.select(Investor)
-#     pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
-#     return render_template(
-#         "admin/duplicates_investors_orig.html",
-#         comparison=duplicates_with_confidence,
-#         pagination=pagination,
-#     )
-
-
-def calculate_confidence_score(investor1, investor2):
-    score = 0
-    if investor1.get("first_name") == investor2.get("first_name"):
-        score += 1
-    if investor1.get("last_name") == investor2.get("last_name"):
-        score += 1
-    if investor1.get("email") == investor2.get("email"):
-        score += 2
-    return score
-
-
 @investor.get("/duplicatess/")
 @admin_only
 def duplicates():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     query_params = request.args
     page = query_params.get("page", 1, type=int)
     per_page = query_params.get("per_page", 12, type=int)
-    batch_size = 1000
-    confidence_threshold = 0
-    duplicate_groups = defaultdict(list)
-    offset = 0
-    count = 0
-
-    fields_order = [
-        "id",
-        "first_name",
-        "last_name",
-        "email",
-        "slug",
-        "firm_name",
-        "about",
-        "position",
-        "website",
-        "linkedin",
-        "twitter",
-        "phone_number",
-        "n_investments",
-        "n_exits",
-        "min_investment",
-        "max_investment",
-        "location",
-        "is_public",
-        "is_approved",
-        "rounds",
-        "industries",
-    ]
-
-    try:
-        while count < batch_size:
-            count += 1
-            investors = db.session.query(Investor).order_by(Investor.id).offset(offset).limit(batch_size).all()
-            if not investors:
-                break
-
-            for investor in investors:
-                key = (investor.first_name, investor.last_name, investor.email)  # type: ignore
-
-                investor_data = OrderedDict()
-                for field in fields_order:
-                    value = getattr(investor, field)
-
-                    if field in ["rounds", "industries"]:
-                        value = [str(item) for item in value] if value else []
-                    investor_data[field] = value
-
-                duplicate_groups[key].append(investor_data)
-
-            offset += batch_size
-
-    except Exception as e:
-        print(f"Error fetching investors at offset {offset}: {e}")
-
-    duplicates_with_confidence = []
-    for investors in duplicate_groups.values():
-        if len(investors) <= 1:
-            continue
-        for i, inv1 in enumerate(investors[:-1]):
-            for inv2 in investors[i + 1 :]:
-                score = calculate_confidence_score(inv1, inv2)
-                if score >= confidence_threshold:
-                    duplicates_with_confidence.append({"investor_a": inv1, "investor_b": inv2, "score": score})
-
     base_query = db.select(Investor)
     pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
-    print(duplicates_with_confidence)
+
     return render_template(
         "admin/duplicates_investors.html",
-        comparisons=duplicates_with_confidence,
         pagination=pagination,
+        status_type=status_type,
+        msg=msg,
     )
 
 
 @investor.get("/get/duplicates/")
 @admin_only
 def get_duplicates():
-    query_params = request.args
-    page = query_params.get("page", 1, type=int)
-    per_page = query_params.get("per_page", 12, type=int)
     batch_size = 1000
     confidence_threshold = 0
-    duplicate_groups = defaultdict(list)
     offset = 0
-    count = 0
 
     fields_order = [
         "id",
@@ -775,29 +642,36 @@ def get_duplicates():
     ]
 
     try:
-        while count < batch_size:
-            count += 1
-            investors = db.session.query(Investor).order_by(Investor.id).offset(offset).limit(batch_size).all()
-            if not investors:
-                break
+        investors = db.session.query(Investor).order_by(Investor.id).offset(offset).limit(batch_size).all()
+        duplicate_groups = defaultdict(list)
 
-            for investor in investors:
-                key = (investor.first_name, investor.last_name, investor.email)  # type: ignore
+        for investor in investors:
+            key = (investor.first_name, investor.last_name, investor.email)  # type: ignore
 
-                investor_data = OrderedDict()
-                for field in fields_order:
-                    value = getattr(investor, field)
+            investor_data = OrderedDict()
+            for field in fields_order:
+                value = getattr(investor, field)
 
-                    if field in ["rounds", "industries"]:
-                        value = [str(item) for item in value] if value else []
-                    investor_data[field] = value
+                if field in ["rounds", "industries"]:
+                    value = [str(item) for item in value] if value else []
+                investor_data[field] = value
 
-                duplicate_groups[key].append(investor_data)
+            duplicate_groups[key].append(investor_data)
 
-            offset += batch_size
+        offset += batch_size
 
     except Exception as e:
         print(f"Error fetching investors at offset {offset}: {e}")
+
+    def calculate_confidence_score(investor1, investor2):
+        score = 0
+        if investor1.get("first_name") == investor2.get("first_name"):
+            score += 1
+        if investor1.get("last_name") == investor2.get("last_name"):
+            score += 1
+        if investor1.get("email") == investor2.get("email"):
+            score += 2
+        return score
 
     duplicates_with_confidence = []
     for investors in duplicate_groups.values():
@@ -808,9 +682,6 @@ def get_duplicates():
                 score = calculate_confidence_score(inv1, inv2)
                 if score >= confidence_threshold:
                     duplicates_with_confidence.append({"investor_a": inv1, "investor_b": inv2, "score": score})
-
-    base_query = db.select(Investor)
-    pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
 
     return {"comparisons": duplicates_with_confidence}
 

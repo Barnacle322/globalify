@@ -110,7 +110,6 @@
                     {% endif %} {% endif %}
 
                     <div class="flex flex-col gap-3">
-                        <div v-text="comparisons"></div>
                         <div
                             v-if="comparisons.length > 0"
                             v-for="(comparison, index) in comparisons"
@@ -120,25 +119,98 @@
                             <!-- Header -->
                             <div class="grid grid-cols-5 gap-4 mb-4 text-2xl">
                                 <div class="font-bold text-gray-700">Field Name</div>
-                                <div class="font-bold text-gray-700 text-center" v-text="comparison.investorA.id"></div>
-                                <div
-                                    class="font-bold text-gray-700 text-center"
-                                    :v-text="comparison.investorA.id"
-                                ></div>
-
-                                <div class="font-bold text-gray-700 w-full">None Option</div>
-                                <div class="font-bold text-gray-700 w-full">Updated Investor</div>
+                                <div class="font-bold text-gray-700 text-center">
+                                    Investor ID
+                                    <span v-text="comparison.investorA.id"></span>
+                                </div>
+                                <div class="font-bold text-gray-700 text-center">
+                                    Investor ID
+                                    <span v-text="comparison.investorB.id"></span>
+                                </div>
+                                <div class="col-span-2 font-bold text-gray-700 text-center">Updated Investor</div>
                             </div>
 
-                            <!-- Score -->
-
                             <!-- Fields -->
+                            <template v-for="(valueA, field) in formatInvestorData(comparison.investorA)" :key="field">
+                                <div v-if="field !== 'id'" class="grid grid-cols-5 gap-4 items-center">
+                                    <!-- Field Name -->
+                                    <div class="font-medium" v-text="field"></div>
 
-                            <!-- Merge button -->
-                            <div class="flex justify-center mt-4">
+                                    <!-- Both None Values -->
+                                    <template v-if="valueA === null && comparison.investorB[field] === null">
+                                        <div
+                                            class="col-span-2 w-full text-center py-2 px-4 rounded bg-blue-500 text-white"
+                                            v-text="'None'"
+                                        ></div>
+                                    </template>
+
+                                    <!-- Same Formatted Values -->
+                                    <template
+                                        v-else-if="formatValue(valueA, field) === formatValue(comparison.investorB[field], field)"
+                                    >
+                                        <button
+                                            :class="['col-span-2 w-full min-h-[40px] text-center py-2 px-3 rounded break-all', 
+                                                getButtonClass(field, 'A', index)
+                                            ]"
+                                            @click="selectField(field, 'A', valueA, index)"
+                                            v-text="formatValue(valueA, field)"
+                                        ></button>
+                                    </template>
+
+                                    <!-- Special Values (Arrays/Complex) -->
+                                    <template v-else-if="['rounds', 'industries'].includes(field)">
+                                        <button
+                                            @click="selectField(field, 'A', valueA, index)"
+                                            :class="[
+                                                'w-full min-h-[40px] text-center py-2 px-3 rounded break-all', 
+                                                getButtonClass(field, 'A', index)
+                                            ]"
+                                            v-text="formatValue(valueA)"
+                                        ></button>
+                                        <button
+                                            @click="selectField(field, 'B', comparison.investorB[field], index)"
+                                            :class="[
+                                                'w-full min-h-[40px] text-center py-2 px-3 rounded break-all', 
+                                                getButtonClass(field, 'B', index)
+                                            ]"
+                                            v-text="formatValue(comparison.investorB[field])"
+                                        ></button>
+                                    </template>
+
+                                    <!-- Different Values -->
+                                    <template v-else>
+                                        <button
+                                            @click="selectField(field, 'A', valueA, index)"
+                                            :class="[
+                                                'w-full min-h-[40px] text-center py-2 px-3 rounded break-all', 
+                                                getButtonClass(field, 'A', index)
+                                            ]"
+                                            v-text="formatValue(valueA, field)"
+                                        ></button>
+                                        <button
+                                            @click="selectField(field, 'B', comparison.investorB[field], index)"
+                                            :class="[
+                                                'w-full min-h-[40px] text-center py-2 px-3 rounded break-all', 
+                                                getButtonClass(field, 'B', index)
+                                            ]"
+                                            v-text="formatValue(comparison.investorB[field], field)"
+                                        ></button>
+                                    </template>
+
+                                    <!-- Updated investor Column -->
+                                    <div class="col-span-2 grid place-items-center">
+                                        <div
+                                            class="w-56 font-medium min-h-[40px] text-center py-2 px-3 rounded bg-gray-100 break-all"
+                                            v-text="getSelectedValue(field, index)"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div class="flex justify-center mt-2">
                                 <button
                                     @click="mergeInvestors(index)"
-                                    class="flex items-center justify-center gap-2 rounded-md bg-gray-50 p-2 px-6 transition-colors ease-in-out hover:bg-gray-200"
+                                    class="w-40 flex items-center font-medium justify-center gap-2 rounded-md bg-gray-300 p-2 transition-colors ease-in-out hover:bg-gray-400"
                                 >
                                     Merge
                                     <svg
@@ -147,7 +219,6 @@
                                         viewBox="0 -960 960 960"
                                         width="24px"
                                         fill="black"
-                                        transform="rotate(-90)"
                                     >
                                         <path
                                             d="M120-120v-240h80v160h160v80H120Zm480 0v-80h160v-160h80v240H600ZM287-327l-57-56 57-57H80v-80h207l-57-57 57-56 153 153-153 153Zm386 0L520-480l153-153 57 56-57 57h207v80H673l57 57-57 56ZM120-600v-240h240v80H200v160h-80Zm640 0v-160H600v-80h240v240h-80Z"

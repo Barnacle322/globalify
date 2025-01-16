@@ -205,6 +205,9 @@ def get_investor(slug):
         rounds=[{"id": r.id, "name": r.name} for r in investor.rounds],
         industries=[{"id": i.id, "name": i.name} for i in investor.industries],
         user_id=investor.user_id,
+        investments=[
+            {"id": i.id, "name": i.name, "amount": i.amount, "round": i.round, "announced_date": i.announced_date} for i
+            in investor.investments],
     )
 
     if current_user.is_authenticated:
@@ -220,27 +223,7 @@ def get_investor(slug):
         },
     )
 
-    model_investments = Investment.get_by_investor_id(investor.id)
-
-    if not model_investments:
-        return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked})
-
-    investments = []
-
-    for model_investment in model_investments:
-        investment = InvestmentSchema(
-            id=model_investment.id,
-            name=model_investment.funding_round.company.name,
-            round=model_investment.funding_round.round.name,
-            amount=model_investment.amount,
-            announced_date=model_investment.funding_round.announced_date.strftime("%b %d, %Y")
-            if model_investment.funding_round.announced_date
-            else None,
-        )
-        investments.append(json.loads(investment.model_dump_json()))
-
-    return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked,
-                    "investments": investments, "n_of_investments": len(investments)})
+    return jsonify({"investor": investor.model_dump(), "unpaid": unpaid, "isBookmarked": is_bookmarked})
 
 
 @main.get("/check-investor")

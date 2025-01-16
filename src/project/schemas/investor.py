@@ -1,3 +1,5 @@
+from typing import Optional, List
+
 from pydantic import BaseModel
 
 
@@ -14,6 +16,14 @@ class NotableInvestmentSchema(BaseModel):
 class IndustrySchema(BaseModel):
     id: int
     name: str
+
+
+class IvstmtSchema(BaseModel):
+    id: int
+    name: str | None
+    amount: int | None
+    round: str | None
+    announced_date: str | None
 
 
 class InvestorSchema(BaseModel):
@@ -36,6 +46,10 @@ class InvestorSchema(BaseModel):
     rounds: list[object] | None
     industries: list[object] | None
     user_id: int | None
+    investments: Optional[List[IvstmtSchema]] | None = None
+
+    class Config:
+        anystr_strip_whitespace = True
 
 
 class MiniInvestorSchema(BaseModel):

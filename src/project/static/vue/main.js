@@ -24,14 +24,12 @@ const FullInvestor = defineComponent({
                 const response = await fetch(`/investor/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
+                    console.log(data)
                     this.investor = data.investor;
                     this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
-
-                    if (data.investments && data.n_of_investments){
-                        this.investments = data.investments;
-                        this.n_of_investments = data.n_of_investments;
-                    }
+                    this.investments = data.investor.investments
+                    this.n_of_investments = data.investor.n_of_investments;
 
                     await this.loadTwitterTimeline();
                 } else {

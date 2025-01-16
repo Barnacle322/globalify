@@ -24,7 +24,6 @@ const FullInvestor = defineComponent({
                 const response = await fetch(`/investor/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(data)
                     this.investor = data.investor;
                     this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
@@ -230,10 +229,8 @@ const FullInvestmentFirm = defineComponent({
                     this.investmentFirm = data.investment_firm;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
+                    this.investments = data.investment_firm.investments;
 
-                    if(data.investments){
-                        this.investments = data.investments;
-                    }
                 } else {
                     this.closeInvestmentFirm();
                     return;
@@ -361,9 +358,7 @@ const FullCompany = defineComponent({
                     this.company = data.company;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
-                    if(data.investments){
-                        this.investments = data.investments
-                    }
+                    this.investments = data.company.investments
                 } else {
                     this.closeCompany();
                     return;

@@ -18,7 +18,7 @@ class IndustrySchema(BaseModel):
     name: str
 
 
-class IvstmtSchema(BaseModel):
+class NestedInvestmentSchema(BaseModel):
     id: int
     name: str | None
     amount: int | None
@@ -46,7 +46,7 @@ class InvestorSchema(BaseModel):
     rounds: list[object] | None
     industries: list[object] | None
     user_id: int | None
-    investments: Optional[List[IvstmtSchema]] | None = None
+    investments: Optional[List[NestedInvestmentSchema]] | None = None
 
     class Config:
         anystr_strip_whitespace = True
@@ -75,6 +75,10 @@ class InvestmentFirmSchema(BaseModel):
     notable_investments: list[object] | None
     rounds: list[object] | None
     industries: list[object] | None
+    investments: Optional[List[NestedInvestmentSchema]] | None = None
+
+    class Config:
+        anystr_strip_whitespace = True
 
 
 class InvestorBookmarkSchema(BaseModel):

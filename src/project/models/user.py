@@ -45,10 +45,10 @@ from ..utils.typesense_helpers.typesense_search import (
     upsert_documents,
 )
 from .helpers import Country, Industry, Round
+from .investment import Investment, FundingRound
 
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
-    from .investment import FundingRound
     from .investor import InvestmentFirmBookmark, Investor, InvestorBackup, InvestorBookmark, NotableInvestment
     from .search import SearchHistory
 
@@ -571,7 +571,19 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_by_slug(slug: str) -> Company | None:
-        return db.session.scalar(db.select(Company).where(Company.slug == slug))
+        company = db.session.scalar(
+            db.select(Company).where(Company.slug == slug)
+        )
+
+        if company:
+            investments = db.session.scalars(
+                db.select(Investment)
+                .join(FundingRound)
+                .where(FundingRound.company_id == company.id)
+            ).all()
+            company.investments = investments
+
+        return company
 
     @staticmethod
     def get_all() -> Sequence[Company]:

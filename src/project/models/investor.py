@@ -1303,8 +1303,12 @@ class InvestmentFirm(db.Model):
         )
 
     @staticmethod
-    def get_by_slug(slug: str) -> InvestmentFirm | None:
-        return db.session.scalar(db.select(InvestmentFirm).where(InvestmentFirm.slug == slug))
+    def get_by_slug(slug: str) -> Investor | None:
+        return db.session.scalar(
+            db.select(InvestmentFirm)
+            .options(joinedload(InvestmentFirm.investments))
+            .where(InvestmentFirm.slug == slug)
+        )
 
     @staticmethod
     def get_by_id(id: int) -> InvestmentFirm | None:

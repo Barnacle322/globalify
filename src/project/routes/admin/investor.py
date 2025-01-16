@@ -610,6 +610,15 @@ def duplicates():
     )
 
 
+# @investor.post("/merge")
+# @admin_only
+# def merge_investors():
+#     form_data = request.get_json()
+#     create_investor()
+
+#     return redirect(url_for("admin.investor.duplicates", _external=False))
+
+
 @investor.get("/get/duplicates/")
 @admin_only
 def get_duplicates():
@@ -652,8 +661,10 @@ def get_duplicates():
             for field in fields_order:
                 value = getattr(investor, field)
 
-                if field in ["rounds", "industries"]:
-                    value = [str(item) for item in value] if value else []
+                if field == "rounds":
+                    value = [{"id": round.id, "name": str(round)} for round in value] if value else []
+                elif field == "industries":
+                    value = [{"id": industry.id, "name": str(industry)} for industry in value] if value else []
                 investor_data[field] = value
 
             duplicate_groups[key].append(investor_data)

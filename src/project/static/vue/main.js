@@ -544,8 +544,10 @@ const app = createApp({
             try {
                 if (data.status) {
                     this.investorBookmakrIds.push(data.investorId); // Corrected typo
+                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = '#FFC9FC';
                 } else {
                     this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId); // Corrected typo
+                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = 'none';
                 }
             } catch (error) {
                 console.error("Error handling investor bookmark:", error);
@@ -565,8 +567,10 @@ const app = createApp({
         async handleInvestmentFirmBookmark(data) {
             if (data.status) {
                 this.investmentFirmBookmakrIds.push(data.firmId);
+                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = '#FFC9FC';
             } else {
                 this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== data.firmId);
+                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = 'none';
             }
         },
         async fetchInvestmentFirmBookmarks() {
@@ -584,8 +588,10 @@ const app = createApp({
             try {
                 if (data.status) {
                     this.companyBookmarkIds.push(data.companyId);
+                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = '#FFC9FC';
                 } else {
                     this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== data.companyId);
+                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = 'none';
                 }
             } catch (error) {
                 console.error("Error handling company bookmark:", error);

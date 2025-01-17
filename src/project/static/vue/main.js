@@ -553,17 +553,7 @@ const app = createApp({
                 console.error("Error handling investor bookmark:", error);
             }
         },
-        async fetchInvestorBookmarks() {
-            try {
-                const response = await fetch("/bookmarks/investor");
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investorBookmakrIds = data.bookmark_ids;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         async handleInvestmentFirmBookmark(data) {
             if (data.status) {
                 this.investmentFirmBookmakrIds.push(data.firmId);
@@ -573,17 +563,7 @@ const app = createApp({
                 document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = 'none';
             }
         },
-        async fetchInvestmentFirmBookmarks() {
-            try {
-                const response = await fetch("/bookmarks/investment-firm");
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investmentFirmBookmakrIds = data.bookmark_ids;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         async handleCompanyBookmark(data) {
             try {
                 if (data.status) {
@@ -597,17 +577,7 @@ const app = createApp({
                 console.error("Error handling company bookmark:", error);
             }
         },
-        async fetchCompanyBookmarks() {
-            try {
-                const response = await fetch("/bookmarks/company");
-                if (response.ok) {
-                    const data = await response.json();
-                    this.companyBookmarkIds = data.bookmark_ids;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         checkAndSelectUrlParam(paramName, selectFunction) {
             const urlParams = new URLSearchParams(window.location.search);
             const paramSlug = urlParams.get(paramName);

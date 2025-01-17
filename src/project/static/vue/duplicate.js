@@ -199,58 +199,86 @@ createApp({
             }
         },
         async mergeInvestors(comparisonIndex) {
-            investorAID = this.comparisons[comparisonIndex].investorA.id;
-            investorBID = this.comparisons[comparisonIndex].investorB.id;
-            updatedInvestor = this.selectedFields[comparisonIndex];
-
-            const getUniqueIds = (valueArrays) => {
-                if (!Array.isArray(valueArrays)) return [];
-                return [
-                    ...new Set(
-                        valueArrays.flatMap((array) =>
-                            Array.isArray(array) ? array.filter((item) => item?.id).map((item) => item.id) : [],
-                        ),
-                    ),
-                ];
-            };
-
-            const investorData = {
-                first_name: updatedInvestor.first_name?.value || null,
-                last_name: updatedInvestor.last_name?.value || null,
-                slug: updatedInvestor.slug?.value + "_new" || null,
-                firm_name: updatedInvestor.firm_name?.value || null,
-                position: updatedInvestor.position?.value || null,
-                about: updatedInvestor.about?.value || null,
-                website: updatedInvestor.website?.value || null,
-                linkedin: updatedInvestor.linkedin?.value || null,
-                twitter: updatedInvestor.twitter?.value || null,
-                email: updatedInvestor.email?.value || null,
-                phone_number: updatedInvestor.phone_number?.value || null,
-                location: updatedInvestor.location?.value || null,
-                n_investments: updatedInvestor.n_investments?.value ?? null,
-                n_exits: updatedInvestor.n_exits?.value ?? null,
-                is_public: updatedInvestor.is_public?.value ?? null,
-                is_approved: updatedInvestor.is_approved?.value ?? null,
-                min_investment: updatedInvestor.min_investment?.value ?? null,
-                max_investment: updatedInvestor.max_investment?.value ?? null,
-
-                rounds: getUniqueIds(updatedInvestor.rounds?.values),
-                industries: getUniqueIds(updatedInvestor.industries?.values),
-            };
-            console.log(investorData);
-            const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch("/admin/investors/create", {
+                if (!window.confirm("Are you sure you want to merge two investors into a new one?")) {
+                    return;
+                }
+                const csrfToken = document.getElementById("csrf_token").value;
+                investorAID = this.comparisons[comparisonIndex].investorA.id;
+                investorBID = this.comparisons[comparisonIndex].investorB.id;
+                updatedInvestor = this.selectedFields[comparisonIndex];
+
+                const getValue = (field, defaultValue = null) => updatedInvestor[field]?.value ?? defaultValue;
+                const getUniqueIds = (valueArrays) => {
+                    if (!Array.isArray(valueArrays)) return [];
+                    return [
+                        ...new Set(
+                            valueArrays.flatMap((array) =>
+                                Array.isArray(array) ? array.filter((item) => item?.id).map((item) => item.id) : [],
+                            ),
+                        ),
+                    ];
+                };
+
+                const mergedInvestorData = {
+                    first_name: getValue("first_name"),
+                    last_name: getValue("last_name"),
+                    slug: getValue("slug"),
+                    firm_name: getValue("firm_name"),
+                    position: getValue("position"),
+                    about: getValue("about"),
+                    website: getValue("website"),
+                    linkedin: getValue("linkedin"),
+                    twitter: getValue("twitter"),
+                    email: getValue("email"),
+                    phone_number: getValue("phone_number"),
+                    location: getValue("location"),
+                    n_investments: getValue("n_investments"),
+                    n_exits: getValue("n_exits"),
+                    is_public: getValue("is_public"),
+                    is_approved: getValue("is_approved"),
+                    min_investment: getValue("min_investment"),
+                    max_investment: getValue("max_investment"),
+                    rounds: getUniqueIds(updatedInvestor.rounds?.values),
+                    industries: getUniqueIds(updatedInvestor.industries?.values),
+                };
+
+                const mergeResponse = await fetch("/admin/investors/merge", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": csrfToken,
                     },
-
-                    body: JSON.stringify(investorData),
+                    body: JSON.stringify(mergedInvestorData),
                 });
-                if (response.redirected) {
-                    window.location.href = response.url;
+
+                if (!mergeResponse.ok) {
+                    const errorText = await mergeResponse.text();
+                    throw new Error(`Merge failed: ${mergeResponse.status} - ${errorText}`);
+                }
+
+                // Если merge сработал, то параллельно удаляем инвесторов
+                if (mergeResponse.ok) {
+                    const deleteResponses = await Promise.all([
+                        fetch(`/admin/investors/${investorAID}/delete`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": csrfToken,
+                            },
+                        }),
+                        fetch(`/admin/investors/${investorBID}/delete`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": csrfToken,
+                            },
+                        }),
+                    ]);
+                }
+
+                if (mergeResponse.redirected) {
+                    window.location.href = mergeResponse.url;
                 }
             } catch (error) {
                 console.error("Error during merge:", error);

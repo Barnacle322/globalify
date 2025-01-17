@@ -588,7 +588,7 @@ def filter_investors():
     )
 
 
-@investor.get("/duplicatess/")
+@investor.get("/duplicates/")
 @admin_only
 def duplicates():
     status_type, msg = None, None
@@ -610,13 +610,51 @@ def duplicates():
     )
 
 
-# @investor.post("/merge")
-# @admin_only
-# def merge_investors():
-#     form_data = request.get_json()
-#     create_investor()
+@investor.post("/merge")
+@admin_only
+def merge_investors():
+    form_data = request.get_json()
 
-#     return redirect(url_for("admin.investor.duplicates", _external=False))
+    investor = Investor(
+        first_name=form_data.get("first_name"),
+        last_name=form_data.get("last_name"),
+        firm_name=form_data.get("firm_name") or None,
+        position=form_data.get("position") or None,
+        about=form_data.get("about") or None,
+        website=form_data.get("website") or None,
+        linkedin=form_data.get("linkedin") or None,
+        twitter=form_data.get("twitter"),
+        email=form_data.get("email") or None,
+        phone_number=form_data.get("phone_number") or None,
+        n_investments=int(form_data.get("n_investments") or 0),
+        n_exits=int(form_data.get("n_exits") or 0),
+        min_investment=int(form_data.get("min_investment") or 0),
+        max_investment=int(form_data.get("max_investment") or 0),
+        location=form_data.get("location") or None,
+        rounds=list(Round.get_by_id_list(form_data.get("rounds") or [])),
+        industries=list(Industry.get_by_id_list(form_data.get("industries") or [])),
+        notable_investments=list(NotableInvestment.get_by_id_list(form_data.get("notable_investments") or [])),
+        # user=user,
+    )
+
+    try:
+        db.session.add(investor)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
+
+    investor.set_slug()
+
+    try:
+        investor.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Investor created successfully!").get_status()
+
+    return redirect(url_for("admin.investor.duplicates", _external=False))
 
 
 @investor.get("/get/duplicates/")

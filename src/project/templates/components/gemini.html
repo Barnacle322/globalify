@@ -61,6 +61,15 @@
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
 
             <h1 class="text-2xl font-bold mb-4 text-center">How can I help?</h1>
+
+            <div class="w-full mb-6">
+                <h2 class="text-xl font-semibold mb-2">Your chats</h2>
+                <ul class="list-disc pl-9">
+                    <li v-for="chat in chats" :key="chat.id">
+                        <span v-text="chat.created" class="cursor-pointer" @click="loadChatById(chat.id)"></span>
+                    </li>
+                </ul>
+            </div>
             <div class="relative flex w-10/12 flex-col border rounded-full">
                 <div class="view-search relative mx-auto flex w-full gap-2 rounded-[30px] bg-white py-2 pr-3">
                     <input
@@ -73,10 +82,10 @@
                         autocorrect="off"
                         autocomplete="off"
                         v-model="prompt"
-                        aria-autocomplete="both"
+                        @keyup.enter="sendMessage({{ user.id }})"
                         required
                     />
-                    <button @click="sendMessage({{ user.id }})" class="" type="submit">
+                    <button @click="sendMessage({{ user.id }})" type="submit">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -95,11 +104,17 @@
                 </div>
             </div>
 
-            <div class="w-full mt-6 flex flex-col gap-4">
-                <div v-for="(char, index) in response" :key="index" class="flex items-start">
-                    <div class="bg-gray-100 text-gray-800 rounded-lg p-4 max-w-[75%] shadow-sm text-sm sm:text-base">
-                        <span v-text="char"></span>
-                    </div>
+            <div class="w-full mt-6 flex flex-col gap-4" v-if="response.length">
+                <div
+                    v-for="(message, index) in response"
+                    :key="index"
+                    :class="{'self-end': message.type === 'user', 'self-start': message.type === 'gemini'}"
+                    class="flex items-start"
+                >
+                    <div
+                        v-text="message.content"
+                        class="bg-gray-100 text-gray-800 rounded-lg p-4 max-w-[75%] shadow-sm text-sm sm:text-base"
+                    ></div>
                 </div>
             </div>
         </main>

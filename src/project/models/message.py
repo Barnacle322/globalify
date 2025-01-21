@@ -35,6 +35,10 @@ class Chat(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_by_user_id(user_id: int) -> Chat | None:
         return db.session.scalar(db.select(Chat).where(Chat.user_id == user_id))
 
+    @staticmethod
+    def get_all_by_user_id(user_id: int) -> Sequence[Chat] | None:
+        return db.session.scalars(db.select(Chat).where(Chat.user_id == user_id)).all()
+
 
 class Message(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
@@ -52,3 +56,7 @@ class Message(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_by_id(id: int) -> Message | None:
         return db.session.scalar(db.select(Message).where(Message.id == id))
+
+    @staticmethod
+    def get_by_chat_id(chat_id: int) -> Sequence[Message] | None:
+        return db.session.scalars(db.select(Message).where(Message.chat_id == chat_id)).all()

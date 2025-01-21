@@ -156,7 +156,11 @@
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
-                <gemini-component @close-gemini="isGeminiOpened = False" v-if="isGeminiOpened"></gemini-component>
+                <gemini-component
+                    @close-gemini="isGeminiOpened = False"
+                    :user-id="{{ user.id }}"
+                    v-if="isGeminiOpened"
+                ></gemini-component>
             </transition>
 
             <div class="relative w-full">

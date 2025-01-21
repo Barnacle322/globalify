@@ -1,6 +1,7 @@
 const GeminiComponent = defineComponent({
     template: "#gemini-template",
     emits: ["close-gemini"],
+    props: ["userId"],
     methods: {
         async startStream() {
             this.response = [];
@@ -11,44 +12,133 @@ const GeminiComponent = defineComponent({
             const eventSource = new EventSource(`/stream/${this.prompt}`);
             eventSource.onmessage = (event) => {
                 const cleanData = event.data.replace(/([^\s])([A-Z])/g, "$1 $2");
-                this.queue.push(cleanData);
+                this.queue.push({ message: cleanData, type: "BOT" });
             };
             eventSource.onerror = () => {
                 eventSource.close();
             };
             this.intervalId = setInterval(() => {
                 if (this.queue.length > 0) {
-                    this.response.push(this.queue.shift());
+                    const message = this.queue.shift();
+                    this.displayMessage(message);
                 }
-            }, 1);
+            }, 100); // Пауза между выводом букв
         },
         async sendMessage(userId) {
             if (!this.prompt.trim()) return;
 
+            const csrf_token = document.getElementById("csrf_token").value;
+
             try {
                 const response = await fetch(`/message/chat/${userId}`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        message: this.prompt,
-                        type: "USER",
-                    }),
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                    body: JSON.stringify({ message: this.prompt }),
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error("Failed to send message:", errorData.error);
-                    return;
-                }
-
-                const message = await response.json();
-                this.response.push(message.message);
+                const data = await response.json();
+                console.log(data);
+                this.response.push({ content: data.user_message, type: "user" });
                 this.prompt = "";
+                this.displayMessage({ message: data.bot_message, type: "gemini" });
             } catch (error) {
                 console.error("Error sending message:", error);
             }
+        },
+        async createChat() {
+            const csrf_token = document.getElementById("csrf_token").value;
+
+            try {
+                const response = await fetch(`/message/chat/create`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                    body: JSON.stringify({ user_id: this.userId }),
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    console.log("Chat created successfully:", data);
+                    this.loadChat(); // Load the chat after creation
+                } else {
+                    console.error("Error creating chat:", data.error);
+                }
+            } catch (error) {
+                console.error("Error creating chat:", error);
+            }
+        },
+        async loadChat() {
+            try {
+                const response = await fetch(`/message/chat/${this.userId}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
+
+                const data = await response.json();
+
+                console.log(data);
+
+                this.response = data.messages.map((msg) => ({
+                    content: msg.message,
+                    type: msg.type,
+                }));
+            } catch (error) {
+                console.error("Error loading chat:", error);
+            }
+        },
+        async loadChatById(chatId) {
+            try {
+                const response = await fetch(`/message/chat/id/${chatId}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
+
+                const data = await response.json();
+
+                console.log(data);
+
+                this.response = data.messages.map((msg) => ({
+                    content: msg.message,
+                    type: msg.type,
+                }));
+            } catch (error) {
+                console.error("Error loading chat:", error);
+            }
+        },
+        async loadAllChats() {
+            try {
+                const response = await fetch(`/message/chats/${this.userId}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
+
+                const data = await response.json();
+
+                this.chats = data;
+            } catch (error) {
+                console.error("Error loading chat:", error);
+            }
+        },
+        displayMessage(message) {
+            const fullMessage = message.message;
+            let currentIndex = 0;
+            const interval = setInterval(() => {
+                if (currentIndex < fullMessage.length) {
+                    const currentMessage = this.response.find(
+                        (msg) => msg.type === message.type && msg.content === fullMessage.slice(0, currentIndex),
+                    );
+                    if (currentMessage) {
+                        currentMessage.content = fullMessage.slice(0, currentIndex + 1);
+                    } else {
+                        this.response.push({
+                            content: fullMessage.slice(0, currentIndex + 1),
+                            type: message.type,
+                        });
+                    }
+                    currentIndex++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 5);
         },
         toggleExpansion() {
             this.isExpanded = !this.isExpanded;
@@ -62,12 +152,18 @@ const GeminiComponent = defineComponent({
             }
         },
     },
-
+    async created() {
+        const userId = this.userId;
+        console.log(userId);
+        this.loadChat();
+        this.loadAllChats();
+    },
     data() {
         return {
             prompt: "",
             response: [],
             queue: [],
+            chats: [],
             intervalId: null,
             isExpanded: false,
             isGeminiOpened: true,

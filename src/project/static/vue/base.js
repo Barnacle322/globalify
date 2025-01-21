@@ -462,12 +462,25 @@ const Bookmark = defineComponent({
             if (!url) return;
             return url.split("/").pop();
         },
+        setInitBookmarkSection() {
+            const path = window.location.pathname;
+
+            const pathToTabMap = {
+                "/search/investment-firms": "investment_firm",
+                "/search": "investor",
+                "/search/companies": "company",
+            };
+
+            this.selectedTab = pathToTabMap[path] || "default_tab";
+        }
     },
     async mounted() {
         await this.setupInfinteScroll();
         window.addEventListener("click", this.closeRemoveBookmark);
         window.addEventListener("click", this.closeDropdownOutside);
         this.selectedTab = this.$refs.bookmarktabs.children[0].getAttribute("name");
+        this.setInitBookmarkSection()
+
     },
     beforeUnmount() {
         this.observer.disconnect();

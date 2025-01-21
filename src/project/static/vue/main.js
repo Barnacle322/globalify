@@ -24,13 +24,13 @@ const GeminiComponent = defineComponent({
                 }
             }, 100); // Пауза между выводом букв
         },
-        async sendMessage(userId) {
+        async sendMessage(chatId) {
             if (!this.prompt.trim()) return;
 
             const csrf_token = document.getElementById("csrf_token").value;
 
             try {
-                const response = await fetch(`/message/chat/${userId}`, {
+                const response = await fetch(`/message/chat/${chatId}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
                     body: JSON.stringify({ message: this.prompt }),
@@ -112,11 +112,15 @@ const GeminiComponent = defineComponent({
                 });
 
                 const data = await response.json();
-
                 this.chats = data;
+                this.selectedChatId = this.chats[0].id;
             } catch (error) {
                 console.error("Error loading chat:", error);
             }
+        },
+        async selectChat(chatId) {
+            this.selectedChatId = chatId;
+            this.loadChatById(chatId);
         },
         displayMessage(message) {
             const fullMessage = message.message;
@@ -165,6 +169,7 @@ const GeminiComponent = defineComponent({
             queue: [],
             chats: [],
             intervalId: null,
+            selectedChatId: null,
             isExpanded: false,
             isGeminiOpened: true,
             messages: {},

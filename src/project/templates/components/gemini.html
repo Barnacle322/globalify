@@ -66,41 +66,42 @@
                 <h2 class="text-xl font-semibold mb-2">Your chats</h2>
                 <ul class="list-disc pl-9">
                     <li v-for="chat in chats" :key="chat.id">
-                        <span v-text="chat.created" class="cursor-pointer" @click="loadChatById(chat.id)"></span>
+                        <span v-text="chat.created" class="cursor-pointer" @click="selectChat(chat.id)"></span>
                     </li>
                 </ul>
-            </div>
-            <div class="relative flex w-10/12 flex-col border rounded-full">
-                <div class="view-search relative mx-auto flex w-full gap-2 rounded-[30px] bg-white py-2 pr-3">
-                    <input
-                        type="search"
-                        name="search"
-                        id="search"
-                        class="w-full border-0 bg-transparent py-3 pr-0 text-sm focus:ring-0"
-                        placeholder="Write your message here..."
-                        autocapitalize="off"
-                        autocorrect="off"
-                        autocomplete="off"
-                        v-model="prompt"
-                        @keyup.enter="sendMessage({{ user.id }})"
-                        required
-                    />
-                    <button @click="sendMessage({{ user.id }})" type="submit">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="size-5"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                            />
-                        </svg>
-                    </button>
+
+                <div class="relative flex w-10/12 flex-col border rounded-full">
+                    <div class="view-search relative mx-auto flex w-full gap-2 rounded-[30px] bg-white py-2 pr-3">
+                        <input
+                            type="search"
+                            name="search"
+                            id="search"
+                            class="w-full border-0 bg-transparent py-3 pr-0 text-sm focus:ring-0"
+                            placeholder="Write your message here..."
+                            autocapitalize="off"
+                            autocorrect="off"
+                            autocomplete="off"
+                            v-model="prompt"
+                            @keyup.enter="sendMessage({{ user.id }})"
+                            required
+                        />
+                        <button @click="sendMessage(selectedChatId), chat.id" type="submit">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-5"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 

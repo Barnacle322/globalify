@@ -36,12 +36,9 @@ def create_chat():
     return jsonify({"message": "Chat created successfully", "chat_id": chat.id})
 
 
-@message.route("/chat/<int:user_id>", methods=["POST"])
+@message.route("/chat/<int:chat_id>", methods=["POST"])
 @login_required
-def send_message(user_id):
-    if current_user.id != user_id:
-        return jsonify({"error": "Access denied"}), 403
-
+def send_message(chat_id):
     data = request.get_json()
     user_message = data.get("message", "").strip()
 
@@ -49,9 +46,9 @@ def send_message(user_id):
         return jsonify({"error": "Message cannot be empty"}), 400
 
     # Получаем или создаем чат
-    chat = Chat.get_by_user_id(user_id)
+    chat = Chat.get_by_id(chat_id)
     if not chat:
-        chat = Chat(user_id=user_id)
+        chat = Chat(user_id=current_user.id)
         db.session.add(chat)
         db.session.commit()
 

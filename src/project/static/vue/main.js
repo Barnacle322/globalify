@@ -96,6 +96,9 @@ const FullInvestor = defineComponent({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
                     var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
                     if (data[0].bookmarked) {
@@ -255,6 +258,9 @@ const FullInvestmentFirm = defineComponent({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
                     var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
                     if (data[0].bookmarked) {
@@ -385,6 +391,9 @@ const FullCompany = defineComponent({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
                     var svg = document.getElementById(`bookmark-svg-company-${companyId}`);
                     if (data[0].bookmarked) {

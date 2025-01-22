@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from ..extensions import db
 from ..models import (
     Company,
+    CompanyBookmark,
     Country,
     Industry,
     InvestmentFirm,
@@ -23,7 +24,7 @@ from ..models import (
     SearchHistory,
     User,
     UserCompany,
-    UserPayment, CompanyBookmark,
+    UserPayment,
 )
 from ..schemas.notification import NotificationItem, NotificationLayout
 from ..schemas.user import SearchHistorySchema

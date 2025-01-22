@@ -1,9 +1,7 @@
 from datetime import datetime
-from typing import Optional, List
 
 from pydantic import BaseModel
 
-from .investor import NestedInvestmentSchema
 from ..utils.enums import SearchHistoryType
 
 
@@ -39,10 +37,6 @@ class CompanySchema(BaseModel):
     country: str | None
     preferred_round: object | None
     industry: object | None
-    investments: Optional[List[NestedInvestmentSchema]] | None = None
-
-    class Config:
-        anystr_strip_whitespace = True
 
 
 class SearchHistorySchema(BaseModel):

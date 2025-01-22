@@ -367,21 +367,11 @@ class Investor(InvestorBase):
 
     @staticmethod
     def get_by_slug(slug: str) -> Investor | None:
-        return db.session.scalar(
-            db.select(Investor)
-            .options(joinedload(Investor.investments))
-            .where(Investor.slug == slug)
-        )
+        return db.session.scalar(db.select(Investor).where(Investor.slug == slug))
 
     @staticmethod
     def get_by_slug_without_contacts(slug: str) -> Investor | None:
-        result = db.session.scalar(
-            db.select(Investor)
-            .options(
-                joinedload(Investor.investments)  # Eagerly load only the investments
-            )
-            .where(Investor.slug == slug)
-        )
+        result = db.session.scalar(db.select(Investor).where(Investor.slug == slug))
 
         if result:
             result.website = None
@@ -1305,9 +1295,7 @@ class InvestmentFirm(db.Model):
     @staticmethod
     def get_by_slug(slug: str) -> Investor | None:
         return db.session.scalar(
-            db.select(InvestmentFirm)
-            .options(joinedload(InvestmentFirm.investments))
-            .where(InvestmentFirm.slug == slug)
+            db.select(InvestmentFirm).options(joinedload(InvestmentFirm.investments)).where(InvestmentFirm.slug == slug)
         )
 
     @staticmethod

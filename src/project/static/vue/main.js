@@ -27,9 +27,10 @@ const FullInvestor = defineComponent({
                     this.investor = data.investor;
                     this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
-                    this.investments = data.investor.investments
-                    this.n_of_investments = data.investor.n_of_investments;
-
+                    if (data.investments && data.n_of_investments){
+                        this.investments = data.investments;
+                        this.n_of_investments = data.n_of_investments;
+                    }
                     await this.loadTwitterTimeline();
                 } else {
                     this.closeInvestor();
@@ -229,7 +230,9 @@ const FullInvestmentFirm = defineComponent({
                     this.investmentFirm = data.investment_firm;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
-                    this.investments = data.investment_firm.investments;
+                    if(data.investments){
+                        this.investments = data.investments;
+                    }
 
                 } else {
                     this.closeInvestmentFirm();
@@ -358,7 +361,9 @@ const FullCompany = defineComponent({
                     this.company = data.company;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
-                    this.investments = data.company.investments
+                    if(data.investments){
+                        this.investments = data.investments
+                    }
                 } else {
                     this.closeCompany();
                     return;

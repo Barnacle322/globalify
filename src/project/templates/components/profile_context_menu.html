@@ -28,7 +28,11 @@
                     />
                 </a>
                 <h3 class="mt-2 text-lg font-semibold">{{ user.user_info.full_name }}</h3>
+
+                {% if user.user_info.username %}
                 <p class="text-sm text-gray-500">{{ user.user_info.username }}</p>
+                {% endif %}
+
                 <a
                     href="/settings/plan"
                     class="mt-2 rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-300 px-2 py-1 text-xs font-medium text-white"
@@ -129,12 +133,23 @@
             >
                 Settings
             </a>
+
+            {% if user.user_info.username %}
             <a
                 href="/logout"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 transition-colors ease-in-out hover:bg-gray-50"
             >
                 Log out {{ user.user_info.username }}
             </a>
+            {% else %}
+            <a
+                href="/logout"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 transition-colors ease-in-out hover:bg-gray-50"
+            >
+                Log out
+            </a>
+
+            {% endif %}
         </div>
     </div>
 </template>

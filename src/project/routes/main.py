@@ -287,7 +287,6 @@ def toggle_bookmark_investor(investor_id):
     new_bookmark = InvestorBookmark(investor_id=investor.id, user_id=current_user.id)
     db.session.add(new_bookmark)
     db.session.commit()
-
     return jsonify({"bookmarked": True}, 200)
 
 

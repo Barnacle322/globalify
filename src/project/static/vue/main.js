@@ -870,6 +870,9 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
                     if (data[0].bookmarked) {
                         this.investorBookmakrIds.push(investorId);
@@ -894,7 +897,11 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
+
                     if (data[0].bookmarked) {
                         this.investmentFirmBookmakrIds.push(firmId);
                         document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = '#FFC9FC';
@@ -918,6 +925,9 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
                     if (data[0].bookmarked) {
                         this.companyBookmarkIds.push(companyId);

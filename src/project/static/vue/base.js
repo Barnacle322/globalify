@@ -470,7 +470,6 @@ const Bookmark = defineComponent({
                 "/search": "investor",
                 "/search/companies": "company",
             };
-
             this.selectedTab = pathToTabMap[path] || "default_tab";
         }
     },
@@ -480,7 +479,6 @@ const Bookmark = defineComponent({
         window.addEventListener("click", this.closeDropdownOutside);
         this.selectedTab = this.$refs.bookmarktabs.children[0].getAttribute("name");
         this.setInitBookmarkSection()
-
     },
     beforeUnmount() {
         this.observer.disconnect();

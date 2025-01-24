@@ -440,9 +440,53 @@ def get_search_histories():
     return jsonify(day_list)
 
 
+@search.get("/history/types")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_history_types():
+    types = [
+        {"value": type.value.replace("_", ""), "readable": type.name.title().replace("_", " ")}
+        for type in SearchHistoryType
+    ]
+    return jsonify(types)
+
+
 @search.get("/history")
 @login_required
 @check_user_info_complete
 @check_verification
 def get_full_search_history():
+    if "type" not in request.args:
+        return redirect("/history?type=investor")
     return render_template("history.html")
+
+
+@search.post("/history/delete")
+@login_required
+@check_user_info_complete
+@check_verification
+def delete_histories():
+    form_data = request.get_json()
+    history_ids = form_data.get("ids", [])
+
+    if not history_ids:
+        return jsonify({"error": "No history IDs provided"}), 400
+
+    try:
+        history_ids = [int(id) for id in history_ids]
+
+        stmt = db.select(SearchHistory.id).where(
+            SearchHistory.id.in_(history_ids), SearchHistory.user_id == current_user.id
+        )
+        valid_ids = [str(id[0]) for id in db.session.execute(stmt).all()]
+
+        delete_stmt = db.delete(SearchHistory).where(SearchHistory.id.in_(valid_ids))
+        db.session.execute(delete_stmt)
+        db.session.commit()
+
+        return jsonify({"message": "Successfully deleted entries", "deleted_ids": valid_ids}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to delete items: {str(e)}"}), 500

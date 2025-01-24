@@ -50,6 +50,7 @@ from .investment import FundingRound
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
     from .investor import InvestmentFirmBookmark, Investor, InvestorBackup, InvestorBookmark, NotableInvestment
+    from .message import Chat
     from .search import SearchHistory
 
 
@@ -66,6 +67,7 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
         "EmailVerification", back_populates="user", init=False
     )
 
+    messages: Mapped[list[Chat]] = relationship("Chat", back_populates="user", uselist=True, init=False)
     claim_requests: Mapped[list[ClaimRequest]] = relationship(
         "ClaimRequest", back_populates="user", uselist=True, init=False
     )
@@ -87,7 +89,6 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     investment_firm_bookmarks: Mapped[list[InvestmentFirmBookmark]] = relationship(
         "InvestmentFirmBookmark", back_populates="user", uselist=True, init=False
     )
-
     search_histories: Mapped[list[SearchHistory]] = relationship(
         "SearchHistory", back_populates="user", uselist=True, init=False
     )

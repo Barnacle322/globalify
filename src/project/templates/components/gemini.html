@@ -1,0 +1,161 @@
+{% macro render(user) %}
+<template id="gemini-template">
+    <article
+        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col overflow-y-scroll overscroll-contain bg-white transition-all"
+        :class="isExpanded ? 'md:w-full lg:w-full 2xl:w-full' : 'md:w-4/5 md:rounded-l-3xl lg:w-2/3 2xl:w-1/2'"
+    >
+        <nav class="sticky right-0 top-0 z-10 flex w-full items-center justify-between bg-white px-4 py-4 sm:px-9">
+            <button
+                @click="toggleExpansion"
+                class="hidden rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50 md:block"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                    v-if="!isExpanded"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+                    />
+                </svg>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                    v-else
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"
+                    />
+                </svg>
+            </button>
+            <button
+                @click="closeGemini"
+                class="ml-auto flex aspect-square h-full items-center justify-center rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-6"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </nav>
+        <main class="flex h-full">
+            <div class="flex flex-col gap-3 w-1/2 bg-slate-200 p-5 overflow-y-auto h-full">
+                <div class="flex gap-3 hover:bg-slate-300 p-3 rounded-lg cursor-pointer" @click="createChat">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
+                        />
+                    </svg>
+
+                    <span>New chat</span>
+                </div>
+                <h2 class="text-xl font-semibold mb-2">Your chats</h2>
+                <div class="flex flex-col gap-5">
+                    <div v-for="chat in chats" :key="chat.id">
+                        <span
+                            v-text="chat.created"
+                            class="cursor-pointer hover:hover:bg-slate-300 p-3 rounded-lg whitespace-nowrap overflow-hidden overflow-ellipsis"
+                            @click="selectChat(chat.id)"
+                            :class="{'bg-slate-300': selectedChatId === chat.id}"
+                        ></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col bg-slate-300 w-full h-full relative">
+                <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="border-[#424242] p-5">
+                    <h1 class="text-2xl font-bold mb-4 text-center">How can I help?</h1>
+                </div>
+
+                <div
+                    class="flex flex-col gap-5 p-5 overflow-y-auto h-[calc(100vh-17rem)] relative z-0"
+                    v-if="response.length"
+                    ref="chatContainer"
+                >
+                    <div
+                        v-for="(message, index) in response"
+                        :key="index"
+                        :class="{'self-end': message.type === 'user', 'self-start': message.type === 'gemini'}"
+                        class="flex items-start"
+                    >
+                        <div
+                            v-text="message.content"
+                            class="bg-gray-100 text-gray-800 rounded-lg p-4 max-w-[75%] shadow-sm text-sm sm:text-base"
+                        ></div>
+                    </div>
+                </div>
+                <div v-else class="flex flex-col gap-5 p-5 overflow-y-auto h-[calc(100vh-17rem)] relative z-0">
+                    <div class="flex items-start">
+                        <div
+                            class="bg-gray-100 text-gray-800 rounded-lg p-4 max-w-[75%] shadow-sm text-sm sm:text-base"
+                        >
+                            Hi there! I'm Gemini, your virtual assistant. How can I help you today?
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-5 absolute bottom-0 w-full">
+                    <div class="p-5 bg-slate-400 rounded-2xl flex justify-between">
+                        <div
+                            ref="prompt"
+                            contenteditable="true"
+                            translate="no"
+                            onblur="this.textContent = this.textContent.trim()"
+                            class="placeholder ring-0 outline-0 border-0 w-full"
+                        ></div>
+                        <button
+                            @click="sendMessage(selectedChatId)"
+                            @keyup.enter="sendMessage(selectedChatId)"
+                            class="hover:translate-x-1 transition-transform ease-in-out"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-6"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </article>
+</template>
+
+{% endmacro %}

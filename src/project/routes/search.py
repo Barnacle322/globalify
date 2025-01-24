@@ -1,9 +1,11 @@
 from flask import (
     Blueprint,
+    Response,
     jsonify,
     redirect,
     render_template,
     request,
+    stream_with_context,
     url_for,
 )
 from flask_login import current_user, login_required
@@ -36,10 +38,32 @@ from ..utils.decorators import (
 )
 from ..utils.enums import NotificationType, SearchHistoryType
 from ..utils.funcs import generate_pagination
+
+# from ..utils.gemini import func
 from ..utils.posthog import capture_event, capture_page_visit
 from ..utils.suggestion import COMPANY_WEIGHTS, WEIGHTS, check_weights
 
 search = Blueprint("search", __name__)
+
+
+# @search.route("/gemini")
+# def home():
+#     return render_template("gemini.html")
+
+
+# @search.route("/stream/<prompt>")
+# def streamed_response(prompt):
+#     def generate():
+#         response = func(prompt)
+#         for res in response:
+#             for candidate in res._result.candidates:
+#                 for part in candidate.content.parts:
+#                     yield f"data: {part.text}\n\n".encode("utf-8")  # Ensure the chunk is in bytes and formatted for SSE
+
+#         print("\n\n\n\n\n\n\n\n")
+#         print(response)
+
+#     return Response(stream_with_context(generate()), content_type="text/event-stream")
 
 
 @search.get("/search/investors/<search>")

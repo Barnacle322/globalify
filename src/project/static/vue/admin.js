@@ -1597,6 +1597,10 @@ createApp({
         approveClaimRequest(id) {
             const csrfToken = document.getElementById("csrf_token").value;
 
+            if (!confirm("Are you sure you want to reject this claim request?")) {
+                return;
+            }
+
             fetch(`/admin/claim-request/${id}`, {
                 method: "POST",
                 headers: {
@@ -1636,6 +1640,10 @@ createApp({
         },
         rejectClaimCompanyRequest(id) {
             const csrfToken = document.getElementById("csrf_token").value;
+
+            if (!confirm("Are you sure you want to reject this claim request?")) {
+                return;
+            }
 
             fetch(`/admin/claim-company-request/${id}`, {
                 method: "POST",

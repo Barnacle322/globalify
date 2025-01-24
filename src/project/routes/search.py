@@ -308,7 +308,7 @@ def search_investment_firms():
 @login_required
 @check_user_info_complete
 @check_verification
-@check_investor_mode
+# @check_investor_mode
 def search_companies():
     capture_page_visit("company_search")
 

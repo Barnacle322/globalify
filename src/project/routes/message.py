@@ -8,7 +8,7 @@ from ..models import (
 )
 from ..schemas.message import ChatListSchema, ChatSchema, MessageSchema
 from ..utils.enums import SenderType
-from ..utils.gemini import func
+from ..utils.gemini import generate_response
 
 message = Blueprint("message", __name__)
 
@@ -60,8 +60,15 @@ def send_message(chat_id):
     db.session.add(user_msg)
     db.session.commit()
 
-    # Отправляем запрос в Gemini
-    bot_response = func(user_message)
+    messages = Message.get_by_chat_id(chat.id)
+
+    old_messages = [
+        {"role": "user" if msg.type == SenderType.USER else "assistant", "parts": [msg.message]} for msg in messages
+    ]
+
+    old_messages.append({"role": "user", "parts": [user_message]})
+
+    bot_response = generate_response(user_message, old_messages)
 
     # Обрабатываем ответ от Gemini
     bot_message_text = ""
@@ -139,7 +146,7 @@ def get_chat_by_user_id(user_id):
 @login_required
 def streamed_response(prompt):
     def generate():
-        response = func(prompt)
+        response = generate_response(prompt, [])
         for res in response:
             for candidate in res._result.candidates:
                 for part in candidate.content.parts:

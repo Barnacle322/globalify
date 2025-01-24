@@ -58,5 +58,5 @@ class Message(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalar(db.select(Message).where(Message.id == id))
 
     @staticmethod
-    def get_by_chat_id(chat_id: int) -> Sequence[Message] | None:
+    def get_by_chat_id(chat_id: int) -> Sequence[Message]:
         return db.session.scalars(db.select(Message).where(Message.chat_id == chat_id)).all()

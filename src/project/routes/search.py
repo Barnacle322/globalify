@@ -14,6 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from ..extensions import db
 from ..models import (
     Company,
+    CompanyBookmark,
     Country,
     Industry,
     InvestmentFirm,
@@ -208,9 +209,12 @@ def investor_search():
         except IntegrityError:
             db.session.rollback()
 
+    bookmarked_investor_ids = InvestorBookmark.get_id_list(current_user.id)
+
     return render_template(
         "search.html",
         investors=result.get("investors"),
+        bookmarked_investors=bookmarked_investor_ids,
         query=search_string,
         fields={
             "n_investments": "Number of Investments",
@@ -307,9 +311,12 @@ def search_investment_firms():
         except IntegrityError:
             db.session.rollback()
 
+    bookmarked_investment_firm_ids = InvestmentFirmBookmark.get_id_list(current_user.id)
+
     return render_template(
         "search_investment_firms.html",
         investment_firms=result.get("investment_firms"),
+        bookmarked_investment_firms=bookmarked_investment_firm_ids,
         query=search_string,
         fields={
             "n_investments": "Number of Investments",
@@ -387,9 +394,12 @@ def search_companies():
         except IntegrityError:
             db.session.rollback()
 
+    bookmarked_company_ids = CompanyBookmark.get_id_list(current_user.id)
+
     return render_template(
         "search_companies.html",
         companies=result.get("companies"),
+        bookmarked_companies=bookmarked_company_ids,
         query=search_string,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),

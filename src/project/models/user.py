@@ -45,10 +45,10 @@ from ..utils.typesense_helpers.typesense_search import (
     upsert_documents,
 )
 from .helpers import Country, Industry, Round
+from .investment import FundingRound
 
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
-    from .investment import FundingRound
     from .investor import InvestmentFirmBookmark, Investor, InvestorBackup, InvestorBookmark, NotableInvestment
     from .message import Chat
     from .search import SearchHistory

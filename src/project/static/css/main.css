@@ -2522,6 +2522,9 @@ select {
 .border-t-8 {
   border-top-width: 8px;
 }
+.border-b-\[3px\] {
+  border-bottom-width: 3px;
+}
 .border-\[\#424242\] {
   --tw-border-opacity: 1;
   border-color: rgb(66 66 66 / var(--tw-border-opacity));
@@ -2587,6 +2590,10 @@ select {
 .border-white {
   --tw-border-opacity: 1;
   border-color: rgb(255 255 255 / var(--tw-border-opacity));
+}
+.border-gray-800 {
+  --tw-border-opacity: 1;
+  border-color: rgb(31 41 55 / var(--tw-border-opacity));
 }
 .border-b-transparent {
   border-bottom-color: transparent;

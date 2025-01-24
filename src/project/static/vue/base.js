@@ -295,20 +295,6 @@ const Bookmark = defineComponent({
             if (newVal === oldVal) {
                 return;
             }
-
-            if (newVal === "investor") {
-                this.$refs.investor.setAttribute("data-selected", "true");
-                this.$refs.investment_firm.setAttribute("data-selected", "false");
-                this.$refs.company.setAttribute("data-selected", "false");
-            } else if (newVal === "investment_firm") {
-                this.$refs.investor.setAttribute("data-selected", "false");
-                this.$refs.investment_firm.setAttribute("data-selected", "true");
-                this.$refs.company.setAttribute("data-selected", "false");
-            } else if (newVal === "company") {
-                this.$refs.investor.setAttribute("data-selected", "false");
-                this.$refs.investment_firm.setAttribute("data-selected", "false");
-                this.$refs.company.setAttribute("data-selected", "true");
-            }
             this.page = 2;
             this.setupInfinteScroll();
         },
@@ -337,15 +323,14 @@ const Bookmark = defineComponent({
                 }
             } else if (this.selectedTab === "investment_firm") {
                 const response = await fetch("/bookmarks/investment-firms");
-                data = await response.json();
                 if (response.ok) {
+                    data = await response.json();
                     this.bookmarks = data.bookmarks;
                 }
             } else if (this.selectedTab === "company") {
                 const response = await fetch("/bookmarks/companies");
-                data = await response.json();
-
                 if (response.ok) {
+                    data = await response.json();
                     this.bookmarks = data.bookmarks;
                 }
             }
@@ -355,7 +340,6 @@ const Bookmark = defineComponent({
                 threshold: 0.5,
             };
 
-            const sentinel = document.getElementById("bookmark-sentinel");
             this.observer = new IntersectionObserver((entries, observer) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
@@ -364,7 +348,7 @@ const Bookmark = defineComponent({
                     }
                 });
             }, options);
-            this.observer.observe(sentinel);
+            this.observer.observe(this.$refs.sentinel);
         },
         async loadMoreBookmarks() {
             if (this.loading) return;
@@ -478,11 +462,23 @@ const Bookmark = defineComponent({
             if (!url) return;
             return url.split("/").pop();
         },
+        setInitBookmarkSection() {
+            const path = window.location.pathname;
+
+            const pathToTabMap = {
+                "/search/investment-firms": "investment_firm",
+                "/search": "investor",
+                "/search/companies": "company",
+            };
+            this.selectedTab = pathToTabMap[path] || "default_tab";
+        }
     },
     async mounted() {
         await this.setupInfinteScroll();
         window.addEventListener("click", this.closeRemoveBookmark);
         window.addEventListener("click", this.closeDropdownOutside);
+        this.selectedTab = this.$refs.bookmarktabs.children[0].getAttribute("name");
+        this.setInitBookmarkSection()
     },
     beforeUnmount() {
         this.observer.disconnect();
@@ -493,7 +489,7 @@ const Bookmark = defineComponent({
         return {
             bookmarks: [],
             openedDropdownId: null,
-            selectedTab: "investor",
+            selectedTab: "",
             observer: null,
             loading: false,
             reachedEnd: false,

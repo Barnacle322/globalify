@@ -197,7 +197,6 @@ const FullInvestor = defineComponent({
     async created() {
         await this.fetchInvestor();
         window.removeEventListener("popstate", this.checkUrlParams);
-        this.fetchInvestments(this.investor.id);
     },
     methods: {
         async fetchInvestor() {
@@ -208,6 +207,10 @@ const FullInvestor = defineComponent({
                     this.investor = data.investor;
                     this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
+                    if (data.investments && data.n_of_investments){
+                        this.investments = data.investments;
+                        this.n_of_investments = data.n_of_investments;
+                    }
                     await this.loadTwitterTimeline();
                 } else {
                     this.closeInvestor();
@@ -273,6 +276,9 @@ const FullInvestor = defineComponent({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
                     var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
                     if (data[0].bookmarked) {
@@ -288,19 +294,7 @@ const FullInvestor = defineComponent({
                 console.error(error);
             }
         },
-        async fetchInvestments(investorId) {
-            try {
-                const response = await fetch(`/investment/${investorId}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investments = data.investments;
 
-                    this.n_of_investments = data.n_of_investments;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
         async sortInvestments(sortType) {
             const compareDates = (a, b) => {
                 const dateA = new Date(a.announced_date);
@@ -408,18 +402,21 @@ const FullInvestmentFirm = defineComponent({
     async created() {
         await this.fetchInvestmentFirm();
         window.removeEventListener("popstate", this.checkUrlParams);
-        this.fetchInvestments(this.investmentFirm.id);
     },
     methods: {
         async fetchInvestmentFirm() {
             this.isLoading = true;
             try {
-                const response = await fetch(`/investment-firm/${this.slug}`);
+                const response = await fetch(`/investment-firm/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
                     this.investmentFirm = data.investment_firm;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
+                    if(data.investments){
+                        this.investments = data.investments;
+                    }
+
                 } else {
                     this.closeInvestmentFirm();
                     return;
@@ -441,6 +438,9 @@ const FullInvestmentFirm = defineComponent({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
                     var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
                     if (data[0].bookmarked) {
@@ -455,17 +455,7 @@ const FullInvestmentFirm = defineComponent({
                 console.error(error);
             }
         },
-        async fetchInvestments(firmId) {
-            try {
-                const response = await fetch(`/investment-firm/investment/${firmId}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investments = data.investments;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         async sortInvestments(sortType) {
             const compareDates = (a, b) => {
                 const dateA = new Date(a.announced_date);
@@ -546,18 +536,20 @@ const FullCompany = defineComponent({
     async created() {
         await this.fetchCompany();
         window.removeEventListener("popstate", this.checkUrlParams);
-        this.fetchInvestments(this.company.id);
     },
     methods: {
         async fetchCompany() {
             this.isLoading = true;
             try {
-                const response = await fetch(`/company/${this.slug}`);
+                const response = await fetch(`/company/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
                     this.company = data.company;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
+                    if(data.investments){
+                        this.investments = data.investments
+                    }
                 } else {
                     this.closeCompany();
                     return;
@@ -579,6 +571,9 @@ const FullCompany = defineComponent({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
                     var svg = document.getElementById(`bookmark-svg-company-${companyId}`);
                     if (data[0].bookmarked) {
@@ -594,17 +589,7 @@ const FullCompany = defineComponent({
                 console.error(error);
             }
         },
-        async fetchInvestments(companyId) {
-            try {
-                const response = await fetch(`/company/investment/${companyId}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investments = data.investments;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         async sortInvestments(sortType) {
             const compareDates = (a, b) => {
                 const dateA = new Date(a.announced_date);
@@ -731,7 +716,6 @@ const app = createApp({
         this.setupMenuToggle();
         this.initializeValuesFromParams();
         this.updateLinksWithQueryParams();
-
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
@@ -755,64 +739,40 @@ const app = createApp({
             try {
                 if (data.status) {
                     this.investorBookmakrIds.push(data.investorId); // Corrected typo
+                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = '#FFC9FC';
                 } else {
                     this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId); // Corrected typo
+                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = 'none';
                 }
             } catch (error) {
                 console.error("Error handling investor bookmark:", error);
             }
         },
-        async fetchInvestorBookmarks() {
-            try {
-                const response = await fetch("/bookmarks/investor");
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investorBookmakrIds = data.bookmark_ids;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         async handleInvestmentFirmBookmark(data) {
             if (data.status) {
                 this.investmentFirmBookmakrIds.push(data.firmId);
+                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = '#FFC9FC';
             } else {
                 this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== data.firmId);
+                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = 'none';
             }
         },
-        async fetchInvestmentFirmBookmarks() {
-            try {
-                const response = await fetch("/bookmarks/investment-firm");
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investmentFirmBookmakrIds = data.bookmark_ids;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         async handleCompanyBookmark(data) {
             try {
                 if (data.status) {
                     this.companyBookmarkIds.push(data.companyId);
+                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = '#FFC9FC';
                 } else {
                     this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== data.companyId);
+                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = 'none';
                 }
             } catch (error) {
                 console.error("Error handling company bookmark:", error);
             }
         },
-        async fetchCompanyBookmarks() {
-            try {
-                const response = await fetch("/bookmarks/company");
-                if (response.ok) {
-                    const data = await response.json();
-                    this.companyBookmarkIds = data.bookmark_ids;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         checkAndSelectUrlParam(paramName, selectFunction) {
             const urlParams = new URLSearchParams(window.location.search);
             const paramSlug = urlParams.get(paramName);
@@ -1100,11 +1060,16 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
                     if (data[0].bookmarked) {
                         this.investorBookmakrIds.push(investorId);
+                         document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = '#FFC9FC';
                     } else {
                         this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== investorId);
+                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = 'none';
                     }
                 }
             } catch (error) {
@@ -1122,11 +1087,17 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
+
                     if (data[0].bookmarked) {
                         this.investmentFirmBookmakrIds.push(firmId);
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = '#FFC9FC';
                     } else {
                         this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== firmId);
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = 'none';
                     }
                 }
             } catch (error) {
@@ -1144,11 +1115,16 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes('/onboarding/')){
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
                     if (data[0].bookmarked) {
                         this.companyBookmarkIds.push(companyId);
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = '#FFC9FC';
                     } else {
                         this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== companyId);
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = 'none';
                     }
                 }
             } catch (error) {

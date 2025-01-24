@@ -37,7 +37,7 @@ class Chat(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_all_by_user_id(user_id: int) -> Sequence[Chat] | None:
-        return db.session.scalars(db.select(Chat).where(Chat.user_id == user_id)).all()
+        return db.session.scalars(db.select(Chat).where(Chat.user_id == user_id).order_by(Chat.created.desc())).all()
 
 
 class Message(MappedAsDataclass, db.Model, unsafe_hash=True):

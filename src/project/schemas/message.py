@@ -17,7 +17,7 @@ class ChatSchema(BaseModel):
     id: int
     user_id: int
     created: datetime
-    messages: list[MessageSchema]
+    messages: list[MessageSchema] | None
 
     model_config = ConfigDict(from_attributes=True)
 

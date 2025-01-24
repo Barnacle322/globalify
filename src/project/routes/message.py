@@ -25,15 +25,18 @@ def create_chat():
     if current_user.id != user_id:
         return jsonify({"error": "Access denied"}), 403
 
-    chat = Chat.get_by_user_id(user_id)
-    if chat:
-        return jsonify({"error": "Chat already exists"}), 400
-
-    chat = Chat(user_id=user_id)
-    db.session.add(chat)
+    chat_model = Chat(user_id=user_id)
+    db.session.add(chat_model)
     db.session.commit()
 
-    return jsonify({"message": "Chat created successfully", "chat_id": chat.id})
+    chat = ChatSchema(
+        id=chat_model.id,
+        user_id=chat_model.user_id,
+        created=chat_model.created,
+        messages=None,
+    )
+
+    return jsonify({"chat": chat.model_dump()})
 
 
 @message.route("/chat/<int:chat_id>", methods=["POST"])
@@ -87,11 +90,10 @@ def get_chat(chat_id):
         return jsonify({"error": "Chat not found"}), 404
 
     messages = Message.get_by_chat_id(chat.id)
-
     if not messages:
-        return jsonify({"error": "Messages not found"}), 404
-
-    message_models = [MessageSchema.model_validate(msg) for msg in messages]
+        message_models = []
+    else:
+        message_models = [MessageSchema.model_validate(msg) for msg in messages]
     chat_model = ChatSchema(id=chat.id, user_id=chat.user_id, created=chat.created, messages=message_models)
 
     return jsonify(chat_model.model_dump())

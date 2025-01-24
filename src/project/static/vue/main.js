@@ -25,21 +25,23 @@ const GeminiComponent = defineComponent({
             }, 100); // Пауза между выводом букв
         },
         async sendMessage(chatId) {
-            if (!this.prompt.trim()) return;
-
             const csrf_token = document.getElementById("csrf_token").value;
+            const promptDiv = this.$refs.prompt;
+            const promptText = promptDiv.textContent.trim();
+            if (!promptText) return;
 
+            this.response.push({ content: promptText, type: "user" });
+            promptDiv.textContent = "";
+            this.scrollToBottom();
             try {
                 const response = await fetch(`/message/chat/${chatId}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
-                    body: JSON.stringify({ message: this.prompt }),
+                    body: JSON.stringify({ message: promptText }),
                 });
 
                 const data = await response.json();
-                console.log(data);
-                this.response.push({ content: data.user_message, type: "user" });
-                this.prompt = "";
+
                 this.displayMessage({ message: data.bot_message, type: "gemini" });
             } catch (error) {
                 console.error("Error sending message:", error);
@@ -57,32 +59,14 @@ const GeminiComponent = defineComponent({
 
                 const data = await response.json();
                 if (response.ok) {
-                    console.log("Chat created successfully:", data);
-                    this.loadChat(); // Load the chat after creation
+                    this.chats.unshift(data.chat);
+                    this.selectedChatId = data.chat.id;
+                    this.loadChatById(data.chat.id);
                 } else {
                     console.error("Error creating chat:", data.error);
                 }
             } catch (error) {
                 console.error("Error creating chat:", error);
-            }
-        },
-        async loadChat() {
-            try {
-                const response = await fetch(`/message/chat/${this.userId}`, {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json" },
-                });
-
-                const data = await response.json();
-
-                console.log(data);
-
-                this.response = data.messages.map((msg) => ({
-                    content: msg.message,
-                    type: msg.type,
-                }));
-            } catch (error) {
-                console.error("Error loading chat:", error);
             }
         },
         async loadChatById(chatId) {
@@ -91,11 +75,14 @@ const GeminiComponent = defineComponent({
                     method: "GET",
                     headers: { "Content-Type": "application/json" },
                 });
-
                 const data = await response.json();
 
-                console.log(data);
-
+                if (data.error) {
+                    console.error("Error loading chat:", data.error);
+                    console.log(data);
+                    console.log(this.response);
+                    return;
+                }
                 this.response = data.messages.map((msg) => ({
                     content: msg.message,
                     type: msg.type,
@@ -122,7 +109,16 @@ const GeminiComponent = defineComponent({
             this.selectedChatId = chatId;
             this.loadChatById(chatId);
         },
+        scrollToBottom() {
+            this.$nextTick(() => {
+                const chatContainer = this.$refs.chatContainer;
+                if (chatContainer) {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            });
+        },
         displayMessage(message) {
+            this.scrollToBottom();
             const fullMessage = message.message;
             let currentIndex = 0;
             const interval = setInterval(() => {
@@ -139,6 +135,7 @@ const GeminiComponent = defineComponent({
                         });
                     }
                     currentIndex++;
+                    this.scrollToBottom();
                 } else {
                     clearInterval(interval);
                 }
@@ -156,11 +153,15 @@ const GeminiComponent = defineComponent({
             }
         },
     },
+    watch: {
+        response() {
+            this.scrollToBottom();
+        },
+    },
     async created() {
         const userId = this.userId;
-        console.log(userId);
-        this.loadChat();
-        this.loadAllChats();
+        await this.loadAllChats();
+        this.loadChatById(this.selectedChatId);
     },
     data() {
         return {

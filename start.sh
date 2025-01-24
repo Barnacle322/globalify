@@ -9,4 +9,4 @@ then
 fi
 
 source .venv/bin/activate
-flask run
+flask run --port=5050

@@ -402,6 +402,7 @@ def get_suggestion_companies():
 @check_verification
 def get_search_histories():
     search_type = request.args.get("type")
+    search_string = request.args.get("search", "").strip()
     page = request.args.get("page", default=1, type=int)
     limit = request.args.get("limit", default=5, type=int)
     if limit > 100:
@@ -420,7 +421,7 @@ def get_search_histories():
             type = False
 
     db_search_histories = SearchHistory.paginate_history(
-        user=current_user, search_type=type, offset=offset, limit=limit
+        user=current_user, search_type=type, search_string=search_string, offset=offset, limit=limit
     )
 
     search_histories = [

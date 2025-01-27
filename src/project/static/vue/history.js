@@ -12,39 +12,36 @@ createApp({
     mounted() {
         document.addEventListener("click", this.handleClickOutside);
         this.asideMinified = localStorage.getItem("asideMinified") == "true";
-        this.searchType = new URLSearchParams(window.location.search).get("filter");
+        this.searchType = new URLSearchParams(window.location.search).get("type") || "investor";
 
         this.setupInfiniteScroll();
         this.fetchHistoryTypes();
     },
     beforeUnmount() {
         document.removeEventListener("click", this.handleClickOutside);
-        if (this.observer) {
-            this.observer.disconnect();
-        }
+        this.observer?.disconnect();
     },
     methods: {
         setupInfiniteScroll() {
-            const observer = new IntersectionObserver((entries) => {
+            this.observer = new IntersectionObserver((entries) =>
                 entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        this.loadMoreSearchHistories();
-                    }
-                });
-            });
-            observer.observe(this.$refs.historySentinel);
-            this.observer = observer;
+                    if (entry.isIntersecting) this.loadMoreSearchHistories();
+                }),
+            );
+            this.observer.observe(this.$refs.historySentinel);
         },
         async loadMoreSearchHistories() {
             if (this.loading || this.noMoreItems) return;
             this.loading = true;
             try {
-                console.log(
-                    `/search-history?${this.searchType ? "type=" + this.searchType : ""}page=${this.page}&limit=100`,
-                );
-                const response = await fetch(
-                    `/search-history?${this.searchType ? "type=" + this.searchType + "&" : ""}page=${this.page}&limit=100`,
-                );
+                const params = new URLSearchParams();
+                if (this.searchType) params.append("type", this.searchType);
+                if (this.searchString) params.append("search", this.searchString);
+                params.append("page", this.page);
+                params.append("limit", 100);
+
+                const response = await fetch(`/search-history?${params.toString()}`);
+
                 if (!response.ok) {
                     throw new Error("Failed to fetch data");
                 }
@@ -92,19 +89,15 @@ createApp({
         selectType(typeValue) {
             this.dropdownOpened = false;
             this.searchType = typeValue;
+            this.clearSelection();
+
+            const url = new URL(window.location);
+            url.searchParams.set("type", typeValue);
+            window.history.pushState({}, "", url);
 
             this.page = 1;
             this.noMoreItems = false;
             this.searchHistories.clear();
-
-            const url = new URL(window.location);
-            if (this.searchType) {
-                url.searchParams.set("type", this.searchType);
-            } else {
-                url.searchParams.delete("type");
-            }
-            window.history.pushState({}, "", url);
-
             this.loadMoreSearchHistories();
         },
         handleClickOutside(event) {
@@ -118,6 +111,10 @@ createApp({
                 const response = await fetch("/history/types");
                 if (!response.ok) throw new Error("Failed to fetch history types");
                 this.historyTypes = await response.json();
+
+                if (!this.historyTypes.some((t) => t.value === this.searchType)) {
+                    this.searchType = this.historyTypes[0]?.value || "";
+                }
             } catch (error) {
                 console.error("Error fetching history types:", error);
             }
@@ -129,7 +126,6 @@ createApp({
                 item.type === "investmentfirm" ? "/investment-firms" : item.type === "company" ? "/companies" : ""
             }?search=${item.query}`;
         },
-
         toggleSelection(itemId) {
             if (this.selectedItems.has(itemId)) {
                 this.selectedItems.delete(itemId);
@@ -184,6 +180,27 @@ createApp({
                 }
             }
         },
+        handleSearch() {
+            clearTimeout(this.debounceTimeout);
+            this.debounceTimeout = setTimeout(() => {
+                this.applySearch();
+            }, 300);
+        },
+        applySearch() {
+            this.page = 1;
+            this.noMoreItems = false;
+            this.searchHistories.clear();
+
+            const url = new URL(window.location);
+            if (this.searchString) {
+                url.searchParams.set("search", this.searchString);
+            } else {
+                url.searchParams.delete("search");
+            }
+            window.history.pushState({}, "", url);
+
+            this.loadMoreSearchHistories();
+        },
     },
     data() {
         return {
@@ -192,6 +209,7 @@ createApp({
             openAdvanced: false,
 
             searchType: false,
+            searchString: "",
 
             searchHistories: new Map(),
             page: 1,
@@ -202,6 +220,7 @@ createApp({
             observer: null,
             dropdownOpened: false,
             selectedItems: new Set(),
+            debounceTimeout: null,
         };
     },
 }).mount("#app");

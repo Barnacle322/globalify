@@ -115,37 +115,30 @@
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <h2 class="sm:text-4xl text-3xl font-bold">Search History</h2>
 
-                <div class="mt-5 flex w-full flex-col items-center">
-                    <div class="relative rounded-[30px] bg-gray-200 h-10 flex items-center">
-                        <div class="h-full">
+                <div class="mt-5 flex w-2/5 flex-col items-left">
+                    <div
+                        class="relative rounded-[30px] bg-white border border-sky-500 h-10 flex items-center shadow-md"
+                    >
+                        <div class="h-full flex items-center">
                             <button
                                 @click="dropdownOpened = !dropdownOpened"
-                                class="h-full px-4 transition-colors flex items-center gap-2"
+                                class="h-full px-4 transition-colors flex items-center gap-2 border-r border-sky-200"
                             >
                                 <span
-                                    class="truncate text-sm font-medium"
+                                    class="truncate text-base font-medium w-[120px]"
                                     v-text="historyTypes.find(type => type.value === searchType)?.readable || 'Investor' "
                                 >
                                 </span>
-                                <svg
-                                    class="w-4 h-4 flex-shrink-0"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
+                                <svg stroke="currentColor" height="20px" viewBox="0 -960 960 960" width="20px">
                                     <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M19 9l-7 7-7-7"
+                                        d="M400-240v-80h160v80H400ZM240-440v-80h480v80H240ZM120-640v-80h720v80H120Z"
                                     />
                                 </svg>
                             </button>
-
                             <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
                                 <div
                                     v-if="dropdownOpened"
-                                    class="absolute top-full left-0 p-1 bg-white rounded-lg border border-gray-200 shadow-lg z-50 mt-1"
+                                    class="absolute top-full p-1 bg-white rounded-lg border border-gray-200 shadow-lg z-50 mt-1"
                                 >
                                     <button
                                         v-for="type in historyTypes"
@@ -157,11 +150,12 @@
                                 </div>
                             </transition>
                         </div>
-
                         <input
                             id="search"
-                            class="flex-grow h-full bg-transparent px-1 text-sm border-0 focus:ring-0"
+                            class="flex-grow h-full bg-transparent px-3 text-sm border-0 focus:ring-0"
                             placeholder="Search"
+                            v-model="searchString"
+                            @input="handleSearch"
                         />
                     </div>
                 </div>

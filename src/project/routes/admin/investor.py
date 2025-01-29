@@ -657,12 +657,16 @@ def merge_investors():
     return redirect(url_for("admin.investor.duplicates", _external=False))
 
 
-@investor.get("/get/duplicates/")
+# NOTE
+# Default list of available params contains in Duplicate.js in data-return{}
+@investor.post("/get/duplicates/")
 @admin_only
 def get_duplicates():
     batch_size = 1000
-    confidence_threshold = 0
     offset = 0
+
+    form_data = request.get_json()
+    selected_fields = form_data.get("selected_params", [])
 
     fields_order = [
         "id",
@@ -688,12 +692,35 @@ def get_duplicates():
         "industries",
     ]
 
+    # confidence_threshold = 1
+    # default_weight = 1
+    # weight_mapping = {
+    #     "first_name": 1,
+    #     "last_name": 1,
+    #     "firm_name": 1,
+    #     "email": 1,
+    #     "linkedin": 1,
+    #     "twitter": 1,
+    #     "phone_number": 1,
+    # }
+
     try:
         investors = db.session.query(Investor).order_by(Investor.id).offset(offset).limit(batch_size).all()
         duplicate_groups = defaultdict(list)
 
         for investor in investors:
-            key = (investor.first_name, investor.last_name, investor.email)  # type: ignore
+            if selected_fields:
+                key_parts = []
+                for field in selected_fields:
+                    value = getattr(investor, field, None)
+                    if value not in (None, ""):
+                        key_parts.append(str(value))
+
+                if not key_parts:
+                    continue
+                key = "|".join(key_parts)
+            else:
+                key = ""
 
             investor_data = OrderedDict()
             for field in fields_order:
@@ -712,27 +739,30 @@ def get_duplicates():
     except Exception as e:
         print(f"Error fetching investors at offset {offset}: {e}")
 
-    def calculate_confidence_score(investor1, investor2):
-        score = 0
-        if investor1.get("first_name") == investor2.get("first_name"):
-            score += 1
-        if investor1.get("last_name") == investor2.get("last_name"):
-            score += 1
-        if investor1.get("email") == investor2.get("email"):
-            score += 2
-        return score
+    # def calculate_priority_score(investor1, investor2, selected_fields):
+    #     score = 0
+    #     for field in selected_fields:
+    #         weight = weight_mapping.get(field, default_weight)
+    #         value1 = investor1.get(field)
+    #         value2 = investor2.get(field)
+    #         if value1 and value2 and value1 == value2:
+    #             score += weight
+    #     return score
 
-    duplicates_with_confidence = []
+    duplicates = []
     for investors in duplicate_groups.values():
         if len(investors) <= 1:
             continue
         for i, inv1 in enumerate(investors[:-1]):
             for inv2 in investors[i + 1 :]:
-                score = calculate_confidence_score(inv1, inv2)
-                if score >= confidence_threshold:
-                    duplicates_with_confidence.append({"investor_a": inv1, "investor_b": inv2, "score": score})
+                # score = calculate_priority_score(inv1, inv2, selected_fields)
+                # if score >= confidence_threshold:
+                score = sum(1 for field in fields_order if inv1[field] and inv2[field] and inv1[field] == inv2[field])
+                duplicates.append({"investor_a": inv1, "investor_b": inv2, "score": score})
 
-    return {"comparisons": duplicates_with_confidence}
+    duplicates.sort(key=lambda x: x["score"], reverse=True)  # Duplicates with Most Matched Parameters Positioned Higher
+
+    return {"comparisons": duplicates}
 
 
 @investor.get("/funding-rounds")

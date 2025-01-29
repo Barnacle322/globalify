@@ -4,8 +4,8 @@ createApp({
         AsideMobileComponent,
         NavbarComponent,
     },
-    async beforeMount() {
-        await this.fetchDuplicate();
+    mounted() {
+        this.fetchDuplicate();
     },
     methods: {
         formatInvestorData(investor) {
@@ -148,38 +148,38 @@ createApp({
             return Array.from(uniqueValues).join(", ") || "---";
         },
 
-        initializeDefaultSelections(comparisonIndex) {
+        async initializeDefaultSelections(comparisonIndex) {
             const { investorA, investorB } = this.comparisons[comparisonIndex];
 
-            Object.entries(investorA).forEach(([field, valueA]) => {
-                if (field === "id") return;
+            this.selectedFields[comparisonIndex] = {};
+
+            for (const [field, valueA] of Object.entries(investorA)) {
+                if (field === "id") continue;
 
                 const valueB = investorB[field];
                 const isArrayField = ["rounds", "industries"].includes(field);
+                const formattedA = this.formatValue(valueA, field);
+                const formattedB = this.formatValue(valueB, field);
 
-                if (isArrayField) {
-                    const formattedA = this.formatValue(valueA);
-                    const formattedB = this.formatValue(valueB);
-                    if (formattedA === formattedB && formattedA !== "None") {
-                        this.selectField(field, "A", valueA, comparisonIndex);
-                    }
-                    return;
-                }
-
-                if (valueA === valueB || (valueA === 0 && valueB === 0)) {
+                if (formattedA === formattedB) {
                     this.selectField(field, "A", valueA, comparisonIndex);
-                } else if ((valueA !== null && valueB === null) || (valueA === 0 && valueB === null)) {
+                } else if (formattedB === "None" && formattedA !== "None") {
                     this.selectField(field, "A", valueA, comparisonIndex);
-                } else if ((valueA === null && valueB !== null) || (valueA === null && valueB === 0)) {
+                } else if (formattedA === "None" && formattedB !== "None") {
                     this.selectField(field, "B", valueB, comparisonIndex);
                 }
-            });
+            }
         },
         async fetchDuplicate() {
+            const csrfToken = document.getElementById("csrf_token").value;
             try {
                 const response = await fetch("/admin/investors/get/duplicates", {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json" },
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ selected_params: this.selectedParams }),
                 });
 
                 if (!response.ok) throw new Error("Failed to fetch duplicates");
@@ -257,7 +257,7 @@ createApp({
                     throw new Error(`Merge failed: ${mergeResponse.status} - ${errorText}`);
                 }
 
-                // Если merge сработал, то параллельно удаляем инвесторов
+                // If merging is ok, than delete two duplicates in parallel
                 if (mergeResponse.ok) {
                     const deleteResponses = await Promise.all([
                         fetch(`/admin/investors/${investorAID}/delete`, {
@@ -277,7 +277,7 @@ createApp({
                     ]);
                 }
 
-                if (mergeResponse.redirected) {
+                if (mergeResponse.redirected && deleteResponses.ok) {
                     window.location.href = mergeResponse.url;
                 }
             } catch (error) {
@@ -291,6 +291,9 @@ createApp({
             asideMinified: false,
             comparisons: [],
             selectedFields: {},
+            selectedParams: ["first_name", "last_name"],
+            availableParams: ["first_name", "last_name", "firm_name", "email", "twitter", "linkedin"],
+            showHelp: false,
         };
     },
 }).mount("#app");

@@ -458,8 +458,6 @@ def get_history_types():
 @check_user_info_complete
 @check_verification
 def get_full_search_history():
-    if "type" not in request.args:
-        return redirect("/history?type=investor")
     return render_template("history.html")
 
 

@@ -12,7 +12,6 @@ createApp({
     mounted() {
         document.addEventListener("click", this.handleClickOutside);
         this.asideMinified = localStorage.getItem("asideMinified") == "true";
-        this.searchType = new URLSearchParams(window.location.search).get("type") || "investor";
 
         this.setupInfiniteScroll();
         this.fetchHistoryTypes();
@@ -112,7 +111,7 @@ createApp({
                 if (!response.ok) throw new Error("Failed to fetch history types");
                 this.historyTypes = await response.json();
 
-                if (!this.historyTypes.some((t) => t.value === this.searchType)) {
+                if (this.searchType !== "" && !this.historyTypes.some((t) => t.value === this.searchType)) {
                     this.searchType = this.historyTypes[0]?.value || "";
                 }
             } catch (error) {
@@ -136,7 +135,6 @@ createApp({
         clearSelection() {
             this.selectedItems.clear();
         },
-
         async deleteSelected() {
             await this.deleteItems(Array.from(this.selectedItems));
         },
@@ -208,7 +206,7 @@ createApp({
             asideMinified: false,
             openAdvanced: false,
 
-            searchType: false,
+            searchType: "",
             searchString: "",
 
             searchHistories: new Map(),

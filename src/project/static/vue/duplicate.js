@@ -183,7 +183,6 @@ createApp({
 
                 const data = await response.json();
                 this.pagination = data.pagination;
-                console.log(data);
                 this.comparisons = data.comparisons.map(({ investor_a, investor_b, score }) => ({
                     investorA: investor_a,
                     investorB: investor_b,

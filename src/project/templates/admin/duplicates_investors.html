@@ -122,7 +122,7 @@
                                 </label>
                             </div>
                             <button
-                                @click="fetchDuplicate"
+                                @click="fetchDuplicates"
                                 class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                             >
                                 Search
@@ -272,11 +272,11 @@
                             </div>
                         </div>
                     </div>
-                    <nav class="flex w-full items-center justify-center gap-2">
-                        {% if pagination and (pagination.count != 0) %} {% if pagination.has_prev %}
-                        <a
+                    <nav v-if="pagination" class="flex w-full items-center justify-center gap-2">
+                        <button
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors/duplicates?page=1&search={{ request.args.get('search', '') }}"
+                            v-if="pagination.has_prev"
+                            @click="goToFirstPage"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -292,11 +292,11 @@
                                     d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
                                 />
                             </svg>
-                        </a>
-                        <a
-                            id="prev"
+                        </button>
+                        <button
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors/duplicates?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
+                            v-if="pagination.has_prev"
+                            @click="goToPrevPage"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -308,28 +308,26 @@
                             >
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                             </svg>
-                        </a>
-                        {% endif %} {% for page in pagination.iter_pages() %} {% if page == pagination.page %}
-                        <a
-                            id="current"
-                            class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500 transition-opacity duration-200 ease-in-out hover:opacity-90"
-                            href="/admin/investors/duplicates?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
-                        >
-                            {{ pagination.page }}
-                        </a>
-                        {% else %}
-                        <a
-                            id="page"
-                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white text-sm font-medium"
-                            href="/admin/investors/duplicates?page={{ page }}&search={{ request.args.get('search', '') }}"
-                        >
-                            {{ page }}
-                        </a>
-                        {% endif %} {% endfor %} {% if pagination.has_next %}
-                        <a
-                            id="next"
+                        </button>
+
+                        <template v-for="(page, index) in pagination.pages" :key="index">
+                            <span v-if="page === 0" class="px-2">...</span>
+                            <button
+                                v-else
+                                v-text="page"
+                                class="inline-flex size-10 items-center justify-center rounded-lg border text-sm transition-opacity duration-200 ease-in-out hover:opacity-90"
+                                :class="{
+                                    'border-sky-500 bg-white text-sky-500 font-bold': page === pagination.current_page,
+                                    'bg-white': page !== pagination.current_page
+                                }"
+                                @click="goToPage(page)"
+                            ></button>
+                        </template>
+
+                        <button
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors/duplicates?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
+                            v-if="pagination.has_next"
+                            @click="goToNextPage"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -341,10 +339,11 @@
                             >
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                             </svg>
-                        </a>
-                        <a
+                        </button>
+                        <button
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors/duplicates?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
+                            v-if="pagination.has_next"
+                            @click="goToLastPage"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -360,8 +359,7 @@
                                     d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
                                 />
                             </svg>
-                        </a>
-                        {% endif %} {% endif %}
+                        </button>
                     </nav>
                 </section>
             </main>

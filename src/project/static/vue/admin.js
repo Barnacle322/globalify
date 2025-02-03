@@ -1715,35 +1715,6 @@ createApp({
             const basePath = window.location.pathname.split("/filter")[0];
             window.location.href = `${basePath}/filter?${queryParams}`;
         },
-        //     const block = this.selectedFields[blockIndex];
-        //     const selectedData = {};
-
-        //     Object.entries(block).forEach(([fieldName, selection]) => {
-        //         selectedData[fieldName] = selection.value;
-        //     });
-
-        //     fetch("/api/create-investor", {
-        //         method: "POST",
-        //         headers: {
-        //             "Content-Type": "application/json",
-        //             "X-CSRFToken": this.getCookie("csrftoken"),
-        //         },
-        //         body: JSON.stringify(selectedData),
-        //     })
-        //         .then((response) => {
-        //             if (response.ok) {
-        //                 return response.json();
-        //             }
-        //             throw new Error("Network response was not ok.");
-        //         })
-        //         .then((data) => {
-        //             console.log("Success:", data);
-        //             this.$delete(this.selectedFields, blockIndex);
-        //         })
-        //         .catch((error) => {
-        //             console.error("Error:", error);
-        //         });
-        // },
         toggleFundingRound(id) {
             this.selectedFundingRound = this.selectedFundingRound === id ? null : id;
             localStorage.setItem("selectedFundingRound", this.selectedFundingRound);

@@ -5,7 +5,7 @@ createApp({
         NavbarComponent,
     },
     mounted() {
-        this.fetchDuplicate();
+        this.fetchDuplicates();
     },
     methods: {
         formatInvestorData(investor) {
@@ -73,7 +73,6 @@ createApp({
                 this.handleSingleFieldSelection(attr, source, value, comparisonIndex, innerIndex);
             }
         },
-
         handleArrayFieldSelection(attr, source, value, comparisonIndex) {
             const field = this.selectedFields[comparisonIndex][attr];
             if (!field) {
@@ -96,7 +95,6 @@ createApp({
                 field.values.push(value);
             }
         },
-
         handleSingleFieldSelection(attr, source, value, comparisonIndex, innerIndex) {
             const currentSelection = this.selectedFields[comparisonIndex][attr];
             if (currentSelection?.source === source) {
@@ -105,7 +103,6 @@ createApp({
                 this.selectedFields[comparisonIndex][attr] = { source, value, innerIndex };
             }
         },
-
         getButtonClass(field, source, comparisonIndex) {
             const selected = this.selectedFields[comparisonIndex]?.[field];
             const { investorA, investorB } = this.comparisons[comparisonIndex];
@@ -118,7 +115,6 @@ createApp({
 
             return selected?.source === source ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300";
         },
-
         getSelectedValue(attr, comparisonIndex) {
             const selected = this.selectedFields[comparisonIndex]?.[attr];
             if (!selected || selected.source === "none") return "---";
@@ -132,7 +128,6 @@ createApp({
 
             return value === 0 ? "0" : value === null ? "---" : this.formatValue(value, attr);
         },
-
         getArrayFieldValue(selected) {
             const uniqueValues = new Set();
             selected.values.forEach((valueArray) => {
@@ -170,10 +165,14 @@ createApp({
                 }
             }
         },
-        async fetchDuplicate() {
+        async fetchDuplicates() {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch("/admin/investors/get/duplicates", {
+                const url = new URL("/admin/investors/get/duplicates", window.location.origin);
+                url.searchParams.append("page", this.currentPage);
+                url.searchParams.append("per_page", this.perPage);
+
+                const response = await fetch(url, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -182,10 +181,10 @@ createApp({
                     body: JSON.stringify({ selected_params: this.selectedParams }),
                 });
 
-                if (!response.ok) throw new Error("Failed to fetch duplicates");
-
-                const { comparisons } = await response.json();
-                this.comparisons = comparisons.map(({ investor_a, investor_b, score }) => ({
+                const data = await response.json();
+                this.pagination = data.pagination;
+                console.log(data);
+                this.comparisons = data.comparisons.map(({ investor_a, investor_b, score }) => ({
                     investorA: investor_a,
                     investorB: investor_b,
                     score,
@@ -195,7 +194,11 @@ createApp({
                     this.initializeDefaultSelections(index);
                 });
             } catch (error) {
-                console.error("Error fetching duplicates:", error);
+                if (error instanceof SyntaxError) {
+                    console.error(" Check server logs.");
+                } else {
+                    console.error("Error fetching duplicates:", error);
+                }
             }
         },
         async mergeInvestors(comparisonIndex) {
@@ -284,6 +287,34 @@ createApp({
                 console.error("Error during merge:", error);
             }
         },
+        goToPage(page) {
+            if (page !== this.currentPage) {
+                this.currentPage = page;
+                this.fetchDuplicates();
+            }
+        },
+        goToPrevPage() {
+            if (this.pagination?.has_prev) {
+                this.currentPage = this.pagination.prev;
+                this.fetchDuplicates();
+            }
+        },
+        goToNextPage() {
+            if (this.pagination?.has_next) {
+                this.currentPage = this.pagination.next;
+                this.fetchDuplicates();
+            }
+        },
+        goToFirstPage() {
+            this.currentPage = 1;
+            this.fetchDuplicates();
+        },
+        goToLastPage() {
+            if (this.pagination) {
+                this.currentPage = this.pagination.last_page;
+                this.fetchDuplicates();
+            }
+        },
     },
     data() {
         return {
@@ -294,6 +325,9 @@ createApp({
             selectedParams: ["first_name", "last_name"],
             availableParams: ["first_name", "last_name", "firm_name", "email", "twitter", "linkedin"],
             showHelp: false,
+            currentPage: 1,
+            perPage: 4,
+            pagination: null,
         };
     },
 }).mount("#app");

@@ -596,65 +596,11 @@ def duplicates():
         status_type = query.get("type")
         msg = query.get("msg")
 
-    query_params = request.args
-    page = query_params.get("page", 1, type=int)
-    per_page = query_params.get("per_page", 12, type=int)
-    base_query = db.select(Investor)
-    pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
-
     return render_template(
         "admin/duplicates_investors.html",
-        pagination=pagination,
         status_type=status_type,
         msg=msg,
     )
-
-
-@investor.post("/merge")
-@admin_only
-def merge_investors():
-    form_data = request.get_json()
-
-    investor = Investor(
-        first_name=form_data.get("first_name"),
-        last_name=form_data.get("last_name"),
-        firm_name=form_data.get("firm_name") or None,
-        position=form_data.get("position") or None,
-        about=form_data.get("about") or None,
-        website=form_data.get("website") or None,
-        linkedin=form_data.get("linkedin") or None,
-        twitter=form_data.get("twitter"),
-        email=form_data.get("email") or None,
-        phone_number=form_data.get("phone_number") or None,
-        n_investments=int(form_data.get("n_investments") or 0),
-        n_exits=int(form_data.get("n_exits") or 0),
-        min_investment=int(form_data.get("min_investment") or 0),
-        max_investment=int(form_data.get("max_investment") or 0),
-        location=form_data.get("location") or None,
-        rounds=list(Round.get_by_id_list(form_data.get("rounds") or [])),
-        industries=list(Industry.get_by_id_list(form_data.get("industries") or [])),
-        notable_investments=list(NotableInvestment.get_by_id_list(form_data.get("notable_investments") or [])),
-        # user=user,
-    )
-
-    try:
-        db.session.add(investor)
-        db.session.commit()
-    except Exception as e:
-        status = Status(StatusType.ERROR, str(e)).get_status()
-        return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
-
-    investor.set_slug()
-
-    try:
-        investor.upsert_data()
-    except Exception as e:
-        status = Status(StatusType.ERROR, str(e)).get_status()
-        return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
-
-    status = Status(StatusType.SUCCESS, "Investor created successfully!").get_status()
-
-    return redirect(url_for("admin.investor.duplicates", _external=False))
 
 
 # NOTE
@@ -667,6 +613,10 @@ def get_duplicates():
 
     form_data = request.get_json()
     selected_fields = form_data.get("selected_params", [])
+
+    query_params = request.args
+    page = query_params.get("page", 1, type=int)
+    per_page = query_params.get("per_page", 4, type=int)
 
     fields_order = [
         "id",
@@ -762,7 +712,61 @@ def get_duplicates():
 
     duplicates.sort(key=lambda x: x["score"], reverse=True)  # Duplicates with Most Matched Parameters Positioned Higher
 
-    return {"comparisons": duplicates}
+    start_index = (page - 1) * per_page
+    end_index = start_index + per_page
+    page_duplicates = duplicates[start_index:end_index]
+
+    pagination = generate_pagination(page, int(len(duplicates) / per_page), per_page)
+    pagination["pages"] = list(pagination["pages"])
+
+    return {"comparisons": page_duplicates, "pagination": pagination}
+
+
+@investor.post("/merge")
+@admin_only
+def merge_investors():
+    form_data = request.get_json()
+
+    investor = Investor(
+        first_name=form_data.get("first_name"),
+        last_name=form_data.get("last_name"),
+        firm_name=form_data.get("firm_name") or None,
+        position=form_data.get("position") or None,
+        about=form_data.get("about") or None,
+        website=form_data.get("website") or None,
+        linkedin=form_data.get("linkedin") or None,
+        twitter=form_data.get("twitter"),
+        email=form_data.get("email") or None,
+        phone_number=form_data.get("phone_number") or None,
+        n_investments=int(form_data.get("n_investments") or 0),
+        n_exits=int(form_data.get("n_exits") or 0),
+        min_investment=int(form_data.get("min_investment") or 0),
+        max_investment=int(form_data.get("max_investment") or 0),
+        location=form_data.get("location") or None,
+        rounds=list(Round.get_by_id_list(form_data.get("rounds") or [])),
+        industries=list(Industry.get_by_id_list(form_data.get("industries") or [])),
+        notable_investments=list(NotableInvestment.get_by_id_list(form_data.get("notable_investments") or [])),
+        # user=user,
+    )
+
+    try:
+        db.session.add(investor)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
+
+    investor.set_slug()
+
+    try:
+        investor.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Investor created successfully!").get_status()
+
+    return redirect(url_for("admin.investor.duplicates", _external=False))
 
 
 @investor.get("/funding-rounds")

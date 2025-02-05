@@ -25,7 +25,7 @@ def create_chat():
     if current_user.id != user_id:
         return jsonify({"error": "Access denied"}), 403
 
-    chat_model = Chat(user_id=user_id)
+    chat_model = Chat(user_id=user_id, name="New chat")
     db.session.add(chat_model)
     db.session.commit()
 
@@ -51,9 +51,12 @@ def send_message(chat_id):
     # Получаем или создаем чат
     chat = Chat.get_by_id(chat_id)
     if not chat:
-        chat = Chat(user_id=current_user.id)
+        chat = Chat(user_id=current_user.id, name=user_message)
         db.session.add(chat)
         db.session.commit()
+
+    if chat.name == "New chat":
+        chat.name = user_message[:30]
 
     # Создаем сообщение пользователя
     user_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
@@ -116,9 +119,20 @@ def get_chats_by_user_id(user_id):
     if not chats:
         return jsonify({"error": "Chats not found"}), 404
 
-    chat_models = [ChatListSchema.model_validate(chat) for chat in chats]
+    chat_models = [ChatListSchema.model_validate(chat).model_dump() for chat in chats]
 
-    return jsonify([chat.model_dump() for chat in chat_models])
+    day_list = []
+    for chat in chat_models:
+        day = chat["created"].date().isoformat()
+        if not any(day == day_item["day"] for day_item in day_list):
+            day_list.append({"day": day, "chats": []})
+        for day_item in day_list:
+            if day_item["day"] == day:
+                day_item["chats"].append(chat)
+
+    print(day_list)
+
+    return jsonify(day_list)
 
 
 @message.route("/chat/<int:user_id>", methods=["GET"])

@@ -2,6 +2,14 @@ const GeminiComponent = defineComponent({
     template: "#gemini-template",
     emits: ["close-gemini"],
     props: ["userId"],
+    mounted() {
+        document.addEventListener("click", this.handleHistorySidebarClickOutside);
+        document.addEventListener("click", this.handleClickOutside);
+    },
+    beforeDestroy() {
+        document.removeEventListener("click", this.handleHistorySidebarClickOutside);
+        document.removeEventListener("click", this.handleClickOutside);
+    },
     methods: {
         async startStream() {
             this.response = [];
@@ -99,8 +107,16 @@ const GeminiComponent = defineComponent({
                 });
 
                 const data = await response.json();
-                this.chats = data;
-                this.selectedChatId = this.chats[0].id;
+                console.log(data);
+                this.selectedChatId = data[0].chats[0].id;
+
+                for (let item of data) {
+                    if (!this.userChats.has(item.day)) {
+                        this.userChats.set(item.day, item.chats);
+                    } else {
+                        this.userChats.get(item.day).push(...item.chats);
+                    }
+                }
             } catch (error) {
                 console.error("Error loading chat:", error);
             }
@@ -108,6 +124,7 @@ const GeminiComponent = defineComponent({
         async selectChat(chatId) {
             this.selectedChatId = chatId;
             this.loadChatById(chatId);
+            this.isHistoryVisible = false;
         },
         scrollToBottom() {
             this.$nextTick(() => {
@@ -152,6 +169,74 @@ const GeminiComponent = defineComponent({
                 this.$emit("close-gemini");
             }
         },
+        formatDate(day) {
+            const date = new Date(day);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+
+            const diffTime = Math.abs(today - date);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const diffMonths = today.getMonth() - date.getMonth() + 12 * (today.getFullYear() - date.getFullYear());
+
+            if (date.toDateString() === today.toDateString()) {
+                return "Recently";
+            } else if (date.toDateString() === yesterday.toDateString()) {
+                return "Yesterday";
+            } else if (diffDays <= 7) {
+                return "7 days";
+            } else if (diffDays <= 30) {
+                return "30 days";
+            } else if (diffMonths < 12) {
+                return "Few months";
+            } else {
+                return "Long ago ";
+            }
+        },
+        formatChatTime(created) {
+            const date = new Date(created);
+            const now = new Date();
+            const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+
+            if (diffInHours < 24) {
+                return date.toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                });
+            }
+            if (date.getFullYear() === now.getFullYear()) {
+                return date.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                });
+            }
+            return date.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+            });
+        },
+        toggleHistory() {
+            this.isHistoryVisible = !this.isHistoryVisible;
+        },
+        handleClickOutside(event) {
+            const isDropdown = event.target.closest(".dropdown-content");
+            const isButton = event.target.closest("[data-dropdown-button]");
+
+            if (!isDropdown && !isButton) {
+                this.openedDropdownChatId = null;
+            }
+        },
+        handleHistorySidebarClickOutside(event) {
+            const historyContainer = this.$refs.historyContainer;
+            if (historyContainer && !historyContainer.contains(event.target)) {
+                this.isHistoryVisible = false;
+            }
+        },
+        toggleDropdown(chatId) {
+            this.openedDropdownChatId = this.openedDropdownChatId === chatId ? null : chatId;
+        },
     },
     watch: {
         response() {
@@ -168,12 +253,15 @@ const GeminiComponent = defineComponent({
             prompt: "",
             response: [],
             queue: [],
-            chats: [],
+            userChats: new Map(),
             intervalId: null,
             selectedChatId: null,
             isExpanded: false,
             isGeminiOpened: true,
             messages: {},
+            isHistoryVisible: false,
+            dropdownOpened: false,
+            openedDropdownChatId: null,
         };
     },
 });

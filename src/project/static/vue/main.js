@@ -47,28 +47,32 @@ const GeminiComponent = defineComponent({
                 console.error("Error sending message:", error);
             }
         },
-        async createChat() {
-            const csrf_token = document.getElementById("csrf_token").value;
-
-            try {
-                const response = await fetch(`/message/chat/create`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
-                    body: JSON.stringify({ user_id: this.userId }),
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    this.chats.unshift(data.chat);
-                    this.selectedChatId = data.chat.id;
-                    this.loadChatById(data.chat.id);
-                } else {
-                    console.error("Error creating chat:", data.error);
-                }
-            } catch (error) {
-                console.error("Error creating chat:", error);
-            }
+        async createChat(){
+            this.messages = {},
+            this.response = [];
         },
+        // async createChat() {
+        //     const csrf_token = document.getElementById("csrf_token").value;
+        //
+        //     try {
+        //         const response = await fetch(`/message/chat/create`, {
+        //             method: "POST",
+        //             headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+        //             body: JSON.stringify({ user_id: this.userId }),
+        //         });
+        //
+        //         const data = await response.json();
+        //         if (response.ok) {
+        //             this.chats.unshift(data.chat);
+        //             this.selectedChatId = data.chat.id;
+        //             this.loadChatById(data.chat.id);
+        //         } else {
+        //             console.error("Error creating chat:", data.error);
+        //         }
+        //     } catch (error) {
+        //         console.error("Error creating chat:", error);
+        //     }
+        // },
         async loadChatById(chatId) {
             try {
                 const response = await fetch(`/message/chat/id/${chatId}`, {

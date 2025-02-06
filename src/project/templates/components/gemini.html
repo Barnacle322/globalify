@@ -78,9 +78,9 @@
                 </div>
                 <h2 class="text-xl font-semibold mb-2">Your chats</h2>
                 <div class="flex flex-col gap-5">
-                    <div v-for="chat in chats" :key="chat.id">
+                    <div v-for="chat in chats.filter(chat => chat?.name)" :key="chat?.id">
                         <span
-                            v-text="chat.created"
+                            v-text="chat.name"
                             class="cursor-pointer hover:hover:bg-slate-300 p-3 rounded-lg whitespace-nowrap overflow-hidden overflow-ellipsis"
                             @click="selectChat(chat.id)"
                             :class="{'bg-slate-300': selectedChatId === chat.id}"

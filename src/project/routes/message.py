@@ -8,7 +8,7 @@ from ..models import (
 )
 from ..schemas.message import ChatListSchema, ChatSchema, MessageSchema
 from ..utils.enums import SenderType
-from ..utils.gemini import generate_response
+from ..utils.gemini import generate_response, create_summary
 
 message = Blueprint("message", __name__)
 
@@ -33,6 +33,7 @@ def create_chat():
         id=chat_model.id,
         user_id=chat_model.user_id,
         created=chat_model.created,
+        name=chat_model.name,
         messages=None,
     )
 
@@ -44,12 +45,14 @@ def create_chat():
 def send_message(chat_id):
     data = request.get_json()
     user_message = data.get("message", "").strip()
+    print(chat_id)
 
     if not user_message:
         return jsonify({"error": "Message cannot be empty"}), 400
 
     # Получаем или создаем чат
     chat = Chat.get_by_id(chat_id)
+
     if not chat:
         chat = Chat(user_id=current_user.id)
         db.session.add(chat)
@@ -69,6 +72,18 @@ def send_message(chat_id):
     old_messages.append({"role": "user", "parts": [user_message]})
 
     bot_response = generate_response(user_message, old_messages)
+    summary_bot_summary = create_summary(user_message)
+
+    bot_summary_text = ""
+    for res in summary_bot_summary:
+        for candidate in res._result.candidates:
+            for part in candidate.content.parts:
+                bot_summary_text += part.text + "\n"
+
+    bot_summary_text = bot_summary_text.strip()
+
+    chat.name = bot_summary_text
+    db.session.commit()
 
     # Обрабатываем ответ от Gemini
     bot_message_text = ""

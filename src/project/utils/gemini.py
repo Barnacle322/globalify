@@ -78,6 +78,17 @@ def generate_response(query: str, old_messages: list):
     augmented_query = f"Context: {context}\n\nQuery: {query}"
     response = chat.send_message(augmented_query, stream=True)
 
-    time.sleep(1)
+    return response
+
+
+def create_summary(user_message):
+    genai.configure(api_key="AIzaSyCslKgJDAckdMD34arTHWJ8fSHB0ERFTmA")
+    model = genai.GenerativeModel(
+        "gemini-1.5-flash",
+        system_instruction="Generate a short summary by extracting the main topic or intent of the user's query. Maximum 5 words",
+    )
+
+    response = model.generate_content(user_message)
 
     return response
+

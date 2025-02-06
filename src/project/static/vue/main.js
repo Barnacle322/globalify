@@ -48,11 +48,14 @@ const GeminiComponent = defineComponent({
             }
         },
         async createChat(){
-            this.messages = {},
-            this.response = [];
+          this.messages = {};
+          this.response = [];
+
+
         },
         // async createChat() {
         //     const csrf_token = document.getElementById("csrf_token").value;
+        //
         //
         //     try {
         //         const response = await fetch(`/message/chat/create`, {
@@ -104,6 +107,7 @@ const GeminiComponent = defineComponent({
 
                 const data = await response.json();
                 this.chats = data;
+                // this.chats = Array.isArray(data) ? data.filter(chat => chat.name) : [];
                 this.selectedChatId = this.chats[0].id;
             } catch (error) {
                 console.error("Error loading chat:", error);
@@ -165,7 +169,6 @@ const GeminiComponent = defineComponent({
     async created() {
         const userId = this.userId;
         await this.loadAllChats();
-        this.loadChatById(this.selectedChatId);
     },
     data() {
         return {

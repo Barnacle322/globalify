@@ -1,5 +1,7 @@
-from flask import Blueprint, redirect, render_template, request, url_for
-from sqlalchemy import select
+from collections import OrderedDict, defaultdict
+
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from sqlalchemy import or_, select
 
 from ...extensions import db
 from ...models import (
@@ -516,6 +518,255 @@ def search_notable_investments(search_input, investor_id):
     )
 
     return {"notable_investments": [ni.to_dict() for ni in notable_investments]}
+
+
+@investor.get("/filter")
+@admin_only
+def filter_investors():
+    query_params = request.args
+    page = query_params.get("page", 1, type=int)
+    per_page = query_params.get("per_page", 12, type=int)
+
+    active_filters = {
+        key: value
+        for key, value in {
+            "check_twitter": query_params.get("check_twitter") == "true",
+            "check_linkedin": query_params.get("check_linkedin") == "true",
+            "check_website": query_params.get("check_website") == "true",
+            "check_about": query_params.get("check_about") == "true",
+            "check_email": query_params.get("check_email") == "true",
+        }.items()
+        if value is True
+    }
+
+    base_query = db.select(Investor)
+    conditions = []
+
+    if "check_about" in active_filters:
+        conditions.append((Investor.about.is_(None)) | (Investor.about == ""))
+
+    if "check_email" in active_filters:
+        conditions.append((Investor.email.is_(None)) | (Investor.email == ""))
+
+    if "check_twitter" in active_filters:
+        conditions.append((Investor.twitter.is_(None)) | (Investor.twitter == ""))
+
+    if "check_linkedin" in active_filters:
+        conditions.append((Investor.linkedin.is_(None)) | (Investor.linkedin == ""))
+
+    if "check_website" in active_filters:
+        conditions.append((Investor.website.is_(None)) | (Investor.website == ""))
+
+    if conditions:
+        base_query = base_query.where(or_(*conditions))
+
+    pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
+
+    investors_data = []
+    for investor in pagination.items:
+        investors_data.append(
+            {
+                "id": investor.id,
+                "name": investor.full_name,
+                "about": investor.about,
+                "email": investor.email,
+                "twitter": investor.twitter,
+                "linkedin": investor.linkedin,
+                "website": investor.website,
+            }
+        )
+
+    total_pages = pagination.pages or 1
+    pagination_info = generate_pagination(page, total_pages, per_page)
+
+    return render_template(
+        "admin/filter_investors.html",
+        investors=investors_data,
+        total=pagination.total,
+        pagination=pagination_info,
+        total_pages=total_pages,
+    )
+
+
+@investor.get("/duplicates/")
+@admin_only
+def duplicates():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    return render_template(
+        "admin/duplicates_investors.html",
+        status_type=status_type,
+        msg=msg,
+    )
+
+
+# NOTE
+# Default list of available params contains in Duplicate.js in data-return{}
+@investor.post("/get/duplicates/")
+@admin_only
+def get_duplicates():
+    batch_size = 1000
+    offset = 0
+
+    form_data = request.get_json()
+    selected_fields = form_data.get("selected_params", [])
+
+    query_params = request.args
+    page = query_params.get("page", 1, type=int)
+    per_page = query_params.get("per_page", 4, type=int)
+
+    fields_order = [
+        "id",
+        "first_name",
+        "last_name",
+        "email",
+        "slug",
+        "firm_name",
+        "about",
+        "position",
+        "website",
+        "linkedin",
+        "twitter",
+        "phone_number",
+        "n_investments",
+        "n_exits",
+        "min_investment",
+        "max_investment",
+        "location",
+        "is_public",
+        "is_approved",
+        "rounds",
+        "industries",
+    ]
+
+    # confidence_threshold = 1
+    # default_weight = 1
+    # weight_mapping = {
+    #     "first_name": 1,
+    #     "last_name": 1,
+    #     "firm_name": 1,
+    #     "email": 1,
+    #     "linkedin": 1,
+    #     "twitter": 1,
+    #     "phone_number": 1,
+    # }
+
+    try:
+        investors = db.session.query(Investor).order_by(Investor.id).offset(offset).limit(batch_size).all()
+        duplicate_groups = defaultdict(list)
+
+        for investor in investors:
+            if selected_fields:
+                key_parts = []
+                for field in selected_fields:
+                    value = getattr(investor, field, None)
+                    if value not in (None, ""):
+                        key_parts.append(str(value))
+
+                if not key_parts:
+                    continue
+                key = "|".join(key_parts)
+            else:
+                key = ""
+
+            investor_data = OrderedDict()
+            for field in fields_order:
+                value = getattr(investor, field)
+
+                if field == "rounds":
+                    value = [{"id": round.id, "name": str(round)} for round in value] if value else []
+                elif field == "industries":
+                    value = [{"id": industry.id, "name": str(industry)} for industry in value] if value else []
+                investor_data[field] = value
+
+            duplicate_groups[key].append(investor_data)
+
+        offset += batch_size
+
+    except Exception as e:
+        print(f"Error fetching investors at offset {offset}: {e}")
+
+    # def calculate_priority_score(investor1, investor2, selected_fields):
+    #     score = 0
+    #     for field in selected_fields:
+    #         weight = weight_mapping.get(field, default_weight)
+    #         value1 = investor1.get(field)
+    #         value2 = investor2.get(field)
+    #         if value1 and value2 and value1 == value2:
+    #             score += weight
+    #     return score
+
+    duplicates = []
+    for investors in duplicate_groups.values():
+        if len(investors) <= 1:
+            continue
+        for i, inv1 in enumerate(investors[:-1]):
+            for inv2 in investors[i + 1 :]:
+                # score = calculate_priority_score(inv1, inv2, selected_fields)
+                # if score >= confidence_threshold:
+                score = sum(1 for field in fields_order if inv1[field] and inv2[field] and inv1[field] == inv2[field])
+                duplicates.append({"investor_a": inv1, "investor_b": inv2, "score": score})
+
+    duplicates.sort(key=lambda x: x["score"], reverse=True)  # Duplicates with Most Matched Parameters Positioned Higher
+
+    start_index = (page - 1) * per_page
+    end_index = start_index + per_page
+    page_duplicates = duplicates[start_index:end_index]
+
+    pagination = generate_pagination(page, int(len(duplicates) / per_page), per_page)
+    pagination["pages"] = list(pagination["pages"])
+
+    return {"comparisons": page_duplicates, "pagination": pagination}
+
+
+@investor.post("/merge")
+@admin_only
+def merge_investors():
+    form_data = request.get_json()
+
+    investor = Investor(
+        first_name=form_data.get("first_name"),
+        last_name=form_data.get("last_name"),
+        firm_name=form_data.get("firm_name") or None,
+        position=form_data.get("position") or None,
+        about=form_data.get("about") or None,
+        website=form_data.get("website") or None,
+        linkedin=form_data.get("linkedin") or None,
+        twitter=form_data.get("twitter"),
+        email=form_data.get("email") or None,
+        phone_number=form_data.get("phone_number") or None,
+        n_investments=int(form_data.get("n_investments") or 0),
+        n_exits=int(form_data.get("n_exits") or 0),
+        min_investment=int(form_data.get("min_investment") or 0),
+        max_investment=int(form_data.get("max_investment") or 0),
+        location=form_data.get("location") or None,
+        rounds=list(Round.get_by_id_list(form_data.get("rounds") or [])),
+        industries=list(Industry.get_by_id_list(form_data.get("industries") or [])),
+        notable_investments=list(NotableInvestment.get_by_id_list(form_data.get("notable_investments") or [])),
+        # user=user,
+    )
+
+    try:
+        db.session.add(investor)
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
+
+    investor.set_slug()
+
+    try:
+        investor.upsert_data()
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.investor.create_investor_view", _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Investor created successfully!").get_status()
+
+    return redirect(url_for("admin.investor.duplicates", _external=False))
 
 
 @investor.get("/funding-rounds")

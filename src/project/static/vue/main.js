@@ -108,15 +108,24 @@ const GeminiComponent = defineComponent({
 
                 const data = await response.json();
                 console.log(data);
-                this.selectedChatId = data[0].chats[0].id;
+                this.selectedChatId = data[0].id;
 
-                for (let item of data) {
-                    if (!this.userChats.has(item.day)) {
-                        this.userChats.set(item.day, item.chats);
-                    } else {
-                        this.userChats.get(item.day).push(...item.chats);
+                const grouped = new Map();
+                for (const chat of data) {
+                    const category = this.formatDate(chat.created);
+
+                    if (!grouped.has(category)) {
+                        grouped.set(category, []);
                     }
+                    grouped.get(category).push(chat);
                 }
+
+                this.userChats = new Map(
+                    [...grouped.entries()].sort((a, b) => {
+                        const order = ["Recently", "Yesterday", "7 days", "30 days", "Few months", "Long ago"];
+                        return order.indexOf(a[0]) - order.indexOf(b[0]);
+                    }),
+                );
             } catch (error) {
                 console.error("Error loading chat:", error);
             }
@@ -169,36 +178,30 @@ const GeminiComponent = defineComponent({
                 this.$emit("close-gemini");
             }
         },
-        formatDate(day) {
-            const date = new Date(day);
+        formatDate(created) {
+            const date = new Date(created);
             const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(today.getDate() - 1);
+            today.setHours(0, 0, 0, 0);
 
-            const diffTime = Math.abs(today - date);
+            const chatDate = new Date(date);
+            chatDate.setHours(0, 0, 0, 0);
+
+            const diffTime = today - chatDate;
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            const diffMonths = today.getMonth() - date.getMonth() + 12 * (today.getFullYear() - date.getFullYear());
 
-            if (date.toDateString() === today.toDateString()) {
-                return "Recently";
-            } else if (date.toDateString() === yesterday.toDateString()) {
-                return "Yesterday";
-            } else if (diffDays <= 7) {
-                return "7 days";
-            } else if (diffDays <= 30) {
-                return "30 days";
-            } else if (diffMonths < 12) {
-                return "Few months";
-            } else {
-                return "Long ago ";
-            }
+            if (diffDays === 0) return "Recently";
+            if (diffDays === 1) return "Yesterday";
+            if (diffDays <= 7) return "7 days";
+            if (diffDays <= 30) return "30 days";
+            if (diffDays <= 365) return "Few months";
+            return "Long ago";
         },
         formatChatTime(created) {
             const date = new Date(created);
             const now = new Date();
-            const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
 
-            if (diffInHours < 24) {
+            // need to fix
+            if (date == now) {
                 return date.toLocaleTimeString("en-US", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -295,7 +298,7 @@ const FullInvestor = defineComponent({
                     this.investor = data.investor;
                     this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
-                    if (data.investments && data.n_of_investments){
+                    if (data.investments && data.n_of_investments) {
                         this.investments = data.investments;
                         this.n_of_investments = data.n_of_investments;
                     }
@@ -364,7 +367,7 @@ const FullInvestor = defineComponent({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
@@ -501,10 +504,9 @@ const FullInvestmentFirm = defineComponent({
                     this.investmentFirm = data.investment_firm;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
-                    if(data.investments){
+                    if (data.investments) {
                         this.investments = data.investments;
                     }
-
                 } else {
                     this.closeInvestmentFirm();
                     return;
@@ -526,7 +528,7 @@ const FullInvestmentFirm = defineComponent({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
@@ -635,8 +637,8 @@ const FullCompany = defineComponent({
                     this.company = data.company;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
-                    if(data.investments){
-                        this.investments = data.investments
+                    if (data.investments) {
+                        this.investments = data.investments;
                     }
                 } else {
                     this.closeCompany();
@@ -659,7 +661,7 @@ const FullCompany = defineComponent({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
@@ -827,10 +829,10 @@ const app = createApp({
             try {
                 if (data.status) {
                     this.investorBookmakrIds.push(data.investorId); // Corrected typo
-                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = '#FFC9FC';
+                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = "#FFC9FC";
                 } else {
                     this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId); // Corrected typo
-                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = 'none';
+                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = "none";
                 }
             } catch (error) {
                 console.error("Error handling investor bookmark:", error);
@@ -840,10 +842,10 @@ const app = createApp({
         async handleInvestmentFirmBookmark(data) {
             if (data.status) {
                 this.investmentFirmBookmakrIds.push(data.firmId);
-                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = '#FFC9FC';
+                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = "#FFC9FC";
             } else {
                 this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== data.firmId);
-                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = 'none';
+                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = "none";
             }
         },
 
@@ -851,10 +853,10 @@ const app = createApp({
             try {
                 if (data.status) {
                     this.companyBookmarkIds.push(data.companyId);
-                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = '#FFC9FC';
+                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = "#FFC9FC";
                 } else {
                     this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== data.companyId);
-                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = 'none';
+                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = "none";
                 }
             } catch (error) {
                 console.error("Error handling company bookmark:", error);
@@ -1148,16 +1150,16 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
                     if (data[0].bookmarked) {
                         this.investorBookmakrIds.push(investorId);
-                         document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = '#FFC9FC';
+                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = "#FFC9FC";
                     } else {
                         this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== investorId);
-                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = 'none';
+                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = "none";
                     }
                 }
             } catch (error) {
@@ -1175,17 +1177,17 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
 
                     if (data[0].bookmarked) {
                         this.investmentFirmBookmakrIds.push(firmId);
-                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = '#FFC9FC';
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = "#FFC9FC";
                     } else {
                         this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== firmId);
-                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = 'none';
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = "none";
                     }
                 }
             } catch (error) {
@@ -1203,16 +1205,16 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
                     if (data[0].bookmarked) {
                         this.companyBookmarkIds.push(companyId);
-                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = '#FFC9FC';
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = "#FFC9FC";
                     } else {
                         this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== companyId);
-                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = 'none';
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = "none";
                     }
                 }
             } catch (error) {

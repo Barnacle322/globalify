@@ -121,18 +121,7 @@ def get_chats_by_user_id(user_id):
 
     chat_models = [ChatListSchema.model_validate(chat).model_dump() for chat in chats]
 
-    day_list = []
-    for chat in chat_models:
-        day = chat["created"].date().isoformat()
-        if not any(day == day_item["day"] for day_item in day_list):
-            day_list.append({"day": day, "chats": []})
-        for day_item in day_list:
-            if day_item["day"] == day:
-                day_item["chats"].append(chat)
-
-    print(day_list)
-
-    return jsonify(day_list)
+    return jsonify(chat_models)
 
 
 @message.route("/chat/<int:user_id>", methods=["GET"])

@@ -41,41 +41,63 @@ const GeminiComponent = defineComponent({
                 });
 
                 const data = await response.json();
+                this.selectedChatId = data.chat_id;
 
                 this.displayMessage({ message: data.bot_message, type: "gemini" });
             } catch (error) {
                 console.error("Error sending message:", error);
             }
         },
-        async createChat(){
-          this.messages = {};
-          this.response = [];
+        async sendMessageWithCreateChat() {
+            const csrf_token = document.getElementById("csrf_token").value;
+            const promptDiv = this.$refs.prompt;
+            const promptText = promptDiv.textContent.trim();
+            if (!promptText) return;
 
+            this.response.push({ content: promptText, type: "user" });
+            promptDiv.textContent = "";
+            this.scrollToBottom();
+            try {
+                const response = await fetch(`/message/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                    body: JSON.stringify({ message: promptText }),
+                });
 
+                const data = await response.json();
+                this.selectedChatId = data.chat_id;
+
+                this.displayMessage({ message: data.bot_message, type: "gemini" });
+            } catch (error) {
+                console.error("Error sending message:", error);
+            }
         },
-        // async createChat() {
-        //     const csrf_token = document.getElementById("csrf_token").value;
-        //
-        //
-        //     try {
-        //         const response = await fetch(`/message/chat/create`, {
-        //             method: "POST",
-        //             headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
-        //             body: JSON.stringify({ user_id: this.userId }),
-        //         });
-        //
-        //         const data = await response.json();
-        //         if (response.ok) {
-        //             this.chats.unshift(data.chat);
-        //             this.selectedChatId = data.chat.id;
-        //             this.loadChatById(data.chat.id);
-        //         } else {
-        //             console.error("Error creating chat:", data.error);
-        //         }
-        //     } catch (error) {
-        //         console.error("Error creating chat:", error);
-        //     }
-        // },
+        
+        async createChat() {
+            this.response = [];
+            this.selectedChatId = null;
+
+            // const csrf_token = document.getElementById("csrf_token").value;
+
+            // try {
+            //     const response = await fetch(`/message/chat/create`, {
+            //         method: "POST",
+            //         headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+            //         body: JSON.stringify({ user_id: this.userId }),
+            //     });
+
+            //     const data = await response.json();
+            //     if (response.ok) {
+            //         this.chats.unshift(data.chat);
+            //         this.selectedChatId = data.chat.id;
+            //         this.loadChatById(data.chat.id);
+            //     } else {
+            //         console.error("Error creating chat:", data.error);
+            //     }
+            // } catch (error) {
+            //     console.error("Error creating chat:", error);
+            // }
+        },
         async loadChatById(chatId) {
             try {
                 const response = await fetch(`/message/chat/id/${chatId}`, {
@@ -107,7 +129,6 @@ const GeminiComponent = defineComponent({
 
                 const data = await response.json();
                 this.chats = data;
-                // this.chats = Array.isArray(data) ? data.filter(chat => chat.name) : [];
                 this.selectedChatId = this.chats[0].id;
             } catch (error) {
                 console.error("Error loading chat:", error);
@@ -169,6 +190,7 @@ const GeminiComponent = defineComponent({
     async created() {
         const userId = this.userId;
         await this.loadAllChats();
+        this.loadChatById(this.selectedChatId);
     },
     data() {
         return {
@@ -214,7 +236,7 @@ const FullInvestor = defineComponent({
                     this.investor = data.investor;
                     this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
-                    if (data.investments && data.n_of_investments){
+                    if (data.investments && data.n_of_investments) {
                         this.investments = data.investments;
                         this.n_of_investments = data.n_of_investments;
                     }
@@ -283,7 +305,7 @@ const FullInvestor = defineComponent({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
@@ -420,10 +442,9 @@ const FullInvestmentFirm = defineComponent({
                     this.investmentFirm = data.investment_firm;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
-                    if(data.investments){
+                    if (data.investments) {
                         this.investments = data.investments;
                     }
-
                 } else {
                     this.closeInvestmentFirm();
                     return;
@@ -445,7 +466,7 @@ const FullInvestmentFirm = defineComponent({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
@@ -554,8 +575,8 @@ const FullCompany = defineComponent({
                     this.company = data.company;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
-                    if(data.investments){
-                        this.investments = data.investments
+                    if (data.investments) {
+                        this.investments = data.investments;
                     }
                 } else {
                     this.closeCompany();
@@ -578,7 +599,7 @@ const FullCompany = defineComponent({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
@@ -746,10 +767,10 @@ const app = createApp({
             try {
                 if (data.status) {
                     this.investorBookmakrIds.push(data.investorId); // Corrected typo
-                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = '#FFC9FC';
+                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = "#FFC9FC";
                 } else {
                     this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId); // Corrected typo
-                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = 'none';
+                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = "none";
                 }
             } catch (error) {
                 console.error("Error handling investor bookmark:", error);
@@ -759,10 +780,10 @@ const app = createApp({
         async handleInvestmentFirmBookmark(data) {
             if (data.status) {
                 this.investmentFirmBookmakrIds.push(data.firmId);
-                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = '#FFC9FC';
+                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = "#FFC9FC";
             } else {
                 this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== data.firmId);
-                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = 'none';
+                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = "none";
             }
         },
 
@@ -770,10 +791,10 @@ const app = createApp({
             try {
                 if (data.status) {
                     this.companyBookmarkIds.push(data.companyId);
-                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = '#FFC9FC';
+                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = "#FFC9FC";
                 } else {
                     this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== data.companyId);
-                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = 'none';
+                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = "none";
                 }
             } catch (error) {
                 console.error("Error handling company bookmark:", error);
@@ -1067,16 +1088,16 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
                     if (data[0].bookmarked) {
                         this.investorBookmakrIds.push(investorId);
-                         document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = '#FFC9FC';
+                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = "#FFC9FC";
                     } else {
                         this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== investorId);
-                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = 'none';
+                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = "none";
                     }
                 }
             } catch (error) {
@@ -1094,17 +1115,17 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
 
                     if (data[0].bookmarked) {
                         this.investmentFirmBookmakrIds.push(firmId);
-                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = '#FFC9FC';
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = "#FFC9FC";
                     } else {
                         this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== firmId);
-                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = 'none';
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = "none";
                     }
                 }
             } catch (error) {
@@ -1122,16 +1143,16 @@ const app = createApp({
                     },
                 });
                 if (response.ok) {
-                    if (response.url.includes('/onboarding/')){
+                    if (response.url.includes("/onboarding/")) {
                         window.location.href = response.url;
                     }
                     const data = await response.json();
                     if (data[0].bookmarked) {
                         this.companyBookmarkIds.push(companyId);
-                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = '#FFC9FC';
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = "#FFC9FC";
                     } else {
                         this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== companyId);
-                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = 'none';
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = "none";
                     }
                 }
             } catch (error) {

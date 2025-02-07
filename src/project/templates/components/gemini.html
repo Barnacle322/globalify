@@ -132,7 +132,7 @@
                             class="placeholder ring-0 outline-0 border-0 w-full"
                         ></div>
                         <button
-                            @click="sendMessage(selectedChatId)"
+                            @click="selectedChatId ? sendMessage(selectedChatId) : sendMessageWithCreateChat()"
                             @keyup.enter="sendMessage(selectedChatId)"
                             class="hover:translate-x-1 transition-transform ease-in-out"
                         >

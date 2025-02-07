@@ -84,7 +84,52 @@ def send_message(chat_id):
     db.session.add(bot_msg)
     db.session.commit()
 
-    return jsonify({"user_message": user_message, "bot_message": bot_message_text})
+    return jsonify({"user_message": user_message, "bot_message": bot_message_text, "chat_id": chat.id})
+
+
+@message.route("/chat", methods=["POST"])
+@login_required
+def send_message_with_create_chat():
+    data = request.get_json()
+    user_message = data.get("message", "").strip()
+
+    if not user_message:
+        return jsonify({"error": "Message cannot be empty"}), 400
+
+    chat = Chat(user_id=current_user.id)
+    db.session.add(chat)
+    db.session.commit()
+
+    # Создаем сообщение пользователя
+    user_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
+    db.session.add(user_msg)
+    db.session.commit()
+
+    messages = Message.get_by_chat_id(chat.id)
+
+    old_messages = [
+        {"role": "user" if msg.type == SenderType.USER else "assistant", "parts": [msg.message]} for msg in messages
+    ]
+
+    old_messages.append({"role": "user", "parts": [user_message]})
+
+    bot_response = generate_response(user_message, old_messages)
+
+    # Обрабатываем ответ от Gemini
+    bot_message_text = ""
+    for res in bot_response:
+        for candidate in res._result.candidates:
+            for part in candidate.content.parts:
+                bot_message_text += part.text + "\n"
+
+    bot_message_text = bot_message_text.strip()
+
+    # Создаем сообщение бота
+    bot_msg = Message(chat_id=chat.id, message=bot_message_text, type=SenderType.GEMINI)
+    db.session.add(bot_msg)
+    db.session.commit()
+
+    return jsonify({"user_message": user_message, "bot_message": bot_message_text, "chat_id": chat.id})
 
 
 @message.route("/chat/id/<int:chat_id>/", methods=["GET"])

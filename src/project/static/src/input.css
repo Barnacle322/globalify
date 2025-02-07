@@ -502,8 +502,8 @@ textarea {
 }
 
 .mask-linear-gradient {
-    -webkit-mask-image: linear-gradient(to right, black 60%, transparent 100%);
-    mask-image: linear-gradient(to right, black 60%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 75%, transparent 100%);
+    mask-image: linear-gradient(to right, black 75%, transparent 100%);
 }
 
 .custom-scrollbar::-webkit-scrollbar {

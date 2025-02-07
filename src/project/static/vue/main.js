@@ -5,6 +5,12 @@ const GeminiComponent = defineComponent({
     mounted() {
         document.addEventListener("click", this.handleHistorySidebarClickOutside);
         document.addEventListener("click", this.handleClickOutside);
+        this.$refs.prompt?.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                this.sendMessage(this.selectedChatId);
+            }
+        });
     },
     beforeDestroy() {
         document.removeEventListener("click", this.handleHistorySidebarClickOutside);
@@ -92,8 +98,9 @@ const GeminiComponent = defineComponent({
                     return;
                 }
                 this.response = data.messages.map((msg) => ({
-                    content: msg.message,
+                    content: this.processMarkdown(msg.message),
                     type: msg.type,
+                    isHTML: true,
                 }));
             } catch (error) {
                 console.error("Error loading chat:", error);
@@ -122,7 +129,16 @@ const GeminiComponent = defineComponent({
 
                 this.userChats = new Map(
                     [...grouped.entries()].sort((a, b) => {
-                        const order = ["Recently", "Yesterday", "7 days", "30 days", "Few months", "Long ago"];
+                        const order = [
+                            "Recently",
+                            "Yesterday",
+                            "1 Week",
+                            "2 Week2",
+                            "3 Week",
+                            "1 Month",
+                            "Few months",
+                            "Long ago",
+                        ];
                         return order.indexOf(a[0]) - order.indexOf(b[0]);
                     }),
                 );
@@ -147,10 +163,12 @@ const GeminiComponent = defineComponent({
             this.scrollToBottom();
             const fullMessage = message.message;
             let currentIndex = 0;
+
             const interval = setInterval(() => {
                 if (currentIndex < fullMessage.length) {
+                    const currentContent = fullMessage.slice(0, currentIndex);
                     const currentMessage = this.response.find(
-                        (msg) => msg.type === message.type && msg.content === fullMessage.slice(0, currentIndex),
+                        (msg) => msg.type === message.type && msg.content === currentContent,
                     );
                     if (currentMessage) {
                         currentMessage.content = fullMessage.slice(0, currentIndex + 1);
@@ -158,6 +176,7 @@ const GeminiComponent = defineComponent({
                         this.response.push({
                             content: fullMessage.slice(0, currentIndex + 1),
                             type: message.type,
+                            isHTML: message.type === "gemini",
                         });
                     }
                     currentIndex++;
@@ -165,7 +184,28 @@ const GeminiComponent = defineComponent({
                 } else {
                     clearInterval(interval);
                 }
-            }, 5);
+            }, 0);
+        },
+        processMarkdown(text) {
+            // Bold text with double asterisks
+            text = text.replace(/\*\*([\s\S]*?)\*\*/g, (match, content) => {
+                const cleanedContent = content.replace(/\n/g, " ");
+                return `<strong>${cleanedContent}</strong>`;
+            });
+
+            // Lists
+            text = text.replace(/^\* (.*)/gm, "<li>$1</li>");
+
+            // Single star (italic)
+            text = text.replace(/\*([\s\S]*?)\*/g, (match, content) => {
+                const cleanedContent = content.replace(/\n/g, " ").trim();
+                return `<em>${cleanedContent}</em>`;
+            });
+
+            // New lines
+            text = text.replace(/\n/g, "<br>");
+
+            return text;
         },
         toggleExpansion() {
             this.isExpanded = !this.isExpanded;
@@ -190,35 +230,13 @@ const GeminiComponent = defineComponent({
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
             if (diffDays === 0) return "Recently";
-            if (diffDays === 1) return "Yesterday";
-            if (diffDays <= 7) return "7 days";
-            if (diffDays <= 30) return "30 days";
-            if (diffDays <= 365) return "Few months";
+            if (diffDays <= 1) return "Yesterday";
+            if (diffDays <= 7) return "1 Week";
+            if (diffDays <= 14) return "2 Weeks";
+            if (diffDays <= 21) return "3 Weeks";
+            if (diffDays <= 31) return "1 Month";
+            if (diffDays <= 60) return "Few months";
             return "Long ago";
-        },
-        formatChatTime(created) {
-            const date = new Date(created);
-            const now = new Date();
-
-            // need to fix
-            if (date == now) {
-                return date.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                });
-            }
-            if (date.getFullYear() === now.getFullYear()) {
-                return date.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                });
-            }
-            return date.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-            });
         },
         toggleHistory() {
             this.isHistoryVisible = !this.isHistoryVisible;

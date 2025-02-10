@@ -2,6 +2,16 @@ const GeminiComponent = defineComponent({
     template: "#gemini-template",
     emits: ["close-gemini"],
     props: ["userId"],
+    computed: {
+        currentChatName() {
+            if (!this.selectedChatId) return "";
+            for (const [date, chats] of this.userChats) {
+                const chat = chats.find((chat) => chat.id === this.selectedChatId);
+                if (chat) return chat.name;
+            }
+            return "";
+        },
+    },
     mounted() {
         document.addEventListener("click", this.handleHistorySidebarClickOutside);
         document.addEventListener("click", this.handleClickOutside);
@@ -186,6 +196,26 @@ const GeminiComponent = defineComponent({
                 }
             }, 0);
         },
+        formatDate(created) {
+            const date = new Date(created);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const chatDate = new Date(date);
+            chatDate.setHours(0, 0, 0, 0);
+
+            const diffTime = today - chatDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) return "Recently";
+            if (diffDays <= 1) return "Yesterday";
+            if (diffDays <= 7) return "1 Week";
+            if (diffDays <= 14) return "2 Weeks";
+            if (diffDays <= 21) return "3 Weeks";
+            if (diffDays <= 31) return "1 Month";
+            if (diffDays <= 60) return "Few months";
+            return "Long ago";
+        },
         processMarkdown(text) {
             // Bold text with double asterisks
             text = text.replace(/\*\*([\s\S]*?)\*\*/g, (match, content) => {
@@ -207,6 +237,12 @@ const GeminiComponent = defineComponent({
 
             return text;
         },
+        toggleDropdown(chatId) {
+            this.openedDropdownChatId = this.openedDropdownChatId === chatId ? null : chatId;
+        },
+        toggleHistory() {
+            this.isHistoryVisible = !this.isHistoryVisible;
+        },
         toggleExpansion() {
             this.isExpanded = !this.isExpanded;
         },
@@ -218,35 +254,21 @@ const GeminiComponent = defineComponent({
                 this.$emit("close-gemini");
             }
         },
-        formatDate(created) {
-            const date = new Date(created);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const chatDate = new Date(date);
-            chatDate.setHours(0, 0, 0, 0);
-
-            const diffTime = today - chatDate;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-            if (diffDays === 0) return "Recently";
-            if (diffDays <= 1) return "Yesterday";
-            if (diffDays <= 7) return "1 Week";
-            if (diffDays <= 14) return "2 Weeks";
-            if (diffDays <= 21) return "3 Weeks";
-            if (diffDays <= 31) return "1 Month";
-            if (diffDays <= 60) return "Few months";
-            return "Long ago";
-        },
-        toggleHistory() {
-            this.isHistoryVisible = !this.isHistoryVisible;
-        },
         handleClickOutside(event) {
             const isDropdown = event.target.closest(".dropdown-content");
             const isButton = event.target.closest("[data-dropdown-button]");
+            const isRenameButton = event.target.closest("[data-rename-button]");
+            const isEditingInput = event.target.closest('input[ref^="nameInput-"]');
 
-            if (!isDropdown && !isButton) {
+            if (!isDropdown && !isButton && !isRenameButton && !isEditingInput) {
                 this.openedDropdownChatId = null;
+            }
+
+            if (this.editingChatId !== null && !isEditingInput && !isRenameButton) {
+                const currentChat = this.findChatById(this.editingChatId);
+                if (currentChat) {
+                    this.saveChatName(currentChat);
+                }
             }
         },
         handleHistorySidebarClickOutside(event) {
@@ -255,8 +277,100 @@ const GeminiComponent = defineComponent({
                 this.isHistoryVisible = false;
             }
         },
-        toggleDropdown(chatId) {
-            this.openedDropdownChatId = this.openedDropdownChatId === chatId ? null : chatId;
+        async deleteChat(chatId) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/message/chat/${chatId}/delete`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                });
+                if (response.ok)
+                    for (const [date, chats] of this.userChats) {
+                        const index = chats.findIndex((c) => c.id === chatId);
+                        if (index > -1) {
+                            const chat = chats[index];
+                            chat.isDeleting = true;
+
+                            await new Promise((resolve) => setTimeout(resolve, 200));
+
+                            chats.splice(index, 1);
+
+                            if (chats.length === 0) {
+                                this.userChats.delete(date);
+                            }
+                            break;
+                        }
+                    }
+
+                if (this.selectedChatId === chatId) {
+                    this.selectedChatId = null;
+                }
+            } catch (error) {
+                console.error("Failed to delete chat:", error);
+            }
+        },
+        async saveChatName(chat) {
+            if (!this.newChatName.trim() || this.newChatName.trim() === chat.name) {
+                this.cancelEditing();
+                return;
+            }
+
+            const csrf_token = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`message/chat/${chat.id}/rename`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: JSON.stringify({
+                        name: this.newChatName.trim(),
+                    }),
+                    credentials: "same-origin",
+                });
+
+                if (!response.ok) {
+                    throw new Error("Something went wrong");
+                }
+
+                const data = await response.json();
+
+                const targetChat = this.findChatById(chat.id);
+                if (targetChat) {
+                    targetChat.name = data.chat.name || this.newChatName.trim();
+                }
+            } catch (error) {
+                console.error("Error renaming chat:", error);
+                const targetChat = this.findChatById(chat.id);
+                if (targetChat) {
+                    targetChat.name = chat.name;
+                }
+            } finally {
+                this.cancelEditing();
+            }
+        },
+        startEditing(chat) {
+            this.editingChatId = chat.id;
+            this.newChatName = chat.name;
+            this.openedDropdownChatId = null;
+
+            this.$nextTick(() => {
+                const inputRef = this.$refs[`nameInput-${chat.id}`];
+                if (inputRef) {
+                    inputRef[0].focus();
+                }
+            });
+        },
+        cancelEditing() {
+            this.editingChatId = null;
+            this.newChatName = "";
+        },
+        findChatById(chatId) {
+            for (const [, chats] of this.userChats) {
+                const found = chats.find((c) => c.id === chatId);
+                if (found) return found;
+            }
+            return null;
         },
     },
     watch: {
@@ -273,16 +387,21 @@ const GeminiComponent = defineComponent({
         return {
             prompt: "",
             response: [],
-            queue: [],
-            userChats: new Map(),
-            intervalId: null,
+            messages: {},
             selectedChatId: null,
+            userChats: new Map(),
+
             isExpanded: false,
             isGeminiOpened: true,
-            messages: {},
             isHistoryVisible: false,
             dropdownOpened: false,
             openedDropdownChatId: null,
+
+            queue: [],
+            intervalId: null,
+
+            editingChatId: null,
+            newChatName: "",
         };
     },
 });

@@ -2,12 +2,10 @@
 <template id="gemini-template">
     <article
         class="fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-gray-100 transition-all rounded-l-2xl"
-        :class="isExpanded ? 'md:w-full' : 'md:w-4/5 lg:w-2/3 2xl:w-1/2'"
+        :class="isExpanded ? 'md:w-full rounded-l-none' : 'md:w-4/5 lg:w-2/3 2xl:w-1/2'"
     >
-        <nav
-            class="sticky top-0 z-10 flex h-20 items-center justify-between bg-white px-4 py-4 sm:px-6 shadow-lg rounded-tl-2xl"
-        >
-            <div class="flex items-center gap-3">
+        <nav class="sticky top-0 z-10 flex h-20 items-center justify-between bg-white px-4 py-4 sm:px-6 rounded-tl-2xl">
+            <div class="w-1/3 flex items-center gap-3">
                 <button @click="toggleHistory" class="rounded-lg p-2 transition-colors hover:bg-gray-100">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -45,8 +43,11 @@
                     New Chat
                 </button>
             </div>
-
-            <div class="flex gap-2">
+            <div class="w-1/3 flex justify-center items-center">
+                <span class="truncate text-bold font-bold max-w-full text-center" v-text="currentChatName || ' '">
+                </span>
+            </div>
+            <div class="w-1/3 flex justify-end gap-2">
                 <button @click="toggleExpansion" class="hidden rounded-lg p-2 hover:bg-gray-100 md:block">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -90,102 +91,125 @@
             <transition name="history">
                 <div
                     v-show="isHistoryVisible"
-                    class="custom-scrollbar absolute h-full w-64 bg-gray-50 border-r p-3 overflow-y-auto"
+                    class="custom-scrollbar absolute h-full w-56 bg-gray-50 border-r p-2 overflow-y-auto"
                 >
                     <div class="flex flex-col gap-3 bg-gray-50">
-                        <div v-for="[date, chats] of userChats">
+                        <div v-for="[date, chats] of userChats" :key="date">
                             <span class="text-xs text-gray-500 px-2" v-text="date"></span>
-                            <a v-for="chat in chats" :key="chat.id">
-                                <div
-                                    class="w-full cursor-pointer p-2 rounded-lg relative group"
-                                    @click="selectChat(chat.id)"
-                                    :class="selectedChatId === chat.id ? 'bg-sky-500 hover:bg-sky-400 ' : 'hover:bg-[#ccecff] '"
+                            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                            <transition-group name="list" tag="div">
+                                <a
+                                    v-for="chat in chats"
+                                    :key="chat.id"
+                                    class="list-item"
+                                    :class="{ 'animate-fade-out': chat.isDeleting }"
                                 >
-                                    <span
-                                        class="block whitespace-nowrap overflow-hidden mask-linear-gradient mr-3 ml-2"
-                                        :class="selectedChatId === chat.id ? 'text-white' : 'text-black'"
-                                        v-text="chat.name"
-                                    ></span>
-                                    <button
-                                        data-dropdown-button
-                                        @click.stop="toggleDropdown(chat.id)"
-                                        class="absolute top-1.5 right-1 hidden group-hover:block transition-colors rounded-lg ease-in-out hover:bg-white"
+                                    <div
+                                        class="w-full cursor-pointer p-2 rounded-lg relative group"
+                                        @click="selectChat(chat.id)"
+                                        :class="selectedChatId === chat.id ? 'bg-sky-500 hover:bg-sky-400' : 'hover:bg-[#ccecff]'"
                                     >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.5"
-                                            stroke="currentColor"
-                                            class="size-7 text-gray-700"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
-                                            />
-                                        </svg>
-                                    </button>
+                                        <span
+                                            v-if="editingChatId !== chat.id"
+                                            class="block whitespace-nowrap overflow-hidden mask-linear-gradient mr-3 ml-2"
+                                            :class="selectedChatId === chat.id ? 'text-white' : 'text-black'"
+                                            v-text="chat.name"
+                                        ></span>
 
-                                    <transition
-                                        enter-active-class="animate-zoom-in"
-                                        leave-active-class="animate-zoom-out"
-                                    >
-                                        <div
-                                            v-if="openedDropdownChatId === chat.id"
-                                            class="absolute right-1 top-8 z-10 flex w-24 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
-                                        >
-                                            <h1
-                                                class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
-                                                :href="`/chat/rename/${chat.id}`"
-                                            >
-                                                <span>Rename</span>
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none"
-                                                    viewBox="0 0 22 22"
-                                                    stroke-width="1.5"
-                                                    stroke="currentColor"
-                                                    class="size-5"
-                                                >
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                                                    />
-                                                </svg>
-                                            </h1>
-                                            <h1
-                                                class="flex w-full items-center gap-2 rounded-md text-red-600 px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
-                                                :href="`/chat/delete/${chat.id}`"
-                                            >
-                                                <span>Delete</span>
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke-width="1.5"
-                                                    stroke="currentColor"
-                                                    class="size-4"
-                                                >
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                                                    />
-                                                </svg>
-                                            </h1>
+                                        <div v-else class="mr-3 ml-2">
+                                            <input
+                                                v-model="newChatName"
+                                                @keyup.enter="saveChatName(chat)"
+                                                @keyup.esc="cancelEditing"
+                                                maxlength="30"
+                                                class="w-full bg-transparent rounded-lg outline-none border-b border-sky-500 py-0 m-0 leading-normal text-inherit"
+                                                :class="selectedChatId === chat.id ? 'text-white' : 'text-black'"
+                                                :ref="`nameInput-${chat.id}`"
+                                                style="min-height: 0; max-height: none"
+                                            />
                                         </div>
-                                    </transition>
-                                </div>
-                            </a>
+                                        <button
+                                            data-dropdown-button
+                                            @click.stop="toggleDropdown(chat.id)"
+                                            class="absolute top-1.5 right-1 hidden group-hover:block transition-colors rounded-lg ease-in-out hover:bg-white"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke-width="1.5"
+                                                stroke="currentColor"
+                                                class="size-7 text-gray-700"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+                                                />
+                                            </svg>
+                                        </button>
+
+                                        <transition
+                                            enter-active-class="animate-zoom-in"
+                                            leave-active-class="animate-zoom-out"
+                                        >
+                                            <div
+                                                v-if="openedDropdownChatId === chat.id"
+                                                class="absolute right-1 top-8 z-10 flex w-24 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
+                                            >
+                                                <div
+                                                    class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
+                                                    data-rename-button
+                                                    @click.stop="startEditing(chat)"
+                                                >
+                                                    <span>Rename</span>
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 22 22"
+                                                        stroke-width="1.5"
+                                                        stroke="currentColor"
+                                                        class="size-5"
+                                                    >
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                                                        />
+                                                    </svg>
+                                                </div>
+                                                <div
+                                                    class="flex w-full items-center gap-2 rounded-md text-red-600 px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
+                                                    @click.stop="deleteChat(chat.id)"
+                                                >
+                                                    <span>Delete</span>
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke-width="1.5"
+                                                        stroke="currentColor"
+                                                        class="size-4"
+                                                    >
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                                                        />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </transition>
+                                    </div>
+                                </a>
+                            </transition-group>
                         </div>
                     </div>
                 </div>
             </transition>
             <div
                 class="flex-1 flex flex-col overflow-hidden max-w-3xl transition-all duration-300 relative"
-                :class="{'ml-64': isHistoryVisible && !isExpanded,
+                :class="{'ml-56': isHistoryVisible && !isExpanded,
                          'mx-auto ': isExpanded}"
             >
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
@@ -235,7 +259,7 @@
 
                 <div
                     class="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200"
-                    :class="{'rounded-2xl': isExpanded}"
+                    :class="{'rounded-3xl': isExpanded}"
                 >
                     <div class="relative flex items-center">
                         <div

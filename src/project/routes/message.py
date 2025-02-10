@@ -1,5 +1,6 @@
 from flask import Blueprint, Response, jsonify, request
 from flask_login import current_user, login_required
+from sqlalchemy import delete
 
 from ..extensions import db
 from ..models import (
@@ -156,6 +157,67 @@ def streamed_response(prompt):
                     yield f"data: {part.text}\n\n".encode("utf-8")  # SSE
 
     return Response(generate(), content_type="text/event-stream")
+
+
+@message.route("/chat/<int:chat_id>/delete", methods=["POST"])
+@login_required
+def delete_chat_by_id(chat_id):
+    print("/////////")
+    chat = Chat.get_by_id(chat_id)
+    if not chat:
+        print("Chat not found")
+        return jsonify({"error": "Chat not found"}), 404
+
+    if chat.user_id != current_user.id:
+        print("Unauthorized attempt to delete chat")
+        return jsonify({"error": "Wrong user id or chat id"}), 404
+
+    messages = Message.get_by_chat_id(chat.id)
+
+    if not messages:
+        print("Messages not found")
+
+    try:
+        if messages:
+            db.session.execute(delete(Message).where(Message.chat_id == chat_id))
+
+        db.session.delete(chat)
+        db.session.commit()
+
+        return jsonify({"message": "Chat deleted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to delete chat: {str(e)}"}), 500
+
+
+@message.route("/chat/<int:chat_id>/rename", methods=["POST"])
+@login_required
+def rename_chat(chat_id):
+    print("///////////")
+    data = request.get_json()
+    new_name = data.get("name", "").strip()
+
+    if not new_name:
+        return jsonify({"error": "Chat name cannot be empty"}), 400
+
+    try:
+        chat = Chat.get_by_id(chat_id)
+
+        if not chat:
+            return jsonify({"error": "Chat not found"}), 404
+
+        if chat.user_id != current_user.id:
+            print("Unauthorized attempt to delete chat")
+            return jsonify({"error": "Wrong user id or chat id"}), 404
+
+        chat.name = new_name[:30]
+        db.session.commit()
+
+        return jsonify({"message": "Chat renamed successfully", "chat": {"id": chat.id, "name": chat.name}}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to rename chat: {str(e)}"}), 500
 
 
 # @message.route("/chat/<int:user_id>", methods=["POST"])

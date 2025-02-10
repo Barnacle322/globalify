@@ -119,6 +119,7 @@
                                         <div v-else class="mr-3 ml-2">
                                             <input
                                                 v-model="newChatName"
+                                                @click.stop
                                                 @keyup.enter="saveChatName(chat)"
                                                 @keyup.esc="cancelEditing"
                                                 maxlength="30"

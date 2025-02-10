@@ -164,7 +164,7 @@
             </transition>
 
             <div class="relative w-full">
-                <div class="fixed bottom-10 right-32 z-10 p-4 rounded-full bg-[#ffdcfd] cursor-pointer">
+                <div class="fixed bottom-10 right-32 z-10 cursor-pointer rounded-full bg-[#ffdcfd] p-4">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 -960 960 960"
@@ -181,14 +181,14 @@
                     <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
                         <div
                             v-if="showPopover"
-                            class="absolute right-full bottom-10 z-10 mt-1 w-48 rounded-lg bg-white p-4 shadow-md border border-gray-200"
+                            class="absolute bottom-10 right-full z-10 mt-1 w-48 rounded-lg border border-gray-200 bg-white p-4 shadow-md"
                         >
                             <!-- Стрелка облачка -->
                             <div
-                                class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-l-8 border-l-white"
+                                class="absolute right-0 top-1/2 h-0 w-0 -translate-y-1/2 translate-x-full border-b-8 border-l-8 border-t-8 border-b-transparent border-l-white border-t-transparent"
                             ></div>
                             <!-- Содержимое -->
-                            <div class="text-sm text-gray-700 font-medium">💬 Ask something here</div>
+                            <div class="text-sm font-medium text-gray-700">💬 Ask something here</div>
                         </div>
                     </transition>
                 </div>

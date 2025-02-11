@@ -2,6 +2,30 @@ const GeminiComponent = defineComponent({
     template: "#gemini-template",
     emits: ["close-gemini"],
     props: ["userId"],
+    computed: {
+        currentChatName() {
+            if (!this.selectedChatId) return "";
+            for (const [date, chats] of this.userChats) {
+                const chat = chats.find((chat) => chat.id === this.selectedChatId);
+                if (chat) return chat.name;
+            }
+            return "";
+        },
+    },
+    mounted() {
+        document.addEventListener("click", this.handleHistorySidebarClickOutside);
+        document.addEventListener("click", this.handleClickOutside);
+        this.$refs.prompt?.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                this.sendMessage(this.selectedChatId);
+            }
+        });
+    },
+    beforeDestroy() {
+        document.removeEventListener("click", this.handleHistorySidebarClickOutside);
+        document.removeEventListener("click", this.handleClickOutside);
+    },
     methods: {
         async startStream() {
             this.response = [];
@@ -115,8 +139,9 @@ const GeminiComponent = defineComponent({
                     return;
                 }
                 this.response = data.messages.map((msg) => ({
-                    content: msg.message,
+                    content: this.processMarkdown(msg.message),
                     type: msg.type,
+                    isHTML: true,
                 }));
             } catch (error) {
                 console.error("Error loading chat:", error);
@@ -130,8 +155,34 @@ const GeminiComponent = defineComponent({
                 });
 
                 const data = await response.json();
-                this.chats = data;
-                this.selectedChatId = this.chats[0].id;
+                console.log(data);
+                this.selectedChatId = data[0].id;
+
+                const grouped = new Map();
+                for (const chat of data) {
+                    const category = this.formatDate(chat.created);
+
+                    if (!grouped.has(category)) {
+                        grouped.set(category, []);
+                    }
+                    grouped.get(category).push(chat);
+                }
+
+                this.userChats = new Map(
+                    [...grouped.entries()].sort((a, b) => {
+                        const order = [
+                            "Recently",
+                            "Yesterday",
+                            "1 Week",
+                            "2 Week2",
+                            "3 Week",
+                            "1 Month",
+                            "Few months",
+                            "Long ago",
+                        ];
+                        return order.indexOf(a[0]) - order.indexOf(b[0]);
+                    }),
+                );
             } catch (error) {
                 console.error("Error loading chat:", error);
             }
@@ -139,6 +190,7 @@ const GeminiComponent = defineComponent({
         async selectChat(chatId) {
             this.selectedChatId = chatId;
             this.loadChatById(chatId);
+            this.isHistoryVisible = false;
         },
         scrollToBottom() {
             this.$nextTick(() => {
@@ -152,10 +204,12 @@ const GeminiComponent = defineComponent({
             this.scrollToBottom();
             const fullMessage = message.message;
             let currentIndex = 0;
+
             const interval = setInterval(() => {
                 if (currentIndex < fullMessage.length) {
+                    const currentContent = fullMessage.slice(0, currentIndex);
                     const currentMessage = this.response.find(
-                        (msg) => msg.type === message.type && msg.content === fullMessage.slice(0, currentIndex),
+                        (msg) => msg.type === message.type && msg.content === currentContent,
                     );
                     if (currentMessage) {
                         currentMessage.content = fullMessage.slice(0, currentIndex + 1);
@@ -163,6 +217,7 @@ const GeminiComponent = defineComponent({
                         this.response.push({
                             content: fullMessage.slice(0, currentIndex + 1),
                             type: message.type,
+                            isHTML: message.type === "gemini",
                         });
                     }
                     currentIndex++;
@@ -170,7 +225,54 @@ const GeminiComponent = defineComponent({
                 } else {
                     clearInterval(interval);
                 }
-            }, 5);
+            }, 0);
+        },
+        formatDate(created) {
+            const date = new Date(created);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const chatDate = new Date(date);
+            chatDate.setHours(0, 0, 0, 0);
+
+            const diffTime = today - chatDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) return "Recently";
+            if (diffDays <= 1) return "Yesterday";
+            if (diffDays <= 7) return "1 Week";
+            if (diffDays <= 14) return "2 Weeks";
+            if (diffDays <= 21) return "3 Weeks";
+            if (diffDays <= 31) return "1 Month";
+            if (diffDays <= 60) return "Few months";
+            return "Long ago";
+        },
+        processMarkdown(text) {
+            // Bold text with double asterisks
+            text = text.replace(/\*\*([\s\S]*?)\*\*/g, (match, content) => {
+                const cleanedContent = content.replace(/\n/g, " ");
+                return `<strong>${cleanedContent}</strong>`;
+            });
+
+            // Lists
+            text = text.replace(/^\* (.*)/gm, "<li>$1</li>");
+
+            // Single star (italic)
+            text = text.replace(/\*([\s\S]*?)\*/g, (match, content) => {
+                const cleanedContent = content.replace(/\n/g, " ").trim();
+                return `<em>${cleanedContent}</em>`;
+            });
+
+            // New lines
+            text = text.replace(/\n/g, "<br>");
+
+            return text;
+        },
+        toggleDropdown(chatId) {
+            this.openedDropdownChatId = this.openedDropdownChatId === chatId ? null : chatId;
+        },
+        toggleHistory() {
+            this.isHistoryVisible = !this.isHistoryVisible;
         },
         toggleExpansion() {
             this.isExpanded = !this.isExpanded;
@@ -182,6 +284,124 @@ const GeminiComponent = defineComponent({
             if (event.key === "Escape") {
                 this.$emit("close-gemini");
             }
+        },
+        handleClickOutside(event) {
+            const isDropdown = event.target.closest(".dropdown-content");
+            const isButton = event.target.closest("[data-dropdown-button]");
+            const isRenameButton = event.target.closest("[data-rename-button]");
+            const isEditingInput = event.target.closest('input[ref^="nameInput-"]');
+
+            if (!isDropdown && !isButton && !isRenameButton && !isEditingInput) {
+                this.openedDropdownChatId = null;
+            }
+
+            if (this.editingChatId !== null && !isEditingInput && !isRenameButton) {
+                const currentChat = this.findChatById(this.editingChatId);
+                if (currentChat) {
+                    this.saveChatName(currentChat);
+                }
+            }
+        },
+        handleHistorySidebarClickOutside(event) {
+            const historyContainer = this.$refs.historyContainer;
+            if (historyContainer && !historyContainer.contains(event.target)) {
+                this.isHistoryVisible = false;
+            }
+        },
+        async deleteChat(chatId) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/message/chat/${chatId}/delete`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                });
+                if (response.ok)
+                    for (const [date, chats] of this.userChats) {
+                        const index = chats.findIndex((c) => c.id === chatId);
+                        if (index > -1) {
+                            const chat = chats[index];
+                            chat.isDeleting = true;
+
+                            await new Promise((resolve) => setTimeout(resolve, 200));
+
+                            chats.splice(index, 1);
+
+                            if (chats.length === 0) {
+                                this.userChats.delete(date);
+                            }
+                            break;
+                        }
+                    }
+
+                if (this.selectedChatId === chatId) {
+                    this.selectedChatId = null;
+                }
+            } catch (error) {
+                console.error("Failed to delete chat:", error);
+            }
+        },
+        async saveChatName(chat) {
+            if (!this.newChatName.trim() || this.newChatName.trim() === chat.name) {
+                this.cancelEditing();
+                return;
+            }
+
+            const csrf_token = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`message/chat/${chat.id}/rename`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: JSON.stringify({
+                        name: this.newChatName.trim(),
+                    }),
+                    credentials: "same-origin",
+                });
+
+                if (!response.ok) {
+                    throw new Error("Something went wrong");
+                }
+
+                const data = await response.json();
+
+                const targetChat = this.findChatById(chat.id);
+                if (targetChat) {
+                    targetChat.name = data.chat.name || this.newChatName.trim();
+                }
+            } catch (error) {
+                console.error("Error renaming chat:", error);
+                const targetChat = this.findChatById(chat.id);
+                if (targetChat) {
+                    targetChat.name = chat.name;
+                }
+            } finally {
+                this.cancelEditing();
+            }
+        },
+        startEditing(chat) {
+            this.editingChatId = chat.id;
+            this.newChatName = chat.name;
+            this.openedDropdownChatId = null;
+
+            this.$nextTick(() => {
+                const inputRef = this.$refs[`nameInput-${chat.id}`];
+                if (inputRef) {
+                    inputRef[0].focus();
+                }
+            });
+        },
+        cancelEditing() {
+            this.editingChatId = null;
+            this.newChatName = "";
+        },
+        findChatById(chatId) {
+            for (const [, chats] of this.userChats) {
+                const found = chats.find((c) => c.id === chatId);
+                if (found) return found;
+            }
+            return null;
         },
     },
     watch: {
@@ -198,12 +418,21 @@ const GeminiComponent = defineComponent({
         return {
             prompt: "",
             response: [],
-            queue: [],
-            chats: [],
-            intervalId: null,
+            messages: {},
             selectedChatId: null,
+            userChats: new Map(),
+
             isExpanded: false,
             isGeminiOpened: true,
+            isHistoryVisible: false,
+            dropdownOpened: false,
+            openedDropdownChatId: null,
+
+            queue: [],
+            intervalId: null,
+
+            editingChatId: null,
+            newChatName: "",
             messages: {},
             // summary_names: [],
         };

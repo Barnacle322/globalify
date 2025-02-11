@@ -490,3 +490,37 @@ textarea {
 #searchTypeToggle:checked + label {
     background-color: #de7cc8; /* Match the gradient color */
 }
+
+.history-enter-active,
+.history-leave-active {
+    transition: transform 0.3s ease;
+}
+
+.history-enter-from,
+.history-leave-to {
+    transform: translateX(-100%);
+}
+
+.mask-linear-gradient {
+    -webkit-mask-image: linear-gradient(to right, black 75%, transparent 100%);
+    mask-image: linear-gradient(to right, black 75%, transparent 100%);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #808080;
+}

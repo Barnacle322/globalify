@@ -26,6 +26,7 @@ class ChatSchema(BaseModel):
 
 class ChatListSchema(BaseModel):
     id: int
+    name: str
     user_id: int
     created: datetime
     name: Optional[str] = None

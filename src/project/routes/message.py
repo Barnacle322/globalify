@@ -1,5 +1,6 @@
 from flask import Blueprint, Response, jsonify, request
 from flask_login import current_user, login_required
+from sqlalchemy import delete
 
 from ..extensions import db
 from ..models import (
@@ -25,7 +26,7 @@ def create_chat():
     if current_user.id != user_id:
         return jsonify({"error": "Access denied"}), 403
 
-    chat_model = Chat(user_id=user_id)
+    chat_model = Chat(user_id=user_id, name="New chat")
     db.session.add(chat_model)
     db.session.commit()
 
@@ -54,9 +55,12 @@ def send_message(chat_id):
     chat = Chat.get_by_id(chat_id)
 
     if not chat:
-        chat = Chat(user_id=current_user.id)
+        chat = Chat(user_id=current_user.id, name=user_message)
         db.session.add(chat)
         db.session.commit()
+
+    if chat.name == "New chat":
+        chat.name = user_message[:30]
 
     # Создаем сообщение пользователя
     user_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
@@ -190,9 +194,9 @@ def get_chats_by_user_id(user_id):
     if not chats:
         return jsonify({"error": "Chats not found"}), 404
 
-    chat_models = [ChatListSchema.model_validate(chat) for chat in chats]
+    chat_models = [ChatListSchema.model_validate(chat).model_dump() for chat in chats]
 
-    return jsonify([chat.model_dump() for chat in chat_models])
+    return jsonify(chat_models)
 
 
 @message.route("/chat/<int:user_id>", methods=["GET"])
@@ -227,6 +231,67 @@ def streamed_response(prompt):
                     yield f"data: {part.text}\n\n".encode("utf-8")  # SSE
 
     return Response(generate(), content_type="text/event-stream")
+
+
+@message.route("/chat/<int:chat_id>/delete", methods=["POST"])
+@login_required
+def delete_chat_by_id(chat_id):
+    print("/////////")
+    chat = Chat.get_by_id(chat_id)
+    if not chat:
+        print("Chat not found")
+        return jsonify({"error": "Chat not found"}), 404
+
+    if chat.user_id != current_user.id:
+        print("Unauthorized attempt to delete chat")
+        return jsonify({"error": "Wrong user id or chat id"}), 404
+
+    messages = Message.get_by_chat_id(chat.id)
+
+    if not messages:
+        print("Messages not found")
+
+    try:
+        if messages:
+            db.session.execute(delete(Message).where(Message.chat_id == chat_id))
+
+        db.session.delete(chat)
+        db.session.commit()
+
+        return jsonify({"message": "Chat deleted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to delete chat: {str(e)}"}), 500
+
+
+@message.route("/chat/<int:chat_id>/rename", methods=["POST"])
+@login_required
+def rename_chat(chat_id):
+    print("///////////")
+    data = request.get_json()
+    new_name = data.get("name", "").strip()
+
+    if not new_name:
+        return jsonify({"error": "Chat name cannot be empty"}), 400
+
+    try:
+        chat = Chat.get_by_id(chat_id)
+
+        if not chat:
+            return jsonify({"error": "Chat not found"}), 404
+
+        if chat.user_id != current_user.id:
+            print("Unauthorized attempt to delete chat")
+            return jsonify({"error": "Wrong user id or chat id"}), 404
+
+        chat.name = new_name[:30]
+        db.session.commit()
+
+        return jsonify({"message": "Chat renamed successfully", "chat": {"id": chat.id, "name": chat.name}}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to rename chat: {str(e)}"}), 500
 
 
 # @message.route("/chat/<int:user_id>", methods=["POST"])

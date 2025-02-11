@@ -18,7 +18,7 @@ class Chat(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     created: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)
-    name: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=True, init=False)
 
     user: Mapped[User] = relationship("User", back_populates="messages", init=False)
 

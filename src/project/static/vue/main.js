@@ -65,34 +65,67 @@ const GeminiComponent = defineComponent({
                 });
 
                 const data = await response.json();
+                this.selectedChatId = data.chat_id;
 
                 this.displayMessage({ message: data.bot_message, type: "gemini" });
             } catch (error) {
                 console.error("Error sending message:", error);
             }
         },
-        async createChat() {
-            const csrf_token = document.getElementById("csrf_token").value;
 
+        async sendMessageWithCreateChat() {
+            const csrf_token = document.getElementById("csrf_token").value;
+            const promptDiv = this.$refs.prompt;
+            const promptText = promptDiv.textContent.trim();
+            if (!promptText) return;
+
+            this.response.push({ content: promptText, type: "user" });
+            promptDiv.textContent = "";
+            this.scrollToBottom();
             try {
-                const response = await fetch(`/message/chat/create`, {
+                const response = await fetch(`/message/chat`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
-                    body: JSON.stringify({ user_id: this.userId }),
+                    body: JSON.stringify({ message: promptText }),
                 });
 
                 const data = await response.json();
-                if (response.ok) {
-                    this.chats.unshift(data.chat);
-                    this.selectedChatId = data.chat.id;
-                    this.loadChatById(data.chat.id);
-                } else {
-                    console.error("Error creating chat:", data.error);
-                }
+                this.selectedChatId = data.chat_id;
+
+                this.displayMessage({ message: data.bot_message, type: "gemini" });
+
+                await this.getChatById(this.selectedChatId);
+
             } catch (error) {
-                console.error("Error creating chat:", error);
+                console.error("Error sending message:", error);
             }
         },
+        async getChatById(chatId) {
+            try {
+                const response = await fetch(`/message/chat/id/${chatId}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error("Error loading chat:", data.error);
+                    return;
+                }
+
+                this.chats = [data, ...this.chats,];
+
+            } catch (error) {
+                console.error("Error loading chat:", error);
+            }
+        },
+        
+        async createChat() {
+            this.response = [];
+            this.selectedChatId = null;
+        },
+
         async loadChatById(chatId) {
             try {
                 const response = await fetch(`/message/chat/id/${chatId}`, {
@@ -103,8 +136,6 @@ const GeminiComponent = defineComponent({
 
                 if (data.error) {
                     console.error("Error loading chat:", data.error);
-                    console.log(data);
-                    console.log(this.response);
                     return;
                 }
                 this.response = data.messages.map((msg) => ({
@@ -402,6 +433,8 @@ const GeminiComponent = defineComponent({
 
             editingChatId: null,
             newChatName: "",
+            messages: {},
+            // summary_names: [],
         };
     },
 });

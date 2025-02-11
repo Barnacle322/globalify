@@ -9,7 +9,7 @@ from ..models import (
 )
 from ..schemas.message import ChatListSchema, ChatSchema, MessageSchema
 from ..utils.enums import SenderType
-from ..utils.gemini import generate_response, create_summary
+from ..utils.gemini import create_summary, generate_response
 
 message = Blueprint("message", __name__)
 
@@ -103,8 +103,7 @@ def send_message(chat_id):
     db.session.add(bot_msg)
     db.session.commit()
 
-    return jsonify({"user_message": user_message, "bot_message": bot_message_text,
-                    "chat_id": chat.id})
+    return jsonify({"user_message": user_message, "bot_message": bot_message_text, "chat_id": chat.id})
 
 
 @message.route("/chat", methods=["POST"])
@@ -161,8 +160,18 @@ def send_message_with_create_chat():
     db.session.add(bot_msg)
     db.session.commit()
 
-    return jsonify({"user_message": user_message, "bot_message": bot_message_text,
-                    "bot_summary_text": bot_summary_text, "chat_id": chat.id})
+    serialized_chat = ChatSchema(
+        id=chat.id, user_id=chat.user_id, created=chat.created, name=chat.name, messages=None
+    ).model_dump_json()
+
+    return jsonify(
+        {
+            "user_message": user_message,
+            "bot_message": bot_message_text,
+            "bot_summary_text": bot_summary_text,
+            "chat": serialized_chat,
+        }
+    )
 
 
 @message.route("/chat/id/<int:chat_id>/", methods=["GET"])
@@ -179,7 +188,9 @@ def get_chat(chat_id):
         message_models = []
     else:
         message_models = [MessageSchema.model_validate(msg) for msg in messages]
-    chat_model = ChatSchema(id=chat.id, user_id=chat.user_id, name=chat.name, created=chat.created, messages=message_models)
+    chat_model = ChatSchema(
+        id=chat.id, user_id=chat.user_id, name=chat.name, created=chat.created, messages=message_models
+    )
 
     return jsonify(chat_model.model_dump())
 

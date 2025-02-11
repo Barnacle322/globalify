@@ -102,7 +102,8 @@
                                     v-for="chat in chats"
                                     :key="chat.id"
                                     class="list-item"
-                                    :class="{ 'animate-fade-out': chat.isDeleting }"
+                                    :class="{ 'animate-fade-out': chat.isDeleting, 'typewriter': chat.isNew }"
+                                    :ref="'chat-' + chat.id"
                                 >
                                     <div
                                         class="w-full cursor-pointer p-2 rounded-lg relative group"
@@ -265,12 +266,12 @@
                     <div class="relative flex items-center">
                         <div
                             ref="prompt"
-                            v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
                             contenteditable="true"
                             class="w-full p-4 pr-12 rounded-xl outline-none max-h-48 border-2 border-sky-500 bg-white shadow-sm"
                         ></div>
                         <button
-                            @click="sendMessage(selectedChatId)"
+                            @click="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
+                            @keyup.enter="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
                             class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-sky-100 transition-colors"
                         >
                             <svg

@@ -72,8 +72,7 @@ const GeminiComponent = defineComponent({
                 console.error("Error sending message:", error);
             }
         },
-
-        async sendMessageWithCreateChat() {
+        async sendMessageAndCreateChat() {
             const csrf_token = document.getElementById("csrf_token").value;
             const promptDiv = this.$refs.prompt;
             const promptText = promptDiv.textContent.trim();
@@ -90,12 +89,20 @@ const GeminiComponent = defineComponent({
                 });
 
                 const data = await response.json();
-                this.selectedChatId = data.chat_id;
+                this.selectedChatId = data.chat.id;
+
+                console.log(data);
 
                 this.displayMessage({ message: data.bot_message, type: "gemini" });
 
-                await this.getChatById(this.selectedChatId);
-
+                // Add the new chat to userChats with isNew: true
+                const category = "Recently";
+                const newChat = { ...JSON.parse(data.chat), isNew: true };
+                if (this.userChats.has(category)) {
+                    this.userChats.get(category).unshift(newChat);
+                } else {
+                    this.userChats.set(category, [newChat]);
+                }
             } catch (error) {
                 console.error("Error sending message:", error);
             }
@@ -114,13 +121,12 @@ const GeminiComponent = defineComponent({
                     return;
                 }
 
-                this.chats = [data, ...this.chats,];
-
+                this.chats = [data, ...this.chats];
             } catch (error) {
                 console.error("Error loading chat:", error);
             }
         },
-        
+
         async createChat() {
             this.response = [];
             this.selectedChatId = null;
@@ -169,19 +175,24 @@ const GeminiComponent = defineComponent({
                 }
 
                 this.userChats = new Map(
-                    [...grouped.entries()].sort((a, b) => {
-                        const order = [
-                            "Recently",
-                            "Yesterday",
-                            "1 Week",
-                            "2 Week2",
-                            "3 Week",
-                            "1 Month",
-                            "Few months",
-                            "Long ago",
-                        ];
-                        return order.indexOf(a[0]) - order.indexOf(b[0]);
-                    }),
+                    [...grouped.entries()]
+                        .map(([key, value]) => [
+                            key,
+                            value.map((chat) => ({ ...chat, isNew: false })), // Add isNew key
+                        ])
+                        .sort((a, b) => {
+                            const order = [
+                                "Recently",
+                                "Yesterday",
+                                "1 Week",
+                                "2 Week2",
+                                "3 Week",
+                                "1 Month",
+                                "Few months",
+                                "Long ago",
+                            ];
+                            return order.indexOf(a[0]) - order.indexOf(b[0]);
+                        }),
                 );
             } catch (error) {
                 console.error("Error loading chat:", error);
@@ -421,6 +432,7 @@ const GeminiComponent = defineComponent({
             messages: {},
             selectedChatId: null,
             userChats: new Map(),
+            chats: [],
 
             isExpanded: false,
             isGeminiOpened: true,

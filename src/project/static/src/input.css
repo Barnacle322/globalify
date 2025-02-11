@@ -524,3 +524,30 @@ textarea {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #808080;
 }
+
+@keyframes typewriter {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+.typewriter {
+    overflow: hidden;
+    border-right: 0.15em solid orange; /* Adjust the cursor style */
+    white-space: nowrap;
+    margin: 0 auto;
+    animation: typewriter 4s steps(40, end) 1s 1 normal both,
+               blinkTextCursor 500ms steps(40, end) infinite normal;
+}
+
+@keyframes blinkTextCursor {
+    from {
+        border-right-color: rgba(255, 255, 255, 0.75);
+    }
+    to {
+        border-right-color: transparent;
+    }
+}

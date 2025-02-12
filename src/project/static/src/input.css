@@ -488,3 +488,64 @@ textarea {
 #searchTypeToggle:checked + label {
     background-color: #de7cc8; /* Match the gradient color */
 }
+
+.history-enter-active,
+.history-leave-active {
+    transition: transform 0.3s ease;
+}
+
+.history-enter-from,
+.history-leave-to {
+    transform: translateX(-100%);
+}
+
+.mask-linear-gradient {
+    -webkit-mask-image: linear-gradient(to right, black 75%, transparent 100%);
+    mask-image: linear-gradient(to right, black 75%, transparent 100%);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #808080;
+}
+
+@keyframes typewriter {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+.typewriter {
+    overflow: hidden;
+    border-right: 0.15em solid orange; /* Adjust the cursor style */
+    white-space: nowrap;
+    margin: 0 auto;
+    animation: typewriter 4s steps(40, end) 1s 1 normal both,
+               blinkTextCursor 500ms steps(40, end) infinite normal;
+}
+
+@keyframes blinkTextCursor {
+    from {
+        border-right-color: rgba(255, 255, 255, 0.75);
+    }
+    to {
+        border-right-color: transparent;
+    }
+}

@@ -15,7 +15,7 @@
 
 <template id="navbar-template">
     <header class="view-navbar sticky top-0 z-50 w-full bg-white" ref="header">
-        <nav class="mx-auto grid h-20 w-full max-w-8xl grid-cols-2 items-center border-b px-4 sm:grid-cols-2 lg:px-6">
+        <nav class="max-w-8xl mx-auto grid h-20 w-full grid-cols-2 items-center border-b px-4 sm:grid-cols-2 lg:px-6">
             <div class="flex items-center gap-4">
                 <button @click="expandAside" class="w-fit text-lg font-medium">
                     <svg
@@ -36,7 +36,7 @@
                 <a href="/search" class="relative flex items-center gap-1">
                     <img class="hidden h-6 lg:block" src="/static/elements/logo-black.png" alt="" />
                     <div
-                        class="hidden h-fit w-fit rounded-full bg-sky-500 px-1 py-1 text-[8px] font-medium leading-none tracking-tight text-white lg:block"
+                        class="hidden h-fit w-fit rounded-full bg-sky-500 px-1 py-1 text-[8px] leading-none font-medium tracking-tight text-white lg:block"
                     >
                         BETA
                     </div>
@@ -71,7 +71,7 @@
                                             d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
                                         />
                                     </svg>
-                                    <span v-if="unreadNotifications" class="absolute right-0 top-0 flex size-2">
+                                    <span v-if="unreadNotifications" class="absolute top-0 right-0 flex size-2">
                                         <span
                                             class="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75"
                                         ></span>

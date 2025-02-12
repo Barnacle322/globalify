@@ -15,12 +15,6 @@ const GeminiComponent = defineComponent({
     mounted() {
         document.addEventListener("click", this.handleHistorySidebarClickOutside);
         document.addEventListener("click", this.handleClickOutside);
-        this.$refs.prompt?.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                this.sendMessage(this.selectedChatId);
-            }
-        });
     },
     beforeDestroy() {
         document.removeEventListener("click", this.handleHistorySidebarClickOutside);
@@ -436,7 +430,7 @@ const GeminiComponent = defineComponent({
 
             isExpanded: false,
             isGeminiOpened: true,
-            isHistoryVisible: false,
+            isHistoryVisible: true,
             dropdownOpened: false,
             openedDropdownChatId: null,
 

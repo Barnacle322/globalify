@@ -1612,6 +1612,12 @@ select {
 .mt-auto {
   margin-top: auto;
 }
+.ml-0 {
+  margin-left: 0px;
+}
+.\!ml-56 {
+  margin-left: 14rem !important;
+}
 .line-clamp-2 {
   overflow: hidden;
   display: -webkit-box;

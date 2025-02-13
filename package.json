@@ -2,7 +2,6 @@
     "name": "globalify",
     "version": "1.0.0",
     "description": "",
-    "main": "tailwind.config.js",
     "scripts": {
         "css": "npx @tailwindcss/cli -i ./src/project/static/src/input.css -o ./src/project/static/css/main.css --watch --verbose",
         "html": "npx prettier --write ./**/*.html --plugin=prettier-plugin-tailwindcss"

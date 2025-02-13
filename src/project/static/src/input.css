@@ -1,7 +1,6 @@
 @import "tailwindcss";
-@config "../../../../tailwind.config.js";
-/*@plugin "tailwindcss/forms";*/
-/*@plugin "tailwindcss/typography";*/
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
 
 @theme {
     --color-deep-purple: #231645;
@@ -16,7 +15,8 @@
     --animate-zoom-out: zoom-out 0.1s ease;
     --animate-disappear-instantly: disappear-instantly 0.1s ease-in-out;
     --animate-breathe: breathe 1.5s ease infinite;
-    --spacing: 1440px;
+    --spacing-8xl: 90rem;
+
 
     @keyframes border {
         0%,
@@ -64,6 +64,7 @@
         0%, 100% { transform: scale(1); opacity: 0.4; }
         50% { transform: scale(1.10); opacity: 1; }
     }
+
 }
 
 @font-face {

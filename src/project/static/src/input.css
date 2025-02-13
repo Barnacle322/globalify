@@ -2,7 +2,7 @@
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
 
-@theme {
+@theme inline {
     --color-deep-purple: #231645;
     --animate-border: border 4s ease infinite;
     --animate-slide-in-right: slide-in-right 0.4s ease;
@@ -16,7 +16,9 @@
     --animate-disappear-instantly: disappear-instantly 0.1s ease-in-out;
     --animate-breathe: breathe 1.5s ease infinite;
     --spacing-8xl: 90rem;
-
+    --shadow-card: 0 3px 8px rgba(0, 0, 0, 0.24);
+    --shadow-card-hover: 0 3px 8px rgba(0, 0, 0, 0.24);
+    --hover\:shadow-card-hover:hover {0 4px 16px rgba(17,17,26,0.1); 0 8px 24px rgba(17,17,26,0.1); 0 16px 56px rgba(17,17,26,0.1)};
 
     @keyframes border {
         0%,
@@ -334,6 +336,8 @@
     }
 }
 
+
+
 .scroll {
     animation: scroll 5s ease-in-out forwards;
 }
@@ -451,16 +455,20 @@ textarea {
     field-sizing: content;
 }
 
-.shadow-card {
-    @apply shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px];
-}
-.shadow-card-hover {
-    @apply shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px];
-}
+/*.shadow-card {*/
+/*    @apply shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px];*/
+/*}*/
+/*.shadow-card-hover {*/
+/*    @apply shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px];*/
+/*}*/
 
-.shadow-card-hover:hover {
-    @apply shadow-[0px_4px_16px_rgba(17,17,26,0.1),_0px_8px_24px_rgba(17,17,26,0.1),_0px_16px_56px_rgba(17,17,26,0.1)];
-}
+/*.shadow-card-hover:hover {*/
+/*    @apply shadow-[0px_4px_16px_rgba(17,17,26,0.1),_0px_8px_24px_rgba(17,17,26,0.1),_0px_16px_56px_rgba(17,17,26,0.1)];*/
+/*}*/
+/*.hover\:shadow-card-hover:hover {*/
+/*    @apply shadow-[0px_4px_16px_rgba(17,17,26,0.1),_0px_8px_24px_rgba(17,17,26,0.1),_0px_16px_56px_rgba(17,17,26,0.1)];*/
+/*}*/
+
 
 @view-transition {
     navigation: auto;

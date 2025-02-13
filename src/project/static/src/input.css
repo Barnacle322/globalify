@@ -1,124 +1,194 @@
 @import "tailwindcss";
+@config "../../../../tailwind.config.js";
+/*@plugin "tailwindcss/forms";*/
+/*@plugin "tailwindcss/typography";*/
+
+@theme {
+    --color-deep-purple: #231645;
+    --animate-border: border 4s ease infinite;
+    --animate-slide-in-right: slide-in-right 0.4s ease;
+    --animate-slid-out-right: slide-out-right 0.4s ease;
+    --animate-slide-in-left: slide-in-left 0.3s;
+    --animate-slide-out-left: slide-out-left 0.3s;
+    --animate-fade-in: fade-in 0.5s ease;
+    --animate-fade-out: fade-out 0.5s ease;
+    --animate-zoom-in: zoom-in 0.1s ease;
+    --animate-zoom-out: zoom-out 0.1s ease;
+    --animate-disappear-instantly: disappear-instantly 0.1s ease-in-out;
+    --animate-breathe: breathe 1.5s ease infinite;
+    --spacing: 1440px;
+
+    @keyframes border {
+        0%,
+        100% {backgroundPosition: 0% 50%;}
+    }
+    @keyframes slide-in-right{
+        0% { transform: translateX(100%);}
+        100% { transform: translateX(0); }
+    }
+    @keyframes slide-out-right {
+         0% { transform: translateX(0);}
+        100% { transform: translateX(100%); }
+    }
+    @keyframes slide-in-left {
+        0% { transform: translateX(-100%); }
+        100%{ transform: translateX(0);}
+    }
+    @keyframes slide-out-left {
+        0% { transform: translateX(0);}
+        100% { transform: translateX(-100%);}
+    }
+    @keyframes fade-in {
+         0% { opacity: 0;}
+         100% { opacity: 1; }
+    }
+    @keyframes fade-out {
+        0% { opacity: 1;}
+        100% { opacity: 0;}
+    }
+    @keyframes zoom-in {
+        0% { transform: scale(0.95); opacity: 0; }
+        100% { transform: scale(1); opacity: 1 ;}
+
+    }
+    @keyframes zoom-out  {
+            0% { transform: scale(1); opacity: 1;}
+            100% { transform: scale(0.95); opacity: 0; }
+    }
+    @keyframes disappear-instantly {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+
+    }
+    @keyframes breathe {
+        0%, 100% { transform: scale(1); opacity: 0.4; }
+        50% { transform: scale(1.10); opacity: 1; }
+    }
+}
 
 @font-face {
     font-family: "Lexend";
-    src: url("../elements/fonts/Lexend.ttf");
+    src: url("/static/elements/fonts/Lexend.ttf");
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-Black.ttf");
+    src: url("/static/elements/fonts/Poppins-Black.ttf");
     font-weight: 900;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-BlackItalic.ttf");
+    src: url("/static/elements/fonts/Poppins-BlackItalic.ttf");
     font-weight: 900;
     font-style: italic;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-Bold.ttf");
+    src: url("/static/elements/fonts/Poppins-Bold.ttf");
     font-weight: 700;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-BoldItalic.ttf");
+    src: url("/static/elements/fonts/Poppins-BoldItalic.ttf");
     font-weight: 700;
     font-style: italic;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-ExtraBold.ttf");
+    src: url("/static/elements/fonts/Poppins-ExtraBold.ttf");
     font-weight: 800;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-ExtraBoldItalic.ttf");
+    src: url("/static/elements/fonts/Poppins-ExtraBoldItalic.ttf");
     font-weight: 800;
     font-style: italic;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-ExtraLight.ttf");
+    src: url("/static/elements/fonts/Poppins-ExtraLight.ttf");
     font-weight: 200;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-ExtraLightItalic.ttf");
+    src: url("/static/elements/fonts/Poppins-ExtraLightItalic.ttf");
     font-weight: 200;
     font-style: italic;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-Italic.ttf");
+    src: url("/static/elements/fonts/Poppins-Italic.ttf");
     font-style: italic;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-Light.ttf");
+    src: url("/static/elements/fonts/Poppins-Light.ttf");
     font-weight: 300;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-LightItalic.ttf");
+    src: url("/static/elements/fonts/Poppins-LightItalic.ttf");
     font-weight: 300;
     font-style: italic;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-Medium.ttf");
+    src: url("/static/elements/fonts/Poppins-Medium.ttf");
     font-weight: 500;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-MediumItalic.ttf");
+    src: url("/static/elements/fonts/Poppins-MediumItalic.ttf");
     font-weight: 500;
     font-style: italic;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-Regular.ttf");
+    src: url("/static/elements/fonts/Poppins-Regular.ttf");
     font-weight: 400;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-SemiBold.ttf");
+    src: url("/static/elements/fonts/Poppins-SemiBold.ttf");
     font-weight: 600;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-SemiBoldItalic.ttf") format("ttf");
+    src: url("/static/elements/fonts/Poppins-SemiBoldItalic.ttf") format("ttf");
     font-weight: 600;
     font-style: italic;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-Thin.ttf") format("ttf");
+    src: url("/static/elements/fonts/Poppins-Thin.ttf") format("ttf");
     font-weight: 100;
 }
 
 @font-face {
     font-family: "Poppins";
-    src: url("../elements/fonts/Poppins-ThinItalic.ttf") format("ttf");
+    src: url("/static/elements/fonts/Poppins-ThinItalic.ttf") format("ttf");
     font-weight: 100;
     font-style: italic;
+}
+
+.font-poppins {
+    font-family: Poppins;
 }
 
 .font-poppins {
@@ -130,6 +200,13 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji",
             "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     }
+      *,
+      ::after,
+      ::before,
+      ::backdrop,
+      ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+  }
 }
 
 @keyframes gradient {

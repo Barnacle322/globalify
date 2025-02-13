@@ -4,13 +4,12 @@
     "description": "",
     "main": "tailwind.config.js",
     "scripts": {
-        "css": "npx @tailwindcss/cli -i src/project/static/src/input.css -o src/project/static/css/main.css --watch --verbose",
+        "css": "npx @tailwindcss/cli -i ./src/project/static/src/input.css -o ./src/project/static/css/main.css --watch --verbose",
         "html": "npx prettier --write ./**/*.html --plugin=prettier-plugin-tailwindcss"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@tailwindcss/container-queries": "^0.1.1",
         "@tailwindcss/forms": "^0.5.7",
         "@tailwindcss/typography": "^0.5.13",
         "tailwindcss": "^4.0.0"

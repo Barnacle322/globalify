@@ -2,6 +2,16 @@ const GeminiComponent = defineComponent({
     template: "#gemini-template",
     emits: ["close-gemini"],
     props: ["userId"],
+    watch: {
+        response() {
+            this.scrollToBottom();
+        },
+    },
+    async created() {
+        const userId = this.userId;
+        await this.loadAllChats();
+        this.loadChatById(this.selectedChatId);
+    },
     computed: {
         currentChatName() {
             if (!this.selectedChatId) return "";
@@ -19,28 +29,65 @@ const GeminiComponent = defineComponent({
     beforeDestroy() {
         document.removeEventListener("click", this.handleHistorySidebarClickOutside);
         document.removeEventListener("click", this.handleClickOutside);
+        this.stopSSEStream();
     },
     methods: {
-        async startStream() {
-            this.response = [];
-            this.queue = [];
-            if (this.intervalId) {
-                clearInterval(this.intervalId);
-            }
-            const eventSource = new EventSource(`/stream/${this.prompt}`);
-            eventSource.onmessage = (event) => {
-                const cleanData = event.data.replace(/([^\s])([A-Z])/g, "$1 $2");
-                this.queue.push({ message: cleanData, type: "BOT" });
+        startSSEStream(prompt) {
+            this.stopSSEStream(); // Остановите предыдущий стрим, если он есть
+
+            const url = `/message/stream/${prompt}`;
+            console.log(`Connecting to SSE stream at: ${url}`);
+            this.eventSource = new EventSource(url); // Подключаемся к SSE
+
+            this.eventSource.onopen = () => {
+                console.log("SSE connection opened");
             };
-            eventSource.onerror = () => {
-                eventSource.close();
-            };
-            this.intervalId = setInterval(() => {
-                if (this.queue.length > 0) {
-                    const message = this.queue.shift();
-                    this.displayMessage(message);
+
+            let fullMessage = ""; // Переменная для хранения полного сообщения
+
+            this.eventSource.onmessage = (event) => {
+                const text = event.data; // Получаем текст сообщения от сервера
+
+                // Найти или создать сообщение
+                if (!this.currentMessage) {
+                    this.currentMessage = { content: "", type: "gemini", isHTML: true };
+                    this.response.push(this.currentMessage);
                 }
-            }, 100); // Пауза между выводом букв
+
+                let currentIndex = 0;
+
+                // Очистить предыдущий интервал, если он есть
+                if (this.interval) {
+                    clearInterval(this.interval);
+                }
+
+                this.interval = setInterval(() => {
+                    if (currentIndex < text.length) {
+                        this.currentMessage.content += text[currentIndex]; // Добавляем символ по одному
+                        currentIndex++;
+                        this.scrollToBottom();
+                    } else {
+                        clearInterval(this.interval); // Остановить интервал, когда весь текст добавлен
+                    }
+                }, 50); // Увеличить интервал для улучшения производительности
+            };
+
+            this.eventSource.onerror = (error) => {
+                console.error("SSE Error: ", error);
+                console.error("Ready state: ", this.eventSource.readyState);
+                console.error("EventSource URL: ", url);
+                this.stopSSEStream(); // Остановите стрим при ошибке
+            };
+        },
+        stopSSEStream() {
+            if (this.eventSource) {
+                this.eventSource.close(); // Закрыть соединение
+                this.eventSource = null; // Удалить ссылку на объект EventSource
+            }
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = null;
+            }
         },
         async sendMessage(chatId) {
             const csrf_token = document.getElementById("csrf_token").value;
@@ -61,7 +108,7 @@ const GeminiComponent = defineComponent({
                 const data = await response.json();
                 this.selectedChatId = data.chat_id;
 
-                this.displayMessage({ message: data.bot_message, type: "gemini" });
+                this.startSSEStream(promptText);
             } catch (error) {
                 console.error("Error sending message:", error);
             }
@@ -87,7 +134,7 @@ const GeminiComponent = defineComponent({
 
                 console.log(data);
 
-                this.displayMessage({ message: data.bot_message, type: "gemini" });
+                this.startSSEStream(promptText);
 
                 // Add the new chat to userChats with isNew: true
                 const category = "Recently";
@@ -196,6 +243,78 @@ const GeminiComponent = defineComponent({
             this.selectedChatId = chatId;
             this.loadChatById(chatId);
             this.isHistoryVisible = false;
+        },
+        async deleteChat(chatId) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/message/chat/${chatId}/delete`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                });
+                if (response.ok)
+                    for (const [date, chats] of this.userChats) {
+                        const index = chats.findIndex((c) => c.id === chatId);
+                        if (index > -1) {
+                            const chat = chats[index];
+                            chat.isDeleting = true;
+
+                            await new Promise((resolve) => setTimeout(resolve, 200));
+
+                            chats.splice(index, 1);
+
+                            if (chats.length === 0) {
+                                this.userChats.delete(date);
+                            }
+                            break;
+                        }
+                    }
+
+                if (this.selectedChatId === chatId) {
+                    this.selectedChatId = null;
+                }
+            } catch (error) {
+                console.error("Failed to delete chat:", error);
+            }
+        },
+        async saveChatName(chat) {
+            if (!this.newChatName.trim() || this.newChatName.trim() === chat.name) {
+                this.cancelEditing();
+                return;
+            }
+
+            const csrf_token = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`message/chat/${chat.id}/rename`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: JSON.stringify({
+                        name: this.newChatName.trim(),
+                    }),
+                    credentials: "same-origin",
+                });
+
+                if (!response.ok) {
+                    throw new Error("Something went wrong");
+                }
+
+                const data = await response.json();
+
+                const targetChat = this.findChatById(chat.id);
+                if (targetChat) {
+                    targetChat.name = data.chat.name || this.newChatName.trim();
+                }
+            } catch (error) {
+                console.error("Error renaming chat:", error);
+                const targetChat = this.findChatById(chat.id);
+                if (targetChat) {
+                    targetChat.name = chat.name;
+                }
+            } finally {
+                this.cancelEditing();
+            }
         },
         scrollToBottom() {
             this.$nextTick(() => {
@@ -313,78 +432,6 @@ const GeminiComponent = defineComponent({
                 this.isHistoryVisible = false;
             }
         },
-        async deleteChat(chatId) {
-            const csrf_token = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/message/chat/${chatId}/delete`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
-                });
-                if (response.ok)
-                    for (const [date, chats] of this.userChats) {
-                        const index = chats.findIndex((c) => c.id === chatId);
-                        if (index > -1) {
-                            const chat = chats[index];
-                            chat.isDeleting = true;
-
-                            await new Promise((resolve) => setTimeout(resolve, 200));
-
-                            chats.splice(index, 1);
-
-                            if (chats.length === 0) {
-                                this.userChats.delete(date);
-                            }
-                            break;
-                        }
-                    }
-
-                if (this.selectedChatId === chatId) {
-                    this.selectedChatId = null;
-                }
-            } catch (error) {
-                console.error("Failed to delete chat:", error);
-            }
-        },
-        async saveChatName(chat) {
-            if (!this.newChatName.trim() || this.newChatName.trim() === chat.name) {
-                this.cancelEditing();
-                return;
-            }
-
-            const csrf_token = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`message/chat/${chat.id}/rename`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrf_token,
-                    },
-                    body: JSON.stringify({
-                        name: this.newChatName.trim(),
-                    }),
-                    credentials: "same-origin",
-                });
-
-                if (!response.ok) {
-                    throw new Error("Something went wrong");
-                }
-
-                const data = await response.json();
-
-                const targetChat = this.findChatById(chat.id);
-                if (targetChat) {
-                    targetChat.name = data.chat.name || this.newChatName.trim();
-                }
-            } catch (error) {
-                console.error("Error renaming chat:", error);
-                const targetChat = this.findChatById(chat.id);
-                if (targetChat) {
-                    targetChat.name = chat.name;
-                }
-            } finally {
-                this.cancelEditing();
-            }
-        },
         startEditing(chat) {
             this.editingChatId = chat.id;
             this.newChatName = chat.name;
@@ -409,16 +456,6 @@ const GeminiComponent = defineComponent({
             return null;
         },
     },
-    watch: {
-        response() {
-            this.scrollToBottom();
-        },
-    },
-    async created() {
-        const userId = this.userId;
-        await this.loadAllChats();
-        this.loadChatById(this.selectedChatId);
-    },
     data() {
         return {
             prompt: "",
@@ -427,19 +464,19 @@ const GeminiComponent = defineComponent({
             selectedChatId: null,
             userChats: new Map(),
             chats: [],
-
             isExpanded: false,
             isGeminiOpened: true,
             isHistoryVisible: true,
             dropdownOpened: false,
             openedDropdownChatId: null,
-
             queue: [],
             intervalId: null,
-
             editingChatId: null,
+            eventSource: null,
             newChatName: "",
             messages: {},
+            currentMessage: null,
+            interval: null,
             // summary_names: [],
         };
     },

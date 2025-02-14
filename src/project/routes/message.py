@@ -239,6 +239,7 @@ def streamed_response(prompt):
         for res in response:
             for candidate in res._result.candidates:
                 for part in candidate.content.parts:
+                    print(f"data: {part.text}\n\n".encode("utf-8"))
                     yield f"data: {part.text}\n\n".encode("utf-8")  # SSE
 
     return Response(generate(), content_type="text/event-stream")

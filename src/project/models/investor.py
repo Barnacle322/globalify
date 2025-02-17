@@ -370,6 +370,10 @@ class Investor(InvestorBase):
         return db.session.scalar(db.select(Investor).where(Investor.slug == slug))
 
     @staticmethod
+    def get_investor_twitter_by_slug(slug):
+        return db.session.scalar(db.select(Investor.twitter).where(Investor.slug == slug))
+
+    @staticmethod
     def get_by_slug_without_contacts(slug: str) -> Investor | None:
         result = db.session.scalar(db.select(Investor).where(Investor.slug == slug))
 

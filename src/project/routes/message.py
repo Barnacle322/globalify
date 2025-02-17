@@ -2,6 +2,8 @@ from flask import Blueprint, Response, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import delete
 
+from src.project.models.investor import Investor
+
 from ..extensions import db
 from ..models import (
     Chat,
@@ -82,21 +84,26 @@ def send_message(chat_id):
     for res in summary_bot_summary:
         for candidate in res._result.candidates:
             for part in candidate.content.parts:
-                bot_summary_text += part.text + "\n"
+                bot_summary_text += part.text
 
     bot_summary_text = bot_summary_text.strip()
 
     chat.name = bot_summary_text
     db.session.commit()
-
+    print("//////////////")
+    print(bot_response)
+    print("//////////////")
+    print(bot_summary_text)
+    print("//////////////")
     # Обрабатываем ответ от Gemini
     bot_message_text = ""
     for res in bot_response:
         for candidate in res._result.candidates:
             for part in candidate.content.parts:
-                bot_message_text += part.text + "\n"
+                bot_message_text += part.text
 
     bot_message_text = bot_message_text.strip()
+    print(bot_message_text)
 
     # Создаем сообщение бота
     bot_msg = Message(chat_id=chat.id, message=bot_message_text, type=SenderType.GEMINI)
@@ -304,6 +311,13 @@ def rename_chat(chat_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Failed to rename chat: {str(e)}"}), 500
+
+
+@message.route("/investor/<slug>", methods=["GET"])
+@login_required
+def get_investor_avatar(slug):
+    twitter = Investor.get_investor_twitter_by_slug(slug)
+    return jsonify(twitter)
 
 
 # @message.route("/chat/<int:user_id>", methods=["POST"])

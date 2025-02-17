@@ -202,7 +202,7 @@ const GeminiComponent = defineComponent({
                 });
 
                 const data = await response.json();
-                console.log(data);
+
                 this.selectedChatId = data[0].id;
 
                 const grouped = new Map();
@@ -372,25 +372,59 @@ const GeminiComponent = defineComponent({
             return "Long ago";
         },
         processMarkdown(text) {
-            // Bold text with double asterisks
-            text = text.replace(/\*\*([\s\S]*?)\*\*/g, (match, content) => {
-                const cleanedContent = content.replace(/\n/g, " ");
-                return `<strong>${cleanedContent}</strong>`;
+            text = text.replace(/\*\*\[([^\]]+)\]\(([^)]+)\)\*\*/g, (match, buttonText, slug) => {
+                let buttonHTML = `<button @click="selectInvestorSlug(${slug})" target="_blank" class="inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">`;
+
+                const cachedAvatar = this.avatarCache.get(slug);
+                buttonHTML += `<img src="${cachedAvatar}" data-slug="${slug}" class="h-5 w-5 mr-2 avatar-placeholder">`;
+                buttonHTML += `${buttonText}</button>`;
+
+                if (!this.avatarCache.has(slug)) {
+                    this.loadAvatar(slug);
+                }
+
+                return buttonHTML;
             });
 
-            // Lists
+            text = text.replace(/\*\*([\s\S]*?)\*\*/g, (match, content) => {
+                return `<strong>${content.replace(/\n/g, " ")}</strong>`;
+            });
+
             text = text.replace(/^\* (.*)/gm, "<li>$1</li>");
 
-            // Single star (italic)
             text = text.replace(/\*([\s\S]*?)\*/g, (match, content) => {
-                const cleanedContent = content.replace(/\n/g, " ").trim();
-                return `<em>${cleanedContent}</em>`;
+                return `<em>${content.replace(/\n/g, " ").trim()}</em>`;
             });
 
-            // New lines
             text = text.replace(/\n/g, "<br>");
-
             return text;
+        },
+
+        async getTwitterAvatar(slug) {
+            try {
+                const response = await fetch(`/message/investor/${slug}`);
+                const data = await response.json();
+                const twitter = data.split("/").pop();
+                return `https://unavatar.io/twitter/${twitter}`;
+            } catch (error) {
+                console.error("Error loading avatar:", error);
+                return this.defaultAvatar;
+            }
+        },
+
+        async loadAvatar(slug) {
+            try {
+                const avatarUrl = await this.getTwitterAvatar(slug);
+                this.avatarCache.set(slug, avatarUrl);
+                this.$nextTick(() => {
+                    const images = document.querySelectorAll(`img[data-slug="${slug}"]`);
+                    images.forEach((img) => {
+                        img.src = avatarUrl;
+                    });
+                });
+            } catch (error) {
+                console.error("Error in loadAvatar:", error);
+            }
         },
         toggleDropdown(chatId) {
             this.openedDropdownChatId = this.openedDropdownChatId === chatId ? null : chatId;
@@ -463,6 +497,7 @@ const GeminiComponent = defineComponent({
             messages: {},
             selectedChatId: null,
             userChats: new Map(),
+            avatarCache: new Map(),
             chats: [],
             isExpanded: false,
             isGeminiOpened: true,

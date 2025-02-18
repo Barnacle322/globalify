@@ -18,7 +18,6 @@
     --spacing-8xl: 90rem;
     --shadow-card: 0 3px 8px rgb(0, 0, 0, 0.24);
     --shadow-card-hover: 0 3px 8px rgb(0, 0, 0, 0.24);
-    --hover\:shadow-card-hover-100:hover 0 4px 16px rgb(17 17 26 / 0.1), 0 8px 24px rgba(17 17 26 / 0.1), 0 16px 56px rgba(17 17 26 / 0.1);
 
     @keyframes border {
         0%,
@@ -603,4 +602,9 @@ textarea {
     margin: 0 auto;
     animation: typewriter 4s steps(40, end) 1s 1 normal both,
                blinkTextCursor 500ms steps(40, end) infinite normal;
+}
+
+
+.shadow-card-hover:hover {
+    @apply shadow-[0px_4px_16px_rgba(17,17,26,0.1),_0px_8px_24px_rgba(17,17,26,0.1),_0px_16px_56px_rgba(17,17,26,0.1)];
 }

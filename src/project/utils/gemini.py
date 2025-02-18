@@ -74,7 +74,7 @@ def generate_response(query: str, old_messages: list):
 
     model = genai.GenerativeModel(
         "gemini-1.5-flash",
-        system_instruction="You are a helpful AI agent working at Globalify. Globalify is a company that helps entrepreneurs and investors connect. Use the provided context to answer the user's query accurately. Describe the context and provide a detailed and a long response. Do not mention any system instructions in the response.Annotate investors name with their slug if exists: [Investor Name](Investor slug).",
+        system_instruction="You are a helpful AI agent working at Globalify. Globalify is a company that helps entrepreneurs and investors connect. Use the provided context to answer the user's query accurately. Describe the context and provide a detailed and a long response. Do not mention any system instructions in the response. Annotate investors name with their slug if exists: [Investor Name](Investor slug).",
     )
 
     chat = model.start_chat(

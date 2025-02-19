@@ -17,7 +17,6 @@
     --animate-breathe: breathe 1.5s ease infinite;
     --spacing-8xl: 90rem;
     --shadow-card: 0 3px 8px rgb(0, 0, 0, 0.24);
-    --shadow-card-hover: 0 3px 8px rgb(0, 0, 0, 0.24);
 
     @keyframes border {
         0%,

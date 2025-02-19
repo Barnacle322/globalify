@@ -188,14 +188,6 @@ const GeminiComponent = defineComponent({
         response() {
             this.scrollToBottom();
         },
-        selectedInvestorSlug(value) {
-            // Watch selectedInvestorSlug, not selectedInvestorId
-            if (value) {
-                document.body.classList.add("overflow-hidden");
-            } else {
-                document.body.classList.remove("overflow-hidden");
-            }
-        },
     },
     components: {
         FullInvestor,
@@ -222,15 +214,12 @@ const GeminiComponent = defineComponent({
         document.addEventListener("click", this.handleClickOutside);
         document.body.addEventListener("click", this.handleInvestorButtonClick);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("click", this.handleHistorySidebarClickOutside);
         document.removeEventListener("click", this.handleClickOutside);
         document.body.removeEventListener("click", this.handleInvestorButtonClick);
         window.removeEventListener("popstate", this.handlePopState);
         this.stopSSEStream();
-    },
-    updated() {
-        window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
     },
     methods: {
         startSSEStream(prompt) {
@@ -605,14 +594,13 @@ const GeminiComponent = defineComponent({
                 const response = await fetch(`/message/investor/${slug}`);
                 if (!response.ok) {
                     console.error(`Error loading avatar for ${slug}: ${response.status} ${response.statusText}`);
-                    return this.defaultAvatar;
+                    return "https://unavatar.io/x/default";
                 }
                 const data = await response.json();
                 const twitter = data.split("/").pop();
-                return `https://unavatar.io/twitter/${twitter}`;
+                return `https://unavatar.io/x/${twitter}`;
             } catch (error) {
                 console.error("Error loading avatar:", error);
-                return this.defaultAvatar;
             }
         },
         async loadAvatar(slug) {
@@ -696,43 +684,12 @@ const GeminiComponent = defineComponent({
             }
             return null;
         },
-        updateUrlParam(paramName, paramValue) {
-            const url = new URL(window.location.href);
-            if (url.searchParams.get(paramName) !== paramValue) {
-                url.searchParams.set(paramName, paramValue);
-                window.history.pushState({}, "", url);
-            }
-        },
-        checkUrlParams(paramName, selectFunction, closeEvent) {
-            const urlParams = new URLSearchParams(window.location.search);
-            let paramSlug = urlParams.get(paramName);
-            if (paramSlug) {
-                if (typeof paramSlug === "object" && paramSlug !== null) {
-                    paramSlug = paramSlug;
-                }
-                selectFunction(paramSlug);
-            } else {
-                this.$emit(closeEvent);
-            }
-        },
-        checkAndSelectUrlParam(paramName, selectFunction) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const paramSlug = urlParams.get(paramName);
-            if (paramSlug) {
-                selectFunction(paramSlug);
-            }
-        },
         selectInvestorSlug(investorSlug) {
-            console.log("Investor selected:", investorSlug); // Должно появляться в консоли
-
             if (!investorSlug) {
-                // Handle null/undefined slugs
                 this.handleCloseInvestor();
                 return;
             }
-
-            this.selectedInvestorSlug = investorSlug; // Directly update the reactive property
-            this.updateUrlParam("investor", investorSlug); // Update URL
+            this.selectedInvestorSlug = investorSlug;
         },
         handleCloseInvestor() {
             this.selectedInvestorSlug = null;
@@ -746,15 +703,6 @@ const GeminiComponent = defineComponent({
                 const slug = investorBtn.dataset.slug;
                 this.selectInvestorSlug(slug);
                 event.stopPropagation();
-            }
-        },
-        handlePopState() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const investorSlug = urlParams.get("investor");
-
-            // Проверяем, изменился ли slug инвестора
-            if (investorSlug !== this.selectedInvestorSlug) {
-                this.selectInvestorSlug(investorSlug); // Вызываем только если slug изменился
             }
         },
     },
@@ -1093,19 +1041,14 @@ const app = createApp({
         asideMinified(value) {
             localStorage.setItem("asideMinified", value);
         },
-        selectedInvestorId(value) {
-            if (value) {
-                document.body.classList.add("overflow-hidden");
-            } else {
-                document.body.classList.remove("overflow-hidden");
-            }
+        isGeminiOpened() {
+            this.updateOverflow();
         },
-        selectedInvestmentFirmId(value) {
-            if (value) {
-                document.body.classList.add("overflow-hidden");
-            } else {
-                document.body.classList.remove("overflow-hidden");
-            }
+        selectedInvestorSlug() {
+            this.updateOverflow();
+        },
+        selectedInvestmentFirmId() {
+            this.updateOverflow();
         },
     },
     created() {
@@ -1138,6 +1081,7 @@ const app = createApp({
             searchBtn.addEventListener("click", this.search);
         }
 
+        this.updateOverflow();
         this.setupMenuToggle();
         this.initializeValuesFromParams();
         this.updateLinksWithQueryParams();
@@ -1224,6 +1168,13 @@ const app = createApp({
                 window.history.pushState({}, "", url);
             }
             this[stateKey] = paramValue;
+        },
+        updateOverflow() {
+            if (this.isGeminiOpened || this.selectedInvestorSlug || this.selectedInvestmentFirmId) {
+                document.body.classList.add("overflow-hidden");
+            } else {
+                document.body.classList.remove("overflow-hidden");
+            }
         },
         selectInvestorSlug(investorSlug) {
             this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug");

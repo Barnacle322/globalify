@@ -1,7 +1,7 @@
 {% macro render(user) %}
 <template id="gemini-template">
     <article
-        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-gray-100 transition-all rounded-l-2xl"
+        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-gray-100 transition-all rounded-l-3xl"
         :class="isExpanded ? 'md:w-full rounded-l-none' : 'md:w-4/5 lg:w-2/3 2xl:w-1/2'"
     >
         <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
@@ -20,7 +20,7 @@
                 v-if="selectedInvestorSlug"
             ></full-investor>
         </transition>
-        <nav class="sticky top-0 z-10 flex h-20 items-center justify-between bg-white px-4 py-4 sm:px-6 rounded-tl-2xl">
+        <nav class="sticky top-0 z-10 flex h-20 items-center justify-between bg-white px-4 py-4 sm:px-6 rounded-tl-3xl">
             <div class="w-1/3 flex items-center gap-3">
                 <button @click="toggleHistory" class="rounded-lg p-2 transition-colors hover:bg-gray-100">
                     <svg
@@ -103,7 +103,7 @@
             </div>
         </nav>
 
-        <main class="flex h-[90%] relative overflow-hidden">
+        <main class="flex h-full relative overflow-hidden">
             <transition name="history">
                 <div
                     v-show="isHistoryVisible"

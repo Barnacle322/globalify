@@ -91,4 +91,3 @@ def create_summary(user_message):
     response = model.generate_content(user_message)
 
     return response
-

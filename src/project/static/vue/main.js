@@ -33,7 +33,7 @@ const GeminiComponent = defineComponent({
     },
     methods: {
         startSSEStream(prompt) {
-            this.stopSSEStream(); // Остановите предыдущий стрим, если он есть
+            this.stopSSEStream(); // Остановить предыдущий стрим, если он есть
 
             const url = `/message/stream/${prompt}`;
             console.log(`Connecting to SSE stream at: ${url}`);
@@ -41,43 +41,58 @@ const GeminiComponent = defineComponent({
 
             this.eventSource.onopen = () => {
                 console.log("SSE connection opened");
+                this.queue = []; // Очередь для частичных сообщений
+                this.isTyping = false; // Флаг работы анимации
             };
 
-            let fullMessage = ""; // Переменная для хранения полного сообщения
-
             this.eventSource.onmessage = (event) => {
-                const text = event.data; // Получаем текст сообщения от сервера
+                const text = event.data.trim(); // Убираем лишние пробелы
 
-                // Найти или создать сообщение
+                console.log("Received message: ", text);
+
+                if (text === "[DONE]") {
+                    console.log("All messages received");
+                    this.stopSSEStream();
+                    return;
+                }
+
+                // Создаём новое сообщение, если его нет
                 if (!this.currentMessage) {
                     this.currentMessage = { content: "", type: "gemini", isHTML: true };
                     this.response.push(this.currentMessage);
                 }
 
-                let currentIndex = 0;
+                // Добавляем текст в очередь (чтобы не терялись части)
+                this.queue.push(text);
 
-                // Очистить предыдущий интервал, если он есть
-                if (this.interval) {
-                    clearInterval(this.interval);
+                // Запускаем обработку текста, если она не активна
+                if (!this.isTyping) {
+                    this.processQueue();
                 }
+            };
+        },
+        processQueue() {
+            if (!this.queue.length) {
+                this.isTyping = false;
+                return;
+            }
 
-                this.interval = setInterval(() => {
-                    if (currentIndex < text.length) {
-                        this.currentMessage.content += text[currentIndex]; // Добавляем символ по одному
-                        currentIndex++;
-                        this.scrollToBottom();
-                    } else {
-                        clearInterval(this.interval); // Остановить интервал, когда весь текст добавлен
-                    }
-                }, 50); // Увеличить интервал для улучшения производительности
+            this.isTyping = true;
+            let text = this.queue.shift(); // Берём следующий текст из очереди
+            let currentIndex = 0;
+
+            const addLetter = () => {
+                if (currentIndex < text.length) {
+                    this.currentMessage.content += text[currentIndex]; // Добавляем символ
+                    currentIndex++;
+                    this.scrollToBottom();
+                    setTimeout(addLetter, 50); // Запускаем следующую букву через 50 мс
+                } else {
+                    this.processQueue(); // После завершения этой части — берём следующую
+                }
             };
 
-            this.eventSource.onerror = (error) => {
-                console.error("SSE Error: ", error);
-                console.error("Ready state: ", this.eventSource.readyState);
-                console.error("EventSource URL: ", url);
-                this.stopSSEStream(); // Остановите стрим при ошибке
-            };
+            addLetter(); // Запускаем анимацию
         },
         stopSSEStream() {
             if (this.eventSource) {
@@ -97,7 +112,6 @@ const GeminiComponent = defineComponent({
 
             this.response.push({ content: promptText, type: "user" });
             promptDiv.textContent = "";
-            this.scrollToBottom();
             try {
                 const response = await fetch(`/message/chat/${chatId}`, {
                     method: "POST",
@@ -121,7 +135,6 @@ const GeminiComponent = defineComponent({
 
             this.response.push({ content: promptText, type: "user" });
             promptDiv.textContent = "";
-            this.scrollToBottom();
             try {
                 const response = await fetch(`/message/chat`, {
                     method: "POST",
@@ -226,7 +239,7 @@ const GeminiComponent = defineComponent({
                                 "Recently",
                                 "Yesterday",
                                 "1 Week",
-                                "2 Week2",
+                                "2 Week",
                                 "3 Week",
                                 "1 Month",
                                 "Few months",
@@ -477,6 +490,7 @@ const GeminiComponent = defineComponent({
             messages: {},
             currentMessage: null,
             interval: null,
+            isTyping: false,
             // summary_names: [],
         };
     },
@@ -584,12 +598,10 @@ const FullInvestor = defineComponent({
                         window.location.href = response.url;
                     }
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { investorId: investorId, status: true });
                         this.isBookmarked = !this.isBookmarked;
                     } else {
-                        // svg.style.fill = "none";
                         this.$emit("bookmarked", { investorId: investorId, status: false });
                         this.isBookmarked = !this.isBookmarked;
                     }
@@ -745,7 +757,6 @@ const FullInvestmentFirm = defineComponent({
                         window.location.href = response.url;
                     }
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { firmId: firmId, status: true });
                         this.isBookmarked = !this.isBookmarked;
@@ -758,7 +769,6 @@ const FullInvestmentFirm = defineComponent({
                 console.error(error);
             }
         },
-
         async sortInvestments(sortType) {
             const compareDates = (a, b) => {
                 const dateA = new Date(a.announced_date);
@@ -878,12 +888,10 @@ const FullCompany = defineComponent({
                         window.location.href = response.url;
                     }
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-company-${companyId}`);
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { companyId: companyId, status: true });
                         this.isBookmarked = !this.isBookmarked;
                     } else {
-                        svg.style.fill = "none";
                         this.$emit("bookmarked", { companyId: companyId, status: false });
                         this.isBookmarked = !this.isBookmarked;
                     }
@@ -1051,7 +1059,6 @@ const app = createApp({
                 console.error("Error handling investor bookmark:", error);
             }
         },
-
         async handleInvestmentFirmBookmark(data) {
             if (data.status) {
                 this.investmentFirmBookmakrIds.push(data.firmId);
@@ -1061,7 +1068,6 @@ const app = createApp({
                 document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = "none";
             }
         },
-
         async handleCompanyBookmark(data) {
             try {
                 if (data.status) {
@@ -1075,7 +1081,6 @@ const app = createApp({
                 console.error("Error handling company bookmark:", error);
             }
         },
-
         checkAndSelectUrlParam(paramName, selectFunction) {
             const urlParams = new URLSearchParams(window.location.search);
             const paramSlug = urlParams.get(paramName);

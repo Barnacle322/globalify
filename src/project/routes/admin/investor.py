@@ -1,6 +1,6 @@
 from collections import OrderedDict, defaultdict
 
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, redirect, render_template, request, url_for
 from sqlalchemy import or_, select
 
 from ...extensions import db

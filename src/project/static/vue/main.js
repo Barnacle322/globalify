@@ -245,7 +245,10 @@ const GeminiComponent = defineComponent({
                                 "Few months",
                                 "Long ago",
                             ];
-                            return order.indexOf(a[0]) - order.indexOf(b[0]);
+
+                            const indexA = order.indexOf(a[0]);
+                            const indexB = order.indexOf(b[0]);
+                            return (indexA === -1 ? order.length : indexA) - (indexB === -1 ? order.length : indexB);
                         }),
                 );
             } catch (error) {

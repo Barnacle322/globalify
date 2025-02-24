@@ -594,13 +594,19 @@ textarea {
     }
 }
 
+@keyframes blinkTextCursor {
+    50% {
+        border-color: transparent;
+    }
+}
+
 .typewriter {
+    display: inline-block;
     overflow: hidden;
-    border-right: 0.15em solid orange; /* Adjust the cursor style */
     white-space: nowrap;
-    margin: 0 auto;
-    animation: typewriter 4s steps(40, end) 1s 1 normal both,
-               blinkTextCursor 500ms steps(40, end) infinite normal;
+    border-right: 2px solid white;
+    animation: typewriter 2s steps(20, end) forwards,
+               blinkTextCursor 500ms steps(20, end) infinite;
 }
 
 .shadow-card-hover:hover {

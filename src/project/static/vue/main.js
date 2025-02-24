@@ -67,24 +67,6 @@ const FullInvestor = defineComponent({
                 }
             });
         },
-        ensureTwitterScriptLoaded(callback) {
-            const script_element = document.getElementById("twitter-script");
-            if (script_element) script_element.remove();
-
-            if (!this.twitterScriptLoaded) {
-                const script = document.createElement("script");
-                script.src = "https://platform.twitter.com/widgets.js";
-                script.id = "twitter-script";
-                script.async = true;
-                script.onload = () => {
-                    this.twitterScriptLoaded = true;
-                    callback();
-                };
-                document.body.appendChild(script);
-            } else {
-                callback();
-            }
-        },
         async toggleBookmark(investorId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
@@ -114,7 +96,6 @@ const FullInvestor = defineComponent({
                 console.error(error);
             }
         },
-
         async sortInvestments(sortType) {
             const compareDates = (a, b) => {
                 const dateA = new Date(a.announced_date);
@@ -129,6 +110,25 @@ const FullInvestor = defineComponent({
             this.sortOrder = sortType;
             this.sortDropdownOpened = false;
         },
+        ensureTwitterScriptLoaded(callback) {
+            const script_element = document.getElementById("twitter-script");
+            if (script_element) script_element.remove();
+
+            if (!this.twitterScriptLoaded) {
+                const script = document.createElement("script");
+                script.src = "https://platform.twitter.com/widgets.js";
+                script.id = "twitter-script";
+                script.async = true;
+                script.onload = () => {
+                    this.twitterScriptLoaded = true;
+                    callback();
+                };
+                document.body.appendChild(script);
+            } else {
+                callback();
+            }
+        },
+
         deleteInvestorParam() {
             const url = new URL(window.location.href);
             url.searchParams.delete("investor");
@@ -222,78 +222,6 @@ const GeminiComponent = defineComponent({
         this.stopSSEStream();
     },
     methods: {
-        startSSEStream(prompt) {
-            this.stopSSEStream(); // Остановить предыдущий стрим, если он есть
-
-            const url = `/message/stream/${prompt}`;
-            console.log(`Connecting to SSE stream at: ${url}`);
-            this.eventSource = new EventSource(url); // Подключаемся к SSE
-
-            this.eventSource.onopen = () => {
-                console.log("SSE connection opened");
-                this.queue = []; // Очередь для частичных сообщений
-                this.isTyping = false; // Флаг работы анимации
-            };
-
-            this.eventSource.onmessage = (event) => {
-                const text = event.data.trim(); // Убираем лишние пробелы
-
-                console.log("Received message: ", text);
-
-                if (text === "[DONE]") {
-                    console.log("All messages received");
-                    this.stopSSEStream();
-                    return;
-                }
-
-                // Создаём новое сообщение, если его нет
-                if (!this.currentMessage) {
-                    this.currentMessage = { content: "", type: "gemini", isHTML: true };
-                    this.response.push(this.currentMessage);
-                }
-
-                // Добавляем текст в очередь (чтобы не терялись части)
-                this.queue.push(text);
-
-                // Запускаем обработку текста, если она не активна
-                if (!this.isTyping) {
-                    this.processQueue();
-                }
-            };
-        },
-        processQueue() {
-            if (!this.queue.length) {
-                this.isTyping = false;
-                return;
-            }
-
-            this.isTyping = true;
-            let text = this.queue.shift(); // Берём следующий текст из очереди
-            let currentIndex = 0;
-
-            const addLetter = () => {
-                if (currentIndex < text.length) {
-                    this.currentMessage.content += text[currentIndex]; // Добавляем символ
-                    currentIndex++;
-                    this.scrollToBottom();
-                    setTimeout(addLetter, 5); // Запускаем следующую букву через 5 мс
-                } else {
-                    this.processQueue(); // После завершения этой части — берём следующую
-                }
-            };
-
-            addLetter(); // Запускаем анимацию
-        },
-        stopSSEStream() {
-            if (this.eventSource) {
-                this.eventSource.close(); // Закрыть соединение
-                this.eventSource = null; // Удалить ссылку на объект EventSource
-            }
-            if (this.interval) {
-                clearInterval(this.interval);
-                this.interval = null;
-            }
-        },
         async sendMessage(chatId) {
             const csrf_token = document.getElementById("csrf_token").value;
             const promptDiv = this.$refs.prompt;
@@ -522,6 +450,104 @@ const GeminiComponent = defineComponent({
                 this.cancelEditing();
             }
         },
+        async getTwitterAvatar(slug) {
+            try {
+                const response = await fetch(`/message/investor/${slug}`);
+                if (!response.ok) {
+                    console.error(`Error loading avatar for ${slug}: ${response.status} ${response.statusText}`);
+                    return "https://unavatar.io/x/default";
+                }
+                const data = await response.json();
+                const twitter = data.split("/").pop();
+                return `https://unavatar.io/x/${twitter}`;
+            } catch (error) {
+                console.error("Error loading avatar:", error);
+            }
+        },
+        async loadAvatar(slug) {
+            if (this.avatarCache.has(slug)) {
+                return;
+            }
+            try {
+                const avatarUrl = await this.getTwitterAvatar(slug);
+                this.avatarCache.set(slug, avatarUrl);
+                this.updateAvatarImages(slug, avatarUrl);
+            } catch (error) {
+                console.error("Error in loadAvatar:", error);
+            }
+        },
+        startSSEStream(prompt) {
+            this.stopSSEStream(); // Остановить предыдущий стрим, если он есть
+
+            const url = `/message/stream/${prompt}`;
+            console.log(`Connecting to SSE stream at: ${url}`);
+            this.eventSource = new EventSource(url); // Подключаемся к SSE
+
+            this.eventSource.onopen = () => {
+                console.log("SSE connection opened");
+                this.queue = []; // Очередь для частичных сообщений
+                this.isTyping = false; // Флаг работы анимации
+            };
+
+            this.eventSource.onmessage = (event) => {
+                const text = event.data.trim(); // Убираем лишние пробелы
+
+                console.log("Received message: ", text);
+
+                if (text === "[DONE]") {
+                    console.log("All messages received");
+                    this.stopSSEStream();
+                    return;
+                }
+
+                // Создаём новое сообщение, если его нет
+                if (!this.currentMessage) {
+                    this.currentMessage = { content: "", type: "gemini", isHTML: true };
+                    this.response.push(this.currentMessage);
+                }
+
+                // Добавляем текст в очередь (чтобы не терялись части)
+                this.queue.push(text);
+
+                // Запускаем обработку текста, если она не активна
+                if (!this.isTyping) {
+                    this.processQueue();
+                }
+            };
+        },
+        processQueue() {
+            if (!this.queue.length) {
+                this.isTyping = false;
+                return;
+            }
+
+            this.isTyping = true;
+            let text = this.queue.shift(); // Берём следующий текст из очереди
+            let currentIndex = 0;
+
+            const addLetter = () => {
+                if (currentIndex < text.length) {
+                    this.currentMessage.content += text[currentIndex]; // Добавляем символ
+                    currentIndex++;
+                    this.scrollToBottom();
+                    setTimeout(addLetter, 5); // Запускаем следующую букву через 5 мс
+                } else {
+                    this.processQueue(); // После завершения этой части — берём следующую
+                }
+            };
+
+            addLetter(); // Запускаем анимацию
+        },
+        stopSSEStream() {
+            if (this.eventSource) {
+                this.eventSource.close(); // Закрыть соединение
+                this.eventSource = null; // Удалить ссылку на объект EventSource
+            }
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = null;
+            }
+        },
         scrollToBottom() {
             this.$nextTick(() => {
                 const chatContainer = this.$refs.chatContainer;
@@ -605,32 +631,7 @@ const GeminiComponent = defineComponent({
             text = text.replace(/\n/g, "<br>");
             return text;
         },
-        async getTwitterAvatar(slug) {
-            try {
-                const response = await fetch(`/message/investor/${slug}`);
-                if (!response.ok) {
-                    console.error(`Error loading avatar for ${slug}: ${response.status} ${response.statusText}`);
-                    return "https://unavatar.io/x/default";
-                }
-                const data = await response.json();
-                const twitter = data.split("/").pop();
-                return `https://unavatar.io/x/${twitter}`;
-            } catch (error) {
-                console.error("Error loading avatar:", error);
-            }
-        },
-        async loadAvatar(slug) {
-            if (this.avatarCache.has(slug)) {
-                return;
-            }
-            try {
-                const avatarUrl = await this.getTwitterAvatar(slug);
-                this.avatarCache.set(slug, avatarUrl);
-                this.updateAvatarImages(slug, avatarUrl);
-            } catch (error) {
-                console.error("Error in loadAvatar:", error);
-            }
-        },
+
         updateAvatarImages(slug, avatarUrl) {
             const images = document.querySelectorAll(`img[data-slug="${slug}"]`);
             images.forEach((img) => {
@@ -1152,6 +1153,127 @@ const app = createApp({
                 console.error("Error handling company bookmark:", error);
             }
         },
+        async getCountryList(searchInput) {
+            let country_list = this.$refs.countryListElement;
+            for (let i = 0; i < country_list.children.length; i++) {
+                if (country_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    country_list.children[i].classList.remove("hidden");
+                } else {
+                    country_list.children[i].classList.add("hidden");
+                }
+            }
+        },
+        async getIndustryList(searchInput) {
+            let industry_list = this.$refs.industryListElement;
+            for (let i = 0; i < industry_list.children.length; i++) {
+                if (industry_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    industry_list.children[i].classList.remove("hidden");
+                } else {
+                    industry_list.children[i].classList.add("hidden");
+                }
+            }
+        },
+        async toggleInvestorBookmark(investorId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investor/${investorId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    if (response.url.includes("/onboarding/")) {
+                        window.location.href = response.url;
+                    }
+                    const data = await response.json();
+                    if (data[0].bookmarked) {
+                        this.investorBookmakrIds.push(investorId);
+                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = "#FFC9FC";
+                    } else {
+                        this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== investorId);
+                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = "none";
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async toggleInvestmentFirmBookmark(firmId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    if (response.url.includes("/onboarding/")) {
+                        window.location.href = response.url;
+                    }
+                    const data = await response.json();
+
+                    if (data[0].bookmarked) {
+                        this.investmentFirmBookmakrIds.push(firmId);
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = "#FFC9FC";
+                    } else {
+                        this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== firmId);
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = "none";
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async toggleCompanyBookmark(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/company/${companyId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    if (response.url.includes("/onboarding/")) {
+                        window.location.href = response.url;
+                    }
+                    const data = await response.json();
+                    if (data[0].bookmarked) {
+                        this.companyBookmarkIds.push(companyId);
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = "#FFC9FC";
+                    } else {
+                        this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== companyId);
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = "none";
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async markAsRead(notificationId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const response = await fetch(`/notification/mark-read/${notificationId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (!response.ok) {
+                    console.error("An error occurred while marking the notification as read.");
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
         checkAndSelectUrlParam(paramName, selectFunction) {
             const urlParams = new URLSearchParams(window.location.search);
             const paramSlug = urlParams.get(paramName);
@@ -1415,127 +1537,7 @@ const app = createApp({
                 link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
             });
         },
-        async getCountryList(searchInput) {
-            let country_list = this.$refs.countryListElement;
-            for (let i = 0; i < country_list.children.length; i++) {
-                if (country_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
-                    country_list.children[i].classList.remove("hidden");
-                } else {
-                    country_list.children[i].classList.add("hidden");
-                }
-            }
-        },
-        async getIndustryList(searchInput) {
-            let industry_list = this.$refs.industryListElement;
-            for (let i = 0; i < industry_list.children.length; i++) {
-                if (industry_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
-                    industry_list.children[i].classList.remove("hidden");
-                } else {
-                    industry_list.children[i].classList.add("hidden");
-                }
-            }
-        },
-        async toggleInvestorBookmark(investorId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/investor/${investorId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.ok) {
-                    if (response.url.includes("/onboarding/")) {
-                        window.location.href = response.url;
-                    }
-                    const data = await response.json();
-                    if (data[0].bookmarked) {
-                        this.investorBookmakrIds.push(investorId);
-                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = "#FFC9FC";
-                    } else {
-                        this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== investorId);
-                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = "none";
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async toggleInvestmentFirmBookmark(firmId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.ok) {
-                    if (response.url.includes("/onboarding/")) {
-                        window.location.href = response.url;
-                    }
-                    const data = await response.json();
 
-                    if (data[0].bookmarked) {
-                        this.investmentFirmBookmakrIds.push(firmId);
-                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = "#FFC9FC";
-                    } else {
-                        this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== firmId);
-                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = "none";
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async toggleCompanyBookmark(companyId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/company/${companyId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.ok) {
-                    if (response.url.includes("/onboarding/")) {
-                        window.location.href = response.url;
-                    }
-                    const data = await response.json();
-                    if (data[0].bookmarked) {
-                        this.companyBookmarkIds.push(companyId);
-                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = "#FFC9FC";
-                    } else {
-                        this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== companyId);
-                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = "none";
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async markAsRead(notificationId) {
-            try {
-                const csrfToken = document.getElementById("csrf_token").value;
-                const response = await fetch(`/notification/mark-read/${notificationId}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else if (!response.ok) {
-                    console.error("An error occurred while marking the notification as read.");
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
         closeSortDropdownOutside() {
             this.sortDropdownOpened = false;
         },

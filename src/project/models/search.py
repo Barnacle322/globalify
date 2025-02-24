@@ -28,22 +28,19 @@ class SearchHistory(MappedAsDataclass, db.Model, unsafe_hash=True):
     type: Mapped[SearchHistoryType] = mapped_column(SQLEnum(SearchHistoryType), nullable=True)
 
     @staticmethod
-    def paginate_history(user, search_type: bool | SearchHistoryType = False, offset: int = 0, limit: int = 20):
+    def paginate_history(
+        user, search_type: bool | SearchHistoryType = False, search_string: str = "", offset: int = 0, limit: int = 20
+    ):
+        base_query = db.select(SearchHistory).where(SearchHistory.user_id == user.id)
+
+        if search_string:
+            base_query = base_query.where(SearchHistory.query.ilike(f"%{search_string}%"))
+
         if search_type:
-            search_histories = db.session.scalars(
-                db.select(SearchHistory)
-                .where(SearchHistory.user_id == user.id, SearchHistory.type == search_type)
-                .order_by(SearchHistory.created_at.desc())
-                .offset(offset)
-                .limit(limit)
-            ).all()
-        else:
-            search_histories = db.session.scalars(
-                db.select(SearchHistory)
-                .where(SearchHistory.user_id == user.id)
-                .order_by(SearchHistory.created_at.desc())
-                .offset(offset)
-                .limit(limit)
-            ).all()
+            base_query = base_query.where(SearchHistory.type == search_type)
+
+        search_histories = db.session.scalars(
+            base_query.order_by(SearchHistory.created_at.desc()).offset(offset).limit(limit)
+        ).all()
 
         return search_histories

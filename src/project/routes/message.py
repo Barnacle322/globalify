@@ -1,6 +1,4 @@
-import asyncio
-
-from flask import Blueprint, Response, jsonify, request, stream_with_context
+from flask import Blueprint, Response, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import delete
 
@@ -210,9 +208,9 @@ def streamed_response(prompt):
         for res in response:
             for candidate in res._result.candidates:
                 for part in candidate.content.parts:
-                    print(f"data: {part.text}\n\n".encode("utf-8"))
-                    yield f"data: {part.text}\n\n".encode("utf-8")  # SSE
-        yield "data: [DONE]\n\n".encode("utf-8")  # Send DONE message at the end
+                    print(f"data: {part.text}\n\n".encode())
+                    yield f"data: {part.text}\n\n".encode()  # SSE
+        yield b"data: [DONE]\n\n"  # Send DONE message at the end
 
     return Response(generate(), content_type="text/event-stream")
 

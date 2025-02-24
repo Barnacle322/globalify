@@ -56,7 +56,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -144,7 +144,7 @@
                             </label>
                             <button
                                 @click="applyFilters"
-                                class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
+                                class="rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
                             >
                                 Show
                             </button>
@@ -158,7 +158,7 @@
                             class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 sm:flex-row"
                         >
                             <div class="relative flex w-full items-start justify-between gap-3">
-                                <div class="flex flex-col gap-3 flex-grow">
+                                <div class="flex flex-grow flex-col gap-3">
                                     <h2 class="text-lg font-medium">{{ investor.name }}</h2>
                                     <div class="flex gap-1">
                                         <h3 class="text-gray-700">Missing:</h3>

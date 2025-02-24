@@ -1,5 +1,3 @@
-import time
-
 import google.generativeai as genai
 from google.generativeai.types.content_types import FunctionDeclaration, Tool
 

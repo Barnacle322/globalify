@@ -1,14 +1,14 @@
 {% macro render(user) %}
 <template id="gemini-template">
     <article
-        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-gray-100 transition-all rounded-l-3xl"
+        class="fixed top-0 right-0 z-50 flex h-full w-full flex-col rounded-l-3xl bg-gray-100 transition-all"
         :class="isExpanded ? 'md:w-full rounded-l-none' : 'md:w-4/5 lg:w-2/3 2xl:w-1/2'"
     >
         <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
             <div
                 v-if="selectedInvestorSlug"
                 @click="selectedInvestorSlug = null"
-                class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
             ></div>
         </transition>
         <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
@@ -20,8 +20,8 @@
                 v-if="selectedInvestorSlug"
             ></full-investor>
         </transition>
-        <nav class="sticky top-0 z-10 flex h-20 items-center justify-between bg-white px-4 py-4 sm:px-6 rounded-tl-3xl">
-            <div class="w-1/3 flex items-center gap-3">
+        <nav class="sticky top-0 z-10 flex h-20 items-center justify-between rounded-tl-3xl bg-white px-4 py-4 sm:px-6">
+            <div class="flex w-1/3 items-center gap-3">
                 <button @click="toggleHistory" class="rounded-lg p-2 transition-colors hover:bg-gray-100">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -103,11 +103,11 @@
             </div>
         </nav>
 
-        <main class="flex h-full relative overflow-hidden">
+        <main class="relative flex h-full overflow-hidden">
             <transition name="history">
                 <div
                     v-show="isHistoryVisible"
-                    class="custom-scrollbar absolute h-full w-56 bg-gray-50 border-r p-2 overflow-y-auto"
+                    class="custom-scrollbar absolute h-full w-56 overflow-y-auto border-r bg-gray-50 p-2"
                 >
                     <div class="flex flex-col gap-3 bg-gray-50">
                         <div v-for="[date, chats] of userChats" :key="date">
@@ -228,26 +228,26 @@
             </transition>
 
             <div
-                class="flex-1 flex flex-col overflow-hidden max-w-3xl transition-all duration-300 relative"
+                class="relative flex max-w-3xl flex-1 flex-col overflow-hidden transition-all duration-300"
                 :class="{'ml-56': isHistoryVisible && !isExpanded, 'mx-auto ': isExpanded}"
             >
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                <div class="flex-1 overflow-y-auto p-4 custom-scrollbar" ref="chatContainer">
+                <div class="custom-scrollbar flex-1 overflow-y-auto p-4" ref="chatContainer">
                     <template v-if="response.length">
                         <div
                             v-for="(message, index) in response"
                             :key="index"
-                            class="flex mb-4"
+                            class="mb-4 flex"
                             :class="{'justify-end': message.type === 'user'}"
                         >
                             <div
-                                class="rounded-xl p-3 relative"
+                                class="relative rounded-xl p-3"
                                 :class="{'bg-sky-500 max-w-[75%] text-white rounded-br-none': message.type === 'user', 'text-gray-800 ': message.type === 'gemini'}"
                             >
                                 <span v-if="message.isHTML" v-html="processMarkdown(message.content)"></span>
                                 <span v-else v-text="message.content"></span>
                                 <div
-                                    class="absolute -bottom-2 w-3 h-3"
+                                    class="absolute -bottom-2 h-3 w-3"
                                     :class="{'right-0 bg-sky-500': message.type === 'user'}"
                                     :style="{clipPath: message.type === 'user' ? 'polygon(0 0, 100% 0, 100% 100%)' : 'polygon(0 0, 100% 0, 0 100%)'}"
                                 ></div>
@@ -256,11 +256,11 @@
                     </template>
                     <div v-else class="flex">
                         <div
-                            class="bg-white text-gray-800 rounded-xl rounded-bl-none p-4 shadow-lg max-w-[75%] relative"
+                            class="relative max-w-[75%] rounded-xl rounded-bl-none bg-white p-4 text-gray-800 shadow-lg"
                         >
                             Hi there! I'm Gemini, your virtual assistant. How can I help you today?
                             <div
-                                class="absolute -bottom-2 left-0 w-3 h-3 bg-white"
+                                class="absolute -bottom-2 left-0 h-3 w-3 bg-white"
                                 style="clip-path: 'polygon(0 0, 100% 0, 100% 100%)"
                             ></div>
                         </div>

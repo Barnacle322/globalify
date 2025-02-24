@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -19,7 +18,7 @@ class ChatSchema(BaseModel):
     user_id: int
     created: datetime
     messages: list[MessageSchema] | None
-    name: Optional[str] = None
+    name: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -28,6 +27,6 @@ class ChatListSchema(BaseModel):
     id: int
     user_id: int
     created: datetime
-    name: Optional[str] = None
+    name: str | None = None
 
     model_config = ConfigDict(from_attributes=True)

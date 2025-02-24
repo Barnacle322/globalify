@@ -1,3 +1,185 @@
+const FullInvestor = defineComponent({
+    template: "#full-investor-template",
+    props: { slug: String, rendercontacts: Boolean },
+    emits: ["close-investor", "bookmarked"],
+    delimiters: ["[[", "]]"],
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("click", this.handleClickOutside);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        this.deleteInvestorParam();
+        document.removeEventListener("click", this.handleClickOutside);
+        const script_element = document.getElementById("twitter-script");
+        if (script_element) script_element.remove();
+    },
+    async created() {
+        await this.fetchInvestor();
+        window.removeEventListener("popstate", this.checkUrlParams);
+    },
+    methods: {
+        async fetchInvestor() {
+            try {
+                const response = await fetch(`/investor/${this.slug}/get`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investor = data.investor;
+                    this.isBookmarked = data.isBookmarked;
+                    this.unpaid = data.unpaid;
+                    if (data.investments && data.n_of_investments) {
+                        this.investments = data.investments;
+                        this.n_of_investments = data.n_of_investments;
+                    }
+                    await this.loadTwitterTimeline();
+                } else {
+                    this.closeInvestor();
+                    return;
+                }
+            } catch (error) {
+                console.error("Error fetching investor:", error);
+                this.closeInvestor();
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async loadTwitterTimeline() {
+            if (!this.investor?.twitter) return;
+            this.loadingTwitter = true; // Set loading state to true
+            this.ensureTwitterScriptLoaded(() => {
+                const timeline = document.querySelector(".twitter-timeline");
+                if (timeline) {
+                    timeline.innerHTML = "";
+                    timeline.setAttribute("href", this.investor.twitter);
+                    window.twttr?.widgets.load();
+
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            const twitterWidget = document.querySelector("[id^='twitter-widget-']");
+                            if (twitterWidget && twitterWidget.offsetHeight > 0) {
+                                this.loadingTwitter = false;
+                                observer.disconnect();
+                            }
+                        });
+                    });
+
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+        },
+        ensureTwitterScriptLoaded(callback) {
+            const script_element = document.getElementById("twitter-script");
+            if (script_element) script_element.remove();
+
+            if (!this.twitterScriptLoaded) {
+                const script = document.createElement("script");
+                script.src = "https://platform.twitter.com/widgets.js";
+                script.id = "twitter-script";
+                script.async = true;
+                script.onload = () => {
+                    this.twitterScriptLoaded = true;
+                    callback();
+                };
+                document.body.appendChild(script);
+            } else {
+                callback();
+            }
+        },
+        async toggleBookmark(investorId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investor/${investorId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    if (response.url.includes("/onboarding/")) {
+                        window.location.href = response.url;
+                    }
+                    const data = await response.json();
+                    var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
+                    if (data[0].bookmarked) {
+                        this.$emit("bookmarked", { investorId: investorId, status: true });
+                        this.isBookmarked = !this.isBookmarked;
+                    } else {
+                        // svg.style.fill = "none";
+                        this.$emit("bookmarked", { investorId: investorId, status: false });
+                        this.isBookmarked = !this.isBookmarked;
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+
+        async sortInvestments(sortType) {
+            const compareDates = (a, b) => {
+                const dateA = new Date(a.announced_date);
+                const dateB = new Date(b.announced_date);
+                return sortType === "asc" ? dateA - dateB : dateB - dateA;
+            };
+
+            this.investments.sort(compareDates);
+
+            // Force re-render
+            this.investments = [...this.investments];
+            this.sortOrder = sortType;
+            this.sortDropdownOpened = false;
+        },
+        deleteInvestorParam() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("investor");
+            window.history.replaceState({}, "", url);
+        },
+        checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const investorSlug = urlParams.get("investor");
+            if (!investorSlug) {
+                this.$emit("close-investor");
+            }
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-investor");
+            }
+        },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        closeInvestor() {
+            this.$emit("close-investor");
+        },
+        getTwitterHandle(url) {
+            return url.split("/").pop();
+        },
+        handleClickOutside(event) {
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
+        },
+    },
+    data() {
+        return {
+            showPopover: false,
+            isExpanded: false,
+            isLoading: true,
+            isBookmarked: false,
+            investor: null,
+            unpaid: false,
+            sortDropdownOpened: false,
+            sortOrder: null,
+            investments: [],
+            dropdownOpened: false,
+            twitterScriptLoaded: false,
+            loadingTwitter: false,
+        };
+    },
+});
+
 const GeminiComponent = defineComponent({
     template: "#gemini-template",
     emits: ["close-gemini"],
@@ -7,10 +189,15 @@ const GeminiComponent = defineComponent({
             this.scrollToBottom();
         },
     },
+    components: {
+        FullInvestor,
+    },
     async created() {
         const userId = this.userId;
         await this.loadAllChats();
         this.loadChatById(this.selectedChatId);
+        window.addEventListener("popstate", this.handlePopState);
+        this.checkAndSelectUrlParam("investor", this.selectInvestorSlug);
     },
     computed: {
         currentChatName() {
@@ -25,10 +212,13 @@ const GeminiComponent = defineComponent({
     mounted() {
         document.addEventListener("click", this.handleHistorySidebarClickOutside);
         document.addEventListener("click", this.handleClickOutside);
+        document.body.addEventListener("click", this.handleInvestorButtonClick);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("click", this.handleHistorySidebarClickOutside);
         document.removeEventListener("click", this.handleClickOutside);
+        document.body.removeEventListener("click", this.handleInvestorButtonClick);
+        window.removeEventListener("popstate", this.handlePopState);
         this.stopSSEStream();
     },
     methods: {
@@ -215,7 +405,7 @@ const GeminiComponent = defineComponent({
                 });
 
                 const data = await response.json();
-                console.log(data);
+
                 this.selectedChatId = data[0].id;
 
                 const grouped = new Map();
@@ -388,25 +578,64 @@ const GeminiComponent = defineComponent({
             return "Long ago";
         },
         processMarkdown(text) {
-            // Bold text with double asterisks
-            text = text.replace(/\*\*([\s\S]*?)\*\*/g, (match, content) => {
-                const cleanedContent = content.replace(/\n/g, " ");
-                return `<strong>${cleanedContent}</strong>`;
+            text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, buttonText, slug) => {
+                let buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">`;
+
+                const cachedAvatar = this.avatarCache.get(slug);
+                buttonHTML += `<img src="${cachedAvatar}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
+                buttonHTML += `${buttonText}</button>`;
+
+                if (!this.avatarCache.has(slug)) {
+                    this.loadAvatar(slug);
+                }
+
+                return buttonHTML;
             });
 
-            // Lists
+            text = text.replace(/\*\*([\s\S]*?)\*\*/g, (match, content) => {
+                return `<strong>${content.replace(/\n/g, " ")}</strong>`;
+            });
+
             text = text.replace(/^\* (.*)/gm, "<li>$1</li>");
 
-            // Single star (italic)
             text = text.replace(/\*([\s\S]*?)\*/g, (match, content) => {
-                const cleanedContent = content.replace(/\n/g, " ").trim();
-                return `<em>${cleanedContent}</em>`;
+                return `<em>${content.replace(/\n/g, " ").trim()}</em>`;
             });
 
-            // New lines
             text = text.replace(/\n/g, "<br>");
-
             return text;
+        },
+        async getTwitterAvatar(slug) {
+            try {
+                const response = await fetch(`/message/investor/${slug}`);
+                if (!response.ok) {
+                    console.error(`Error loading avatar for ${slug}: ${response.status} ${response.statusText}`);
+                    return "https://unavatar.io/x/default";
+                }
+                const data = await response.json();
+                const twitter = data.split("/").pop();
+                return `https://unavatar.io/x/${twitter}`;
+            } catch (error) {
+                console.error("Error loading avatar:", error);
+            }
+        },
+        async loadAvatar(slug) {
+            if (this.avatarCache.has(slug)) {
+                return;
+            }
+            try {
+                const avatarUrl = await this.getTwitterAvatar(slug);
+                this.avatarCache.set(slug, avatarUrl);
+                this.updateAvatarImages(slug, avatarUrl);
+            } catch (error) {
+                console.error("Error in loadAvatar:", error);
+            }
+        },
+        updateAvatarImages(slug, avatarUrl) {
+            const images = document.querySelectorAll(`img[data-slug="${slug}"]`);
+            images.forEach((img) => {
+                img.src = avatarUrl;
+            });
         },
         toggleDropdown(chatId) {
             this.openedDropdownChatId = this.openedDropdownChatId === chatId ? null : chatId;
@@ -471,6 +700,27 @@ const GeminiComponent = defineComponent({
             }
             return null;
         },
+        selectInvestorSlug(investorSlug) {
+            if (!investorSlug) {
+                this.handleCloseInvestor();
+                return;
+            }
+            this.selectedInvestorSlug = investorSlug;
+        },
+        handleCloseInvestor() {
+            this.selectedInvestorSlug = null;
+            const url = new URL(window.location);
+            url.searchParams.delete("investor");
+            window.history.replaceState({}, "", url);
+        },
+        handleInvestorButtonClick(event) {
+            const investorBtn = event.target.closest(".investor-btn");
+            if (investorBtn) {
+                const slug = investorBtn.dataset.slug;
+                this.selectInvestorSlug(slug);
+                event.stopPropagation();
+            }
+        },
     },
     data() {
         return {
@@ -479,6 +729,7 @@ const GeminiComponent = defineComponent({
             messages: {},
             selectedChatId: null,
             userChats: new Map(),
+            avatarCache: new Map(),
             chats: [],
             isExpanded: false,
             isGeminiOpened: true,
@@ -493,6 +744,7 @@ const GeminiComponent = defineComponent({
             messages: {},
             currentMessage: null,
             interval: null,
+            selectedInvestorSlug: null,
             isTyping: false,
             // summary_names: [],
         };
@@ -982,19 +1234,14 @@ const app = createApp({
         asideMinified(value) {
             localStorage.setItem("asideMinified", value);
         },
-        selectedInvestorId(value) {
-            if (value) {
-                document.body.classList.add("overflow-hidden");
-            } else {
-                document.body.classList.remove("overflow-hidden");
-            }
+        isGeminiOpened() {
+            this.updateOverflow();
         },
-        selectedInvestmentFirmId(value) {
-            if (value) {
-                document.body.classList.add("overflow-hidden");
-            } else {
-                document.body.classList.remove("overflow-hidden");
-            }
+        selectedInvestorSlug() {
+            this.updateOverflow();
+        },
+        selectedInvestmentFirmId() {
+            this.updateOverflow();
         },
     },
     created() {
@@ -1027,6 +1274,7 @@ const app = createApp({
             searchBtn.addEventListener("click", this.search);
         }
 
+        this.updateOverflow();
         this.setupMenuToggle();
         this.initializeValuesFromParams();
         this.updateLinksWithQueryParams();
@@ -1110,6 +1358,13 @@ const app = createApp({
                 window.history.pushState({}, "", url);
             }
             this[stateKey] = paramValue;
+        },
+        updateOverflow() {
+            if (this.isGeminiOpened || this.selectedInvestorSlug || this.selectedInvestmentFirmId) {
+                document.body.classList.add("overflow-hidden");
+            } else {
+                document.body.classList.remove("overflow-hidden");
+            }
         },
         selectInvestorSlug(investorSlug) {
             this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug");

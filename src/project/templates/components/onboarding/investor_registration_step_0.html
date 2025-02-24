@@ -5,7 +5,7 @@
             <div
                 v-if="selectedInvestorSlug"
                 @click="selectedInvestorSlug = null"
-                class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
             ></div>
         </transition>
         <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
@@ -22,9 +22,9 @@
             <h1 class="text-3xl font-medium">Try to find your profile using the search below!</h1>
             <span class="text-gray-600">Please review the investors below to confirm your identity.</span>
         </div>
-        <div class="flex flex-col items-center justify-center gap-10 rounded-2xl bg-deep-purple px-5 py-10">
+        <div class="bg-deep-purple flex flex-col items-center justify-center gap-10 rounded-2xl px-5 py-10">
             <h1
-                class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-3xl font-bold tracking-tight text-transparent sm:text-4xl xl:text-5xl"
+                class="w-fit bg-linear-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-3xl font-bold tracking-tight text-transparent sm:text-4xl xl:text-5xl"
             >
                 Globalify Investors
             </h1>
@@ -34,7 +34,7 @@
                 <input
                     type="search"
                     ref="searchInput"
-                    class="w-full border-0 bg-transparent py-3 pl-6 pr-0 focus:ring-0"
+                    class="w-full border-0 bg-transparent py-3 pr-0 pl-6 focus:ring-0"
                     placeholder="Search"
                     autocapitalize="off"
                     autocorrect="off"
@@ -55,7 +55,7 @@
                     <button
                         @click="selectInvestorSlug(investor.slug)"
                         v-text="investor.name"
-                        class="text-xl font-bold leading-none"
+                        class="text-xl leading-none font-bold"
                     ></button>
                 </div>
                 <div class="mt-5 flex flex-col gap-2 text-sm">
@@ -126,7 +126,7 @@
                             <a
                                 v-for="round in investor.rounds"
                                 :key="round.id"
-                                class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
+                                class="rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-nowrap text-[#dd70d8]"
                                 v-text="round"
                             >
                             </a>

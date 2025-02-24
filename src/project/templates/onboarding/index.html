@@ -101,9 +101,9 @@
     <div class="mt-3 flex w-full max-w-xl justify-between rounded-md border border-gray-300 p-4">
         <span>{{ claim_request.investor.full_name }}</span>
         {% if claim_request.status.value == "pending"%}
-        <span class="text-sm italic text-orange-500">Pending</span>
+        <span class="text-sm text-orange-500 italic">Pending</span>
         {% elif claim_request.status.value == "rejected"%}
-        <span class="text-sm italic text-red-500">Rejected</span>
+        <span class="text-sm text-red-500 italic">Rejected</span>
         {% endif %}
     </div>
 

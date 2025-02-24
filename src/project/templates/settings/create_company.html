@@ -56,7 +56,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -74,7 +74,7 @@
                     <div class="grid gap-x-8 gap-y-10 px-4 sm:grid-cols-6">
                         <div class="col-span-2">
                             <h2 class="text-2xl font-bold">Company Information</h2>
-                            <p class="mb-2 mt-1 leading-6 text-slate-700">
+                            <p class="mt-1 mb-2 leading-6 text-slate-700">
                                 Fill in the details of your company to get started.
                             </p>
                             {% if status_type %} {% if status_type == '3' %}
@@ -106,7 +106,7 @@
                                         </div>
                                     </div>
                                     <div class="col-span-full">
-                                        <label for="company_name" class="block text-sm font-medium leading-6"
+                                        <label for="company_name" class="block text-sm leading-6 font-medium"
                                             >Company name</label
                                         >
                                         <div class="mt-2">
@@ -121,7 +121,7 @@
                                         </div>
                                     </div>
                                     <div class="col-span-full">
-                                        <label for="number_of_employees" class="block text-sm font-medium leading-6"
+                                        <label for="number_of_employees" class="block text-sm leading-6 font-medium"
                                             >Number of employees</label
                                         >
                                         <div class="mt-2">
@@ -136,7 +136,7 @@
                                         </div>
                                     </div>
                                     <div class="col-span-full">
-                                        <label for="description" class="block text-sm font-medium leading-6"
+                                        <label for="description" class="block text-sm leading-6 font-medium"
                                             >Description</label
                                         >
                                         <div class="mt-2">
@@ -148,7 +148,7 @@
                                         </div>
                                     </div>
                                     <div class="sm:col-span-full">
-                                        <label for="country" class="block text-sm font-medium leading-6"
+                                        <label for="country" class="block text-sm leading-6 font-medium"
                                             >Country*</label
                                         >
                                         <div class="mt-2">
@@ -165,7 +165,7 @@
                                         </div>
                                     </div>
                                     <div class="sm:col-span-3">
-                                        <label for="round" class="block text-sm font-medium leading-6"
+                                        <label for="round" class="block text-sm leading-6 font-medium"
                                             >Preferred round*</label
                                         >
                                         <div class="mt-2">
@@ -182,7 +182,7 @@
                                         </div>
                                     </div>
                                     <div class="sm:col-span-3">
-                                        <label for="industry" class="block text-sm font-medium leading-6 text-gray-900"
+                                        <label for="industry" class="block text-sm leading-6 font-medium text-gray-900"
                                             >Industry*</label
                                         >
                                         <div class="mt-2">
@@ -203,7 +203,7 @@
                                         </div>
                                     </div>
                                     <div class="col-span-full">
-                                        <label for="website" class="block text-sm font-medium leading-6">Website</label>
+                                        <label for="website" class="block text-sm leading-6 font-medium">Website</label>
                                         <div class="mt-2">
                                             <input
                                                 type="text"
@@ -216,7 +216,7 @@
                                         </div>
                                     </div>
                                     <div class="col-span-full">
-                                        <label for="linkedin" class="block text-sm font-medium leading-6"
+                                        <label for="linkedin" class="block text-sm leading-6 font-medium"
                                             >Linkedin</label
                                         >
                                         <div class="mt-2">
@@ -231,7 +231,7 @@
                                         </div>
                                     </div>
                                     <div class="col-span-full">
-                                        <label for="twitter" class="block text-sm font-medium leading-6"
+                                        <label for="twitter" class="block text-sm leading-6 font-medium"
                                             >Twitter/X</label
                                         >
                                         <div class="mt-2">
@@ -246,7 +246,7 @@
                                         </div>
                                     </div>
                                     <div class="col-span-full">
-                                        <label for="instagram" class="block text-sm font-medium leading-6"
+                                        <label for="instagram" class="block text-sm leading-6 font-medium"
                                             >Instagram</label
                                         >
                                         <div class="mt-2">
@@ -262,7 +262,7 @@
                                     </div>
 
                                     <div class="col-span-full">
-                                        <label for="position" class="block text-sm font-medium leading-6"
+                                        <label for="position" class="block text-sm leading-6 font-medium"
                                             >Position</label
                                         >
                                         <div class="mt-2">

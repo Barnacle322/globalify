@@ -60,7 +60,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -75,7 +75,7 @@
 
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
                     v-if="editCompanyMemberOpened || addMemberOpened"
                 ></div>
             </transition>
@@ -111,7 +111,7 @@
                 </div>
 
                 <div class="grid grid-cols-6 gap-x-2 gap-y-1">
-                    <h2 class="col-span-full mb-2 mt-3 text-2xl font-medium">General Info</h2>
+                    <h2 class="col-span-full mt-3 mb-2 text-2xl font-medium">General Info</h2>
                     <div class="col-span-full empty:hidden">
                         {% if status_type %} {% if status_type == '3' %}
                         <div class="rounded-xl text-red-500">{{ msg }}</div>
@@ -200,7 +200,7 @@
                             <input type="checkbox" id="is_verified" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Verified</span>
                         </label>
@@ -213,7 +213,7 @@
                             <input type="checkbox" id="is_complete" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Profile Complete</span>
                         </label>
@@ -226,7 +226,7 @@
                             <input type="checkbox" id="is_admin" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Admin</span>
                         </label>
@@ -245,12 +245,12 @@
                             <input type="checkbox" id="refuse_all_invitations" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Block Company Invitations</span>
                         </label>
                     </div>
-                    <h2 class="col-span-full mb-2 mt-3 text-2xl font-medium">Contact Info</h2>
+                    <h2 class="col-span-full mt-3 mb-2 text-2xl font-medium">Contact Info</h2>
                     <div class="col-span-full sm:col-span-3">
                         <label class="text-sm font-medium text-gray-700" for="email">Email</label>
                         <input
@@ -280,7 +280,7 @@
                             <input type="checkbox" id="email_public" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
                         </label>
@@ -293,7 +293,7 @@
                             <input type="checkbox" id="instagram_public" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
                         </label>
@@ -326,7 +326,7 @@
                             <input type="checkbox" id="linkedin_public" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
                         </label>
@@ -339,7 +339,7 @@
                             <input type="checkbox" id="twitter_public" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
                         </label>
@@ -389,7 +389,7 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label for="tier" class="block text-sm font-medium leading-6">Tier</label>
+                        <label for="tier" class="block text-sm leading-6 font-medium">Tier</label>
                         <div>
                             <select id="tier" name="tier" class="h-12 w-full rounded-xl px-2" required>
                                 <option value="" disabled>Select subscription tier</option>
@@ -402,7 +402,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-span-full sm:col-span-3 sm:ml-5 sm:mt-7">
+                    <div class="col-span-full sm:col-span-3 sm:mt-7 sm:ml-5">
                         <label class="inline-flex cursor-pointer items-center pt-2">
                             {% if user_payment.is_active %}
                             <input id="is_active" type="checkbox" value="True" class="peer sr-only" checked />
@@ -410,13 +410,13 @@
                             <input type="checkbox" id="is_active" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Active Subscription</span>
                         </label>
                     </div>
                 </div>
-                <h2 class="col-span-full mb-2 mt-3 text-2xl font-medium">Company Info</h2>
+                <h2 class="col-span-full mt-3 mb-2 text-2xl font-medium">Company Info</h2>
                 <div class="col-span-full">
                     <div class="col-span-4 mt-2 flex w-full flex-col overflow-hidden rounded-xl border-2">
                         <header class="border-b bg-gray-50 p-5">

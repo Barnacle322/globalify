@@ -56,6 +56,7 @@ EMPTY_BIO = "Bio cannot be empty."
 NO_ROUND_OR_INDUSTRY = "Please select rounds and industries."
 EMPTY_EMAIL_OR_ROLE = "Email and role are required."
 EMPTY_COMPANY_NAME = "Company name cannot be empty."
+EMPTY_COMPANY_POSITION = "Company position cannot be empty"
 EMPTY_COUNTRY_ID = "Country ID is required."
 
 USER_ALREADY_IN_COMPANY = "User is already a member of the company."
@@ -70,3 +71,6 @@ DELETE_COMPANY_PERMISSION_DENIED = "You don't have permission to delete this com
 
 PICTURE_NOT_LOADED = "Error loading image. Please reach out to our support team!"
 UNKNOWN_ERROR = "An unknown error occurred."
+
+EMPTY_COMPANY = "Company cannot be empty."
+EMPTY_ANNOUNCED_DATE = "Announced date cannot be empty."

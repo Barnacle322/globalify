@@ -1,11 +1,11 @@
-{% extends "layouts/layout.html" %} {% block title %}Pricing{% endblock %} {% block head %} {{ super() }} {% endblock %}
-{% block content %}
-<main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden text-slate-900">
+{% extends "layouts/layout.html" %} {% block title %}Pricing{% endblock %} {% block additional_scripts %} {% endblock %}
+{% block head %} {{ super() }} {% endblock %} {% block content %}
+<main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden text-gray-900">
     <section class="mb-20 mt-6 flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8">
         <div class="flex w-full max-w-7xl flex-col items-center justify-center">
             <div class="flex flex-col items-center justify-center gap-4 px-4 sm:px-6 md:text-center lg:px-8">
                 <span
-                    class="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-900 shadow-xl"
+                    class="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-900 shadow-xl"
                     ><img src="/static/elements/3dcube.svg" alt="" />Pricing</span
                 >
                 <h2 class="mt-5 max-w-2xl text-3xl font-semibold sm:text-[40px]">
@@ -15,11 +15,11 @@
                     >
                     for everyone
                 </h2>
-                <p class="text-slate-500">Flexible Pricing Options for Advanced Search Solutions</p>
+                <p class="text-gray-500">Flexible Pricing Options for Advanced Search Solutions</p>
             </div>
             <div class="mt-16 grid w-full max-w-6xl grid-cols-1 gap-x-5 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
                 <article class="flex w-full flex-col gap-5">
-                    <div class="flex flex-col gap-5 rounded-3xl bg-slate-50 px-5 py-7">
+                    <div class="flex flex-col gap-5 rounded-3xl bg-gray-50 px-5 py-7">
                         <span class="text-lg font-semibold">Community</span>
                         <span>
                             <span
@@ -29,7 +29,7 @@
                         >
                         <p>A sneak peek into Globalify</p>
                         <a
-                            class="mt-12 w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-slate-200"
+                            class="mt-12 w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-gray-200"
                             href="/login"
                             >Try it out</a
                         >
@@ -54,7 +54,7 @@
                             document.getElementById("premium-annual").classList.remove("hidden");
                         }
                     </script>
-                    <div class="flex flex-col gap-5 rounded-3xl bg-slate-50 px-5 py-7">
+                    <div class="flex flex-col gap-5 rounded-3xl bg-gray-50 px-5 py-7">
                         <span class="text-lg font-semibold">Premium</span>
                         <span>
                             <span
@@ -76,7 +76,7 @@
                             >
                         </div>
                         <a
-                            class="w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-slate-200"
+                            class="w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-gray-200"
                             href="/login"
                             >Subscribe</a
                         >
@@ -110,7 +110,7 @@
                             document.getElementById("premium-annual").classList.remove("flex");
                         }
                     </script>
-                    <div class="flex flex-col gap-5 rounded-3xl bg-slate-50 px-5 py-7">
+                    <div class="flex flex-col gap-5 rounded-3xl bg-gray-50 px-5 py-7">
                         <span class="text-lg font-semibold">Premium</span>
                         <span class="flex items-baseline justify-start">
                             <span
@@ -134,7 +134,7 @@
                             >
                         </div>
                         <a
-                            class="w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-slate-200"
+                            class="w-full rounded-xl py-3 text-center text-lg font-medium ring-2 ring-gray-200"
                             href="/login"
                             >Subscribe</a
                         >

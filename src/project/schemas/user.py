@@ -16,6 +16,7 @@ class MemberSchema(BaseModel):
     name: str
     picture_url: str | None
     role: str
+    position: str | None
 
 
 class CompanyInvitationSchema(MemberSchema):
@@ -55,3 +56,9 @@ class SearchHistorySchema(BaseModel):
             data["created_at"] = self.created_at.strftime("%I:%M %p")
             data["date"] = self.created_at.date().isoformat()
         return data
+
+
+class SearchCompanySchema(BaseModel):
+    id: int
+    name: str
+    picture_url: str | None

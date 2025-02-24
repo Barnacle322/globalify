@@ -348,6 +348,14 @@
     view-transition-name: view-arstan;
 }
 
+.view-search {
+    view-transition-name: view-search;
+}
+
+.view-navbar {
+    view-transition-name: view-navbar;
+}
+
 .text-overflow-wrap {
     overflow-wrap: break-word;
 }
@@ -368,11 +376,10 @@ textarea {
 }
 
 .shadow-card {
-    @apply shadow-[rgba(50,50,93,0.25)_0px_6px_12px_-2px,_rgba(0,0,0,0.3)_0px_3px_7px_-3px];
+    @apply shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px];
 }
-
 .shadow-card-hover {
-    @apply shadow-[rgba(50,50,93,0.25)_0px_6px_12px_-2px,_rgba(0,0,0,0.3)_0px_3px_7px_-3px];
+    @apply shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px];
 }
 
 .shadow-card-hover:hover {
@@ -487,4 +494,14 @@ textarea {
 
 .list-leave-active {
     position: absolute;
+}
+#searchTypeToggle:checked + label .toggle-dot {
+    transform: translateX(100%);
+    background-color: #36b7ff; /* Match the gradient color */
+}
+#searchTypeToggle + label {
+    background-color: #ccc;
+}
+#searchTypeToggle:checked + label {
+    background-color: #de7cc8; /* Match the gradient color */
 }

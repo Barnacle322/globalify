@@ -1,14 +1,8 @@
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from ...extensions import db
-from ...models import (
-    Company,
-    Country,
-    Industry,
-    NotableInvestment,
-    Round,
-)
+from ...models import Company, Country, FundingRound, Industry, NotableInvestment, Round, UserCompany
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -93,14 +87,21 @@ def update_company_view(id):
         status = Status(StatusType.ERROR, COMPANY_NOT_FOUND).get_status()
         return redirect(url_for("admin.company.index", _external=True, **status))
 
+    funding_rounds = FundingRound.get_by_company_id(company_id=id)
+    user_companies = UserCompany.get_by_company_id(company_id=id)
+    users_in_company = UserCompany.get_user_ids_by_company_id(company_id=company.id)
+
     return render_template(
         "admin/update_company.html",
         company=company,
+        user_companies=user_companies,
+        funding_rounds=funding_rounds,
         rounds=Round.get_all(),
         industries=Industry.get_all(),
         countries=Country.get_all(),
         status_type=status_type,
         msg=msg,
+        users_in_company=users_in_company,
     )
 
 
@@ -284,6 +285,10 @@ def create_company():
     twitter_url = form_data.get("twitter") or None
     if twitter_url:
         twitter_url = add_https_prefix(twitter_url)
+        twitter_url = add_https_prefix(twitter_url)
+        if "x.com" in twitter_url:
+            slug = twitter_url.split("/")[-1]
+            twitter_url = f"https://twitter.com/{slug}"
         try:
             company.twitter_url = twitter_url
         except Exception as e:
@@ -361,3 +366,168 @@ def delete_company(id):
 
     status = Status(StatusType.SUCCESS, "Company deleted successfully!").get_status()
     return redirect(url_for("admin.company.index", _external=True, **status))
+
+
+@company.get("/filter")
+@admin_only
+def filter_companies():
+    query_params = request.args
+    page = query_params.get("page", 1, type=int)
+    per_page = query_params.get("per_page", 12, type=int)
+
+    active_filters = {
+        key: value
+        for key, value in {
+            "check_twitter": query_params.get("check_twitter") == "true",
+            "check_linkedin": query_params.get("check_linkedin") == "true",
+            "check_website": query_params.get("check_website") == "true",
+            "check_description": query_params.get("check_description") == "true",
+            "check_instagram": query_params.get("check_instagram") == "true",
+            "check_industry": query_params.get("check_industry") == "true",
+            "check_rounds": query_params.get("check_rounds") == "true",
+        }.items()
+        if value is True
+    }
+
+    base_query = db.select(Company)
+    conditions = []
+
+    if "check_description" in active_filters:
+        conditions.append((Company.description.is_(None)) | (Company.description == ""))
+
+    if "check_instagram" in active_filters:
+        conditions.append((Company.instagram_url.is_(None)) | (Company.instagram_url == ""))
+
+    if "check_twitter" in active_filters:
+        conditions.append((Company.twitter_url.is_(None)) | (Company.twitter_url == ""))
+
+    if "check_linkedin" in active_filters:
+        conditions.append((Company.linkedin_url.is_(None)) | (Company.linkedin_url == ""))
+
+    if "check_website" in active_filters:
+        conditions.append((Company.website_url.is_(None)) | (Company.website_url == ""))
+
+    if "check_industry" in active_filters:
+        conditions.append((Company.industry_id.is_(None)) | (Company.industry_id == ""))
+
+    if "check_rounds" in active_filters:
+        conditions.append((Company.preferred_round_id.is_(None)) | (Company.preferred_round_id == ""))
+
+    if conditions:
+        base_query = base_query.where(or_(*conditions))
+
+    pagination = db.paginate(base_query, page=page, per_page=per_page, error_out=False)
+
+    companies_data = []
+    for company in pagination.items:
+        companies_data.append(
+            {
+                "id": company.id,
+                "name": company.name,
+                "description": company.description,
+                "instagram": company.instagram_url,
+                "twitter": company.twitter_url,
+                "linkedin": company.linkedin_url,
+                "website": company.website_url,
+                "industry": company.industry,
+                "preferred_round": company.preferred_round,
+            }
+        )
+
+    total_pages = pagination.pages or 1
+    pagination_info = generate_pagination(page, total_pages, per_page)
+
+    return render_template(
+        "admin/filter_companies.html",
+        companies=companies_data,
+        total=pagination.total,
+        pagination=pagination_info,
+        total_pages=total_pages,
+    )
+
+
+@company.post("/<int:company_id>/members/add")
+@admin_only
+def add_member(company_id: int):
+    form_data = request.get_json()
+
+    user_id = form_data.get("user_id")
+    role = form_data.get("role")
+    position = form_data.get("position")
+    is_primary = form_data.get("is_primary")
+    is_public = form_data.get("is_public")
+
+    if not user_id and not role:
+        status = Status(StatusType.ERROR, "Data fields missing").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
+    if user_company:
+        status = Status(StatusType.ERROR, "Member already exists").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    user_company = UserCompany(
+        user_id=user_id, company_id=company_id, position=position, role=role, is_public=is_public, is_primary=is_primary
+    )
+    db.session.add(user_company)
+    db.session.commit()
+
+    status = Status(StatusType.SUCCESS, "Member was added successfully!").get_status()
+    return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+
+@company.post("/members/<int:user_id>")
+@admin_only
+def modify_member(user_id: int):
+    form_data = request.get_json()
+
+    company_id = form_data.get("company_id")
+    role = form_data.get("role")
+    position = form_data.get("position")
+    is_primary = form_data.get("is_primary")
+    is_public = form_data.get("is_public")
+
+    if not company_id and not role:
+        status = Status(StatusType.ERROR, "Data fields missing").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
+    if not user_company:
+        status = Status(StatusType.ERROR, "Member not found").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    try:
+        user_company.role = role
+        user_company.position = position
+        user_company.is_primary = is_primary
+        user_company.is_public = is_public
+
+        db.session.commit()
+    except Exception as e:
+        status = Status(StatusType.ERROR, f"An error occurred: {e}").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    status = Status(StatusType.SUCCESS, "Member updated successfully!").get_status()
+    return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+
+@company.get("/<int:company_id>/members/<int:user_id>/remove")
+@admin_only
+def remove_member(company_id: int, user_id: int):
+    if not user_id:
+        status = Status(StatusType.ERROR, "Data fields missing").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
+    if not user_company:
+        status = Status(StatusType.ERROR, "Member not found").get_status()
+        return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))
+
+    try:
+        db.session.delete(user_company)
+        db.session.commit()
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
+
+    status = Status(StatusType.SUCCESS, "Member deleted successfully!").get_status()
+    return redirect(url_for("admin.company.update_company_view", id=company_id, _external=True, **status))

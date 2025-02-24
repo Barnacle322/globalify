@@ -53,7 +53,7 @@ const CreateNotableInvestmentComponent = defineComponent({
 
 const NotificationComponent = defineComponent({
     template: "#notifications-template",
-    emits: ["all-notifications-read", "closenotifications"],
+    emits: ["all-notifications-read", "close"],
     watch: {
         selectedTab(newVal, oldVal) {
             if (newVal === oldVal) {
@@ -74,7 +74,7 @@ const NotificationComponent = defineComponent({
     methods: {
         handleKeyDown(event) {
             if (event.key === "Escape") {
-                this.$emit("closenotifications");
+                this.$emit("close");
             }
         },
         timeDifference(current, previous) {
@@ -271,7 +271,7 @@ const AsideMobileComponent = defineComponent({
     props: ["minified"],
     methods: {
         closeAside() {
-            this.$emit("close-aside");
+            this.$emit("close");
         },
     },
     mounted() {
@@ -289,7 +289,7 @@ const AsideMobileComponent = defineComponent({
 
 const Bookmark = defineComponent({
     template: "#bookmark-template",
-    emits: ["investor-bookmarked", "firm-bookmarked", "company-bookmarked", "closebookmarks"],
+    emits: ["investor-bookmarked", "firm-bookmarked", "company-bookmarked", "close"],
     watch: {
         selectedTab(newVal, oldVal) {
             if (newVal === oldVal) {
@@ -502,12 +502,36 @@ const Bookmark = defineComponent({
     },
 });
 
+const ProfileContextMenuComponent = defineComponent({
+    template: "#profile-context-menu",
+    emits: ["close"],
+    mounted() {
+        this.getAccounts();
+    },
+    methods: {
+        async getAccounts() {
+            const response = await fetch("/profile/accounts/get");
+            if (response.ok) {
+                this.accounts = await response.json();
+            } else {
+                console.error("Fetching accounts failed:", response.statusText);
+            }
+        },
+    },
+    data() {
+        return {
+            accounts: [],
+        };
+    },
+});
+
 const NavbarComponent = defineComponent({
     template: "#navbar-template",
     emits: ["open-aside", "open-notifications", "bookmarked"],
     components: {
         Bookmark,
         NotificationComponent,
+        ProfileContextMenuComponent,
     },
     methods: {
         handleBookmark(data, type) {
@@ -538,12 +562,28 @@ const NavbarComponent = defineComponent({
             this.notificationsOpened = true;
             this.ignoreNextOutsideClickNotifications = true;
         },
-        closeNotifications(event) {
+        close(event) {
             if (this.ignoreNextOutsideClickNotifications) {
                 this.ignoreNextOutsideClickNotifications = false;
                 return;
             } else if (event && this.$refs.notifications && !this.$refs.notifications.$el.contains(event.target)) {
                 this.notificationsOpened = false;
+            }
+        },
+        openProfileContextMenu() {
+            this.profileContextMenuOpened = true;
+            this.ignoreNextOutsideClickProfileContextMenu = true;
+        },
+        closeProfileContextMenu() {
+            if (this.ignoreNextOutsideClickProfileContextMenu) {
+                this.ignoreNextOutsideClickProfileContextMenu = false;
+                return;
+            } else if (
+                event &&
+                this.$refs.profilecontextmenu &&
+                !this.$refs.profilecontextmenu.$el.contains(event.target)
+            ) {
+                this.profileContextMenuOpened = false;
             }
         },
         async fetchNotificationInbox() {
@@ -587,15 +627,20 @@ const NavbarComponent = defineComponent({
     },
     async mounted() {
         window.addEventListener("click", this.closeBookmark);
-        window.addEventListener("click", this.closeNotifications);
+        window.addEventListener("click", this.close);
+        window.addEventListener("click", this.closeProfileContextMenu);
         if (!document.hidden) {
             this.startPolling();
         }
         document.addEventListener("visibilitychange", this.handleVisibilityChange);
+
+        const header = this.$refs.header;
+        header.setAttribute("id", "navbar");
     },
     beforeUnmount() {
         window.removeEventListener("click", this.closeBookmark);
-        window.removeEventListener("click", this.closeNotifications);
+        window.removeEventListener("click", this.close);
+        window.removeEventListener("click", this.closeProfileContextMenu);
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     },
@@ -605,406 +650,9 @@ const NavbarComponent = defineComponent({
             ignoreNextOutsideClickBookmarks: false,
             notificationsOpened: false,
             ignoreNextOutsideClickNotifications: false,
+            ignoreNextOutsideClickProfileContextMenu: false,
             notifications: [],
-        };
-    },
-});
-
-const FullInvestor = defineComponent({
-    template: "#full-investor-template",
-    props: { slug: String, rendercontacts: Boolean },
-    emits: ["close-investor", "bookmarked"],
-    mounted() {
-        window.addEventListener("keydown", this.handleKeyDown);
-        document.addEventListener("click", this.handleClickOutside);
-    },
-    beforeUnmount() {
-        window.removeEventListener("keydown", this.handleKeyDown);
-        this.deleteInvestorParam();
-        document.removeEventListener("click", this.handleClickOutside);
-        const script_element = document.getElementById("twitter-script");
-        if (script_element) script_element.remove();
-    },
-    created() {
-        this.fetchInvestor();
-        window.removeEventListener("popstate", this.checkUrlParams);
-    },
-    methods: {
-        deleteInvestorParam() {
-            const url = new URL(window.location.href);
-            url.searchParams.delete("investor");
-            window.history.replaceState({}, "", url);
-        },
-        checkUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const investorSlug = urlParams.get("investor");
-            if (!investorSlug) {
-                this.$emit("close-investor");
-            }
-        },
-        async fetchInvestor() {
-            try {
-                const response = await fetch(`/investor/${this.slug}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investor = data.investor;
-                    this.isBookmarked = data.isBookmarked;
-                    this.unpaid = data.unpaid;
-                    await this.loadTwitterTimeline();
-                } else {
-                    this.closeInvestor();
-                    return;
-                }
-            } catch (error) {
-                console.error("Error fetching investor:", error);
-                this.closeInvestor();
-            } finally {
-                this.isLoading = false;
-            }
-        },
-        async loadTwitterTimeline() {
-            if (!this.investor?.twitter) return;
-            this.loadingTwitter = true; // Set loading state to true
-            this.ensureTwitterScriptLoaded(() => {
-                const timeline = document.querySelector(".twitter-timeline");
-                if (timeline) {
-                    timeline.innerHTML = "";
-                    timeline.setAttribute("href", this.investor.twitter);
-                    window.twttr?.widgets.load();
-
-                    const observer = new MutationObserver((mutations) => {
-                        mutations.forEach((mutation) => {
-                            const twitterWidget = document.querySelector("[id^='twitter-widget-']");
-                            if (twitterWidget && twitterWidget.offsetHeight > 0) {
-                                this.loadingTwitter = false;
-                                observer.disconnect();
-                            }
-                        });
-                    });
-
-                    observer.observe(document.body, { childList: true, subtree: true });
-                }
-            });
-        },
-        ensureTwitterScriptLoaded(callback) {
-            const script_element = document.getElementById("twitter-script");
-            if (script_element) script_element.remove();
-
-            if (!this.twitterScriptLoaded) {
-                const script = document.createElement("script");
-                script.src = "https://platform.twitter.com/widgets.js";
-                script.id = "twitter-script";
-                script.async = true;
-                script.onload = () => {
-                    this.twitterScriptLoaded = true;
-                    callback();
-                };
-                document.body.appendChild(script);
-            } else {
-                callback();
-            }
-        },
-        async toggleBookmark(investorId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/investor/${investorId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
-                    if (data[0].bookmarked) {
-                        this.$emit("bookmarked", { investorId: investorId, status: true });
-                        this.isBookmarked = !this.isBookmarked;
-                    } else {
-                        // svg.style.fill = "none";
-                        this.$emit("bookmarked", { investorId: investorId, status: false });
-                        this.isBookmarked = !this.isBookmarked;
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        handleKeyDown(event) {
-            if (event.key === "Escape") {
-                this.$emit("close-investor");
-            }
-        },
-        toggleExpansion() {
-            this.isExpanded = !this.isExpanded;
-        },
-        closeInvestor() {
-            this.$emit("close-investor");
-        },
-        getTwitterHandle(url) {
-            return url.split("/").pop();
-        },
-        handleClickOutside(event) {
-            const dropdownContainer = this.$refs.dropdownContainer;
-            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-                this.dropdownOpened = false;
-            }
-        },
-    },
-    data() {
-        return {
-            showPopover: false,
-            isExpanded: false,
-            isLoading: true,
-            isBookmarked: false,
-            investor: null,
-            unpaid: false,
-            dropdownOpened: false,
-            twitterScriptLoaded: false,
-            loadingTwitter: false,
-        };
-    },
-});
-
-const FullInvestmentFirm = defineComponent({
-    template: "#full-investment-firm-template",
-    props: ["slug"],
-    emits: ["close-investment-firm", "bookmarked"],
-    mounted() {
-        window.addEventListener("keydown", this.handleKeyDown);
-        document.addEventListener("click", this.handleClickOutside);
-    },
-    beforeUnmount() {
-        window.removeEventListener("keydown", this.handleKeyDown);
-        this.deleteInvestmentFirmParam();
-        document.removeEventListener("click", this.handleClickOutside);
-    },
-    created() {
-        this.fetchInvestmentFirm();
-        window.removeEventListener("popstate", this.checkUrlParams);
-    },
-    methods: {
-        async fetchInvestmentFirm() {
-            this.isLoading = true;
-            try {
-                const response = await fetch(`/investment-firm/${this.slug}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investmentFirm = data.investment_firm;
-                    this.unpaid = data.unpaid;
-                    this.isBookmarked = data.isBookmarked;
-                } else {
-                    this.closeInvestmentFirm();
-                    return;
-                }
-            } catch (error) {
-                console.error("Error fetching investment firm:", error);
-            } finally {
-                this.isLoading = false;
-            }
-        },
-        async toggleBookmark(firmId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
-                    if (data[0].bookmarked) {
-                        this.$emit("bookmarked", { firmId: firmId, status: true });
-                        this.isBookmarked = !this.isBookmarked;
-                    } else {
-                        this.$emit("bookmarked", { firmId: firmId, status: false });
-                        this.isBookmarked = !this.isBookmarked;
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        getTwitterHandle(url) {
-            if (!url) return;
-            return url.split("/").pop();
-        },
-        deleteInvestmentFirmParam() {
-            const url = new URL(window.location.href);
-            url.searchParams.delete("investment-firm");
-            window.history.replaceState({}, "", url);
-        },
-        checkUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const investorSlug = urlParams.get("investment-firm");
-            if (!investorSlug) {
-                this.$emit("close-investment-firm");
-            }
-        },
-        handleKeyDown(event) {
-            if (event.key === "Escape") {
-                this.$emit("close-investment-firm");
-            }
-        },
-        toggleExpansion() {
-            this.isExpanded = !this.isExpanded;
-        },
-        сloseInvestmentFirm() {
-            this.$emit("close-investment-firm");
-        },
-        handleClickOutside(event) {
-            const dropdownContainer = this.$refs.dropdownContainer;
-            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-                this.dropdownOpened = false;
-            }
-        },
-    },
-    data() {
-        return {
-            isExpanded: false,
-            isLoading: false,
-            investmentFirm: null,
-            isBookmarked: false,
-            unpaid: false,
-            dropdownOpened: false,
-        };
-    },
-});
-
-const FullCompany = defineComponent({
-    template: "#full-company-template",
-    props: ["slug"],
-    emits: ["close-company", "bookmarked"],
-    mounted() {
-        window.addEventListener("keydown", this.handleKeyDown);
-        document.addEventListener("click", this.handleClickOutside);
-    },
-    beforeUnmount() {
-        window.removeEventListener("keydown", this.handleKeyDown);
-        this.deleteCompanyParam();
-        document.removeEventListener("click", this.handleClickOutside);
-    },
-    created() {
-        this.fetchCompany();
-        window.removeEventListener("popstate", this.checkUrlParams);
-    },
-    methods: {
-        deleteCompanyParam() {
-            const url = new URL(window.location.href);
-            url.searchParams.delete("company");
-            window.history.replaceState({}, "", url);
-        },
-        checkUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const investorSlug = urlParams.get("company");
-            if (!investorSlug) {
-                this.$emit("close-company");
-            }
-        },
-        async fetchCompany() {
-            this.isLoading = true;
-            try {
-                const response = await fetch(`/company/${this.slug}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.company = data.company;
-                    this.unpaid = data.unpaid;
-                    this.isBookmarked = data.isBookmarked;
-                } else {
-                    this.closeCompany();
-                    return;
-                }
-            } catch (error) {
-                console.error("Error fetching company:", error);
-            } finally {
-                this.isLoading = false;
-            }
-        },
-        async toggleBookmark(companyId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/company/${companyId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-company-${companyId}`);
-                    if (data[0].bookmarked) {
-                        this.$emit("bookmarked", { companyId: companyId, status: true });
-                        this.isBookmarked = !this.isBookmarked;
-                    } else {
-                        svg.style.fill = "none";
-                        this.$emit("bookmarked", { companyId: companyId, status: false });
-                        this.isBookmarked = !this.isBookmarked;
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        handleKeyDown(event) {
-            if (event.key === "Escape") {
-                this.$emit("close-company");
-            }
-        },
-        getTwitterHandle(url) {
-            if (!url) return;
-            return url.split("/").pop();
-        },
-        toggleExpansion() {
-            this.isExpanded = !this.isExpanded;
-        },
-        closeCompany() {
-            this.$emit("close-company");
-        },
-        handleClickOutside(event) {
-            const dropdownContainer = this.$refs.dropdownContainer;
-            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-                this.dropdownOpened = false;
-            }
-        },
-    },
-    data() {
-        return {
-            isExpanded: false,
-            isLoading: false,
-            isBookmarked: false,
-            company: null,
-            unpaid: false,
-            dropdownOpened: false,
-        };
-    },
-});
-
-const SearchHistory = defineComponent({
-    template: "#search-history-template",
-    delimiters: ["[[", "]]"],
-    props: ["type"],
-    async mounted() {
-        try {
-            const response = await fetch(`/search-history?type=${this.type}&page=1&limit=5`);
-            if (response.ok) {
-                const data = await response.json();
-                for (let item of data) {
-                    this.searchHistoryData.push(...item.histories);
-                }
-            } else {
-                console.error("An error occurred while fetching the search history.");
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    },
-    data() {
-        return {
-            searchHistoryData: [],
+            profileContextMenuOpened: false,
         };
     },
 });

@@ -1,0 +1,29 @@
+{% macro render() %}
+<template id="delete-investment-template">
+    <article
+        class="fixed right-1/2 top-1/2 z-50 flex w-10/12 -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
+    >
+        <div class="flex items-start justify-between">
+            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+            <span class="text-dark text-xl font-medium">Are you sure you want to delete investment?</span>
+            <button @click="closeDeleteInvestment">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-6 w-6"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <span class="text-dark">This action will delete the investment.</span>
+        <div class="flex justify-end gap-5">
+            <button @click="closeDeleteInvestment" class="rounded-lg border border-gray-300 px-3 py-2">Close</button>
+            <button @click="deleteInvestment(id)" class="rounded-lg bg-red-500 px-3 py-2 text-white">Confirm</button>
+        </div>
+    </article>
+</template>
+{% endmacro %}

@@ -3,7 +3,7 @@
 {% block title %} {{ company.name }} {% endblock %} 
 {% block head %} {{ super() }} {% endblock %} 
 {% block content %}
-<main class="mx-auto flex min-h-screen flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+<main class="mx-auto flex min-h-screen flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
     {% if status_type %} {% if status_type == '3' %}
     <div class="flex w-full rounded-xl text-red-500">{{ msg }}</div>
     {% elif status_type == '2' %}
@@ -84,7 +84,7 @@
                     Series:
                 </span>
                 <div class="flex flex-wrap gap-1">
-                    <a class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
+                    <a class="rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-nowrap text-[#dd70d8]"
                         >{{ company.preferred_round.name }}
                     </a>
                 </div>
@@ -109,7 +109,7 @@
                     Industry:
                 </span>
                 <div class="flex flex-wrap gap-1">
-                    <a class="text-nowrap rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-[#26a3f1]"
+                    <a class="rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-nowrap text-[#26a3f1]"
                         >{{ company.industry.name }}</a
                     >
                 </div>
@@ -133,7 +133,7 @@
                     <a
                         href="{{ company.twitter_url }}"
                         target="_blank"
-                        class="flex select-text items-center gap-1 text-gray-700 underline"
+                        class="flex items-center gap-1 text-gray-700 underline select-text"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
@@ -159,7 +159,7 @@
                     <a
                         href="{{ company.linkedin_url }}"
                         target="_blank"
-                        class="flex select-text items-center gap-1 text-gray-700 underline"
+                        class="flex items-center gap-1 text-gray-700 underline select-text"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
@@ -185,7 +185,7 @@
                     <a
                         href="{{ company.instagram_url }}"
                         target="_blank"
-                        class="flex select-text items-center gap-1 text-gray-700 underline"
+                        class="flex items-center gap-1 text-gray-700 underline select-text"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path
@@ -221,7 +221,7 @@
                     <a
                         href="{{ company.website_url }}"
                         target="_blank"
-                        class="flex select-text items-center gap-1 text-gray-700 underline"
+                        class="flex items-center gap-1 text-gray-700 underline select-text"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4">
                             <path

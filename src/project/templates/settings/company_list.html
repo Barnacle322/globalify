@@ -59,7 +59,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -72,7 +72,7 @@
                 <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="inviteMemberOpened"></div>
+                <div class="fixed top-0 left-0 z-50 h-full w-full bg-black/70" v-if="inviteMemberOpened"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <invite-member-component
@@ -188,7 +188,7 @@
                         </a>
                     </div>
                 </nav>
-                <main class="flex flex-col items-center justify-center p-4 @container sm:p-6">
+                <main class="@container flex flex-col items-center justify-center p-4 sm:p-6">
                     {% if not companies %}
                     <div class="mt-14 flex w-full flex-col items-center justify-center gap-1">
                         <svg
@@ -296,7 +296,7 @@
                                     </div>
                                 </div>
                             </a>
-                            <div class="absolute right-3 top-3">
+                            <div class="absolute top-3 right-3">
                                 <button
                                     @click.prevent="!openedDropdownCompanyId ? openDropdown({{company.id}}) : closeDropdown()"
                                 >
@@ -317,7 +317,7 @@
                                 </button>
                                 <div
                                     v-if="openedDropdownCompanyId === {{ company.id }}"
-                                    class="absolute right-0 top-8 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
+                                    class="absolute top-8 right-0 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-xs"
                                     ref="dropdown"
                                 >
                                     <button

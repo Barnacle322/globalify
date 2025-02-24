@@ -1,7 +1,7 @@
 {% macro render(user) %}
 <template id="full-company-template">
     <article
-        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col overflow-y-scroll bg-white transition-all"
+        class="fixed top-0 right-0 z-50 flex h-full w-full flex-col overflow-y-scroll bg-white transition-all"
         :class="isExpanded ? 'md:w-full lg:w-full 2xl:w-full' : 'md:w-4/5 md:rounded-l-3xl lg:w-2/3 2xl:w-1/2'"
     >
         <div v-if="isLoading" class="grid h-full w-full place-content-center">
@@ -16,7 +16,7 @@
         </div>
 
         <div v-else>
-            <nav class="sticky right-0 top-0 z-10 flex w-full items-center justify-between bg-white px-7 py-4">
+            <nav class="sticky top-0 right-0 z-10 flex w-full items-center justify-between bg-white px-7 py-4">
                 <button
                     @click="toggleExpansion"
                     class="hidden rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50 md:block"
@@ -68,7 +68,7 @@
                     </svg>
                 </button>
             </nav>
-            <main class="mx-auto flex min-h-screen flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+            <main class="mx-auto flex min-h-screen flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
                 <section class="flex w-full max-w-7xl items-center justify-between gap-2">
                     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
 
@@ -108,7 +108,7 @@
                         <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
                             <div
                                 v-if="dropdownOpened"
-                                class="absolute right-2 top-6 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
+                                class="absolute top-6 right-2 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-xs"
                             >
                                 <a
                                     class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
@@ -256,7 +256,7 @@
                                 <a
                                     :href="company.twitter"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -286,7 +286,7 @@
                                 <a
                                     :href="company.linkedin"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -316,7 +316,7 @@
                                 <a
                                     :href="company.instagram"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -356,7 +356,7 @@
                                 <a
                                     :href="company.website"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -396,7 +396,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -429,7 +429,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -468,7 +468,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -506,7 +506,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <span>Investor email</span>
                                         </a>
@@ -520,7 +520,7 @@
                                 >
                                 <a
                                     href="/tier-selection"
-                                    class="mt-5 w-fit rounded-lg bg-gradient-to-r from-[#897BE6] to-[#E87BC3] px-3 py-2 font-medium text-white transition-transform ease-in-out hover:scale-105"
+                                    class="mt-5 w-fit rounded-lg bg-linear-to-r from-[#897BE6] to-[#E87BC3] px-3 py-2 font-medium text-white transition-transform ease-in-out hover:scale-105"
                                     >View all contacts</a
                                 >
                             </div>
@@ -552,7 +552,7 @@
                             </span>
                             <div class="flex flex-wrap gap-1">
                                 <a
-                                    class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
+                                    class="rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-nowrap text-[#dd70d8]"
                                     v-text="company.preferred_round.name"
                                 >
                                 </a>
@@ -578,7 +578,7 @@
                             </span>
                             <div class="flex flex-wrap gap-1">
                                 <a
-                                    class="text-nowrap rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-[#26a3f1]"
+                                    class="rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-nowrap text-[#26a3f1]"
                                     v-text="company.industry.name"
                                 ></a>
                             </div>
@@ -589,7 +589,7 @@
                             class="mt-5"
                         >
                             <table class="relative w-full table-auto overflow-hidden">
-                                <tr class="border-b bg-gray-50 font-medium *:text-nowrap *:px-4">
+                                <tr class="border-b bg-gray-50 font-medium *:px-4 *:text-nowrap">
                                     <td class="py-4 pl-4">Investor</td>
                                     <td class="py-4">Amount</td>
                                     <td class="py-4">Funding Round</td>
@@ -620,7 +620,7 @@
                                         >
                                             <div
                                                 v-if="sortDropdownOpened"
-                                                class="absolute right-4 top-10 z-50 flex w-40 origin-top-right flex-col gap-1 rounded-lg border bg-white p-2 shadow-lg"
+                                                class="absolute top-10 right-4 z-50 flex w-40 origin-top-right flex-col gap-1 rounded-lg border bg-white p-2 shadow-lg"
                                             >
                                                 <button
                                                     class="flex items-center gap-1 rounded-md p-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -669,7 +669,7 @@
                                     </td>
                                 </tr>
                                 <tr
-                                    class="border-b text-sm text-gray-700 *:text-nowrap *:px-4 last:border-0 odd:bg-gray-50"
+                                    class="border-b text-sm text-gray-700 *:px-4 *:text-nowrap last:border-0 odd:bg-gray-50"
                                     v-for="investment in investments"
                                     :key="investment.id"
                                 >

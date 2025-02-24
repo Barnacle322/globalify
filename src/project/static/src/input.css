@@ -1,10 +1,250 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+
+@theme inline {
+    --color-deep-purple: #231645;
+    --animate-border: border 4s ease infinite;
+    --animate-slide-in-right: slide-in-right 0.4s ease;
+    --animate-slide-out-right: slide-out-right 0.4s ease;
+    --animate-slide-in-left: slide-in-left 0.3s;
+    --animate-slide-out-left: slide-out-left 0.3s;
+    --animate-fade-in: fade-in 0.5s ease;
+    --animate-fade-out: fade-out 0.5s ease;
+    --animate-zoom-in: zoom-in 0.1s ease;
+    --animate-zoom-out: zoom-out 0.1s ease;
+    --animate-disappear-instantly: disappear-instantly 0.1s ease-in-out;
+    --animate-breathe: breathe 1.5s ease infinite;
+    --spacing-8xl: 90rem;
+    --shadow-card: 0 3px 8px rgb(0, 0, 0, 0.24);
+
+    @keyframes border {
+        0%,
+        100% {backgroundPosition: 0% 50%;}
+    }
+    @keyframes slide-in-right{
+        0% { transform: translateX(100%);}
+        100% { transform: translateX(0); }
+    }
+    @keyframes slide-out-right {
+         0% { transform: translateX(0);}
+        100% { transform: translateX(100%); }
+    }
+    @keyframes slide-in-left {
+        0% { transform: translateX(-100%); }
+        100%{ transform: translateX(0);}
+    }
+    @keyframes slide-out-left {
+        0% { transform: translateX(0);}
+        100% { transform: translateX(-100%);}
+    }
+    @keyframes fade-in {
+         0% { opacity: 0;}
+         100% { opacity: 1; }
+    }
+    @keyframes fade-out {
+        0% { opacity: 1;}
+        100% { opacity: 0;}
+    }
+    @keyframes zoom-in {
+        0% { transform: scale(0.95); opacity: 0; }
+        100% { transform: scale(1); opacity: 1 ;}
+    }
+    @keyframes zoom-out  {
+            0% { transform: scale(1); opacity: 1;}
+            100% { transform: scale(0.95); opacity: 0; }
+    }
+    @keyframes disappear-instantly {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+
+    }
+    @keyframes breathe {
+        0%, 100% { transform: scale(1); opacity: 0.4; }
+        50% { transform: scale(1.10); opacity: 1; }
+    }
+    @keyframes gradient {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+    @keyframes fade-in {
+        0% {
+            opacity: 0;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+    @keyframes fade-scale-out {
+        0% {
+            opacity: 1;
+            scale: 1;
+        }
+        100% {
+            opacity: 0;
+            scale: 0.8;
+        }
+    }
+    @keyframes move-up {
+        0% {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    @keyframes pulse {
+        0%,
+        100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+    @keyframes fadeOutRight {
+        0% {
+            transform: translateX(0);
+        }
+        100% {
+            transform: translateX(150%);
+        }
+    }
+    @keyframes fadeInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(150%);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    @keyframes fadeOutDown {
+        0% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(150%);
+        }
+    }
+    @keyframes slide-left {
+        0% {
+            opacity: 100%;
+            transform: translateX(0);
+        }
+        100% {
+            opacity: 100%;
+            transform: translateX(-102%);
+        }
+    }
+    @keyframes slide-right {
+        0% {
+            opacity: 100%;
+            transform: translateX(0);
+        }
+        100% {
+            opacity: 100%;
+            transform: translateX(102%);
+        }
+    }
+    @keyframes scroll {
+        0% {
+            transform: translateY(0);
+        }
+        25% {
+            transform: translateY(-100%);
+        }
+        50% {
+            transform: translateY(-200%);
+        }
+        75% {
+            transform: translateY(-300%);
+        }
+        100% {
+            transform: translateY(-400%);
+        }
+    }
+    @keyframes pop-in {
+        0% {
+            opacity: 0%;
+        }
+        100% {
+            opacity: 100%;
+        }
+    }
+    @keyframes pop-out {
+        0% {
+            opacity: 100%;
+        }
+        100% {
+            opacity: 0%;
+        }
+    }
+    @keyframes slide-fade-in-left {
+        0% {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    @keyframes slide-fade-out-left {
+        0% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        100% {
+            opacity: 0;
+            transform: translateX(-100%);
+        }
+    }
+    @keyframes slide-fade-in-right {
+        0% {
+            opacity: 0;
+            transform: translateX(-100%);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    @keyframes slide-fade-out-right {
+        0% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        100% {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+    @keyframes blinkTextCursor {
+        from {
+            border-right-color: rgba(255, 255, 255, 0.75);
+        }
+        to {
+            border-right-color: transparent;
+        }
+    }
+}
 
 @font-face {
     font-family: "Lexend";
-    src: url("../elements/fonts/Lexend.ttf");
+    src: url("/static/elements/fonts/Lexend.ttf");
 }
 
 @font-face {
@@ -127,135 +367,22 @@
     font-family: Poppins;
 }
 
+.font-poppins {
+    font-family: Poppins;
+}
+
 @layer base {
     html {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji",
             "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     }
-}
-
-@keyframes gradient {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
-@keyframes fade-in {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes fade-scale-out {
-    0% {
-        opacity: 1;
-        scale: 1;
-    }
-    100% {
-        opacity: 0;
-        scale: 0.8;
-    }
-}
-
-@keyframes move-up {
-    0% {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes pulse {
-    0%,
-    100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-}
-
-@keyframes fadeOutRight {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(150%);
-    }
-}
-
-@keyframes fadeInUp {
-    0% {
-        opacity: 0;
-        transform: translateY(150%);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeOutDown {
-    0% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(150%);
-    }
-}
-
-@keyframes slide-left {
-    0% {
-        opacity: 100%;
-        transform: translateX(0);
-    }
-    100% {
-        opacity: 100%;
-        transform: translateX(-102%);
-    }
-}
-
-@keyframes slide-right {
-    0% {
-        opacity: 100%;
-        transform: translateX(0);
-    }
-    100% {
-        opacity: 100%;
-        transform: translateX(102%);
-    }
-}
-
-@keyframes scroll {
-    0% {
-        transform: translateY(0);
-    }
-    25% {
-        transform: translateY(-100%);
-    }
-    50% {
-        transform: translateY(-200%);
-    }
-    75% {
-        transform: translateY(-300%);
-    }
-    100% {
-        transform: translateY(-400%);
-    }
+      *,
+      ::after,
+      ::before,
+      ::backdrop,
+      ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+  }
 }
 
 .scroll {
@@ -375,37 +502,14 @@ textarea {
     field-sizing: content;
 }
 
-.shadow-card {
-    @apply shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px];
-}
-.shadow-card-hover {
-    @apply shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px];
-}
-
-.shadow-card-hover:hover {
-    @apply shadow-[0px_4px_16px_rgba(17,17,26,0.1),_0px_8px_24px_rgba(17,17,26,0.1),_0px_16px_56px_rgba(17,17,26,0.1)];
-}
+/*.hover\:shadow-card-hover1:hover {*/
+/*    0 4px 16px rgb(17 17 26 / 0.1),*/
+/*    0 8px 24px rgb(17 17 26 / 0.1),*/
+/*    0 16px 56px rgb(17 17 26 / 0.1),*/
+/*}*/
 
 @view-transition {
     navigation: auto;
-}
-
-@keyframes pop-in {
-    0% {
-        opacity: 0%;
-    }
-    100% {
-        opacity: 100%;
-    }
-}
-
-@keyframes pop-out {
-    0% {
-        opacity: 100%;
-    }
-    100% {
-        opacity: 0%;
-    }
 }
 
 .pop-in {
@@ -420,56 +524,12 @@ textarea {
     field-sizing: content;
 }
 
-@keyframes slide-fade-in-left {
-    0% {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes slide-fade-out-left {
-    0% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translateX(-100%);
-    }
-}
-
 .slide-fade-in-left {
     animation: slide-fade-in-left 0.4s cubic-bezier(0.5, 0, 0, 1);
 }
 
 .slide-fade-out-left {
     animation: slide-fade-out-left 0.4s cubic-bezier(0.5, 0, 0, 1);
-}
-
-@keyframes slide-fade-in-right {
-    0% {
-        opacity: 0;
-        transform: translateX(-100%);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes slide-fade-out-right {
-    0% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translateX(100%);
-    }
 }
 
 .slide-fade-in-right {
@@ -543,11 +603,6 @@ textarea {
                blinkTextCursor 500ms steps(40, end) infinite normal;
 }
 
-@keyframes blinkTextCursor {
-    from {
-        border-right-color: rgba(255, 255, 255, 0.75);
-    }
-    to {
-        border-right-color: transparent;
-    }
+.shadow-card-hover:hover {
+    @apply shadow-[0px_4px_16px_rgba(17,17,26,0.1),_0px_8px_24px_rgba(17,17,26,0.1),_0px_16px_56px_rgba(17,17,26,0.1)];
 }

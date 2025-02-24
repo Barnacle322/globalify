@@ -1,11 +1,11 @@
 {% macro render() %}
 <template id="search-investors-template">
     <section
-        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col gap-4 bg-white p-3 sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-3xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
+        class="fixed top-0 right-0 z-50 flex h-full w-full flex-col gap-4 bg-white p-3 sm:top-1/2 sm:right-1/2 sm:h-auto sm:max-w-3xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
     >
-        <div class="flex flex-col items-center justify-center gap-6 rounded-2xl bg-deep-purple p-8">
+        <div class="bg-deep-purple flex flex-col items-center justify-center gap-6 rounded-2xl p-8">
             <h1
-                class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text py-2 text-center text-5xl font-bold tracking-tight text-transparent"
+                class="w-fit bg-linear-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text py-2 text-center text-5xl font-bold tracking-tight text-transparent"
             >
                 Globalify
             </h1>
@@ -23,7 +23,7 @@
                     <label
                         for="investor"
                         class="w-32 cursor-pointer rounded-lg px-4 py-2 text-center font-medium transition duration-200 ease-in-out"
-                        :class="{'bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white': searchType === 'investor', 'bg-white text-gray-700': searchType !== 'investor'}"
+                        :class="{'bg-linear-to-r from-[#36B7FF] to-[#DE7CC8] text-white': searchType === 'investor', 'bg-white text-gray-700': searchType !== 'investor'}"
                     >
                         Investors
                     </label>
@@ -38,7 +38,7 @@
                     <label
                         for="investment_firm"
                         class="w-32 cursor-pointer rounded-lg px-4 py-2 text-center font-medium transition duration-200 ease-in-out"
-                        :class="{'bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] text-white': searchType === 'investment_firm', 'bg-white text-gray-700': searchType !== 'investment_firm'}"
+                        :class="{'bg-linear-to-r from-[#36B7FF] to-[#DE7CC8] text-white': searchType === 'investment_firm', 'bg-white text-gray-700': searchType !== 'investment_firm'}"
                     >
                         Firms
                     </label>
@@ -50,7 +50,7 @@
                 <input
                     type="search"
                     ref="searchInput"
-                    class="w-full border-0 bg-transparent py-3 pl-6 pr-0 focus:ring-0"
+                    class="w-full border-0 bg-transparent py-3 pr-0 pl-6 focus:ring-0"
                     placeholder="Search"
                     autocapitalize="off"
                     autocorrect="off"
@@ -71,7 +71,7 @@
                     <button
                         @click="selectInvestor(investor, searchType)"
                         v-text="investor.name"
-                        class="text-xl font-bold leading-none"
+                        class="text-xl leading-none font-bold"
                     ></button>
                 </div>
                 <div class="mt-5 flex flex-col gap-2 text-sm">
@@ -142,7 +142,7 @@
                             <a
                                 v-for="round in investor.rounds"
                                 :key="round.id"
-                                class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
+                                class="rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-nowrap text-[#dd70d8]"
                                 v-text="round"
                             >
                             </a>

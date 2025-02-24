@@ -1,7 +1,7 @@
 {% macro render(user) %}
 <template id="full-investment-firm-template">
     <article
-        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col overflow-y-scroll bg-white transition-all"
+        class="fixed top-0 right-0 z-50 flex h-full w-full flex-col overflow-y-scroll bg-white transition-all"
         :class="isExpanded ? 'md:w-full lg:w-full 2xl:w-full' : 'md:w-4/5 md:rounded-l-3xl lg:w-2/3 2xl:w-1/2'"
     >
         <div v-if="isLoading" class="grid h-full w-full place-content-center">
@@ -16,7 +16,7 @@
         </div>
 
         <div v-else>
-            <nav class="sticky right-0 top-0 z-10 flex w-full items-center justify-between bg-white px-7 py-4">
+            <nav class="sticky top-0 right-0 z-10 flex w-full items-center justify-between bg-white px-7 py-4">
                 <button
                     @click="toggleExpansion"
                     class="hidden rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50 md:block"
@@ -68,7 +68,7 @@
                     </svg>
                 </button>
             </nav>
-            <main class="mx-auto flex min-h-screen flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+            <main class="mx-auto flex min-h-screen flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
                 <section class="mx-auto flex w-full max-w-7xl items-center gap-2">
                     <img
                         v-if="investmentFirm.twitter"
@@ -98,7 +98,7 @@
                         <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
                             <div
                                 v-if="dropdownOpened"
-                                class="absolute right-2 top-6 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
+                                class="absolute top-6 right-2 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-xs"
                             >
                                 <a
                                     class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
@@ -263,7 +263,7 @@
                                 <a
                                     :href="investmentFirm.twitter"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -293,7 +293,7 @@
                                 <a
                                     :href="investmentFirm.linkedin"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -333,7 +333,7 @@
                                 <a
                                     :href="investmentFirm.website"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -372,7 +372,7 @@
                                 </span>
                                 <a
                                     :href="`mailto:${investmentFirm.email}`"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <span v-text="investmentFirm.email"></span>
                                 </a>
@@ -402,7 +402,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -435,7 +435,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -474,7 +474,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -512,7 +512,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <span>Investor email</span>
                                         </a>
@@ -526,7 +526,7 @@
                                 >
                                 <a
                                     href="/tier-selection"
-                                    class="mt-5 w-fit rounded-lg bg-gradient-to-r from-[#897BE6] to-[#E87BC3] px-3 py-2 font-medium text-white transition-transform ease-in-out hover:scale-105"
+                                    class="mt-5 w-fit rounded-lg bg-linear-to-r from-[#897BE6] to-[#E87BC3] px-3 py-2 font-medium text-white transition-transform ease-in-out hover:scale-105"
                                     >View all contacts</a
                                 >
                             </div>
@@ -559,7 +559,7 @@
                                 <a
                                     v-for="round in investmentFirm.rounds"
                                     :key="round.id"
-                                    class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
+                                    class="rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-nowrap text-[#dd70d8]"
                                     v-text="round.name"
                                 >
                                 </a>
@@ -587,7 +587,7 @@
                                 <a
                                     v-for="industry in investmentFirm.industries"
                                     :key="industry.id"
-                                    class="text-nowrap rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-[#26a3f1]"
+                                    class="rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-nowrap text-[#26a3f1]"
                                     v-text="industry.name"
                                 ></a>
                             </div>
@@ -646,7 +646,7 @@
                                     v-for="investment in investmentFirm.notable_investments"
                                     :key="investment.id"
                                     v-text="investment.name"
-                                    class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500"
+                                    class="rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-nowrap text-violet-500"
                                 ></a>
                             </div>
                         </div>
@@ -681,7 +681,7 @@
                                             >
                                                 <div
                                                     v-if="sortDropdownOpened"
-                                                    class="absolute right-11 top-11 z-50 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1"
+                                                    class="absolute top-11 right-11 z-50 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1"
                                                 >
                                                     <button
                                                         class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-gray-200"
@@ -715,7 +715,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <tr class="border-b border-t" v-for="investment in investments" :key="investment.id">
+                                <tr class="border-t border-b" v-for="investment in investments" :key="investment.id">
                                     <td
                                         class="pr-4 text-end"
                                         v-text="investment.announced_date !== null ? investment.announced_date : 'N/A'"

@@ -63,7 +63,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -76,7 +76,7 @@
                 <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="createInvestmentOpened"></div>
+                <div class="fixed top-0 left-0 z-50 h-full w-full bg-black/70" v-if="createInvestmentOpened"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <create-investment-component
@@ -86,7 +86,7 @@
                 ></create-investment-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="deleteInvestmentOpened"></div>
+                <div class="fixed top-0 left-0 z-50 h-full w-full bg-black/70" v-if="deleteInvestmentOpened"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <delete-investment-component
@@ -96,7 +96,7 @@
                 ></delete-investment-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div class="fixed left-0 top-0 z-50 h-full w-full bg-black/70" v-if="updateInvestmentOpened"></div>
+                <div class="fixed top-0 left-0 z-50 h-full w-full bg-black/70" v-if="updateInvestmentOpened"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <update-investment-component
@@ -186,7 +186,7 @@
                     <div class="relative col-span-full sm:col-span-3">
                         <label class="text-sm font-medium text-gray-700" for="location">Rounds</label>
                         <button
-                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-checked:border-sky-500"
                             id="round-options"
                             aria-haspopup="true"
                             aria-expanded="true"
@@ -245,7 +245,7 @@
                     <div class="relative col-span-full sm:col-span-3">
                         <label class="text-sm font-medium text-gray-700" for="location">Industries</label>
                         <button
-                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-checked:border-sky-500"
                             id="industry-options"
                             aria-haspopup="true"
                             aria-expanded="true"
@@ -327,7 +327,7 @@
                     </div>
 
                     <div class="col-span-full">
-                        <label for="investment" class="block text-sm font-medium leading-6 text-gray-900"
+                        <label for="investment" class="block text-sm leading-6 font-medium text-gray-900"
                             >Investments</label
                         >
                         {% if investments %}
@@ -364,7 +364,7 @@
                                 <span class="text-sm font-medium">Add an investment</span>
                             </button>
                             {% for investment in investments %}
-                            <div class="flex flex-col justify-between gap-2 border-b border-t bg-white p-4 sm:flex-row">
+                            <div class="flex flex-col justify-between gap-2 border-t border-b bg-white p-4 sm:flex-row">
                                 <div class="relative flex w-full items-start justify-between gap-3">
                                     <div class="flex flex-col gap-2">
                                         {% if investment.funding_round.company %}
@@ -372,7 +372,7 @@
                                         {% endif %} {% if investment.funding_round.round %}
                                         <div class="flex flex-wrap gap-1">
                                             <a
-                                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
+                                                class="rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-nowrap text-[#D182CD]"
                                                 >{{ investment.funding_round.round.name }}
                                             </a>
                                         </div>
@@ -536,8 +536,8 @@
                     </div>
                     <div class="col-span-full">
                         <div>
-                            <span class="block text-sm font-medium leading-6">Visibility Settings</span>
-                            <span class="block text-sm font-medium leading-6 text-gray-500"
+                            <span class="block text-sm leading-6 font-medium">Visibility Settings</span>
+                            <span class="block text-sm leading-6 font-medium text-gray-500"
                                 >You can make the investment firm visible in the search results.
                             </span>
                         </div>
@@ -548,7 +548,7 @@
                             <input type="checkbox" id="is_public" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Show investment firm in search</span>
                         </label>

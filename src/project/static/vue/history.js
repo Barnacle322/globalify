@@ -10,33 +10,35 @@ createApp({
         },
     },
     mounted() {
+        document.addEventListener("click", this.handleClickOutside);
         this.asideMinified = localStorage.getItem("asideMinified") == "true";
-        this.searchType = new URLSearchParams(window.location.search).get("filter");
 
         this.setupInfiniteScroll();
+        this.fetchHistoryTypes();
     },
     methods: {
         setupInfiniteScroll() {
-            const observer = new IntersectionObserver((entries) => {
+            this.observer = new IntersectionObserver((entries) =>
                 entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        this.loadMoreSearchHistories();
-                    }
-                });
-            });
-            observer.observe(this.$refs.historySentinel);
-            this.observer = observer;
+                    if (entry.isIntersecting) this.loadMore();
+                }),
+            );
+            this.observer.observe(this.$refs.historySentinel);
         },
-        async loadMoreSearchHistories() {
+        async loadMore() {
             if (this.loading || this.noMoreItems) return;
+
             this.loading = true;
             try {
-                console.log(
-                    `/search-history?${this.searchType ? "type=" + this.searchType : ""}page=${this.page}&limit=100`,
-                );
-                const response = await fetch(
-                    `/search-history?${this.searchType ? "type=" + this.searchType + "&" : ""}page=${this.page}&limit=100`,
-                );
+                const url = new URL(window.location);
+                const params = new URLSearchParams({
+                    page: this.page,
+                    limit: 100,
+                    type: url.searchParams.get("filter") || "all",
+                    search: this.searchString,
+                });
+
+                const response = await fetch(`/search-history?${params.toString()}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch data");
                 }
@@ -81,6 +83,119 @@ createApp({
                 return baseDate;
             }
         },
+        selectType(typeValue) {
+            this.dropdownOpened = false;
+            this.clearSelection();
+
+            const url = new URL(window.location);
+            url.searchParams.set("filter", typeValue);
+            window.history.pushState({}, "", url);
+
+            this.page = 1;
+            this.noMoreItems = false;
+            this.searchHistories.clear();
+            this.loadMore();
+        },
+        handleClickOutside(event) {
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
+        },
+        async fetchHistoryTypes() {
+            try {
+                const response = await fetch("/history/types");
+                if (!response.ok) throw new Error("Failed to fetch history types");
+                this.historyTypes = await response.json();
+
+                if (this.searchType !== "" && !this.historyTypes.some((t) => t.value === this.searchType)) {
+                    this.searchType = this.historyTypes[0]?.value || "";
+                }
+            } catch (error) {
+                console.error("Error fetching history types:", error);
+            }
+        },
+        handleItemClick(event, item) {
+            if (event.target.type === "checkbox") return;
+
+            window.location.href = `/search${
+                item.type === "investmentfirm" ? "/investment-firms" : item.type === "company" ? "/companies" : ""
+            }?search=${item.query}`;
+        },
+        toggleSelection(itemId) {
+            if (this.selectedItems.has(itemId)) {
+                this.selectedItems.delete(itemId);
+            } else {
+                this.selectedItems.add(itemId);
+            }
+        },
+        clearSelection() {
+            this.selectedItems.clear();
+        },
+        async deleteSelected() {
+            await this.deleteItems(Array.from(this.selectedItems));
+        },
+
+        async deleteItems(ids) {
+            if (ids.length === 0) {
+                console.warn("No items selected for deletion.");
+                return;
+            }
+
+            try {
+                const response = await fetch("/history/delete", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": document.getElementById("csrf_token").value,
+                    },
+                    body: JSON.stringify({ ids }),
+                });
+
+                if (!response.ok) throw new Error("Delete failed");
+
+                ids.forEach((id) => this.removeHistoryItem(id));
+
+                if (ids === Array.from(this.selectedItems)) {
+                    this.selectedItems.clear();
+                }
+            } catch (error) {
+                console.error("Delete error:", error);
+            }
+        },
+        removeHistoryItem(id) {
+            for (const [day, histories] of this.searchHistories) {
+                const index = histories.findIndex((item) => item.id == id);
+                if (index > -1) {
+                    histories.splice(index, 1);
+                    if (histories.length === 0) {
+                        this.searchHistories.delete(day);
+                    }
+                    break;
+                }
+            }
+        },
+        handleSearch() {
+            clearTimeout(this.debounceTimeout);
+            this.debounceTimeout = setTimeout(() => {
+                this.applySearch();
+            }, 300);
+        },
+        applySearch() {
+            this.page = 1;
+            this.noMoreItems = false;
+            this.searchHistories.clear();
+
+            const url = new URL(window.location);
+            if (this.searchString) {
+                url.searchParams.set("search", this.searchString);
+            } else {
+                url.searchParams.delete("search");
+            }
+            window.history.pushState({}, "", url);
+
+            this.loadMore();
+        },
     },
     data() {
         return {
@@ -88,12 +203,19 @@ createApp({
             asideMinified: false,
             openAdvanced: false,
 
-            searchType: false,
+            searchType: "",
+            searchString: "",
 
             searchHistories: new Map(),
             page: 1,
             loading: false,
             noMoreItems: false,
+
+            historyTypes: [],
+            observer: null,
+            dropdownOpened: false,
+            selectedItems: new Set(),
+            debounceTimeout: null,
         };
     },
 }).mount("#app");

@@ -4,7 +4,7 @@
         class="fixed right-0 top-0 z-[60] flex h-full w-full flex-col overflow-y-scroll overscroll-contain bg-white transition-all"
         :class="isExpanded ? 'md:w-full lg:w-full 2xl:w-full' : 'md:w-4/5 md:rounded-l-3xl lg:w-2/3 2xl:w-1/2'"
     >
-        <nav class="sticky right-0 top-0 z-10 flex w-full items-center justify-between bg-white px-4 py-4 sm:px-9">
+        <nav class="sticky top-0 right-0 z-10 flex w-full items-center justify-between bg-white px-4 py-4 sm:px-9">
             <button
                 @click="toggleExpansion"
                 class="hidden rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50 md:block"
@@ -67,7 +67,7 @@
             </svg>
         </div>
         <div v-else-if="!isLoading">
-            <main class="mx-auto flex flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+            <main class="mx-auto flex flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
                 <section class="flex w-full max-w-7xl items-center justify-between gap-2">
                     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                     <img
@@ -95,7 +95,7 @@
                         <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
                             <div
                                 v-if="showPopover"
-                                class="absolute left-auto right-full top-full z-10 mt-1 w-48 rounded border border-gray-300 bg-white p-2 shadow-lg md:left-full"
+                                class="absolute top-full right-full left-auto z-10 mt-1 w-48 rounded-sm border border-gray-300 bg-white p-2 shadow-lg md:left-full"
                             >
                                 This user is verified.
                             </div>
@@ -123,7 +123,7 @@
                         <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
                             <div
                                 v-if="dropdownOpened"
-                                class="absolute right-2 top-6 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
+                                class="absolute top-6 right-2 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-xs"
                             >
                                 <a
                                     class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
@@ -362,7 +362,7 @@
                                 <a
                                     :href="investor.twitter"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -392,7 +392,7 @@
                                 <a
                                     :href="investor.linkedin"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -432,7 +432,7 @@
                                 <a
                                     :href="investor.website"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -471,7 +471,7 @@
                                 </span>
                                 <a
                                     :href="`mailto:${investor.email}`"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <span v-text="investor.email"></span>
                                 </a>
@@ -498,7 +498,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -531,7 +531,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -570,7 +570,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -608,7 +608,7 @@
                                         </span>
                                         <a
                                             href="#"
-                                            class="flex select-text items-center gap-1 text-gray-700 underline blur"
+                                            class="flex items-center gap-1 text-gray-700 underline blur-sm select-text"
                                         >
                                             <span>Investor email</span>
                                         </a>
@@ -622,7 +622,7 @@
                                 >
                                 <a
                                     href="/tier-selection"
-                                    class="mt-5 w-fit rounded-lg bg-gradient-to-r from-[#897BE6] to-[#E87BC3] px-3 py-2 font-medium text-white transition-transform ease-in-out hover:scale-105"
+                                    class="mt-5 w-fit rounded-lg bg-linear-to-r from-[#897BE6] to-[#E87BC3] px-3 py-2 font-medium text-white transition-transform ease-in-out hover:scale-105"
                                     >View all contacts</a
                                 >
                             </div>
@@ -655,7 +655,7 @@
                                 <a
                                     v-for="round in investor.rounds"
                                     :key="round.id"
-                                    class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
+                                    class="rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-nowrap text-[#dd70d8]"
                                     v-text="round.name"
                                 >
                                 </a>
@@ -684,7 +684,7 @@
                                 <a
                                     v-for="industry in investor.industries"
                                     :key="industry.id"
-                                    class="text-nowrap rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-[#26a3f1]"
+                                    class="rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-nowrap text-[#26a3f1]"
                                     v-text="industry.name"
                                 ></a>
                             </div>
@@ -736,7 +736,7 @@
                         </div>
                         <div class="mt-5 overflow-auto rounded-lg border" v-show="investments.length !== 0">
                             <table class="relative w-full table-auto overflow-hidden">
-                                <tr class="border-b bg-gray-50 font-medium *:text-nowrap *:px-4">
+                                <tr class="border-b bg-gray-50 font-medium *:px-4 *:text-nowrap">
                                     <td class="py-4 pl-4">Company</td>
                                     <td class="py-4">Amount</td>
                                     <td class="py-4">Funding Round</td>
@@ -764,7 +764,7 @@
                                         >
                                             <div
                                                 v-if="sortDropdownOpened"
-                                                class="absolute right-4 top-10 z-50 flex w-40 origin-top-right flex-col gap-1 rounded-lg border bg-white p-2 shadow-lg"
+                                                class="absolute top-10 right-4 z-50 flex w-40 origin-top-right flex-col gap-1 rounded-lg border bg-white p-2 shadow-lg"
                                             >
                                                 <button
                                                     class="flex items-center gap-1 rounded-md p-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -817,18 +817,18 @@
                                     v-for="investment in investments"
                                     :key="investment.id"
                                 >
-                                    <td class="min-w-52 max-w-72 text-wrap py-4 pl-4">
+                                    <td class="max-w-72 min-w-52 py-4 pl-4 text-wrap">
                                         [[ investment.name ? investment.name : 'N/A' ]]
                                     </td>
-                                    <td class="text-nowrap py-4">
+                                    <td class="py-4 text-nowrap">
                                         $[[ investment.amount ? investment.amount : 'N/A' ]]
                                     </td>
-                                    <td class="text-nowrap py-4">
+                                    <td class="py-4 text-nowrap">
                                         <span class="rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs text-[#dd70d8]"
                                             >[[ investment.round ? investment.round : 'N/A' ]]</span
                                         >
                                     </td>
-                                    <td class="text-nowrap py-4 pr-4">
+                                    <td class="py-4 pr-4 text-nowrap">
                                         [[ investment.announced_date ? investment.announced_date : 'N/A' ]]
                                     </td>
                                 </tr>
@@ -870,7 +870,7 @@
                                     xmlns="http://www.w3.org/2000/svg"
                                     aria-hidden="true"
                                     role="none"
-                                    class="size-5 animate-breathe"
+                                    class="animate-breathe size-5"
                                 >
                                     <path
                                         d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z"

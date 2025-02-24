@@ -1,4 +1,6 @@
-from flask import Blueprint, Response, jsonify, request
+import asyncio
+
+from flask import Blueprint, Response, jsonify, request, stream_with_context
 from flask_login import current_user, login_required
 from sqlalchemy import delete
 
@@ -238,16 +240,51 @@ def get_chat_by_user_id(user_id):
     return jsonify(chat_model.model_dump())
 
 
+# @message.route("/stream/<prompt>")
+# @login_required
+# def streamed_response(prompt):
+#     def generate():
+#         response = generate_response(prompt, [])
+#         for res in response:
+#             for candidate in res._result.candidates:
+#                 for part in candidate.content.parts:
+#                     print(f"data: {part.text}\n\n".encode("utf-8"))
+#                     yield f"data: {part.text}\n\n".encode("utf-8")  # SSE
+
+#     return Response(generate(), content_type="text/event-stream")
+
+
 @message.route("/stream/<prompt>")
 @login_required
 def streamed_response(prompt):
     def generate():
-        response = generate_response(prompt, [])
-        for res in response:
-            for candidate in res._result.candidates:
-                for part in candidate.content.parts:
-                    print(f"data: {part.text}\n\n".encode("utf-8"))
-                    yield f"data: {part.text}\n\n".encode("utf-8")  # SSE
+        import time
+
+        # Мокированный ответ
+        fake_response = [
+            "Привет!",
+            "Чем могу помочь? ",
+            "Этот текст сгенерирован без использования Gemini. ",
+            "Мы рады видеть вас на нашей платформе. ",
+            "Globalify помогает предпринимателям и инвесторам находить друг друга. ",
+            "Если у вас есть вопросы, не стесняйтесь задавать их. ",
+            "Мы предоставляем различные инструменты для анализа рынка и поиска инвесторов. ",
+            "Наши услуги включают консультации и поддержку на всех этапах вашего бизнеса. ",
+            "Вы можете найти информацию о различных инвестиционных раундах и индустриях. ",
+            "Мы также предоставляем данные о заметных инвестициях и компаниях. ",
+            "Наша цель - помочь вам достичь успеха в вашем бизнесе. ",
+            "Спасибо, что выбрали Globalify. ",
+            "Если вам нужна дополнительная информация, пожалуйста, свяжитесь с нами. ",
+            "Мы всегда готовы помочь вам с вашими запросами. ",
+            "Удачи в ваших начинаниях! ",
+        ]
+
+        for text in fake_response:
+            yield f"data: {text}\n\n"  # Убрали .encode("utf-8")
+            time.sleep(1)  # Эмуляция задержки потока
+
+        # Сообщение о завершении
+        yield "data: [DONE]\n\n"
 
     return Response(generate(), content_type="text/event-stream")
 

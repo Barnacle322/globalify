@@ -62,7 +62,7 @@
             @bookmarked="handleCompanyBookmark"
             @open-aside="asideExpanded = true, asideMinified = !asideMinified"
         ></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -79,7 +79,7 @@
                 <div
                     v-if="selectedCompanySlug"
                     @click="selectedCompanySlug = null"
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
                 ></div>
             </transition>
             <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
@@ -93,12 +93,12 @@
 
             <div class="relative w-full">
                 <main class="mx-auto h-full min-h-screen w-full overflow-x-hidden">
-                    <section class="mx-4 my-3 rounded-3xl bg-deep-purple p-5 pb-10 pt-16">
+                    <section class="bg-deep-purple mx-4 my-3 rounded-3xl p-5 pt-16 pb-10">
                         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                         <div class="mx-auto w-full max-w-3xl">
                             <div class="flex items-center justify-evenly">
                                 <h1
-                                    class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"
+                                    class="w-fit bg-linear-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"
                                 >
                                     Globalify Startups
                                 </h1>
@@ -112,7 +112,7 @@
                                         type="search"
                                         name="search"
                                         id="search"
-                                        class="w-full border-0 bg-transparent py-3 pl-6 pr-0 text-sm focus:ring-0"
+                                        class="w-full border-0 bg-transparent py-3 pr-0 pl-6 text-sm focus:ring-0"
                                         placeholder="Search"
                                         value="{{ query }}"
                                         autocapitalize="off"
@@ -146,7 +146,7 @@
                                         class="flex flex-col items-center justify-center pr-3"
                                     >
                                         <div
-                                            class="size-6 animate-border bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%]"
+                                            class="animate-border size-6 bg-linear-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%]"
                                             style="clip-path: url(#magic-icon)"
                                         ></div>
                                         <svg height="0" width="0">
@@ -171,7 +171,7 @@
                             </div>
                             <button
                                 id="open-advanced-button"
-                                class="ml-auto mt-3 flex items-center justify-center gap-1 text-xs text-gray-300 underline"
+                                class="mt-3 ml-auto flex items-center justify-center gap-1 text-xs text-gray-300 underline"
                                 @click="toggleAdvanced"
                             >
                                 Advanced
@@ -214,7 +214,7 @@
                                     >
                                     <button
                                         type="button"
-                                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
+                                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-checked:bg-blue-500 group-has-checked:text-white sm:w-52"
                                         id="country-options"
                                         aria-haspopup="true"
                                         aria-expanded="true"
@@ -279,7 +279,7 @@
                                     <label class="text-sm font-semibold text-white" for="round-options">Rounds</label>
                                     <button
                                         type="button"
-                                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
+                                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-checked:bg-blue-500 group-has-checked:text-white sm:w-52"
                                         id="round-options"
                                         aria-haspopup="true"
                                         aria-expanded="true"
@@ -301,7 +301,7 @@
                                         Rounds
                                     </button>
                                     <div
-                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-y-auto overflow-x-hidden rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                                        class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 origin-top-right scale-95 overflow-x-hidden overflow-y-auto rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
                                         id="round-options-menu"
                                         role="menu"
                                         aria-orientation="vertical"
@@ -331,7 +331,7 @@
                                     >
                                     <button
                                         type="button"
-                                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-[:checked]:bg-blue-500 group-has-[:checked]:text-white sm:w-52"
+                                        class="mt-2 flex w-full gap-1 rounded-lg bg-white px-3 py-3 text-sm group-has-checked:bg-blue-500 group-has-checked:text-white sm:w-52"
                                         id="industry-options"
                                         aria-haspopup="true"
                                         aria-expanded="true"
@@ -407,14 +407,14 @@
                                 </div>
 
                                 <a
-                                    class="ml-auto mt-3 self-end text-sm text-gray-200 underline"
+                                    class="mt-3 ml-auto self-end text-sm text-gray-200 underline"
                                     href="../search/companies"
                                     >Clear all</a
                                 >
                             </div>
                         </div>
                     </section>
-                    <section class="mx-auto px-4 py-12 @container">
+                    <section class="@container mx-auto px-4 py-12">
                         <div class="relative grid gap-4 @xl:grid-cols-2 @5xl:grid-cols-3">
                             {% if companies and not unpaid %} {% for company in companies %}
                             <article
@@ -509,7 +509,7 @@
                                         </span>
                                         <div class="flex flex-wrap gap-1">
                                             <a
-                                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
+                                                class="rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-nowrap text-[#D182CD]"
                                                 >{{ company.preferred_round }}
                                             </a>
                                         </div>

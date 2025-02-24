@@ -59,11 +59,11 @@
                     New Chat
                 </button>
             </div>
-            <div class="w-1/3 flex justify-center items-center">
-                <span class="truncate text-bold font-bold max-w-full text-center" v-text="currentChatName || ' '">
+            <div class="flex w-1/3 items-center justify-center">
+                <span class="text-bold max-w-full truncate text-center font-bold" v-text="currentChatName || ' '">
                 </span>
             </div>
-            <div class="w-1/3 flex justify-end gap-2">
+            <div class="flex w-1/3 justify-end gap-2">
                 <button @click="toggleExpansion" class="hidden rounded-lg p-2 hover:bg-gray-100 md:block">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -111,7 +111,7 @@
                 >
                     <div class="flex flex-col gap-3 bg-gray-50">
                         <div v-for="[date, chats] of userChats" :key="date">
-                            <span class="text-xs text-gray-500 px-2" v-text="date"></span>
+                            <span class="px-2 text-xs text-gray-500" v-text="date"></span>
                             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                             <transition-group name="list" tag="div">
                                 <a
@@ -122,13 +122,13 @@
                                     :ref="'chat-' + chat.id"
                                 >
                                     <div
-                                        class="w-full cursor-pointer p-2 rounded-lg relative group"
+                                        class="group relative w-full cursor-pointer rounded-lg p-2"
                                         @click="selectChat(chat.id)"
                                         :class="selectedChatId === chat.id ? 'bg-sky-500 hover:bg-sky-400' : 'hover:bg-[#ccecff]'"
                                     >
                                         <span
                                             v-if="editingChatId !== chat.id"
-                                            class="block whitespace-nowrap overflow-hidden mask-linear-gradient mr-3 ml-2"
+                                            class="mask-linear-gradient mr-3 ml-2 block overflow-hidden whitespace-nowrap"
                                             :class="selectedChatId === chat.id ? 'text-white' : 'text-black'"
                                             v-text="chat.name"
                                         ></span>
@@ -140,7 +140,7 @@
                                                 @keyup.enter="saveChatName(chat)"
                                                 @keyup.esc="cancelEditing"
                                                 maxlength="30"
-                                                class="w-full bg-transparent rounded-lg outline-none border-b border-sky-500 py-0 m-0 leading-normal text-inherit"
+                                                class="m-0 w-full rounded-lg border-b border-sky-500 bg-transparent py-0 leading-normal text-inherit outline-none"
                                                 :class="selectedChatId === chat.id ? 'text-white' : 'text-black'"
                                                 :ref="`nameInput-${chat.id}`"
                                                 style="min-height: 0; max-height: none"
@@ -149,7 +149,7 @@
                                         <button
                                             data-dropdown-button
                                             @click.stop="toggleDropdown(chat.id)"
-                                            class="absolute top-1.5 right-1 hidden group-hover:block transition-colors rounded-lg ease-in-out hover:bg-white"
+                                            class="absolute top-1.5 right-1 hidden rounded-lg transition-colors ease-in-out group-hover:block hover:bg-white"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -173,7 +173,7 @@
                                         >
                                             <div
                                                 v-if="openedDropdownChatId === chat.id"
-                                                class="absolute right-1 top-8 z-10 flex w-24 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
+                                                class="absolute top-8 right-1 z-10 flex w-24 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
                                             >
                                                 <div
                                                     class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
@@ -197,7 +197,7 @@
                                                     </svg>
                                                 </div>
                                                 <div
-                                                    class="flex w-full items-center gap-2 rounded-md text-red-600 px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
+                                                    class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm text-red-600 hover:bg-sky-500 hover:text-white"
                                                     @click.stop="deleteChat(chat.id)"
                                                 >
                                                     <span>Delete</span>
@@ -277,7 +277,7 @@
                 </div>
 
                 <div
-                    class="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200"
+                    class="sticky right-0 bottom-0 left-0 border-t border-gray-200 bg-white p-4"
                     :class="{'rounded-3xl': isExpanded}"
                 >
                     <div class="relative flex items-center">
@@ -285,12 +285,12 @@
                             ref="prompt"
                             v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
                             contenteditable="true"
-                            class="w-full p-4 pr-12 rounded-xl outline-none max-h-48 border-2 border-sky-500 bg-white shadow-sm"
+                            class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none"
                         ></div>
                         <button
                             @click="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
                             @keyup.enter="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
-                            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-sky-100 transition-colors"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"

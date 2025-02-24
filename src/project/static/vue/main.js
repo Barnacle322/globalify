@@ -223,7 +223,7 @@ const GeminiComponent = defineComponent({
     },
     methods: {
         startSSEStream(prompt) {
-            this.stopSSEStream(); // Остановите предыдущий стрим, если он есть
+            this.stopSSEStream(); // Остановить предыдущий стрим, если он есть
 
             const url = `/message/stream/${prompt}`;
             console.log(`Connecting to SSE stream at: ${url}`);
@@ -231,43 +231,58 @@ const GeminiComponent = defineComponent({
 
             this.eventSource.onopen = () => {
                 console.log("SSE connection opened");
+                this.queue = []; // Очередь для частичных сообщений
+                this.isTyping = false; // Флаг работы анимации
             };
 
-            let fullMessage = ""; // Переменная для хранения полного сообщения
-
             this.eventSource.onmessage = (event) => {
-                const text = event.data; // Получаем текст сообщения от сервера
+                const text = event.data.trim(); // Убираем лишние пробелы
 
-                // Найти или создать сообщение
+                console.log("Received message: ", text);
+
+                if (text === "[DONE]") {
+                    console.log("All messages received");
+                    this.stopSSEStream();
+                    return;
+                }
+
+                // Создаём новое сообщение, если его нет
                 if (!this.currentMessage) {
                     this.currentMessage = { content: "", type: "gemini", isHTML: true };
                     this.response.push(this.currentMessage);
                 }
 
-                let currentIndex = 0;
+                // Добавляем текст в очередь (чтобы не терялись части)
+                this.queue.push(text);
 
-                // Очистить предыдущий интервал, если он есть
-                if (this.interval) {
-                    clearInterval(this.interval);
+                // Запускаем обработку текста, если она не активна
+                if (!this.isTyping) {
+                    this.processQueue();
                 }
+            };
+        },
+        processQueue() {
+            if (!this.queue.length) {
+                this.isTyping = false;
+                return;
+            }
 
-                this.interval = setInterval(() => {
-                    if (currentIndex < text.length) {
-                        this.currentMessage.content += text[currentIndex]; // Добавляем символ по одному
-                        currentIndex++;
-                        this.scrollToBottom();
-                    } else {
-                        clearInterval(this.interval); // Остановить интервал, когда весь текст добавлен
-                    }
-                }, 50); // Увеличить интервал для улучшения производительности
+            this.isTyping = true;
+            let text = this.queue.shift(); // Берём следующий текст из очереди
+            let currentIndex = 0;
+
+            const addLetter = () => {
+                if (currentIndex < text.length) {
+                    this.currentMessage.content += text[currentIndex]; // Добавляем символ
+                    currentIndex++;
+                    this.scrollToBottom();
+                    setTimeout(addLetter, 50); // Запускаем следующую букву через 50 мс
+                } else {
+                    this.processQueue(); // После завершения этой части — берём следующую
+                }
             };
 
-            this.eventSource.onerror = (error) => {
-                console.error("SSE Error: ", error);
-                console.error("Ready state: ", this.eventSource.readyState);
-                console.error("EventSource URL: ", url);
-                this.stopSSEStream(); // Остановите стрим при ошибке
-            };
+            addLetter(); // Запускаем анимацию
         },
         stopSSEStream() {
             if (this.eventSource) {
@@ -287,7 +302,6 @@ const GeminiComponent = defineComponent({
 
             this.response.push({ content: promptText, type: "user" });
             promptDiv.textContent = "";
-            this.scrollToBottom();
             try {
                 const response = await fetch(`/message/chat/${chatId}`, {
                     method: "POST",
@@ -311,7 +325,6 @@ const GeminiComponent = defineComponent({
 
             this.response.push({ content: promptText, type: "user" });
             promptDiv.textContent = "";
-            this.scrollToBottom();
             try {
                 const response = await fetch(`/message/chat`, {
                     method: "POST",
@@ -416,13 +429,16 @@ const GeminiComponent = defineComponent({
                                 "Recently",
                                 "Yesterday",
                                 "1 Week",
-                                "2 Week2",
+                                "2 Week",
                                 "3 Week",
                                 "1 Month",
                                 "Few months",
                                 "Long ago",
                             ];
-                            return order.indexOf(a[0]) - order.indexOf(b[0]);
+
+                            const indexA = order.indexOf(a[0]);
+                            const indexB = order.indexOf(b[0]);
+                            return (indexA === -1 ? order.length : indexA) - (indexB === -1 ? order.length : indexB);
                         }),
                 );
             } catch (error) {
@@ -729,7 +745,188 @@ const GeminiComponent = defineComponent({
             currentMessage: null,
             interval: null,
             selectedInvestorSlug: null,
+            isTyping: false,
             // summary_names: [],
+        };
+    },
+});
+
+const FullInvestor = defineComponent({
+    template: "#full-investor-template",
+    props: { slug: String, rendercontacts: Boolean },
+    emits: ["close-investor", "bookmarked"],
+    delimiters: ["[[", "]]"],
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("click", this.handleClickOutside);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        this.deleteInvestorParam();
+        document.removeEventListener("click", this.handleClickOutside);
+        const script_element = document.getElementById("twitter-script");
+        if (script_element) script_element.remove();
+    },
+    async created() {
+        await this.fetchInvestor();
+        window.removeEventListener("popstate", this.checkUrlParams);
+    },
+    methods: {
+        async fetchInvestor() {
+            try {
+                const response = await fetch(`/investor/${this.slug}/get`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.investor = data.investor;
+                    this.isBookmarked = data.isBookmarked;
+                    this.unpaid = data.unpaid;
+                    if (data.investments && data.n_of_investments) {
+                        this.investments = data.investments;
+                        this.n_of_investments = data.n_of_investments;
+                    }
+                    await this.loadTwitterTimeline();
+                } else {
+                    this.closeInvestor();
+                    return;
+                }
+            } catch (error) {
+                console.error("Error fetching investor:", error);
+                this.closeInvestor();
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async loadTwitterTimeline() {
+            if (!this.investor?.twitter) return;
+            this.loadingTwitter = true; // Set loading state to true
+            this.ensureTwitterScriptLoaded(() => {
+                const timeline = document.querySelector(".twitter-timeline");
+                if (timeline) {
+                    timeline.innerHTML = "";
+                    timeline.setAttribute("href", this.investor.twitter);
+                    window.twttr?.widgets.load();
+
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            const twitterWidget = document.querySelector("[id^='twitter-widget-']");
+                            if (twitterWidget && twitterWidget.offsetHeight > 0) {
+                                this.loadingTwitter = false;
+                                observer.disconnect();
+                            }
+                        });
+                    });
+
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+        },
+        ensureTwitterScriptLoaded(callback) {
+            const script_element = document.getElementById("twitter-script");
+            if (script_element) script_element.remove();
+
+            if (!this.twitterScriptLoaded) {
+                const script = document.createElement("script");
+                script.src = "https://platform.twitter.com/widgets.js";
+                script.id = "twitter-script";
+                script.async = true;
+                script.onload = () => {
+                    this.twitterScriptLoaded = true;
+                    callback();
+                };
+                document.body.appendChild(script);
+            } else {
+                callback();
+            }
+        },
+        async toggleBookmark(investorId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investor/${investorId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    if (response.url.includes("/onboarding/")) {
+                        window.location.href = response.url;
+                    }
+                    const data = await response.json();
+                    if (data[0].bookmarked) {
+                        this.$emit("bookmarked", { investorId: investorId, status: true });
+                        this.isBookmarked = !this.isBookmarked;
+                    } else {
+                        this.$emit("bookmarked", { investorId: investorId, status: false });
+                        this.isBookmarked = !this.isBookmarked;
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+
+        async sortInvestments(sortType) {
+            const compareDates = (a, b) => {
+                const dateA = new Date(a.announced_date);
+                const dateB = new Date(b.announced_date);
+                return sortType === "asc" ? dateA - dateB : dateB - dateA;
+            };
+
+            this.investments.sort(compareDates);
+
+            // Force re-render
+            this.investments = [...this.investments];
+            this.sortOrder = sortType;
+            this.sortDropdownOpened = false;
+        },
+        deleteInvestorParam() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("investor");
+            window.history.replaceState({}, "", url);
+        },
+        checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const investorSlug = urlParams.get("investor");
+            if (!investorSlug) {
+                this.$emit("close-investor");
+            }
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-investor");
+            }
+        },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        closeInvestor() {
+            this.$emit("close-investor");
+        },
+        getTwitterHandle(url) {
+            return url.split("/").pop();
+        },
+        handleClickOutside(event) {
+            const dropdownContainer = this.$refs.dropdownContainer;
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
+        },
+    },
+    data() {
+        return {
+            showPopover: false,
+            isExpanded: false,
+            isLoading: true,
+            isBookmarked: false,
+            investor: null,
+            unpaid: false,
+            sortDropdownOpened: false,
+            sortOrder: null,
+            investments: [],
+            dropdownOpened: false,
+            twitterScriptLoaded: false,
+            loadingTwitter: false,
         };
     },
 });
@@ -815,7 +1012,6 @@ const FullInvestmentFirm = defineComponent({
                         window.location.href = response.url;
                     }
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { firmId: firmId, status: true });
                         this.isBookmarked = !this.isBookmarked;
@@ -828,7 +1024,6 @@ const FullInvestmentFirm = defineComponent({
                 console.error(error);
             }
         },
-
         async sortInvestments(sortType) {
             const compareDates = (a, b) => {
                 const dateA = new Date(a.announced_date);
@@ -948,12 +1143,10 @@ const FullCompany = defineComponent({
                         window.location.href = response.url;
                     }
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-company-${companyId}`);
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { companyId: companyId, status: true });
                         this.isBookmarked = !this.isBookmarked;
                     } else {
-                        svg.style.fill = "none";
                         this.$emit("bookmarked", { companyId: companyId, status: false });
                         this.isBookmarked = !this.isBookmarked;
                     }
@@ -1117,7 +1310,6 @@ const app = createApp({
                 console.error("Error handling investor bookmark:", error);
             }
         },
-
         async handleInvestmentFirmBookmark(data) {
             if (data.status) {
                 this.investmentFirmBookmakrIds.push(data.firmId);
@@ -1127,7 +1319,6 @@ const app = createApp({
                 document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = "none";
             }
         },
-
         async handleCompanyBookmark(data) {
             try {
                 if (data.status) {
@@ -1141,7 +1332,6 @@ const app = createApp({
                 console.error("Error handling company bookmark:", error);
             }
         },
-
         checkAndSelectUrlParam(paramName, selectFunction) {
             const urlParams = new URLSearchParams(window.location.search);
             const paramSlug = urlParams.get(paramName);

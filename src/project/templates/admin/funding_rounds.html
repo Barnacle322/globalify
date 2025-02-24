@@ -56,7 +56,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -152,7 +152,7 @@
                         </div>
                         <button
                             id="search-btn"
-                            class="w-fit text-nowrap rounded-full bg-blue-500 px-4 text-sm font-medium text-white transition-colors ease-in-out"
+                            class="w-fit rounded-full bg-blue-500 px-4 text-sm font-medium text-nowrap text-white transition-colors ease-in-out"
                             type="submit"
                             @click="search"
                         >
@@ -191,7 +191,7 @@
                                     {% if funding_round.round %}
                                     <div class="flex flex-wrap gap-1">
                                         <a
-                                            class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
+                                            class="rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-nowrap text-[#D182CD]"
                                             >{{ funding_round.round.name }}
                                         </a>
                                     </div>

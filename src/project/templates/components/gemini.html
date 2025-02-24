@@ -120,6 +120,7 @@
                                     class="list-item"
                                     :class="{ 'animate-fade-out': chat.isDeleting, 'typewriter': chat.isNew }"
                                     :ref="'chat-' + chat.id"
+                                    @animationend="handleAnimationEnd(chat)"
                                 >
                                     <div
                                         class="group relative w-full cursor-pointer rounded-lg p-2"
@@ -228,8 +229,7 @@
 
             <div
                 class="flex-1 flex flex-col overflow-hidden max-w-3xl transition-all duration-300 relative"
-                :class="{'ml-56': isHistoryVisible && !isExpanded,
-                     'mx-auto ': isExpanded}"
+                :class="{'ml-56': isHistoryVisible && !isExpanded, 'mx-auto ': isExpanded}"
             >
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <div class="flex-1 overflow-y-auto p-4 custom-scrollbar" ref="chatContainer">
@@ -242,23 +242,14 @@
                         >
                             <div
                                 class="rounded-xl p-3 relative"
-                                :class="{
-                            'bg-sky-500 max-w-[75%] text-white rounded-br-none': message.type === 'user',
-                            ' text-gray-800 ': message.type === 'gemini'
-                        }"
+                                :class="{'bg-sky-500 max-w-[75%] text-white rounded-br-none': message.type === 'user', 'text-gray-800 ': message.type === 'gemini'}"
                             >
                                 <span v-if="message.isHTML" v-html="processMarkdown(message.content)"></span>
                                 <span v-else v-text="message.content"></span>
                                 <div
                                     class="absolute -bottom-2 w-3 h-3"
-                                    :class="{
-                                'right-0 bg-sky-500': message.type === 'user',
-                                }"
-                                    :style="{
-                                clipPath: message.type === 'user' 
-                                ? 'polygon(0 0, 100% 0, 100% 100%)' 
-                                : 'polygon(0 0, 100% 0, 0 100%)'
-                                }"
+                                    :class="{'right-0 bg-sky-500': message.type === 'user'}"
+                                    :style="{clipPath: message.type === 'user' ? 'polygon(0 0, 100% 0, 100% 100%)' : 'polygon(0 0, 100% 0, 0 100%)'}"
                                 ></div>
                             </div>
                         </div>

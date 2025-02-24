@@ -18,33 +18,6 @@ from ..utils.gemini import create_summary, generate_response
 message = Blueprint("message", __name__)
 
 
-@message.route("/chat/create", methods=["POST"])
-@login_required
-def create_chat():
-    data = request.get_json()
-    user_id = data.get("user_id")
-
-    if not user_id:
-        return jsonify({"error": "User ID is required"}), 400
-
-    if current_user.id != user_id:
-        return jsonify({"error": "Access denied"}), 403
-
-    chat_model = Chat(user_id=user_id, name="New chat")
-    db.session.add(chat_model)
-    db.session.commit()
-
-    chat = ChatSchema(
-        id=chat_model.id,
-        user_id=chat_model.user_id,
-        created=chat_model.created,
-        name=chat_model.name,
-        messages=None,
-    )
-
-    return jsonify({"chat": chat.model_dump()})
-
-
 @message.route("/chat/<int:chat_id>", methods=["POST"])
 @login_required
 def send_message(chat_id):
@@ -55,18 +28,16 @@ def send_message(chat_id):
     if not user_message:
         return jsonify({"error": "Message cannot be empty"}), 400
 
-    # Получаем или создаем чат
     chat = Chat.get_by_id(chat_id)
 
     if not chat:
-        chat = Chat(user_id=current_user.id, name=user_message)
+        chat = Chat(user_id=current_user.id)
         db.session.add(chat)
         db.session.commit()
 
     if chat.name == "New chat":
         chat.name = user_message[:30]
 
-    # Создаем сообщение пользователя
     user_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
     db.session.add(user_msg)
     db.session.commit()
@@ -92,12 +63,7 @@ def send_message(chat_id):
 
     chat.name = bot_summary_text
     db.session.commit()
-    print("//////////////")
-    print(bot_response)
-    print("//////////////")
-    print(bot_summary_text)
-    print("//////////////")
-    # Обрабатываем ответ от Gemini
+
     bot_message_text = ""
     for res in bot_response:
         for candidate in res._result.candidates:
@@ -107,7 +73,6 @@ def send_message(chat_id):
     bot_message_text = bot_message_text.strip()
     print(bot_message_text)
 
-    # Создаем сообщение бота
     bot_msg = Message(chat_id=chat.id, message=bot_message_text, type=SenderType.GEMINI)
     db.session.add(bot_msg)
     db.session.commit()
@@ -128,7 +93,6 @@ def send_message_with_create_chat():
     db.session.add(chat)
     db.session.commit()
 
-    # Создаем сообщение пользователя
     user_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
     db.session.add(user_msg)
     db.session.commit()
@@ -155,7 +119,6 @@ def send_message_with_create_chat():
     chat.name = bot_summary_text
     db.session.commit()
 
-    # Обрабатываем ответ от Gemini
     bot_message_text = ""
     for res in bot_response:
         for candidate in res._result.candidates:
@@ -164,7 +127,6 @@ def send_message_with_create_chat():
 
     bot_message_text = bot_message_text.strip()
 
-    # Создаем сообщение бота
     bot_msg = Message(chat_id=chat.id, message=bot_message_text, type=SenderType.GEMINI)
     db.session.add(bot_msg)
     db.session.commit()

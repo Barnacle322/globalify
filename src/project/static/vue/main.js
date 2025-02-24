@@ -376,7 +376,6 @@ const GeminiComponent = defineComponent({
         async selectChat(chatId) {
             this.selectedChatId = chatId;
             this.loadChatById(chatId);
-            this.isHistoryVisible = false;
         },
         async deleteChat(chatId) {
             const csrf_token = document.getElementById("csrf_token").value;
@@ -476,6 +475,18 @@ const GeminiComponent = defineComponent({
                 console.error("Error in loadAvatar:", error);
             }
         },
+        handleAnimationEnd(chat) {
+            if (chat.isNew) {
+                chat.isNew = false;
+            }
+        },
+        checkAndSelectUrlParam(paramName, selectFunction) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramSlug = urlParams.get(paramName);
+            if (paramSlug) {
+                selectFunction(paramSlug);
+            }
+        },
         startSSEStream(prompt) {
             this.stopSSEStream(); // Остановить предыдущий стрим, если он есть
 
@@ -486,7 +497,7 @@ const GeminiComponent = defineComponent({
             this.eventSource.onopen = () => {
                 console.log("SSE connection opened");
                 this.queue = []; // Очередь для частичных сообщений
-                this.isTyping = false; // Флаг работы анимации
+                this.isTyping = true; // Флаг работы анимации
             };
 
             this.eventSource.onmessage = (event) => {
@@ -631,7 +642,6 @@ const GeminiComponent = defineComponent({
             text = text.replace(/\n/g, "<br>");
             return text;
         },
-
         updateAvatarImages(slug, avatarUrl) {
             const images = document.querySelectorAll(`img[data-slug="${slug}"]`);
             images.forEach((img) => {

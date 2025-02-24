@@ -1306,8 +1306,14 @@ select {
 .-right-5 {
   right: -1.25rem;
 }
+.-top-10 {
+  top: -2.5rem;
+}
 .bottom-0 {
   bottom: 0px;
+}
+.bottom-10 {
+  bottom: 2.5rem;
 }
 .bottom-4 {
   bottom: 1rem;
@@ -1368,24 +1374,6 @@ select {
 }
 .top-full {
   top: 100%;
-}
-.-bottom-0 {
-  bottom: -0px;
-}
-.-bottom-12 {
-  bottom: -3rem;
-}
-.-bottom-40 {
-  bottom: -10rem;
-}
-.bottom-12 {
-  bottom: 3rem;
-}
-.bottom-10 {
-  bottom: 2.5rem;
-}
-.-top-10 {
-  top: -2.5rem;
 }
 .isolate {
   isolation: isolate;
@@ -1464,10 +1452,6 @@ select {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
-.my-20 {
-  margin-top: 5rem;
-  margin-bottom: 5rem;
-}
 .my-3 {
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
@@ -1476,9 +1460,9 @@ select {
   margin-top: 2rem;
   margin-bottom: 2rem;
 }
-.mx-10 {
-  margin-left: 2.5rem;
-  margin-right: 2.5rem;
+.my-auto {
+  margin-top: auto;
+  margin-bottom: auto;
 }
 .-mb-3 {
   margin-bottom: -0.75rem;
@@ -1488,6 +1472,9 @@ select {
 }
 .mb-10 {
   margin-bottom: 2.5rem;
+}
+.mb-12 {
+  margin-bottom: 3rem;
 }
 .mb-16 {
   margin-bottom: 4rem;
@@ -1518,6 +1505,9 @@ select {
 }
 .ml-auto {
   margin-left: auto;
+}
+.mr-10 {
+  margin-right: 2.5rem;
 }
 .mr-2 {
   margin-right: 0.5rem;
@@ -1581,12 +1571,6 @@ select {
 }
 .mt-auto {
   margin-top: auto;
-}
-.mb-12 {
-  margin-bottom: 3rem;
-}
-.mr-10 {
-  margin-right: 2.5rem;
 }
 .line-clamp-2 {
   overflow: hidden;
@@ -1784,6 +1768,9 @@ select {
 .w-16 {
   width: 4rem;
 }
+.w-2\/5 {
+  width: 40%;
+}
 .w-28 {
   width: 7rem;
 }
@@ -1840,8 +1827,8 @@ select {
 .min-w-64 {
   min-width: 16rem;
 }
-.min-w-\[312px\] {
-  min-width: 312px;
+.min-w-\[300px\] {
+  min-width: 300px;
 }
 .min-w-\[69px\] {
   min-width: 69px;
@@ -1852,9 +1839,6 @@ select {
 .min-w-max {
   min-width: -moz-max-content;
   min-width: max-content;
-}
-.min-w-\[300px\] {
-  min-width: 300px;
 }
 .max-w-2xl {
   max-width: 42rem;
@@ -1917,6 +1901,9 @@ select {
 .shrink-0 {
   flex-shrink: 0;
 }
+.flex-grow {
+  flex-grow: 1;
+}
 .grow {
   flex-grow: 1;
 }
@@ -1958,11 +1945,6 @@ select {
 .scale-95 {
   --tw-scale-x: .95;
   --tw-scale-y: .95;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-.scale-100 {
-  --tw-scale-x: 1;
-  --tw-scale-y: 1;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 .transform {
@@ -2328,8 +2310,17 @@ select {
   border-top-width: calc(2px * calc(1 - var(--tw-divide-y-reverse)));
   border-bottom-width: calc(2px * var(--tw-divide-y-reverse));
 }
+.divide-x > :not([hidden]) ~ :not([hidden]) {
+  --tw-divide-x-reverse: 0;
+  border-right-width: calc(1px * var(--tw-divide-x-reverse));
+  border-left-width: calc(1px * calc(1 - var(--tw-divide-x-reverse)));
+}
 .divide-gray-500\/10 > :not([hidden]) ~ :not([hidden]) {
   border-color: rgb(107 114 128 / 0.1);
+}
+.divide-sky-500 > :not([hidden]) ~ :not([hidden]) {
+  --tw-divide-opacity: 1;
+  border-color: rgb(14 165 233 / var(--tw-divide-opacity));
 }
 .place-self-end {
   place-self: end;
@@ -2381,6 +2372,9 @@ select {
 }
 .scroll-smooth {
   scroll-behavior: smooth;
+}
+.whitespace-nowrap {
+  white-space: nowrap;
 }
 .text-nowrap {
   text-wrap: nowrap;
@@ -2454,6 +2448,9 @@ select {
 .border-t {
   border-top-width: 1px;
 }
+.border-l {
+  border-left-width: 1px;
+}
 .border-emerald-200 {
   --tw-border-opacity: 1;
   border-color: rgb(167 243 208 / var(--tw-border-opacity));
@@ -2470,12 +2467,20 @@ select {
   --tw-border-opacity: 1;
   border-color: rgb(107 114 128 / var(--tw-border-opacity));
 }
+.border-gray-900 {
+  --tw-border-opacity: 1;
+  border-color: rgb(17 24 39 / var(--tw-border-opacity));
+}
 .border-gray-900\/10 {
   border-color: rgb(17 24 39 / 0.1);
 }
 .border-red-200 {
   --tw-border-opacity: 1;
   border-color: rgb(254 202 202 / var(--tw-border-opacity));
+}
+.border-red-500 {
+  --tw-border-opacity: 1;
+  border-color: rgb(239 68 68 / var(--tw-border-opacity));
 }
 .border-sky-200 {
   --tw-border-opacity: 1;
@@ -3097,6 +3102,9 @@ select {
 .text-\[40px\] {
   font-size: 40px;
 }
+.text-\[42px\] {
+  font-size: 42px;
+}
 .text-\[8px\] {
   font-size: 8px;
 }
@@ -3119,9 +3127,6 @@ select {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
-}
-.text-\[42px\] {
-  font-size: 42px;
 }
 .font-bold {
   font-weight: 700;
@@ -3318,12 +3323,6 @@ select {
 }
 .text-white\/30 {
   color: rgb(255 255 255 / 0.3);
-}
-.text-\[42\] {
-  color: 42;
-}
-.text-\[\] {
-  color: ;
 }
 .underline {
   text-decoration-line: underline;
@@ -3925,6 +3924,22 @@ textarea {
     animation: slide-fade-out-right 0.4s cubic-bezier(0.5, 0, 0, 1);
 }
 
+.list-enter-active,
+.list-leave-active,
+.list-move {
+    transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+}
+
+.list-leave-active {
+    position: absolute;
+}
+
 @media (min-width: 1024px) {
 
   .lg\:prose-lg {
@@ -4449,6 +4464,15 @@ textarea {
   background-color: rgb(196 181 253 / var(--tw-bg-opacity));
 }
 
+.hover\:bg-red-50:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 242 242 / var(--tw-bg-opacity));
+}
+
+.hover\:fill-white:hover {
+  fill: #fff;
+}
+
 .hover\:py-2:hover {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
@@ -4462,6 +4486,11 @@ textarea {
 .hover\:text-gray-900:hover {
   --tw-text-opacity: 1;
   color: rgb(17 24 39 / var(--tw-text-opacity));
+}
+
+.hover\:text-red-500:hover {
+  --tw-text-opacity: 1;
+  color: rgb(239 68 68 / var(--tw-text-opacity));
 }
 
 .hover\:text-slate-100:hover {
@@ -4723,13 +4752,12 @@ textarea {
     margin-bottom: 3.5rem;
   }
 
-  .sm\:mx-10 {
-    margin-left: 2.5rem;
-    margin-right: 2.5rem;
-  }
-
   .sm\:ml-5 {
     margin-left: 1.25rem;
+  }
+
+  .sm\:mr-0 {
+    margin-right: 0px;
   }
 
   .sm\:mt-12 {
@@ -4754,10 +4782,6 @@ textarea {
 
   .sm\:mt-7 {
     margin-top: 1.75rem;
-  }
-
-  .sm\:mr-0 {
-    margin-right: 0px;
   }
 
   .sm\:block {
@@ -4866,10 +4890,6 @@ textarea {
     row-gap: 5rem;
   }
 
-  .sm\:overflow-x-hidden {
-    overflow-x: hidden;
-  }
-
   .sm\:rounded-3xl {
     border-radius: 1.5rem;
   }
@@ -4923,10 +4943,6 @@ textarea {
 
   .sm\:pt-24 {
     padding-top: 6rem;
-  }
-
-  .sm\:text-start {
-    text-align: start;
   }
 
   .sm\:text-3xl {

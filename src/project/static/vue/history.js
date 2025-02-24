@@ -16,31 +16,29 @@ createApp({
         this.setupInfiniteScroll();
         this.fetchHistoryTypes();
     },
-    beforeUnmount() {
-        document.removeEventListener("click", this.handleClickOutside);
-        this.observer?.disconnect();
-    },
     methods: {
         setupInfiniteScroll() {
             this.observer = new IntersectionObserver((entries) =>
                 entries.forEach((entry) => {
-                    if (entry.isIntersecting) this.loadMoreSearchHistories();
+                    if (entry.isIntersecting) this.loadMore();
                 }),
             );
             this.observer.observe(this.$refs.historySentinel);
         },
-        async loadMoreSearchHistories() {
+        async loadMore() {
             if (this.loading || this.noMoreItems) return;
+
             this.loading = true;
             try {
-                const params = new URLSearchParams();
-                if (this.searchType) params.append("type", this.searchType);
-                if (this.searchString) params.append("search", this.searchString);
-                params.append("page", this.page);
-                params.append("limit", 100);
+                const url = new URL(window.location);
+                const params = new URLSearchParams({
+                    page: this.page,
+                    limit: 100,
+                    type: url.searchParams.get("filter") || "all",
+                    search: this.searchString,
+                });
 
                 const response = await fetch(`/search-history?${params.toString()}`);
-
                 if (!response.ok) {
                     throw new Error("Failed to fetch data");
                 }
@@ -87,17 +85,16 @@ createApp({
         },
         selectType(typeValue) {
             this.dropdownOpened = false;
-            this.searchType = typeValue;
             this.clearSelection();
 
             const url = new URL(window.location);
-            url.searchParams.set("type", typeValue);
+            url.searchParams.set("filter", typeValue);
             window.history.pushState({}, "", url);
 
             this.page = 1;
             this.noMoreItems = false;
             this.searchHistories.clear();
-            this.loadMoreSearchHistories();
+            this.loadMore();
         },
         handleClickOutside(event) {
             const dropdownContainer = this.$refs.dropdownContainer;
@@ -197,7 +194,7 @@ createApp({
             }
             window.history.pushState({}, "", url);
 
-            this.loadMoreSearchHistories();
+            this.loadMore();
         },
     },
     data() {

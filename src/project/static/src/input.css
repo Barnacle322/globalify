@@ -534,20 +534,24 @@ textarea {
     }
 }
 
-.typewriter {
-    overflow: hidden;
-    border-right: 0.15em solid orange; /* Adjust the cursor style */
-    white-space: nowrap;
-    margin: 0 auto;
-    animation: typewriter 4s steps(40, end) 1s 1 normal both,
-               blinkTextCursor 500ms steps(40, end) infinite normal;
+@keyframes blinkTextCursor {
+    50% {
+        border-color: transparent;
+    }
 }
 
+
 @keyframes blinkTextCursor {
-    from {
-        border-right-color: rgba(255, 255, 255, 0.75);
+    50% {
+        border-color: transparent;
     }
-    to {
-        border-right-color: transparent;
-    }
+}
+
+.typewriter {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid white;
+    animation: typewriter 2s steps(20, end) forwards,
+               blinkTextCursor 500ms steps(20, end) infinite;
 }

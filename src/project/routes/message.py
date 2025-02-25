@@ -172,7 +172,7 @@ def get_chats_by_user_id(user_id):
 
     chats = Chat.get_all_by_user_id(user_id)
     if not chats:
-        return jsonify({"error": "Chats not found"}), 404
+        return jsonify({"message": "No chats found for this user"}), 200
 
     chat_models = [ChatListSchema.model_validate(chat).model_dump() for chat in chats]
 

@@ -267,8 +267,8 @@ const GeminiComponent = defineComponent({
                 }
                 const data = await response.json();
 
-                this.hasChats = true
-                this.isHistoryVisible = true
+                this.hasChats = true;
+                this.isHistoryVisible = true;
                 this.selectedChatId = data.chat.id;
 
                 this.startSSEStream(promptText);
@@ -314,7 +314,7 @@ const GeminiComponent = defineComponent({
             if (chatId === null || chatId === undefined) {
                 console.warn("Invalid chatId, nothing to load.");
                 return;
-    }
+            }
             try {
                 const response = await fetch(`/message/chat/id/${chatId}`, {
                     method: "GET",
@@ -350,8 +350,8 @@ const GeminiComponent = defineComponent({
                     return;
                 }
 
-                this.hasChats = true
-                this.isHistoryVisible = true
+                this.hasChats = true;
+                this.isHistoryVisible = true;
                 this.selectedChatId = data[0].id;
 
                 const grouped = new Map();
@@ -651,13 +651,14 @@ const GeminiComponent = defineComponent({
                 return `<strong>${content.replace(/\n/g, " ")}</strong>`;
             });
 
+            // Replace markdown list items with <li> tags
             text = text.replace(/^\* (.*)/gm, "<li>$1</li>");
 
-            text = text.replace(/\*([\s\S]*?)\*/g, (match, content) => {
-                return `<em>${content.replace(/\n/g, " ").trim()}</em>`;
+            // Wrap consecutive <li> tags in a single <ul> tag
+            text = text.replace(/(<li>[\s\S]*?<\/li>)+/g, (match) => {
+                return `<ul>${match}</ul>`;
             });
 
-            text = text.replace(/\n/g, "<br>");
             return text;
         },
         updateAvatarImages(slug, avatarUrl) {
@@ -776,7 +777,7 @@ const GeminiComponent = defineComponent({
             selectedInvestorSlug: null,
             isTyping: false,
             // summary_names: [],
-            hasChats: false
+            hasChats: false,
         };
     },
 });

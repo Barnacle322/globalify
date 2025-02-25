@@ -208,52 +208,16 @@ def streamed_response(prompt):
         for res in response:
             for candidate in res._result.candidates:
                 for part in candidate.content.parts:
-                    print(f"data: {part.text}\n\n".encode())
-                    yield f"data: {part.text}\n\n".encode()  # SSE
-        yield b"data: [DONE]\n\n"  # Send DONE message at the end
+                    print(f"data: {part.text}".encode())
+                    yield f"data: {part.text}".encode()
+        yield b"data: [DONE]"
 
     return Response(generate(), content_type="text/event-stream")
-
-
-# @message.route("/stream/<prompt>")
-# @login_required
-# def streamed_response(prompt):
-#     def generate():
-#         import time
-
-#         # Мокированный ответ
-#         fake_response = [
-#             "Привет!",
-#             "Чем могу помочь? ",
-#             "Этот текст сгенерирован без использования Gemini. ",
-#             "Мы рады видеть вас на нашей платформе. ",
-#             "Globalify помогает предпринимателям и инвесторам находить друг друга. ",
-#             "Если у вас есть вопросы, не стесняйтесь задавать их. ",
-#             "Мы предоставляем различные инструменты для анализа рынка и поиска инвесторов. ",
-#             "Наши услуги включают консультации и поддержку на всех этапах вашего бизнеса. ",
-#             "Вы можете найти информацию о различных инвестиционных раундах и индустриях. ",
-#             "Мы также предоставляем данные о заметных инвестициях и компаниях. ",
-#             "Наша цель - помочь вам достичь успеха в вашем бизнесе. ",
-#             "Спасибо, что выбрали Globalify. ",
-#             "Если вам нужна дополнительная информация, пожалуйста, свяжитесь с нами. ",
-#             "Мы всегда готовы помочь вам с вашими запросами. ",
-#             "Удачи в ваших начинаниях! ",
-#         ]
-
-#         for text in fake_response:
-#             yield f"data: {text}\n\n"  # Убрали .encode("utf-8")
-#             time.sleep(1)  # Эмуляция задержки потока
-
-#         # Сообщение о завершении
-#         yield "data: [DONE]\n\n"
-
-#     return Response(generate(), content_type="text/event-stream")
 
 
 @message.route("/chat/<int:chat_id>/delete", methods=["POST"])
 @login_required
 def delete_chat_by_id(chat_id):
-    print("/////////")
     chat = Chat.get_by_id(chat_id)
     if not chat:
         print("Chat not found")

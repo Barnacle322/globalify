@@ -103,8 +103,9 @@
                                     v-for="chat in chats"
                                     :key="chat.id"
                                     class="list-item"
-                                    :class="{ 'animate-fade-out': chat.isDeleting, 'typewriter': chat.isNew }"
+                                    :class="{ 'animate-fade-out': chat.isDeleting, 'typewriter': chat.isNew && !chat.animated }"
                                     :ref="'chat-' + chat.id"
+                                    @animationend="chat.animated = true"
                                 >
                                     <div
                                         class="group relative w-full cursor-pointer rounded-lg p-2"

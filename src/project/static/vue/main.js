@@ -232,7 +232,7 @@ const GeminiComponent = defineComponent({
                     [...grouped.entries()]
                         .map(([key, value]) => [
                             key,
-                            value.map((chat) => ({ ...chat, isNew: false })), // Add isNew key
+                            value.map((chat) => ({ ...chat, isNew: false, animated: false })), // Add isNew key
                         ])
                         .sort((a, b) => {
                             const order = [

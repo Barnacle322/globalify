@@ -148,8 +148,6 @@ def send_message_with_create_chat():
 def get_chat(chat_id):
     chat = Chat.get_by_id(chat_id)
     if not chat:
-        print("\n\n\n\n\n\n\n\n\n")
-        print("Chat not found")
         return jsonify({"error": "Chat not found"}), 404
 
     messages = Message.get_by_chat_id(chat.id)
@@ -220,7 +218,6 @@ def streamed_response(prompt):
 def delete_chat_by_id(chat_id):
     chat = Chat.get_by_id(chat_id)
     if not chat:
-        print("Chat not found")
         return jsonify({"error": "Chat not found"}), 404
 
     if chat.user_id != current_user.id:
@@ -248,7 +245,6 @@ def delete_chat_by_id(chat_id):
 @message.route("/chat/<int:chat_id>/rename", methods=["POST"])
 @login_required
 def rename_chat(chat_id):
-    print("///////////")
     data = request.get_json()
     new_name = data.get("name", "").strip()
 

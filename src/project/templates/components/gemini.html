@@ -257,6 +257,18 @@
                                 ></div>
                             </div>
                         </div>
+                        <div v-if="isThinking" class="flex mb-4">
+                            <svg
+                                class="animate-breathe"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 8 8"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <circle cx="4" cy="4" r="4" fill="#000"></circle>
+                            </svg>
+                        </div>
                     </template>
                     <div v-else class="flex h-full flex-col items-center justify-center gap-6">
                         <h2 class="text-3xl font-semibold">What can I help with?</h2>
@@ -300,12 +312,12 @@
                         <div
                             ref="prompt"
                             v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
+                            @keyup.enter="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
                             contenteditable="true"
                             class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none"
                         ></div>
                         <button
                             @click="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
-                            @keyup.enter="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
                             class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
                         >
                             <svg

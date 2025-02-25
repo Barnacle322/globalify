@@ -128,7 +128,6 @@ const FullInvestor = defineComponent({
                 callback();
             }
         },
-
         deleteInvestorParam() {
             const url = new URL(window.location.href);
             url.searchParams.delete("investor");
@@ -193,7 +192,6 @@ const GeminiComponent = defineComponent({
         FullInvestor,
     },
     async created() {
-        const userId = this.userId;
         await this.loadAllChats();
         this.loadChatById(this.selectedChatId);
         window.addEventListener("popstate", this.handlePopState);
@@ -223,6 +221,9 @@ const GeminiComponent = defineComponent({
     },
     methods: {
         async sendMessage(chatId) {
+            console.log("her tebe");
+            this.isThinking = true;
+            this.currentMessage = null;
             const csrf_token = document.getElementById("csrf_token").value;
             const promptDiv = this.$refs.prompt;
             const promptText = promptDiv.textContent.trim();
@@ -246,6 +247,9 @@ const GeminiComponent = defineComponent({
             }
         },
         async sendMessageAndCreateChat() {
+            console.log("her");
+            this.isThinking = true;
+            this.currentMessage = null;
             const csrf_token = document.getElementById("csrf_token").value;
             const promptDiv = this.$refs.prompt;
             const promptText = promptDiv.textContent.trim();
@@ -269,11 +273,12 @@ const GeminiComponent = defineComponent({
 
                 this.hasChats = true;
                 this.isHistoryVisible = true;
-                this.selectedChatId = data.chat.id;
+
+                const chat = JSON.parse(data.chat);
+                this.selectedChatId = chat.id;
 
                 this.startSSEStream(promptText);
 
-                // Add the new chat to userChats with isNew: true
                 const category = "Recently";
                 const newChat = { ...JSON.parse(data.chat), isNew: true };
                 if (this.userChats.has(category)) {
@@ -304,12 +309,10 @@ const GeminiComponent = defineComponent({
                 console.error("Error loading chat:", error);
             }
         },
-
         async createChat() {
             this.response = [];
             this.selectedChatId = null;
         },
-
         async loadChatById(chatId) {
             if (chatId === null || chatId === undefined) {
                 console.warn("Invalid chatId, nothing to load.");
@@ -366,10 +369,7 @@ const GeminiComponent = defineComponent({
 
                 this.userChats = new Map(
                     [...grouped.entries()]
-                        .map(([key, value]) => [
-                            key,
-                            value.map((chat) => ({ ...chat, isNew: false })), // Add isNew key
-                        ])
+                        .map(([key, value]) => [key, value.map((chat) => ({ ...chat, isNew: false }))])
                         .sort((a, b) => {
                             const order = [
                                 "Recently",
@@ -506,20 +506,19 @@ const GeminiComponent = defineComponent({
             }
         },
         startSSEStream(prompt) {
-            this.stopSSEStream(); // Остановить предыдущий стрим, если он есть
+            this.stopSSEStream();
 
             const url = `/message/stream/${prompt}`;
             console.log(`Connecting to SSE stream at: ${url}`);
-            this.eventSource = new EventSource(url); // Подключаемся к SSE
+            this.eventSource = new EventSource(url);
 
             this.eventSource.onopen = () => {
                 console.log("SSE connection opened");
-                this.queue = []; // Очередь для частичных сообщений
-                this.isTyping = true; // Флаг работы анимации
+                this.queue = [];
+                this.isTyping = false;
             };
-
             this.eventSource.onmessage = (event) => {
-                const text = event.data.trim(); // Убираем лишние пробелы
+                const text = event.data.trim();
 
                 console.log("Received message: ", text);
 
@@ -529,20 +528,28 @@ const GeminiComponent = defineComponent({
                     return;
                 }
 
-                // Создаём новое сообщение, если его нет
                 if (!this.currentMessage) {
                     this.currentMessage = { content: "", type: "gemini", isHTML: true };
                     this.response.push(this.currentMessage);
                 }
 
-                // Добавляем текст в очередь (чтобы не терялись части)
                 this.queue.push(text);
 
-                // Запускаем обработку текста, если она не активна
                 if (!this.isTyping) {
                     this.processQueue();
                 }
             };
+        },
+        stopSSEStream() {
+            if (this.eventSource) {
+                this.eventSource.close();
+                this.eventSource = null;
+            }
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = null;
+            }
+            this.isThinking = false;
         },
         processQueue() {
             if (!this.queue.length) {
@@ -551,31 +558,20 @@ const GeminiComponent = defineComponent({
             }
 
             this.isTyping = true;
-            let text = this.queue.shift(); // Берём следующий текст из очереди
+            let text = this.queue.shift();
             let currentIndex = 0;
 
             const addLetter = () => {
                 if (currentIndex < text.length) {
-                    this.currentMessage.content += text[currentIndex]; // Добавляем символ
+                    this.currentMessage.content += text[currentIndex];
                     currentIndex++;
                     this.scrollToBottom();
-                    setTimeout(addLetter, 5); // Запускаем следующую букву через 5 мс
+                    setTimeout(addLetter, 5);
                 } else {
-                    this.processQueue(); // После завершения этой части — берём следующую
+                    this.processQueue();
                 }
             };
-
-            addLetter(); // Запускаем анимацию
-        },
-        stopSSEStream() {
-            if (this.eventSource) {
-                this.eventSource.close(); // Закрыть соединение
-                this.eventSource = null; // Удалить ссылку на объект EventSource
-            }
-            if (this.interval) {
-                clearInterval(this.interval);
-                this.interval = null;
-            }
+            addLetter();
         },
         scrollToBottom() {
             this.$nextTick(() => {
@@ -776,6 +772,7 @@ const GeminiComponent = defineComponent({
             interval: null,
             selectedInvestorSlug: null,
             isTyping: false,
+            isThinking: false,
             // summary_names: [],
             hasChats: false,
         };

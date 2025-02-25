@@ -507,6 +507,9 @@
   .m-1 {
     margin: calc(var(--spacing) * 1);
   }
+  .m-2 {
+    margin: calc(var(--spacing) * 2);
+  }
   .m-3 {
     margin: calc(var(--spacing) * 3);
   }
@@ -1987,9 +1990,6 @@
   .rounded-br-none {
     border-bottom-right-radius: 0;
   }
-  .rounded-bl-none {
-    border-bottom-left-radius: 0;
-  }
   .border {
     border-style: var(--tw-border-style);
     border-width: 1px;
@@ -3235,6 +3235,28 @@
       line-height: var(--tw-leading, var(--text-2xl--line-height));
     }
   }
+  .placeholder\:text-gray-500 {
+    &::placeholder {
+      color: var(--color-gray-500);
+    }
+  }
+  .placeholder\:text-red-500 {
+    &::placeholder {
+      color: var(--color-red-500);
+    }
+  }
+  .before\:text-gray-500 {
+    &::before {
+      content: var(--tw-content);
+      color: var(--color-gray-500);
+    }
+  }
+  .before\:text-red-500 {
+    &::before {
+      content: var(--tw-content);
+      color: var(--color-red-500);
+    }
+  }
   .after\:absolute {
     &::after {
       content: var(--tw-content);
@@ -3351,6 +3373,33 @@
   .empty\:hidden {
     &:empty {
       display: none;
+    }
+  }
+  .empty\:before\:content-\[\'Write\'\] {
+    &:empty {
+      &::before {
+        content: var(--tw-content);
+        --tw-content: 'Write';
+        content: var(--tw-content);
+      }
+    }
+  }
+  .empty\:before\:content-\[\'Write_GlobalifAI\'\] {
+    &:empty {
+      &::before {
+        content: var(--tw-content);
+        --tw-content: 'Write GlobalifAI';
+        content: var(--tw-content);
+      }
+    }
+  }
+  .empty\:before\:content-\[\'Write_Globalify\'\] {
+    &:empty {
+      &::before {
+        content: var(--tw-content);
+        --tw-content: 'Write Globalify';
+        content: var(--tw-content);
+      }
     }
   }
   .hover\:-translate-x-1 {

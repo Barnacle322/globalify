@@ -254,22 +254,43 @@
                             </div>
                         </div>
                     </template>
-                    <div v-else class="flex">
-                        <div
-                            class="relative max-w-[75%] rounded-xl rounded-bl-none bg-white p-4 text-gray-800 shadow-lg"
-                        >
-                            Hi there! I'm Gemini, your virtual assistant. How can I help you today?
+                    <div v-else class="flex flex-col justify-center items-center h-full gap-6">
+                        <h2 class="font-semibold text-3xl">What can I help with?</h2>
+
+                        <div class="relative flex items-center w-full">
                             <div
-                                class="absolute -bottom-2 left-0 h-3 w-3 bg-white"
-                                style="clip-path: 'polygon(0 0, 100% 0, 100% 100%)"
+                                ref="prompt"
+                                v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
+                                contenteditable="true"
+                                class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-500 empty:before:content-['Write_GlobalifAI']"
                             ></div>
+                            <button
+                                @click="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
+                                @keyup.enter="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
+                                class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="#0ea5e9"
+                                    class="size-6"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"
+                                    />
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <div
-                    class="sticky right-0 bottom-0 left-0 border-t border-gray-200 bg-white p-4"
-                    :class="{'rounded-3xl': isExpanded}"
+                    v-if="response.length"
+                    class="sticky right-0 bottom-0 left-0 border-t border-gray-200 bg-white p-4 rounded-3xl m-2"
                 >
                     <div class="relative flex items-center">
                         <div

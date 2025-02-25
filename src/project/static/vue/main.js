@@ -260,10 +260,16 @@ const GeminiComponent = defineComponent({
                     body: JSON.stringify({ message: promptText }),
                 });
 
+                if (response.status === 404) {
+                    this.isHistoryVisible = false;
+                    this.hasChats = false;
+                    return;
+                }
                 const data = await response.json();
-                this.selectedChatId = data.chat.id;
 
-                console.log(data);
+                this.hasChats = true
+                this.isHistoryVisible = true
+                this.selectedChatId = data.chat.id;
 
                 this.startSSEStream(promptText);
 
@@ -305,6 +311,10 @@ const GeminiComponent = defineComponent({
         },
 
         async loadChatById(chatId) {
+            if (chatId === null || chatId === undefined) {
+                console.warn("Invalid chatId, nothing to load.");
+                return;
+    }
             try {
                 const response = await fetch(`/message/chat/id/${chatId}`, {
                     method: "GET",
@@ -334,6 +344,14 @@ const GeminiComponent = defineComponent({
 
                 const data = await response.json();
 
+                if (data.message === "No chats found for this user") {
+                    this.isHistoryVisible = false;
+                    this.hasChats = false;
+                    return;
+                }
+
+                this.hasChats = true
+                this.isHistoryVisible = true
                 this.selectedChatId = data[0].id;
 
                 const grouped = new Map();
@@ -758,6 +776,7 @@ const GeminiComponent = defineComponent({
             selectedInvestorSlug: null,
             isTyping: false,
             // summary_names: [],
+            hasChats: false
         };
     },
 });

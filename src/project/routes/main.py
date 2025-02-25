@@ -248,6 +248,13 @@ def get_investor(slug):
     )
 
 
+@main.route("/investor/avata/<slug>/get", methods=["GET"])
+@login_required
+def get_investor_avatar(slug):
+    twitter = Investor.get_investor_twitter_by_slug(slug)
+    return jsonify(twitter or "default")
+
+
 @main.get("/check-investor")
 @login_required
 def check_investor():

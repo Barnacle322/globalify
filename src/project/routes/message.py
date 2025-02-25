@@ -4,8 +4,6 @@ from flask import Blueprint, Response, jsonify, request, stream_with_context
 from flask_login import current_user, login_required
 from sqlalchemy import delete
 
-from src.project.models.investor import Investor
-
 from ..extensions import db
 from ..models import (
     Chat,
@@ -148,7 +146,7 @@ def send_message_with_create_chat():
     for res in summary_bot_summary:
         for candidate in res._result.candidates:
             for part in candidate.content.parts:
-                bot_summary_text += part.text + "\n"
+                bot_summary_text += part.text
 
     bot_summary_text = bot_summary_text.strip()
 
@@ -160,7 +158,7 @@ def send_message_with_create_chat():
     for res in bot_response:
         for candidate in res._result.candidates:
             for part in candidate.content.parts:
-                bot_message_text += part.text + "\n"
+                bot_message_text += part.text
 
     bot_message_text = bot_message_text.strip()
 
@@ -292,7 +290,6 @@ def streamed_response(prompt):
 @message.route("/chat/<int:chat_id>/delete", methods=["POST"])
 @login_required
 def delete_chat_by_id(chat_id):
-    print("/////////")
     chat = Chat.get_by_id(chat_id)
     if not chat:
         print("Chat not found")
@@ -323,7 +320,6 @@ def delete_chat_by_id(chat_id):
 @message.route("/chat/<int:chat_id>/rename", methods=["POST"])
 @login_required
 def rename_chat(chat_id):
-    print("///////////")
     data = request.get_json()
     new_name = data.get("name", "").strip()
 
@@ -348,13 +344,6 @@ def rename_chat(chat_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Failed to rename chat: {str(e)}"}), 500
-
-
-@message.route("/investor/<slug>", methods=["GET"])
-@login_required
-def get_investor_avatar(slug):
-    twitter = Investor.get_investor_twitter_by_slug(slug)
-    return jsonify(twitter)
 
 
 # @message.route("/chat/<int:user_id>", methods=["POST"])

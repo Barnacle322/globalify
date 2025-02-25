@@ -232,7 +232,7 @@
                      'mx-auto ': isExpanded}"
             >
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                <div class="flex-1 overflow-y-auto p-4 custom-scrollbar" ref="chatContainer">
+                <div class="flex-1 overflow-y-auto p-4 custom-scrollbar" ref="chatContainer" @scroll="handleScroll">
                     <template v-if="response.length">
                         <div
                             v-for="(message, index) in response"

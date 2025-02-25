@@ -100,12 +100,10 @@ const FullInvestor = defineComponent({
                         window.location.href = response.url;
                     }
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { investorId: investorId, status: true });
                         this.isBookmarked = !this.isBookmarked;
                     } else {
-                        // svg.style.fill = "none";
                         this.$emit("bookmarked", { investorId: investorId, status: false });
                         this.isBookmarked = !this.isBookmarked;
                     }
@@ -186,7 +184,9 @@ const GeminiComponent = defineComponent({
     props: ["userId"],
     watch: {
         response() {
-            this.scrollToBottom();
+            if (this.isScrolledToBottom) {
+                this.scrollToBottom();
+            }
         },
     },
     components: {
@@ -213,6 +213,7 @@ const GeminiComponent = defineComponent({
         document.addEventListener("click", this.handleHistorySidebarClickOutside);
         document.addEventListener("click", this.handleClickOutside);
         document.body.addEventListener("click", this.handleInvestorButtonClick);
+        this.handleScroll();
     },
     beforeUnmount() {
         document.removeEventListener("click", this.handleHistorySidebarClickOutside);
@@ -275,7 +276,9 @@ const GeminiComponent = defineComponent({
                 if (currentIndex < text.length) {
                     this.currentMessage.content += text[currentIndex]; // Добавляем символ
                     currentIndex++;
-                    this.scrollToBottom();
+                    if (this.isScrolledToBottom) {
+                        this.scrollToBottom();
+                    }
                     setTimeout(addLetter, 50); // Запускаем следующую букву через 50 мс
                 } else {
                     this.processQueue(); // После завершения этой части — берём следующую
@@ -522,6 +525,12 @@ const GeminiComponent = defineComponent({
                 this.cancelEditing();
             }
         },
+        handleScroll() {
+            const chatContainer = this.$refs.chatContainer;
+            if (chatContainer);
+            this.isScrolledToBottom =
+                chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight <= 20;
+        },
         scrollToBottom() {
             this.$nextTick(() => {
                 const chatContainer = this.$refs.chatContainer;
@@ -531,7 +540,6 @@ const GeminiComponent = defineComponent({
             });
         },
         displayMessage(message) {
-            this.scrollToBottom();
             const fullMessage = message.message;
             let currentIndex = 0;
 
@@ -551,7 +559,9 @@ const GeminiComponent = defineComponent({
                         });
                     }
                     currentIndex++;
-                    this.scrollToBottom();
+                    if (this.isScrolledToBottom) {
+                        this.scrollToBottom();
+                    }
                 } else {
                     clearInterval(interval);
                 }
@@ -734,6 +744,7 @@ const GeminiComponent = defineComponent({
             isExpanded: false,
             isGeminiOpened: true,
             isHistoryVisible: true,
+            isScrolledToBottom: true,
             dropdownOpened: false,
             openedDropdownChatId: null,
             queue: [],
@@ -747,186 +758,6 @@ const GeminiComponent = defineComponent({
             selectedInvestorSlug: null,
             isTyping: false,
             // summary_names: [],
-        };
-    },
-});
-
-const FullInvestor = defineComponent({
-    template: "#full-investor-template",
-    props: { slug: String, rendercontacts: Boolean },
-    emits: ["close-investor", "bookmarked"],
-    delimiters: ["[[", "]]"],
-    mounted() {
-        window.addEventListener("keydown", this.handleKeyDown);
-        document.addEventListener("click", this.handleClickOutside);
-    },
-    beforeUnmount() {
-        window.removeEventListener("keydown", this.handleKeyDown);
-        this.deleteInvestorParam();
-        document.removeEventListener("click", this.handleClickOutside);
-        const script_element = document.getElementById("twitter-script");
-        if (script_element) script_element.remove();
-    },
-    async created() {
-        await this.fetchInvestor();
-        window.removeEventListener("popstate", this.checkUrlParams);
-    },
-    methods: {
-        async fetchInvestor() {
-            try {
-                const response = await fetch(`/investor/${this.slug}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investor = data.investor;
-                    this.isBookmarked = data.isBookmarked;
-                    this.unpaid = data.unpaid;
-                    if (data.investments && data.n_of_investments) {
-                        this.investments = data.investments;
-                        this.n_of_investments = data.n_of_investments;
-                    }
-                    await this.loadTwitterTimeline();
-                } else {
-                    this.closeInvestor();
-                    return;
-                }
-            } catch (error) {
-                console.error("Error fetching investor:", error);
-                this.closeInvestor();
-            } finally {
-                this.isLoading = false;
-            }
-        },
-        async loadTwitterTimeline() {
-            if (!this.investor?.twitter) return;
-            this.loadingTwitter = true; // Set loading state to true
-            this.ensureTwitterScriptLoaded(() => {
-                const timeline = document.querySelector(".twitter-timeline");
-                if (timeline) {
-                    timeline.innerHTML = "";
-                    timeline.setAttribute("href", this.investor.twitter);
-                    window.twttr?.widgets.load();
-
-                    const observer = new MutationObserver((mutations) => {
-                        mutations.forEach((mutation) => {
-                            const twitterWidget = document.querySelector("[id^='twitter-widget-']");
-                            if (twitterWidget && twitterWidget.offsetHeight > 0) {
-                                this.loadingTwitter = false;
-                                observer.disconnect();
-                            }
-                        });
-                    });
-
-                    observer.observe(document.body, { childList: true, subtree: true });
-                }
-            });
-        },
-        ensureTwitterScriptLoaded(callback) {
-            const script_element = document.getElementById("twitter-script");
-            if (script_element) script_element.remove();
-
-            if (!this.twitterScriptLoaded) {
-                const script = document.createElement("script");
-                script.src = "https://platform.twitter.com/widgets.js";
-                script.id = "twitter-script";
-                script.async = true;
-                script.onload = () => {
-                    this.twitterScriptLoaded = true;
-                    callback();
-                };
-                document.body.appendChild(script);
-            } else {
-                callback();
-            }
-        },
-        async toggleBookmark(investorId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/investor/${investorId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.ok) {
-                    if (response.url.includes("/onboarding/")) {
-                        window.location.href = response.url;
-                    }
-                    const data = await response.json();
-                    if (data[0].bookmarked) {
-                        this.$emit("bookmarked", { investorId: investorId, status: true });
-                        this.isBookmarked = !this.isBookmarked;
-                    } else {
-                        this.$emit("bookmarked", { investorId: investorId, status: false });
-                        this.isBookmarked = !this.isBookmarked;
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-
-        async sortInvestments(sortType) {
-            const compareDates = (a, b) => {
-                const dateA = new Date(a.announced_date);
-                const dateB = new Date(b.announced_date);
-                return sortType === "asc" ? dateA - dateB : dateB - dateA;
-            };
-
-            this.investments.sort(compareDates);
-
-            // Force re-render
-            this.investments = [...this.investments];
-            this.sortOrder = sortType;
-            this.sortDropdownOpened = false;
-        },
-        deleteInvestorParam() {
-            const url = new URL(window.location.href);
-            url.searchParams.delete("investor");
-            window.history.replaceState({}, "", url);
-        },
-        checkUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const investorSlug = urlParams.get("investor");
-            if (!investorSlug) {
-                this.$emit("close-investor");
-            }
-        },
-        handleKeyDown(event) {
-            if (event.key === "Escape") {
-                this.$emit("close-investor");
-            }
-        },
-        toggleExpansion() {
-            this.isExpanded = !this.isExpanded;
-        },
-        closeInvestor() {
-            this.$emit("close-investor");
-        },
-        getTwitterHandle(url) {
-            return url.split("/").pop();
-        },
-        handleClickOutside(event) {
-            const dropdownContainer = this.$refs.dropdownContainer;
-            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-                this.dropdownOpened = false;
-            }
-        },
-    },
-    data() {
-        return {
-            showPopover: false,
-            isExpanded: false,
-            isLoading: true,
-            isBookmarked: false,
-            investor: null,
-            unpaid: false,
-            sortDropdownOpened: false,
-            sortOrder: null,
-            investments: [],
-            dropdownOpened: false,
-            twitterScriptLoaded: false,
-            loadingTwitter: false,
         };
     },
 });

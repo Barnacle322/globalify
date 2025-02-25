@@ -278,11 +278,11 @@
                                 ref="prompt"
                                 v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
                                 contenteditable="true"
+                                @keyup.enter="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
                                 class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-500 empty:before:content-['Write_GlobalifAI']"
                             ></div>
                             <button
                                 @click="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
-                                @keyup.enter="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
                                 class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
                             >
                                 <svg

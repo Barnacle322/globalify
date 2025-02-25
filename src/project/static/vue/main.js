@@ -271,8 +271,6 @@ const GeminiComponent = defineComponent({
                 this.isHistoryVisible = true
                 this.selectedChatId = data.chat.id;
 
-                console.log(data);
-
                 this.startSSEStream(promptText);
 
                 // Add the new chat to userChats with isNew: true

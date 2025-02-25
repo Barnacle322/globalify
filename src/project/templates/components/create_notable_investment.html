@@ -1,7 +1,7 @@
 {% macro render() %}
 <template id="create-notable-investment-template">
     <article
-        class="fixed top-1/2 right-1/2 z-50 flex w-10/12 translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
+        class="fixed top-1/2 right-1/2 z-50 flex w-10/12 -translate-y-1/2 translate-x-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
     >
         <div class="flex h-full flex-col gap-4 overflow-y-scroll px-5 py-4 sm:max-h-96 sm:min-h-52">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />

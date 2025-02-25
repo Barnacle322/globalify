@@ -22,7 +22,11 @@
         </transition>
         <nav class="sticky top-0 z-10 flex h-20 items-center justify-between rounded-tl-3xl bg-white px-4 py-4 sm:px-6">
             <div class="flex w-1/3 items-center gap-3">
-                <button @click="toggleHistory" :disabled="!hasChats" class="rounded-lg p-2 transition-colors hover:bg-gray-100">
+                <button
+                    @click="toggleHistory"
+                    :disabled="!hasChats"
+                    class="rounded-lg p-2 transition-colors hover:bg-gray-100"
+                >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 -960 960 960"
@@ -254,10 +258,10 @@
                             </div>
                         </div>
                     </template>
-                    <div v-else class="flex flex-col justify-center items-center h-full gap-6">
-                        <h2 class="font-semibold text-3xl">What can I help with?</h2>
+                    <div v-else class="flex h-full flex-col items-center justify-center gap-6">
+                        <h2 class="text-3xl font-semibold">What can I help with?</h2>
 
-                        <div class="relative flex items-center w-full">
+                        <div class="relative flex w-full items-center">
                             <div
                                 ref="prompt"
                                 v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
@@ -290,7 +294,7 @@
 
                 <div
                     v-if="response.length"
-                    class="sticky right-0 bottom-0 left-0 border-t border-gray-200 bg-white p-4 rounded-3xl m-2"
+                    class="sticky right-0 bottom-0 left-0 m-2 rounded-3xl border-t border-gray-200 bg-white p-4"
                 >
                     <div class="relative flex items-center">
                         <div

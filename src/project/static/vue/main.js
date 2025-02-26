@@ -470,7 +470,7 @@ const GeminiComponent = defineComponent({
         },
         async getTwitterAvatar(slug) {
             try {
-                const response = await fetch(`/message/investor/${slug}`);
+                const response = await fetch(`/investor/avatar/${slug}/get`);
                 if (!response.ok) {
                     console.error(`Error loading avatar for ${slug}: ${response.status} ${response.statusText}`);
                     return "https://unavatar.io/x/default";
@@ -566,7 +566,9 @@ const GeminiComponent = defineComponent({
                 if (currentIndex < text.length) {
                     this.currentMessage.content += text[currentIndex];
                     currentIndex++;
-                    this.scrollToBottom();
+                    if (this.isScrolledToBottom) {
+                        this.scrollToBottom();
+                    }
                     setTimeout(addLetter, 5);
                 } else {
                     this.processQueue();
@@ -579,7 +581,7 @@ const GeminiComponent = defineComponent({
             if (chatContainer);
             this.isScrolledToBottom =
                 chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight <= 20;
-         },
+        },
         scrollToBottom() {
             this.$nextTick(() => {
                 const chatContainer = this.$refs.chatContainer;
@@ -589,6 +591,7 @@ const GeminiComponent = defineComponent({
             });
         },
         displayMessage(message) {
+            this.scrollToBottom();
             const fullMessage = message.message;
             let currentIndex = 0;
 
@@ -637,33 +640,80 @@ const GeminiComponent = defineComponent({
             return "Long ago";
         },
         processMarkdown(text) {
-            text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, buttonText, slug) => {
-                let buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">`;
+            const lines = text.split("\n");
+            let html = "";
+            let listLevel = 0;
+            const listStack = [];
+            let previousLineWasListItem = false;
+            let needLineBreak = false;
 
-                const cachedAvatar = this.avatarCache.get(slug);
-                buttonHTML += `<img src="${cachedAvatar}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
-                buttonHTML += `${buttonText}</button>`;
-
-                if (!this.avatarCache.has(slug)) {
-                    this.loadAvatar(slug);
+            const closeList = () => {
+                if (listLevel > 0) {
+                    html += `</${listStack.pop()}>`;
+                    listLevel--;
                 }
+            };
 
-                return buttonHTML;
-            });
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                const isEmptyLine = !trimmedLine;
+                const listItemMatch = line.match(/^(\s*)(\*|\d+\.)\s+(.*)/);
 
-            text = text.replace(/\*\*([\s\S]*?)\*\*/g, (match, content) => {
-                return `<strong>${content.replace(/\n/g, " ")}</strong>`;
-            });
+                if (listItemMatch) {
+                    const indent = listItemMatch[1].length;
+                    const level = indent / 2;
+                    const listType = listItemMatch[2] === "*" ? "ul" : "ol";
+                    const content = listItemMatch[3];
 
-            // Replace markdown list items with <li> tags
-            text = text.replace(/^\* (.*)/gm, "<li>$1</li>");
+                    while (listLevel > level) {
+                        closeList();
+                    }
 
-            // Wrap consecutive <li> tags in a single <ul> tag
-            text = text.replace(/(<li>[\s\S]*?<\/li>)+/g, (match) => {
-                return `<ul>${match}</ul>`;
-            });
+                    if (listLevel < level) {
+                        html += `<${listType}>`;
+                        listStack.push(listType);
+                        listLevel++;
+                    }
 
-            return text;
+                    html += `<li>${content}</li>`;
+                    previousLineWasListItem = true;
+                    needLineBreak = false;
+                } else {
+                    while (listLevel > 0) {
+                        closeList();
+                    }
+
+                    if (needLineBreak) {
+                        html += "<br>";
+                    }
+
+                    let processedLine = trimmedLine
+                        .replace(/\*\*([\s\S]*?)\*\*/g, "<strong>$1</strong>")
+                        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, buttonText, slug) => {
+                            let buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">`;
+                            const cachedAvatar = this.avatarCache.get(slug);
+                            buttonHTML += `<img src="${cachedAvatar}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
+                            buttonHTML += `${buttonText}</button>`;
+                            if (!this.avatarCache.has(slug)) {
+                                this.loadAvatar(slug);
+                            }
+                            return buttonHTML;
+                        });
+
+                    html += processedLine;
+                    previousLineWasListItem = false;
+                    needLineBreak = !isEmptyLine;
+                }
+                if (isEmptyLine) {
+                    needLineBreak = true;
+                }
+            }
+
+            while (listLevel > 0) {
+                closeList();
+            }
+
+            return html;
         },
         updateAvatarImages(slug, avatarUrl) {
             const images = document.querySelectorAll(`img[data-slug="${slug}"]`);

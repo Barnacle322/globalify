@@ -235,8 +235,12 @@
                 class="mx-auto relative flex flex-col overflow-hidden transition-all duration-300 justify-center w-full"
             >
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                <div class="custom-scrollbar overflow-y-auto flex justify-center">
-                    <div class="p-4 prose max-w-3xl" ref="chatContainer" @scroll="handleScroll">
+                <div
+                    class="custom-scrollbar overflow-y-auto flex justify-center"
+                    ref="chatContainer"
+                    @scroll="handleScroll"
+                >
+                    <div class="p-4 prose max-w-3xl">
                         <template v-if="response.length">
                             <div
                                 v-for="(message, index) in response"

@@ -10,6 +10,7 @@ from ..models import (
     Message,
 )
 from ..schemas.message import ChatListSchema, ChatSchema, MessageSchema
+from ..utils.decorators import check_verification, check_user_info_complete
 from ..utils.enums import SenderType
 from ..utils.gemini import create_summary, generate_response
 
@@ -18,6 +19,8 @@ message = Blueprint("message", __name__)
 
 @message.route("/chat/<int:chat_id>", methods=["POST"])
 @login_required
+@check_verification
+@check_user_info_complete
 def send_message(chat_id):
     data = request.get_json()
     user_message = data.get("message", "").strip()
@@ -80,6 +83,8 @@ def send_message(chat_id):
 
 @message.route("/chat", methods=["POST"])
 @login_required
+@check_verification
+@check_user_info_complete
 def send_message_with_create_chat():
     data = request.get_json()
     user_message = data.get("message", "").strip()
@@ -145,6 +150,8 @@ def send_message_with_create_chat():
 
 @message.route("/chat/id/<int:chat_id>/", methods=["GET"])
 @login_required
+@check_verification
+@check_user_info_complete
 def get_chat(chat_id):
     chat = Chat.get_by_id(chat_id)
     if not chat:
@@ -164,6 +171,8 @@ def get_chat(chat_id):
 
 @message.route("/chats/<int:user_id>", methods=["GET"])
 @login_required
+@check_verification
+@check_user_info_complete
 def get_chats_by_user_id(user_id):
     if current_user.id != user_id:
         return jsonify({"error": "Access denied"}), 403
@@ -179,6 +188,8 @@ def get_chats_by_user_id(user_id):
 
 @message.route("/chat/<int:user_id>", methods=["GET"])
 @login_required
+@check_verification
+@check_user_info_complete
 def get_chat_by_user_id(user_id: int):
     if current_user.id != user_id:
         return jsonify({"error": "Access denied"}), 403
@@ -200,6 +211,8 @@ def get_chat_by_user_id(user_id: int):
 
 @message.route("/stream/<prompt>")
 @login_required
+@check_verification
+@check_user_info_complete
 def streamed_response(prompt):
     def generate():
         response = generate_response(prompt, [])
@@ -215,6 +228,8 @@ def streamed_response(prompt):
 
 @message.route("/chat/<int:chat_id>/delete", methods=["POST"])
 @login_required
+@check_verification
+@check_user_info_complete
 def delete_chat_by_id(chat_id):
     chat = Chat.get_by_id(chat_id)
     if not chat:
@@ -244,6 +259,8 @@ def delete_chat_by_id(chat_id):
 
 @message.route("/chat/<int:chat_id>/rename", methods=["POST"])
 @login_required
+@check_verification
+@check_user_info_complete
 def rename_chat(chat_id):
     data = request.get_json()
     new_name = data.get("name", "").strip()
@@ -273,6 +290,8 @@ def rename_chat(chat_id):
 
 @message.route("/investor/<slug>", methods=["GET"])
 @login_required
+@check_verification
+@check_user_info_complete
 def get_investor_avatar(slug):
     twitter = Investor.get_investor_twitter_by_slug(slug)
     return jsonify(twitter)

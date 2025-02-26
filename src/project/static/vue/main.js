@@ -82,12 +82,10 @@ const FullInvestor = defineComponent({
                         window.location.href = response.url;
                     }
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { investorId: investorId, status: true });
                         this.isBookmarked = !this.isBookmarked;
                     } else {
-                        // svg.style.fill = "none";
                         this.$emit("bookmarked", { investorId: investorId, status: false });
                         this.isBookmarked = !this.isBookmarked;
                     }
@@ -185,7 +183,9 @@ const GeminiComponent = defineComponent({
     props: ["userId"],
     watch: {
         response() {
-            this.scrollToBottom();
+            if (this.isScrolledToBottom) {
+                this.scrollToBottom();
+            }
         },
     },
     components: {
@@ -211,6 +211,7 @@ const GeminiComponent = defineComponent({
         document.addEventListener("click", this.handleHistorySidebarClickOutside);
         document.addEventListener("click", this.handleClickOutside);
         document.body.addEventListener("click", this.handleInvestorButtonClick);
+        this.handleScroll();
     },
     beforeUnmount() {
         document.removeEventListener("click", this.handleHistorySidebarClickOutside);
@@ -573,6 +574,12 @@ const GeminiComponent = defineComponent({
             };
             addLetter();
         },
+        handleScroll() {
+            const chatContainer = this.$refs.chatContainer;
+            if (chatContainer);
+            this.isScrolledToBottom =
+                chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight <= 20;
+         },
         scrollToBottom() {
             this.$nextTick(() => {
                 const chatContainer = this.$refs.chatContainer;
@@ -582,7 +589,6 @@ const GeminiComponent = defineComponent({
             });
         },
         displayMessage(message) {
-            this.scrollToBottom();
             const fullMessage = message.message;
             let currentIndex = 0;
 
@@ -602,7 +608,9 @@ const GeminiComponent = defineComponent({
                         });
                     }
                     currentIndex++;
-                    this.scrollToBottom();
+                    if (this.isScrolledToBottom) {
+                        this.scrollToBottom();
+                    }
                 } else {
                     clearInterval(interval);
                 }
@@ -760,6 +768,7 @@ const GeminiComponent = defineComponent({
             isExpanded: false,
             isGeminiOpened: true,
             isHistoryVisible: true,
+            isScrolledToBottom: true,
             dropdownOpened: false,
             openedDropdownChatId: null,
             queue: [],

@@ -33,6 +33,7 @@ def send_message(chat_id):
 
     if chat.name == "New chat":
         chat.name = user_message[:30]
+        db.session.commit()
 
     user_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
     db.session.add(user_msg)
@@ -47,18 +48,18 @@ def send_message(chat_id):
     old_messages.append({"role": "user", "parts": [user_message]})
 
     bot_response = generate_response(user_message, old_messages)
-    summary_bot_summary = create_summary(user_message)
 
-    bot_summary_text = ""
-    for res in summary_bot_summary:
-        for candidate in res._result.candidates:
-            for part in candidate.content.parts:
-                bot_summary_text += part.text
+    if chat.name == "New chat":
+        summary_bot_summary = create_summary(user_message)
 
-    bot_summary_text = bot_summary_text.strip()
+        bot_summary_text = ""
+        for res in summary_bot_summary:
+            for candidate in res._result.candidates:
+                for part in candidate.content.parts:
+                    bot_summary_text += part.text
 
-    chat.name = bot_summary_text
-    db.session.commit()
+        chat.name = bot_summary_text.strip()
+        db.session.commit()
 
     bot_message_text = ""
     for res in bot_response:

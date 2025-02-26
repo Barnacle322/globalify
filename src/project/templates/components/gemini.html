@@ -133,12 +133,12 @@
                                     >
                                         <span
                                             v-if="editingChatId !== chat.id"
-                                            class="mask-linear-gradient mr-3 ml-2 block overflow-hidden whitespace-nowrap"
+                                            class="mask-linear-gradient block overflow-hidden whitespace-nowrap"
                                             :class="selectedChatId === chat.id ? 'text-white' : 'text-black'"
                                             v-text="chat.name"
                                         ></span>
 
-                                        <div v-else class="mr-3 ml-2">
+                                        <div v-else class="flex">
                                             <input
                                                 v-model="newChatName"
                                                 @click.stop
@@ -154,7 +154,7 @@
                                         <button
                                             data-dropdown-button
                                             @click.stop="toggleDropdown(chat.id)"
-                                            class="absolute top-1.5 right-1 hidden rounded-lg transition-colors ease-in-out group-hover:block hover:bg-white"
+                                            class="absolute top-1/2 -translate-1/2 -right-1 hidden group-hover:block"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -162,12 +162,12 @@
                                                 viewBox="0 0 24 24"
                                                 stroke-width="1.5"
                                                 stroke="currentColor"
-                                                class="size-7 text-gray-700"
+                                                class="size-6 text-white"
                                             >
                                                 <path
                                                     stroke-linecap="round"
                                                     stroke-linejoin="round"
-                                                    d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+                                                    d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
                                                 />
                                             </svg>
                                         </button>
@@ -236,7 +236,11 @@
                 :class="{'ml-56': isHistoryVisible && !isExpanded, 'mx-auto ': isExpanded}"
             >
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                <div class="custom-scrollbar flex-1 overflow-y-auto p-4 prose" ref="chatContainer" @scroll="handleScroll">
+                <div
+                    class="custom-scrollbar flex-1 overflow-y-auto p-4 prose"
+                    ref="chatContainer"
+                    @scroll="handleScroll"
+                >
                     <template v-if="response.length">
                         <div
                             v-for="(message, index) in response"
@@ -270,7 +274,7 @@
                             </svg>
                         </div>
                     </template>
-                    <div v-else class="flex h-full flex-col items-center justify-center gap-6">
+                    <div v-else class="flex h-full flex-col items-center justify-center">
                         <h2 class="text-3xl font-semibold">What can I help with?</h2>
 
                         <div class="relative flex w-full items-center">
@@ -314,7 +318,7 @@
                             v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
                             @keyup.enter="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
                             contenteditable="true"
-                            class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none"
+                            class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-400 empty:before:content-['Ask_GlobalifAI']"
                         ></div>
                         <button
                             @click="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
@@ -337,6 +341,9 @@
                         </button>
                     </div>
                 </div>
+                <span class="w-full text-center text-xs text-gray-500 mb-2"
+                    >GlobalifAI is still learning and can make mistakes!</span
+                >
             </div>
         </main>
     </article>

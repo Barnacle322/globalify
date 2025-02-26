@@ -236,7 +236,7 @@
                 :class="{'ml-56': isHistoryVisible && !isExpanded, 'mx-auto ': isExpanded}"
             >
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                <div class="custom-scrollbar flex-1 overflow-y-auto p-4 prose" ref="chatContainer">
+                <div class="custom-scrollbar flex-1 overflow-y-auto p-4 prose" ref="chatContainer" @scroll="handleScroll">
                     <template v-if="response.length">
                         <div
                             v-for="(message, index) in response"

@@ -439,7 +439,7 @@ def company_slug(slug):
         description += f" Works with {company.industry.name}."
 
     if company.preferred_round:
-        description += f" Prefered rounds: { company.preferred_round.name}."
+        description += f" Prefered rounds: {company.preferred_round.name}."
 
     if company.country:
         description += f" Located in {company.country.name}."

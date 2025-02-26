@@ -47,7 +47,7 @@ class SearchBuilder:
             for value in values:
                 self.filters.append(f"{field}:={value}")
         else:
-            self.filters.append(f'{field}:=[{",".join(values)}]')
+            self.filters.append(f"{field}:=[{','.join(values)}]")
         return self
 
     def filter_by_investment_range(self, min_investment: int | None, max_investment: int | None):

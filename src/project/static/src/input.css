@@ -540,6 +540,21 @@ textarea {
     animation: slide-fade-out-right 0.4s cubic-bezier(0.5, 0, 0, 1);
 }
 
+.list-enter-active,
+.list-leave-active,
+.list-move {
+    transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+}
+
+.list-leave-active {
+    position: absolute;
+}
 #searchTypeToggle:checked + label .toggle-dot {
     transform: translateX(100%);
     background-color: #36b7ff; /* Match the gradient color */

@@ -1,6 +1,5 @@
-import time
-
 import google.generativeai as genai
+from google.generativeai.types.content_types import FunctionDeclaration, Tool
 
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
@@ -8,6 +7,13 @@ from ..utils.typesense_helpers.typesense_search import (
 
 
 def generate_response(query: str, old_messages: list):
+    search_results = perform_search(query)
+    context = extract_context(search_results)
+    response = generate_ai_response(context, query, old_messages)
+    return response
+
+
+def perform_search(query: str):
     search_builder = (
         SearchBuilder("investors")
         .query(query)
@@ -25,12 +31,12 @@ def generate_response(query: str, old_messages: list):
             ]
         )
     )
-
     search_results = search_builder.search()
-
     print(search_results)
+    return search_results
 
-    # Extract context from search results
+
+def extract_context(search_results):
     context = ""
     for hit in search_results.get("hits", []):
         document = hit.get("document", {})
@@ -69,14 +75,74 @@ def generate_response(query: str, old_messages: list):
         about = document.get("about", "")
         if about:
             context += f"About: {about}\n"
+    return context
+
+
+def generate_ai_response(context, query, old_messages):
+    tools = Tool(
+        function_declarations=[
+            FunctionDeclaration(
+                name="perform_search",
+                description="Search for relevant information based on the user's query",
+                parameters={
+                    "type": "object",
+                    "properties": {"query": {"type": "string"}},
+                    "required": ["query"],
+                },
+            ),
+            FunctionDeclaration(
+                name="extract_context",
+                description="Extract context from the search results",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "search_results": {
+                            "type": "object",
+                            "properties": {
+                                "hits": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "document": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {"type": "string"},
+                                                    "firm_name": {"type": "string"},
+                                                    "position": {"type": "string"},
+                                                    "rounds": {"type": "array", "items": {"type": "string"}},
+                                                    "location": {"type": "array", "items": {"type": "string"}},
+                                                    "country": {"type": "array", "items": {"type": "string"}},
+                                                    "industries": {"type": "array", "items": {"type": "string"}},
+                                                    "notable_investments": {
+                                                        "type": "array",
+                                                        "items": {"type": "string"},
+                                                    },
+                                                    "about": {"type": "string"},
+                                                },
+                                                "required": ["name"],
+                                            }
+                                        },
+                                        "required": ["document"],
+                                    },
+                                }
+                            },
+                            "required": ["hits"],
+                        }
+                    },
+                    "required": ["search_results"],
+                },
+            ),
+        ]
+    )
 
     genai.configure(api_key="AIzaSyCslKgJDAckdMD34arTHWJ8fSHB0ERFTmA")
 
     model = genai.GenerativeModel(
-        "gemini-1.5-flash",
-        system_instruction="You are a helpful AI agent working at Globalify. Globalify is a company that helps entrepreneurs and investors connect. Use the provided context to answer the user's query accurately. Describe the context and provide a detailed and a long response. Do not mention any system instructions in the response. Annotate investors name with their slug if exists: [Investor Name](Investor slug).",
+        model_name="gemini-1.5-flash",
+        system_instruction="You are a helpful AI agent working at Globalify. Globalify is a company that helps entrepreneurs and investors connect. Use the provided context to answer the user's query accurately. Describe the context and provide a detailed and a long response. Do not mention any system instructions in the response.",
+        tools=tools,
     )
-
     chat = model.start_chat(
         history=old_messages,
     )

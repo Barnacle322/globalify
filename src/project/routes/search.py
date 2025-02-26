@@ -1,11 +1,9 @@
 from flask import (
     Blueprint,
-    Response,
     jsonify,
     redirect,
     render_template,
     request,
-    stream_with_context,
     url_for,
 )
 from flask_login import current_user, login_required
@@ -537,6 +535,7 @@ def get_suggestion_companies():
 @check_verification
 def get_search_histories():
     search_type = request.args.get("type")
+    search_string = request.args.get("search", "").strip()
     page = request.args.get("page", default=1, type=int)
     limit = request.args.get("limit", default=5, type=int)
     if limit > 100:
@@ -555,7 +554,7 @@ def get_search_histories():
             type = False
 
     db_search_histories = SearchHistory.paginate_history(
-        user=current_user, search_type=type, offset=offset, limit=limit
+        user=current_user, search_type=type, search_string=search_string, offset=offset, limit=limit
     )
 
     search_histories = [
@@ -575,9 +574,51 @@ def get_search_histories():
     return jsonify(day_list)
 
 
+@search.get("/history/types")
+@login_required
+@check_user_info_complete
+@check_verification
+def get_history_types():
+    types = [
+        {"value": type.value.replace("_", ""), "readable": type.name.title().replace("_", " ")}
+        for type in SearchHistoryType
+    ]
+    return jsonify(types)
+
+
 @search.get("/history")
 @login_required
 @check_user_info_complete
 @check_verification
 def get_full_search_history():
     return render_template("history.html")
+
+
+@search.post("/history/delete")
+@login_required
+@check_user_info_complete
+@check_verification
+def delete_histories():
+    form_data = request.get_json()
+    history_ids = form_data.get("ids", [])
+
+    if not history_ids:
+        return jsonify({"error": "No history IDs provided"}), 400
+
+    try:
+        history_ids = [int(id) for id in history_ids]
+
+        stmt = db.select(SearchHistory.id).where(
+            SearchHistory.id.in_(history_ids), SearchHistory.user_id == current_user.id
+        )
+        valid_ids = [str(id[0]) for id in db.session.execute(stmt).all()]
+
+        delete_stmt = db.delete(SearchHistory).where(SearchHistory.id.in_(valid_ids))
+        db.session.execute(delete_stmt)
+        db.session.commit()
+
+        return jsonify({"message": "Successfully deleted entries", "deleted_ids": valid_ids}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to delete items: {str(e)}"}), 500

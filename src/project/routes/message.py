@@ -1,6 +1,4 @@
-import asyncio
-
-from flask import Blueprint, Response, jsonify, request, stream_with_context
+from flask import Blueprint, Response, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import delete
 
@@ -16,33 +14,6 @@ from ..utils.gemini import create_summary, generate_response
 message = Blueprint("message", __name__)
 
 
-@message.route("/chat/create", methods=["POST"])
-@login_required
-def create_chat():
-    data = request.get_json()
-    user_id = data.get("user_id")
-
-    if not user_id:
-        return jsonify({"error": "User ID is required"}), 400
-
-    if current_user.id != user_id:
-        return jsonify({"error": "Access denied"}), 403
-
-    chat_model = Chat(user_id=user_id, name="New chat")
-    db.session.add(chat_model)
-    db.session.commit()
-
-    chat = ChatSchema(
-        id=chat_model.id,
-        user_id=chat_model.user_id,
-        created=chat_model.created,
-        name=chat_model.name,
-        messages=None,
-    )
-
-    return jsonify({"chat": chat.model_dump()})
-
-
 @message.route("/chat/<int:chat_id>", methods=["POST"])
 @login_required
 def send_message(chat_id):
@@ -53,18 +24,16 @@ def send_message(chat_id):
     if not user_message:
         return jsonify({"error": "Message cannot be empty"}), 400
 
-    # Получаем или создаем чат
     chat = Chat.get_by_id(chat_id)
 
     if not chat:
-        chat = Chat(user_id=current_user.id, name=user_message)
+        chat = Chat(user_id=current_user.id)
         db.session.add(chat)
         db.session.commit()
 
     if chat.name == "New chat":
         chat.name = user_message[:30]
 
-    # Создаем сообщение пользователя
     user_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
     db.session.add(user_msg)
     db.session.commit()
@@ -90,12 +59,7 @@ def send_message(chat_id):
 
     chat.name = bot_summary_text
     db.session.commit()
-    print("//////////////")
-    print(bot_response)
-    print("//////////////")
-    print(bot_summary_text)
-    print("//////////////")
-    # Обрабатываем ответ от Gemini
+
     bot_message_text = ""
     for res in bot_response:
         for candidate in res._result.candidates:
@@ -105,7 +69,6 @@ def send_message(chat_id):
     bot_message_text = bot_message_text.strip()
     print(bot_message_text)
 
-    # Создаем сообщение бота
     bot_msg = Message(chat_id=chat.id, message=bot_message_text, type=SenderType.GEMINI)
     db.session.add(bot_msg)
     db.session.commit()
@@ -126,7 +89,6 @@ def send_message_with_create_chat():
     db.session.add(chat)
     db.session.commit()
 
-    # Создаем сообщение пользователя
     user_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
     db.session.add(user_msg)
     db.session.commit()
@@ -153,7 +115,6 @@ def send_message_with_create_chat():
     chat.name = bot_summary_text
     db.session.commit()
 
-    # Обрабатываем ответ от Gemini
     bot_message_text = ""
     for res in bot_response:
         for candidate in res._result.candidates:
@@ -162,7 +123,6 @@ def send_message_with_create_chat():
 
     bot_message_text = bot_message_text.strip()
 
-    # Создаем сообщение бота
     bot_msg = Message(chat_id=chat.id, message=bot_message_text, type=SenderType.GEMINI)
     db.session.add(bot_msg)
     db.session.commit()
@@ -186,8 +146,6 @@ def send_message_with_create_chat():
 def get_chat(chat_id):
     chat = Chat.get_by_id(chat_id)
     if not chat:
-        print("\n\n\n\n\n\n\n\n\n")
-        print("Chat not found")
         return jsonify({"error": "Chat not found"}), 404
 
     messages = Message.get_by_chat_id(chat.id)
@@ -210,7 +168,7 @@ def get_chats_by_user_id(user_id):
 
     chats = Chat.get_all_by_user_id(user_id)
     if not chats:
-        return jsonify({"error": "Chats not found"}), 404
+        return jsonify({"message": "No chats found for this user"}), 200
 
     chat_models = [ChatListSchema.model_validate(chat).model_dump() for chat in chats]
 
@@ -219,7 +177,7 @@ def get_chats_by_user_id(user_id):
 
 @message.route("/chat/<int:user_id>", methods=["GET"])
 @login_required
-def get_chat_by_user_id(user_id):
+def get_chat_by_user_id(user_id: int):
     if current_user.id != user_id:
         return jsonify({"error": "Access denied"}), 403
 
@@ -238,51 +196,17 @@ def get_chat_by_user_id(user_id):
     return jsonify(chat_model.model_dump())
 
 
-# @message.route("/stream/<prompt>")
-# @login_required
-# def streamed_response(prompt):
-#     def generate():
-#         response = generate_response(prompt, [])
-#         for res in response:
-#             for candidate in res._result.candidates:
-#                 for part in candidate.content.parts:
-#                     print(f"data: {part.text}\n\n".encode("utf-8"))
-#                     yield f"data: {part.text}\n\n".encode("utf-8")  # SSE
-
-#     return Response(generate(), content_type="text/event-stream")
-
-
 @message.route("/stream/<prompt>")
 @login_required
 def streamed_response(prompt):
     def generate():
-        import time
-
-        # Мокированный ответ
-        fake_response = [
-            "Привет!",
-            "Чем могу помочь? ",
-            "Этот текст сгенерирован без использования Gemini. ",
-            "Мы рады видеть вас на нашей платформе. ",
-            "Globalify помогает предпринимателям и инвесторам находить друг друга. ",
-            "Если у вас есть вопросы, не стесняйтесь задавать их. ",
-            "Мы предоставляем различные инструменты для анализа рынка и поиска инвесторов. ",
-            "Наши услуги включают консультации и поддержку на всех этапах вашего бизнеса. ",
-            "Вы можете найти информацию о различных инвестиционных раундах и индустриях. ",
-            "Мы также предоставляем данные о заметных инвестициях и компаниях. ",
-            "Наша цель - помочь вам достичь успеха в вашем бизнесе. ",
-            "Спасибо, что выбрали Globalify. ",
-            "Если вам нужна дополнительная информация, пожалуйста, свяжитесь с нами. ",
-            "Мы всегда готовы помочь вам с вашими запросами. ",
-            "Удачи в ваших начинаниях! ",
-        ]
-
-        for text in fake_response:
-            yield f"data: {text}\n\n"  # Убрали .encode("utf-8")
-            time.sleep(1)  # Эмуляция задержки потока
-
-        # Сообщение о завершении
-        yield "data: [DONE]\n\n"
+        response = generate_response(prompt, [])
+        for res in response:
+            for candidate in res._result.candidates:
+                for part in candidate.content.parts:
+                    print(f"data: {part.text}\n\n".encode())
+                    yield f"data: {part.text}\n\n".encode()
+        yield b"data: [DONE]\n\n"
 
     return Response(generate(), content_type="text/event-stream")
 
@@ -292,7 +216,6 @@ def streamed_response(prompt):
 def delete_chat_by_id(chat_id):
     chat = Chat.get_by_id(chat_id)
     if not chat:
-        print("Chat not found")
         return jsonify({"error": "Chat not found"}), 404
 
     if chat.user_id != current_user.id:

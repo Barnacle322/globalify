@@ -144,11 +144,30 @@ def get_chat_by_user_id(user_id: int):
     return jsonify(chat_model.model_dump())
 
 
-@message.route("/stream/<prompt>")
+@message.route("/stream", methods=["GET"])
 @login_required
-def streamed_response(prompt):
+def streamed_response():
     def generate():
-        response = generate_response(prompt, [])
+        prompt = request.args.get("prompt")
+
+        if not prompt:
+            yield b"data: [DONE]\n\n"
+            return
+
+        chat_id = request.args.get("chat_id", type=int)
+        if chat_id:
+            messages = Message.get_by_chat_id(chat_id)
+
+            old_messages = [
+                {"role": "user" if msg.type == SenderType.USER else "assistant", "parts": [msg.message]}
+                for msg in messages
+            ]
+
+            old_messages.append({"role": "user", "parts": [prompt]})
+            response = generate_response(prompt, old_messages)
+        else:
+            response = generate_response(prompt, [])
+
         for res in response:
             for candidate in res._result.candidates:
                 for part in candidate.content.parts:

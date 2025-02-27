@@ -451,20 +451,11 @@ const GeminiComponent = defineComponent({
                 console.error("Error loading chat:", error);
             }
         },
-        handleAnimationEnd(chat) {
-            if (chat.isNew) {
-                chat.isNew = false;
-            }
-        },
-        checkAndSelectUrlParam(paramName, selectFunction) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const paramSlug = urlParams.get(paramName);
-            if (paramSlug) {
-                selectFunction(paramSlug);
-            }
-        },
-        async startSSEStream() {
+        async startSSEStream(chatId) {
             this.stopSSEStream();
+            if (chatId === null) {
+                chatId = 0;
+            }
             const csrf_token = document.getElementById("csrf_token").value;
             this.isThinking = true;
             this.currentMessage = null;
@@ -475,7 +466,7 @@ const GeminiComponent = defineComponent({
             this.response.push({ content: promptText, type: "user" });
             promptDiv.textContent = "";
 
-            const url = `/message/stream/${promptText}`;
+            const url = `/message/stream?prompt=${encodeURIComponent(promptText)}&chat_id=${chatId}`;
             console.log(`Connecting to SSE stream at: ${url}`);
             this.eventSource = new EventSource(url);
 
@@ -584,6 +575,18 @@ const GeminiComponent = defineComponent({
                 this.interval = null;
             }
             this.isThinking = false;
+        },
+        handleAnimationEnd(chat) {
+            if (chat.isNew) {
+                chat.isNew = false;
+            }
+        },
+        checkAndSelectUrlParam(paramName, selectFunction) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramSlug = urlParams.get(paramName);
+            if (paramSlug) {
+                selectFunction(paramSlug);
+            }
         },
         processQueue() {
             if (!this.queue.length) {

@@ -1,4 +1,7 @@
-from flask import Blueprint, Response, jsonify, request
+import queue
+import threading
+
+from flask import Blueprint, Response, copy_current_request_context, current_app, jsonify, request, stream_with_context
 from flask_login import current_user, login_required
 from sqlalchemy import delete
 
@@ -14,75 +17,39 @@ from ..utils.gemini import create_summary, generate_response
 message = Blueprint("message", __name__)
 
 
-@message.route("/chat/<int:chat_id>", methods=["POST"])
+@message.route("/chat/save", methods=["POST"])
 @login_required
-def send_message(chat_id):
+def save_chat():
     data = request.get_json()
-    user_message = data.get("message", "").strip()
-    print(chat_id)
+    bot_message = data.get("bot_message", "").strip()
+    user_message = data.get("user_message", "").strip()
+    chat_id = data.get("chat_id", None)
 
-    if not user_message:
+    if not bot_message:
         return jsonify({"error": "Message cannot be empty"}), 400
 
     chat = Chat.get_by_id(chat_id)
-
     if not chat:
-        chat = Chat(user_id=current_user.id)
-        db.session.add(chat)
-        db.session.commit()
+        return jsonify({"error": "Chat not found"}), 404
 
-    if chat.name == "New chat":
-        chat.name = user_message[:30]
+    bot_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
+    db.session.add(bot_msg)
 
-    user_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
+    user_msg = Message(chat_id=chat.id, message=bot_message, type=SenderType.GEMINI)
     db.session.add(user_msg)
     db.session.commit()
 
-    messages = Message.get_by_chat_id(chat.id)
-
-    old_messages = [
-        {"role": "user" if msg.type == SenderType.USER else "assistant", "parts": [msg.message]} for msg in messages
-    ]
-
-    old_messages.append({"role": "user", "parts": [user_message]})
-
-    bot_response = generate_response(user_message, old_messages)
-    summary_bot_summary = create_summary(user_message)
-
-    bot_summary_text = ""
-    for res in summary_bot_summary:
-        for candidate in res._result.candidates:
-            for part in candidate.content.parts:
-                bot_summary_text += part.text
-
-    bot_summary_text = bot_summary_text.strip()
-
-    chat.name = bot_summary_text
-    db.session.commit()
-
-    bot_message_text = ""
-    for res in bot_response:
-        for candidate in res._result.candidates:
-            for part in candidate.content.parts:
-                bot_message_text += part.text
-
-    bot_message_text = bot_message_text.strip()
-    print(bot_message_text)
-
-    bot_msg = Message(chat_id=chat.id, message=bot_message_text, type=SenderType.GEMINI)
-    db.session.add(bot_msg)
-    db.session.commit()
-
-    return jsonify({"user_message": user_message, "bot_message": bot_message_text, "chat_id": chat.id})
+    return jsonify({"message": "Chat saved successfully"}), 200
 
 
-@message.route("/chat", methods=["POST"])
+@message.route("/chat/create", methods=["POST"])
 @login_required
-def send_message_with_create_chat():
+def create_chat():
     data = request.get_json()
-    user_message = data.get("message", "").strip()
+    user_message = data.get("user_message", "").strip()
+    bot_message = data.get("bot_message", "").strip()
 
-    if not user_message:
+    if not user_message or not bot_message:
         return jsonify({"error": "Message cannot be empty"}), 400
 
     chat = Chat(user_id=current_user.id)
@@ -91,17 +58,11 @@ def send_message_with_create_chat():
 
     user_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
     db.session.add(user_msg)
+
+    bot_msg = Message(chat_id=chat.id, message=bot_message, type=SenderType.GEMINI)
+    db.session.add(bot_msg)
     db.session.commit()
 
-    messages = Message.get_by_chat_id(chat.id)
-
-    old_messages = [
-        {"role": "user" if msg.type == SenderType.USER else "assistant", "parts": [msg.message]} for msg in messages
-    ]
-
-    old_messages.append({"role": "user", "parts": [user_message]})
-
-    bot_response = generate_response(user_message, old_messages)
     summary_bot_summary = create_summary(user_message)
 
     bot_summary_text = ""
@@ -113,18 +74,6 @@ def send_message_with_create_chat():
     bot_summary_text = bot_summary_text.strip()
 
     chat.name = bot_summary_text
-    db.session.commit()
-
-    bot_message_text = ""
-    for res in bot_response:
-        for candidate in res._result.candidates:
-            for part in candidate.content.parts:
-                bot_message_text += part.text
-
-    bot_message_text = bot_message_text.strip()
-
-    bot_msg = Message(chat_id=chat.id, message=bot_message_text, type=SenderType.GEMINI)
-    db.session.add(bot_msg)
     db.session.commit()
 
     serialized_chat = ChatSchema(
@@ -134,7 +83,6 @@ def send_message_with_create_chat():
     return jsonify(
         {
             "user_message": user_message,
-            "bot_message": bot_message_text,
             "bot_summary_text": bot_summary_text,
             "chat": serialized_chat,
         }
@@ -208,7 +156,7 @@ def streamed_response(prompt):
                     yield f"data: {part.text}\n\n".encode()
         yield b"data: [DONE]\n\n"
 
-    return Response(generate(), content_type="text/event-stream")
+    return Response(stream_with_context(generate()), content_type="text/event-stream")
 
 
 @message.route("/chat/<int:chat_id>/delete", methods=["POST"])
@@ -267,23 +215,3 @@ def rename_chat(chat_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Failed to rename chat: {str(e)}"}), 500
-
-
-# @message.route("/chat/<int:user_id>", methods=["POST"])
-# def create_message(user_id: int):
-#     data = request.get_json()
-
-#     chat = Chat.get_by_user_id(user_id)
-#     if not chat:
-#         chat = Chat(user_id=user_id)
-#         db.session.add(chat)
-#         db.session.commit()
-
-#     message = data.get("message")
-#     type = data.get("type")
-
-#     new_message = Message(chat_id=chat.id, message=message, type=type)
-#     db.session.add(new_message)
-#     db.session.commit()
-
-#     return jsonify({"message": "Message created"}), 201

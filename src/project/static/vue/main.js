@@ -232,6 +232,7 @@ const GeminiComponent = defineComponent({
 
             this.response.push({ content: promptText, type: "user" });
             promptDiv.textContent = "";
+            this.scrollToBottom();
             try {
                 const response = await fetch(`/message/chat/${chatId}`, {
                     method: "POST",
@@ -591,7 +592,6 @@ const GeminiComponent = defineComponent({
             });
         },
         displayMessage(message) {
-            this.scrollToBottom();
             const fullMessage = message.message;
             let currentIndex = 0;
 
@@ -611,9 +611,6 @@ const GeminiComponent = defineComponent({
                         });
                     }
                     currentIndex++;
-                    if (this.isScrolledToBottom) {
-                        this.scrollToBottom();
-                    }
                 } else {
                     clearInterval(interval);
                 }
@@ -639,78 +636,78 @@ const GeminiComponent = defineComponent({
             if (diffDays <= 60) return "Few months";
             return "Long ago";
         },
+
         processMarkdown(text) {
             const lines = text.split("\n");
             let html = "";
-            let listLevel = 0;
-            const listStack = [];
-            let previousLineWasListItem = false;
+            let inUl = false; // Flag indicating if we are inside a <ul>
             let needLineBreak = false;
 
-            const closeList = () => {
-                if (listLevel > 0) {
-                    html += `</${listStack.pop()}>`;
-                    listLevel--;
-                }
+            // button/avatar
+            const processText = (text) => {
+                return text
+                    .replace(/\*\*([\s\S]*?)\*\*/g, "<strong>$1</strong>")
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, buttonText, slug) => {
+                        const cachedAvatar = this.avatarCache.get(slug);
+                        const avatarImg = `<img src="${cachedAvatar}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
+                        const buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">${avatarImg}${buttonText}</button>`;
+
+                        if (!this.avatarCache.has(slug)) {
+                            this.loadAvatar(slug);
+                        }
+                        return buttonHTML;
+                    });
             };
 
             for (const line of lines) {
                 const trimmedLine = line.trim();
-                const isEmptyLine = !trimmedLine;
                 const listItemMatch = line.match(/^(\s*)(\*|\d+\.)\s+(.*)/);
 
                 if (listItemMatch) {
+                    // List item found
                     const indent = listItemMatch[1].length;
-                    const level = indent / 2;
-                    const listType = listItemMatch[2] === "*" ? "ul" : "ol";
-                    const content = listItemMatch[3];
+                    const content = processText(listItemMatch[3]); // Process list item content
 
-                    while (listLevel > level) {
-                        closeList();
+                    if (indent >= 4) {
+                        // Indented list item (inside <ul>)
+                        if (!inUl) {
+                            html += "<ul>"; // Start a new <ul> if it doesn't exist
+                            inUl = true;
+                        }
+                        html += `<li>${content}</li>`;
+                    } else {
+                        // Non-indented list item
+                        if (inUl) {
+                            html += "</ul>"; // Close the previous <ul> if it was open
+                            inUl = false;
+                        }
+                        html += `<li>${content}</li>`;
                     }
-
-                    if (listLevel < level) {
-                        html += `<${listType}>`;
-                        listStack.push(listType);
-                        listLevel++;
-                    }
-
-                    html += `<li>${content}</li>`;
-                    previousLineWasListItem = true;
                     needLineBreak = false;
                 } else {
-                    while (listLevel > 0) {
-                        closeList();
+                    // Not a list item
+                    if (inUl) {
+                        html += "</ul>"; // Close the previous <ul> if it was open
+                        inUl = false;
                     }
 
-                    if (needLineBreak) {
-                        html += "<br>";
+                    if (trimmedLine === "") {
+                        // Empty line
+                        if (needLineBreak) html += "<br>"; // Add <br> if needed
+                        needLineBreak = false;
+                    } else {
+                        // Regular text line
+                        const processedLine = processText(trimmedLine); // Process the line
+
+                        if (needLineBreak) html += "<br>"; // Add <br> if needed 
+                        html += processedLine;
+                        needLineBreak = true;
                     }
-
-                    let processedLine = trimmedLine
-                        .replace(/\*\*([\s\S]*?)\*\*/g, "<strong>$1</strong>")
-                        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, buttonText, slug) => {
-                            let buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">`;
-                            const cachedAvatar = this.avatarCache.get(slug);
-                            buttonHTML += `<img src="${cachedAvatar}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
-                            buttonHTML += `${buttonText}</button>`;
-                            if (!this.avatarCache.has(slug)) {
-                                this.loadAvatar(slug);
-                            }
-                            return buttonHTML;
-                        });
-
-                    html += processedLine;
-                    previousLineWasListItem = false;
-                    needLineBreak = !isEmptyLine;
-                }
-                if (isEmptyLine) {
-                    needLineBreak = true;
                 }
             }
-
-            while (listLevel > 0) {
-                closeList();
+            // Close the last <ul> if it's still open
+            if (inUl) {
+                html += "</ul>";
             }
 
             return html;

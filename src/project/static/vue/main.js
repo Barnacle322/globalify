@@ -221,77 +221,6 @@ const GeminiComponent = defineComponent({
         this.stopSSEStream();
     },
     methods: {
-        async sendMessage(chatId) {
-            console.log("her tebe");
-            this.isThinking = true;
-            this.currentMessage = null;
-            const csrf_token = document.getElementById("csrf_token").value;
-            const promptDiv = this.$refs.prompt;
-            const promptText = promptDiv.textContent.trim();
-            if (!promptText) return;
-
-            this.response.push({ content: promptText, type: "user" });
-            promptDiv.textContent = "";
-            this.scrollToBottom();
-            try {
-                const response = await fetch(`/message/chat/${chatId}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
-                    body: JSON.stringify({ message: promptText }),
-                });
-
-                const data = await response.json();
-                this.selectedChatId = data.chat_id;
-
-                this.startSSEStream(promptText);
-            } catch (error) {
-                console.error("Error sending message:", error);
-            }
-        },
-        async sendMessageAndCreateChat() {
-            console.log("her");
-            this.isThinking = true;
-            this.currentMessage = null;
-            const csrf_token = document.getElementById("csrf_token").value;
-            const promptDiv = this.$refs.prompt;
-            const promptText = promptDiv.textContent.trim();
-            if (!promptText) return;
-
-            this.response.push({ content: promptText, type: "user" });
-            promptDiv.textContent = "";
-            try {
-                const response = await fetch(`/message/chat`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
-                    body: JSON.stringify({ message: promptText }),
-                });
-
-                if (response.status === 404) {
-                    this.isHistoryVisible = false;
-                    this.hasChats = false;
-                    return;
-                }
-                const data = await response.json();
-
-                this.hasChats = true;
-                this.isHistoryVisible = true;
-
-                const chat = JSON.parse(data.chat);
-                this.selectedChatId = chat.id;
-
-                this.startSSEStream(promptText);
-
-                const category = "Recently";
-                const newChat = { ...JSON.parse(data.chat), isNew: true };
-                if (this.userChats.has(category)) {
-                    this.userChats.get(category).unshift(newChat);
-                } else {
-                    this.userChats.set(category, [newChat]);
-                }
-            } catch (error) {
-                console.error("Error sending message:", error);
-            }
-        },
         async getChatById(chatId) {
             try {
                 const response = await fetch(`/message/chat/id/${chatId}`, {
@@ -495,31 +424,61 @@ const GeminiComponent = defineComponent({
                 console.error("Error in loadAvatar:", error);
             }
         },
-        handleAnimationEnd(chat) {
-            if (chat.isNew) {
-                chat.isNew = false;
-            }
-        },
-        checkAndSelectUrlParam(paramName, selectFunction) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const paramSlug = urlParams.get(paramName);
-            if (paramSlug) {
-                selectFunction(paramSlug);
-            }
-        },
-        startSSEStream(prompt) {
-            this.stopSSEStream();
+        async fetchChat(chatId) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/message/chat/${chatId}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                });
 
-            const url = `/message/stream/${prompt}`;
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error("Error loading chat:", data.error);
+
+                    return;
+                }
+
+                const category = "Recently";
+                const newChat = { ...JSON.parse(data), isNew: true };
+                if (this.userChats.has(category)) {
+                    this.userChats.get(category).unshift(newChat);
+                } else {
+                    this.userChats.set(category, [newChat]);
+                }
+            } catch (error) {
+                console.error("Error loading chat:", error);
+            }
+        },
+        async startSSEStream(chatId) {
+            this.stopSSEStream();
+            if (chatId === null) {
+                chatId = 0;
+            }
+            const csrf_token = document.getElementById("csrf_token").value;
+            this.isThinking = true;
+            this.currentMessage = null;
+            const promptDiv = this.$refs.prompt;
+            const promptText = promptDiv.textContent.trim();
+            if (!promptText) return;
+
+            this.response.push({ content: promptText, type: "user" });
+            promptDiv.textContent = "";
+
+            const url = `/message/stream?prompt=${encodeURIComponent(promptText)}&chat_id=${chatId}`;
             console.log(`Connecting to SSE stream at: ${url}`);
             this.eventSource = new EventSource(url);
+
+            let accumulatedText = "";
 
             this.eventSource.onopen = () => {
                 console.log("SSE connection opened");
                 this.queue = [];
                 this.isTyping = false;
             };
-            this.eventSource.onmessage = (event) => {
+
+            this.eventSource.onmessage = async (event) => {
                 const text = event.data.trim();
 
                 console.log("Received message: ", text);
@@ -527,8 +486,72 @@ const GeminiComponent = defineComponent({
                 if (text === "[DONE]") {
                     console.log("All messages received");
                     this.stopSSEStream();
+                    if (this.selectedChatId) {
+                        console.log("Chat already exists, saving message");
+                        try {
+                            const response = await fetch(`/message/chat/save`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                                body: JSON.stringify({
+                                    bot_message: accumulatedText,
+                                    chat_id: this.selectedChatId,
+                                    user_message: promptText,
+                                }),
+                            });
+
+                            const data = await response.json();
+                            if (data.error) {
+                                console.error("Error saving chat:", data.error);
+                                return;
+                            }
+                        } catch (error) {
+                            console.error("Error saving chat:", error);
+                            return;
+                        }
+                    } else {
+                        console.log("Chat does not exist, creating new chat");
+                        try {
+                            const response = await fetch(`/message/chat/create`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                                body: JSON.stringify({
+                                    bot_message: accumulatedText,
+                                    user_message: promptText,
+                                }),
+                            });
+                            const data = await response.json();
+                            if (data.error) {
+                                console.error("Error saving chat:", data.error);
+                                return;
+                            }
+
+                            this.hasChats = true;
+                            this.isHistoryVisible = true;
+
+                            const chat = JSON.parse(data.chat);
+                            this.selectedChatId = chat.id;
+
+                            const category = "Recently";
+                            const newChat = { ...JSON.parse(data.chat), isNew: true };
+                            if (this.userChats.has(category)) {
+                                this.userChats.get(category).unshift(newChat);
+                            } else {
+                                this.userChats.set(category, [newChat]);
+                            }
+                            if (data.error) {
+                                console.error("Error saving chat:", data.error);
+                                return;
+                            }
+                        } catch (error) {
+                            console.error("Error creating chat:", error);
+                            return;
+                        }
+                    }
+
                     return;
                 }
+
+                accumulatedText += text;
 
                 if (!this.currentMessage) {
                     this.currentMessage = { content: "", type: "gemini", isHTML: true };
@@ -552,6 +575,18 @@ const GeminiComponent = defineComponent({
                 this.interval = null;
             }
             this.isThinking = false;
+        },
+        handleAnimationEnd(chat) {
+            if (chat.isNew) {
+                chat.isNew = false;
+            }
+        },
+        checkAndSelectUrlParam(paramName, selectFunction) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramSlug = urlParams.get(paramName);
+            if (paramSlug) {
+                selectFunction(paramSlug);
+            }
         },
         processQueue() {
             if (!this.queue.length) {

@@ -1,7 +1,4 @@
-import queue
-import threading
-
-from flask import Blueprint, Response, copy_current_request_context, current_app, jsonify, request, stream_with_context
+from flask import Blueprint, Response, jsonify, request, stream_with_context
 from flask_login import current_user, login_required
 from sqlalchemy import delete
 
@@ -159,8 +156,7 @@ def streamed_response():
             messages = Message.get_by_chat_id(chat_id)
 
             old_messages = [
-                {"role": "user" if msg.type == SenderType.USER else "assistant", "parts": [msg.message]}
-                for msg in messages
+                {"role": "user" if msg.type == SenderType.USER else "model", "parts": [msg.message]} for msg in messages
             ]
 
             old_messages.append({"role": "user", "parts": [prompt]})

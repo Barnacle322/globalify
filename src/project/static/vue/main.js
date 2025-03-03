@@ -265,6 +265,7 @@ const GeminiComponent = defineComponent({
                     type: msg.type,
                     isHTML: true,
                 }));
+                this.scrollToBottom();
             } catch (error) {
                 console.error("Error loading chat:", error);
             }
@@ -460,7 +461,7 @@ const GeminiComponent = defineComponent({
             this.isThinking = true;
             this.currentMessage = null;
             const promptDiv = this.$refs.prompt;
-            const promptText = promptDiv.textContent.trim();
+            const promptText = promptDiv.textContent;
             if (!promptText) return;
 
             this.response.push({ content: promptText, type: "user" });
@@ -479,7 +480,7 @@ const GeminiComponent = defineComponent({
             };
 
             this.eventSource.onmessage = async (event) => {
-                const text = event.data.trim();
+                const text = event.data;
 
                 console.log("Received message: ", text);
 
@@ -493,7 +494,7 @@ const GeminiComponent = defineComponent({
                                 method: "POST",
                                 headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
                                 body: JSON.stringify({
-                                    bot_message: accumulatedText,
+                                    bot_message: accumulatedText.trim(),
                                     chat_id: this.selectedChatId,
                                     user_message: promptText,
                                 }),
@@ -734,7 +735,7 @@ const GeminiComponent = defineComponent({
                         // Regular text line
                         const processedLine = processText(trimmedLine); // Process the line
 
-                        if (needLineBreak) html += "<br>"; // Add <br> if needed 
+                        if (needLineBreak) html += "<br>"; // Add <br> if needed
                         html += processedLine;
                         needLineBreak = true;
                     }

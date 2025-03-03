@@ -153,14 +153,16 @@ def generate_ai_response(context, query, old_messages):
 
 
 def generate_name_summary_with_typesense_context(query: str):
-    search_results = perform_search(query)
-    context = extract_context(search_results)
-
     genai.configure(api_key="AIzaSyCslKgJDAckdMD34arTHWJ8fSHB0ERFTmA")
     model = genai.GenerativeModel(
         "gemini-1.5-flash",
         system_instruction="Generate a short summary name (maximum 5 words) based on the provided context.",
     )
 
+    search_results = perform_search(query)
+    context = extract_context(search_results)
+    if not context:
+        response = model.generate_content(query)
+        return response
     response = model.generate_content(context)
     return response

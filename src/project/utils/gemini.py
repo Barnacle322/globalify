@@ -159,7 +159,7 @@ def generate_name_summary_with_typesense_context(query: str):
     genai.configure(api_key="AIzaSyCslKgJDAckdMD34arTHWJ8fSHB0ERFTmA")
     model = genai.GenerativeModel(
         "gemini-1.5-flash",
-        system_instruction="Generate a short summary name (maximum 5 words) based on the provided context which is received from Typesense search results.",
+        system_instruction="Generate a short summary name (maximum 5 words) based on the provided context.",
     )
 
     response = model.generate_content(context)

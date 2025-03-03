@@ -9,7 +9,7 @@ from ..models import (
 )
 from ..schemas.message import ChatListSchema, ChatSchema, MessageSchema
 from ..utils.enums import SenderType
-from ..utils.gemini import create_summary, generate_response
+from ..utils.gemini import generate_response, generate_name_summary_with_typesense_context
 
 message = Blueprint("message", __name__)
 
@@ -60,7 +60,7 @@ def create_chat():
     db.session.add(bot_msg)
     db.session.commit()
 
-    summary_bot_summary = create_summary(user_message)
+    summary_bot_summary = generate_name_summary_with_typesense_context(user_message)
 
     bot_summary_text = ""
     for res in summary_bot_summary:

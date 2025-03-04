@@ -164,6 +164,30 @@
             </transition>
 
             <div class="relative w-full">
+                {% if not current_user.is_authenticated %}
+                <a href="/login">
+                    <div class="fixed right-32 bottom-10 z-10 cursor-pointer rounded-full bg-[#ffdcfd] p-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="size-10" fill="#dd70d8">
+                            <path
+                                d="M160-120v-200q0-33 23.5-56.5T240-400h480q33 0 56.5 23.5T800-320v200H160Zm200-320q-83 0-141.5-58.5T160-640q0-83 58.5-141.5T360-840h240q83 0 141.5 58.5T800-640q0 83-58.5 141.5T600-440H360ZM240-200h480v-120H240v120Zm120-320h240q50 0 85-35t35-85q0-50-35-85t-85-35H360q-50 0-85 35t-35 85q0 50 35 85t85 35Zm0-80q17 0 28.5-11.5T400-640q0-17-11.5-28.5T360-680q-17 0-28.5 11.5T320-640q0 17 11.5 28.5T360-600Zm240 0q17 0 28.5-11.5T640-640q0-17-11.5-28.5T600-680q-17 0-28.5 11.5T560-640q0 17 11.5 28.5T600-600ZM480-200Zm0-440Z"
+                            />
+                        </svg>
+                        <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
+                            <div
+                                class="absolute right-full bottom-10 z-10 mt-1 w-48 rounded-lg border border-gray-200 bg-white p-4 shadow-md"
+                            >
+                                <!-- Стрелка облачка -->
+                                <div
+                                    class="absolute top-1/2 right-0 h-0 w-0 translate-x-full -translate-y-1/2 border-t-8 border-b-8 border-l-8 border-t-transparent border-b-transparent border-l-white"
+                                ></div>
+                                <!-- Содержимое -->
+                                <div class="text-sm font-medium text-gray-700">💬 Ask something here</div>
+                            </div>
+                        </transition>
+                    </div>
+                </a>
+
+                {% else %}
                 <div class="fixed right-32 bottom-10 z-10 cursor-pointer rounded-full bg-[#ffdcfd] p-4">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -187,6 +211,8 @@
                         </div>
                     </transition>
                 </div>
+                {% endif %}
+
                 <main class="mx-auto h-full min-h-screen w-full overflow-x-hidden">
                     <section class="bg-deep-purple mx-4 my-3 rounded-3xl p-5 pt-16 pb-10">
                         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />

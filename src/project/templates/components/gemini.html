@@ -111,7 +111,7 @@
             <transition name="history">
                 <div
                     v-show="isHistoryVisible"
-                    class="custom-scrollbar absolute h-full w-56 overflow-y-auto border-r bg-gray-50 p-2"
+                    class="custom-scrollbar h-full w-64 overflow-y-auto border-r bg-gray-50 p-2"
                 >
                     <div class="flex flex-col gap-3 bg-gray-50">
                         <div v-for="[date, chats] of userChats" :key="date">
@@ -133,12 +133,12 @@
                                     >
                                         <span
                                             v-if="editingChatId !== chat.id"
-                                            class="mask-linear-gradient mr-3 ml-2 block overflow-hidden whitespace-nowrap"
+                                            class="mask-linear-gradient block overflow-hidden whitespace-nowrap"
                                             :class="selectedChatId === chat.id ? 'text-white' : 'text-black'"
                                             v-text="chat.name"
                                         ></span>
 
-                                        <div v-else class="mr-3 ml-2">
+                                        <div v-else class="flex">
                                             <input
                                                 v-model="newChatName"
                                                 @click.stop
@@ -154,7 +154,7 @@
                                         <button
                                             data-dropdown-button
                                             @click.stop="toggleDropdown(chat.id)"
-                                            class="absolute top-1.5 right-1 hidden rounded-lg transition-colors ease-in-out group-hover:block hover:bg-white"
+                                            class="absolute top-1/2 -translate-1/2 -right-1 hidden group-hover:block"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -162,12 +162,12 @@
                                                 viewBox="0 0 24 24"
                                                 stroke-width="1.5"
                                                 stroke="currentColor"
-                                                class="size-7 text-gray-700"
+                                                class="size-6 text-white"
                                             >
                                                 <path
                                                     stroke-linecap="round"
                                                     stroke-linejoin="round"
-                                                    d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+                                                    d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
                                                 />
                                             </svg>
                                         </button>
@@ -232,57 +232,94 @@
             </transition>
 
             <div
-                class="relative flex max-w-3xl flex-1 flex-col overflow-hidden transition-all duration-300"
-                :class="{'ml-56': isHistoryVisible && !isExpanded, 'mx-auto ': isExpanded}"
+                class="mx-auto relative flex flex-col overflow-hidden transition-all duration-300 justify-center w-full"
             >
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                <div class="custom-scrollbar flex-1 overflow-y-auto p-4 prose" ref="chatContainer" @scroll="handleScroll">
-                    <template v-if="response.length">
-                        <div
-                            v-for="(message, index) in response"
-                            :key="index"
-                            class="mb-4 flex"
-                            :class="{'justify-end': message.type === 'user'}"
-                        >
+                <div class="custom-scrollbar overflow-y-auto flex justify-center">
+                    <div class="p-4 prose max-w-3xl" ref="chatContainer" @scroll="handleScroll">
+                        <template v-if="response.length">
                             <div
-                                class="relative rounded-xl p-3"
-                                :class="{'bg-sky-500 max-w-[75%] text-white rounded-br-none': message.type === 'user', 'text-gray-800 ': message.type === 'gemini'}"
+                                v-for="(message, index) in response"
+                                :key="index"
+                                class="mb-4 flex"
+                                :class="{'justify-end': message.type === 'user'}"
                             >
-                                <span v-if="message.isHTML" v-html="processMarkdown(message.content)"></span>
-                                <span v-else v-text="message.content"></span>
                                 <div
-                                    class="absolute -bottom-2 h-3 w-3"
-                                    :class="{'right-0 bg-sky-500': message.type === 'user'}"
-                                    :style="{clipPath: message.type === 'user' ? 'polygon(0 0, 100% 0, 100% 100%)' : 'polygon(0 0, 100% 0, 0 100%)'}"
+                                    class="relative rounded-xl p-3"
+                                    :class="{'bg-sky-500 max-w-[75%] text-white rounded-br-none': message.type === 'user', 'text-gray-800 ': message.type === 'gemini'}"
+                                >
+                                    <span v-if="message.isHTML" v-html="processMarkdown(message.content)"></span>
+                                    <span v-else v-text="message.content"></span>
+                                    <div
+                                        class="absolute -bottom-2 h-3 w-3"
+                                        :class="{'right-0 bg-sky-500': message.type === 'user'}"
+                                        :style="{clipPath: message.type === 'user' ? 'polygon(0 0, 100% 0, 100% 100%)' : 'polygon(0 0, 100% 0, 0 100%)'}"
+                                    ></div>
+                                </div>
+                            </div>
+                            <div v-if="isThinking" class="flex mb-4">
+                                <svg
+                                    class="animate-breathe"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 8 8"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <circle cx="4" cy="4" r="4" fill="#000"></circle>
+                                </svg>
+                            </div>
+                        </template>
+                        <div v-else class="flex h-full flex-col items-center justify-center">
+                            <h2 class="text-3xl font-semibold">What can I help with?</h2>
+
+                            <div class="relative flex w-full items-center">
+                                <div
+                                    ref="prompt"
+                                    v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
+                                    contenteditable="true"
+                                    @keyup.enter="startSSEStream(selectedChatId)"
+                                    class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-500 empty:before:content-['Write_GlobalifAI']"
                                 ></div>
+                                <button
+                                    @click="startSSEStream(selectedChatId)"
+                                    class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="#0ea5e9"
+                                        class="size-6"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"
+                                        />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
-                        <div v-if="isThinking" class="flex mb-4">
-                            <svg
-                                class="animate-breathe"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 8 8"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <circle cx="4" cy="4" r="4" fill="#000"></circle>
-                            </svg>
-                        </div>
-                    </template>
-                    <div v-else class="flex h-full flex-col items-center justify-center gap-6">
-                        <h2 class="text-3xl font-semibold">What can I help with?</h2>
+                    </div>
+                </div>
 
-                        <div class="relative flex w-full items-center">
+                <div
+                    v-if="response.length"
+                    class="my-2 mx-auto w-full rounded-3xl border-t border-gray-200 bg-white p-4 max-w-3xl"
+                >
+                    <div class="mx-2">
+                        <div class="relative flex items-center">
                             <div
                                 ref="prompt"
                                 v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
+                                @keyup.enter="startSSEStream(selectedChatId)"
                                 contenteditable="true"
-                                @keyup.enter="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
-                                class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-500 empty:before:content-['Write_GlobalifAI']"
+                                class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-400 empty:before:content-['Ask_GlobalifAI']"
                             ></div>
                             <button
-                                @click="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
+                                @click="startSSEStream(selectedChatId)"
                                 class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
                             >
                                 <svg
@@ -303,40 +340,9 @@
                         </div>
                     </div>
                 </div>
-
-                <div
-                    v-if="response.length"
-                    class="sticky right-0 bottom-0 left-0 m-2 rounded-3xl border-t border-gray-200 bg-white p-4"
-                >
-                    <div class="relative flex items-center">
-                        <div
-                            ref="prompt"
-                            v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
-                            @keyup.enter="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
-                            contenteditable="true"
-                            class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none"
-                        ></div>
-                        <button
-                            @click="selectedChatId ? sendMessage(selectedChatId) : sendMessageAndCreateChat()"
-                            class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="#0ea5e9"
-                                class="size-6"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"
-                                />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
+                <span class="w-full text-center text-xs text-gray-500 mb-2">
+                    GlobalifAI is still learning and can make mistakes!
+                </span>
             </div>
         </main>
     </article>

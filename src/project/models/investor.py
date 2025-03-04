@@ -647,6 +647,8 @@ class Investor(InvestorBase):
                 min_investment=min_investment,
                 max_investment=random.randrange(min_investment, 50000001, 100000),
                 notable_investments=list(set(notable_investments)),
+                is_public=True,
+                is_approved=True,
             )
             investor_populate.full_name = True
             investor_list.append(investor_populate)

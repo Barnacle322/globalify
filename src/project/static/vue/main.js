@@ -265,6 +265,7 @@ const GeminiComponent = defineComponent({
                     type: msg.type,
                     isHTML: true,
                 }));
+                this.scrollToBottom();
             } catch (error) {
                 console.error("Error loading chat:", error);
             }
@@ -400,7 +401,7 @@ const GeminiComponent = defineComponent({
         },
         async getTwitterAvatar(slug) {
             try {
-                const response = await fetch(`/message/investor/${slug}`);
+                const response = await fetch(`/investor/${slug}/twitter`);
                 if (!response.ok) {
                     console.error(`Error loading avatar for ${slug}: ${response.status} ${response.statusText}`);
                     return "https://unavatar.io/x/default";
@@ -460,7 +461,7 @@ const GeminiComponent = defineComponent({
             this.isThinking = true;
             this.currentMessage = null;
             const promptDiv = this.$refs.prompt;
-            const promptText = promptDiv.textContent.trim();
+            const promptText = promptDiv.textContent;
             if (!promptText) return;
 
             this.response.push({ content: promptText, type: "user" });
@@ -479,7 +480,7 @@ const GeminiComponent = defineComponent({
             };
 
             this.eventSource.onmessage = async (event) => {
-                const text = event.data.trim();
+                const text = event.data;
 
                 console.log("Received message: ", text);
 
@@ -493,7 +494,7 @@ const GeminiComponent = defineComponent({
                                 method: "POST",
                                 headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
                                 body: JSON.stringify({
-                                    bot_message: accumulatedText,
+                                    bot_message: accumulatedText.trim(),
                                     chat_id: this.selectedChatId,
                                     user_message: promptText,
                                 }),
@@ -602,7 +603,9 @@ const GeminiComponent = defineComponent({
                 if (currentIndex < text.length) {
                     this.currentMessage.content += text[currentIndex];
                     currentIndex++;
-                    this.scrollToBottom();
+                    if (this.isScrolledToBottom) {
+                        this.scrollToBottom();
+                    }
                     setTimeout(addLetter, 5);
                 } else {
                     this.processQueue();
@@ -644,9 +647,6 @@ const GeminiComponent = defineComponent({
                         });
                     }
                     currentIndex++;
-                    if (this.isScrolledToBottom) {
-                        this.scrollToBottom();
-                    }
                 } else {
                     clearInterval(interval);
                 }
@@ -672,34 +672,81 @@ const GeminiComponent = defineComponent({
             if (diffDays <= 60) return "Few months";
             return "Long ago";
         },
+
         processMarkdown(text) {
-            text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, buttonText, slug) => {
-                let buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">`;
+            const lines = text.split("\n");
+            let html = "";
+            let inUl = false; // Flag indicating if we are inside a <ul>
+            let needLineBreak = false;
 
-                const cachedAvatar = this.avatarCache.get(slug);
-                buttonHTML += `<img src="${cachedAvatar}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
-                buttonHTML += `${buttonText}</button>`;
+            // button/avatar
+            const processText = (text) => {
+                return text
+                    .replace(/\*\*([\s\S]*?)\*\*/g, "<strong>$1</strong>")
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, buttonText, slug) => {
+                        const cachedAvatar = this.avatarCache.get(slug);
+                        const avatarImg = `<img src="${cachedAvatar}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
+                        const buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">${avatarImg}${buttonText}</button>`;
 
-                if (!this.avatarCache.has(slug)) {
-                    this.loadAvatar(slug);
+                        if (!this.avatarCache.has(slug)) {
+                            this.loadAvatar(slug);
+                        }
+                        return buttonHTML;
+                    });
+            };
+
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                const listItemMatch = line.match(/^(\s*)(\*|\d+\.)\s+(.*)/);
+
+                if (listItemMatch) {
+                    // List item found
+                    const indent = listItemMatch[1].length;
+                    const content = processText(listItemMatch[3]); // Process list item content
+
+                    if (indent >= 4) {
+                        // Indented list item (inside <ul>)
+                        if (!inUl) {
+                            html += "<ul>"; // Start a new <ul> if it doesn't exist
+                            inUl = true;
+                        }
+                        html += `<li>${content}</li>`;
+                    } else {
+                        // Non-indented list item
+                        if (inUl) {
+                            html += "</ul>"; // Close the previous <ul> if it was open
+                            inUl = false;
+                        }
+                        html += `<li>${content}</li>`;
+                    }
+                    needLineBreak = false;
+                } else {
+                    // Not a list item
+                    if (inUl) {
+                        html += "</ul>"; // Close the previous <ul> if it was open
+                        inUl = false;
+                    }
+
+                    if (trimmedLine === "") {
+                        // Empty line
+                        if (needLineBreak) html += "<br>"; // Add <br> if needed
+                        needLineBreak = false;
+                    } else {
+                        // Regular text line
+                        const processedLine = processText(trimmedLine); // Process the line
+
+                        if (needLineBreak) html += "<br>"; // Add <br> if needed
+                        html += processedLine;
+                        needLineBreak = true;
+                    }
                 }
+            }
+            // Close the last <ul> if it's still open
+            if (inUl) {
+                html += "</ul>";
+            }
 
-                return buttonHTML;
-            });
-
-            text = text.replace(/\*\*([\s\S]*?)\*\*/g, (match, content) => {
-                return `<strong>${content.replace(/\n/g, " ")}</strong>`;
-            });
-
-            // Replace markdown list items with <li> tags
-            text = text.replace(/^\* (.*)/gm, "<li>$1</li>");
-
-            // Wrap consecutive <li> tags in a single <ul> tag
-            text = text.replace(/(<li>[\s\S]*?<\/li>)+/g, (match) => {
-                return `<ul>${match}</ul>`;
-            });
-
-            return text;
+            return html;
         },
         updateAvatarImages(slug, avatarUrl) {
             const images = document.querySelectorAll(`img[data-slug="${slug}"]`);

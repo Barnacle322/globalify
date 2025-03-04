@@ -1,19 +1,162 @@
-**Factors suggesting a "good" investor:**
+# Globalify
 
-* **Investment Track Record:**  Investors with successful past investments (as shown in "Notable Investments") are more likely to be considered "good."  Strong performers in this category include:
+This is the main project of the Globalify Ecosystem. It is a web app that help entrepreneurs and investors find each other easeier.
 
-    * **Luisa Sucre:**  Her notable investments include several successful companies (Coinbase, Upstart, Whoop), suggesting a keen ability to identify promising ventures.
+## Pre-requisites
 
-    * **Jordan Fliegel:** With investments in successful companies like mmhmm, Walnut, and Ramp, his track record points towards sound investment judgment.
+-   Node.js 14+
+-   Python 3.11+
+-   Docker
 
-    * **Rico Mallozzi:** His notable investments in FalconX and Flowhaven (although the detailed success of these companies isn't explicitly stated) suggest potential for shrewd investment choices.
+## Installation
 
-    * **Calvin Chin:** His investment list (Pi Charging, Pienso, etc.) shows a selection of diverse companies, signaling good diversification.
+1. Clone the repository
+2. Run `npm install` to install the dependencies.
+3. Run `pip install uv` to install uv.
+4. Run `uv venv` to create a virtual environment.
+5. Run `source .venv/bin/activate`(Mac/Linux) or `.\.venv\Scripts\activate`(Windows) to activate the virtual environment.
+6. Run `uv sync` to install python dependencies.
 
+## Running the app
 
-* **Investment Stage Diversity:** Investors comfortable across multiple investment stages (Pre-Seed to Series C) demonstrate experience and adaptability.  Strong examples include:
+1. Make sure that the virtual environment is activated and the .env file is present in the root directory.
+1. Run `source start.sh`(Mac/Linux) or `.\start.ps1`(Windows) to start the app.
+1. The app will be available at `http://loca lhost:5000`.
 
-    * **Jon Broscious:** Active across Pre-Seed, Seed, and Series A rounds shows a broader understanding of investment opportunities across various growth phases.
+<br>
 
-    * **Seth Rosenberg:**  Investing across Seed, Series A, B, and C rounds signifies a well-rounded investment strategy and long-term perspective.
+# TailwindCSS
 
+We use TailwindCSS for styling. To run the TailwindCSS watcher, run the following command in a separate terminal:
+
+```bash
+npm run css
+```
+
+To format the HTML files, run the following command:
+
+```bash
+npm run html
+```
+
+<br>
+
+# Typesense
+
+To facilitate the search functionality, we use Typesense. Typesense is an open source search engine that is simple to use, has a REST API, and is fast. It is a good alternative to Elasticsearch and Algolia.
+
+## Installation
+
+To install Typesense, first create a directory to store the data. Then, run the following command:
+
+```bash
+mkdir typesense-data
+```
+
+Then, run the following command to pull the Typesense image and run it:
+
+### Windows
+
+```ps1
+docker run --name typesense -p 8108:8108 -v $pwd\typesense-data:/data typesense/typesense:26.0 --data-dir /data --api-key=xyz --enable-cors
+```
+
+### MacOS/Linux
+
+```bash
+docker run --name typesense -p 8108:8108 -v $(pwd)/typesense-data:/data typesense/typesense:26.0 --data-dir /data --api-key=xyz --enable-cors
+```
+
+## Migrations/Database control
+
+To create and delete the database models we can open an interactive shell by running the following command:
+
+```bash
+flask shell
+```
+
+Then we can run the following commands to create and delete the database models:
+
+Deletion
+
+```python
+db.drop_all()
+```
+
+Creation
+
+```python
+db.create_all()
+```
+
+You can also directly access the database tables like this
+
+```python
+Investor.sync_search_index(True)
+```
+
+Alternatively, you can run the custom setup command to recreate the database and populate it with data. You can modify the behavior of the command in the `__init__.py` file in the `./src/project` directory.
+
+```bash
+flask setup
+```
+
+_Note: this command should be executed in the console and NOT in the interactive shell._
+
+## Linting and Formatting
+
+To lint the python code, run the following command:
+
+```bash
+ruff check . --fix
+```
+
+To format the python code, run the following command:
+
+```bash
+ruff format .
+```
+
+To format the HTML code, run the following command:
+
+```bash
+npm run html
+```
+
+To format JS we usually use the `Prettier` extension in VSCode.
+
+## Control
+
+Start the Typesense server by running the following command:
+
+```sh
+docker start typesense
+```
+
+To stop the Typesense server, run the following command:
+
+```sh
+docker stop typesense
+```
+
+To remove the Typesense server, run the following command:
+
+```sh
+docker rm typesense
+```
+
+## Usage
+
+To perform DDL operations, we have a CLI tool that can be used to create collections and define their schemas. The CLI tool is located in the `typesense-cli` directory. To use the CLI tool, run the following command:
+
+```bash
+python -m src.project.utils.typesense_helpers.typesense_cli setup
+```
+
+### Sidenote
+
+Running the setup should automatically download an AI model, if that has failed you can downloadi it manually from [this repo](https://huggingface.co/typesense/models/tree/main/all-MiniLM-L12-v2).
+
+Download all files and add them to the `typesense-data/models/all-MiniLM-L12-v2` directory. Make sure to rename the config file to `config.json` and the vocab file to `vocab.txt`.
+
+After that you may need to restart the docker container.

@@ -21,7 +21,7 @@ This is the main project of the Globalify Ecosystem. It is a web app that help e
 
 1. Make sure that the virtual environment is activated and the .env file is present in the root directory.
 1. Run `source start.sh`(Mac/Linux) or `.\start.ps1`(Windows) to start the app.
-1. The app will be available at `http://loca lhost:5000`.
+1. The app will be available at `http://localhost:5000`.
 
 <br>
 

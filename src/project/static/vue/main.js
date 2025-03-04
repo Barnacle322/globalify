@@ -401,7 +401,7 @@ const GeminiComponent = defineComponent({
         },
         async getTwitterAvatar(slug) {
             try {
-                const response = await fetch(`/investor/avatar/${slug}/get`);
+                const response = await fetch(`/investor/${slug}/twitter`);
                 if (!response.ok) {
                     console.error(`Error loading avatar for ${slug}: ${response.status} ${response.statusText}`);
                     return "https://unavatar.io/x/default";

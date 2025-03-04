@@ -8,6 +8,7 @@ from ..models import (
     Message,
 )
 from ..schemas.message import ChatListSchema, ChatSchema, MessageSchema
+from ..utils.decorators import check_verification, check_user_info_complete
 from ..utils.enums import SenderType
 from ..utils.gemini import create_summary, generate_response
 
@@ -16,6 +17,8 @@ message = Blueprint("message", __name__)
 
 @message.route("/chat/save", methods=["POST"])
 @login_required
+@check_verification
+@check_user_info_complete
 def save_chat():
     data = request.get_json()
     bot_message = data.get("bot_message", "").strip()
@@ -41,6 +44,8 @@ def save_chat():
 
 @message.route("/chat/create", methods=["POST"])
 @login_required
+@check_verification
+@check_user_info_complete
 def create_chat():
     data = request.get_json()
     user_message = data.get("user_message", "").strip()
@@ -88,6 +93,8 @@ def create_chat():
 
 @message.route("/chat/id/<int:chat_id>/", methods=["GET"])
 @login_required
+@check_verification
+@check_user_info_complete
 def get_chat(chat_id):
     chat = Chat.get_by_id(chat_id)
     if not chat:
@@ -107,6 +114,8 @@ def get_chat(chat_id):
 
 @message.route("/chats/<int:user_id>", methods=["GET"])
 @login_required
+@check_verification
+@check_user_info_complete
 def get_chats_by_user_id(user_id):
     if current_user.id != user_id:
         return jsonify({"error": "Access denied"}), 403
@@ -122,6 +131,8 @@ def get_chats_by_user_id(user_id):
 
 @message.route("/chat/<int:user_id>", methods=["GET"])
 @login_required
+@check_verification
+@check_user_info_complete
 def get_chat_by_user_id(user_id: int):
     if current_user.id != user_id:
         return jsonify({"error": "Access denied"}), 403
@@ -143,6 +154,8 @@ def get_chat_by_user_id(user_id: int):
 
 @message.route("/stream", methods=["GET"])
 @login_required
+@check_verification
+@check_user_info_complete
 def streamed_response():
     def generate():
         prompt = request.args.get("prompt")
@@ -176,6 +189,8 @@ def streamed_response():
 
 @message.route("/chat/<int:chat_id>/delete", methods=["POST"])
 @login_required
+@check_verification
+@check_user_info_complete
 def delete_chat_by_id(chat_id):
     chat = Chat.get_by_id(chat_id)
     if not chat:
@@ -205,6 +220,8 @@ def delete_chat_by_id(chat_id):
 
 @message.route("/chat/<int:chat_id>/rename", methods=["POST"])
 @login_required
+@check_verification
+@check_user_info_complete
 def rename_chat(chat_id):
     data = request.get_json()
     new_name = data.get("name", "").strip()

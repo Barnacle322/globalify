@@ -45,7 +45,7 @@ const FullInvestor = defineComponent({
         },
         async loadTwitterTimeline() {
             if (!this.investor?.twitter) return;
-            this.loadingTwitter = true; // Set loading state to true
+            this.loadingTwitter = true;
             this.ensureTwitterScriptLoaded(() => {
                 const timeline = document.querySelector(".twitter-timeline");
                 if (timeline) {
@@ -452,7 +452,39 @@ const GeminiComponent = defineComponent({
                 console.error("Error loading chat:", error);
             }
         },
-        async startSSEStream(chatId) {
+        async cancelGeneration() {
+            this.stopSSEStream();
+            this.isGenerating = false;
+            this.isAborted[this.selectedChatId] = true;
+            this.saveAbortedState();
+            const csrf_token = document.getElementById("csrf_token").value;
+            const userMessages = this.response.filter((message) => message.type === "user");
+            const lastUserMessage = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
+            console.log("Last user message:", lastUserMessage);
+
+            try {
+                const response = await fetch(`/message/chat/save`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                    body: JSON.stringify({
+                        chat_id: this.selectedChatId,
+                        user_message: lastUserMessage.content,
+                    }),
+                });
+
+                const data = await response.json();
+                console.log("Chat saved:", data);
+                if (data.error) {
+                    console.error("Error saving chat:", data.error);
+                    return;
+                }
+            } catch (error) {
+                console.error("Error saving chat:", error);
+                return;
+            }
+        },
+        async startSSEStream(chatId, retry = false) {
+            this.isGenerating = true;
             this.stopSSEStream();
             if (chatId === null) {
                 chatId = 0;
@@ -461,11 +493,22 @@ const GeminiComponent = defineComponent({
             this.isThinking = true;
             this.currentMessage = null;
             const promptDiv = this.$refs.prompt;
-            const promptText = promptDiv.textContent;
-            if (!promptText) return;
 
-            this.response.push({ content: promptText, type: "user" });
-            promptDiv.textContent = "";
+            console.log(promptDiv);
+
+            let promptText = "";
+
+            if (promptDiv === null) {
+                console.log("here1");
+                const userMessages = this.response.filter((message) => message.type === "user");
+                const lastUserMessage = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
+                promptText = lastUserMessage.content;
+            } else {
+                console.log("here2");
+                promptText = promptDiv.textContent;
+                this.response.push({ content: promptText, type: "user" });
+                promptDiv.textContent = "";
+            }
 
             const url = `/message/stream?prompt=${encodeURIComponent(promptText)}&chat_id=${chatId}`;
             console.log(`Connecting to SSE stream at: ${url}`);
@@ -487,10 +530,12 @@ const GeminiComponent = defineComponent({
                 if (text === "[DONE]") {
                     console.log("All messages received");
                     this.stopSSEStream();
+                    this.isGenerating = false;
                     if (this.selectedChatId) {
                         console.log("Chat already exists, saving message");
                         try {
-                            const response = await fetch(`/message/chat/save`, {
+                            const url = retry ? "/message/chat/add_bot_message" : "/message/chat/save";
+                            const response = await fetch(url, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
                                 body: JSON.stringify({
@@ -576,6 +621,14 @@ const GeminiComponent = defineComponent({
                 this.interval = null;
             }
             this.isThinking = false;
+        },
+        retryGeneration(chatId) {
+            this.isAborted[chatId] = false;
+            this.saveAbortedState();
+            this.startSSEStream(chatId, true);
+        },
+        saveAbortedState() {
+            localStorage.setItem("isAborted", JSON.stringify(this.isAborted));
         },
         handleAnimationEnd(chat) {
             if (chat.isNew) {
@@ -865,7 +918,8 @@ const GeminiComponent = defineComponent({
             selectedInvestorSlug: null,
             isTyping: false,
             isThinking: false,
-            // summary_names: [],
+            isGenerating: false,
+            isAborted: JSON.parse(localStorage.getItem("isAborted")) || {},
             hasChats: false,
         };
     },

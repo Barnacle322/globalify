@@ -8,9 +8,9 @@ from ..models import (
     Message,
 )
 from ..schemas.message import ChatListSchema, ChatSchema, MessageSchema
-from ..utils.decorators import check_verification, check_user_info_complete
+from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import SenderType
-from ..utils.gemini import generate_response, generate_name_summary_with_typesense_context
+from ..utils.gemini import generate_name_summary_with_typesense_context, generate_response
 
 message = Blueprint("message", __name__)
 
@@ -25,21 +25,41 @@ def save_chat():
     user_message = data.get("user_message", "").strip()
     chat_id = data.get("chat_id", None)
 
-    if not bot_message:
-        return jsonify({"error": "Message cannot be empty"}), 400
+    chat = Chat.get_by_id(chat_id)
+    if not chat:
+        return jsonify({"error": "Chat not found"}), 404
+
+    user_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
+    db.session.add(user_msg)
+
+    if bot_message:
+        bot_msg = Message(chat_id=chat.id, message=bot_message, type=SenderType.GEMINI)
+        db.session.add(bot_msg)
+    db.session.commit()
+
+    return jsonify({"message": "Chat saved successfully"}), 200
+
+
+@message.route("/chat/add_bot_message", methods=["POST"])
+@login_required
+@check_verification
+@check_user_info_complete
+def add_bot_message():
+    data = request.get_json()
+    bot_message = data.get("bot_message", "").strip()
+    chat_id = data.get("chat_id", None)
 
     chat = Chat.get_by_id(chat_id)
     if not chat:
         return jsonify({"error": "Chat not found"}), 404
 
-    bot_msg = Message(chat_id=chat.id, message=user_message, type=SenderType.USER)
-    db.session.add(bot_msg)
+    if bot_message:
+        bot_msg = Message(chat_id=chat.id, message=bot_message, type=SenderType.GEMINI)
+        db.session.add(bot_msg)
+        db.session.commit()
+        return jsonify({"message": "Bot message added successfully"}), 200
 
-    user_msg = Message(chat_id=chat.id, message=bot_message, type=SenderType.GEMINI)
-    db.session.add(user_msg)
-    db.session.commit()
-
-    return jsonify({"message": "Chat saved successfully"}), 200
+    return jsonify({"error": "No bot message provided"}), 400
 
 
 @message.route("/chat/create", methods=["POST"])

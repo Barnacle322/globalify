@@ -4,7 +4,7 @@ import datetime
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, func, text
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 
 from ..extensions import db

@@ -223,7 +223,7 @@ const GeminiComponent = defineComponent({
     methods: {
         async getChatById(chatId) {
             try {
-                const response = await fetch(`/message/chat/id/${chatId}`, {
+                const response = await fetch(`/message/chat/${chatId}/details`, {
                     method: "GET",
                     headers: { "Content-Type": "application/json" },
                 });
@@ -250,7 +250,7 @@ const GeminiComponent = defineComponent({
                 return;
             }
             try {
-                const response = await fetch(`/message/chat/id/${chatId}`, {
+                const response = await fetch(`/message/chat/${chatId}/details`, {
                     method: "GET",
                     headers: { "Content-Type": "application/json" },
                 });
@@ -326,6 +326,7 @@ const GeminiComponent = defineComponent({
         async selectChat(chatId) {
             this.selectedChatId = chatId;
             this.loadChatById(chatId);
+            this.stopSSEStream();
         },
         async deleteChat(chatId) {
             const csrf_token = document.getElementById("csrf_token").value;
@@ -437,7 +438,6 @@ const GeminiComponent = defineComponent({
 
                 if (data.error) {
                     console.error("Error loading chat:", data.error);
-
                     return;
                 }
 
@@ -453,6 +453,10 @@ const GeminiComponent = defineComponent({
             }
         },
         async cancelGeneration() {
+            this.$nextTick(() => {
+                this.scrollToBottom();
+            });
+
             this.stopSSEStream();
             this.isGenerating = false;
             this.isAborted[this.selectedChatId] = true;
@@ -460,10 +464,9 @@ const GeminiComponent = defineComponent({
             const csrf_token = document.getElementById("csrf_token").value;
             const userMessages = this.response.filter((message) => message.type === "user");
             const lastUserMessage = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
-            console.log("Last user message:", lastUserMessage);
 
             try {
-                const response = await fetch(`/message/chat/save`, {
+                const response = await fetch(`/message/chat/${this.selectedChatId}/save-messages`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
                     body: JSON.stringify({
@@ -473,7 +476,6 @@ const GeminiComponent = defineComponent({
                 });
 
                 const data = await response.json();
-                console.log("Chat saved:", data);
                 if (data.error) {
                     console.error("Error saving chat:", data.error);
                     return;
@@ -484,6 +486,7 @@ const GeminiComponent = defineComponent({
             }
         },
         async startSSEStream(chatId, retry = false) {
+            this.scrollToBottom();
             this.isGenerating = true;
             this.stopSSEStream();
             if (chatId === null) {
@@ -494,17 +497,13 @@ const GeminiComponent = defineComponent({
             this.currentMessage = null;
             const promptDiv = this.$refs.prompt;
 
-            console.log(promptDiv);
-
             let promptText = "";
 
             if (promptDiv === null) {
-                console.log("here1");
                 const userMessages = this.response.filter((message) => message.type === "user");
                 const lastUserMessage = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
                 promptText = lastUserMessage.content;
             } else {
-                console.log("here2");
                 promptText = promptDiv.textContent;
                 this.response.push({ content: promptText, type: "user" });
                 promptDiv.textContent = "";
@@ -532,9 +531,10 @@ const GeminiComponent = defineComponent({
                     this.stopSSEStream();
                     this.isGenerating = false;
                     if (this.selectedChatId) {
-                        console.log("Chat already exists, saving message");
                         try {
-                            const url = retry ? "/message/chat/add_bot_message" : "/message/chat/save";
+                            const url = retry
+                                ? `/message/chat/${this.selectedChatId}/add-bot-message`
+                                : `/message/chat/${this.selectedChatId}/save-messages`;
                             const response = await fetch(url, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
@@ -555,7 +555,6 @@ const GeminiComponent = defineComponent({
                             return;
                         }
                     } else {
-                        console.log("Chat does not exist, creating new chat");
                         try {
                             const response = await fetch(`/message/chat/create`, {
                                 method: "POST",
@@ -725,14 +724,12 @@ const GeminiComponent = defineComponent({
             if (diffDays <= 60) return "Few months";
             return "Long ago";
         },
-
         processMarkdown(text) {
             const lines = text.split("\n");
             let html = "";
-            let inUl = false; // Flag indicating if we are inside a <ul>
+            let inUl = false;
             let needLineBreak = false;
 
-            // button/avatar
             const processText = (text) => {
                 return text
                     .replace(/\*\*([\s\S]*?)\*\*/g, "<strong>$1</strong>")
@@ -753,52 +750,44 @@ const GeminiComponent = defineComponent({
                 const listItemMatch = line.match(/^(\s*)(\*|\d+\.)\s+(.*)/);
 
                 if (listItemMatch) {
-                    // List item found
                     const indent = listItemMatch[1].length;
-                    const content = processText(listItemMatch[3]); // Process list item content
+                    const content = processText(listItemMatch[3]);
 
                     if (indent >= 4) {
-                        // Indented list item (inside <ul>)
                         if (!inUl) {
-                            html += "<ul>"; // Start a new <ul> if it doesn't exist
+                            html += "<ul>";
                             inUl = true;
                         }
                         html += `<li>${content}</li>`;
                     } else {
-                        // Non-indented list item
                         if (inUl) {
-                            html += "</ul>"; // Close the previous <ul> if it was open
+                            html += "</ul>";
                             inUl = false;
                         }
                         html += `<li>${content}</li>`;
                     }
                     needLineBreak = false;
                 } else {
-                    // Not a list item
                     if (inUl) {
-                        html += "</ul>"; // Close the previous <ul> if it was open
+                        html += "</ul>";
                         inUl = false;
                     }
 
                     if (trimmedLine === "") {
-                        // Empty line
-                        if (needLineBreak) html += "<br>"; // Add <br> if needed
+                        if (needLineBreak) html += "<br>";
                         needLineBreak = false;
                     } else {
-                        // Regular text line
-                        const processedLine = processText(trimmedLine); // Process the line
+                        const processedLine = processText(trimmedLine);
 
-                        if (needLineBreak) html += "<br>"; // Add <br> if needed
+                        if (needLineBreak) html += "<br>";
                         html += processedLine;
                         needLineBreak = true;
                     }
                 }
             }
-            // Close the last <ul> if it's still open
             if (inUl) {
                 html += "</ul>";
             }
-
             return html;
         },
         updateAvatarImages(slug, avatarUrl) {
@@ -894,7 +883,6 @@ const GeminiComponent = defineComponent({
     },
     data() {
         return {
-            prompt: "",
             response: [],
             messages: {},
             selectedChatId: null,
@@ -908,11 +896,9 @@ const GeminiComponent = defineComponent({
             dropdownOpened: false,
             openedDropdownChatId: null,
             queue: [],
-            intervalId: null,
             editingChatId: null,
             eventSource: null,
             newChatName: "",
-            messages: {},
             currentMessage: null,
             interval: null,
             selectedInvestorSlug: null,

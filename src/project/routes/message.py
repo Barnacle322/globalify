@@ -15,15 +15,14 @@ from ..utils.gemini import generate_name_summary_with_typesense_context, generat
 message = Blueprint("message", __name__)
 
 
-@message.route("/chat/save", methods=["POST"])
+@message.route("/chat/<int:chat_id>/save-messages", methods=["POST"])
 @login_required
 @check_verification
 @check_user_info_complete
-def save_chat():
+def save_chat(chat_id):
     data = request.get_json()
     bot_message = data.get("bot_message", "").strip()
     user_message = data.get("user_message", "").strip()
-    chat_id = data.get("chat_id", None)
 
     chat = Chat.get_by_id(chat_id)
     if not chat:
@@ -40,14 +39,13 @@ def save_chat():
     return jsonify({"message": "Chat saved successfully"}), 200
 
 
-@message.route("/chat/add_bot_message", methods=["POST"])
+@message.route("/chat/<int:chat_id>/add-bot-message", methods=["POST"])
 @login_required
 @check_verification
 @check_user_info_complete
-def add_bot_message():
+def add_bot_message(chat_id):
     data = request.get_json()
     bot_message = data.get("bot_message", "").strip()
-    chat_id = data.get("chat_id", None)
 
     chat = Chat.get_by_id(chat_id)
     if not chat:
@@ -111,11 +109,11 @@ def create_chat():
     )
 
 
-@message.route("/chat/id/<int:chat_id>/", methods=["GET"])
+@message.route("/chat/<int:chat_id>/details", methods=["GET"])
 @login_required
 @check_verification
 @check_user_info_complete
-def get_chat(chat_id):
+def get_chat_details(chat_id):
     chat = Chat.get_by_id(chat_id)
     if not chat:
         return jsonify({"error": "Chat not found"}), 404
@@ -217,7 +215,6 @@ def delete_chat_by_id(chat_id):
         return jsonify({"error": "Chat not found"}), 404
 
     if chat.user_id != current_user.id:
-        print("Unauthorized attempt to delete chat")
         return jsonify({"error": "Wrong user id or chat id"}), 404
 
     messages = Message.get_by_chat_id(chat.id)
@@ -256,7 +253,6 @@ def rename_chat(chat_id):
             return jsonify({"error": "Chat not found"}), 404
 
         if chat.user_id != current_user.id:
-            print("Unauthorized attempt to delete chat")
             return jsonify({"error": "Wrong user id or chat id"}), 404
 
         chat.name = new_name[:30]

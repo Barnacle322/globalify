@@ -28,7 +28,7 @@
         <!-- Vue -->
         <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
         <script src="/static/vue/base.js"></script>
-        <script defer src="/static/vue/main.js"></script>
+        <script defer src="/static/vue/presentation.js"></script>
 
         <!-- Font -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -64,40 +64,29 @@
             </transition>
 
             <main class="flex w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
-                <pdf-upload-component></pdf-upload-component>
-                <!-- prettier-ignore -->
-                <template>
-                    <div class="flex flex-col items-center justify-center h-full w-full">
-                      <label
+                <div class="flex flex-col items-center justify-center h-full w-full">
+                    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                    <label
                         for="pdf-upload"
                         class="flex flex-col items-center justify-center w-64 h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
-                      >
+                    >
                         <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                          <svg
-                            aria-hidden="true"
-                            class="w-10 h-10 mb-3 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6M6.5 13V6a.5.5 0 00-.5-.5H3A.5.5 0 002.5 6v7a.5.5 0 00.5.5h4a.5.5 0 00.5-.5z"
-                            ></path>
-                          </svg>
-                          <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                            <span class="font-semibold">upload</span>
-                          </p>
-                          <p class="text-xs text-gray-500 dark:text-gray-400">PDF</p>
+                            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                                <span class="font-semibold">Select PDF</span>
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">PDF</p>
                         </div>
                         <input id="pdf-upload" type="file" class="hidden" accept=".pdf" @change="handleFileUpload" />
-                      </label>
-                      <p v-if="filename">{{ filename }}</p>
-                    </div>
-                  </template>
+                    </label>
+                    <p v-if="filename">{{filename}}</p>
+                    <button
+                        v-if="file"
+                        @click="uploadFile"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                        Upload
+                    </button>
+                </div>
             </main>
         </div>
     </body>

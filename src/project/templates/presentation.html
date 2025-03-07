@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Presentation | Globalify User Profile" />
+        <meta name="description" content="{{ description }}" />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Presentation | Globalify User Profile" />
+        <meta property="og:description" content="{{ description }}" />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Presentation | Globalify User Profile" />
+        <meta property="twitter:description" content="{{ description }}" />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="/static/vue/base.js"></script>
+        <script defer src="/static/vue/main.js"></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+
+        <title>| Globalify User Profile</title>
+    </head>
+
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %} 
+    {{ navbar.render(current_user) }}
+
+    <body class="h-full overflow-x-clip" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component
+                    v-if="asideExpanded"
+                    @close-aside="asideExpanded = false"
+                ></aside-mobile-component>
+            </transition>
+
+            <main class="flex w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
+                <pdf-upload-component></pdf-upload-component>
+                <!-- prettier-ignore -->
+                <template>
+                    <div class="flex flex-col items-center justify-center h-full w-full">
+                      <label
+                        for="pdf-upload"
+                        class="flex flex-col items-center justify-center w-64 h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                      >
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                          <svg
+                            aria-hidden="true"
+                            class="w-10 h-10 mb-3 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6M6.5 13V6a.5.5 0 00-.5-.5H3A.5.5 0 002.5 6v7a.5.5 0 00.5.5h4a.5.5 0 00.5-.5z"
+                            ></path>
+                          </svg>
+                          <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                            <span class="font-semibold">upload</span>
+                          </p>
+                          <p class="text-xs text-gray-500 dark:text-gray-400">PDF</p>
+                        </div>
+                        <input id="pdf-upload" type="file" class="hidden" accept=".pdf" @change="handleFileUpload" />
+                      </label>
+                      <p v-if="filename">{{ filename }}</p>
+                    </div>
+                  </template>
+            </main>
+        </div>
+    </body>
+</html>

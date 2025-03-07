@@ -11,6 +11,7 @@ from .investor import (
     NotableInvestment,
 )
 from .message import Chat, Message
+from .presentation import Presentation, Scores
 from .search import SearchHistory
 from .user import (
     Company,
@@ -51,4 +52,6 @@ __all__ = [
     "SearchHistory",
     "Chat",
     "Message",
+    "Presentation",
+    "Scores",
 ]

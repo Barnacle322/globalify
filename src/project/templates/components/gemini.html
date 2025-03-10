@@ -154,7 +154,7 @@
                                         <button
                                             data-dropdown-button
                                             @click.stop="toggleDropdown(chat.id)"
-                                            class="absolute top-1/2 -translate-1/2 -right-1 hidden group-hover:block"
+                                            class="absolute top-1/2 -right-1 hidden -translate-1/2 group-hover:block"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -232,15 +232,15 @@
             </transition>
 
             <div
-                class="mx-auto relative flex flex-col overflow-hidden transition-all duration-300 justify-center w-full"
+                class="relative mx-auto flex w-full flex-col justify-center overflow-hidden transition-all duration-300"
             >
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <div
-                    class="custom-scrollbar overflow-y-auto flex justify-center"
+                    class="custom-scrollbar flex justify-center overflow-y-auto"
                     ref="chatContainer"
                     @scroll="handleScroll"
                 >
-                    <div class="p-4 prose max-w-3xl">
+                    <div class="prose max-w-3xl p-4">
                         <template v-if="response.length">
                             <div
                                 v-for="(message, index) in response"
@@ -261,7 +261,7 @@
                                     ></div>
                                 </div>
                             </div>
-                            <div v-if="isThinking" class="flex mb-4">
+                            <div v-if="isThinking" class="mb-4 flex">
                                 <svg
                                     class="animate-breathe"
                                     width="16"
@@ -275,7 +275,7 @@
                             </div>
                             <div v-if="isAborted[selectedChatId]" class="mb-4 flex">
                                 <div
-                                    class="flex gap-2 relative rounded-xl p-3 bg-red-100 max-w-[75%] text-red-500 border border-red-200"
+                                    class="relative flex max-w-[75%] gap-2 rounded-xl border border-red-200 bg-red-100 p-3 text-red-500"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -329,7 +329,7 @@
 
                 <div
                     v-if="response.length"
-                    class="my-2 mx-auto w-full rounded-3xl border-t border-gray-200 bg-white p-4 max-w-3xl"
+                    class="mx-auto my-2 w-full max-w-3xl rounded-3xl border-t border-gray-200 bg-white p-4"
                 >
                     <div class="mx-2">
                         <div class="relative flex items-center">
@@ -382,11 +382,11 @@
                         </div>
                         <div
                             v-if="isAborted[selectedChatId]"
-                            class="flex flex-col items-center justify-center h-full cursor-pointer"
+                            class="flex h-full cursor-pointer flex-col items-center justify-center"
                         >
                             <span>An error occurred while generating the response</span>
                             <div
-                                class="flex items-center gap-2 justify-center mt-2 bg-sky-500 text-white p-4 rounded-full"
+                                class="mt-2 flex items-center justify-center gap-2 rounded-full bg-sky-500 p-4 text-white"
                                 @click="retryGeneration(selectedChatId)"
                             >
                                 <svg
@@ -403,7 +403,7 @@
                                         d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
                                     />
                                 </svg>
-                                <button class="transition-colors cursor-pointer">Повторно сгенерировать</button>
+                                <button class="cursor-pointer transition-colors">Повторно сгенерировать</button>
                             </div>
                         </div>
                     </div>

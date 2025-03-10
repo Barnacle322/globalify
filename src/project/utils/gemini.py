@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from google.generativeai.types.content_types import FunctionDeclaration, Tool
+from google.generativeai.types.content_types import FunctionDeclaration, Tool, BlobDict
 
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
@@ -155,7 +155,7 @@ def generate_ai_response(context, query, old_messages):
 def generate_name_summary_with_typesense_context(query: str):
     genai.configure(api_key="AIzaSyCslKgJDAckdMD34arTHWJ8fSHB0ERFTmA")
     model = genai.GenerativeModel(
-        "gemini-1.5-flash",
+        model_name="gemini-1.5-flash",
         system_instruction="Generate a short summary name (maximum 5 words) based on the provided context.",
     )
 
@@ -166,3 +166,83 @@ def generate_name_summary_with_typesense_context(query: str):
         return response
     response = model.generate_content(context)
     return response
+
+
+def analyze_pitch_deck(pdf_data: bytes) -> dict:
+    genai.configure(api_key="AIzaSyCslKgJDAckdMD34arTHWJ8fSHB0ERFTmA")
+    model = genai.GenerativeModel("gemini-1.5-flash")
+
+    prompt = """
+    You are an expert pitch deck analyst.  Analyze the provided pitch deck and provide the following:
+
+    *   A short description of the pitch deck (maximum 50 words).
+    *   Recommendations for improvement (maximum 100 words).
+    *   Scores for the following categories (1-10): clarity, grammar, storytelling, completeness, engagement.
+
+    Provide the output in the following JSON format:
+
+    ```json
+    {
+        "description": "...",
+        "recommendations": "...",
+        "clarity": ,
+        "grammar": ,
+        "storytelling": ,
+        "completeness": ,
+        "engagement":
+    }
+    ```
+
+    The pitch deck is provided as a PDF file.
+    """
+
+    contents = [
+        BlobDict(
+            mime_type="application/pdf",
+            data=pdf_data,
+        ),
+        prompt,
+    ]
+
+    response = model.generate_content(contents=contents)
+    text_response = response.text
+    print(text_response)
+
+    try:
+        description = extract_value(text_response, "description:")
+        recommendations = extract_value(text_response, "recommendations:")
+        clarity = extract_value(text_response, "clarity:")
+        grammar = extract_value(text_response, "grammar:")
+        storytelling = extract_value(text_response, "storytelling:")
+        completeness = extract_value(text_response, "completeness:")
+        engagement = extract_value(text_response, "engagement:")
+
+        return {
+            "description": description,
+            "recommendations": recommendations,
+            "clarity": int(clarity) if clarity is not None else None,  # Convert to int only if not None
+            "grammar": int(grammar) if grammar is not None else None,
+            "storytelling": int(storytelling) if storytelling is not None else None,
+            "completeness": int(completeness) if completeness is not None else None,
+            "engagement": int(engagement) if engagement is not None else None,
+        }
+    except (ValueError, TypeError) as e:
+        print(f"Error parsing response: {e}")
+        return {}
+
+    except Exception as e:
+        print(f"Gemini API Error: {e}")
+        return {}
+
+
+def extract_value(text: str, label: str) -> str | None:
+    try:
+        start_index = text.index(label) + len(label)
+        end_index = text.index("\n", start_index)
+        value = text[start_index:end_index].strip()
+        if value:
+            return value
+        else:
+            return None
+    except ValueError:
+        return None

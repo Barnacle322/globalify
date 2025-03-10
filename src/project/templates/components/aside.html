@@ -247,10 +247,10 @@
             </a>
             {% endif %}
             <a
-                ref="presentation"
-                href="/presentation"
+                ref="pitchdeck"
+                href="/pitchdeck"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'presentation' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'pitchDeck' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
                 ><svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -267,7 +267,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                 </svg>
                 <transition enter-active-class="animate-fade-in">
-                    <span v-if="!minified" class="min-w-max">Presentation</span>
+                    <span v-if="!minified" class="min-w-max">Pitch Deck</span>
                 </transition>
             </a>
         </nav>

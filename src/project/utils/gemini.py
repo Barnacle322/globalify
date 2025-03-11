@@ -168,32 +168,46 @@ def generate_name_summary_with_typesense_context(query: str):
     return response
 
 
-def analyze_pitch_deck(pdf_data: bytes) -> dict:
+def analyze_pdf(pdf_data: bytes) -> str:
     genai.configure(api_key="AIzaSyCslKgJDAckdMD34arTHWJ8fSHB0ERFTmA")
     model = genai.GenerativeModel("gemini-1.5-flash")
 
     prompt = """
-    You are an expert pitch deck analyst.  Analyze the provided pitch deck and provide the following:
+        You are an expert pitch deck analyst. Analyze the provided pitch deck and provide the following:
 
-    *   A short description of the pitch deck (maximum 50 words).
-    *   Recommendations for improvement (maximum 100 words).
-    *   Scores for the following categories (1-10): clarity, grammar, storytelling, completeness, engagement.
+        * A short description of the pitch deck (maximum 100 words). This should summarize the main idea and target audience.
+        * Overall recommendations for improvement (maximum 200 words). Focus on the key areas that need the most attention.
+        * An overall score for the following categories (1-10): clarity, grammar, storytelling, completeness, engagement.
+        * Feedback for each page of the pitch deck. Provide the page number and a short feedback (maximum 50 words) for each page.
 
-    Provide the output in the following JSON format:
+        Provide the output in the following JSON format:
 
-    ```json
-    {
-        "description": "...",
-        "recommendations": "...",
-        "clarity": ,
-        "grammar": ,
-        "storytelling": ,
-        "completeness": ,
-        "engagement":
-    }
-    ```
+        {
+            "summary": "...",
+            "overall_recommendation": "...",
+            "scores": {
+                "clarity": ,
+                "grammar": ,
+                "storytelling": ,
+                "completeness": ,
+                "engagement":
+            },
+            "page_feedback": [
+                {
+                    "page_number": ,
+                    "feedback": "..."
+                },
+                {
+                    "page_number": ,
+                    "feedback": "..."
+                },
+                ...
+            ]
+        }
 
-    The pitch deck is provided as a PDF file.
+
+        The pitch deck is provided as a PDF file.
+        pitch deck is provided as a PDF file.
     """
 
     contents = [
@@ -206,43 +220,6 @@ def analyze_pitch_deck(pdf_data: bytes) -> dict:
 
     response = model.generate_content(contents=contents)
     text_response = response.text
-    print(text_response)
+    print(response.usage_metadata)
 
-    try:
-        description = extract_value(text_response, "description:")
-        recommendations = extract_value(text_response, "recommendations:")
-        clarity = extract_value(text_response, "clarity:")
-        grammar = extract_value(text_response, "grammar:")
-        storytelling = extract_value(text_response, "storytelling:")
-        completeness = extract_value(text_response, "completeness:")
-        engagement = extract_value(text_response, "engagement:")
-
-        return {
-            "description": description,
-            "recommendations": recommendations,
-            "clarity": int(clarity) if clarity is not None else None,  # Convert to int only if not None
-            "grammar": int(grammar) if grammar is not None else None,
-            "storytelling": int(storytelling) if storytelling is not None else None,
-            "completeness": int(completeness) if completeness is not None else None,
-            "engagement": int(engagement) if engagement is not None else None,
-        }
-    except (ValueError, TypeError) as e:
-        print(f"Error parsing response: {e}")
-        return {}
-
-    except Exception as e:
-        print(f"Gemini API Error: {e}")
-        return {}
-
-
-def extract_value(text: str, label: str) -> str | None:
-    try:
-        start_index = text.index(label) + len(label)
-        end_index = text.index("\n", start_index)
-        value = text[start_index:end_index].strip()
-        if value:
-            return value
-        else:
-            return None
-    except ValueError:
-        return None
+    return text_response

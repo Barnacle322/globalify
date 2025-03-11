@@ -20,14 +20,19 @@ if TYPE_CHECKING:
 
 class PitchDeck(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    user: Mapped[User] = relationship("User", back_populates="pitch_deck", uselist=False)
-    unique_id: Mapped[str] = mapped_column(String, init=False)
-    description: Mapped[str | None] = mapped_column(String, nullable=True)
-    recomendations: Mapped[str | None] = mapped_column(String, nullable=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    unique_id: Mapped[str] = mapped_column(String, nullable=False)
+    summary: Mapped[str | None] = mapped_column(String, nullable=False)
+    overall_recommendation: Mapped[str | None] = mapped_column(String, nullable=False)
     created: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)
 
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-    scores: Mapped[Scores] = relationship(back_populates="pitch_deck", cascade="all, delete-orphan")
+    user: Mapped[User] = relationship("User", back_populates="pitch_deck", init=False)
+    scores: Mapped[Scores] = relationship(
+        back_populates="pitch_deck", uselist=False, cascade="all, delete-orphan", init=False
+    )
+    deck_lists: Mapped[list[DeckList]] = relationship(
+        "DeckList", back_populates="pitch_deck", cascade="all, delete-orphan", init=False
+    )
 
     @staticmethod
     def get_all() -> Sequence[PitchDeck] | None:
@@ -44,7 +49,7 @@ class PitchDeck(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    pitch_deck_id: Mapped[int] = mapped_column(Integer, ForeignKey("pitch_deck.id"))
+    pitch_deck_id: Mapped[int] = mapped_column(Integer, ForeignKey("pitch_deck.id"), init=False)
     clarity: Mapped[int | None] = mapped_column(Integer, nullable=True)
     grammary: Mapped[int | None] = mapped_column(Integer, nullable=True)
     storytelling: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -64,3 +69,24 @@ class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_by_pitch_deck_id(pitch_deck_id: int) -> Sequence[Scores] | None:
         return db.session.scalars(db.select(Scores).where(Scores.pitch_deck_id == pitch_deck_id)).all()
+
+
+class DeckList(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    pitch_deck_id: Mapped[int] = mapped_column(Integer, ForeignKey("pitch_deck.id"), init=False)
+    page_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    feed_back: Mapped[str | None] = mapped_column(String, nullable=False)
+
+    pitch_deck: Mapped[PitchDeck] = relationship("PitchDeck", back_populates="deck_lists")
+
+    @staticmethod
+    def get_by_id(id: int) -> DeckList | None:
+        return db.session.scalar(db.select(DeckList).where(DeckList.id == id))
+
+    @staticmethod
+    def get_all() -> Sequence[DeckList] | None:
+        return db.session.scalars(db.select(DeckList)).all()
+
+    @staticmethod
+    def get_by_pitch_deck_id(pitch_deck_id: int) -> Sequence[DeckList] | None:
+        return db.session.scalars(db.select(DeckList).where(DeckList.pitch_deck_id == pitch_deck_id)).all()

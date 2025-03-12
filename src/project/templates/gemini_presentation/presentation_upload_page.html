@@ -1,75 +1,78 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        <link rel="stylesheet" href="/static/css/main.css" />
-        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="icon" type="image/png" href="/static/elements/icon.png" />
 
-        <!-- Vue -->
-        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-        <script src="/static/vue/base.js"></script>
-        <script defer src="/static/vue/main.js"></script>
+    <!-- Vue -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="/static/vue/base.js"></script>
+    <script defer src="/static/vue/main.js"></script>
 
-        <!-- Font -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-            rel="stylesheet"
-        />
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+        rel="stylesheet"
+    />
 
-        <title>Globalify Presentation Tools</title>
-    </head>
+    <title>Globalify Presentation Tools</title>
+</head>
 
-    <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %}
+<!-- prettier-ignore -->
+{% import "components/navbar.html" as navbar %}
 {{ navbar.render(current_user) }}
 
-    <body class="h-full overflow-x-clip" id="app">
-        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
-            <aside-component :minified="asideMinified"></aside-component>
-            <transition enter-active-class="pop-in" leave-active-class="pop-out">
-                <div
-                    v-if="asideExpanded"
-                    @click="asideExpanded = false"
-                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
-            </transition>
-            <main class="flex h-screen w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
-                <div class="shadow-card mt-[50px] w-full max-w-4xl">
-                    <!-- Upload Section -->
-                    <div class="rounded-lg bg-white p-8 shadow-md">
-                        <!-- User Prompt -->
-                        <div class="mb-6 text-center">
-                            <h2 class="text-2xl font-semibold text-gray-800">Upload Your Presentation</h2>
-                            <p class="text-lg text-gray-600">
-                                Please select a PDF file to upload your presentation for analysis.
-                            </p>
-                        </div>
-
-                        <!-- File Input Section -->
-                        <div class="flex justify-center">
-                            <!-- Styled Upload Button -->
-                            <label
-                                for="file-upload"
-                                class="flex cursor-pointer items-center justify-center rounded-md bg-sky-500 px-6 py-3 text-center text-white hover:bg-sky-600"
-                            >
-                                <span class="text-xl">Upload File</span>
-                            </label>
-                            <input id="file-upload" type="file" class="hidden" />
-                        </div>
-                    </div>
+<body class="h-full overflow-x-clip" id="app">
+<navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+<div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
+    <aside-component :minified="asideMinified"></aside-component>
+    <transition enter-active-class="pop-in" leave-active-class="pop-out">
+        <div
+            v-if="asideExpanded"
+            @click="asideExpanded = false"
+            class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+        ></div>
+    </transition>
+    <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+        <aside-mobile-component
+            v-if="asideExpanded"
+            @close-aside="asideExpanded = false"
+        ></aside-mobile-component>
+    </transition>
+    <main class="flex h-screen w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
+        <div class="shadow-md mt-[50px] w-full max-w-4xl mx-auto">
+            <!-- Upload Section -->
+            <div class="rounded-lg bg-white p-10 shadow-[0_10px_20px_rgba(0,0,0,0.15),0_4px_6px_rgba(0,0,0,0.1)]">
+                <!-- User Prompt -->
+                <div class="mb-8 text-center">
+                    <h2 class="text-3xl font-semibold text-gray-800">Upload Your Presentation</h2>
+                    <p class="text-lg text-gray-500 mt-2">
+                        "Eager to get feedback on your presentation? Upload your PDF here and let us analyze it for
+                        insights!"
+                    </p>
                 </div>
-            </main>
+
+                <!-- File Input Section -->
+                <div class="flex justify-center">
+                    <!-- Styled Upload Button -->
+                    <label
+                        for="file-upload"
+                        class="flex cursor-pointer items-center justify-center rounded-lg bg-gradient-to-r from-sky-400 to-sky-600 px-6 py-3 text-lg text-white transition-all duration-300 ease-in-out hover:scale-105 shadow-md"
+                    >
+                        <span class="font-semibold">Upload File</span>
+                    </label>
+                    <input id="file-upload" type="file" class="hidden" />
+                </div>
+            </div>
         </div>
-    </body>
+
+
+    </main>
+</div>
+</body>
 </html>

@@ -1,4 +1,4 @@
-from flask import Blueprint, Response, jsonify, request, stream_with_context
+from flask import Blueprint, Response, jsonify, request, stream_with_context, render_template
 from flask_login import current_user, login_required
 from sqlalchemy import delete
 
@@ -263,3 +263,21 @@ def rename_chat(chat_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Failed to rename chat: {str(e)}"}), 500
+
+
+@message.route("/get/presentation/page/<username>", methods=["GET"])
+@login_required
+def presentation_page(username):
+    return render_template(
+        "gemini_presentation/gemini_presentaion.html")
+
+
+
+@message.route("/get/presentation/upload", methods=["GET"])
+@login_required
+def presentation_upload():
+    return render_template(
+        "gemini_presentation/presentation_upload_page.html")
+
+
+

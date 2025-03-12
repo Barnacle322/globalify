@@ -44,9 +44,9 @@ from ..utils.typesense_helpers.typesense_search import (
     delete_schema,
     upsert_documents,
 )
+from .deck import Deck
 from .helpers import Country, Industry, Round
 from .investment import FundingRound
-from .pitchdeck import PitchDeck
 
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
@@ -93,7 +93,7 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     search_histories: Mapped[list[SearchHistory]] = relationship(
         "SearchHistory", back_populates="user", uselist=True, init=False
     )
-    pitch_deck: Mapped[list[PitchDeck]] = relationship("PitchDeck", back_populates="user", uselist=True, init=False)
+    deck: Mapped[list[Deck]] = relationship("Deck", back_populates="user", uselist=True, init=False)
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)

@@ -173,17 +173,15 @@ def analyze_pdf(pdf_data: bytes) -> str:
     model = genai.GenerativeModel("gemini-1.5-flash")
 
     prompt = """
-        You are an expert pitch deck analyst. Analyze the provided pitch deck and provide the following:
+        You are an expert pitch deck analyst. Analyze the provided pitch deck and provide:
 
-        * A short description of the pitch deck (maximum 100 words). This should summarize the main idea and target audience.
         * Overall recommendations for improvement (maximum 200 words). Focus on the key areas that need the most attention.
         * An overall score for the following categories (1-10): clarity, grammar, storytelling, completeness, engagement.
-        * Feedback for each page of the pitch deck. Provide the page number and a short feedback (maximum 50 words) for each page.
+        * Feedback for each page of the pitch deck. Provide the page number and a short feedback (maximum 100 words) for each page.
 
-        Provide the output in the following JSON format:
+        Output in JSON format:
 
         {
-            "summary": "...",
             "overall_recommendation": "...",
             "scores": {
                 "clarity": ,
@@ -192,7 +190,7 @@ def analyze_pdf(pdf_data: bytes) -> str:
                 "completeness": ,
                 "engagement":
             },
-            "page_feedback": [
+            "deck_feedback": [
                 {
                     "page_number": ,
                     "feedback": "..."
@@ -204,10 +202,6 @@ def analyze_pdf(pdf_data: bytes) -> str:
                 ...
             ]
         }
-
-
-        The pitch deck is provided as a PDF file.
-        pitch deck is provided as a PDF file.
     """
 
     contents = [
@@ -220,6 +214,8 @@ def analyze_pdf(pdf_data: bytes) -> str:
 
     response = model.generate_content(contents=contents)
     text_response = response.text
+    if text_response:
+        text_response = text_response.replace("```json", "").replace("```", "").strip()
     print(response.usage_metadata)
 
     return text_response

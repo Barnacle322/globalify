@@ -29,7 +29,7 @@ createApp({
             formData.append("file", this.file);
 
             try {
-                const response = await fetch("/pitchdeck/analysis", {
+                const response = await fetch("/deck/analysis", {
                     method: "POST",
                     headers: {
                         "X-CSRFToken": document.getElementById("csrf_token").value,

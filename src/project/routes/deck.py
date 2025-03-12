@@ -1,16 +1,17 @@
+import hashlib
 import json
 
 from flask import Blueprint, redirect, render_template, request
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import DeckList, PitchDeck, Scores
+from ..models import Deck, Scores
 from ..utils.gemini import analyze_pdf
 
-pitchdeck = Blueprint("pitchdeck", __name__)
+deck = Blueprint("deck", __name__)
 
 
-@pitchdeck.route("/", methods=["GET"])
+@deck.route("/", methods=["GET"])
 @login_required
 def index():
     status_type, msg = None, None
@@ -19,15 +20,15 @@ def index():
         msg = query.get("msg")
 
     return render_template(
-        "pitch_deck.html",
+        "deck.html",
         status_type=status_type,
         msg=msg,
     )
 
 
-@pitchdeck.route("/analysis", methods=["GET", "POST"])
+@deck.route("/analysis", methods=["GET", "POST"])
 @login_required
-def analyze_pitch_deck_route():
+def analyze_deck_route():
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -36,7 +37,7 @@ def analyze_pitch_deck_route():
     if "file" not in request.files:
         print("No file part")
         return render_template(
-            "pitch_deck.html",
+            "deck.html",
             status_type=status_type,
             msg=msg,
         )
@@ -46,7 +47,7 @@ def analyze_pitch_deck_route():
     if file.filename == "":
         print("No selected file")
         return render_template(
-            "pitch_deck.html",
+            "deck.html",
             status_type=status_type,
             msg=msg,
         )
@@ -56,13 +57,21 @@ def analyze_pitch_deck_route():
         print("File loaded successfully")
         print(f"Size: {len(pdf_data)} bytes")
 
+        file_hash = calculate_md5(pdf_data)
+        if Deck.check_hash(file_hash):
+            print("Deck with this file already exists. Skipping analysis.")
+            return render_template(
+                "deck.html",
+                status_type=status_type,
+                msg=msg,
+            )
+
         analysis_result_json = analyze_pdf(pdf_data)
         print(analysis_result_json)
 
         if analysis_result_json:
-            unique_id = file.filename + str(len(pdf_data))  # type: ignore
-            pitch_deck = create_models_from_json(analysis_result_json, unique_id)
-            if pitch_deck:
+            deck = create_models_from_json(analysis_result_json, file_hash)
+            if deck:
                 print("Success")
             else:
                 print("Error")
@@ -73,43 +82,36 @@ def analyze_pitch_deck_route():
         msg = f"An error occurred: {e}"
 
     return render_template(
-        "pitch_deck.html",
+        "deck.html",
         status_type=status_type,
         msg=msg,
     )
 
 
-def create_models_from_json(json_data: str, unique_id: str):
+def create_models_from_json(json_data: str, unique_hash: str):
     try:
         data = json.loads(json_data)
 
-        pitch_deck = PitchDeck(
+        deck = Deck(
             user_id=current_user.id,
-            unique_id=unique_id,
-            summary=data.get("summary"),
+            hash=unique_hash,
             overall_recommendation=data.get("overall_recommendation"),
+            json_feedback=data.get("deck_feedback"),
         )
 
-        scores = Scores(
+        _ = Scores(
             clarity=data["scores"].get("clarity"),
             grammary=data["scores"].get("grammar"),
             storytelling=data["scores"].get("storytelling"),
             completeness=data["scores"].get("completeness"),
             engagement=data["scores"].get("engagement"),
-            pitch_deck=pitch_deck,
+            deck=deck,
         )
 
-        deck_lists = []
-        for page_data in data.get("page_feedback", []):
-            deck_list = DeckList(
-                page_number=page_data.get("page_number"), feed_back=page_data.get("feedback"), pitch_deck=pitch_deck
-            )
-            deck_lists.append(deck_list)
-
-        db.session.add(pitch_deck)
+        db.session.add(deck)
         db.session.commit()
 
-        return pitch_deck
+        return deck
 
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON: {e}")
@@ -119,3 +121,11 @@ def create_models_from_json(json_data: str, unique_id: str):
         print(f"Error creating models: {e}")
         db.session.rollback()
         return None, None, None
+
+
+def calculate_md5(data: bytes):
+    """Calculates the MD5 hash of a file."""
+    hash_md5 = hashlib.md5()
+    hash_md5.update(data)
+    print("unique hash")
+    return hash_md5.hexdigest()

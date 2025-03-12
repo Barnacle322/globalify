@@ -1,4 +1,5 @@
 from .claim import ClaimRequest, ClaimVerification
+from .deck import Deck, Scores
 from .helpers import Country, Industry, Round
 from .investment import FundingRound, Investment
 from .investor import (
@@ -11,7 +12,6 @@ from .investor import (
     NotableInvestment,
 )
 from .message import Chat, Message
-from .pitchdeck import DeckList, PitchDeck, Scores
 from .search import SearchHistory
 from .user import (
     Company,
@@ -52,7 +52,6 @@ __all__ = [
     "SearchHistory",
     "Chat",
     "Message",
-    "PitchDeck",
+    "Deck",
     "Scores",
-    "DeckList",
 ]

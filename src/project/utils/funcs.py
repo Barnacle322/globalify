@@ -1,3 +1,6 @@
+import hashlib
+
+
 def generate_pagination(current_page: int, total_pages: int, around_count: int = 2) -> dict:
     start_pages = range(1, min(3, total_pages + 1))
     around_pages = range(max(1, current_page - around_count), min(current_page + around_count + 1, total_pages + 1))
@@ -32,3 +35,11 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
         "has_prev": bool(current_page > 1),
         "has_next": bool(current_page < total_pages),
     }
+
+
+def calculate_md5(data: bytes):
+    """Calculates the MD5 hash of a file."""
+    hash_md5 = hashlib.md5()
+    hash_md5.update(data)
+    print("unique hash")
+    return hash_md5.hexdigest()

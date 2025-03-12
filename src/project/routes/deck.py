@@ -1,4 +1,3 @@
-import hashlib
 import json
 
 from flask import Blueprint, redirect, render_template, request
@@ -6,6 +5,7 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import Deck, Scores
+from ..utils.funcs import calculate_md5
 from ..utils.gemini import analyze_pdf
 
 deck = Blueprint("deck", __name__)
@@ -122,10 +122,3 @@ def create_models_from_json(json_data: str, unique_hash: str):
         db.session.rollback()
         return None, None, None
 
-
-def calculate_md5(data: bytes):
-    """Calculates the MD5 hash of a file."""
-    hash_md5 = hashlib.md5()
-    hash_md5.update(data)
-    print("unique hash")
-    return hash_md5.hexdigest()

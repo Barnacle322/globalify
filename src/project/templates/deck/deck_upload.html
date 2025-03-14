@@ -38,11 +38,11 @@
             rel="stylesheet"
         />
 
-        <title>| Globalify User Profile</title>
+        <title>| Globalify Pitch deck</title>
     </head>
 
     <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %} 
+    {% import "components/navbar.html" as navbar %}
     {{ navbar.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
@@ -62,30 +62,55 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
-
-            <main class="flex w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
-                <div class="flex flex-col items-center justify-center h-full w-full">
-                    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                    <label
-                        for="pdf-upload"
-                        class="flex flex-col items-center justify-center w-64 h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+            <main class="flex h-screen w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
+                <div class="shadow-md mt-[50px] w-full max-w-4xl mx-auto">
+                    <!-- Upload Section -->
+                    <div
+                        class="rounded-lg bg-white p-10 shadow-[0_10px_20px_rgba(0,0,0,0.15),0_4px_6px_rgba(0,0,0,0.1)]"
                     >
-                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                                <span class="font-semibold">Select PDF</span>
+                        <!-- User Prompt -->
+                        <div class="mb-8 text-center">
+                            <h2 class="text-3xl font-semibold text-gray-800">Upload Your Presentation</h2>
+                            <p class="text-lg text-gray-500 mt-2">
+                                "Eager to get feedback on your presentation? Upload your PDF here and let us analyze it
+                                for insights!"
                             </p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">PDF</p>
                         </div>
-                        <input id="pdf-upload" type="file" class="hidden" accept=".pdf" @change="handleFileUpload" />
-                    </label>
-                    <p v-if="filename" v-text="filename"></p>
-                    <button
-                        v-if="file"
-                        @click="uploadFile"
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    >
-                        Upload
-                    </button>
+
+                        <!-- File Input Section -->
+                        <div class="flex flex-col items-center justify-center">
+                            <div v-if="filename" class="mb-2 text-gray-700" v-text="'Selected File: ' + filename"></div>
+                            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+
+                            <!-- File Input -->
+                            <label
+                                for="pdf-upload"
+                                class="cursor-pointer rounded-lg bg-gradient-to-r from-sky-400 to-sky-600 px-6 py-3 text-lg text-white transition-all duration-300 ease-in-out hover:scale-105 shadow-md"
+                            >
+                                Upload File
+                                <input
+                                    id="pdf-upload"
+                                    type="file"
+                                    class="hidden"
+                                    accept=".pdf"
+                                    @change="handleFileUpload"
+                                />
+                            </label>
+
+                            <!-- Analyze Button -->
+                            <button
+                                v-if="filename"
+                                class="rounded-lg bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 mt-4"
+                                @click="analyzeFile"
+                            >
+                                Analyze
+                            </button>
+
+                            <input id="file-upload" type="file" class="hidden" />
+
+                            <div v-if="uploadStatus" class="mt-4 text-center" v-text="uploadStatus"></div>
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>

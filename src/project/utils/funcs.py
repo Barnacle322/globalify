@@ -39,7 +39,5 @@ def generate_pagination(current_page: int, total_pages: int, around_count: int =
 
 def calculate_md5(data: bytes):
     """Calculates the MD5 hash of a file."""
-    hash_md5 = hashlib.md5()
-    hash_md5.update(data)
-    print("unique hash")
-    return hash_md5.hexdigest()
+    hash_md5 = hashlib.md5(data).hexdigest()
+    return hash_md5

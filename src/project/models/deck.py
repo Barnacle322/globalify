@@ -31,6 +31,15 @@ class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
         back_populates="deck", uselist=False, cascade="all, delete-orphan", init=False
     )
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.overall_recommendation,
+            "file_hash": self.hash,
+            "created": self.created.isoformat(),
+            "json_feedback": self.json_feedback,
+        }
+
     @staticmethod
     def get_all() -> Sequence[Deck] | None:
         return db.session.scalars(db.select(Deck)).all()
@@ -58,6 +67,15 @@ class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):
     engagement: Mapped[int | None] = mapped_column(Integer, nullable=False)
 
     deck: Mapped[Deck] = relationship(back_populates="scores")
+
+    def to_dict(self):
+        return {
+            "clarity": self.clarity,
+            "grammary": self.grammary,
+            "storytelling": self.storytelling,
+            "completeness": self.completeness,
+            "engagement": self.engagement,
+        }
 
     @staticmethod
     def get_by_id(id: int) -> Scores | None:

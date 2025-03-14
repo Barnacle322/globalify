@@ -265,19 +265,5 @@ def rename_chat(chat_id):
         return jsonify({"error": f"Failed to rename chat: {str(e)}"}), 500
 
 
-@message.route("/get/presentation/page/<username>", methods=["GET"])
-@login_required
-def presentation_page(username):
-    return render_template(
-        "gemini_presentation/gemini_presentaion.html")
-
-
-
-@message.route("/get/presentation/upload", methods=["GET"])
-@login_required
-def presentation_upload():
-    return render_template(
-        "gemini_presentation/presentation_upload_page.html")
-
 
 

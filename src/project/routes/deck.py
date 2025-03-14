@@ -122,3 +122,11 @@ def create_models_from_json(json_data: str, unique_hash: str):
         db.session.rollback()
         return None, None, None
 
+
+
+@deck.route("/upload/<username>", methods=["GET"])
+@login_required
+def deck_upload(username):
+    return render_template("gemini_presentation/presentation_upload_page.html")
+
+

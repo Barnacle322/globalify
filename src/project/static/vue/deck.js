@@ -13,6 +13,22 @@
         mounted() {
             document.addEventListener("click", this.handleClickOutside);
             this.asideMinified = localStorage.getItem("asideMinified") == "true";
+            const currentPath = window.location.pathname;
+            if (currentPath.startsWith('/deck/page')) { // No trailing slash
+                const parts = currentPath.split('/'); // e.g., ["", "deck", "page", "1"]
+                const deckId = parts[parts.length - 1]; // Get the last part (e.g., "1")
+                console.log("Deck ID:", deckId); // Debug deckId
+                if (deckId) {
+                    console.log("Calling fetchDeck with ID:", deckId); // Debug call
+                    this.fetchDeck(deckId);
+                } else {
+                    console.log("No deckId found in URL");
+                }
+            } else {
+                console.log("Not on a /deck/page URL");
+            }
+            console.log("Initial scores:", this.scores);
+            console.log("Mounted complete");
         },
         methods: {
             handleFileUpload(event) {
@@ -49,7 +65,7 @@
                         throw new Error(data.error || "Analysis failed");
                     }
 
-                    // window.location.href = data.redirect_url;
+                    window.location.href = data.redirect_url;
                 } catch (error) {
                     console.error("Error:", error);
                     this.uploadStatus = error.message;
@@ -57,7 +73,7 @@
             },
             async fetchDeck(deckId) {
                 try {
-                    const response = await fetch(`/deck_results/${deckId}`);
+                    const response = await fetch(`/deck/deck_results/${deckId}`);
                     if (!response.ok) {
                         throw new Error("Failed to fetch deck data");
                     }
@@ -65,6 +81,7 @@
                     this.deck = data.deck;
                     this.scores = data.scores;
                     this.showResults = true;
+                    console.log(this.scores)
                 } catch (error) {
                     console.error("Error fetching deck data:", error);
                     this.uploadStatus = error.message;

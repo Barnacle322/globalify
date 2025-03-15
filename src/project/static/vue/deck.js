@@ -3,7 +3,7 @@
             AsideComponent,
             AsideMobileComponent,
             NavbarComponent,
-            AnalysisResultComponent,
+            // AnalysisResultComponent,
         },
         watch: {
             asideMinified(value) {
@@ -49,7 +49,7 @@
                         throw new Error(data.error || "Analysis failed");
                     }
 
-                    window.location.href = data.redirect_url;
+                    // window.location.href = data.redirect_url;
                 } catch (error) {
                     console.error("Error:", error);
                     this.uploadStatus = error.message;

@@ -125,9 +125,9 @@ def create_models_from_json(json_data: str, unique_hash: str):
         return None, None
 
 
-@deck.route("/upload/<username>", methods=["GET"])
+@deck.route("/page/<username>", methods=["GET"])
 @login_required
-def deck_upload(username):
-    return render_template("gemini_presentation/presentation_upload_page.html")
+def deck_page(username):
+    return render_template("deck/deck_results.html")
 
 

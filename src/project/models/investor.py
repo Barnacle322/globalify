@@ -571,7 +571,7 @@ class Investor(InvestorBase):
                 except Exception:
                     db.session.rollback()
                     investor.slug = slugify(
-                        f"{investor.first_name or ""}-{investor.last_name or ""}-{uuid.uuid4().hex[:6]}"
+                        f"{investor.first_name or ''}-{investor.last_name or ''}-{uuid.uuid4().hex[:6]}"
                     )
                     db.session.commit()
 

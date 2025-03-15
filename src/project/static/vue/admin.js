@@ -1706,6 +1706,15 @@ createApp({
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
         },
+        applyFilters() {
+            const queryParams = new URLSearchParams({
+                ...Object.fromEntries(Object.entries(this.filters).filter(([, value]) => value !== false)),
+                page: this.currentPage,
+            }).toString();
+
+            const basePath = window.location.pathname.split("/filter")[0];
+            window.location.href = `${basePath}/filter?${queryParams}`;
+        },
         toggleFundingRound(id) {
             this.selectedFundingRound = this.selectedFundingRound === id ? null : id;
             localStorage.setItem("selectedFundingRound", this.selectedFundingRound);
@@ -1741,6 +1750,15 @@ createApp({
     },
     mounted() {
         this.setupMenuToggle();
+        const urlParams = new URLSearchParams(window.location.search);
+        for (const [key, value] of urlParams.entries()) {
+            if (key in this.filters) {
+                this.filters[key] = value === "true";
+            }
+            if (key === "page") {
+                this.currentPage = parseInt(value) || 1;
+            }
+        }
     },
     data() {
         return {
@@ -1777,6 +1795,17 @@ createApp({
             ],
             showClasses: ["transform", "opacity-100", "scale-100"],
             hideClasses: ["opacity-0", "scale-95", "pointer-events-none"],
+            filters: {
+                check_about: false,
+                check_email: false,
+                check_twitter: false,
+                check_website: false,
+                check_linkedin: false,
+                check_instagram: false,
+                check_description: false,
+                check_industry: false,
+                check_rounds: false,
+            },
         };
     },
 }).mount("#app");

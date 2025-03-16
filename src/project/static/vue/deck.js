@@ -5,6 +5,7 @@
             NavbarComponent,
             // AnalysisResultComponent,
         },
+        delimiters: ["[[", "]]"],
         watch: {
             asideMinified(value) {
                 localStorage.setItem("asideMinified", value);
@@ -14,21 +15,26 @@
             document.addEventListener("click", this.handleClickOutside);
             this.asideMinified = localStorage.getItem("asideMinified") == "true";
             const currentPath = window.location.pathname;
-            if (currentPath.startsWith('/deck/page')) { // No trailing slash
-                const parts = currentPath.split('/'); // e.g., ["", "deck", "page", "1"]
-                const deckId = parts[parts.length - 1]; // Get the last part (e.g., "1")
-                console.log("Deck ID:", deckId); // Debug deckId
+
+            // Check if the path is /deck/page
+            if (currentPath.startsWith('/deck/page')) {
+                const parts = currentPath.split('/');
+                const deckId = parts[parts.length - 1];
+
+                // If deckId exists, fetch deck data
                 if (deckId) {
-                    console.log("Calling fetchDeck with ID:", deckId); // Debug call
-                    this.fetchDeck(deckId);
+                    this.fetchDeck(deckId).then(() => {
+                        if (this.deck && this.deck.json_feedback && this.deck.json_feedback.length > 0) {
+                            this.selectedFeedback = this.deck.json_feedback[0]; // Set first feedback as default
+                        }
+                        console.log("Scores after fetch:", this.scores); // Log after fetch completes
+                    });
                 } else {
                     console.log("No deckId found in URL");
                 }
             } else {
                 console.log("Not on a /deck/page URL");
             }
-            console.log("Initial scores:", this.scores);
-            console.log("Mounted complete");
         },
         methods: {
             handleFileUpload(event) {
@@ -79,13 +85,19 @@
                     }
                     const data = await response.json();
                     this.deck = data.deck;
+
                     this.scores = data.scores;
+                    console.log(this.deck)
                     this.showResults = true;
-                    console.log(this.scores)
                 } catch (error) {
                     console.error("Error fetching deck data:", error);
                     this.uploadStatus = error.message;
                 }
+            },
+
+            selectFeedback(feedback) {
+                console.log("Selected Feedback:", feedback);
+                this.selectedFeedback = feedback;
             },
         },
         data() {
@@ -99,6 +111,7 @@
                 uploadStatus: null,
                 deck: null,
                 scores: null,
+                selectedFeedback: null,
             };
         },
     }).mount("#app");

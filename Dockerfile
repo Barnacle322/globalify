@@ -14,4 +14,4 @@ RUN rm -rf /root/.cache/pip/*
 
 ENV PORT 80
 
-CMD exec uv run granian --interface wsgi --port $PORT --host 0.0.0.0 --workers 5 --threads 8 project:application
+CMD exec uv run granian --interface wsgi --port $PORT --host 0.0.0.0 --threads 8 project:application

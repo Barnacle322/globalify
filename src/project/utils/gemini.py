@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from google.generativeai.types.content_types import FunctionDeclaration, Tool, BlobDict
+from google.generativeai.types.content_types import BlobDict, FunctionDeclaration, Tool
 
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,

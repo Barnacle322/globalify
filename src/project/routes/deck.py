@@ -7,6 +7,7 @@ from ..extensions import db
 from ..models import Deck, Scores
 from ..utils.funcs import calculate_md5
 from ..utils.gemini import analyze_pdf
+from ..utils.google_helpers.google_storage import load_deck, upload_deck
 
 deck = Blueprint("deck", __name__)
 
@@ -74,6 +75,8 @@ def analyze_deck():
         deck, scores = create_models_from_json(analysis_result_json, file_hash)
         if deck and scores:
             print("Success")
+            url = upload_deck(deck=pdf_data, blob_name=file_hash, content_type="application/pdf")
+            print(url)
         else:
             print("Error")
 
@@ -85,7 +88,14 @@ def analyze_deck():
 def deck_results(deck_id):
     deck = Deck.get_by_id(deck_id)
     if deck:
-        return jsonify({"deck": deck.to_dict(), "scores": deck.scores.to_dict()}), 200
+        deck_file = load_deck(deck_uuid=deck.hash)
+        return render_template(
+            "deck/deck_results.html",
+            deck=deck.to_dict(),
+            scores=deck.scores.to_dict(),
+            pdf_base64=deck_file,
+            current_user=current_user,
+        )
     else:
         return redirect(url_for("index"))
 

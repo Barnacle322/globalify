@@ -4,13 +4,31 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Deck | Globalify User Profile" />
+        <meta name="description" content="{{ description }}" />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Deck | Globalify User Profile" />
+        <meta property="og:description" content="{{ description }}" />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Deck | Globalify User Profile" />
+        <meta property="twitter:description" content="{{ description }}" />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
         <link rel="stylesheet" href="/static/css/main.css" />
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
 
         <!-- Vue -->
         <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-        <script src="/static/vue/base.js"></script>
-        <script defer src="/static/vue/main.js"></script>
+        <script defer src="/static/vue/base.js"></script>
+        <script defer src="/static/vue/deck.js"></script>
 
         <!-- Font -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,15 +38,13 @@
             rel="stylesheet"
         />
 
-        <title>Globalify Presentation Tools</title>
+        <title>| Globalify Pitch deck</title>
     </head>
 
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %}
-{{ navbar.render(current_user) }}
-
-    <body class="h-full overflow-x-clip" id="app">
-        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+    {{ navbar.render(current_user) }}
+    <body class="h-full overflow-x-clip">
         <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
@@ -44,14 +60,14 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
-            <main class="flex w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
+            <main class="flex w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9" id="deck-results-app">
                 <div
                     class="bg-deep-purple flex h-48 w-full items-center justify-center rounded-lg p-4 text-center text-xl font-bold text-amber-50 shadow-md"
                 >
                     <h1
                         class="w-fit bg-linear-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"
                     >
-                        Globalify Presentation Tools
+                        Globalify Pitch-deck analysis
                     </h1>
                 </div>
 
@@ -153,11 +169,10 @@
                                     </a>
 
                                     <!-- Image -->
-                                    <img
-                                        src="/static/elements/Team/card_sub.jpeg"
-                                        alt="User Image"
+                                    <canvas
+                                        id="pdf-canvas"
                                         class="h-[35vh] w-full rounded-t-lg object-contain"
-                                    />
+                                    ></canvas>
 
                                     <!-- Right Arrow -->
                                     <a
@@ -219,30 +234,30 @@
                             <div class="flex-1 space-y-3">
                                 <div class="flex justify-between border-b pb-1">
                                     <h3 class="text-sm font-medium">Spelling & Grammar</h3>
-                                    <span class="text-sm font-bold text-blue-800">{{ scores.grammary}}</span>
+                                    <span class="text-sm font-bold text-blue-800" v-text="scores.grammary"></span>
                                 </div>
                                 <div class="flex justify-between border-b pb-1">
                                     <h3 class="text-sm font-medium">Storytelling</h3>
-                                    <span class="text-sm font-bold text-blue-800">{{ scores.storytelling}}</span>
+                                    <span class="text-sm font-bold text-blue-800" v-text="scores.storytelling"></span>
                                 </div>
                                 <div class="flex justify-between">
                                     <h3 class="text-sm font-medium">Clarity</h3>
-                                    <span class="text-sm font-bold text-blue-800">{{ scores.clarity}}</span>
+                                    <span class="text-sm font-bold text-blue-800" v-text="scores.clarity"></span>
                                 </div>
                                 <div class="flex justify-between">
                                     <h3 class="text-sm font-medium">Completeness</h3>
-                                    <span class="text-sm font-bold text-blue-800">{{ scores.completeness}}</span>
+                                    <span class="text-sm font-bold text-blue-800" v-text="scores.completeness"></span>
                                 </div>
                                 <div class="flex justify-between">
                                     <h3 class="text-sm font-medium">Engagement</h3>
-                                    <span class="text-sm font-bold text-blue-800">{{ scores.Engagement}}</span>
+                                    <span class="text-sm font-bold text-blue-800" v-text="scores.Engagement"></span>
                                 </div>
                             </div>
 
                             <!-- Overall Score Section at the Bottom -->
                             <div class="mt-5 rounded-lg bg-white p-3 text-center shadow-md">
                                 <h3 class="text-xs font-medium text-gray-600">Overall Score</h3>
-                                <span class="mt-1 text-lg font-bold text-blue-900">8.2</span>
+                                <span class="mt-1 text-lg font-bold text-blue-900" v-text="8888"></span>
                             </div>
                         </div>
 

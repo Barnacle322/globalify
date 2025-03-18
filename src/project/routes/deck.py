@@ -7,6 +7,7 @@ from ..extensions import db
 from ..models import Deck, Scores
 from ..utils.funcs import calculate_md5
 from ..utils.gemini import analyze_pdf
+from ..utils.google_helpers.google_storage import load_deck
 
 deck = Blueprint("deck", __name__)
 
@@ -136,9 +137,6 @@ def user_deck_list(user_id):
 @login_required
 def user_deck_detail(deck_id):
     deck = Deck.get_by_id(deck_id)
-    return render_template("deck/deck_detail.html", deck=deck, user=current_user)
-
-
-
-
-
+    # use hash to find pdf in bucket. Also you can use dd2213b37d54001ec1219b81ae077579 string to download 2.6mb deck from bucket
+    deck_pdf = load_deck(deck.hash)
+    return render_template("deck/deck_detail.html", deck=deck, deck_pdf=deck_pdf, user=current_user)

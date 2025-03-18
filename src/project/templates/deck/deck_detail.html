@@ -26,11 +26,8 @@
 
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %}
-{{ navbar.render(current_user) }}
+    {{ navbar.render(current_user) }}
 
-
-        {% import "deck/deck_upload.html" as deck_upload %}
-    {{ deck_upload.render(user) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -93,8 +90,6 @@
                                 <div class="relative mt-4">
                                     <!-- Left Arrow -->
                                     <a
-                                        href="#"
-                                        @click="moveToPreviousCard"
                                         class="absolute top-1/2 left-0 -ml-4 flex -translate-y-1/2 items-center"
                                     >
                                         <svg
@@ -120,8 +115,6 @@
 
                                     <!-- Right Arrow -->
                                     <a
-                                        href="#"
-                                        @click="moveToNextCard"
                                         class="absolute top-1/2 right-0 -mr-4 flex -translate-y-1/2 items-center"
                                     >
                                         <svg

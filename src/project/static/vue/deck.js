@@ -125,6 +125,25 @@ createApp({
             this.selectedFeedback = feedback;
         },
 
+        moveToPreviousCard() {
+            const currentIndex = this.deckData.findIndex(deck => deck.id === this.selectedDeck.id);
+            if (currentIndex > 0) {
+                this.selectedDeck = this.deckData[currentIndex - 1];
+                this.updateFeedback();
+            }
+        },
+        moveToNextCard() {
+            const currentIndex = this.deckData.findIndex(deck => deck.id === this.selectedDeck.id);
+            if (currentIndex < this.deckData.length - 1) {
+                this.selectedDeck = this.deckData[currentIndex + 1];
+                this.updateFeedback();
+            }
+        },
+        updateFeedback() {
+            // This updates the feedback section based on the selected deck
+            this.selectedFeedback = this.selectedDeck.feedback;
+        },
+
     },
     data() {
         return {

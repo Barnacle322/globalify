@@ -2011,6 +2011,9 @@
   .place-self-end {
     place-self: end;
   }
+  .self-center {
+    align-self: center;
+  }
   .self-end {
     align-self: flex-end;
   }

@@ -10,7 +10,6 @@
         <!-- Vue -->
         <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
 
-
         <script src="/static/vue/base.js"></script>
         <script defer src="/static/vue/deck.js"></script>
 
@@ -29,6 +28,10 @@
     {% import "components/navbar.html" as navbar %}
 {{ navbar.render(current_user) }}
 
+
+        {% import "deck/deck_upload.html" as deck_upload %}
+    {{ deck_upload.render(user) }}
+
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
         <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
@@ -46,6 +49,7 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
+
             <main class="flex w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
                 <div
                     class="bg-deep-purple flex h-48 w-full items-center justify-center rounded-lg p-4 text-center text-xl font-bold text-amber-50 shadow-md"
@@ -62,19 +66,21 @@
                         class="shadow-card ml-0 flex max-h-[calc(100vh-100px)] w-1/5 flex-col gap-6 overflow-auto rounded-lg bg-gray-200 p-6 pb-6 text-left text-black"
                     >
                         <!-- Section 1 -->
-                        <div v-for="item in deck?.json_feedback || []" :key="item.id"   @click="selectFeedback(item)" class="shadow-card shadow-card-hover rounded-lg">
+
+                        {% for pitch_deck in deck.json_feedback %}
+                        <div @click="selectFeedback({{pitch_deck}})" class="shadow-card shadow-card-hover rounded-lg">
                             <img
                                 src="/static/elements/Team/stub.png"
                                 alt="Image 1"
                                 class="h-20 w-full rounded-t-lg object-cover"
                             />
                             <div class="mt-1 flex w-fit flex-col items-center p-2 text-center">
-                                <p class="text-xs">Page [[ item.page_number]]</p>
+                                <p class="text-xs">Page {{ pitch_deck.page_number }}</p>
                                 <h4 class="text-sm font-bold">Title 1</h4>
                             </div>
                         </div>
 
-
+                        {% endfor %}
                     </div>
 
                     <div class="flex h-full w-4/5 max-w-3xl flex-col gap-10">
@@ -88,7 +94,8 @@
                                     <!-- Left Arrow -->
                                     <a
                                         href="#"
-                                        class="absolute left-0 top-1/2 -translate-y-1/2 -ml-4 flex items-center"
+                                        @click="moveToPreviousCard"
+                                        class="absolute top-1/2 left-0 -ml-4 flex -translate-y-1/2 items-center"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -106,7 +113,7 @@
 
                                     <!-- Image -->
                                     <img
-                                        src="/static/elements/Team/card_sub.jpeg"
+                                        :src="selectedDeck ? selectedDeck.image : '/static/elements/Team/card_sub.jpeg'"
                                         alt="User Image"
                                         class="h-[35vh] w-full rounded-t-lg object-contain"
                                     />
@@ -114,7 +121,8 @@
                                     <!-- Right Arrow -->
                                     <a
                                         href="#"
-                                        class="absolute right-0 top-1/2 -translate-y-1/2 -mr-4 flex items-center"
+                                        @click="moveToNextCard"
+                                        class="absolute top-1/2 right-0 -mr-4 flex -translate-y-1/2 items-center"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -133,24 +141,6 @@
                             </div>
                         </div>
 
-                        <div class="flex w-full items-center justify-between">
-                            <!-- Upload File Button -->
-                            <label
-                                for="file-upload"
-                                class="flex cursor-pointer items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 to-sky-400 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-300/50 transition-all duration-200 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-blue-300 focus:outline-none"
-                            >
-                                📂 Upload File
-                            </label>
-                            <input id="file-upload" type="file" class="hidden" />
-
-                            <!-- Analyze Button -->
-                            <button
-                                class="flex items-center justify-center rounded-lg bg-gradient-to-r from-green-500 to-green-400 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-green-300/50 transition-all duration-200 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-green-300 focus:outline-none"
-                            >
-                                🔍 Analyze
-                            </button>
-                        </div>
-
                         <!-- Second Card: Improvement Info -->
                         <div v-if="selectedFeedback" class="shadow-card h-3/4 rounded-lg bg-white p-6">
                             <h2 class="text-center text-xl font-bold">What to Improve</h2>
@@ -159,29 +149,31 @@
                     </div>
                     <div class="flex flex-col gap-10">
                         <div
-                            class="shadow-lg flex h-80 w-full flex-col rounded-lg bg-gradient-to-b from-blue-100 to-blue-300 p-6 text-left text-gray-900"
+                            class="flex h-80 w-full flex-col rounded-lg bg-gradient-to-b from-blue-100 to-blue-300 p-6 text-left text-gray-900 shadow-lg"
                         >
                             <!-- Individual Score Items -->
                             <div class="flex-1 space-y-3">
                                 <div class="flex justify-between border-b pb-1">
                                     <h3 class="text-sm font-medium">Spelling & Grammar</h3>
-                                    <span v-if="scores" class="text-sm font-bold text-blue-800">[[scores.grammary]]</span>
+                                    <span class="text-sm font-bold text-blue-800">{{ deck.scores.grammary }}</span>
                                 </div>
                                 <div class="flex justify-between border-b pb-1">
                                     <h3 class="text-sm font-medium">Storytelling</h3>
-                                    <span v-if="scores" class="text-sm font-bold text-blue-800">[[scores.storytelling]]</span>
+                                    <span class="text-sm font-bold text-blue-800">{{ deck.scores.storytelling }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <h3 class="text-sm font-medium">Clarity</h3>
-                                    <span v-if="scores" class="text-sm font-bold text-blue-800">[[scores.clarity]]</span>
+                                    <span class="text-sm font-bold text-blue-800">{{ deck.scores.clarity }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <h3 class="text-sm font-medium">Completeness</h3>
-                                    <span v-if="scores"  class="text-sm font-bold text-blue-800">[[scores.completeness]]</span>
+                                    <span v-if="scores" class="text-sm font-bold text-blue-800"
+                                        >{{ deck.scores.completeness }}</span
+                                    >
                                 </div>
                                 <div class="flex justify-between">
                                     <h3 class="text-sm font-medium">Engagement</h3>
-                                    <span v-if="scores" class="text-sm font-bold text-blue-800">[[scores.engagement]]</span>
+                                    <span class="text-sm font-bold text-blue-800">{{ deck.scores.engagement }}</span>
                                 </div>
                             </div>
 
@@ -192,7 +184,7 @@
                             </div>
                         </div>
 
-                        <div class="shadow-lg h-full w-full rounded-xl bg-gradient-to-r from-rose-400 to-pink-500 p-6">
+                        <div class="h-full w-full rounded-xl bg-gradient-to-r from-rose-400 to-pink-500 p-6 shadow-lg">
                             <!-- Centered Title -->
                             <h3 class="mb-4 text-center text-xl font-bold text-white">History</h3>
 
@@ -204,42 +196,10 @@
                                 <ul class="w-full space-y-3">
                                     <li>
                                         <a
-                                            href="/presentation1"
-                                            class="block h-14 w-full rounded-lg bg-white/90 p-3 text-gray-700 shadow-md transition duration-300 hover:bg-white hover:shadow-lg hover:scale-[1.02]"
+                                            href="deck/detail/"
+                                            class="block h-14 w-full rounded-lg bg-white/90 p-3 text-gray-700 shadow-md transition duration-300 hover:scale-[1.02] hover:bg-white hover:shadow-lg"
                                         >
                                             Presentation 1
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="/presentation2"
-                                            class="block h-14 w-full rounded-lg bg-white/90 p-3 text-gray-700 shadow-md transition duration-300 hover:bg-white hover:shadow-lg hover:scale-[1.02]"
-                                        >
-                                            Presentation 2
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="/presentation3"
-                                            class="block h-14 w-full rounded-lg bg-white/90 p-3 text-gray-700 shadow-md transition duration-300 hover:bg-white hover:shadow-lg hover:scale-[1.02]"
-                                        >
-                                            Presentation 3
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="/presentation4"
-                                            class="block h-14 w-full rounded-lg bg-white/90 p-3 text-gray-700 shadow-md transition duration-300 hover:bg-white hover:shadow-lg hover:scale-[1.02]"
-                                        >
-                                            Presentation 4
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="/presentation5"
-                                            class="block h-14 w-full rounded-lg bg-white/90 p-3 text-gray-700 shadow-md transition duration-300 hover:bg-white hover:shadow-lg hover:scale-[1.02]"
-                                        >
-                                            Presentation 5
                                         </a>
                                     </li>
                                 </ul>

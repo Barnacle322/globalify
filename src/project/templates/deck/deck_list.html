@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
+
+        <script src="/static/vue/base.js"></script>
+        <script defer src="/static/vue/deck.js"></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+
+        <title>Globalify Presentation Tools</title>
+    </head>
+
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %}
+{{ navbar.render(current_user) }}
+
+
+        {% import "deck/deck_upload.html" as deck_upload %}
+    {{ deck_upload.render(user) }}
+
+    <body class="h-full overflow-x-clip" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component
+                    v-if="asideExpanded"
+                    @close-aside="asideExpanded = false"
+                ></aside-mobile-component>
+            </transition>
+
+            <upload-file-component v-if="uploadFileComponent" @click="uploadFileComponent = false">
+            </upload-file-component>
+
+            <main class="flex w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
+                <div
+                    class="bg-deep-purple flex h-48 w-full items-center justify-center rounded-lg p-4 text-center text-xl font-bold text-amber-50 shadow-md"
+                >
+                    <h1
+                        class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"
+                    >
+                        Globalify Presentation Tools
+                    </h1>
+                </div>
+
+                <div class="flex flex-col items-center justify-center">
+                    <div v-if="filename" class="mb-2 text-gray-700" v-text="'Selected File: ' + filename"></div>
+
+                    <!-- CSRF Token -->
+                    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+
+                    <!-- File Input -->
+                    <label
+                        for="pdf-upload"
+                        class="cursor-pointer rounded-lg bg-gradient-to-r from-sky-400 to-sky-600 px-6 py-3 text-lg text-white shadow-md transition-all duration-300 ease-in-out hover:scale-105"
+                    >
+                        Upload File
+                        <input id="pdf-upload" type="file" class="hidden" accept=".pdf" @change="handleFileUpload" />
+                    </label>
+
+                    <!-- Analyze Button -->
+                    <button
+                        v-if="filename"
+                        class="mt-4 rounded-lg bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700"
+                        @click="analyzeFile"
+                    >
+                        Analyze
+                    </button>
+
+                    <div v-if="uploadStatus" class="mt-4 text-center" v-text="uploadStatus"></div>
+                </div>
+
+                <!-- Display Selected File -->
+                <div v-if="filename" class="mt-2 text-gray-700">Selected File: [[ filename ]]</div>
+
+                <!-- Display Upload Status -->
+                <div v-if="uploadStatus" class="mt-4 text-center" v-text="uploadStatus"></div>
+
+                <section class="mx-auto w-full px-4 py-12">
+                    <div class="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {% for deck in decks %}
+                        <a href="/deck/detail/{{ deck.id }}" class="transition-transform hover:scale-105">
+                            <article class="flex min-h-[250px] flex-col rounded-xl bg-white p-4 shadow-lg">
+                                <img
+                                    src="/static/elements/Team/stub.png"
+                                    alt="Deck Image"
+                                    class="aspect-[16/9] w-full rounded-lg object-cover"
+                                />
+                                <button class="mt-4 w-full text-center text-lg font-semibold">Deck Title</button>
+                            </article>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </section>
+            </main>
+        </div>
+    </body>
+</html>

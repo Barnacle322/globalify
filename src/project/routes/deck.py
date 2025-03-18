@@ -77,7 +77,7 @@ def analyze_deck():
         else:
             print("Error")
 
-    return jsonify({"redirect_url": url_for("deck.deck_page", deck_id=deck.id)}), 200  # type: ignore
+    return jsonify({"redirect_url": url_for("deck.user_deck_detail", deck_id=deck.id)}), 200
 
 
 @deck.route("/deck_results/<int:deck_id>")
@@ -125,9 +125,20 @@ def create_models_from_json(json_data: str, unique_hash: str):
         return None, None
 
 
-@deck.route("/page/<int:deck_id>", methods=["GET"])
+@deck.route("/list/<int:user_id>", methods=["GET"])
 @login_required
-def deck_page(deck_id):
-    return render_template("deck/deck_results.html")  # type: ignore
+def user_deck_list(user_id):
+    decks = Deck.get_by_user_id(user_id)
+    return render_template("deck/deck_list.html", decks=decks, user=current_user)
+
+
+@deck.route("/detail/<int:deck_id>", methods=["GET"])
+@login_required
+def user_deck_detail(deck_id):
+    deck = Deck.get_by_id(deck_id)
+    return render_template("deck/deck_detail.html", deck=deck, user=current_user)
+
+
+
 
 

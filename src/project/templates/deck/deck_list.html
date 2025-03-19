@@ -26,11 +26,7 @@
 
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %}
-{{ navbar.render(current_user) }}
-
-
-        {% import "deck/deck_upload.html" as deck_upload %}
-    {{ deck_upload.render(user) }}
+    {{ navbar.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -51,9 +47,6 @@
                 ></aside-mobile-component>
             </transition>
 
-            <upload-file-component v-if="uploadFileComponent" @click="uploadFileComponent = false">
-            </upload-file-component>
-
             <main class="flex w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
                 <div
                     class="bg-deep-purple flex h-48 w-full items-center justify-center rounded-lg p-4 text-center text-xl font-bold text-amber-50 shadow-md"
@@ -66,8 +59,6 @@
                 </div>
 
                 <div class="flex flex-col items-center justify-center">
-                    <div v-if="filename" class="mb-2 text-gray-700" v-text="'Selected File: ' + filename"></div>
-
                     <!-- CSRF Token -->
                     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
 
@@ -82,7 +73,7 @@
 
                     <!-- Analyze Button -->
                     <button
-                        v-if="filename"
+                        v-if="fileData"
                         class="mt-4 rounded-lg bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700"
                         @click="analyzeFile"
                     >
@@ -93,7 +84,7 @@
                 </div>
 
                 <!-- Display Selected File -->
-                <div v-if="filename" class="mt-2 text-gray-700">Selected File: [[ filename ]]</div>
+                <div v-if="fileData" class="mt-2 text-gray-700">Selected File: [[ fileData.filename ]]</div>
 
                 <!-- Display Upload Status -->
                 <div v-if="uploadStatus" class="mt-4 text-center" v-text="uploadStatus"></div>

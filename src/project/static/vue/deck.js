@@ -29,6 +29,13 @@ createApp({
     mounted() {
         document.addEventListener("click", this.handleClickOutside);
         this.asideMinified = localStorage.getItem("asideMinified") == "true";
+        const deckId = this.getDeckIdFromPath();
+        if (deckId) {
+            this.fetchDeck(deckId);
+        } else {
+            console.log("No Deck ID found in URL");
+        }
+
     },
     methods: {
         handleFileUpload(event) {
@@ -74,7 +81,7 @@ createApp({
                     console.log("Redirect URL detected:", data.redirect_url);
                     // Directly redirect to the new URL
                     window.location.href = data.redirect_url;
-                    return; // Exit function after redirect
+                    return;
                 }
             } catch (error) {
                 console.error("Error in analyzeFile:", error.message, error.stack);
@@ -90,15 +97,16 @@ createApp({
                     throw new Error(`Failed to fetch deck data: ${response.status}`);
                 }
                 const data = await response.json();
-                console.log("Deck data:", data);
-                this.deck = data.deck;
-                this.scores = data.scores;
-                this.showResults = true;
-                this.printState();
+                this.initialCard = data.deck.json_feedback[0]
             } catch (error) {
                 console.error("Error fetching deck data:", error.message, error.stack);
                 this.uploadStatus = error.message;
             }
+        },
+        getDeckIdFromPath() {
+            const pathSegments = window.location.pathname.split("/").filter(Boolean);
+            const deckId = pathSegments[pathSegments.length - 1]; // Get the last segment
+            return isNaN(deckId) ? null : deckId; // Ensure it's a valid number
         },
 
         async loadPageContent(url) {
@@ -120,9 +128,11 @@ createApp({
             }
         },
 
-        selectFeedback(feedback) {
-            console.log("Selected Feedback:", feedback);
-            this.selectedFeedback = feedback;
+        selectPage(page) {
+            console.log("Selected Feedback:", page);
+            this.selectedPage = page;
+            console.log(this.selectedPage)
+            this.initialCard = null
         },
 
         moveToPreviousCard() {
@@ -156,9 +166,10 @@ createApp({
             uploadStatus: null,
             deck: null,
             scores: null,
-            selectedFeedback: null,
+            selectedPage: null,
             currentPage: null,
             uploadFileComponent: false,
+            initialCard: null
         };
     },
 }).mount("#app");

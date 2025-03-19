@@ -11,8 +11,7 @@
         <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
 
         <!-- PdfJsLib for pdf viewer from mozila -->
-        <script src="https://unpkg.com/pdfjs-dist@5.0.375/build/pdf.min.mjs" type="module"></script>
-        <script src="https://unpkg.com/pdfjs-dist@5.0.375/build/pdf.worker.min.mjs" type="module"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.min.mjs" type="module"></script>
 
         <script src="/static/vue/base.js"></script>
         <script defer src="/static/vue/deck.js"></script>
@@ -88,19 +87,18 @@
                             <div class="shadow-card flex w-full flex-col rounded-lg bg-white p-6">
                                 <h2 class="text-center text-xl font-bold">Title</h2>
 
-                                <!-- PDF Viewer -->
-                                <div class="relative mt-4" id="pdf" data-deck-pdf="{{deck_pdf}}">
+                                <div class="relative mt-4" id="pdf-viewer" data-deck-pdf="{{deck_pdf}}">
                                     <!-- Canvas for PDF -->
-                                    <canvas ref="pdfCanvas" class="pdf-canvas"></canvas>
+                                    <canvas ref="pdfCanvas"></canvas>
 
-                                    <!-- Навигация -->
+                                    <!-- navigation -->
                                     <div class="controls absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-4">
                                         <button
                                             @click="prevPage"
                                             class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
                                             :disabled="currentPage === 1"
                                         >
-                                            Next
+                                            Back
                                         </button>
                                         <span class="self-center text-gray-700" v-text="currentPage + '/' + totalPages">
                                         </span>
@@ -109,7 +107,7 @@
                                             class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
                                             :disabled="currentPage === totalPages"
                                         >
-                                            Back
+                                            Next
                                         </button>
                                     </div>
                                 </div>

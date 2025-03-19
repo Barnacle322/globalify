@@ -177,26 +177,22 @@ createApp({
                 const loadingTask = pdfjsLib.getDocument({
                     data: atob(deckData),
                     enableWorker: true,
-                });
+                }).promise;
 
-                this.pdfDocument = await loadingTask.promise;
                 this.totalPages = this.pdfDocument.numPages;
                 await this.renderPage(1);
             } catch (error) {
-                console.error("PDF load error:", error);
-                this.pdfError = "Ошибка загрузки PDF";
+                console.error("PDF error:", error);
             }
         },
-
-        async renderPage(num) {
-            if (!this.pdfDocument || num < 1 || num > this.totalPages) return;
+        async renderPage(pageNumber) {
+            if (!this.pdfDocument || pageNumber < 1 || pageNumber > this.totalPages) return;
 
             try {
-                const page = await this.pdfDocument.getPage(num);
+                const page = await this.pdfDocument.getPage(pageNumber);
                 const canvas = this.$refs.pdfCanvas;
-                const context = canvas.getContext("2d");
-
                 const containerWidth = canvas.parentElement.clientWidth;
+
                 const viewport = page.getViewport({
                     scale: containerWidth / page.getViewport({ scale: 1 }).width,
                 });
@@ -205,32 +201,34 @@ createApp({
                 canvas.width = viewport.width;
 
                 await page.render({
-                    canvasContext: context,
+                    canvasContext: canvas.getContext("2d"),
                     viewport: viewport,
                 }).promise;
 
-                this.currentPage = num;
+                this.currentPage = pageNumber;
             } catch (error) {
                 console.error("Render error:", error);
-                this.pdfError = "Ошибка отображения страницы";
             }
         },
-
+        handleFileUpload(event) {
+            this.fileData = {
+                file: event.target.files[0],
+                filename: event.target.files[0]?.name || null,
+            };
+        },
+        selectFeedback(feedback) {
+            this.selectedFeedback = feedback;
+            this.renderPage(feedback.page_number);
+        },
         nextPage() {
             if (this.currentPage < this.totalPages) {
                 this.renderPage(this.currentPage + 1);
             }
         },
-
         prevPage() {
             if (this.currentPage > 1) {
                 this.renderPage(this.currentPage - 1);
             }
-        },
-
-        updateFeedback() {
-            // This updates the feedback section based on the selected deck
-            this.selectedFeedback = this.selectedDeck.feedback;
         },
     },
     data() {
@@ -248,6 +246,7 @@ createApp({
             scores: null,
             selectedPage: null,
             uploadFileComponent: false,
+            selectedFeedback: null,
             currentPage: 1,
             totalPages: 0,
             initialCard: null,

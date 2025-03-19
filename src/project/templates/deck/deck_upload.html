@@ -63,19 +63,19 @@
                     <label for="pdf-upload" class="cursor-pointer">
                         <div
                             class="rounded-md p-10 m-5 border-2 border-dashed"
-                            :class="filename ? 'bg-green-50' : 'bg-ылн-50'"
+                            :class="fileData ? 'bg-green-50' : 'bg-ылн-50'"
                             style="border-color: rgb(0 67 206 / var(--tw-border-opacity, 1))"
-                            :style="filename ? 'border-color: rgb(34 197 94 / var(--tw-border-opacity, 1))' : 'border-color: rgb(0 67 206 / var(--tw-border-opacity, 1))'"
+                            :style="fileData ? 'border-color: rgb(34 197 94 / var(--tw-border-opacity, 1))' : 'border-color: rgb(0 67 206 / var(--tw-border-opacity, 1))'"
                         >
                             <div class="flex flex-col items-center justify-center">
-                                <div v-if="filename" class="mb-2 text-gray-700">
-                                    <span class="font-bold text-green-700" v-text="'Selected File: ' + filename"></span>
+                                <div v-if="fileData" class="mb-2 text-gray-700">
+                                    <span class="font-bold text-green-700" v-text="'Selected File: ' + fileData.filename"></span>
                                 </div>
                                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 -960 960 960"
-                                    :fill="filename ? 'rgb(34 197 94 / var(--tw-border-opacity, 1))' : 'rgb(0 67 206 / var(--tw-border-opacity, 1))'"
+                                    :fill="fileData ? 'rgb(34 197 94 / var(--tw-border-opacity, 1))' : 'rgb(0 67 206 / var(--tw-border-opacity, 1))'"
                                     class="size-12"
                                 >
                                     <path
@@ -85,7 +85,7 @@
 
                                 <span
                                     class="text-lg underline cursor-pointer"
-                                    :style="filename ? 'color: rgb(34 197 94 / var(--tw-border-opacity, 1))' : 'color: rgb(0 67 206 / var(--tw-border-opacity, 1))'"
+                                    :style="fileData ? 'color: rgb(34 197 94 / var(--tw-border-opacity, 1))' : 'color: rgb(0 67 206 / var(--tw-border-opacity, 1))'"
                                 >
                                     Select a file to upload
                                 </span>
@@ -104,7 +104,7 @@
                                 </span>
 
                                 <button
-                                    v-if="filename"
+                                    v-if="fileData"
                                     class="mt-4 rounded-lg bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700 cursor-pointer"
                                     @click="analyzeFile"
                                 >

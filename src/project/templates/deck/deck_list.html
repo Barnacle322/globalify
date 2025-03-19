@@ -61,37 +61,6 @@
                         Globalify Presentation Tools
                     </h1>
                 </div>
-                <div class="flex flex-col items-center justify-center">
-                    <!-- CSRF Token -->
-                    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-
-                    <!-- File Input -->
-                    <label
-                        for="pdf-upload"
-                        class="cursor-pointer rounded-lg bg-gradient-to-r from-sky-400 to-sky-600 px-6 py-3 text-lg text-white shadow-md transition-all duration-300 ease-in-out hover:scale-105"
-                    >
-                        Upload File
-                        <input id="pdf-upload" type="file" class="hidden" accept=".pdf" @change="handleFileUpload" />
-                    </label>
-
-                    <!-- Analyze Button -->
-                    <button
-                        v-if="fileData"
-                        class="mt-4 rounded-lg bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700"
-                        @click="analyzeFile"
-                    >
-                        Analyze
-                    </button>
-
-                    <div v-if="uploadStatus" class="mt-4 text-center" v-text="uploadStatus"></div>
-                </div>
-
-                <!-- Display Selected File -->
-                <div v-if="fileData" class="mt-2 text-gray-700">Selected File: [[ fileData.filename ]]</div>
-
-                <!-- Display Upload Status -->
-                <div v-if="uploadStatus" class="mt-4 text-center" v-text="uploadStatus"></div>
-
                 <section class="mx-auto w-full px-4 py-12">
                     <div class="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {% for deck in decks %}

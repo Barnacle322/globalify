@@ -91,28 +91,29 @@
 
                                 <!-- PDF Viewer -->
                                 <div class="relative mt-4" id="pdf" data-deck-pdf="{{deck_pdf}}">
-                                    <!-- Left Arrow -->
-                                    <a
-                                        @click="prevPage"
-                                        class="absolute top-1/2 left-0 -ml-4 flex -translate-y-1/2 items-center"
-                                        >&lt;
-                                    </a>
-
                                     <!-- Canvas for PDF -->
-                                    <canvas ref="pdfCanvas" v-if="pdfDocument"></canvas>
-                                    <div v-else>Loading PDF...</div>
+                                    <canvas ref="pdfCanvas" class="pdf-canvas"></canvas>
 
-                                    <!-- Right Arrow -->
-                                    <a
-                                        @click="nextPage"
-                                        class="absolute top-1/2 right-0 -mr-4 flex -translate-y-1/2 items-center"
-                                    >
-                                        &gt;
-                                    </a>
+                                    <!-- Навигация -->
+                                    <div class="controls absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-4">
+                                        <button
+                                            @click="prevPage"
+                                            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                                            :disabled="currentPage === 1"
+                                        >
+                                            Next
+                                        </button>
+                                        <span class="self-center text-gray-700" v-text="currentPage + '/' + totalPages">
+                                        </span>
+                                        <button
+                                            @click="nextPage"
+                                            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                                            :disabled="currentPage === totalPages"
+                                        >
+                                            Back
+                                        </button>
+                                    </div>
                                 </div>
-                                <p class="text-center">
-                                    Page [[currentPage]] / [[pdfDocument ? pdfDocument.numPages : '']]
-                                </p>
                             </div>
                         </div>
 

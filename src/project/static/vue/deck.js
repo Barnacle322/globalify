@@ -122,7 +122,9 @@ createApp({
         selectFeedback(feedback) {
             console.log("Selected Feedback:", feedback);
             this.selectedFeedback = feedback;
+            this.renderPage(feedback.page_number);
         },
+
         async loadPdf() {
             try {
                 const appElement = document.getElementById("pdf");
@@ -133,71 +135,56 @@ createApp({
                     return;
                 }
 
-                // decoding data
-                const cleanData = deckData.replace(/^data:.*?;base64,/, "");
-                const binaryData = Uint8Array.from(atob(cleanData), (c) => c.charCodeAt(0));
-
-                // in some examples you need to specify link in js file. Also could be wrong link/version
-                // also need to npm install pdfjs-dist
-                pdfjsLib.GlobalWorkerOptions.workerSrc =
-                    "https://unpkg.com/pdfjs-dist@5.0.375/build/pdf.worker.min.mjs";
-
                 const loadingTask = pdfjsLib.getDocument({
-                    data: binaryData,
+                    data: atob(deckData),
                     enableWorker: true,
                 });
-                console.log(loadingTask);
 
                 this.pdfDocument = await loadingTask.promise;
+                this.totalPages = this.pdfDocument.numPages;
                 await this.renderPage(1);
             } catch (error) {
                 console.error("PDF load error:", error);
-                this.pdfError = "Error loading PDF document";
+                this.pdfError = "Ошибка загрузки PDF";
             }
         },
 
         async renderPage(num) {
+            if (!this.pdfDocument || num < 1 || num > this.totalPages) return;
+
             try {
-                if (!this.pdfDocument) return;
-
-                if (this.renderTask) {
-                    await this.renderTask.cancel();
-                }
-
                 const page = await this.pdfDocument.getPage(num);
                 const canvas = this.$refs.pdfCanvas;
                 const context = canvas.getContext("2d");
 
+                const containerWidth = canvas.parentElement.clientWidth;
                 const viewport = page.getViewport({
-                    scale: Math.min(canvas.parentElement.clientWidth / page.getViewport({ scale: 1 }).width, 2.0),
+                    scale: containerWidth / page.getViewport({ scale: 1 }).width,
                 });
 
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
 
-                this.renderTask = page.render({
+                await page.render({
                     canvasContext: context,
                     viewport: viewport,
-                });
+                }).promise;
 
-                await this.renderTask.promise;
                 this.currentPage = num;
             } catch (error) {
-                if (error.name !== "RenderingCancelledException") {
-                    console.error("Render error:", error);
-                    this.pdfError = "Error rendering page";
-                }
+                console.error("Render error:", error);
+                this.pdfError = "Ошибка отображения страницы";
             }
         },
 
         nextPage() {
-            if (this.pdfDocument && this.currentPage < this.pdfDocument.numPages) {
+            if (this.currentPage < this.totalPages) {
                 this.renderPage(this.currentPage + 1);
             }
         },
 
         prevPage() {
-            if (this.pdfDocument && this.currentPage > 1) {
+            if (this.currentPage > 1) {
                 this.renderPage(this.currentPage - 1);
             }
         },
@@ -222,7 +209,7 @@ createApp({
             selectedFeedback: null,
             uploadFileComponent: false,
             currentPage: 1,
-            pdfDocument: null,
+            totalPages: 0,
         };
     },
 }).mount("#app");

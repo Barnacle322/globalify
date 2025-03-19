@@ -46,10 +46,13 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
-
-            <main class="flex w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
+            <main class="flex w-full flex-col items-center px-4 pt-5 pb-16 sm:px-9">
+                <div class="flex gap-5 justify-center border p-3 w-full rounded-t-lg">
+                    <a class="px-3 py-1" href="/deck/upload">Upload</a>
+                    <a class="font-bold text-blue-500 bg-blue-100 px-3 py-1 rounded" href="">Leaderboard</a>
+                </div>
                 <div
-                    class="bg-deep-purple flex h-48 w-full items-center justify-center rounded-lg p-4 text-center text-xl font-bold text-amber-50 shadow-md"
+                    class="bg-deep-purple flex h-48 w-full items-center justify-center rounded-b-lg p-4 text-center text-xl font-bold text-amber-50 shadow-md"
                 >
                     <h1
                         class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"
@@ -57,7 +60,6 @@
                         Globalify Presentation Tools
                     </h1>
                 </div>
-
                 <div class="flex flex-col items-center justify-center">
                     <!-- CSRF Token -->
                     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />

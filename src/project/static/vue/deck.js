@@ -16,6 +16,12 @@ createApp({
         if (document.getElementById("pdf-viewer")) {
             this.initializePDFViewer();
         }
+        const deckId = this.getDeckIdFromPath();
+        if (deckId) {
+            this.fetchDeck(deckId);
+        } else {
+            console.log("No Deck ID found in URL");
+        }
     },
     methods: {
         async loadPageContent(url) {
@@ -63,7 +69,7 @@ createApp({
                     console.log("Redirect URL detected:", data.redirect_url);
                     // Directly redirect to the new URL
                     window.location.href = data.redirect_url;
-                    return; // Exit function after redirect
+                    return;
                 }
             } catch (error) {
                 console.error("Error in analyzeFile:", error.message, error.stack);
@@ -85,12 +91,27 @@ createApp({
 
                 this.totalPages = this.pdfDocument.numPages;
                 await this.renderPage(1);
+                console.log("Fetching deck data for deckId:", deckId);
+                const response = await fetch(`/deck/deck_results/${deckId}`);
+                console.log("Fetch response status:", response.status);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch deck data: ${response.status}`);
+                }
+                const data = await response.json();
+                this.initialCard = data.deck.json_feedback[0]
             } catch (error) {
                 console.error("PDF error:", error);
             }
         },
         async renderPage(pageNumber) {
             if (!this.pdfDocument || pageNumber < 1 || pageNumber > this.totalPages) return;
+        },
+        getDeckIdFromPath() {
+            const pathSegments = window.location.pathname.split("/").filter(Boolean);
+            const deckId = pathSegments[pathSegments.length - 1]; // Get the last segment
+            return isNaN(deckId) ? null : deckId; // Ensure it's a valid number
+        },
+
 
             try {
                 const page = await this.pdfDocument.getPage(pageNumber);
@@ -124,6 +145,12 @@ createApp({
             this.selectedFeedback = feedback;
             this.renderPage(feedback.page_number);
         },
+        selectPage(page) {
+            console.log("Selected Feedback:", page);
+            this.selectedPage = page;
+            console.log(this.selectedPage)
+            this.initialCard = null
+        },
         nextPage() {
             if (this.currentPage < this.totalPages) {
                 this.renderPage(this.currentPage + 1);
@@ -145,6 +172,12 @@ createApp({
             selectedFeedback: null,
             currentPage: 1,
             totalPages: 0,
+            deck: null,
+            scores: null,
+            selectedPage: null,
+            currentPage: null,
+            uploadFileComponent: false,
+            initialCard: null
         };
     },
 }).mount("#app");

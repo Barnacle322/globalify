@@ -66,15 +66,15 @@
                     >
                         <!-- Section 1 -->
 
-                        {% for pitch_deck in deck.json_feedback %}
-                        <div @click="selectFeedback({{pitch_deck}})" class="shadow-card shadow-card-hover rounded-lg">
+                        {% for page in deck.json_feedback %}
+                        <div @click="selectPage({{page}})" class="shadow-card shadow-card-hover rounded-lg">
                             <img
                                 src="/static/elements/Team/stub.png"
                                 alt="Image 1"
                                 class="h-20 w-full rounded-t-lg object-cover"
                             />
                             <div class="mt-1 flex w-fit flex-col items-center p-2 text-center">
-                                <p class="text-xs">Page {{ pitch_deck.page_number }}</p>
+                                <p class="text-xs">Page {{ page.page_number }}</p>
                                 <h4 class="text-sm font-bold">Title 1</h4>
                             </div>
                         </div>
@@ -115,10 +115,11 @@
                         </div>
 
                         <!-- Second Card: Improvement Info -->
-                        <div v-if="selectedFeedback" class="shadow-card h-3/4 rounded-lg bg-white p-6">
-                            <h2 class="text-center text-xl font-bold">What to Improve</h2>
-                            <p class="mt-2 text-gray-600">[[ selectedFeedback.feedback ]]</p>
-                        </div>
+                    <div v-if="selectedPage || initialCard" class="shadow-card h-3/4 rounded-lg bg-white p-6">
+                        <h2 class="text-center text-xl font-bold">What to Improve</h2>
+                        <p v-if="initialCard" class="mt-2 text-gray-600">[[ initialCard.feedback ]]</p>
+                        <p v-else class="mt-2 text-gray-600">[[ selectedPage.feedback ]]</p>
+                    </div>
                     </div>
                     <div class="flex flex-col gap-10">
                         <div

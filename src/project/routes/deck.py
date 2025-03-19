@@ -13,7 +13,7 @@ deck = Blueprint("deck", __name__)
 MAX_FILE_SIZE = 15728640
 
 
-@deck.route("/", methods=["GET"])
+@deck.route("/upload", methods=["GET"])
 @login_required
 def index():
     status_type, msg = None, None
@@ -25,6 +25,7 @@ def index():
         "deck/deck_upload.html",
         status_type=status_type,
         msg=msg,
+        user=current_user,
     )
 
 
@@ -130,7 +131,7 @@ def create_models_from_json(json_data: str, unique_hash: str):
 @login_required
 def user_deck_list(user_id):
     decks = Deck.get_by_user_id(user_id)
-    return render_template("deck/deck_list.html", decks=decks, user=current_user)
+    return render_template("deck/deck_list.html", decks=decks, current_user=current_user)
 
 
 @deck.route("/detail/<int:deck_id>", methods=["GET"])

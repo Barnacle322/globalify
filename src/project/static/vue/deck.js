@@ -103,37 +103,10 @@ createApp({
                 console.error("PDF error:", error);
             }
         },
-        async renderPage(pageNumber) {
-            if (!this.pdfDocument || pageNumber < 1 || pageNumber > this.totalPages) return;
-        },
         getDeckIdFromPath() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
             const deckId = pathSegments[pathSegments.length - 1]; // Get the last segment
             return isNaN(deckId) ? null : deckId; // Ensure it's a valid number
-        },
-
-
-            try {
-                const page = await this.pdfDocument.getPage(pageNumber);
-                const canvas = this.$refs.pdfCanvas;
-                const containerWidth = canvas.parentElement.clientWidth;
-
-                const viewport = page.getViewport({
-                    scale: containerWidth / page.getViewport({ scale: 1 }).width,
-                });
-
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-
-                await page.render({
-                    canvasContext: canvas.getContext("2d"),
-                    viewport: viewport,
-                }).promise;
-
-                this.currentPage = pageNumber;
-            } catch (error) {
-                console.error("Render error:", error);
-            }
         },
         handleFileUpload(event) {
             this.fileData = {
@@ -148,77 +121,8 @@ createApp({
         selectPage(page) {
             console.log("Selected Feedback:", page);
             this.selectedPage = page;
-            console.log(this.selectedPage)
-            this.initialCard = null
-        },
-        nextPage() {
-            if (this.currentPage < this.totalPages) {
-                this.renderPage(this.currentPage + 1);
-            }
-        },
-        prevPage() {
-            if (this.currentPage > 1) {
-                this.renderPage(this.currentPage - 1);
             console.log(this.selectedPage);
             this.initialCard = null;
-            this.renderPage(feedback.page_number);
-        },
-
-        async loadPdf() {
-            try {
-                const appElement = document.getElementById("pdf");
-                const deckData = appElement.dataset.deckPdf;
-
-                if (!deckData) {
-                    this.pdfError = "PDF data not found";
-                    return;
-                }
-
-                const loadingTask = pdfjsLib.getDocument({
-                    data: atob(deckData),
-                    enableWorker: true,
-                }).promise;
-
-                this.totalPages = this.pdfDocument.numPages;
-                await this.renderPage(1);
-            } catch (error) {
-                console.error("PDF error:", error);
-            }
-        },
-        async renderPage(pageNumber) {
-            if (!this.pdfDocument || pageNumber < 1 || pageNumber > this.totalPages) return;
-
-            try {
-                const page = await this.pdfDocument.getPage(pageNumber);
-                const canvas = this.$refs.pdfCanvas;
-                const containerWidth = canvas.parentElement.clientWidth;
-
-                const viewport = page.getViewport({
-                    scale: containerWidth / page.getViewport({ scale: 1 }).width,
-                });
-
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-
-                await page.render({
-                    canvasContext: canvas.getContext("2d"),
-                    viewport: viewport,
-                }).promise;
-
-                this.currentPage = pageNumber;
-            } catch (error) {
-                console.error("Render error:", error);
-            }
-        },
-        handleFileUpload(event) {
-            this.fileData = {
-                file: event.target.files[0],
-                filename: event.target.files[0]?.name || null,
-            };
-        },
-        selectFeedback(feedback) {
-            this.selectedFeedback = feedback;
-            this.renderPage(feedback.page_number);
         },
         nextPage() {
             if (this.currentPage < this.totalPages) {

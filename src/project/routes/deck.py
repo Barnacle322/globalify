@@ -7,8 +7,10 @@ from ..extensions import db
 from ..models import Deck, Scores
 from ..utils.funcs import calculate_md5
 from ..utils.gemini import analyze_pdf
+from ..utils.google_helpers.google_storage import load_deck, upload_deck
 
 deck = Blueprint("deck", __name__)
+MAX_FILE_SIZE = 15728640
 
 
 @deck.route("/upload", methods=["GET"])
@@ -57,6 +59,14 @@ def analyze_deck():
     print("File loaded successfully")
     print(f"Size: {len(pdf_data)} bytes")
 
+    if len(pdf_data) > MAX_FILE_SIZE:
+        print("Too big file")
+        return render_template(
+            "deck.html",
+            status_type=status_type,
+            msg=msg,
+        )
+
     file_hash = calculate_md5(pdf_data)
     # if Deck.check_hash(file_hash):  # Commented for testing
     #     print("Deck with this file already exists. Skipping analysis.")
@@ -74,21 +84,12 @@ def analyze_deck():
     if analysis_result_json:
         deck, scores = create_models_from_json(analysis_result_json, file_hash)
         if deck and scores:
+            upload_deck(deck, "application/pdf", file_hash)
             print("Success")
         else:
             print("Error")
 
     return jsonify({"redirect_url": url_for("deck.user_deck_detail", deck_id=deck.id)}), 200
-
-
-@deck.route("/deck_results/<int:deck_id>")
-@login_required
-def deck_results(deck_id):
-    deck = Deck.get_by_id(deck_id)
-    if deck:
-        return jsonify({"deck": deck.to_dict(), "scores": deck.scores.to_dict()}), 200
-    else:
-        return redirect(url_for("index"))
 
 
 def create_models_from_json(json_data: str, unique_hash: str):
@@ -137,4 +138,6 @@ def user_deck_list(user_id):
 @login_required
 def user_deck_detail(deck_id):
     deck = Deck.get_by_id(deck_id)
-    return render_template("deck/deck_detail.html", deck=deck, user=current_user)
+    # use hash to find pdf in bucket. Also you can use dd2213b37d54001ec1219b81ae077579 string to download 2.6mb deck from bucket
+    deck_pdf = load_deck(deck.hash)
+    return render_template("deck/deck_detail.html", deck=deck, deck_pdf=deck_pdf, user=current_user)

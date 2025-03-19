@@ -1,24 +1,8 @@
-// const UploadFileComponent = defineComponent({
-//     template: "#upload-file-template",
-//     emits: ["close-upload-file"],
-//     delimiters: ["[[", "]]"],
-//
-//     methods: {
-//
-//     }
-//
-//
-//
-//
-// })
-
-
 createApp({
     components: {
         AsideComponent,
         AsideMobileComponent,
         NavbarComponent,
-        // UploadFileComponent,
     },
     delimiters: ["[[", "]]"],
     watch: {
@@ -29,36 +13,43 @@ createApp({
     mounted() {
         document.addEventListener("click", this.handleClickOutside);
         this.asideMinified = localStorage.getItem("asideMinified") == "true";
+        if (document.getElementById("pdf-viewer")) {
+            this.initializePDFViewer();
+        }
         const deckId = this.getDeckIdFromPath();
         if (deckId) {
             this.fetchDeck(deckId);
         } else {
             console.log("No Deck ID found in URL");
         }
-
     },
     methods: {
-        handleFileUpload(event) {
-            this.file = event.target.files[0];
-            this.filename = this.file ? this.file.name : null;
-            console.log("File:", this.file);
-
-            this.showResults = false;
-            this.deck = null;
-            this.scores = null;
+        async loadPageContent(url) {
+            try {
+                console.log("Fetching page content from:", url);
+                const response = await fetch(url);
+                console.log("Page fetch status:", response.status);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch page content: ${response.status}`);
+                }
+                const html = await response.text();
+                console.log("Page content loaded:", html.substring(0, 100) + "..."); // Log snippet
+                this.currentPage = html; // Inject HTML into the DOM
+                // Update browser URL without reloading
+                window.history.pushState({ deckId: this.getDeckIdFromUrl(url) }, "", url);
+            } catch (error) {
+                console.error("Error loading page content:", error.message, error.stack);
+            }
         },
         async analyzeFile() {
-            if (!this.file) {
-                this.uploadStatus = "Please select a file first";
+            if (!this.fileData) {
+                console.log("Please select a file first");
                 return;
             }
-            this.uploadStatus = "Analyzing...";
-
-            const formData = new FormData();
-            formData.append("file", this.file);
 
             try {
-                console.log("Before fetch");
+                const formData = new FormData();
+                formData.append("file", this.fileData.file);
                 const response = await fetch("/deck/analysis", {
                     method: "POST",
                     headers: {
@@ -66,9 +57,6 @@ createApp({
                     },
                     body: formData,
                 });
-
-                console.log("After fetch");
-                console.log("Response status:", response.status);
 
                 if (!response.ok) {
                     throw new Error("Analysis failed");
@@ -85,11 +73,24 @@ createApp({
                 }
             } catch (error) {
                 console.error("Error in analyzeFile:", error.message, error.stack);
-                this.uploadStatus = error.message;
             }
         },
-        async fetchDeck(deckId) {
+        async initializePDFViewer() {
             try {
+                const pdfContainer = document.getElementById("pdf-viewer");
+                const pdfData = pdfContainer?.dataset.deckPdf;
+
+                if (!pdfData) console.error("PDF not found");
+                pdfjsLib.GlobalWorkerOptions.workerSrc =
+                    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.worker.min.mjs";
+
+                this.pdfDocument = await pdfjsLib.getDocument({
+                    data: atob(pdfData),
+                    enableWorker: true,
+                }).promise;
+
+                this.totalPages = this.pdfDocument.numPages;
+                await this.renderPage(1);
                 console.log("Fetching deck data for deckId:", deckId);
                 const response = await fetch(`/deck/deck_results/${deckId}`);
                 console.log("Fetch response status:", response.status);
@@ -99,9 +100,11 @@ createApp({
                 const data = await response.json();
                 this.initialCard = data.deck.json_feedback[0]
             } catch (error) {
-                console.error("Error fetching deck data:", error.message, error.stack);
-                this.uploadStatus = error.message;
+                console.error("PDF error:", error);
             }
+        },
+        async renderPage(pageNumber) {
+            if (!this.pdfDocument || pageNumber < 1 || pageNumber > this.totalPages) return;
         },
         getDeckIdFromPath() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
@@ -109,61 +112,66 @@ createApp({
             return isNaN(deckId) ? null : deckId; // Ensure it's a valid number
         },
 
-        async loadPageContent(url) {
+
             try {
-                console.log("Fetching page content from:", url);
-                const response = await fetch(url);
-                console.log("Page fetch status:", response.status);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch page content: ${response.status}`);
-                }
-                const html = await response.text();
-                console.log("Page content loaded:", html.substring(0, 100) + "..."); // Log snippet
-                this.currentPage = html; // Inject HTML into the DOM
-                // Update browser URL without reloading
-                window.history.pushState({ deckId: this.getDeckIdFromUrl(url) }, "", url);
+                const page = await this.pdfDocument.getPage(pageNumber);
+                const canvas = this.$refs.pdfCanvas;
+                const containerWidth = canvas.parentElement.clientWidth;
+
+                const viewport = page.getViewport({
+                    scale: containerWidth / page.getViewport({ scale: 1 }).width,
+                });
+
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                await page.render({
+                    canvasContext: canvas.getContext("2d"),
+                    viewport: viewport,
+                }).promise;
+
+                this.currentPage = pageNumber;
             } catch (error) {
-                console.error("Error loading page content:", error.message, error.stack);
-                this.uploadStatus = error.message;
+                console.error("Render error:", error);
             }
         },
-
+        handleFileUpload(event) {
+            this.fileData = {
+                file: event.target.files[0],
+                filename: event.target.files[0]?.name || null,
+            };
+        },
+        selectFeedback(feedback) {
+            this.selectedFeedback = feedback;
+            this.renderPage(feedback.page_number);
+        },
         selectPage(page) {
             console.log("Selected Feedback:", page);
             this.selectedPage = page;
             console.log(this.selectedPage)
             this.initialCard = null
         },
-
-        moveToPreviousCard() {
-            const currentIndex = this.deckData.findIndex(deck => deck.id === this.selectedDeck.id);
-            if (currentIndex > 0) {
-                this.selectedDeck = this.deckData[currentIndex - 1];
-                this.updateFeedback();
+        nextPage() {
+            if (this.currentPage < this.totalPages) {
+                this.renderPage(this.currentPage + 1);
             }
         },
-        moveToNextCard() {
-            const currentIndex = this.deckData.findIndex(deck => deck.id === this.selectedDeck.id);
-            if (currentIndex < this.deckData.length - 1) {
-                this.selectedDeck = this.deckData[currentIndex + 1];
-                this.updateFeedback();
+        prevPage() {
+            if (this.currentPage > 1) {
+                this.renderPage(this.currentPage - 1);
             }
         },
-        updateFeedback() {
-            // This updates the feedback section based on the selected deck
-            this.selectedFeedback = this.selectedDeck.feedback;
-        },
-
     },
     data() {
         return {
             asideExpanded: false,
             asideMinified: false,
             openAdvanced: false,
-            showResults: false,
-            file: null,
-            filename: null,
+            fileData: null,
             uploadStatus: null,
+            selectedFeedback: null,
+            currentPage: 1,
+            totalPages: 0,
             deck: null,
             scores: null,
             selectedPage: null,

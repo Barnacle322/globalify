@@ -10,6 +10,9 @@
         <!-- Vue -->
         <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
 
+        <!-- PdfJsLib for pdf viewer from mozila -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.min.mjs" type="module"></script>
+
         <script src="/static/vue/base.js"></script>
         <script defer src="/static/vue/deck.js"></script>
 
@@ -27,7 +30,6 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %}
     {{ navbar.render(current_user) }}
-
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -76,7 +78,6 @@
                                 <h4 class="text-sm font-bold">Title 1</h4>
                             </div>
                         </div>
-
                         {% endfor %}
                     </div>
 
@@ -86,50 +87,29 @@
                             <div class="shadow-card flex w-full flex-col rounded-lg bg-white p-6">
                                 <h2 class="text-center text-xl font-bold">Title</h2>
 
-                                <!-- Image Wrapper with Relative Positioning -->
-                                <div class="relative mt-4">
-                                    <!-- Left Arrow -->
-                                    <a
-                                        class="absolute top-1/2 left-0 -ml-4 flex -translate-y-1/2 items-center"
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24"
-                                            fill="currentColor"
-                                            class="size-8 text-gray-700 transition-transform ease-in-out hover:-translate-x-1"
-                                        >
-                                            <path
-                                                fill-rule="evenodd"
-                                                d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z"
-                                                clip-rule="evenodd"
-                                            />
-                                        </svg>
-                                    </a>
+                                <div class="relative mt-4" id="pdf-viewer" data-deck-pdf="{{deck_pdf}}">
+                                    <!-- Canvas for PDF -->
+                                    <canvas ref="pdfCanvas"></canvas>
 
-                                    <!-- Image -->
-                                    <img
-                                        :src="selectedDeck ? selectedDeck.image : '/static/elements/Team/card_sub.jpeg'"
-                                        alt="User Image"
-                                        class="h-[35vh] w-full rounded-t-lg object-contain"
-                                    />
-
-                                    <!-- Right Arrow -->
-                                    <a
-                                        class="absolute top-1/2 right-0 -mr-4 flex -translate-y-1/2 items-center"
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24"
-                                            fill="currentColor"
-                                            class="size-8 text-gray-700 transition-transform ease-in-out hover:translate-x-1"
+                                    <!-- navigation -->
+                                    <div class="controls absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-4">
+                                        <button
+                                            @click="prevPage"
+                                            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                                            :disabled="currentPage === 1"
                                         >
-                                            <path
-                                                fill-rule="evenodd"
-                                                d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z"
-                                                clip-rule="evenodd"
-                                            />
-                                        </svg>
-                                    </a>
+                                            Back
+                                        </button>
+                                        <span class="self-center text-gray-700" v-text="currentPage + '/' + totalPages">
+                                        </span>
+                                        <button
+                                            @click="nextPage"
+                                            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                                            :disabled="currentPage === totalPages"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -161,9 +141,7 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <h3 class="text-sm font-medium">Completeness</h3>
-                                    <span v-if="scores" class="text-sm font-bold text-blue-800"
-                                        >{{ deck.scores.completeness }}</span
-                                    >
+                                    <span class="text-sm font-bold text-blue-800">{{ deck.scores.completeness }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <h3 class="text-sm font-medium">Engagement</h3>

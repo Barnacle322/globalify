@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
+
+        <script src="/static/vue/base.js"></script>
+        <script defer src="/static/vue/deck.js"></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+
+        <title>Globalify Presentation Tools</title>
+    </head>
+
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %}
+    {{ navbar.render(current_user) }}
+
+    <body class="h-full overflow-x-clip" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component
+                    v-if="asideExpanded"
+                    @close-aside="asideExpanded = false"
+                ></aside-mobile-component>
+            </transition>
+            <main class="flex h-screen w-full flex-col items-center px-4 pt-5 pb-16 sm:px-9">
+                <div class="flex gap-5 justify-center border p-3 w-full rounded-t-lg">
+                    <a class="font-bold text-blue-500 bg-blue-100 px-3 py-1 rounded" href="/deck/upload">Upload</a>
+                    <a class="px-3 py-1" href="/deck/list/{{current_user.id}}">Leaderboard</a>
+                </div>
+                <div
+                    class="bg-deep-purple flex h-48 w-full items-center justify-center rounded-b-lg p-4 text-center text-xl font-bold text-amber-50 shadow-md"
+                >
+                    <h1
+                        class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"
+                    >
+                        Globalify Presentation Tools
+                    </h1>
+                </div>
+                <div class="mx-auto mt-[50px] w-full border rounded-lg cursor-pointer">
+                    <label for="pdf-upload" class="cursor-pointer">
+                        <div
+                            class="rounded-md p-10 m-5 border-2 border-dashed"
+                            :class="filename ? 'bg-green-50' : 'bg-ылн-50'"
+                            style="border-color: rgb(0 67 206 / var(--tw-border-opacity, 1))"
+                            :style="filename ? 'border-color: rgb(34 197 94 / var(--tw-border-opacity, 1))' : 'border-color: rgb(0 67 206 / var(--tw-border-opacity, 1))'"
+                        >
+                            <div class="flex flex-col items-center justify-center">
+                                <div v-if="filename" class="mb-2 text-gray-700">
+                                    <span class="font-bold text-green-700" v-text="'Selected File: ' + filename"></span>
+                                </div>
+                                <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 -960 960 960"
+                                    :fill="filename ? 'rgb(34 197 94 / var(--tw-border-opacity, 1))' : 'rgb(0 67 206 / var(--tw-border-opacity, 1))'"
+                                    class="size-12"
+                                >
+                                    <path
+                                        d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q25-92 100-149t170-57q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H520q-33 0-56.5-23.5T440-240v-206l-64 62-56-56 160-160 160 160-56 56-64-62v206h220q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-83 0-141.5 58.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41h100v80H260Zm220-280Z"
+                                    />
+                                </svg>
+
+                                <span
+                                    class="text-lg underline cursor-pointer"
+                                    :style="filename ? 'color: rgb(34 197 94 / var(--tw-border-opacity, 1))' : 'color: rgb(0 67 206 / var(--tw-border-opacity, 1))'"
+                                >
+                                    Select a file to upload
+                                </span>
+                                <input
+                                    id="pdf-upload"
+                                    type="file"
+                                    class="hidden"
+                                    accept=".pdf"
+                                    @change="handleFileUpload"
+                                />
+                                <span class="text-md text-gray-500">
+                                    <sub
+                                        >Supported formats: .txt, .docx, .odt, .epub, .pdf, .html, .htm, .tsv, .json,
+                                        .xls, .xlsx</sub
+                                    >
+                                </span>
+
+                                <button
+                                    v-if="filename"
+                                    class="mt-4 rounded-lg bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700 cursor-pointer"
+                                    @click="analyzeFile"
+                                >
+                                    Analyze
+                                </button>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </main>
+        </div>
+    </body>
+</html>

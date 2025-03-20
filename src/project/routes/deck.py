@@ -131,6 +131,7 @@ def create_models_from_json(json_data: str, unique_hash: str):
 @login_required
 def user_deck_list(user_id):
     decks = Deck.get_by_user_id(user_id)
+    print(decks)
     return render_template("deck/deck_list.html", decks=decks, current_user=current_user)
 
 

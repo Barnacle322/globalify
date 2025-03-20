@@ -103,6 +103,31 @@ createApp({
                 console.error("PDF error:", error);
             }
         },
+        async renderPage(pageNumber) {
+            if (!this.pdfDocument || pageNumber < 1 || pageNumber > this.totalPages) return;
+
+            try {
+                const page = await this.pdfDocument.getPage(pageNumber);
+                const canvas = this.$refs.pdfCanvas;
+                const containerWidth = canvas.parentElement.clientWidth;
+
+                const viewport = page.getViewport({
+                    scale: containerWidth / page.getViewport({ scale: 1 }).width,
+                });
+
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                await page.render({
+                    canvasContext: canvas.getContext("2d"),
+                    viewport: viewport,
+                }).promise;
+
+                this.currentPage = pageNumber;
+            } catch (error) {
+                console.error("Render error:", error);
+            }
+        },
         getDeckIdFromPath() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
             const deckId = pathSegments[pathSegments.length - 1]; // Get the last segment

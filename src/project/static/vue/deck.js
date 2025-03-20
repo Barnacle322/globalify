@@ -17,23 +17,19 @@ createApp({
             this.initializePDFViewer();
         }
         const deckId = this.getDeckIdFromPath();
-        if (deckId) {
-            this.fetchDeck(deckId);
-        } else {
-            console.log("No Deck ID found in URL");
-        }
+        this.fetchDeck(deckId);
     },
     methods: {
         async loadPageContent(url) {
             try {
-                console.log("Fetching page content from:", url);
+                // console.log("Fetching page content from:", url);
                 const response = await fetch(url);
-                console.log("Page fetch status:", response.status);
+                // console.log("Page fetch status:", response.status);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch page content: ${response.status}`);
                 }
                 const html = await response.text();
-                console.log("Page content loaded:", html.substring(0, 100) + "..."); // Log snippet
+                // console.log("Page content loaded:", html.substring(0, 100) + "..."); // Log snippet
                 this.currentPage = html; // Inject HTML into the DOM
                 // Update browser URL without reloading
                 window.history.pushState({ deckId: this.getDeckIdFromUrl(url) }, "", url);
@@ -91,14 +87,6 @@ createApp({
 
                 this.totalPages = this.pdfDocument.numPages;
                 await this.renderPage(1);
-                console.log("Fetching deck data for deckId:", deckId);
-                const response = await fetch(`/deck/deck_results/${deckId}`);
-                console.log("Fetch response status:", response.status);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch deck data: ${response.status}`);
-                }
-                const data = await response.json();
-                this.initialCard = data.deck.json_feedback[0];
             } catch (error) {
                 console.error("PDF error:", error);
             }
@@ -109,15 +97,31 @@ createApp({
             try {
                 const page = await this.pdfDocument.getPage(pageNumber);
                 const canvas = this.$refs.pdfCanvas;
-                const containerWidth = canvas.parentElement.clientWidth;
+                const container = canvas.parentElement; // #pdf-viewer div
 
-                const viewport = page.getViewport({
-                    scale: containerWidth / page.getViewport({ scale: 1 }).width,
-                });
+                // Get container dimensions
+                const containerWidth = container.clientWidth;
+                const containerHeight = container.clientHeight;
 
-                canvas.height = viewport.height;
+                // Initial viewport at scale 1
+                const defaultViewport = page.getViewport({ scale: 1 });
+                const pdfWidth = defaultViewport.width;
+
+                // Scale based on width
+                let scale = containerWidth / pdfWidth;
+                let viewport = page.getViewport({ scale });
+
+                // Adjust scale if height exceeds container
+                if (viewport.height > containerHeight) {
+                    scale = containerHeight / defaultViewport.height;
+                    viewport = page.getViewport({ scale });
+                }
+
+                // Set canvas dimensions
                 canvas.width = viewport.width;
+                canvas.height = viewport.height;
 
+                // Render the page
                 await page.render({
                     canvasContext: canvas.getContext("2d"),
                     viewport: viewport,
@@ -126,6 +130,19 @@ createApp({
                 this.currentPage = pageNumber;
             } catch (error) {
                 console.error("Render error:", error);
+            }
+        },
+        async fetchDeck(deckId) {
+            try {
+                const response = await fetch(`/deck/deck_results/${deckId}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch deck data");
+                }
+                const data = await response.json();
+                this.initialCard = data.deck.json_feedback[0];
+            } catch (error) {
+                console.error("Error fetching deck data:", error.message, error.stack);
+                this.uploadStatus = error.message;
             }
         },
         getDeckIdFromPath() {
@@ -139,19 +156,15 @@ createApp({
                 filename: event.target.files[0]?.name || null,
             };
         },
-        selectFeedback(feedback) {
-            this.selectedFeedback = feedback;
-            this.renderPage(feedback.page_number);
-        },
         selectPage(page) {
-            console.log("Selected Feedback:", page);
             this.selectedPage = page;
-            console.log(this.selectedPage);
             this.initialCard = null;
+            this.renderPage(page.page_number)
         },
         nextPage() {
             if (this.currentPage < this.totalPages) {
                 this.renderPage(this.currentPage + 1);
+
             }
         },
         prevPage() {

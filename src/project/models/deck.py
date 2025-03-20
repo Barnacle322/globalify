@@ -4,7 +4,7 @@ import datetime
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, exists, func
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Table, func
 from sqlalchemy.orm import (
     Mapped,
     MappedAsDataclass,
@@ -18,15 +18,25 @@ if TYPE_CHECKING:
     from . import User
 
 
+user_deck_association = Table(
+    "user_deck",
+    db.metadata,
+    Column("user_id", Integer, ForeignKey("user.id"), primary_key=True),
+    Column("deck_id", Integer, ForeignKey("deck.id"), primary_key=True),
+)
+
+
 class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=False)
     hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     overall_recommendation: Mapped[str | None] = mapped_column(String, nullable=False)
     json_feedback: Mapped[dict] = mapped_column(JSON, nullable=False, default=False)
     created: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)
 
-    user: Mapped[User] = relationship("User", back_populates="deck", init=False)
+    users: Mapped[list[User]] = relationship(
+        "User", secondary=user_deck_association, back_populates="decks", uselist=True, init=False
+    )
     scores: Mapped[Scores] = relationship(
         back_populates="deck", uselist=False, cascade="all, delete-orphan", init=False
     )
@@ -50,11 +60,13 @@ class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @staticmethod
     def get_by_user_id(user_id: int) -> Sequence[Deck] | None:
-        return db.session.scalars(db.select(Deck).where(Deck.user_id == user_id)).all()
+        return db.session.scalars(
+            db.select(Deck).join(user_deck_association).filter(user_deck_association.c.user_id == user_id)
+        ).all()
 
     @staticmethod
-    def check_hash(hash: str) -> bool:
-        return db.session.scalar(db.select(exists().where(Deck.hash == hash)))
+    def get_by_hash(hash: str) -> Deck:
+        return db.session.scalar(db.select(Deck).where(Deck.hash == hash))
 
 
 class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):

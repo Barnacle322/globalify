@@ -1,7 +1,8 @@
 import json
 
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, jsonify, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import inspect
 
 from ..extensions import db
 from ..models import Deck, Scores
@@ -47,7 +48,7 @@ def analyze_deck():
 
     file = request.files["file"]
 
-    if file.filename == "":
+    if file == "":
         print("No selected file")
         return render_template(
             "deck.html",
@@ -68,40 +69,44 @@ def analyze_deck():
         )
 
     file_hash = calculate_md5(pdf_data)
-    # if Deck.check_hash(file_hash):  # Commented for testing
-    #     print("Deck with this file already exists. Skipping analysis.")
-    #     return redirect(
-    #         url_for(
-    #             "index",
-    #             status_type=status_type,
-    #             msg=msg,
-    #         )
-    #     )
+    existing_deck = Deck.get_by_hash(file_hash)
+    if existing_deck:
+        print("Deck with this hash already exists. Skipping analysis.")
 
-    analysis_result_json = analyze_pdf(pdf_data)
-    print(analysis_result_json)
+        if inspect(current_user) not in [inspect(user) for user in existing_deck.users]:
+            existing_deck.users.append(current_user)  # type: ignore
+            db.session.commit()
+            print(f"User {current_user.id} added to deck {existing_deck.id}")
+        deck_id = existing_deck.id
 
-    if analysis_result_json:
-        deck, scores = create_models_from_json(analysis_result_json, file_hash)
-        if deck and scores:
-            upload_deck(pdf_data, "application/pdf", file_hash)
-            print("Success")
-        else:
-            print("Error")
+    else:
+        analysis_result_json = analyze_pdf(pdf_data)
+        print(analysis_result_json)
 
-    return jsonify({"redirect_url": url_for("deck.user_deck_detail", deck_id=deck.id)}), 200
+        if analysis_result_json:
+            deck, scores = create_models_from_json(analysis_result_json, file_hash, file.filename)
+            if deck and scores:
+                upload_deck(pdf_data, "application/pdf", file_hash)
+                print("Success")
+                deck_id = deck.id
+            else:
+                print("Error")
+
+    return jsonify({"redirect_url": url_for("deck.user_deck_detail", deck_id=deck_id)}), 200
 
 
-def create_models_from_json(json_data: str, unique_hash: str):
+def create_models_from_json(json_data: str, unique_hash: str, deck_name: str | None):
     try:
         data = json.loads(json_data)
 
         deck = Deck(
-            user_id=current_user.id,
             hash=unique_hash,
+            name=deck_name or unique_hash,
             overall_recommendation=data.get("overall_recommendation"),
             json_feedback=data.get("deck_feedback"),
         )
+
+        deck.users.append(current_user)  # type: ignore
 
         scores = Scores(
             clarity=data["scores"].get("clarity"),
@@ -139,8 +144,13 @@ def user_deck_list(user_id):
 @login_required
 def user_deck_detail(deck_id):
     deck = Deck.get_by_id(deck_id)
-    # use hash to find pdf in bucket. Also you can use dd2213b37d54001ec1219b81ae077579 string to download 2.6mb deck from bucket
-    deck_pdf = load_deck(deck.hash)
+    if deck:
+        deck_pdf = load_deck(deck.hash)
+    else:
+        print(f"Deck with { deck_id } ID doesn't exists")
+        return render_template(
+            "deck.html",
+        )
     return render_template("deck/deck_detail.html", deck=deck, deck_pdf=deck_pdf, user=current_user)
 
 

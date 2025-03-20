@@ -84,7 +84,7 @@ def analyze_deck():
     if analysis_result_json:
         deck, scores = create_models_from_json(analysis_result_json, file_hash)
         if deck and scores:
-            upload_deck(deck, "application/pdf", file_hash)
+            upload_deck(pdf_data, "application/pdf", file_hash)
             print("Success")
         else:
             print("Error")

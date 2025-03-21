@@ -87,6 +87,10 @@ createApp({
 
                 this.totalPages = this.pdfDocument.numPages;
                 await this.renderPage(1);
+                this.mainSlideLoaded = true;
+
+                this.pdfThumbnails = await this.generatePDFThumbnails();
+                this.allThumbnailsLoaded = true;
             } catch (error) {
                 console.error("PDF error:", error);
             }
@@ -97,31 +101,18 @@ createApp({
             try {
                 const page = await this.pdfDocument.getPage(pageNumber);
                 const canvas = this.$refs.pdfCanvas;
-                const container = canvas.parentElement; // #pdf-viewer div
+                const container = canvas.parentElement;
 
-                // Get container dimensions
                 const containerWidth = container.clientWidth;
-                const containerHeight = container.clientHeight;
-
-                // Initial viewport at scale 1
                 const defaultViewport = page.getViewport({ scale: 1 });
-                const pdfWidth = defaultViewport.width;
+                const aspectRatio = defaultViewport.height / defaultViewport.width;
 
-                // Scale based on width
-                let scale = containerWidth / pdfWidth;
-                let viewport = page.getViewport({ scale });
+                const scale = containerWidth / defaultViewport.width;
+                const viewport = page.getViewport({ scale });
 
-                // Adjust scale if height exceeds container
-                if (viewport.height > containerHeight) {
-                    scale = containerHeight / defaultViewport.height;
-                    viewport = page.getViewport({ scale });
-                }
+                canvas.width = containerWidth;
+                canvas.height = containerWidth * aspectRatio;
 
-                // Set canvas dimensions
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-
-                // Render the page
                 await page.render({
                     canvasContext: canvas.getContext("2d"),
                     viewport: viewport,
@@ -131,6 +122,38 @@ createApp({
             } catch (error) {
                 console.error("Render error:", error);
             }
+        },
+        async generatePDFThumbnails() {
+            if (!this.pdfDocument) return [];
+
+            const thumbnails = [];
+            const totalPages = this.pdfDocument.numPages;
+
+            for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                try {
+                    const page = await this.pdfDocument.getPage(pageNum);
+                    const canvas = document.createElement("canvas");
+                    const context = canvas.getContext("2d");
+                    const viewport = page.getViewport({ scale: 0.2 });
+
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport,
+                    }).promise;
+
+                    thumbnails.push({
+                        pageNumber: pageNum,
+                        imageData: canvas.toDataURL("image/png"),
+                    });
+                } catch (error) {
+                    console.error(`Error generating thumbnail for page ${pageNum}:`, error);
+                }
+            }
+
+            return thumbnails;
         },
         async fetchDeck(deckId) {
             try {
@@ -159,12 +182,11 @@ createApp({
         selectPage(page) {
             this.selectedPage = page;
             this.initialCard = null;
-            this.renderPage(page.page_number)
+            this.renderPage(page.page_number);
         },
         nextPage() {
             if (this.currentPage < this.totalPages) {
                 this.renderPage(this.currentPage + 1);
-
             }
         },
         prevPage() {
@@ -178,20 +200,20 @@ createApp({
             asideExpanded: false,
             asideMinified: false,
             openAdvanced: false,
+            mainSlideLoaded: false,
+            allThumbnailsLoaded: false,
             fileData: null,
             uploadStatus: null,
             selectedFeedback: null,
-            currentPage: 1,
-            totalPages: 0,
             deck: null,
             deck_pdf: null,
             scores: null,
             selectedPage: null,
             uploadFileComponent: false,
-            selectedFeedback: null,
             currentPage: 1,
             totalPages: 0,
             initialCard: null,
+            pdfThumbnails: [],
         };
     },
 }).mount("#app");

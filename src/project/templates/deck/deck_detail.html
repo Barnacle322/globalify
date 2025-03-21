@@ -65,33 +65,52 @@
                         class="shadow-card ml-0 flex max-h-[calc(100vh-100px)] w-1/5 flex-col gap-6 overflow-auto rounded-lg bg-gray-200 p-6 pb-6 text-left text-black"
                     >
                         <!-- Section 1 -->
+                        <div id="pdf-thumbnails">
+                            <div v-if="!allThumbnailsLoaded" class="flex justify-center p-4">
+                                <div
+                                    class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"
+                                ></div>
+                            </div>
 
-                        {% for page in deck.json_feedback %}
-                        <div @click="selectPage({{page}})" class="shadow-card shadow-card-hover rounded-lg">
-                            <img
-                                src="/static/elements/Team/stub.png"
-                                alt="Image 1"
-                                class="h-20 w-full rounded-t-lg object-cover"
-                            />
-                            <div class="mt-1 flex w-fit flex-col items-center p-2 text-center">
-                                <p class="text-xs">Page {{ page.page_number }}</p>
+                            <div v-show="allThumbnailsLoaded">
+                                {% for page in deck.json_feedback %}
+                                <div
+                                    @click="selectPage({{page}})"
+                                    class="shadow-card shadow-card-hover rounded-lg mb-2"
+                                >
+                                    <img
+                                        :src="pdfThumbnails.find(t => t.pageNumber === {{page.page_number}})?.imageData || '/static/elements/1688399999229.jpeg'"
+                                        alt="Page {{page.page_number}} preview"
+                                        class="h-20 w-full rounded-t-lg object-cover"
+                                    />
+                                    <div class="flex w-fit items-center p-2 text-center">
+                                        <p class="text-xs font-medium">Page {{ page.page_number }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
 
-                    <div class="flex h-full w-4/5 max-w-3xl flex-col gap-10">
-                        <div class="relative flex h-3/4 items-center justify-center">
-                            <!-- Card -->
-                            <div class="shadow-card flex w-full flex-col rounded-lg bg-white p-6">
-                                <h2 class="text-center text-xl font-bold">Title</h2>
+                    <div class="flex h-full w-4/5 max-w-3xl flex-col">
+                        <div class="relative flex flex-col items-center">
+                            <div class="shadow-card w-full flex flex-col rounded-lg bg-white p-4">
+                                <div class="relative" id="pdf-viewer" data-deck-pdf="{{deck_pdf}}">
+                                    <!-- PDF Container -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-0 flex items-center justify-center bg-gray-100"
+                                            v-if="!mainSlideLoaded"
+                                        >
+                                            <div
+                                                class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
+                                            ></div>
+                                        </div>
+                                        <canvas ref="pdfCanvas" class="mx-auto" v-show="mainSlideLoaded"></canvas>
+                                    </div>
 
-                                <div class="relative mt-4" id="pdf-viewer" data-deck-pdf="{{deck_pdf}}">
-                                    <!-- Canvas for PDF -->
-                                    <canvas ref="pdfCanvas"></canvas>
-
-                                    <!-- navigation -->
-                                    <div class="controls absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-4">
+                                    <!-- Navigation -->
+                                    <div class="flex gap-4 justify-center items-center mt-4 pb-2">
                                         <button
                                             @click="prevPage"
                                             class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
@@ -99,8 +118,7 @@
                                         >
                                             Back
                                         </button>
-                                        <span class="self-center text-gray-700" v-text="currentPage + '/' + totalPages">
-                                        </span>
+                                        <span class="text-gray-700" v-text="currentPage + '/' + totalPages"></span>
                                         <button
                                             @click="nextPage"
                                             class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
@@ -113,12 +131,11 @@
                             </div>
                         </div>
 
-                        <!-- Second Card: Improvement Info -->
-                    <div v-if="selectedPage || initialCard" class="shadow-card h-3/4 rounded-lg bg-white p-6">
-                        <h2 class="text-center text-xl font-bold">What to Improve</h2>
-                        <p v-if="initialCard" class="mt-2 text-gray-600">[[ initialCard.feedback ]]</p>
-                        <p v-else class="mt-2 text-gray-600">[[ selectedPage.feedback ]]</p>
-                    </div>
+                        <!-- Feedback Container -->
+                        <div v-if="selectedPage || initialCard" class="shadow-card rounded-lg bg-white p-6 mt-4">
+                            <h2 class="text-center text-xl font-bold">What to Improve</h2>
+                            <p class="mt-2 text-gray-600">[[ selectedPage?.feedback || initialCard.feedback ]]</p>
+                        </div>
                     </div>
                     <div class="flex flex-col gap-10">
                         <div

@@ -277,10 +277,13 @@ createApp({
                             },
                         }),
                     ]);
-                }
+                    const allDeletesSuccessful = deleteResponses.every((response) => response.ok);
 
-                if (mergeResponse.redirected && deleteResponses.ok) {
-                    window.location.href = mergeResponse.url;
+                    if (allDeletesSuccessful) {
+                        window.location.reload();
+                    } else {
+                        console.error("One or more delete requests failed");
+                    }
                 }
             } catch (error) {
                 console.error("Error during merge:", error);

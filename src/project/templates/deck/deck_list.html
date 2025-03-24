@@ -1,88 +1,121 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        <link rel="stylesheet" href="/static/css/main.css" />
-        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="icon" type="image/png" href="/static/elements/icon.png" />
 
-        <!-- Vue -->
-        <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
+    <!-- Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
 
-        <script src="/static/vue/base.js"></script>
-        <script defer src="/static/vue/deck.js"></script>
+    <script src="/static/vue/base.js"></script>
+    <script defer src="/static/vue/deck.js"></script>
 
-        <!-- Font -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-            rel="stylesheet"
-        />
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+        rel="stylesheet"
+    />
 
-        <title>Globalify Presentation Tools</title>
-    </head>
+    <title>Globalify Presentation Tools</title>
+</head>
 
-    <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %}
-    {{ navbar.render(current_user) }}
+<!-- prettier-ignore -->
+{% import "components/navbar.html" as navbar %}
+{{ navbar.render(current_user) }}
 
-    <body class="h-full overflow-x-clip" id="app">
-        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+<body class="h-full overflow-x-clip" id="app">
+<navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
 
-        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
-            <aside-component :minified="asideMinified"></aside-component>
-            <transition enter-active-class="pop-in" leave-active-class="pop-out">
-                <div
-                    v-if="asideExpanded"
-                    @click="asideExpanded = false"
-                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
-            </transition>
+<div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
+    <aside-component :minified="asideMinified"></aside-component>
+    <transition enter-active-class="pop-in" leave-active-class="pop-out">
+        <div
+            v-if="asideExpanded"
+            @click="asideExpanded = false"
+            class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+        ></div>
+    </transition>
+    <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+        <aside-mobile-component
+            v-if="asideExpanded"
+            @close-aside="asideExpanded = false"
+        ></aside-mobile-component>
+    </transition>
 
-            <main class="flex w-full flex-col items-center px-4 pt-5 sm:px-9">
-                <section class="w-full px-4">
-                    <div class="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        <div
-                            class="flex flex-col gap-2 items-center justify-center rounded-lg p-4 shadow-lg hover:scale-105"
+    <main class="flex w-full flex-col items-center px-4 pt-5 sm:px-9">
+        <section class="w-full px-4">
+            <div class="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <label for="pdf-upload" class="cursor-pointer transition-transform hover:scale-105">
+                    <div
+                        class="flex min-h-[250px] flex-col items-center justify-center rounded-xl bg-white p-4 shadow-lg">
+                        <!-- Upload Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#4A4A4A" class="size-16">
+                            <path
+                                d="M440-200h80v-167l64 64 56-57-160-160-160 160 57 56 63-63v167ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z" />
+                        </svg>
+
+                        <!-- Dynamic Upload Text -->
+                        <span class="mt-3 text-lg font-medium text-gray-800">
+            [[ fileData ? 'Uploaded: Ready to Analyze' : 'Upload your PDF' ]]
+        </span>
+
+                        <!-- Hidden File Input -->
+                        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input id="pdf-upload" type="file" class="hidden" accept=".pdf" @change="handleFileUpload" />
+
+                        <!-- Selected File Preview -->
+                        <div v-if="fileData" v-text="'Selected File: ' + fileData.filename"
+                             class="text-center text-sm font-medium text-green-700"></div>
+
+                        <!-- Analyze Button -->
+                        <button
+                            v-if="fileData"
+                            class="mt-3 w-full rounded-lg bg-green-500 px-4 py-2 text-white font-semibold transition-all hover:bg-green-700"
+                            @click="analyzeFile"
                         >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 -960 960 960"
-                                fill="#1f1f1f"
-                                class="size-18"
-                            >
-                                <path
-                                    d="M440-200h80v-167l64 64 56-57-160-160-160 160 57 56 63-63v167ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"
-                                />
-                            </svg>
-                            <span>New</span>
-                            <div class="border-t w-full flex flex-row gap-2 items-center justify-center p-4">
-                                <span>Upload</span>
-                            </div>
-                        </div>
-                        {% for deck in decks %}
-                        <a href="/deck/detail/{{ deck.id }}" class="transition-transform hover:scale-105">
-                            <article class="flex min-h-[250px] flex-col rounded-xl bg-white p-4 shadow-lg">
-                                <img
-                                    src="/static/elements/Team/stub.png"
-                                    alt="Deck Image"
-                                    class="aspect-[16/9] w-full rounded-lg object-cover"
-                                />
-                                <button class="mt-4 w-full text-center text-lg font-semibold">Deck Title</button>
-                            </article>
-                        </a>
-                        {% endfor %}
+                            Analyze
+                        </button>
                     </div>
-                </section>
-            </main>
-        </div>
-    </body>
+                </label>
+
+
+
+                {% for deck in decks %}
+                    <a href="/deck/detail/{{ deck.id }}" class="transition-transform hover:scale-105">
+                        <article class="flex min-h-[250px] flex-col rounded-xl bg-white p-4 shadow-lg">
+                            <img
+                                src="/static/elements/Team/stub.png"
+                                alt="Deck Image"
+                                class="aspect-[16/9] w-full rounded-lg object-cover"
+                            />
+                            <button class="mt-4 w-full text-center text-lg font-semibold">Deck Title</button>
+                        </article>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Loading Component (Place it here) -->
+        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+            <div v-if="isAnalyzing" class="fixed inset-0 flex items-center justify-center bg-white/90 z-50">
+                <div class="flex flex-col items-center">
+                    <svg class="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <p class="mt-3 text-lg font-semibold text-gray-700">Analyzing...</p>
+                </div>
+            </div>
+        </transition>
+
+    </main>
+</div>
+</body>
 </html>

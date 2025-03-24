@@ -43,6 +43,8 @@ createApp({
                 return;
             }
 
+            this.isAnalyzing = true; // Show analyzing state
+
             try {
                 const formData = new FormData();
                 formData.append("file", this.fileData.file);
@@ -69,7 +71,10 @@ createApp({
                 }
             } catch (error) {
                 console.error("Error in analyzeFile:", error.message, error.stack);
+            } finally {
+                this.isAnalyzing = false; // Hide analyzing state
             }
+
         },
         async initializePDFViewer() {
             try {
@@ -214,6 +219,7 @@ createApp({
             totalPages: 0,
             initialCard: null,
             pdfThumbnails: [],
+            isAnalyzing: false,
         };
     },
 }).mount("#app");

@@ -1,8 +1,10 @@
 import json
 
-from flask import Blueprint, jsonify, render_template, request, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import inspect
+
+from src.project.utils.enums import Status, StatusType
 
 from ..extensions import db
 from ..models import Deck, Scores
@@ -14,19 +16,22 @@ deck = Blueprint("deck", __name__)
 MAX_FILE_SIZE = 15728640
 
 
-@deck.route("/upload", methods=["GET"])
+@deck.route("/list/<int:user_id>", methods=["GET"])
 @login_required
-def index():
+def index(user_id):
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
 
+    decks = Deck.get_by_user_id(user_id)
+    print(decks)
     return render_template(
-        "deck/deck_upload.html",
+        "deck/deck_list.html",
+        decks=decks,
+        current_user=current_user,
         status_type=status_type,
         msg=msg,
-        user=current_user,
     )
 
 
@@ -60,13 +65,13 @@ def analyze_deck():
     print("File loaded successfully")
     print(f"Size: {len(pdf_data)} bytes")
 
-    if len(pdf_data) > MAX_FILE_SIZE:
-        print("Too big file")
-        return render_template(
-            "deck.html",
-            status_type=status_type,
-            msg=msg,
-        )
+    # if len(pdf_data) > MAX_FILE_SIZE:
+    #     print("Too big file")
+    #     return render_template(
+    #         "deck.html",
+    #         status_type=status_type,
+    #         msg=msg,
+    #     )
 
     file_hash = calculate_md5(pdf_data)
     existing_deck = Deck.get_by_hash(file_hash)
@@ -105,7 +110,6 @@ def create_models_from_json(json_data: str, unique_hash: str, deck_name: str | N
             overall_recommendation=data.get("overall_recommendation"),
             json_feedback=data.get("deck_feedback"),
         )
-
         deck.users.append(current_user)  # type: ignore
 
         scores = Scores(
@@ -132,32 +136,25 @@ def create_models_from_json(json_data: str, unique_hash: str, deck_name: str | N
         return None, None
 
 
-@deck.route("/list/<int:user_id>", methods=["GET"])
-@login_required
-def user_deck_list(user_id):
-    decks = Deck.get_by_user_id(user_id)
-    print(decks)
-    return render_template("deck/deck_list.html", decks=decks, current_user=current_user)
-
-
 @deck.route("/detail/<int:deck_id>", methods=["GET"])
 @login_required
 def user_deck_detail(deck_id):
     deck = Deck.get_by_id(deck_id)
-    if deck:
-        deck_pdf = load_deck(deck.hash)
-    else:
-        print(f"Deck with { deck_id } ID doesn't exists")
+    if not deck:
         return render_template(
             "deck.html",
         )
-    return render_template("deck/deck_detail.html", deck=deck, deck_pdf=deck_pdf, user=current_user)
+    return render_template("deck/deck_detail.html", deck=deck, user=current_user)
 
 
-@deck.route("/deck_results/<int:deck_id>")
+@deck.route("/file/<int:deck_id>")
 @login_required
-def deck_results(deck_id):
+def deck_file(deck_id):
     deck = Deck.get_by_id(deck_id)
-    if deck:
-        return jsonify({"deck": deck.to_dict(), "scores": deck.scores.to_dict()}), 200
-    return jsonify({"redirect_url": url_for("deck.user_deck_detail", deck_id=deck.id)}), 200
+    try:
+        deck_pdf = load_deck(deck.hash)
+        return jsonify({"deck": deck_pdf}), 200
+
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("deck.user_deck_list", _external=False, **status))

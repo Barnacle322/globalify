@@ -1,3 +1,4 @@
+PDF_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.worker.min.mjs";
 createApp({
     components: {
         AsideComponent,
@@ -10,33 +11,16 @@ createApp({
             localStorage.setItem("asideMinified", value);
         },
     },
-    mounted() {
+    async mounted() {
         document.addEventListener("click", this.handleClickOutside);
         this.asideMinified = localStorage.getItem("asideMinified") == "true";
-        if (document.getElementById("pdf-viewer")) {
+        if (document.getElementById("canvas")) {
+            this.fetchFeedback();
+            await this.fetchDeck();
             this.initializePDFViewer();
         }
-        const deckId = this.getDeckIdFromPath();
-        this.fetchDeck(deckId);
     },
     methods: {
-        async loadPageContent(url) {
-            try {
-                // console.log("Fetching page content from:", url);
-                const response = await fetch(url);
-                // console.log("Page fetch status:", response.status);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch page content: ${response.status}`);
-                }
-                const html = await response.text();
-                // console.log("Page content loaded:", html.substring(0, 100) + "..."); // Log snippet
-                this.currentPage = html; // Inject HTML into the DOM
-                // Update browser URL without reloading
-                window.history.pushState({ deckId: this.getDeckIdFromUrl(url) }, "", url);
-            } catch (error) {
-                console.error("Error loading page content:", error.message, error.stack);
-            }
-        },
         async analyzeFile() {
             if (!this.fileData) {
                 console.log("Please select a file first");
@@ -48,6 +32,7 @@ createApp({
             try {
                 const formData = new FormData();
                 formData.append("file", this.fileData.file);
+
                 const response = await fetch("/deck/analysis", {
                     method: "POST",
                     headers: {
@@ -56,16 +41,10 @@ createApp({
                     body: formData,
                 });
 
-                if (!response.ok) {
-                    throw new Error("Analysis failed");
-                }
+                if (!response.ok) throw new Error("Analysis failed");
 
                 const data = await response.json();
-                console.log("Analysis result:", data);
-
                 if (data.redirect_url) {
-                    console.log("Redirect URL detected:", data.redirect_url);
-                    // Directly redirect to the new URL
                     window.location.href = data.redirect_url;
                     return;
                 }
@@ -74,19 +53,29 @@ createApp({
             } finally {
                 this.isAnalyzing = false; // Hide analyzing state
             }
+        },
+        async fetchDeck() {
+            const pathSegments = window.location.pathname.split("/").filter(Boolean);
+            const deckId = pathSegments[pathSegments.length - 1];
 
+            try {
+                const response = await fetch(`/deck/file/${deckId}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch deck data");
+                }
+                const data = await response.json();
+                this.deck = data.deck;
+            } catch (error) {
+                console.error("Error fetching deck data:", error.message, error.stack);
+            }
         },
         async initializePDFViewer() {
+            if (!this.deck) console.error("PDF not found");
             try {
-                const pdfContainer = document.getElementById("pdf-viewer");
-                const pdfData = pdfContainer?.dataset.deckPdf;
-
-                if (!pdfData) console.error("PDF not found");
-                pdfjsLib.GlobalWorkerOptions.workerSrc =
-                    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.worker.min.mjs";
+                pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_URL;
 
                 this.pdfDocument = await pdfjsLib.getDocument({
-                    data: atob(pdfData),
+                    data: atob(this.deck),
                     enableWorker: true,
                 }).promise;
 
@@ -94,10 +83,14 @@ createApp({
                 await this.renderPage(1);
                 this.mainSlideLoaded = true;
 
-                this.pdfThumbnails = await this.generatePDFThumbnails();
+                if (this.deckFeedback.length) {
+                    this.selectedPage = this.deckFeedback[0];
+                }
+
+                this.deckThumbnails = await this.generatedeckThumbnails();
                 this.allThumbnailsLoaded = true;
             } catch (error) {
-                console.error("PDF error:", error);
+                console.error("PDF initialization failed:", error);
             }
         },
         async renderPage(pageNumber) {
@@ -128,12 +121,12 @@ createApp({
                 console.error("Render error:", error);
             }
         },
-        async generatePDFThumbnails() {
+        async generatedeckThumbnails() {
             if (!this.pdfDocument) return [];
 
             const thumbnails = [];
             const totalPages = this.pdfDocument.numPages;
-
+            console.log(totalPages);
             for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
                 try {
                     const page = await this.pdfDocument.getPage(pageNum);
@@ -160,23 +153,11 @@ createApp({
 
             return thumbnails;
         },
-        async fetchDeck(deckId) {
-            try {
-                const response = await fetch(`/deck/deck_results/${deckId}`);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch deck data");
-                }
-                const data = await response.json();
-                this.initialCard = data.deck.json_feedback[0];
-            } catch (error) {
-                console.error("Error fetching deck data:", error.message, error.stack);
-                this.uploadStatus = error.message;
+        fetchFeedback() {
+            const feedbackElement = document.getElementById("feedback-data");
+            if (feedbackElement) {
+                this.deckFeedback = JSON.parse(feedbackElement.textContent);
             }
-        },
-        getDeckIdFromPath() {
-            const pathSegments = window.location.pathname.split("/").filter(Boolean);
-            const deckId = pathSegments[pathSegments.length - 1]; // Get the last segment
-            return isNaN(deckId) ? null : deckId; // Ensure it's a valid number
         },
         handleFileUpload(event) {
             this.fileData = {
@@ -186,18 +167,30 @@ createApp({
         },
         selectPage(page) {
             this.selectedPage = page;
-            this.initialCard = null;
             this.renderPage(page.page_number);
         },
         nextPage() {
             if (this.currentPage < this.totalPages) {
-                this.renderPage(this.currentPage + 1);
+                const nextPageNum = this.currentPage + 1;
+                this.renderPage(nextPageNum);
+                const nextPageFeedback = this.findFeedbackByPageNumber(nextPageNum);
+                if (nextPageFeedback) {
+                    this.selectedPage = nextPageFeedback;
+                }
             }
         },
         prevPage() {
             if (this.currentPage > 1) {
-                this.renderPage(this.currentPage - 1);
+                const prevPageNum = this.currentPage - 1;
+                this.renderPage(prevPageNum);
+                const prevPageFeedback = this.findFeedbackByPageNumber(prevPageNum);
+                if (prevPageFeedback) {
+                    this.selectedPage = prevPageFeedback;
+                }
             }
+        },
+        findFeedbackByPageNumber(pageNumber) {
+            return this.deckFeedback.find((item) => item.page_number === pageNumber);
         },
     },
     data() {
@@ -207,19 +200,15 @@ createApp({
             openAdvanced: false,
             mainSlideLoaded: false,
             allThumbnailsLoaded: false,
+            isAnalyzing: false,
             fileData: null,
-            uploadStatus: null,
-            selectedFeedback: null,
             deck: null,
-            deck_pdf: null,
             scores: null,
             selectedPage: null,
-            uploadFileComponent: false,
             currentPage: 1,
             totalPages: 0,
-            initialCard: null,
-            pdfThumbnails: [],
-            isAnalyzing: false,
+            deckFeedback: [],
+            deckThumbnails: [],
         };
     },
 }).mount("#app");

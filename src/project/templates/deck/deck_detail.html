@@ -62,79 +62,71 @@
 
                 <div class="mt-5 flex h-[calc(100vh-12rem)] w-full gap-10">
                     <div
+                        id="pdf-thumbnails"
                         class="shadow-card ml-0 flex max-h-[calc(100vh-100px)] w-1/5 flex-col gap-6 overflow-auto rounded-lg bg-gray-200 p-6 pb-6 text-left text-black"
                     >
-                        <!-- Section 1 -->
-                        <div id="pdf-thumbnails">
-                            <div v-if="!allThumbnailsLoaded" class="flex justify-center p-4">
-                                <div
-                                    class="h-8 w-8 animate-spin rounded-full border-t-2 border-b-2 border-blue-500"
-                                ></div>
-                            </div>
+                        <div v-if="!allThumbnailsLoaded" class="flex justify-center p-4">
+                            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                        </div>
 
-                            <div v-show="allThumbnailsLoaded">
-                                {% for page in deck.json_feedback %}
-                                <div
-                                    @click="selectPage({{page}})"
-                                    class="shadow-card shadow-card-hover mb-2 rounded-lg"
-                                >
-                                    <img
-                                        :src="pdfThumbnails.find(t => t.pageNumber === {{page.page_number}})?.imageData || '/static/elements/1688399999229.jpeg'"
-                                        alt="Page {{page.page_number}} preview"
-                                        class="h-20 w-full rounded-t-lg object-cover"
-                                    />
-                                    <div class="flex w-fit items-center p-2 text-center">
-                                        <p class="text-xs font-medium">Page {{ page.page_number }}</p>
-                                    </div>
+                        <div v-show="allThumbnailsLoaded">
+                            {% for page in deck.json_feedback %}
+                            <div @click="selectPage({{page}})" class="shadow-card shadow-card-hover rounded-lg mb-2">
+                                <img
+                                    :src="deckThumbnails.find(t => t.pageNumber === {{page.page_number}})?.imageData || '/static/elements/1688399999229.jpeg'"
+                                    alt="Page {{page.page_number}} preview"
+                                    class="h-20 w-full rounded-t-lg object-cover"
+                                />
+                                <div class="flex w-fit items-center p-2 text-center">
+                                    <p class="text-xs font-medium">Page {{ page.page_number }}</p>
                                 </div>
-                                {% endfor %}
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
 
                     <div class="flex h-full w-4/5 max-w-3xl flex-col">
                         <div class="relative flex flex-col items-center">
-                            <div class="shadow-card flex w-full flex-col rounded-lg bg-white p-4">
-                                <div class="relative" id="pdf-viewer" data-deck-pdf="{{deck_pdf}}">
-                                    <!-- PDF Container -->
-                                    <div class="relative">
+                            <div class="shadow-card min-h-60 w-full flex flex-col rounded-lg bg-white p-4">
+                                <!-- PDF Container -->
+                                <div class="relative flex-grow" id="canvas">
+                                    <div
+                                        class="absolute inset-0 flex items-center justify-center bg-gray-100"
+                                        v-if="!mainSlideLoaded"
+                                    >
                                         <div
-                                            class="absolute inset-0 flex items-center justify-center bg-gray-100"
-                                            v-if="!mainSlideLoaded"
-                                        >
-                                            <div
-                                                class="h-12 w-12 animate-spin rounded-full border-t-2 border-b-2 border-blue-500"
-                                            ></div>
-                                        </div>
-                                        <canvas ref="pdfCanvas" class="mx-auto" v-show="mainSlideLoaded"></canvas>
+                                            class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
+                                        ></div>
                                     </div>
+                                    <canvas ref="pdfCanvas" class="mx-auto" v-show="mainSlideLoaded"></canvas>
+                                </div>
 
-                                    <!-- Navigation -->
-                                    <div class="mt-4 flex items-center justify-center gap-4 pb-2">
-                                        <button
-                                            @click="prevPage"
-                                            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                                            :disabled="currentPage === 1"
-                                        >
-                                            Back
-                                        </button>
-                                        <span class="text-gray-700" v-text="currentPage + '/' + totalPages"></span>
-                                        <button
-                                            @click="nextPage"
-                                            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                                            :disabled="currentPage === totalPages"
-                                        >
-                                            Next
-                                        </button>
-                                    </div>
+                                <!-- Navigation -->
+                                <div class="flex gap-4 justify-center items-center mt-4 pb-2">
+                                    <button
+                                        @click="prevPage"
+                                        class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                                        :disabled="currentPage === 1"
+                                    >
+                                        Back
+                                    </button>
+                                    <span class="text-gray-700" v-text="currentPage + '/' + totalPages"></span>
+                                    <button
+                                        @click="nextPage"
+                                        class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                                        :disabled="currentPage === totalPages"
+                                    >
+                                        Next
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Feedback Container -->
-                        <div v-if="selectedPage || initialCard" class="shadow-card mt-4 rounded-lg bg-white p-6">
+                        <div id="feedback-data" style="display: none">{{ deck.json_feedback|tojson }}</div>
+                        <div v-if="selectedPage " class="shadow-card rounded-lg bg-white p-6 mt-4">
                             <h2 class="text-center text-xl font-bold">What to Improve</h2>
-                            <p class="mt-2 text-gray-600">[[ selectedPage?.feedback || initialCard.feedback ]]</p>
+                            <p class="mt-2 text-gray-600" v-text="selectedPage?.feedback"></p>
                         </div>
                     </div>
                     <div class="flex flex-col gap-10">
@@ -169,28 +161,6 @@
                             <div class="mt-5 rounded-lg bg-white p-3 text-center shadow-md">
                                 <h3 class="text-xs font-medium text-gray-600">Overall Score</h3>
                                 <span class="mt-1 text-lg font-bold text-blue-900">8.2</span>
-                            </div>
-                        </div>
-
-                        <div class="h-full w-full rounded-xl bg-gradient-to-r from-rose-400 to-pink-500 p-6 shadow-lg">
-                            <!-- Centered Title -->
-                            <h3 class="mb-4 text-center text-xl font-bold text-white">History</h3>
-
-                            <!-- Break line -->
-                            <div class="mb-4 border-t border-white/50"></div>
-
-                            <!-- List Items -->
-                            <div>
-                                <ul class="w-full space-y-3">
-                                    <li>
-                                        <a
-                                            href="deck/detail/"
-                                            class="block h-14 w-full rounded-lg bg-white/90 p-3 text-gray-700 shadow-md transition duration-300 hover:scale-[1.02] hover:bg-white hover:shadow-lg"
-                                        >
-                                            Presentation 1
-                                        </a>
-                                    </li>
-                                </ul>
                             </div>
                         </div>
                     </div>

@@ -47,22 +47,27 @@
                 ></aside-mobile-component>
             </transition>
 
-            <main class="flex w-full flex-col items-center px-4 pt-5 pb-16 sm:px-9">
-                <div class="flex gap-5 justify-center border p-3 w-full rounded-t-lg">
-                    <a class="px-3 py-1" href="/deck/upload">Upload</a>
-                    <a class="font-bold text-blue-500 bg-blue-100 px-3 py-1 rounded" href="">Leaderboard</a>
-                </div>
-                <div
-                    class="bg-deep-purple flex h-48 w-full items-center justify-center rounded-b-lg p-4 text-center text-xl font-bold text-amber-50 shadow-md"
-                >
-                    <h1
-                        class="w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"
-                    >
-                        Globalify Presentation Tools
-                    </h1>
-                </div>
-                <section class="mx-auto w-full px-4 py-12">
+            <main class="flex w-full flex-col items-center px-4 pt-5 sm:px-9">
+                <section class="w-full px-4">
                     <div class="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <div
+                            class="flex flex-col gap-2 items-center justify-center rounded-lg p-4 shadow-lg hover:scale-105"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 -960 960 960"
+                                fill="#1f1f1f"
+                                class="size-18"
+                            >
+                                <path
+                                    d="M440-200h80v-167l64 64 56-57-160-160-160 160 57 56 63-63v167ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"
+                                />
+                            </svg>
+                            <span>New</span>
+                            <div class="border-t w-full flex flex-row gap-2 items-center justify-center p-4">
+                                <span>Upload</span>
+                            </div>
+                        </div>
                         {% for deck in decks %}
                         <a href="/deck/detail/{{ deck.id }}" class="transition-transform hover:scale-105">
                             <article class="flex min-h-[250px] flex-col rounded-xl bg-white p-4 shadow-lg">

@@ -1,4 +1,4 @@
-/*! tailwindcss v4.0.9 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.0.15 | MIT License | https://tailwindcss.com */
 @layer theme, base, components, utilities;
 @layer theme {
   :root, :host {
@@ -1322,6 +1322,10 @@
     width: calc(var(--spacing) * 16);
     height: calc(var(--spacing) * 16);
   }
+  .size-18 {
+    width: calc(var(--spacing) * 18);
+    height: calc(var(--spacing) * 18);
+  }
   .size-20 {
     width: calc(var(--spacing) * 20);
     height: calc(var(--spacing) * 20);
@@ -1395,9 +1399,6 @@
   }
   .h-\[30px\] {
     height: 30px;
-  }
-  .h-\[35vh\] {
-    height: 35vh;
   }
   .h-\[500px\] {
     height: 500px;
@@ -2159,6 +2160,10 @@
     border-top-style: var(--tw-border-style);
     border-top-width: 1px;
   }
+  .border-t-2 {
+    border-top-style: var(--tw-border-style);
+    border-top-width: 2px;
+  }
   .border-t-8 {
     border-top-style: var(--tw-border-style);
     border-top-width: 8px;
@@ -2775,6 +2780,9 @@
   .pb-1 {
     padding-bottom: calc(var(--spacing) * 1);
   }
+  .pb-2 {
+    padding-bottom: calc(var(--spacing) * 2);
+  }
   .pb-5 {
     padding-bottom: calc(var(--spacing) * 5);
   }
@@ -3133,10 +3141,6 @@
   .opacity-100 {
     opacity: 100%;
   }
-  .shadow-\[0_10px_20px_rgba\(0\,0\,0\,0\.15\)\,0_4px_6px_rgba\(0\,0\,0\,0\.1\)\] {
-    --tw-shadow: 0 10px 20px var(--tw-shadow-color, rgba(0,0,0,0.15)), 0 4px 6px var(--tw-shadow-color, rgba(0,0,0,0.1));
-    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-  }
   .shadow-card {
     --tw-shadow: 0 3px 8px var(--tw-shadow-color, rgb(0, 0, 0, 0.24));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -3178,14 +3182,8 @@
   .shadow-blue-300 {
     --tw-shadow-color: var(--color-blue-300);
   }
-  .shadow-blue-300\/50 {
-    --tw-shadow-color: color-mix(in oklab, var(--color-blue-300) 50%, transparent);
-  }
   .shadow-green-300 {
     --tw-shadow-color: var(--color-green-300);
-  }
-  .shadow-green-300\/50 {
-    --tw-shadow-color: color-mix(in oklab, var(--color-green-300) 50%, transparent);
   }
   .shadow-white {
     --tw-shadow-color: var(--color-white);
@@ -3443,6 +3441,7 @@
   }
   .peer-focus\:outline-hidden {
     &:is(:where(.peer):focus ~ *) {
+      --tw-outline-style: none;
       outline-style: none;
       @media (forced-colors: active) {
         outline: 2px solid transparent;
@@ -3744,13 +3743,6 @@
       }
     }
   }
-  .hover\:bg-blue-100 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-blue-100);
-      }
-    }
-  }
   .hover\:bg-blue-600 {
     &:hover {
       @media (hover: hover) {
@@ -4034,14 +4026,6 @@
       }
     }
   }
-  .hover\:shadow-xl {
-    &:hover {
-      @media (hover: hover) {
-        --tw-shadow: 0 20px 25px -5px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 8px 10px -6px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
-        box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-      }
-    }
-  }
   .file\:hover\:bg-sky-400 {
     &::file-selector-button {
       &:hover {
@@ -4063,16 +4047,6 @@
       box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
     }
   }
-  .focus\:ring-blue-300 {
-    &:focus {
-      --tw-ring-color: var(--color-blue-300);
-    }
-  }
-  .focus\:ring-green-300 {
-    &:focus {
-      --tw-ring-color: var(--color-green-300);
-    }
-  }
   .focus\:ring-sky-500 {
     &:focus {
       --tw-ring-color: var(--color-sky-500);
@@ -4086,6 +4060,7 @@
   }
   .focus\:outline-hidden {
     &:focus {
+      --tw-outline-style: none;
       outline-style: none;
       @media (forced-colors: active) {
         outline: 2px solid transparent;
@@ -5170,37 +5145,9 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
-  .dark\:border-gray-600 {
-    @media (prefers-color-scheme: dark) {
-      border-color: var(--color-gray-600);
-    }
-  }
-  .dark\:bg-gray-700 {
-    @media (prefers-color-scheme: dark) {
-      background-color: var(--color-gray-700);
-    }
-  }
   .dark\:text-gray-400 {
     @media (prefers-color-scheme: dark) {
       color: var(--color-gray-400);
-    }
-  }
-  .dark\:hover\:border-gray-500 {
-    @media (prefers-color-scheme: dark) {
-      &:hover {
-        @media (hover: hover) {
-          border-color: var(--color-gray-500);
-        }
-      }
-    }
-  }
-  .dark\:hover\:bg-gray-600 {
-    @media (prefers-color-scheme: dark) {
-      &:hover {
-        @media (hover: hover) {
-          background-color: var(--color-gray-600);
-        }
-      }
     }
   }
   .\[\&\:\:-webkit-slider-runnable-track\]\:h-0 {

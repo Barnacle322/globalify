@@ -1,25 +1,5 @@
-PDF_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.worker.min.mjs";
-createApp({
-    components: {
-        AsideComponent,
-        AsideMobileComponent,
-        NavbarComponent,
-    },
-    delimiters: ["[[", "]]"],
-    watch: {
-        asideMinified(value) {
-            localStorage.setItem("asideMinified", value);
-        },
-    },
-    async mounted() {
-        document.addEventListener("click", this.handleClickOutside);
-        this.asideMinified = localStorage.getItem("asideMinified") == "true";
-        if (document.getElementById("canvas")) {
-            this.fetchFeedback();
-            await this.fetchDeck();
-            this.initializePDFViewer();
-        }
-    },
+const DeckUploadComponent = defineComponent({
+    template: "#deck-upload-template",
     methods: {
         async analyzeFile() {
             if (!this.fileData) {
@@ -54,6 +34,57 @@ createApp({
                 this.isAnalyzing = false; // Hide analyzing state
             }
         },
+        handleFileUpload(event) {
+            this.fileData = {
+                file: event.target.files[0],
+                filename: event.target.files[0]?.name || null,
+            };
+        },
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    data() {
+        return {
+            fileData: null,
+            isUploading: false,
+            selectedButton: null,
+            isAnalyzing: false,
+        };
+    },
+});
+
+PDF_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.worker.min.mjs";
+createApp({
+    components: {
+        AsideComponent,
+        AsideMobileComponent,
+        NavbarComponent,
+        DeckUploadComponent,
+    },
+    delimiters: ["[[", "]]"],
+    watch: {
+        asideMinified(value) {
+            localStorage.setItem("asideMinified", value);
+        },
+    },
+    async mounted() {
+        document.addEventListener("click", this.handleClickOutside);
+        this.asideMinified = localStorage.getItem("asideMinified") == "true";
+        if (document.getElementById("canvas")) {
+            this.fetchFeedback();
+            await this.fetchDeck();
+            this.initializePDFViewer();
+        }
+    },
+    methods: {
         async fetchDeck() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
             const deckId = pathSegments[pathSegments.length - 1];
@@ -159,12 +190,7 @@ createApp({
                 this.deckFeedback = JSON.parse(feedbackElement.textContent);
             }
         },
-        handleFileUpload(event) {
-            this.fileData = {
-                file: event.target.files[0],
-                filename: event.target.files[0]?.name || null,
-            };
-        },
+
         selectPage(page) {
             this.selectedPage = page;
             this.renderPage(page.page_number);
@@ -200,7 +226,6 @@ createApp({
             openAdvanced: false,
             mainSlideLoaded: false,
             allThumbnailsLoaded: false,
-            isAnalyzing: false,
             fileData: null,
             deck: null,
             scores: null,
@@ -209,6 +234,7 @@ createApp({
             totalPages: 0,
             deckFeedback: [],
             deckThumbnails: [],
+            isDeckUploadOpened: true,
         };
     },
 }).mount("#app");

@@ -106,7 +106,7 @@ def create_models_from_json(json_data: str, unique_hash: str, deck_name: str | N
 
         deck = Deck(
             hash=unique_hash,
-            name=deck_name or unique_hash,
+            # name=deck_name or unique_hash,
             overall_recommendation=data.get("overall_recommendation"),
             json_feedback=data.get("deck_feedback"),
         )
@@ -142,7 +142,7 @@ def user_deck_detail(deck_id):
     deck = Deck.get_by_id(deck_id)
     if not deck:
         return render_template(
-            "deck.html",
+            "deck_list.html",
         )
     return render_template("deck/deck_detail.html", deck=deck, user=current_user)
 

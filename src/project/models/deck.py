@@ -29,7 +29,7 @@ user_deck_association = Table(
 class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    name: Mapped[str] = mapped_column(String, nullable=False, unique=False)
+    # name: Mapped[str] = mapped_column(String, nullable=False, unique=False)
     # thumbnail_url: Mapped[str | None] = mapped_column(String, nullable=True)
     # file_format: Mapped[str | None] = mapped_column(String, nullable=True)
     overall_recommendation: Mapped[str | None] = mapped_column(String, nullable=False)

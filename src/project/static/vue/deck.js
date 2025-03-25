@@ -101,22 +101,24 @@ createApp({
                 const canvas = this.$refs.pdfCanvas;
                 const container = canvas.parentElement;
 
-                const containerWidth = container.clientWidth;
-                const defaultViewport = page.getViewport({ scale: 1 });
-                const aspectRatio = defaultViewport.height / defaultViewport.width;
+                const maxWidth = container.clientWidth;
+                const maxHeight = container.clientHeight;
 
-                const scale = containerWidth / defaultViewport.width;
-                const viewport = page.getViewport({ scale });
+                const viewport = page.getViewport({ scale: 1 });
+                const scale = Math.min(maxWidth / viewport.width, maxHeight / viewport.height);
 
-                canvas.width = containerWidth;
-                canvas.height = containerWidth * aspectRatio;
+                const renderViewport = page.getViewport({ scale });
+
+                canvas.width = renderViewport.width;
+                canvas.height = renderViewport.height;
 
                 await page.render({
                     canvasContext: canvas.getContext("2d"),
-                    viewport: viewport,
+                    viewport: renderViewport,
                 }).promise;
 
                 this.currentPage = pageNumber;
+                this.selectedPage = this.findFeedbackByPageNumber(pageNumber);
             } catch (error) {
                 console.error("Render error:", error);
             }
@@ -126,7 +128,7 @@ createApp({
 
             const thumbnails = [];
             const totalPages = this.pdfDocument.numPages;
-            console.log(totalPages);
+
             for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
                 try {
                     const page = await this.pdfDocument.getPage(pageNum);
@@ -165,6 +167,9 @@ createApp({
                 filename: event.target.files[0]?.name || null,
             };
         },
+        findFeedbackByPageNumber(pageNumber) {
+            return this.deckFeedback.find((item) => item.page_number === pageNumber);
+        },
         selectPage(page) {
             this.selectedPage = page;
             this.renderPage(page.page_number);
@@ -189,8 +194,10 @@ createApp({
                 }
             }
         },
-        findFeedbackByPageNumber(pageNumber) {
-            return this.deckFeedback.find((item) => item.page_number === pageNumber);
+        handleScroll(event) {
+            event.preventDefault();
+            const container = this.$refs.thumbnailContainer;
+            container.scrollLeft += event.deltaY;
         },
     },
     data() {

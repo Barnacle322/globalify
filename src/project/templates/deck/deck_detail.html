@@ -7,12 +7,11 @@
         <link rel="stylesheet" href="/static/css/main.css" />
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
 
-        <!-- Vue -->
-        <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
-
         <!-- PdfJsLib for pdf viewer from mozila -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.min.mjs" type="module"></script>
 
+        <!-- Vue -->
+        <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
         <script src="/static/vue/base.js"></script>
         <script defer src="/static/vue/deck.js"></script>
 
@@ -24,7 +23,7 @@
             rel="stylesheet"
         />
 
-        <title>Globalify Presentation Tools</title>
+        <title>Globalify Pitch Deck analyzer</title>
     </head>
 
     <!-- prettier-ignore -->
@@ -49,118 +48,115 @@
                 ></aside-mobile-component>
             </transition>
 
-            <main class="flex w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
-                <div
-                    class="bg-deep-purple flex h-48 w-full items-center justify-center rounded-lg p-4 text-center text-xl font-bold text-amber-50 shadow-md"
-                >
-                    <h1
-                        class="w-fit bg-linear-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text p-3 text-center text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"
-                    >
-                        Globalify Presentation Tools
-                    </h1>
-                </div>
-
-                <div class="mt-5 flex h-[calc(100vh-12rem)] w-full gap-10">
-                    <div
-                        id="pdf-thumbnails"
-                        class="shadow-card ml-0 flex max-h-[calc(100vh-100px)] w-1/5 flex-col gap-6 overflow-auto rounded-lg bg-gray-200 p-6 pb-6 text-left text-black"
-                    >
-                        <div v-if="!allThumbnailsLoaded" class="flex justify-center p-4">
-                            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                        </div>
-
-                        <div v-show="allThumbnailsLoaded">
-                            {% for page in deck.json_feedback %}
-                            <div @click="selectPage({{page}})" class="shadow-card shadow-card-hover rounded-lg mb-2">
-                                <img
-                                    :src="deckThumbnails.find(t => t.pageNumber === {{page.page_number}})?.imageData || '/static/elements/1688399999229.jpeg'"
-                                    alt="Page {{page.page_number}} preview"
-                                    class="h-20 w-full rounded-t-lg object-cover"
-                                />
-                                <div class="flex w-fit items-center p-2 text-center">
-                                    <p class="text-xs font-medium">Page {{ page.page_number }}</p>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <div class="flex h-full w-4/5 max-w-3xl flex-col">
-                        <div class="relative flex flex-col items-center">
-                            <div class="shadow-card min-h-60 w-full flex flex-col rounded-lg bg-white p-4">
-                                <!-- PDF Container -->
-                                <div class="relative flex-grow" id="canvas">
+            <main class="flex w-full flex-col items-center gap-5 px-4 pb-16 sm:px-9">
+                <div class="mt-5 flex w-full gap-5">
+                    <div class="flex w-full gap-5 flex-nowrap">
+                        <div class="flex flex-col w-[59%]">
+                            <div class="shadow-card h-[70vh] flex flex-col rounded-lg bg-white p-4">
+                                <div class="flex flex-col h-full">
+                                    <!-- Canva Container -->
                                     <div
-                                        class="absolute inset-0 flex items-center justify-center bg-gray-100"
-                                        v-if="!mainSlideLoaded"
+                                        class="relative flex-grow overflow-y-auto flex justify-center items-center"
+                                        id="canvas"
                                     >
                                         <div
-                                            class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
-                                        ></div>
+                                            v-if="!mainSlideLoaded"
+                                            class="absolute inset-0 flex items-center justify-center bg-gray-100"
+                                        >
+                                            <div
+                                                class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
+                                            ></div>
+                                        </div>
+                                        <canvas ref="pdfCanvas" class="max-w-full" v-show="mainSlideLoaded"></canvas>
                                     </div>
-                                    <canvas ref="pdfCanvas" class="mx-auto" v-show="mainSlideLoaded"></canvas>
-                                </div>
 
-                                <!-- Navigation -->
-                                <div class="flex gap-4 justify-center items-center mt-4 pb-2">
-                                    <button
-                                        @click="prevPage"
-                                        class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                                        :disabled="currentPage === 1"
+                                    <!-- Navigation -->
+                                    <div class="flex gap-4 justify-center items-center mt-4 pb-2">
+                                        <button
+                                            @click="prevPage"
+                                            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+                                            :disabled="currentPage === 1"
+                                        >
+                                            Back
+                                        </button>
+                                        <span class="text-gray-700" v-text="currentPage + '/' + totalPages"></span>
+                                        <button
+                                            @click="nextPage"
+                                            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+                                            :disabled="currentPage === totalPages"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Thumbnails -->
+                            <div id="pdf-thumbnails" class="shadow-card mt-4 rounded-lg bg-gray-200 p-4">
+                                <div
+                                    class="flex gap-4 overflow-x-auto pb-2"
+                                    style="min-height: 110px"
+                                    ref="thumbnailContainer"
+                                    @wheel="handleScroll"
+                                >
+                                    {% for page in deck.json_feedback %}
+                                    <div
+                                        @click="selectPage({{page}})"
+                                        class="flex-shrink-0 cursor-pointer scale-90 border-2 rounded-lg overflow-hidden transition-all relative"
+                                        :class="{ 
+                                            'border-blue-500 scale-100': currentPage === {{page.page_number}},
+                                            'border-transparent hover:border-blue-300': currentPage !== {{page.page_number}} 
+                                        }"
+                                        style="width: 100px; height: 100px; transition: all 0.2s ease"
                                     >
-                                        Back
-                                    </button>
-                                    <span class="text-gray-700" v-text="currentPage + '/' + totalPages"></span>
-                                    <button
-                                        @click="nextPage"
-                                        class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                                        :disabled="currentPage === totalPages"
-                                    >
-                                        Next
-                                    </button>
+                                        <div class="h-full w-full bg-gray-100 flex items-center justify-center">
+                                            <img
+                                                :src="deckThumbnails.find(t => t.pageNumber === {{page.page_number}})?.imageData || '/static/elements/1688399999229.jpeg'"
+                                                alt="Preview"
+                                                class="h-full w-full object-contain"
+                                            />
+                                        </div>
+                                        <div class="p-1 text-center bg-white">
+                                            <p class="text-xs font-medium">Page {{ page.page_number }}</p>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Feedback Container -->
-                        <div id="feedback-data" style="display: none">{{ deck.json_feedback|tojson }}</div>
-                        <div v-if="selectedPage " class="shadow-card rounded-lg bg-white p-6 mt-4">
-                            <h2 class="text-center text-xl font-bold">What to Improve</h2>
-                            <p class="mt-2 text-gray-600" v-text="selectedPage?.feedback"></p>
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-10">
-                        <div
-                            class="flex h-80 w-full flex-col rounded-lg bg-gradient-to-b from-blue-100 to-blue-300 p-6 text-left text-gray-900 shadow-lg"
-                        >
-                            <!-- Individual Score Items -->
-                            <div class="flex-1 space-y-3">
-                                <div class="flex justify-between border-b pb-1">
-                                    <h3 class="text-sm font-medium">Spelling & Grammar</h3>
-                                    <span class="text-sm font-bold text-blue-800">{{ deck.scores.grammary }}</span>
-                                </div>
-                                <div class="flex justify-between border-b pb-1">
-                                    <h3 class="text-sm font-medium">Storytelling</h3>
-                                    <span class="text-sm font-bold text-blue-800">{{ deck.scores.storytelling }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <h3 class="text-sm font-medium">Clarity</h3>
-                                    <span class="text-sm font-bold text-blue-800">{{ deck.scores.clarity }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <h3 class="text-sm font-medium">Completeness</h3>
-                                    <span class="text-sm font-bold text-blue-800">{{ deck.scores.completeness }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <h3 class="text-sm font-medium">Engagement</h3>
-                                    <span class="text-sm font-bold text-blue-800">{{ deck.scores.engagement }}</span>
+                        <!-- Scores and Feedback -->
+                        <div class="w-[calc(25%-1.25rem)] flex flex-col gap-10">
+                            <div
+                                class="rounded-lg bg-gradient-to-b from-blue-100 to-blue-300 p-6 text-gray-900 shadow-lg"
+                            >
+                                <div class="space-y-3 mb-5">
+                                    {% set score_items = [ ('Spelling & Grammar', deck.scores.grammary),
+                                    ('Storytelling', deck.scores.storytelling), ('Clarity', deck.scores.clarity),
+                                    ('Completeness', deck.scores.completeness), ('Engagement', deck.scores.engagement) ]
+                                    %} {% for label, score in score_items %}
+                                    <div class="flex justify-between {% if not loop.last %}border-b pb-1{% endif %}">
+                                        <h3 class="text-sm font-medium">{{ label }}</h3>
+                                        <span class="text-sm font-bold text-blue-800">{{ score }}</span>
+                                    </div>
+                                    {% endfor %} {% set score_values = [deck.scores.grammary, deck.scores.storytelling,
+                                    deck.scores.clarity, deck.scores.completeness, deck.scores.engagement] %} {% set
+                                    overall_score = (score_values | sum) / (score_values | length) if score_values else
+                                    0 %}
+                                    <div class="flex justify-between border-t pt-1">
+                                        <h3 class="text-sm font-medium">Overall Score</h3>
+                                        <span class="text-sm font-bold text-green-800"
+                                            >{{ '%0.1f' % overall_score }}</span
+                                        >
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Overall Score Section at the Bottom -->
-                            <div class="mt-5 rounded-lg bg-white p-3 text-center shadow-md">
-                                <h3 class="text-xs font-medium text-gray-600">Overall Score</h3>
-                                <span class="mt-1 text-lg font-bold text-blue-900">8.2</span>
+                            <div id="feedback-data" style="display: none">{{ deck.json_feedback|tojson }}</div>
+
+                            <div v-if="selectedPage" class="shadow-card rounded-lg bg-white p-6">
+                                <h2 class="text-center text-xl font-bold">What to Improve</h2>
+                                <p class="mt-2 text-gray-600" v-text="selectedPage?.feedback"></p>
                             </div>
                         </div>
                     </div>

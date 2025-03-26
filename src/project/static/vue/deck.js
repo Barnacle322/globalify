@@ -16,9 +16,14 @@ createApp({
         this.asideMinified = localStorage.getItem("asideMinified") == "true";
         if (document.getElementById("canvas")) {
             this.fetchFeedback();
-            await this.fetchDeck();
+            await this.fetchDeckFile();
             this.initializePDFViewer();
+            window.addEventListener("keydown", this.handleEscKey);
         }
+    },
+    beforeUnmount() {
+        document.removeEventListener("click", this.handleClickOutside);
+        window.removeEventListener("keydown", this.handleEscKey);
     },
     methods: {
         async analyzeFile() {
@@ -54,7 +59,7 @@ createApp({
                 this.isAnalyzing = false; // Hide analyzing state
             }
         },
-        async fetchDeck() {
+        async fetchDeckFile() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
             const deckId = pathSegments[pathSegments.length - 1];
 
@@ -64,18 +69,18 @@ createApp({
                     throw new Error("Failed to fetch deck data");
                 }
                 const data = await response.json();
-                this.deck = data.deck;
+                this.deckFile = data.deck;
             } catch (error) {
                 console.error("Error fetching deck data:", error.message, error.stack);
             }
         },
         async initializePDFViewer() {
-            if (!this.deck) console.error("PDF not found");
+            if (!this.deckFile) console.error("PDF not found");
             try {
                 pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_URL;
 
                 this.pdfDocument = await pdfjsLib.getDocument({
-                    data: atob(this.deck),
+                    data: atob(this.deckFile),
                     enableWorker: true,
                 }).promise;
 
@@ -199,6 +204,46 @@ createApp({
             const container = this.$refs.thumbnailContainer;
             container.scrollLeft += event.deltaY;
         },
+        openModal(modalType) {
+            let title = "";
+            let contentElementId = "";
+
+            if (modalType === "summary") {
+                title = "Overall Summary";
+                contentElementId = "modal-summary-content";
+            } else if (modalType === "goals") {
+                title = "Improvement Goals";
+                contentElementId = "modal-goals-content";
+            } else {
+                console.warn("Unknown modal type:", modalType);
+                return;
+            }
+
+            const contentElement = document.getElementById(contentElementId);
+            if (contentElement) {
+                this.modalTitle = title;
+                this.modalContent = contentElement.innerHTML;
+                this.activeModal = modalType;
+                document.body.style.overflow = "hidden"; //
+            } else {
+                console.error(`Modal content element not found: #${contentElementId}`);
+                this.modalTitle = title;
+                this.modalContent = '<p class="text-red-500">Error: Content not found.</p>';
+                this.activeModal = modalType;
+                document.body.style.overflow = "hidden";
+            }
+        },
+        closeModal() {
+            this.activeModal = null;
+            this.modalTitle = "";
+            this.modalContent = "";
+            document.body.style.overflow = "";
+        },
+        handleEscKey(event) {
+            if (event.key === "Escape" && this.activeModal) {
+                this.closeModal();
+            }
+        },
     },
     data() {
         return {
@@ -209,9 +254,12 @@ createApp({
             allThumbnailsLoaded: false,
             isAnalyzing: false,
             fileData: null,
-            deck: null,
-            scores: null,
+            deckFile: null,
+            openDropdown: null,
             selectedPage: null,
+            activeModal: null,
+            modalTitle: "",
+            modalContent: "",
             currentPage: 1,
             totalPages: 0,
             deckFeedback: [],

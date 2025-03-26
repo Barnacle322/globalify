@@ -47,121 +47,218 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
-
-            <main class="flex w-full flex-col items-center gap-5 px-4 pb-16 sm:px-9">
-                <div class="mt-5 flex w-full gap-5">
-                    <div class="flex w-full gap-5 flex-nowrap">
-                        <div class="flex flex-col w-[59%]">
-                            <div class="shadow-card h-[70vh] flex flex-col rounded-lg bg-white p-4">
-                                <div class="flex flex-col h-full">
-                                    <!-- Canva Container -->
-                                    <div
-                                        class="relative flex-grow overflow-y-auto flex justify-center items-center"
-                                        id="canvas"
-                                    >
-                                        <div
-                                            v-if="!mainSlideLoaded"
-                                            class="absolute inset-0 flex items-center justify-center bg-gray-100"
-                                        >
-                                            <div
-                                                class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
-                                            ></div>
-                                        </div>
-                                        <canvas ref="pdfCanvas" class="max-w-full" v-show="mainSlideLoaded"></canvas>
-                                    </div>
-
-                                    <!-- Navigation -->
-                                    <div class="flex gap-4 justify-center items-center mt-4 pb-2">
-                                        <button
-                                            @click="prevPage"
-                                            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
-                                            :disabled="currentPage === 1"
-                                        >
-                                            Back
-                                        </button>
-                                        <span class="text-gray-700" v-text="currentPage + '/' + totalPages"></span>
-                                        <button
-                                            @click="nextPage"
-                                            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
-                                            :disabled="currentPage === totalPages"
-                                        >
-                                            Next
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Thumbnails -->
-                            <div id="pdf-thumbnails" class="shadow-card mt-4 rounded-lg bg-gray-200 p-4">
-                                <div
-                                    class="flex gap-4 overflow-x-auto pb-2"
-                                    style="min-height: 110px"
-                                    ref="thumbnailContainer"
-                                    @wheel="handleScroll"
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div
+                    v-if="activeModal"
+                    @click.self="closeModal"
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 bg-opacity-50 p-4"
+                >
+                    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden">
+                        <div class="flex justify-between items-center p-4 border-b border-gray-200">
+                            <h3 class="text-xl font-semibold text-gray-800" v-text="modalTitle"></h3>
+                            <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="w-6 h-6"
                                 >
-                                    {% for page in deck.json_feedback %}
-                                    <div
-                                        @click="selectPage({{page}})"
-                                        class="flex-shrink-0 cursor-pointer scale-90 border-2 rounded-lg overflow-hidden transition-all relative"
-                                        :class="{ 
-                                            'border-blue-500 scale-100': currentPage === {{page.page_number}},
-                                            'border-transparent hover:border-blue-300': currentPage !== {{page.page_number}} 
-                                        }"
-                                        style="width: 100px; height: 100px; transition: all 0.2s ease"
-                                    >
-                                        <div class="h-full w-full bg-gray-100 flex items-center justify-center">
-                                            <img
-                                                :src="deckThumbnails.find(t => t.pageNumber === {{page.page_number}})?.imageData || '/static/elements/1688399999229.jpeg'"
-                                                alt="Preview"
-                                                class="h-full w-full object-contain"
-                                            />
-                                        </div>
-                                        <div class="p-1 text-center bg-white">
-                                            <p class="text-xs font-medium">Page {{ page.page_number }}</p>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
-
-                        <!-- Scores and Feedback -->
-                        <div class="w-[calc(25%-1.25rem)] flex flex-col gap-10">
-                            <div
-                                class="rounded-lg bg-gradient-to-b from-blue-100 to-blue-300 p-6 text-gray-900 shadow-lg"
+                        <div class="p-5 max-h-[60vh] overflow-y-auto" v-html="modalContent"></div>
+                        <div class="flex justify-end p-4 border-t border-gray-200 bg-gray-50">
+                            <button
+                                @click="closeModal"
+                                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors text-sm"
                             >
-                                <div class="space-y-3 mb-5">
-                                    {% set score_items = [ ('Spelling & Grammar', deck.scores.grammary),
-                                    ('Storytelling', deck.scores.storytelling), ('Clarity', deck.scores.clarity),
-                                    ('Completeness', deck.scores.completeness), ('Engagement', deck.scores.engagement) ]
-                                    %} {% for label, score in score_items %}
-                                    <div class="flex justify-between {% if not loop.last %}border-b pb-1{% endif %}">
-                                        <h3 class="text-sm font-medium">{{ label }}</h3>
-                                        <span class="text-sm font-bold text-blue-800">{{ score }}</span>
-                                    </div>
-                                    {% endfor %} {% set score_values = [deck.scores.grammary, deck.scores.storytelling,
-                                    deck.scores.clarity, deck.scores.completeness, deck.scores.engagement] %} {% set
-                                    overall_score = (score_values | sum) / (score_values | length) if score_values else
-                                    0 %}
-                                    <div class="flex justify-between border-t pt-1">
-                                        <h3 class="text-sm font-medium">Overall Score</h3>
-                                        <span class="text-sm font-bold text-green-800"
-                                            >{{ '%0.1f' % overall_score }}</span
-                                        >
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="feedback-data" style="display: none">{{ deck.json_feedback|tojson }}</div>
-
-                            <div v-if="selectedPage" class="shadow-card rounded-lg bg-white p-6">
-                                <h2 class="text-center text-xl font-bold">What to Improve</h2>
-                                <p class="mt-2 text-gray-600" v-text="selectedPage?.feedback"></p>
-                            </div>
+                                Close
+                            </button>
                         </div>
                     </div>
                 </div>
-            </main>
+            </transition>
+            <div class="relative w-full">
+                <div id="modal-content-container" style="display: none">
+                    <div id="modal-summary-content">
+                        {{ deck.overall_recommendation | default('No overall recommendation available.') }}
+                        <div class="space-y-3 text-gray-900 pt-5">
+                            {% set score_items = [ ('Spelling & Grammar', deck.scores.grammary), ('Storytelling',
+                            deck.scores.storytelling), ('Clarity', deck.scores.clarity), ('Completeness',
+                            deck.scores.completeness), ('Engagement', deck.scores.engagement) ] %} {% for label, score
+                            in score_items %}
+                            <div
+                                class="flex justify-between {% if not loop.last %}border-b pb-1{% endif %} border-gray-200"
+                            >
+                                <h3 class="text-sm font-medium">{{ label }}</h3>
+                                <span class="text-sm font-bold text-blue-800"
+                                    >{{ score if score is not none else 'N/A' }}</span
+                                >
+                            </div>
+                            {% endfor %}
+                            <!-- Genius overall score calculating -->
+                            {% set score_values = [ deck.scores.grammary, deck.scores.storytelling, deck.scores.clarity,
+                            deck.scores.completeness, deck.scores.engagement ] %} {% set valid_scores = score_values |
+                            reject('none') | list %} {% set overall_score = (valid_scores | sum) / (valid_scores |
+                            length) if valid_scores else 0 %}
+                            <div class="flex justify-between border-t pt-3 mt-2 border-gray-300">
+                                <h3 class="text-sm font-medium">Overall Score</h3>
+                                <span class="text-sm font-bold text-green-800"
+                                    >{{ '%0.1f' % overall_score if valid_scores else 'N/A' }}</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div id="modal-goals-content">ARSTAN GEAY</div>
+                </div>
+                <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
+                    <div class="flex h-full w-fit gap-2 px-4 text-sm">
+                        <a
+                            href="/deck/list/1"
+                            class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500 cursor-pointer"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-4"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+                                />
+                            </svg>
+                            Back
+                        </a>
+                        <a
+                            @click.prevent="openModal('summary')"
+                            class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500 cursor-pointer"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-5"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z"
+                                />
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z"
+                                />
+                            </svg>
+                            Summary
+                        </a>
+                        <a
+                            href="#"
+                            @click.prevent="openModal('goals')"
+                            class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500 cursor-pointer"
+                        >
+                            <svg class="h-6 w-6">...</svg> Goals
+                        </a>
+                    </div>
+                </nav>
+                <main class="flex w-full flex-col items-center gap-5 px-4 pb-16 sm:px-9">
+                    <div class="mt-5 flex w-full gap-5">
+                        <div class="flex w-full gap-5 flex-nowrap">
+                            <div class="flex flex-col w-5/6">
+                                <div class="shadow-card h-[65vh] flex flex-col rounded-lg bg-white p-4">
+                                    <div class="flex flex-col h-full">
+                                        <!-- Canva Container -->
+                                        <div
+                                            class="relative flex-grow overflow-y-auto flex justify-center items-center"
+                                            id="canvas"
+                                        >
+                                            <div
+                                                v-if="!mainSlideLoaded"
+                                                class="absolute inset-0 flex items-center justify-center bg-gray-100"
+                                            >
+                                                <div
+                                                    class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
+                                                ></div>
+                                            </div>
+                                            <canvas
+                                                ref="pdfCanvas"
+                                                class="max-w-full"
+                                                v-show="mainSlideLoaded"
+                                            ></canvas>
+                                        </div>
+
+                                        <!-- Navigation -->
+                                        <div class="flex gap-4 justify-center items-center mt-4 pb-2">
+                                            <button
+                                                @click="prevPage"
+                                                class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+                                                :disabled="currentPage === 1"
+                                            >
+                                                Back
+                                            </button>
+                                            <span class="text-gray-700" v-text="currentPage + '/' + totalPages"></span>
+                                            <button
+                                                @click="nextPage"
+                                                class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+                                                :disabled="currentPage === totalPages"
+                                            >
+                                                Next
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Thumbnails -->
+                                <div id="pdf-thumbnails" class="shadow-card mt-4 rounded-lg bg-gray-200 p-4">
+                                    <div
+                                        class="flex gap-4 overflow-x-auto pb-2"
+                                        style="min-height: 110px"
+                                        ref="thumbnailContainer"
+                                        @wheel="handleScroll"
+                                    >
+                                        {% for page in deck.json_feedback %}
+                                        <div
+                                            @click="selectPage({{page}})"
+                                            class="flex-shrink-0 cursor-pointer scale-90 rounded-lg overflow-hidden transition-all relative"
+                                            :class="{ 
+                                            'border-2 border-blue-500 scale-100': currentPage === {{page.page_number}},
+                                            ' border-transparent hover:border-blue-300': currentPage !== {{page.page_number}} 
+                                        }"
+                                            style="height: 100px; transition: all 0.2s ease"
+                                        >
+                                            <div class="h-full w-full bg-gray-100 flex items-center justify-center">
+                                                <img
+                                                    :src="deckThumbnails.find(t => t.pageNumber === {{page.page_number}})?.imageData || '/static/elements/1688399999229.jpeg'"
+                                                    alt="Preview"
+                                                    class="h-full w-full object-contain"
+                                                />
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Feedback -->
+                            <div class="w-[40%] flex flex-col">
+                                <div id="feedback-data" style="display: none">{{ deck.json_feedback|tojson }}</div>
+                                <div v-if="selectedPage" class="shadow-card rounded-lg bg-white p-6">
+                                    <h2 class="text-center text-xl font-bold">What to Improve</h2>
+                                    <p class="mt-2 text-gray-600" v-text="selectedPage?.feedback"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
         </div>
     </body>
 </html>

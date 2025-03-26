@@ -31,7 +31,6 @@ class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
     hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     # name: Mapped[str] = mapped_column(String, nullable=False, unique=False)
     # thumbnail_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    # file_format: Mapped[str | None] = mapped_column(String, nullable=True)
     overall_recommendation: Mapped[str | None] = mapped_column(String, nullable=False)
     json_feedback: Mapped[dict] = mapped_column(JSON, nullable=False, default=False)
     created: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)

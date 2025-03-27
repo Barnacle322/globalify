@@ -27,8 +27,8 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %}
     {{ navbar.render(current_user) }}
-{#    {% import "components/deck_upload.html" as deck_upload %}#}
-{#    {{ deck_upload.render() }}#}
+    {% import "components/deck_upload.html" as deck_upload %}
+    {{ deck_upload.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>

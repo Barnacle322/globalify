@@ -206,7 +206,6 @@ createApp({
                 this.deckFeedback = JSON.parse(feedbackElement.textContent);
             }
         },
-
         selectPage(page) {
             this.selectedPage = page;
             this.renderPage(page.page_number);

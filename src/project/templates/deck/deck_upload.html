@@ -112,18 +112,16 @@
                     </label>
                     <div class="flex flex-row gap-5">
                         <span>Audience</span>
-                        <div class="flex gap-2">
-                            
-                        </div>
+                        <div class="flex gap-2"></div>
                     </div>
                 </div>
 
                 <!-- Loading Component (Place it here) -->
                 <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                    <div v-if="isAnalyzing" class="fixed inset-0 flex items-center justify-center bg-white/90 z-50">
+                    <div v-if="isAnalyzing" class="fixed inset-0 z-50 flex items-center justify-center bg-white/90">
                         <div class="flex flex-col items-center">
                             <svg
-                                class="animate-spin h-10 w-10 text-blue-500"
+                                class="h-10 w-10 animate-spin text-blue-500"
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"

@@ -3,7 +3,7 @@
     <article
         class="fixed top-0 right-0 z-50 flex h-full w-full flex-col bg-white p-8 sm:top-1/2 sm:right-1/2 sm:h-auto sm:max-w-2xl sm:translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
     >
-        <div class="mx-auto mt-[50px] w-full rounded-t-lg border gap-4 p-5">
+        <div class="mx-auto mt-[50px] w-full gap-4 rounded-t-lg border p-5">
             <label for="pdf-upload" class="cursor-pointer">
                 <div
                     class="mb-5 rounded-md border-2 border-dashed p-10"
@@ -27,10 +27,16 @@
                                 d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q25-92 100-149t170-57q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H520q-33 0-56.5-23.5T440-240v-206l-64 62-56-56 160-160 160 160-56 56-64-62v206h220q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-83 0-141.5 58.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41h100v80H260Zm220-280Z"
                             />
                         </svg>
-                        <span class="cursor-pointer text-lg underline text-sky-500 hover:text-sky-700" v-if="!fileData">
+                        <span class="cursor-pointer text-lg text-sky-500 underline hover:text-sky-700" v-if="!fileData">
                             Select a file to upload
                         </span>
-                        <input id="pdf-upload" type="file" class="hidden" accept=".pdf" @change="handleFileUpload" />
+                        <input
+                            id="pdf-upload"
+                            type="file"
+                            class="hidden"
+                            accept=".pdf, .pptx"
+                            @change="handleFileUpload"
+                        />
                         <span class="text-md text-gray-500">
                             <sub>
                                 Supported formats: .txt, .docx, .odt, .epub, .pdf, .html, .htm, .tsv, .json, .xls, .xlsx
@@ -39,9 +45,9 @@
                     </div>
                 </div>
             </label>
-            <div class="flex flex-row gap-8 justify-start items-center border-t pt-5 border-b pb-5">
-                <span class="pl-3 w-28">Audience</span>
-                <div class="inline-flex rounded-md shadow-xs cursor-pointer" role="group">
+            <div class="flex flex-row items-center justify-start gap-8 border-t border-b pt-5 pb-5">
+                <span class="w-28 pl-3">Audience</span>
+                <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedButton === 'profile' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
@@ -66,9 +72,9 @@
                 </div>
             </div>
 
-            <div class="flex flex-row gap-8 justify-start items-center pt-5 border-b pb-5">
-                <span class="pl-3 w-28">Formality</span>
-                <div class="inline-flex rounded-md shadow-xs cursor-pointer" role="group">
+            <div class="flex flex-row items-center justify-start gap-8 border-b pt-5 pb-5">
+                <span class="w-28 pl-3">Formality</span>
+                <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedButton === 'informal' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
@@ -93,8 +99,8 @@
                 </div>
             </div>
 
-            <div class="flex flex-row gap-8 justify-start items-center pt-5">
-                <span class="pl-3 w-28">Domain</span>
+            <div class="flex flex-row items-center justify-start gap-8 pt-5">
+                <span class="w-28 pl-3">Domain</span>
                 <div class="inline-flex rounded-md shadow-xs" role="group">
                     <button
                         type="button"
@@ -120,7 +126,7 @@
                 </div>
             </div>
         </div>
-        <div class="flex bg-gray-50 rounded-b-lg w-full p-4 justify-end items-center border-b border-l border-r">
+        <div class="flex w-full items-center justify-end rounded-b-lg border-r border-b border-l bg-gray-50 p-4">
             <button
                 class="cursor-pointer rounded-lg bg-sky-500 px-4 py-2 font-bold text-white hover:bg-sky-700"
                 @click="analyzeFile"
@@ -131,10 +137,10 @@
 
         <!-- Loading Component (Place it here) -->
         <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-            <div v-if="isAnalyzing" class="fixed inset-0 flex items-center justify-center bg-white/90 z-50">
+            <div v-if="isAnalyzing" class="fixed inset-0 z-50 flex items-center justify-center bg-white/90">
                 <div class="flex flex-col items-center">
                     <svg
-                        class="animate-spin h-10 w-10 text-blue-500"
+                        class="h-10 w-10 animate-spin text-blue-500"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"

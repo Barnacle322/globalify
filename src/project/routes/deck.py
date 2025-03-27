@@ -61,11 +61,9 @@ def analyze_deck():
             msg=msg,
         )
 
-
-    audience = request.form.get("audience")
-    formality = request.form.get("formality")
-    domain = request.form.get("domain")
-
+    audience = request.form.get("audience", "")
+    formality = request.form.get("formality", "")
+    domain = request.form.get("domain", "")
 
     pdf_data = file.read()
     print("File loaded successfully")

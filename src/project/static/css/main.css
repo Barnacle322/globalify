@@ -3001,6 +3001,9 @@
   .text-gray-900 {
     color: var(--color-gray-900);
   }
+  .text-green-500 {
+    color: var(--color-green-500);
+  }
   .text-green-700 {
     color: var(--color-green-700);
   }
@@ -3030,6 +3033,9 @@
   }
   .text-sky-600 {
     color: var(--color-sky-600);
+  }
+  .text-sky-700 {
+    color: var(--color-sky-700);
   }
   .text-slate-50 {
     color: var(--color-slate-50);
@@ -3892,6 +3898,13 @@
     &:hover {
       @media (hover: hover) {
         color: var(--color-gray-900);
+      }
+    }
+  }
+  .hover\:text-green-700 {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-green-700);
       }
     }
   }

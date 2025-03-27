@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from google.generativeai.types.content_types import FunctionDeclaration, Tool, BlobDict
+from google.generativeai.types.content_types import BlobDict, FunctionDeclaration, Tool
 
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
@@ -178,8 +178,8 @@ def analyze_pdf(pdf_data: bytes, audience: str, formality: str, domain: str) -> 
         * Overall recommendations for improvement (maximum 200 words). Focus on the key areas that need the most attention.
         * An overall score for the following categories (1-10): clarity, grammar, storytelling, completeness, engagement.
         * Feedback for each page of the pitch deck. Provide the page number and a short feedback (maximum 100 words) for each page.
-        
-        
+
+
         The audience for this pitch deck is: {audience}.
         The formality of the deck is: {formality}.
         The domain of the pitch deck is: {domain}.
@@ -195,6 +195,7 @@ def analyze_pdf(pdf_data: bytes, audience: str, formality: str, domain: str) -> 
                 "completeness": ,
                 "engagement":
             },
+            "goals": [{audience}, {formality}, {domain}],
             "deck_feedback": [
                 {
                     "page_number": ,

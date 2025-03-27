@@ -1,6 +1,6 @@
 const DeckUploadComponent = defineComponent({
     template: "#deck-upload-template",
-    emits: ['close-deck-upload'],
+    emits: ["close-deck-upload"],
     methods: {
         async analyzeFile() {
             if (!this.fileData) {
@@ -44,7 +44,7 @@ const DeckUploadComponent = defineComponent({
                 filename: event.target.files[0]?.name || null,
             };
         },
-        closeDeckUpload(){
+        closeDeckUpload() {
             this.$emit("close-deck-upload");
         },
         handleOutsideClick(event) {
@@ -52,7 +52,6 @@ const DeckUploadComponent = defineComponent({
                 this.closeDeckUpload();
             }
         },
-
     },
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
@@ -70,9 +69,9 @@ const DeckUploadComponent = defineComponent({
             isUploading: false,
             selectedButton: null,
             isAnalyzing: false,
-            selectedAudience: null,
-            selectedFormality: null,
-            selectedDomain: null,
+            selectedAudience: "settings",
+            selectedFormality: "neutral",
+            selectedDomain: "business",
         };
     },
 });
@@ -235,9 +234,6 @@ createApp({
         findFeedbackByPageNumber(pageNumber) {
             return this.deckFeedback.find((item) => item.page_number === pageNumber);
         },
-
-
-
     },
     data() {
         return {

@@ -67,6 +67,9 @@ const DeckUploadComponent = defineComponent({
             isUploading: false,
             selectedButton: null,
             isAnalyzing: false,
+            selectedAudience: null,
+            selectedFormality: null,
+            selectedDomain: null,
         };
     },
 });

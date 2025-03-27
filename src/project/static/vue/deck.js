@@ -160,6 +160,26 @@ createApp({
 
             return thumbnails;
         },
+        scrollToThumbnail(pageNumber) {
+            this.$nextTick(() => {
+                const container = this.$refs.thumbnailContainer;
+                if (!container) {
+                    console.warn("Thumbnail container ref not found for scrolling.");
+                    return;
+                }
+                const targetThumbnail = container.querySelector(`[data-page-number="${pageNumber}"]`);
+
+                if (targetThumbnail) {
+                    targetThumbnail.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest",
+                        inline: "center",
+                    });
+                } else {
+                    console.warn(`Thumbnail element for page ${pageNumber} not found.`);
+                }
+            });
+        },
         fetchFeedback() {
             const feedbackElement = document.getElementById("feedback-data");
             if (feedbackElement) {
@@ -178,15 +198,18 @@ createApp({
         selectPage(page) {
             this.selectedPage = page;
             this.renderPage(page.page_number);
+            this.scrollToThumbnail(page.page_number);
         },
         nextPage() {
             if (this.currentPage < this.totalPages) {
                 const nextPageNum = this.currentPage + 1;
                 this.renderPage(nextPageNum);
                 const nextPageFeedback = this.findFeedbackByPageNumber(nextPageNum);
-                if (nextPageFeedback) {
-                    this.selectedPage = nextPageFeedback;
-                }
+                this.selectedPage = nextPageFeedback || {
+                    page_number: nextPageNum,
+                    feedback: "No specific feedback for this page.",
+                };
+                this.scrollToThumbnail(nextPageNum);
             }
         },
         prevPage() {
@@ -194,9 +217,11 @@ createApp({
                 const prevPageNum = this.currentPage - 1;
                 this.renderPage(prevPageNum);
                 const prevPageFeedback = this.findFeedbackByPageNumber(prevPageNum);
-                if (prevPageFeedback) {
-                    this.selectedPage = prevPageFeedback;
-                }
+                this.selectedPage = prevPageFeedback || {
+                    page_number: prevPageNum,
+                    feedback: "No specific feedback for this page.",
+                };
+                this.scrollToThumbnail(prevPageNum);
             }
         },
         handleScroll(event) {
@@ -224,7 +249,7 @@ createApp({
                 this.modalTitle = title;
                 this.modalContent = contentElement.innerHTML;
                 this.activeModal = modalType;
-                document.body.style.overflow = "hidden"; //
+                document.body.style.overflow = "hidden";
             } else {
                 console.error(`Modal content element not found: #${contentElementId}`);
                 this.modalTitle = title;

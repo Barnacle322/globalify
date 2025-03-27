@@ -5184,6 +5184,21 @@
       border-color: var(--color-gray-700);
     }
   }
+  .dark\:bg-gray-50 {
+    @media (prefers-color-scheme: dark) {
+      background-color: var(--color-gray-50);
+    }
+  }
+  .dark\:bg-gray-200 {
+    @media (prefers-color-scheme: dark) {
+      background-color: var(--color-gray-200);
+    }
+  }
+  .dark\:bg-gray-300 {
+    @media (prefers-color-scheme: dark) {
+      background-color: var(--color-gray-300);
+    }
+  }
   .dark\:bg-gray-500 {
     @media (prefers-color-scheme: dark) {
       background-color: var(--color-gray-500);

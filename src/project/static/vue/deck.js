@@ -1,3 +1,58 @@
+const DeleteDeckComponent = defineComponent({
+    template: "#delete-deck-template",
+    props: {
+        deckId: {
+            type: Number,
+            required: true,
+        },
+    },
+    methods: {
+        closeDeck() {
+            this.$emit("close-delete-company");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeDeck();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeDeck();
+            }
+        },
+        async deleteDeck(deckId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/deck/delete/${deckId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-deck");
+                }
+            } catch (error) {
+                console.error("Error cancelling invitation:", error.message);
+            }
+        },
+    },
+    mounted() {
+        console.log(this.deckId);
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+});
+
 const DeckUploadComponent = defineComponent({
     template: "#deck-upload-template",
     emits: ["close-deck-upload"],
@@ -83,6 +138,7 @@ createApp({
         AsideMobileComponent,
         NavbarComponent,
         DeckUploadComponent,
+        DeleteDeckComponent,
     },
     delimiters: ["[[", "]]"],
     watch: {
@@ -332,6 +388,8 @@ createApp({
             deckFeedback: [],
             deckThumbnails: [],
             isDeckUploadOpened: false,
+            deleteDeckOpened: false,
+            deckToDelete: null,
         };
     },
 }).mount("#app");

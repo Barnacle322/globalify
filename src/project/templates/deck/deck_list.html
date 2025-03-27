@@ -29,6 +29,8 @@
     {{ navbar.render(current_user) }}
     {% import "components/deck_upload.html" as deck_upload %}
     {{ deck_upload.render() }}
+    {% import "components/delete_deck.html" as delete_deck %}
+    {{ delete_deck.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -50,7 +52,10 @@
             </transition>
 
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div v-if="isDeckUploadOpened" class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"></div>
+                <div
+                    v-if="isDeckUploadOpened || deleteDeckOpened"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
+                ></div>
             </transition>
 
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
@@ -58,6 +63,14 @@
                     v-if="isDeckUploadOpened"
                     @close-deck-upload="isDeckUploadOpened = false"
                 ></deck-upload-component>
+            </transition>
+
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <delete-deck-component
+                    v-if="deleteDeckOpened"
+                    :deck-id="deckToDelete"
+                    @close-delete-company="deleteDeckOpened = null"
+                ></delete-deck-component>
             </transition>
 
             <main class="flex w-full flex-col items-center px-4 pt-5 sm:px-9">
@@ -94,11 +107,10 @@
                                     alt="Deck Image"
                                     class="aspect-[16/9] w-full rounded-lg object-cover"
                                 />
-                                <hr class="h-px mt-3 font-bold bg-gray-200 border-0 dark:bg-gray-500" />
                                 <div class="mt-4 w-full text-center text-sm text-gray-500 line-clamp-3">
-                                    {{ deck.overall_recommendation }}
+                                    {{ deck.name if deck.name else "No Name Available" }}
                                 </div>
-                                <hr class="h-px mt-3 mb-3 font-bold bg-gray-200 border-0 dark:bg-gray-500" />
+                                <hr class="h-px mt-3 mb-3 font-bold bg-gray-50 border-0 dark:bg-gray-300" />
 
                                 <div class="flex justify-between items-center">
                                     <div
@@ -107,7 +119,10 @@
                                         <span class="text-xs"> Score </span>
                                     </div>
 
-                                    <div>
+                                    <div
+                                        class="hover:scale-110 transition-transform duration-300"
+                                        @click.stop.prevent="deleteDeckOpened = true; deckToDelete = {{ deck.id }}"
+                                    >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             fill="none"

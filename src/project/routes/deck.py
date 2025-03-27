@@ -162,3 +162,22 @@ def deck_file(deck_id):
     except Exception as e:
         status = Status(StatusType.ERROR, str(e)).get_status()
         return redirect(url_for("deck.user_deck_list", _external=False, **status))
+
+
+@deck.route("/delete/<int:deck_id>", methods=["POST"])
+@login_required
+def delete_deck(deck_id):
+    deck = Deck.get_by_id(deck_id)
+    if not deck:
+        status = Status(StatusType.ERROR, "Deck not found").get_status()
+        return redirect(url_for("deck.user_deck_list", _external=False, **status))
+
+    try:
+        db.session.delete(deck)
+        db.session.commit()
+        status = Status(StatusType.SUCCESS, "Deck deleted successfully").get_status()
+    except Exception as e:
+        db.session.rollback()
+        status = Status(StatusType.ERROR, str(e)).get_status()
+
+    return redirect(url_for("deck.index", _external=False, **status, user_id=current_user.id))

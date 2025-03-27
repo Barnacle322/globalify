@@ -13,6 +13,9 @@ const DeckUploadComponent = defineComponent({
             try {
                 const formData = new FormData();
                 formData.append("file", this.fileData.file);
+                formData.append("audience", this.selectedAudience);
+                formData.append("formality", this.selectedFormality);
+                formData.append("domain", this.selectedDomain);
 
                 const response = await fetch("/deck/analysis", {
                     method: "POST",

@@ -128,9 +128,11 @@
                     :funding-round-id="fundingRoundId"
                 ></delete-funding-round-component>
             </transition>
+
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <add-member-component v-if="addMemberOpened" @close="addMemberOpened = null"></add-member-component>
             </transition>
+
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <edit-member-component
                     v-if="editMemberOpened"

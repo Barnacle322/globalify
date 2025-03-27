@@ -1,5 +1,6 @@
 const DeckUploadComponent = defineComponent({
     template: "#deck-upload-template",
+    emits: ["close-deck-upload"],
     methods: {
         async analyzeFile() {
             if (!this.fileData) {
@@ -12,6 +13,9 @@ const DeckUploadComponent = defineComponent({
             try {
                 const formData = new FormData();
                 formData.append("file", this.fileData.file);
+                formData.append("audience", this.selectedAudience);
+                formData.append("formality", this.selectedFormality);
+                formData.append("domain", this.selectedDomain);
 
                 const response = await fetch("/deck/analysis", {
                     method: "POST",
@@ -40,6 +44,14 @@ const DeckUploadComponent = defineComponent({
                 filename: event.target.files[0]?.name || null,
             };
         },
+        closeDeckUpload() {
+            this.$emit("close-deck-upload");
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeDeckUpload();
+            }
+        },
     },
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
@@ -57,6 +69,9 @@ const DeckUploadComponent = defineComponent({
             isUploading: false,
             selectedButton: null,
             isAnalyzing: false,
+            selectedAudience: "settings",
+            selectedFormality: "neutral",
+            selectedDomain: "business",
         };
     },
 });
@@ -84,6 +99,7 @@ createApp({
             this.initializePDFViewer();
         }
     },
+
     methods: {
         async fetchDeck() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
@@ -234,7 +250,7 @@ createApp({
             totalPages: 0,
             deckFeedback: [],
             deckThumbnails: [],
-            isDeckUploadOpened: true,
+            isDeckUploadOpened: false,
         };
     },
 }).mount("#app");

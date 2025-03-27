@@ -91,7 +91,7 @@ def analyze_deck():
         deck_id = existing_deck.id
 
     else:
-        analysis_result_json = analyze_pdf(pdf_data)
+        analysis_result_json = analyze_pdf(pdf_data, audience, formality, domain)
         print(analysis_result_json)
 
         if analysis_result_json:

@@ -168,16 +168,21 @@ def generate_name_summary_with_typesense_context(query: str):
     return response
 
 
-def analyze_pdf(pdf_data: bytes) -> str:
+def analyze_pdf(pdf_data: bytes, audience: str, formality: str, domain: str) -> str:
     genai.configure(api_key="AIzaSyCslKgJDAckdMD34arTHWJ8fSHB0ERFTmA")
     model = genai.GenerativeModel("gemini-1.5-flash")
 
-    prompt = """
+    prompt = f"""
         You are an expert pitch deck analyst. Analyze the provided pitch deck and provide:
 
         * Overall recommendations for improvement (maximum 200 words). Focus on the key areas that need the most attention.
         * An overall score for the following categories (1-10): clarity, grammar, storytelling, completeness, engagement.
         * Feedback for each page of the pitch deck. Provide the page number and a short feedback (maximum 100 words) for each page.
+        
+        
+        The audience for this pitch deck is: {audience}.
+        The formality of the deck is: {formality}.
+        The domain of the pitch deck is: {domain}.
 
         Output in JSON format:
 

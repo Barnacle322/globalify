@@ -44,6 +44,11 @@ const DeckUploadComponent = defineComponent({
         closeDeckUpload(){
             this.$emit("close-deck-upload");
         },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeDeckUpload();
+            }
+        },
 
     },
     mounted() {

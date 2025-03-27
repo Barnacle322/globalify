@@ -48,8 +48,9 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
+
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div v-if="isDeckUploadOpened" class="fixed top-0 z-50 block h-full w-full bg-black/70 lg:hidden"></div>
+                <div v-if="isDeckUploadOpened" class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"></div>
             </transition>
 
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">

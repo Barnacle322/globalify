@@ -1,30 +1,6 @@
-PDF_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.worker.min.mjs";
-createApp({
-    components: {
-        AsideComponent,
-        AsideMobileComponent,
-        NavbarComponent,
-    },
-    delimiters: ["[[", "]]"],
-    watch: {
-        asideMinified(value) {
-            localStorage.setItem("asideMinified", value);
-        },
-    },
-    async mounted() {
-        document.addEventListener("click", this.handleClickOutside);
-        this.asideMinified = localStorage.getItem("asideMinified") == "true";
-        if (document.getElementById("canvas")) {
-            this.fetchFeedback();
-            await this.fetchDeckFile();
-            this.initializePDFViewer();
-            window.addEventListener("keydown", this.handleEscKey);
-        }
-    },
-    beforeUnmount() {
-        document.removeEventListener("click", this.handleClickOutside);
-        window.removeEventListener("keydown", this.handleEscKey);
-    },
+const DeckUploadComponent = defineComponent({
+    template: "#deck-upload-template",
+    emits: ["close-deck-upload"],
     methods: {
         async analyzeFile() {
             if (!this.fileData) {
@@ -37,6 +13,9 @@ createApp({
             try {
                 const formData = new FormData();
                 formData.append("file", this.fileData.file);
+                formData.append("audience", this.selectedAudience);
+                formData.append("formality", this.selectedFormality);
+                formData.append("domain", this.selectedDomain);
 
                 const response = await fetch("/deck/analysis", {
                     method: "POST",
@@ -59,6 +38,73 @@ createApp({
                 this.isAnalyzing = false; // Hide analyzing state
             }
         },
+        handleFileUpload(event) {
+            this.fileData = {
+                file: event.target.files[0],
+                filename: event.target.files[0]?.name || null,
+            };
+        },
+        closeDeckUpload() {
+            this.$emit("close-deck-upload");
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeDeckUpload();
+            }
+        },
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    data() {
+        return {
+            fileData: null,
+            isUploading: false,
+            selectedButton: null,
+            isAnalyzing: false,
+            selectedAudience: "settings",
+            selectedFormality: "neutral",
+            selectedDomain: "business",
+        };
+    },
+});
+
+PDF_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.worker.min.mjs";
+createApp({
+    components: {
+        AsideComponent,
+        AsideMobileComponent,
+        NavbarComponent,
+        DeckUploadComponent,
+    },
+    delimiters: ["[[", "]]"],
+    watch: {
+        asideMinified(value) {
+            localStorage.setItem("asideMinified", value);
+        },
+    },
+    async mounted() {
+        document.addEventListener("click", this.handleClickOutside);
+        this.asideMinified = localStorage.getItem("asideMinified") == "true";
+        if (document.getElementById("canvas")) {
+            this.fetchFeedback();
+            await this.fetchDeck();
+            this.initializePDFViewer();
+            window.addEventListener("keydown", this.handleEscKey);
+        }
+    },
+    beforeUnmount() {
+        document.removeEventListener("click", this.handleClickOutside);
+        window.removeEventListener("keydown", this.handleEscKey);
+    },
+    methods: {
         async fetchDeckFile() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
             const deckId = pathSegments[pathSegments.length - 1];
@@ -108,6 +154,7 @@ createApp({
 
                 const maxWidth = container.clientWidth;
                 const maxHeight = container.clientHeight;
+
 
                 const viewport = page.getViewport({ scale: 1 });
                 const scale = Math.min(maxWidth / viewport.width, maxHeight / viewport.height);
@@ -186,11 +233,8 @@ createApp({
                 this.deckFeedback = JSON.parse(feedbackElement.textContent);
             }
         },
-        handleFileUpload(event) {
-            this.fileData = {
-                file: event.target.files[0],
-                filename: event.target.files[0]?.name || null,
-            };
+        findFeedbackByPageNumber(pageNumber) {
+            return this.deckFeedback.find((item) => item.page_number === pageNumber);
         },
         findFeedbackByPageNumber(pageNumber) {
             return this.deckFeedback.find((item) => item.page_number === pageNumber);
@@ -277,7 +321,6 @@ createApp({
             openAdvanced: false,
             mainSlideLoaded: false,
             allThumbnailsLoaded: false,
-            isAnalyzing: false,
             fileData: null,
             deckFile: null,
             openDropdown: null,
@@ -289,6 +332,7 @@ createApp({
             totalPages: 0,
             deckFeedback: [],
             deckThumbnails: [],
+            isDeckUploadOpened: false,
         };
     },
 }).mount("#app");

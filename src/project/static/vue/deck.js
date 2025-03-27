@@ -155,6 +155,7 @@ createApp({
                 const maxWidth = container.clientWidth;
                 const maxHeight = container.clientHeight;
 
+
                 const viewport = page.getViewport({ scale: 1 });
                 const scale = Math.min(maxWidth / viewport.width, maxHeight / viewport.height);
 
@@ -235,9 +236,13 @@ createApp({
         findFeedbackByPageNumber(pageNumber) {
             return this.deckFeedback.find((item) => item.page_number === pageNumber);
         },
+        findFeedbackByPageNumber(pageNumber) {
+            return this.deckFeedback.find((item) => item.page_number === pageNumber);
+        },
         selectPage(page) {
             this.selectedPage = page;
             this.renderPage(page.page_number);
+            this.scrollToThumbnail(page.page_number);
         },
         nextPage() {
             if (this.currentPage < this.totalPages) {

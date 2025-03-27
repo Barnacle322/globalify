@@ -61,6 +61,12 @@ def analyze_deck():
             msg=msg,
         )
 
+
+    audience = request.form.get("audience")
+    formality = request.form.get("formality")
+    domain = request.form.get("domain")
+
+
     pdf_data = file.read()
     print("File loaded successfully")
     print(f"Size: {len(pdf_data)} bytes")
@@ -85,7 +91,7 @@ def analyze_deck():
         deck_id = existing_deck.id
 
     else:
-        analysis_result_json = analyze_pdf(pdf_data)
+        analysis_result_json = analyze_pdf(pdf_data, audience, formality, domain)
         print(analysis_result_json)
 
         if analysis_result_json:

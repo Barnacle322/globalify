@@ -48,6 +48,87 @@
             </label>
 
             <!-- Audience, Formality, Domain selections remain unchanged -->
+
+            <div class="flex flex-row items-center justify-start gap-8 border-t border-b pt-5 pb-5">
+                <span class="w-28 pl-3">Audience</span>
+                <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
+                    <button
+                        type="button"
+                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedButton === 'profile' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
+                        @click="selectedButton = 'profile'"
+                    >
+                        Profile
+                    </button>
+                    <button
+                        type="button"
+                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedButton === 'settings' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
+                        @click="selectedButton = 'settings'"
+                    >
+                        Settings
+                    </button>
+                    <button
+                        type="button"
+                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedButton === 'messages' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
+                        @click="selectedButton = 'messages'"
+                    >
+                        Messages
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-row items-center justify-start gap-8 border-b pt-5 pb-5">
+                <span class="w-28 pl-3">Formality</span>
+                <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
+                    <button
+                        type="button"
+                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedButton === 'informal' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
+                        @click="selectedButton = 'informal'"
+                    >
+                        Informal
+                    </button>
+                    <button
+                        type="button"
+                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedButton === 'neutral' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
+                        @click="selectedButton = 'neutral'"
+                    >
+                        Neutral
+                    </button>
+                    <button
+                        type="button"
+                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedButton === 'formal' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
+                        @click="selectedButton = 'formal'"
+                    >
+                        Formal
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-row items-center justify-start gap-8 pt-5">
+                <span class="w-28 pl-3">Domain</span>
+                <div class="inline-flex rounded-md shadow-xs" role="group">
+                    <button
+                        type="button"
+                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedButton === 'academic' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
+                        @click="selectedButton = 'academic'"
+                    >
+                        Academic
+                    </button>
+                    <button
+                        type="button"
+                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedButton === 'business' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
+                        @click="selectedButton = 'business'"
+                    >
+                        Business
+                    </button>
+                    <button
+                        type="button"
+                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedButton === 'general' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
+                        @click="selectedButton = 'general'"
+                    >
+                        General
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="flex w-full items-center justify-end rounded-b-lg border-r border-b border-l bg-gray-50 p-4">
             <button

@@ -66,12 +66,12 @@
                         class="shadow-card ml-0 flex max-h-[calc(100vh-100px)] w-1/5 flex-col gap-6 overflow-auto rounded-lg bg-gray-200 p-6 pb-6 text-left text-black"
                     >
                         <div v-if="!allThumbnailsLoaded" class="flex justify-center p-4">
-                            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                            <div class="h-8 w-8 animate-spin rounded-full border-t-2 border-b-2 border-blue-500"></div>
                         </div>
 
                         <div v-show="allThumbnailsLoaded">
                             {% for page in deck.json_feedback %}
-                            <div @click="selectPage({{page}})" class="shadow-card shadow-card-hover rounded-lg mb-2">
+                            <div @click="selectPage({{page}})" class="shadow-card shadow-card-hover mb-2 rounded-lg">
                                 <img
                                     :src="deckThumbnails.find(t => t.pageNumber === {{page.page_number}})?.imageData || '/static/elements/1688399999229.jpeg'"
                                     alt="Page {{page.page_number}} preview"
@@ -87,7 +87,7 @@
 
                     <div class="flex h-full w-4/5 max-w-3xl flex-col">
                         <div class="relative flex flex-col items-center">
-                            <div class="shadow-card min-h-60 w-full flex flex-col rounded-lg bg-white p-4">
+                            <div class="shadow-card flex min-h-60 w-full flex-col rounded-lg bg-white p-4">
                                 <!-- PDF Container -->
                                 <div class="relative flex-grow" id="canvas">
                                     <div
@@ -95,14 +95,14 @@
                                         v-if="!mainSlideLoaded"
                                     >
                                         <div
-                                            class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
+                                            class="h-12 w-12 animate-spin rounded-full border-t-2 border-b-2 border-blue-500"
                                         ></div>
                                     </div>
                                     <canvas ref="pdfCanvas" class="mx-auto" v-show="mainSlideLoaded"></canvas>
                                 </div>
 
                                 <!-- Navigation -->
-                                <div class="flex gap-4 justify-center items-center mt-4 pb-2">
+                                <div class="mt-4 flex items-center justify-center gap-4 pb-2">
                                     <button
                                         @click="prevPage"
                                         class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
@@ -124,7 +124,7 @@
 
                         <!-- Feedback Container -->
                         <div id="feedback-data" style="display: none">{{ deck.json_feedback|tojson }}</div>
-                        <div v-if="selectedPage " class="shadow-card rounded-lg bg-white p-6 mt-4">
+                        <div v-if="selectedPage " class="shadow-card mt-4 rounded-lg bg-white p-6">
                             <h2 class="text-center text-xl font-bold">What to Improve</h2>
                             <p class="mt-2 text-gray-600" v-text="selectedPage?.feedback"></p>
                         </div>

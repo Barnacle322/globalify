@@ -1,5 +1,6 @@
 const DeckUploadComponent = defineComponent({
     template: "#deck-upload-template",
+    emits: ['close-deck-upload'],
     methods: {
         async analyzeFile() {
             if (!this.fileData) {
@@ -40,6 +41,10 @@ const DeckUploadComponent = defineComponent({
                 filename: event.target.files[0]?.name || null,
             };
         },
+        closeDeckUpload(){
+            this.$emit("close-deck-upload");
+        },
+
     },
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
@@ -84,6 +89,7 @@ createApp({
             this.initializePDFViewer();
         }
     },
+
     methods: {
         async fetchDeck() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
@@ -218,6 +224,9 @@ createApp({
         findFeedbackByPageNumber(pageNumber) {
             return this.deckFeedback.find((item) => item.page_number === pageNumber);
         },
+
+
+
     },
     data() {
         return {
@@ -234,7 +243,7 @@ createApp({
             totalPages: 0,
             deckFeedback: [],
             deckThumbnails: [],
-            isDeckUploadOpened: true,
+            isDeckUploadOpened: false,
         };
     },
 }).mount("#app");

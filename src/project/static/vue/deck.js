@@ -97,11 +97,15 @@ createApp({
             this.fetchFeedback();
             await this.fetchDeck();
             this.initializePDFViewer();
+            window.addEventListener("keydown", this.handleEscKey);
         }
     },
-
+    beforeUnmount() {
+        document.removeEventListener("click", this.handleClickOutside);
+        window.removeEventListener("keydown", this.handleEscKey);
+    },
     methods: {
-        async fetchDeck() {
+        async fetchDeckFile() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
             const deckId = pathSegments[pathSegments.length - 1];
 
@@ -111,18 +115,18 @@ createApp({
                     throw new Error("Failed to fetch deck data");
                 }
                 const data = await response.json();
-                this.deck = data.deck;
+                this.deckFile = data.deck;
             } catch (error) {
                 console.error("Error fetching deck data:", error.message, error.stack);
             }
         },
         async initializePDFViewer() {
-            if (!this.deck) console.error("PDF not found");
+            if (!this.deckFile) console.error("PDF not found");
             try {
                 pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_URL;
 
                 this.pdfDocument = await pdfjsLib.getDocument({
-                    data: atob(this.deck),
+                    data: atob(this.deckFile),
                     enableWorker: true,
                 }).promise;
 
@@ -148,22 +152,24 @@ createApp({
                 const canvas = this.$refs.pdfCanvas;
                 const container = canvas.parentElement;
 
-                const containerWidth = container.clientWidth;
-                const defaultViewport = page.getViewport({ scale: 1 });
-                const aspectRatio = defaultViewport.height / defaultViewport.width;
+                const maxWidth = container.clientWidth;
+                const maxHeight = container.clientHeight;
 
-                const scale = containerWidth / defaultViewport.width;
-                const viewport = page.getViewport({ scale });
+                const viewport = page.getViewport({ scale: 1 });
+                const scale = Math.min(maxWidth / viewport.width, maxHeight / viewport.height);
 
-                canvas.width = containerWidth;
-                canvas.height = containerWidth * aspectRatio;
+                const renderViewport = page.getViewport({ scale });
+
+                canvas.width = renderViewport.width;
+                canvas.height = renderViewport.height;
 
                 await page.render({
                     canvasContext: canvas.getContext("2d"),
-                    viewport: viewport,
+                    viewport: renderViewport,
                 }).promise;
 
                 this.currentPage = pageNumber;
+                this.selectedPage = this.findFeedbackByPageNumber(pageNumber);
             } catch (error) {
                 console.error("Render error:", error);
             }
@@ -173,7 +179,7 @@ createApp({
 
             const thumbnails = [];
             const totalPages = this.pdfDocument.numPages;
-            console.log(totalPages);
+
             for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
                 try {
                     const page = await this.pdfDocument.getPage(pageNum);
@@ -200,11 +206,34 @@ createApp({
 
             return thumbnails;
         },
+        scrollToThumbnail(pageNumber) {
+            this.$nextTick(() => {
+                const container = this.$refs.thumbnailContainer;
+                if (!container) {
+                    console.warn("Thumbnail container ref not found for scrolling.");
+                    return;
+                }
+                const targetThumbnail = container.querySelector(`[data-page-number="${pageNumber}"]`);
+
+                if (targetThumbnail) {
+                    targetThumbnail.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest",
+                        inline: "center",
+                    });
+                } else {
+                    console.warn(`Thumbnail element for page ${pageNumber} not found.`);
+                }
+            });
+        },
         fetchFeedback() {
             const feedbackElement = document.getElementById("feedback-data");
             if (feedbackElement) {
                 this.deckFeedback = JSON.parse(feedbackElement.textContent);
             }
+        },
+        findFeedbackByPageNumber(pageNumber) {
+            return this.deckFeedback.find((item) => item.page_number === pageNumber);
         },
         selectPage(page) {
             this.selectedPage = page;
@@ -215,9 +244,11 @@ createApp({
                 const nextPageNum = this.currentPage + 1;
                 this.renderPage(nextPageNum);
                 const nextPageFeedback = this.findFeedbackByPageNumber(nextPageNum);
-                if (nextPageFeedback) {
-                    this.selectedPage = nextPageFeedback;
-                }
+                this.selectedPage = nextPageFeedback || {
+                    page_number: nextPageNum,
+                    feedback: "No specific feedback for this page.",
+                };
+                this.scrollToThumbnail(nextPageNum);
             }
         },
         prevPage() {
@@ -225,13 +256,57 @@ createApp({
                 const prevPageNum = this.currentPage - 1;
                 this.renderPage(prevPageNum);
                 const prevPageFeedback = this.findFeedbackByPageNumber(prevPageNum);
-                if (prevPageFeedback) {
-                    this.selectedPage = prevPageFeedback;
-                }
+                this.selectedPage = prevPageFeedback || {
+                    page_number: prevPageNum,
+                    feedback: "No specific feedback for this page.",
+                };
+                this.scrollToThumbnail(prevPageNum);
             }
         },
-        findFeedbackByPageNumber(pageNumber) {
-            return this.deckFeedback.find((item) => item.page_number === pageNumber);
+        handleScroll(event) {
+            event.preventDefault();
+            const container = this.$refs.thumbnailContainer;
+            container.scrollLeft += event.deltaY;
+        },
+        openModal(modalType) {
+            let title = "";
+            let contentElementId = "";
+
+            if (modalType === "summary") {
+                title = "Overall Summary";
+                contentElementId = "modal-summary-content";
+            } else if (modalType === "goals") {
+                title = "Improvement Goals";
+                contentElementId = "modal-goals-content";
+            } else {
+                console.warn("Unknown modal type:", modalType);
+                return;
+            }
+
+            const contentElement = document.getElementById(contentElementId);
+            if (contentElement) {
+                this.modalTitle = title;
+                this.modalContent = contentElement.innerHTML;
+                this.activeModal = modalType;
+                document.body.style.overflow = "hidden";
+            } else {
+                console.error(`Modal content element not found: #${contentElementId}`);
+                this.modalTitle = title;
+                this.modalContent = '<p class="text-red-500">Error: Content not found.</p>';
+                this.activeModal = modalType;
+                document.body.style.overflow = "hidden";
+            }
+        },
+        closeModal() {
+            this.activeModal = null;
+            this.modalTitle = "";
+            this.modalContent = "";
+            document.body.style.overflow = "";
+        },
+        handleEscKey(event) {
+            if (event.key === "Escape" && this.activeModal) {
+                this.closeModal();
+            }
         },
     },
     data() {
@@ -242,9 +317,12 @@ createApp({
             mainSlideLoaded: false,
             allThumbnailsLoaded: false,
             fileData: null,
-            deck: null,
-            scores: null,
+            deckFile: null,
+            openDropdown: null,
             selectedPage: null,
+            activeModal: null,
+            modalTitle: "",
+            modalContent: "",
             currentPage: 1,
             totalPages: 0,
             deckFeedback: [],

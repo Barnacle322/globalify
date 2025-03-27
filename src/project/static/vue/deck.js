@@ -95,7 +95,7 @@ createApp({
         this.asideMinified = localStorage.getItem("asideMinified") == "true";
         if (document.getElementById("canvas")) {
             this.fetchFeedback();
-            await this.fetchDeck();
+            await this.fetchDeckFile();
             this.initializePDFViewer();
             window.addEventListener("keydown", this.handleEscKey);
         }
@@ -154,7 +154,6 @@ createApp({
 
                 const maxWidth = container.clientWidth;
                 const maxHeight = container.clientHeight;
-
 
                 const viewport = page.getViewport({ scale: 1 });
                 const scale = Math.min(maxWidth / viewport.width, maxHeight / viewport.height);

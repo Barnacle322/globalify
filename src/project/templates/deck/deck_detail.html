@@ -31,6 +31,8 @@
     {{ navbar.render(current_user) }}
     {% import "components/deck/deck_goals.html" as deck_goals %}
     {{ deck_goals.render() }}
+    {% import "components/deck/deck_summary.html" as deck_summary %}
+    {{ deck_summary.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -50,7 +52,10 @@
                 ></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div v-if="isDeckGoalsOpened" class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"></div>
+                <div
+                    v-if="isDeckGoalsOpened || isDeckSummaryOpened"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
+                ></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <deck-goals-component
@@ -60,75 +65,13 @@
                 ></deck-goals-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div
-                    v-if="activeModal"
-                    @click.self="closeModal"
-                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 bg-opacity-50 p-4"
-                >
-                    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden">
-                        <div class="flex justify-between items-center p-4 border-b border-gray-200">
-                            <h3 class="text-xl font-semibold text-gray-800" v-text="modalTitle"></h3>
-                            <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="w-6 h-6"
-                                >
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="p-5 max-h-[60vh] overflow-y-auto" v-html="modalContent"></div>
-                        <div class="flex justify-end p-4 border-t border-gray-200 bg-gray-50">
-                            <button
-                                @click="closeModal"
-                                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors text-sm"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <deck-summary-component
+                    v-if="isDeckSummaryOpened"
+                    :deck-id="selectedDeckId"
+                    @close-deck-summary="isDeckSummaryOpened = false"
+                ></deck-summary-component>
             </transition>
             <div class="relative w-full">
-                <div id="modal-content-container" style="display: none">
-                    <div id="modal-summary-content">
-                        <p class="mb-5">
-                            {{ deck.overall_recommendation | default('No overall recommendation available.') | safe }}
-                        </p>
-                        <h4 class="text-lg font-semibold mb-3 border-b pb-2">Detailed Scores</h4>
-                        <div class="space-y-3 text-gray-900">
-                            {% set score_items = [ ('Spelling & Grammar', deck.scores.grammary), ('Storytelling',
-                            deck.scores.storytelling), ('Clarity', deck.scores.clarity), ('Completeness',
-                            deck.scores.completeness), ('Engagement', deck.scores.engagement) ] %} {% for label, score
-                            in score_items %}
-                            <div
-                                class="flex justify-between {% if not loop.last %}border-b pb-1{% endif %} border-gray-200"
-                            >
-                                <h3 class="text-sm font-medium">{{ label }}</h3>
-                                <span class="text-sm font-bold text-blue-800"
-                                    >{{ score if score is not none else 'N/A' }}</span
-                                >
-                            </div>
-                            {% endfor %}
-                            <!-- Genius overall score calculating -->
-                            {% set score_values = [ deck.scores.grammary, deck.scores.storytelling, deck.scores.clarity,
-                            deck.scores.completeness, deck.scores.engagement ] %} {% set valid_scores = score_values |
-                            reject('none') | list %} {% set overall_score = (valid_scores | sum) / (valid_scores |
-                            length) if valid_scores else 0 %}
-                            <div class="flex justify-between border-t pt-3 mt-2 border-gray-300">
-                                <h3 class="text-sm font-medium">Overall Score</h3>
-                                <span class="text-sm font-bold text-green-800"
-                                    >{{ '%0.1f' % overall_score if valid_scores else 'N/A' }}</span
-                                >
-                            </div>
-                        </div>
-                    </div>
-                    <div id="modal-goals-content">ARSTAN GEAY</div>
-                </div>
                 <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
                     <div class="flex h-full w-fit gap-2 px-4 text-sm">
                         <a
@@ -152,7 +95,7 @@
                             Back
                         </a>
                         <a
-                            @click.prevent="openModal('summary')"
+                            @click="isDeckSummaryOpened = true; selectedDeckId = {{ deck.id }}"
                             class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-2 py-2 font-medium transition-colors ease-in-out hover:border-sky-500 cursor-pointer"
                         >
                             <svg
@@ -202,7 +145,7 @@
                                     >
                                         <div
                                             v-if="!mainSlideLoaded"
-                                            class="absolute inset-0 flex items-center justify-center bg-gray-100 z-10"
+                                            class="absolute inset-0 flex items-center justify-center bg-gray-100"
                                         >
                                             <div
                                                 class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
@@ -251,9 +194,9 @@
                                             data-page-number="{{ page.page_number }}"
                                             class="border-2 thumbnail-item flex-shrink-0 cursor-pointer scale-90 rounded-lg overflow-hidden transition-all relative"
                                             :class="{
-                                            'border-sky-500 scale-100': currentPage === {{page.page_number}},
-                                            'border-transparent hover:border-sky-300': currentPage !== {{page.page_number}}
-                                        }"
+                                                'border-sky-500 scale-100': currentPage === {{page.page_number}},
+                                                'border-transparent hover:border-sky-300': currentPage !== {{page.page_number}}
+                                            }"
                                             style="height: 100px; transition: all 0.2s ease"
                                         >
                                             <div class="h-full w-full bg-gray-100 flex items-center justify-center">

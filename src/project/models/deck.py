@@ -31,7 +31,7 @@ class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
     hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String, nullable=False, unique=False)
     # thumbnail_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    overall_recommendation: Mapped[str | None] = mapped_column(String, nullable=False)
+    overall_recommendation: Mapped[str] = mapped_column(String, nullable=False)
     json_feedback: Mapped[dict] = mapped_column(JSON, nullable=False, default=False)
     created: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)
 
@@ -61,7 +61,7 @@ class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalar(db.select(Deck).where(Deck.hash == hash))
 
     @property
-    def overall_score(self) -> float | None:
+    def overall_score(self) -> float:
         if self.scores:
             return (
                 (self.scores.clarity or 0)
@@ -70,17 +70,17 @@ class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
                 + (self.scores.completeness or 0)
                 + (self.scores.engagement or 0)
             ) / 5.0
-        return None
+        return 0
 
 
 class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     deck_id: Mapped[int] = mapped_column(Integer, ForeignKey("deck.id"), init=False)
-    clarity: Mapped[int | None] = mapped_column(Integer, nullable=False)
-    grammary: Mapped[int | None] = mapped_column(Integer, nullable=False)
-    storytelling: Mapped[int | None] = mapped_column(Integer, nullable=False)
-    completeness: Mapped[int | None] = mapped_column(Integer, nullable=False)
-    engagement: Mapped[int | None] = mapped_column(Integer, nullable=False)
+    clarity: Mapped[int] = mapped_column(Integer, nullable=False)
+    grammary: Mapped[int] = mapped_column(Integer, nullable=False)
+    storytelling: Mapped[int] = mapped_column(Integer, nullable=False)
+    completeness: Mapped[int] = mapped_column(Integer, nullable=False)
+    engagement: Mapped[int] = mapped_column(Integer, nullable=False)
 
     deck: Mapped[Deck] = relationship(back_populates="scores")
 
@@ -93,5 +93,5 @@ class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalars(db.select(Scores)).all()
 
     @staticmethod
-    def get_by_deck_id(deck_id: int) -> Sequence[Scores] | None:
-        return db.session.scalars(db.select(Scores).where(Scores.deck_id == deck_id)).all()
+    def get_by_deck_id(deck_id: int) -> Scores | None:
+        return db.session.scalar(db.select(Scores).where(Scores.deck_id == deck_id))

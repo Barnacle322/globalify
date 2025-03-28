@@ -8,13 +8,13 @@ from src.project.utils.enums import Status, StatusType
 
 from ..extensions import db
 from ..models import Deck, Scores
-from ..schemas.deck import DeckSchema
+from ..schemas.deck import DeckSchema, SummarySchema
 from ..utils.funcs import calculate_md5
 from ..utils.gemini import analyze_pdf
 from ..utils.google_helpers.google_storage import load_deck, upload_deck
 
 deck = Blueprint("deck", __name__)
-MAX_FILE_SIZE = 15728640
+MAX_FILE_SIZE = 15728640  # bytes == 15mb
 
 
 @deck.route("/list/<int:user_id>", methods=["GET"])
@@ -70,13 +70,13 @@ def analyze_deck():
     print("File loaded successfully")
     print(f"Size: {len(pdf_data)} bytes")
 
-    # if len(pdf_data) > MAX_FILE_SIZE:
-    #     print("Too big file")
-    #     return render_template(
-    #         "deck.html",
-    #         status_type=status_type,
-    #         msg=msg,
-    #     )
+    if len(pdf_data) > MAX_FILE_SIZE:
+        print("Too big file")
+        return render_template(
+            "deck.html",
+            status_type=status_type,
+            msg=msg,
+        )
 
     file_hash = calculate_md5(pdf_data)
     existing_deck = Deck.get_by_hash(file_hash)
@@ -187,6 +187,32 @@ def get_deck(deck_id):
     return jsonify(
         {
             "deck": deck_json.model_dump(),
+        }
+    )
+
+
+@deck.route("scores/<int:deck_id>", methods=["GET"])
+@login_required
+def get_deck_summary(deck_id):
+    scores = Scores.get_by_deck_id(deck_id)
+    deck = Deck.get_by_id(deck_id)
+    if not deck or not scores:
+        return jsonify({"error": "Scores/Deck not found"}), 404
+
+    summary_json = SummarySchema(
+        id=scores.id,
+        clarity=scores.clarity,
+        grammary=scores.grammary,
+        storytelling=scores.storytelling,
+        completeness=scores.completeness,
+        engagement=scores.engagement,
+        overall_score=deck.overall_score,
+        recommandation=deck.overall_recommendation,
+    )
+
+    return jsonify(
+        {
+            "summary": summary_json.model_dump(),
         }
     )
 

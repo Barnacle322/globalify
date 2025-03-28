@@ -1,3 +1,104 @@
+const DeckSummaryComponent = defineComponent({
+    template: "#deck-summary-template",
+    props: {
+        deckId: {
+            type: Number,
+            required: true,
+        },
+    },
+    emits: ["close-deck-summary"],
+    async mounted() {
+        await this.fetchSummary();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async fetchSummary() {
+            this.isLoading = true;
+            try {
+                const response = await fetch(`/deck/scores/${this.deckId}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch goals");
+                }
+                const data = await response.json();
+
+                this.summaryData = data.summary;
+                this.scoreItems = [
+                    { key: "grammary", label: "Spelling & Grammar" },
+                    { key: "storytelling", label: "Storytelling" },
+                    { key: "clarity", label: "Clarity" },
+                    { key: "completeness", label: "Completeness" },
+                    { key: "engagement", label: "Engagement" },
+                ];
+            } catch (error) {
+                console.error("Error fetching summary:", error.message);
+                this.error = error.message || "Failed to load summary. Please try again later.";
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        closeSummary() {
+            this.$emit("close-deck-summary");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeSummary();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeSummary();
+            }
+        },
+        getScoreBgColorClass(score) {
+            if (score === null || score === undefined) return "bg-gray-300";
+            if (score >= 8) return "bg-sky-500";
+            if (score >= 6) return "bg-green-500";
+            if (score >= 4) return "bg-yellow-500";
+            return "bg-orange-500";
+        },
+        getScoreTextColorClass(score) {
+            if (score === null || score === undefined) return "text-gray-500";
+            if (score >= 8) return "text-sky-600";
+            if (score >= 6) return "text-green-600";
+            if (score >= 4) return "text-yellow-600";
+            return "text-red-600";
+        },
+        getScoreWidthStyle(score) {
+            const numericScore = Number(score);
+            const width = numericScore && numericScore > 0 ? numericScore * 10 : 0;
+            const safeWidth = Math.min(Math.max(width, 0), 100);
+            return { width: `${safeWidth}%` };
+        },
+        formatScore(score) {
+            if (score === null || score === undefined) return "N/A";
+            return `${score}/10`;
+        },
+        formatOverallScore(score) {
+            if (score === null || score === undefined) return "N/A";
+            return typeof score === "number" ? score.toFixed(1) : "N/A";
+        },
+    },
+    data() {
+        return {
+            isLoading: true,
+            summaryData: null,
+            scoreItems: [],
+        };
+    },
+});
+
 const DeckGoalsComponent = defineComponent({
     template: "#deck-goals-template",
     props: {
@@ -60,7 +161,6 @@ const DeckGoalsComponent = defineComponent({
     data() {
         return {
             isLoading: true,
-            error: null,
             selectedAudience: "settings",
             selectedFormality: "neutral",
             selectedDomain: "business",
@@ -209,6 +309,7 @@ createApp({
         DeckUploadComponent,
         DeleteDeckComponent,
         DeckGoalsComponent,
+        DeckSummaryComponent,
     },
     delimiters: ["[[", "]]"],
     watch: {
@@ -361,9 +462,6 @@ createApp({
         findFeedbackByPageNumber(pageNumber) {
             return this.deckFeedback.find((item) => item.page_number === pageNumber);
         },
-        findFeedbackByPageNumber(pageNumber) {
-            return this.deckFeedback.find((item) => item.page_number === pageNumber);
-        },
         selectPage(page) {
             this.selectedPage = page;
             this.renderPage(page.page_number);
@@ -458,6 +556,7 @@ createApp({
             deckFeedback: [],
             deckThumbnails: [],
             isDeckGoalsOpened: false,
+            isDeckSummaryOpened: false,
             isDeckUploadOpened: false,
             deleteDeckOpened: false,
             deckToDelete: null,

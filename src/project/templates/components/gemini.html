@@ -18,7 +18,7 @@
                 v-if="selectedInvestorSlug"
             ></full-investor>
         </transition>
-        <nav class="sticky top-0 z-10 flex h-20 items-center justify-between bg-white px-4 py-4 sm:px-6">
+        <nav class="sticky top-0 z-10 flex h-20 items-center justify-between bg-white px-2 py-4">
             <button
                 @click="toggleHistory"
                 :disabled="!hasChats"
@@ -58,11 +58,11 @@
 
         <main class="relative flex h-full overflow-hidden">
             <aside
-                class="relative custom-scrollbar h-full overflow-y-auto overflow-x-clip border-r rounded-l-3xl bg-gray-50 transition-all duration-400 ease-in-out"
+                class="custom-scrollbar relative h-full overflow-x-clip overflow-y-auto rounded-l-3xl border-r bg-gray-50 transition-all duration-400 ease-in-out"
                 :class="isHistoryVisible? 'min-w-64 w-64' : 'min-w-0 w-0'"
             >
-                <ul class="min-w-64 p-2 flex flex-col gap-3">
-                    <button @click="createChat" class="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-gray-100">
+                <ul class="flex min-w-64 flex-col gap-3 p-2">
+                    <button @click="createChat" class="flex items-center gap-2 rounded-lg p-2 hover:bg-gray-100">
                         <div class="rounded-full bg-sky-500 p-1 text-white">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -75,10 +75,10 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
                         </div>
-                        <span class="font-medium text-sm">New Chat</span>
+                        <span class="text-sm font-medium">New Chat</span>
                     </button>
                     <li v-for="[date, chats] of userChats" :key="date">
-                        <span class="px-2 text-xs text-gray-500 shrink-0" v-text="date"></span>
+                        <span class="shrink-0 px-2 text-xs text-gray-500" v-text="date"></span>
                         <transition-group name="list" tag="div">
                             <a
                                 v-for="chat in chats"
@@ -116,7 +116,7 @@
                                     <button
                                         data-dropdown-button
                                         @click.stop="toggleDropdown(chat.id)"
-                                        class="absolute top-1/2 -translate-1/2 -right-1 hidden group-hover:block"
+                                        class="absolute top-1/2 -right-1 hidden -translate-1/2 group-hover:block"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -192,14 +192,14 @@
                 </ul>
             </aside>
             <div
-                class="mx-auto relative flex flex-col overflow-hidden transition-all duration-300 justify-center w-full"
+                class="relative mx-auto flex w-full flex-col items-center justify-center overflow-hidden px-2 transition-all duration-300"
             >
                 <div
-                    class="custom-scrollbar overflow-y-auto flex justify-center"
+                    class="custom-scrollbar flex h-full w-full justify-center overflow-y-auto"
                     ref="chatContainer"
                     @scroll="handleScroll"
                 >
-                    <div class="p-4 prose max-w-3xl">
+                    <div class="prose mt-10 w-full max-w-3xl">
                         <template v-if="response.length">
                             <div
                                 v-for="(message, index) in response"
@@ -216,11 +216,11 @@
                                     <div
                                         class="absolute -bottom-2 h-3 w-3"
                                         :class="{'right-0 bg-sky-500': message.type === 'user'}"
-                                        :style="{clipPath: message.type === 'user' ? 'polygon(0 0, 100% 0, 100% 100%)' : 'polygon(0 0, 100% 0, 0 100%)'}"
+                                        :style="{clipPath: message.type === 'user' ? 'polygon(0 0, 100% 0, 100% 100%)' : ''}"
                                     ></div>
                                 </div>
                             </div>
-                            <div v-if="isThinking" class="flex mb-4">
+                            <div v-if="isThinking" class="mb-4 flex">
                                 <svg
                                     class="animate-breathe"
                                     width="16"
@@ -234,7 +234,7 @@
                             </div>
                             <div v-if="isAborted[selectedChatId]" class="mb-4 flex">
                                 <div
-                                    class="flex gap-2 relative rounded-xl p-3 bg-red-100 max-w-[75%] text-red-500 border border-red-200"
+                                    class="relative flex max-w-[75%] gap-2 rounded-xl border border-red-200 bg-red-100 p-3 text-red-500"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -251,36 +251,37 @@
                                 </div>
                             </div>
                         </template>
-                        <div v-else class="flex h-full w-full flex-col items-center justify-center">
+                        <div v-else class="flex h-full w-full flex-col items-center justify-center px-2">
                             <h2 class="text-3xl font-semibold">What can I help with?</h2>
-
-                            <div class="relative flex w-full items-center">
-                                <div
-                                    ref="prompt"
-                                    v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
-                                    contenteditable="true"
-                                    @keyup.enter="startSSEStream(selectedChatId)"
-                                    class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-500 empty:before:content-['Write_GlobalifAI']"
-                                ></div>
-                                <button
-                                    @click="startSSEStream(selectedChatId)"
-                                    class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke-width="1.5"
-                                        stroke="#0ea5e9"
-                                        class="size-6"
+                            <div class="mx-2 w-full rounded-3xl bg-white p-4">
+                                <div class="relative flex w-full items-center">
+                                    <div
+                                        ref="prompt"
+                                        v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
+                                        contenteditable="true"
+                                        @keyup.enter="startSSEStream(selectedChatId)"
+                                        class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-500 empty:before:content-['Write_GlobalifAI']"
+                                    ></div>
+                                    <button
+                                        @click="startSSEStream(selectedChatId)"
+                                        class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
                                     >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"
-                                        />
-                                    </svg>
-                                </button>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="#0ea5e9"
+                                            class="size-6"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -288,85 +289,87 @@
 
                 <div
                     v-if="response.length"
-                    class="my-2 mx-auto w-full rounded-3xl border-t border-gray-200 bg-white p-4 max-w-3xl"
+                    class="m-2 w-full max-w-3xl rounded-3xl border-t border-gray-200 bg-white p-4"
                 >
-                    <div class="mx-2">
-                        <div class="relative flex items-center">
-                            <div
-                                v-if="!isAborted[selectedChatId]"
-                                ref="prompt"
-                                v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
-                                @keyup.enter="startSSEStream(selectedChatId)"
-                                contenteditable="true"
-                                :class="{ 'pointer-events-none opacity-50': isGenerating }"
-                                class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-400 empty:before:content-['Ask_GlobalifAI']"
-                            ></div>
-                            <button
-                                v-if="isGenerating"
-                                @click="cancelGeneration"
-                                class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-red-100"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    height="24px"
-                                    viewBox="0 -960 960 960"
-                                    width="24px"
-                                    fill="#0ea5e9"
-                                >
-                                    <path
-                                        d="M480-280q83 0 141.5-58.5T680-480q0-83-58.5-141.5T480-680q-83 0-141.5 58.5T280-480q0 83 58.5 141.5T480-280Zm0 200q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"
-                                    />
-                                </svg>
-                            </button>
-                            <button
-                                v-else-if="!isAborted[selectedChatId]"
-                                @click="startSSEStream(selectedChatId)"
-                                class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="#0ea5e9"
-                                    class="size-6"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
+                    <div class="relative flex items-center">
                         <div
-                            v-if="isAborted[selectedChatId]"
-                            class="flex flex-col items-center justify-center h-full cursor-pointer"
+                            v-if="!isAborted[selectedChatId]"
+                            ref="prompt"
+                            v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
+                            @keyup.enter="startSSEStream(selectedChatId)"
+                            contenteditable="true"
+                            :class="{ 'pointer-events-none opacity-50': isGenerating }"
+                            class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-400 empty:before:content-['Ask_GlobalifAI']"
+                        ></div>
+                        <button
+                            v-if="isGenerating"
+                            @click="cancelGeneration"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-red-100"
                         >
-                            <span>An error occurred while generating the response</span>
-                            <div
-                                class="flex items-center gap-2 justify-center mt-2 bg-sky-500 text-white p-4 rounded-full"
-                                @click="retryGeneration(selectedChatId)"
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                height="24px"
+                                viewBox="0 -960 960 960"
+                                width="24px"
+                                fill="#0ea5e9"
                             >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="size-6"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-                                    />
-                                </svg>
-                                <button class="transition-colors cursor-pointer">Повторно сгенерировать</button>
-                            </div>
+                                <path
+                                    d="M480-280q83 0 141.5-58.5T680-480q0-83-58.5-141.5T480-680q-83 0-141.5 58.5T280-480q0 83 58.5 141.5T480-280Zm0 200q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            v-else-if="!isAborted[selectedChatId]"
+                            @click="startSSEStream(selectedChatId)"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="#0ea5e9"
+                                class="size-6"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div
+                        v-if="isAborted[selectedChatId]"
+                        class="flex h-full cursor-pointer flex-col items-center justify-center"
+                    >
+                        <span>An error occurred while generating the response</span>
+                        <div
+                            class="mt-2 flex items-center justify-center gap-2 rounded-full bg-sky-500 p-4 text-white"
+                            @click="retryGeneration(selectedChatId)"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-6"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+                                />
+                            </svg>
+                            <button class="cursor-pointer transition-colors">Generate Again</button>
                         </div>
                     </div>
                 </div>
+                <span class="mx-2 mb-2 text-xs text-gray-400">
+                    GlobalifAI is still learning! Mistakes can occur, always double check.
+                </span>
             </div>
         </main>
     </article>

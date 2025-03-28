@@ -29,7 +29,7 @@ user_deck_association = Table(
 class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    # name: Mapped[str] = mapped_column(String, nullable=False, unique=False)
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=False)
     # thumbnail_url: Mapped[str | None] = mapped_column(String, nullable=True)
     overall_recommendation: Mapped[str | None] = mapped_column(String, nullable=False)
     json_feedback: Mapped[dict] = mapped_column(JSON, nullable=False, default=False)
@@ -41,15 +41,6 @@ class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
     scores: Mapped[Scores] = relationship(
         back_populates="deck", uselist=False, cascade="all, delete-orphan", init=False
     )
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "title": self.overall_recommendation,
-            "file_hash": self.hash,
-            "created": self.created.isoformat(),
-            "json_feedback": self.json_feedback,
-        }
 
     @staticmethod
     def get_all() -> Sequence[Deck] | None:
@@ -69,6 +60,18 @@ class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_by_hash(hash: str) -> Deck:
         return db.session.scalar(db.select(Deck).where(Deck.hash == hash))
 
+    @property
+    def overall_score(self) -> float | None:
+        if self.scores:
+            return (
+                (self.scores.clarity or 0)
+                + (self.scores.grammary or 0)
+                + (self.scores.storytelling or 0)
+                + (self.scores.completeness or 0)
+                + (self.scores.engagement or 0)
+            ) / 5.0
+        return None
+
 
 class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
@@ -80,15 +83,6 @@ class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):
     engagement: Mapped[int | None] = mapped_column(Integer, nullable=False)
 
     deck: Mapped[Deck] = relationship(back_populates="scores")
-
-    def to_dict(self):
-        return {
-            "clarity": self.clarity,
-            "grammary": self.grammary,
-            "storytelling": self.storytelling,
-            "completeness": self.completeness,
-            "engagement": self.engagement,
-        }
 
     @staticmethod
     def get_by_id(id: int) -> Scores | None:

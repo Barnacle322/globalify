@@ -1,3 +1,73 @@
+const DeckGoalsComponent = defineComponent({
+    template: "#deck-goals-template",
+    props: {
+        deckId: {
+            type: Number,
+            required: true,
+        },
+    },
+    async mounted() {
+        await this.fetchGoals();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async fetchGoals() {
+            try {
+                const response = await fetch(`/deck/${this.deckId}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch goals");
+                }
+                const data = await response.json();
+                this.processGoals(data.deck?.json_feedback?.goals);
+            } catch (error) {
+                console.error("Error fetching goals:", error.message);
+                this.error = "Failed to load goals. Please try again later.";
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        processGoals(goals) {
+            this.selectedAudience = goals?.audience || "settings";
+            this.selectedFormality = goals?.formality || "neutral";
+            this.selectedDomain = goals?.domain || "business";
+        },
+        closeGoals() {
+            this.$emit("close-deck-goals");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeGoals();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeGoals();
+            }
+        },
+    },
+    data() {
+        return {
+            isLoading: true,
+            error: null,
+            selectedAudience: "settings",
+            selectedFormality: "neutral",
+            selectedDomain: "business",
+        };
+    },
+});
+
 const DeleteDeckComponent = defineComponent({
     template: "#delete-deck-template",
     props: {
@@ -6,20 +76,17 @@ const DeleteDeckComponent = defineComponent({
             required: true,
         },
     },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
     methods: {
-        closeDeck() {
-            this.$emit("close-delete-company");
-        },
-        handleKeyDown(event) {
-            if (event.key === "Escape") {
-                this.closeDeck();
-            }
-        },
-        handleOutsideClick(event) {
-            if (!this.$el.contains(event.target)) {
-                this.closeDeck();
-            }
-        },
         async deleteDeck(deckId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
@@ -39,17 +106,19 @@ const DeleteDeckComponent = defineComponent({
                 console.error("Error cancelling invitation:", error.message);
             }
         },
-    },
-    mounted() {
-        console.log(this.deckId);
-        window.addEventListener("keydown", this.handleKeyDown);
-        setTimeout(() => {
-            document.addEventListener("click", this.handleOutsideClick);
-        }, 0);
-    },
-    beforeUnmount() {
-        window.removeEventListener("keydown", this.handleKeyDown);
-        document.removeEventListener("click", this.handleOutsideClick);
+        closeDeck() {
+            this.$emit("close-delete-company");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeDeck();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeDeck();
+            }
+        },
     },
 });
 
@@ -139,6 +208,7 @@ createApp({
         NavbarComponent,
         DeckUploadComponent,
         DeleteDeckComponent,
+        DeckGoalsComponent,
     },
     delimiters: ["[[", "]]"],
     watch: {
@@ -285,7 +355,7 @@ createApp({
         fetchFeedback() {
             const feedbackElement = document.getElementById("feedback-data");
             if (feedbackElement) {
-                this.deckFeedback = JSON.parse(feedbackElement.textContent);
+                this.deckFeedback = JSON.parse(feedbackElement.textContent).deck_feedback;
             }
         },
         findFeedbackByPageNumber(pageNumber) {
@@ -387,9 +457,11 @@ createApp({
             totalPages: 0,
             deckFeedback: [],
             deckThumbnails: [],
+            isDeckGoalsOpened: false,
             isDeckUploadOpened: false,
             deleteDeckOpened: false,
             deckToDelete: null,
+            selectedDeckId: null,
         };
     },
 }).mount("#app");

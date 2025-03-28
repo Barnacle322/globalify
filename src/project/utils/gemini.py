@@ -179,35 +179,29 @@ def analyze_pdf(pdf_data: bytes, audience: str, formality: str, domain: str) -> 
         * An overall score for the following categories (1-10): clarity, grammar, storytelling, completeness, engagement.
         * Feedback for each page of the pitch deck. Provide the page number and a short feedback (maximum 100 words) for each page.
 
-
         The audience for this pitch deck is: {audience}.
         The formality of the deck is: {formality}.
         The domain of the pitch deck is: {domain}.
 
         Output in JSON format:
 
-        {
+        {{
             "overall_recommendation": "...",
-            "scores": {
-                "clarity": ,
-                "grammar": ,
-                "storytelling": ,
-                "completeness": ,
-                "engagement":
-            },
-            "goals": [{audience}, {formality}, {domain}],
+            "scores": {{
+                "clarity": null,
+                "grammar": null,
+                "storytelling": null,
+                "completeness": null,
+                "engagement": null
+            }},
+            "goals": {{"audience": "{audience}", "formality": "{formality}", "domain": "{domain}"}},
             "deck_feedback": [
-                {
-                    "page_number": ,
+                {{
+                    "page_number": null,
                     "feedback": "..."
-                },
-                {
-                    "page_number": ,
-                    "feedback": "..."
-                },
-                ...
+                }}
             ]
-        }
+        }}
     """
 
     contents = [

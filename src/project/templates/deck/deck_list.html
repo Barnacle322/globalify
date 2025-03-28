@@ -27,9 +27,9 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %}
     {{ navbar.render(current_user) }}
-    {% import "components/deck_upload.html" as deck_upload %}
+    {% import "components/deck/deck_upload.html" as deck_upload %}
     {{ deck_upload.render() }}
-    {% import "components/delete_deck.html" as delete_deck %}
+    {% import "components/deck/delete_deck.html" as delete_deck %}
     {{ delete_deck.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
@@ -116,7 +116,10 @@
                                     <div
                                         class="w-10 h-10 border-3 border-red-700 rounded-full flex items-center justify-center"
                                     >
-                                        <span class="text-xs"> Score </span>
+                                        <span class="text-xs">
+                                            {{ deck.overall_score if deck.overall_score is not none else "No Score
+                                            Available" }}
+                                        </span>
                                     </div>
 
                                     <div

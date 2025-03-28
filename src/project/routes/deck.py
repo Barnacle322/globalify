@@ -8,6 +8,7 @@ from src.project.utils.enums import Status, StatusType
 
 from ..extensions import db
 from ..models import Deck, Scores
+from ..schemas.deck import DeckSchema
 from ..utils.funcs import calculate_md5
 from ..utils.gemini import analyze_pdf
 from ..utils.google_helpers.google_storage import load_deck, upload_deck
@@ -108,11 +109,17 @@ def create_models_from_json(json_data: str, unique_hash: str, deck_name: str | N
     try:
         data = json.loads(json_data)
 
+        goals = data.get("goals", [])
+        json_feedback = {
+            "goals": goals,
+            "deck_feedback": data.get("deck_feedback", []),
+        }
+
         deck = Deck(
             hash=unique_hash,
-            # name=deck_name or unique_hash,
+            name=deck_name or unique_hash,
             overall_recommendation=data.get("overall_recommendation"),
-            json_feedback=data.get("deck_feedback"),
+            json_feedback=json_feedback,
         )
         deck.users.append(current_user)  # type: ignore
 
@@ -162,6 +169,26 @@ def deck_file(deck_id):
     except Exception as e:
         status = Status(StatusType.ERROR, str(e)).get_status()
         return redirect(url_for("deck.user_deck_list", _external=False, **status))
+
+
+@deck.route("/<int:deck_id>", methods=["GET"])
+@login_required
+def get_deck(deck_id):
+    deck = Deck.get_by_id(deck_id)
+    if not deck:
+        return jsonify({"error": "Deck not found"}), 404
+
+    deck_json = DeckSchema(
+        id=deck.id,
+        name=deck.name,
+        json_feedback=deck.json_feedback,
+    )
+
+    return jsonify(
+        {
+            "deck": deck_json.model_dump(),
+        }
+    )
 
 
 @deck.route("/delete/<int:deck_id>", methods=["POST"])

@@ -29,6 +29,8 @@
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %}
     {{ navbar.render(current_user) }}
+    {% import "components/deck/deck_goals.html" as deck_goals %}
+    {{ deck_goals.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -46,6 +48,16 @@
                     v-if="asideExpanded"
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div v-if="isDeckGoalsOpened" class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"></div>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <deck-goals-component
+                    v-if="isDeckGoalsOpened"
+                    :deck-id="selectedDeckId"
+                    @close-deck-goals="isDeckGoalsOpened = false"
+                ></deck-goals-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
@@ -166,7 +178,7 @@
                         </a>
                         <a
                             href="#"
-                            @click.prevent="openModal('goals')"
+                            @click.prevent="isDeckGoalsOpened = true; selectedDeckId = {{ deck.id }}"
                             class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500 cursor-pointer"
                         >
                             <svg fill="#000000" class="size-6" viewBox="0 0 512.00 512.00" stroke-width="1.5">
@@ -233,7 +245,7 @@
                                         ref="thumbnailContainer"
                                         @wheel="handleScroll"
                                     >
-                                        {% for page in deck.json_feedback %}
+                                        {% for page in deck.json_feedback.deck_feedback %}
                                         <div
                                             @click="selectPage( {{ page }} )"
                                             data-page-number="{{ page.page_number }}"

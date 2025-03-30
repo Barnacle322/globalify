@@ -100,21 +100,21 @@
                         </div>
 
                         {% for deck in decks %}
-                        <a href="/deck/detail/{{ deck.id }}" class="transition-transform shadow-card-hover rounded-2xl">
+                        <a href="/deck/detail/{{ deck.id }}" class="shadow-card-hover rounded-2xl transition-transform">
                             <article class="flex min-h-[250px] flex-col rounded-2xl bg-white p-4 shadow-lg">
                                 <img
                                     src="/static/elements/Team/stub.png"
                                     alt="Deck Image"
                                     class="aspect-[16/9] w-full rounded-lg object-cover"
                                 />
-                                <div class="mt-4 w-full text-center text-sm text-gray-500 line-clamp-3">
+                                <div class="mt-4 line-clamp-3 w-full text-center text-sm text-gray-500">
                                     {{ deck.name if deck.name else "No Name Available" }}
                                 </div>
-                                <hr class="h-px mt-3 mb-3 font-bold bg-gray-50 border-0 dark:bg-gray-300" />
+                                <hr class="mt-3 mb-3 h-px border-0 bg-gray-50 font-bold dark:bg-gray-300" />
 
-                                <div class="flex justify-between items-center">
+                                <div class="flex items-center justify-between">
                                     <div
-                                        class="w-10 h-10 border-3 border-red-700 rounded-full flex items-center justify-center"
+                                        class="flex h-10 w-10 items-center justify-center rounded-full border-3 border-red-700"
                                     >
                                         <span class="text-xs">
                                             {{ deck.overall_score if deck.overall_score is not none else "No Score
@@ -123,7 +123,7 @@
                                     </div>
 
                                     <div
-                                        class="hover:scale-110 transition-transform duration-300"
+                                        class="transition-transform duration-300 hover:scale-110"
                                         @click.stop.prevent="deleteDeckOpened = true; deckToDelete = {{ deck.id }}"
                                     >
                                         <svg

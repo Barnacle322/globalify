@@ -22,78 +22,93 @@
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedAudience === 'profile' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="selectedAudience = 'profile'"
+                        @click="updateDescription('Audience', 'profile')"
                     >
                         Profile
                     </button>
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedAudience === 'settings' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="selectedAudience = 'settings'"
+                        @click="updateDescription('Audience', 'settings')"
                     >
                         Settings
                     </button>
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedAudience === 'messages' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="selectedAudience = 'messages'"
+                        @click="updateDescription('Audience', 'messages')"
                     >
                         Messages
                     </button>
                 </div>
             </div>
+            <p
+                v-if="activeDescriptions.Audience"
+                class="-mt-5 mb-2 ml-32 text-xs text-gray-600"
+                v-text="activeDescriptions.Audience"
+            ></p>
             <div class="flex flex-row items-center justify-start gap-8 border-b pt-5 pb-5">
                 <span class="w-28 pl-3">Formality</span>
                 <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedFormality === 'informal' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="selectedFormality = 'informal'"
+                        @click="updateDescription('Formality', 'informal')"
                     >
                         Informal
                     </button>
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedFormality === 'neutral' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="selectedFormality = 'neutral'"
+                        @click="updateDescription('Formality', 'neutral')"
                     >
                         Neutral
                     </button>
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedFormality === 'formal' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="selectedFormality = 'formal'"
+                        @click="updateDescription('Formality', 'formal')"
                     >
                         Formal
                     </button>
                 </div>
             </div>
+            <p
+                v-if="activeDescriptions.Formality"
+                class="-mt-5 mb-2 ml-32 text-xs text-gray-600"
+                v-text="activeDescriptions.Formality"
+            ></p>
             <div class="flex flex-row items-center justify-start gap-8 pt-5">
                 <span class="w-28 pl-3">Domain</span>
                 <div class="inline-flex rounded-md shadow-xs" role="group">
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedDomain === 'academic' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="selectedDomain = 'academic'"
+                         @click="updateDescription('Domain', 'academic')"
                     >
                         Academic
                     </button>
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedDomain === 'business' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="selectedDomain = 'business'"
+                        @click="updateDescription('Domain', 'business')"
                     >
                         Business
                     </button>
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedDomain === 'general' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="selectedDomain = 'general'"
+                        @click="updateDescription('Domain', 'general')"
                     >
                         General
                     </button>
                 </div>
             </div>
+            <p
+                v-if="activeDescriptions.Domain"
+                class=" mb-2 ml-32 text-xs text-gray-600"
+                v-text="activeDescriptions.Domain"
+            ></p>
         </div>
     </article>
 </template>

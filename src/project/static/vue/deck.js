@@ -56,6 +56,10 @@ const DeckGoalsComponent = defineComponent({
                 this.closeGoals();
             }
         },
+        updateDescription(type, value) {
+            this[`selected${type}`] = value;
+            this.activeDescriptions[type] = this.descriptions[type][value];
+        },
     },
     data() {
         return {
@@ -64,6 +68,28 @@ const DeckGoalsComponent = defineComponent({
             selectedAudience: "settings",
             selectedFormality: "neutral",
             selectedDomain: "business",
+            activeDescriptions: {
+                Audience: "Optimized for technical or configuration-related content.", // Initial for 'settings'
+                Formality: "Balanced tone, appropriate for general communication.",   // Initial for 'neutral'
+                Domain: "Focused on corporate or professional presentations.",        // Initial for 'business'
+            },
+            descriptions: {
+                Audience: {
+                    profile: "Tailored for individual user profiles and personal branding.",
+                    settings: "Optimized for technical or configuration-related content.",
+                    messages: "Designed for casual or conversational messaging contexts.",
+                },
+                Formality: {
+                    informal: "Casual tone, suitable for friendly or relaxed audiences.",
+                    neutral: "Balanced tone, appropriate for general communication.",
+                    formal: "Professional tone, ideal for official or academic purposes.",
+                },
+                Domain: {
+                    academic: "Structured for educational or research-based content.",
+                    business: "Focused on corporate or professional presentations.",
+                    general: "Versatile for a wide range of topics and audiences.",
+                },
+            },
         };
     },
 });
@@ -206,9 +232,9 @@ const DeckUploadComponent = defineComponent({
             selectedFormality: "neutral",
             selectedDomain: "business",
             activeDescriptions: {
-                Audience: "Optimized for technical or configuration-related content.", // Initial for 'settings'
-                Formality: "Balanced tone, appropriate for general communication.",   // Initial for 'neutral'
-                Domain: "Focused on corporate or professional presentations.",        // Initial for 'business'
+                Audience: "Optimized for technical or configuration-related content.",
+                Formality: "Balanced tone, appropriate for general communication.",
+                Domain: "Focused on corporate or professional presentations.",
             },
             descriptions: {
                 Audience: {

@@ -176,6 +176,11 @@ const DeckUploadComponent = defineComponent({
                 this.closeDeckUpload();
             }
         },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeDeckUpload();
+            }
+        },
         updateDescription(type, value) {
             this[`selected${type}`] = value;
             this.activeDescriptions[type] = this.descriptions[type][value];

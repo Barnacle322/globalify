@@ -13,7 +13,6 @@ from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationshi
 
 from ..extensions import db
 from ..utils.enums import SearchHistoryType
-
 if TYPE_CHECKING:
     from .user import User
 

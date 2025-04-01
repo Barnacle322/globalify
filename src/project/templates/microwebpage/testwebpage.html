@@ -1,0 +1,411 @@
+<!-- prettier-ignore -->
+{% extends "layouts/layout.html" %}
+{% block additional_scripts %}
+<script src="/static/scripts/cycle.js" defer></script>
+<script src="/static/scripts/typewriter.js" defer></script>
+<!-- prettier-ignore -->
+{% endblock %}
+{% block title %}Globalify{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block content %}
+
+<main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
+    <section
+        class="relative mx-auto flex max-w-7xl flex-col items-center justify-center px-6 pt-5 pb-5 text-center lg:pt-24"
+    >
+        <img
+            class="pointer-events-none absolute top-0 left-1/2 -z-50 h-fit w-fit origin-top -translate-x-1/2 scale-75 transform"
+            src="/static/elements/hero-bg.svg"
+            alt=""
+        />
+
+        <span
+            class="move-up border-gray text-semibold w-fit rounded-full border border-gray-200 bg-white px-2 py-1 text-xs shadow-lg"
+            style="animation-delay: 1.2s"
+            ><span class="bg-linear-to-r from-[#8076E7] to-[#E776C1] bg-clip-text text-transparent"
+                >Finding investors with ease</span
+            ></span
+        >
+        <h1
+            class="move-up mx-auto mt-5 mb-10 max-w-sm text-center text-4xl font-semibold tracking-tight text-slate-900 sm:max-w-lg sm:text-5xl lg:text-6xl"
+        >
+            <span class="background-animate bg-linear-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text text-transparent"
+                >Globalify</span
+            ><br />Your Gateway to <br />
+            <div class="relative flex h-10 justify-center overflow-hidden sm:h-12 lg:h-[60px]">
+                <span class="scroll" style="animation-delay: 2s">
+                    <div>Funders</div>
+                    <div>Founders</div>
+                    <div>Partners</div>
+                    <div>Investors</div>
+                    <div>The Future</div>
+                </span>
+            </div>
+        </h1>
+        <p
+            class="move-up mx-auto mb-10 max-w-2xl text-center text-base text-slate-700 sm:text-lg"
+            style="animation-delay: 0.8s"
+        >
+            Unlock your business's potential with our extensive network of investors and partners. We're here to help
+            you secure the funding you need to take you to the next level.
+        </p>
+    </section>
+
+    <section
+        class="fade-in flex w-full flex-col items-center justify-center bg-linear-to-b from-white to-slate-100 px-6 pb-20"
+        style="animation-delay: 1.2s"
+    >
+        <div class="w-full max-w-4xl">
+            <form
+                class="view-search relative mx-auto flex w-full gap-2 rounded-full bg-white py-4 pr-3 shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px]"
+                action="/search"
+                method="get"
+            >
+                <input
+                    type="search"
+                    id="search"
+                    name="search"
+                    class="w-full border-0 bg-transparent py-3 pr-0 pl-6 text-sm focus:ring-0"
+                    placeholder="Search"
+                    autocapitalize="off"
+                    autocorrect="off"
+                    autocomplete="off"
+                    aria-autocomplete="both"
+                    enterkeyhint="search"
+                    required
+                />
+                <button id="search-btn" type="submit">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-5"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                        />
+                    </svg>
+                </button>
+                <a href="/suggestions" class="flex flex-col items-center justify-center pr-3">
+                    <div
+                        class="animate-border size-6 bg-linear-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%]"
+                        style="clip-path: url(#magic-icon)"
+                    ></div>
+                    <svg height="0" width="0">
+                        <clipPath id="magic-icon">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
+                            />
+                        </clipPath>
+                    </svg>
+                </a>
+            </form>
+        </div>
+        <div id="results" class="relative mt-10 grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-3"></div>
+    </section>
+
+    <section class="flex items-center justify-center gap-2.5 bg-[#1C1236] px-6 py-10 text-white">
+        <div class="fade-in flex max-w-7xl flex-col items-center justify-center" style="animation-delay: 1.2s">
+            <div class="flex flex-col items-center justify-center gap-4 md:text-center">
+                <span
+                    class="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-900 shadow-md shadow-white/50"
+                    ><img src="/static/elements/award.svg" alt="" />Experts</span
+                >
+                <h2 class="text-3xl font-semibold sm:text-4xl">Tailored experience for specific regions</h2>
+                <p class="text-slate-500">Experts from around the world are here to help</p>
+            </div>
+            <img class="mt-10" src="/static/elements/countries.svg" alt="" />
+        </div>
+    </section>
+
+    <section class="fade-in mx-auto mt-20 mb-12 w-full max-w-7xl px-4" style="animation-delay: 1.2s">
+        <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+            Globalify helps bring your ideas into
+            <span class="bg-linear-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent">reality</span>
+        </h2>
+        <div class="mt-16 flex w-full snap-x snap-mandatory gap-4 overflow-x-auto *:snap-start">
+            <div
+                class="relative flex aspect-2/3 min-w-[300px] flex-col gap-4 overflow-hidden rounded-2xl bg-[#01151d] p-6 sm:w-full"
+            >
+                <p class="text-xs text-gray-400">Advisory & Partnership</p>
+                <span class="font-medium text-white">
+                    Helped <u><a href="https://qubic.org" target="_blank">Qubic</a></u> organize hackathons in Central
+                    Asia. Helped set up and secure new investors.
+                </span>
+                <img
+                    class="absolute -bottom-10 aspect-auto translate-x-20 scale-150 rounded-3xl"
+                    src="/static/elements/qubic-superconnect.jpg"
+                    alt=""
+                />
+                <div class="absolute bottom-4 left-4 rounded-xl bg-white p-2">
+                    <img class="size-8" src="/static/elements/logos/qubic.svg" alt="" />
+                </div>
+            </div>
+            <div
+                class="relative flex aspect-2/3 min-w-[300px] flex-col gap-4 overflow-hidden rounded-2xl bg-[#edeff1] p-6 sm:w-full"
+            >
+                <p class="text-xs text-gray-700">Advisory & Series A</p>
+                <span class="font-medium text-black">
+                    Globalify backed the vision by introducing
+                    <u><a href="https://www.climate-x.com/" target="_blank">Climate X</a></u> to Google Ventures and
+                    Blue Wire Capital.
+                </span>
+                <img
+                    class="absolute -bottom-32 aspect-auto translate-x-20 scale-150 rounded-3xl"
+                    src="/static/elements/climatex-superconnect.jpg"
+                    alt=""
+                />
+                <div class="absolute bottom-4 left-4 rounded-xl bg-black p-1">
+                    <img class="size-10" src="/static/elements/logos/climatex.png" alt="" />
+                </div>
+            </div>
+            <div
+                class="relative flex aspect-2/3 min-w-[300px] flex-col gap-4 overflow-hidden rounded-2xl bg-[#28165c] p-6 sm:w-full"
+            >
+                <p class="text-xs text-gray-400">Seed Round</p>
+                <span class="font-medium text-white">
+                    Supported <u><a href="https://www.olivex.ai/" target="_blank">OliveX</a></u> with both existing and
+                    new strategic investors through the Web3 and Hong Kong network.
+                </span>
+                <img
+                    class="absolute -bottom-32 aspect-auto translate-x-20 scale-150 rounded-3xl"
+                    src="/static/elements/olivex-superconnect.jpeg"
+                    alt=""
+                />
+                <div class="px absolute bottom-4 left-4 rounded-xl bg-white">
+                    <img class="size-12 object-contain" src="/static/elements/logos/olivex.png" alt="" />
+                </div>
+            </div>
+            <div
+                class="relative mr-10 flex aspect-2/3 min-w-[300px] flex-col gap-4 overflow-hidden rounded-2xl bg-[#f2f2f2] p-6 sm:mr-0 sm:w-full"
+            >
+                <p class="text-xs text-gray-700">Series C</p>
+                <span class="font-medium text-black">
+                    Together with NewChicCapital helped raise
+                    <u><a href="https://www.cambrianbio.com/" target="_blank">Cambrian</a></u>
+                    <b class="font-semibold">$60,000,000</b></span
+                >
+                <img
+                    class="absolute bottom-10 aspect-auto translate-x-20 scale-150 rounded-3xl"
+                    src="/static/elements/cambrianbiopharma-superconnect.jpg"
+                    alt=""
+                />
+                <div class="absolute bottom-4 left-4 rounded-xl bg-[#0a1b42] p-1">
+                    <img class="size-9" src="/static/elements/logos/cambrianbiopharma.png" alt="" />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="fade-in flex items-center justify-center gap-2.5 px-6 pt-20" style="animation-delay: 1.2s">
+        <div class="flex w-full max-w-7xl flex-col">
+            <div class="flex flex-col gap-4 text-start md:text-center">
+                <span
+                    class="mx-auto flex w-fit items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-900 shadow-xl"
+                    ><img src="/static/elements/3dcube.svg" alt="" />Testimonials</span
+                >
+                <h2 class="l mt-2 text-3xl font-semibold sm:text-[40px]">
+                    Hear it from others <br />
+                    It does
+                    <span class="bg-linear-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent">work</span>
+                </h2>
+            </div>
+            <div class="relative">
+                <div class="relative mt-20 flex w-full gap-5 overflow-hidden" id="thelist">
+                    <article
+                        class="flex min-w-full rounded-[2rem] bg-linear-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
+                    >
+                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
+                            <p class="line-clamp-7">
+                                Starting my own business was awesome, but getting the funding I needed was a struggle.
+                                Globalify helped me out BIG TIME! They're a super-powered search engine that finds the
+                                right connections to get my startup, MedBrain rolling. Now things are exploding and I'm
+                                stoked!
+                            </p>
+                            <div class="mt-5 flex flex-col">
+                                <span class="font-bold">Pol Ricart</span>
+                                <span class="text-slate-400">Entrepreneur, MD</span>
+                            </div>
+                        </div>
+                    </article>
+                    <article
+                        class="flex min-w-full rounded-[2rem] bg-linear-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
+                    >
+                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
+                            <p class="line-clamp-7">
+                                Using Globalify's search engine opened up many new opportunities for collaborations and
+                                generated even more interest in my crypto project. It felt like unlocking a door to a
+                                world of possibilities that I hadn't even imagined. ¡Es la caña!
+                            </p>
+                            <div class="mt-5 flex flex-col">
+                                <span class="font-bold">Alberto Fernandez</span>
+                                <span class="text-slate-400">Entrepreneur</span>
+                            </div>
+                        </div>
+                    </article>
+                    <article
+                        class="flex min-w-full rounded-[2rem] bg-linear-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
+                    >
+                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
+                            <p class="line-clamp-7">
+                                Thanks to the power of Globalify's proprietary AI Search Engine, I was able to secure
+                                the funding I needed from Web2, Web3, and very famous angel investors to seed my
+                                startup. I can't recommend them enough!
+                            </p>
+                            <div class="mt-5 flex flex-col">
+                                <span class="font-bold">JL</span>
+                                <span class="text-slate-400">First Time Founder</span>
+                            </div>
+                        </div>
+                    </article>
+                    <article
+                        class="flex min-w-full rounded-[2rem] bg-linear-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
+                    >
+                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
+                            <p class="line-clamp-7">
+                                Globalify helped us discover hidden gems for direct investment as well as amazing Fund
+                                Managers to co-invest with. For a select few of the Funds we met via Globalify, we
+                                became LPs after strategic intros and meetings facilitated by the platform.
+                            </p>
+                            <div class="mt-5 flex flex-col">
+                                <span class="font-bold">JM </span>
+                                <span class="text-slate-400">Chair, Single Family Office, US & Asia</span>
+                            </div>
+                        </div>
+                    </article>
+                    <article
+                        class="flex min-w-full rounded-[2rem] bg-linear-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
+                    >
+                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
+                            <p class="line-clamp-7">
+                                I used Globalify, a cool search engine, to find people who wanted to learn about my
+                                Canadian VR startup. Eric was super helpful and made things easier for me. Thanks to
+                                Globalify, I met great people and learned a lot more. Big shoutout to Globalify for
+                                making my dreams a bit more real!
+                            </p>
+                            <div class="mt-5 flex flex-col">
+                                <span class="font-bold">Miji Lee </span>
+                                <span class="text-slate-400">First Time Founder</span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <button
+                    class="absolute top-1/2 -left-5 size-16 rounded-full border bg-white transition-colors ease-in-out hover:bg-neutral-50"
+                    onclick="cycleBack()"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="mx-auto size-6"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>
+                </button>
+                <button
+                    class="absolute top-1/2 -right-5 size-16 rounded-full border bg-white transition-colors ease-in-out hover:bg-neutral-50"
+                    onclick="cycleForward()"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="mx-auto size-6"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="fade-in mx-auto max-w-7xl px-6 py-16" style="animation-delay: 1.2s">
+        <div class="mx-auto lg:mx-0">
+            <h2 class="mx-auto text-center text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+                From the blog
+            </h2>
+            <p class="mx-auto mt-2 text-center text-lg tracking-tight text-slate-700">
+                Learn how to grow your business with our expert advice.
+            </p>
+        </div>
+        <div
+            class="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3"
+        >
+            {% if posts %} {% for post in posts %}
+            <article class="flex max-w-xl flex-col items-start">
+                <img class="mb-5 aspect-3/2 w-full rounded-lg object-cover" src="{{ post.image }}" alt="" />
+                <div class="flex flex-col items-start justify-start">
+                    <div class="flex items-center gap-x-4 text-xs">
+                        <time class="text-slate-500">{{ post.published }}</time>
+                    </div>
+                    <div class="relative">
+                        <h3 class="mt-3 text-lg leading-6 font-semibold text-slate-900 hover:text-slate-700">
+                            <a href="{{ post.link }}">
+                                <span class="absolute inset-0"></span>
+                                {{ post.title }}
+                            </a>
+                        </h3>
+                        <p class="mt-5 line-clamp-3 text-sm leading-6 text-slate-700">{{ post.subtitle }}</p>
+                    </div>
+                    <div class="relative mt-4 flex items-center gap-x-4">
+                        <div class="text-sm leading-6">
+                            <p class="font-semibold text-slate-900">{{ post.author }}</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+            {% endfor %} {% endif %}
+        </div>
+    </section>
+
+    <section class="mt-12 mb-20 w-full px-4">
+        <div
+            class="via-deep-purple relative mx-auto flex w-full max-w-7xl flex-col gap-10 overflow-hidden rounded-3xl border-2 bg-black bg-linear-to-b from-[#2c3050] to-[#2c3050] bg-cover p-10 shadow-lg lg:flex-row"
+        >
+            <div class="flex flex-col gap-5 text-white lg:w-1/2">
+                <span class="text-[40px] leading-tight font-semibold"
+                    >Get access to our
+                    <br />
+                    <span class="bg-linear-to-r from-sky-500 via-teal-500 to-blue-500 bg-clip-text text-transparent"
+                        >Free Startup Course
+                    </span>
+                    on Knowledge Hub!</span
+                >
+                <p class="lg:text-lg">
+                    Learn how to build a successful startup from the ground up. Our course is designed to help you
+                    understand the key concepts of entrepreneurship and how to apply them to your own business.
+                    <br /><br />
+                    Sign up now to get access to our free course and start building your dream startup today!
+                </p>
+                <!-- <p class="text-4xl">
+                    <s class="text-slate-400">$499</s>
+                    $199<span class="text-base">USD</span>
+                </p> -->
+                <a
+                    href="https://hub.globalify.xyz"
+                    target="_blank"
+                    class="mt-5 rounded-xl bg-sky-500 px-5 py-3 text-center font-medium transition-colors ease-in-out hover:bg-sky-400 lg:w-72"
+                >
+                    Go to Knowledge Hub
+                </a>
+            </div>
+            <div class="absolute hidden translate-x-1/2 lg:block">
+                <img class="origin-top-left scale-75 rounded-3xl" src="/static/elements/hub_academy.jpeg" alt="" />
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

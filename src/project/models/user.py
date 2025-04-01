@@ -44,7 +44,7 @@ from ..utils.typesense_helpers.typesense_search import (
     delete_schema,
     upsert_documents,
 )
-from .deck import Deck, Scores, user_deck_association
+from .deck import Deck, Feedback, user_deck_association
 from .helpers import Country, Industry, Round
 from .investment import FundingRound
 
@@ -96,7 +96,7 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     decks: Mapped[list[Deck]] = relationship(
         "Deck", secondary=user_deck_association, back_populates="users", uselist=True, init=False
     )
-    scores: Mapped[list[Scores]] = relationship(back_populates="user", uselist=True, init=False)
+    feedbacks: Mapped[list[Feedback]] = relationship(back_populates="user", uselist=True, init=False)
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)

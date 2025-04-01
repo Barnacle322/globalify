@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
@@ -28,15 +29,17 @@ user_deck_association = Table(
 
 class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    name: Mapped[str] = mapped_column(String, nullable=True, init=False)
     hash: Mapped[str] = mapped_column(String, nullable=False)
-    name: Mapped[str] = mapped_column(String, nullable=False)
     # picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, server_default=func.now(), init=False
+    )
 
     users: Mapped[list[User]] = relationship(
         "User", secondary=user_deck_association, back_populates="decks", uselist=True, init=False
     )
-    scores: Mapped[list[Scores]] = relationship(back_populates="deck", cascade="all, delete-orphan", init=False)
+    feedbacks: Mapped[list[Feedback]] = relationship(back_populates="deck", cascade="all, delete-orphan", init=False)
 
     @staticmethod
     def get_all() -> Sequence[Deck] | None:
@@ -57,7 +60,7 @@ class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalar(db.select(Deck).where(Deck.hash == hash))
 
 
-class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):
+class Feedback(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     deck_id: Mapped[int] = mapped_column(Integer, ForeignKey("deck.id"), init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), init=False)
@@ -72,22 +75,24 @@ class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):
     engagement_score: Mapped[int] = mapped_column(Integer, nullable=False)
     page_feedback: Mapped[dict] = mapped_column(JSON, nullable=False)
     recommendation: Mapped[str] = mapped_column(String, nullable=False)
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False) #default order
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, server_default=func.now(), init=False
+    )  # default order
 
-    user: Mapped[User] = relationship(back_populates="scores", uselist=False, init=False)
-    deck: Mapped[Deck] = relationship(back_populates="scores", uselist=False, init=False)
-
-    @staticmethod
-    def get_by_id(id: int) -> Scores | None:
-        return db.session.scalar(db.select(Scores).where(Scores.id == id))
+    user: Mapped[User] = relationship(back_populates="feedbacks", uselist=False, init=False)
+    deck: Mapped[Deck] = relationship(back_populates="feedbacks", uselist=False, init=False)
 
     @staticmethod
-    def get_all() -> Sequence[Scores] | None:
-        return db.session.scalars(db.select(Scores)).all()
+    def get_by_id(id: int) -> Feedback | None:
+        return db.session.scalar(db.select(Feedback).where(Feedback.id == id))
 
     @staticmethod
-    def get_by_deck_id(deck_id: int) -> Sequence[Scores] | None:
-        return db.session.scalars(db.select(Scores).where(Scores.deck_id == deck_id)).all()
+    def get_all() -> Sequence[Feedback] | None:
+        return db.session.scalars(db.select(Feedback)).all()
+
+    @staticmethod
+    def get_by_deck_id(deck_id: int) -> Sequence[Feedback] | None:
+        return db.session.scalars(db.select(Feedback).where(Feedback.deck_id == deck_id)).all()
 
     @staticmethod
     def get_by_deck_user_and_goals(
@@ -96,14 +101,14 @@ class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):
         audience: str,
         formality: str,
         domain: str,
-    ) -> Scores | None:
+    ) -> Feedback | None:
         return db.session.scalar(
-            db.select(Scores).where(
-                Scores.deck_id == deck_id,
-                Scores.user_id == user_id,
-                Scores.audience == audience,
-                Scores.formality == formality,
-                Scores.domain == domain,
+            db.select(Feedback).where(
+                Feedback.deck_id == deck_id,
+                Feedback.user_id == user_id,
+                Feedback.audience == audience,
+                Feedback.formality == formality,
+                Feedback.domain == domain,
             )
         )
 
@@ -111,24 +116,64 @@ class Scores(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_by_deck_user_sorted(
         deck_id: int,
         user_id: int,
-    ) -> Sequence[Scores] | None:
+    ) -> Sequence[Feedback] | None:
         return db.session.scalars(
-            db.select(Scores)
+            db.select(Feedback)
             .where(
-                Scores.deck_id == deck_id,
-                Scores.user_id == user_id,
+                Feedback.deck_id == deck_id,
+                Feedback.user_id == user_id,
             )
-            .order_by(desc(Scores.created_at))
+            .order_by(desc(Feedback.created_at))
         ).all()
 
     @property
     def overall_score(self) -> float:
         if self:
             return (
-                (self.clarity or 0)
-                + (self.grammar or 0)
-                + (self.storytelling or 0)
-                + (self.completeness or 0)
-                + (self.engagement or 0)
+                (self.clarity_score or 0)
+                + (self.grammar_score or 0)
+                + (self.design_score or 0)
+                + (self.storytelling_score or 0)
+                + (self.engagement_score or 0)
             ) / 5.0
         return 0
+
+    @classmethod
+    def create_from_json(cls, json_data: str, deck: Deck, current_user: User) -> Feedback | None:
+        try:
+            data = json.loads(json_data)
+
+            page_feedback = {
+                "page": data.get("page", []),
+                "feedback": data.get("feedback", []),
+            }
+
+            feedback = cls(
+                audience=data["feedback"].get("clarity", ""),
+                formality=data["feedback"].get("clarity", ""),
+                domain=data["feedback"].get("clarity", ""),
+                agent=data["feedback"].get("clarity", ""),
+                clarity_score=data["feedback"].get("clarity", 0),
+                grammar_score=data["feedback"].get("grammar", 0),
+                design_score=data["feedback"].get("grammar", 0),
+                storytelling_score=data["feedback"].get("storytelling", 0),
+                engagement_score=data["feedback"].get("engagement", 0),
+                recommendation=data.get("overall_recommendation", ""),
+                page_feedback=page_feedback,
+            )
+
+            feedback.deck = deck
+            feedback.user = current_user
+
+            db.session.add(feedback)
+            db.session.commit()
+            return feedback
+
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            db.session.rollback()
+            return None
+        except Exception as e:
+            print(f"Error creating feedback: {e}")
+            db.session.rollback()
+            return None

@@ -1,5 +1,5 @@
 from .claim import ClaimRequest, ClaimVerification
-from .deck import Deck, Scores
+from .deck import Deck, Feedback
 from .helpers import Country, Industry, Round
 from .investment import FundingRound, Investment
 from .investor import (
@@ -53,5 +53,5 @@ __all__ = [
     "Chat",
     "Message",
     "Deck",
-    "Scores",
+    "Feedback",
 ]

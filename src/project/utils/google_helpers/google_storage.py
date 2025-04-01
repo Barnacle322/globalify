@@ -174,7 +174,7 @@ def load_deck(deck_uuid):
     return deck_base64
 
 
-def upload_deck(deck, content_type, blob_name, bucket_name: str = BUCKET_NAME):
+def upload_deck(deck, blob_name, content_type, bucket_name: str = BUCKET_NAME):
     if not deck or deck == "" or deck == "None":
         raise ValueError("No deck provided")
 

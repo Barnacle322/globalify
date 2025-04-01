@@ -84,7 +84,7 @@
                     <button
                         type="button"
                         :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedDomain === 'academic' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                         @click="updateDescription('Domain', 'academic')"
+                        @click="updateDescription('Domain', 'academic')"
                     >
                         Academic
                     </button>
@@ -106,7 +106,7 @@
             </div>
             <p
                 v-if="activeDescriptions.Domain"
-                class=" mb-2 ml-32 text-xs text-gray-600"
+                class="mb-2 ml-32 text-xs text-gray-600"
                 v-text="activeDescriptions.Domain"
             ></p>
         </div>

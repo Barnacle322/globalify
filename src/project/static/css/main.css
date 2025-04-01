@@ -1072,6 +1072,9 @@
   .mt-auto {
     margin-top: auto;
   }
+  .-mr-1 {
+    margin-right: calc(var(--spacing) * -1);
+  }
   .mr-1 {
     margin-right: calc(var(--spacing) * 1);
   }

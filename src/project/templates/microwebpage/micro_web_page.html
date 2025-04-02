@@ -1,5 +1,5 @@
 <!-- prettier-ignore -->
-{% extends "layouts/layout.html" %}
+{% extends "microwebpage/micrropage_layout.html" %}
 {% block additional_scripts %}
 <script src="/static/scripts/cycle.js" defer></script>
 <script src="/static/scripts/typewriter.js" defer></script>
@@ -32,8 +32,8 @@
             class="move-up mx-auto mt-5 mb-10 max-w-sm text-center text-4xl font-semibold tracking-tight text-slate-900 sm:max-w-lg sm:text-5xl lg:text-6xl"
         >
             <span class="background-animate bg-linear-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text text-transparent"
-                >Globalify</span
-            ><br />Your Gateway to <br />
+                >{{ company.name }}</span
+            ><br />{{ micropage.description }} <br />
             <div class="relative flex h-10 justify-center overflow-hidden sm:h-12 lg:h-[60px]">
                 <span class="scroll" style="animation-delay: 2s">
                     <div>Funders</div>

@@ -139,34 +139,30 @@ class Feedback(MappedAsDataclass, db.Model, unsafe_hash=True):
         return 0
 
     @classmethod
-    def create_from_json(cls, json_data: str, deck: Deck, current_user: User) -> Feedback | None:
+    def create_from_json(
+        cls, analysis_data: dict, goals: dict[str, str], deck: Deck, current_user: User
+    ) -> Feedback | None:
         try:
-            data = json.loads(json_data)
+            scores = analysis_data.get("feedback", {})
+            page_feedback_list = analysis_data.get("page_feedback", [])
 
-            page_feedback = {
-                "page": data.get("page", []),
-                "feedback": data.get("feedback", []),
-            }
-
+            # Создаем объект Feedback
             feedback = cls(
-                audience=data["feedback"].get("clarity", ""),
-                formality=data["feedback"].get("clarity", ""),
-                domain=data["feedback"].get("clarity", ""),
-                agent=data["feedback"].get("clarity", ""),
-                clarity_score=data["feedback"].get("clarity", 0),
-                grammar_score=data["feedback"].get("grammar", 0),
-                design_score=data["feedback"].get("grammar", 0),
-                storytelling_score=data["feedback"].get("storytelling", 0),
-                engagement_score=data["feedback"].get("engagement", 0),
-                recommendation=data.get("overall_recommendation", ""),
-                page_feedback=page_feedback,
+                audience=goals["audience"],
+                formality=goals["formality"],
+                domain=goals["domain"],
+                agent=goals["agent"],
+                clarity_score=scores.get("clarity"),
+                grammar_score=scores.get("grammar"),
+                design_score=scores.get("design"),
+                storytelling_score=scores.get("storytelling"),
+                engagement_score=scores.get("engagement"),
+                recommendation=analysis_data.get("overall_recommendation", ""),
+                page_feedback=page_feedback_list,
             )
-
             feedback.deck = deck
             feedback.user = current_user
 
-            db.session.add(feedback)
-            db.session.commit()
             return feedback
 
         except json.JSONDecodeError as e:

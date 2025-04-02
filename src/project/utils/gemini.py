@@ -168,34 +168,34 @@ def generate_name_summary_with_typesense_context(query: str):
     return response
 
 
-def analyze_pdf(pdf_data: bytes, audience: str, formality: str, domain: str) -> str:
+def analyze_pdf(pdf_data: bytes, goals: dict[str, str]) -> str:
     genai.configure(api_key="AIzaSyCslKgJDAckdMD34arTHWJ8fSHB0ERFTmA")
     model = genai.GenerativeModel("gemini-1.5-flash")
 
     prompt = f"""
         You are an expert pitch deck analyst. Analyze the provided pitch deck and provide:
 
-        * Overall recommendations for improvement (maximum 200 words). Focus on the key areas that need the most attention.
-        * An overall score for the following categories (1-10): clarity, grammar, storytelling, completeness, engagement.
-        * Feedback for each page of the pitch deck. Provide the page number and a short feedback (maximum 100 words) for each page.
+        * Overall recommendations for improvement (maximum 250 words). Focus on the key areas that need the most attention.
+        * An overall score for the following categories (1-10): clarity, grammar, design, storytelling, engagement.
+        * Feedback for each page of the pitch deck. Provide the page number and a short feedback (maximum 150 words) for each page.
+        * Provide short informative name for pitchdeck (maximum 3 words).
 
-        The audience for this pitch deck is: {audience}.
-        The formality of the deck is: {formality}.
-        The domain of the pitch deck is: {domain}.
+        The audience for this pitch deck is: {goals['audience']}.
+        The formality of the deck is: {goals['formality']}.
+        The domain of the pitch deck is: {goals['domain']}.
 
         Output in JSON format:
 
         {{
-            "overall_recommendation": "...",
-            "scores": {{
+            "deck_name": "...",
+            "feedback": {{
                 "clarity": null,
                 "grammar": null,
+                "design": null,
                 "storytelling": null,
-                "completeness": null,
                 "engagement": null
             }},
-            "goals": {{"audience": "{audience}", "formality": "{formality}", "domain": "{domain}"}},
-            "deck_feedback": [
+            "page_feedback": [
                 {{
                     "page_number": null,
                     "feedback": "..."

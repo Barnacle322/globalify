@@ -14,7 +14,7 @@ from ..utils.gemini import analyze_pdf
 from ..utils.google_helpers.google_storage import load_deck, upload_deck
 
 deck = Blueprint("deck", __name__)
-MAX_FILE_SIZE = 15728640  # bytes == 15mb
+MAX_FILE_SIZE = 15 * 1024 * 1024  # bytes == 15mb
 
 
 @deck.route("/list/<int:user_id>", methods=["GET"])
@@ -26,7 +26,6 @@ def index(user_id):
         msg = query.get("msg")
 
     decks = Deck.get_by_user_id(user_id)
-    print(decks)
     return render_template(
         "deck/deck_list.html",
         decks=decks,
@@ -38,7 +37,7 @@ def index(user_id):
 
 @deck.route("/upload", methods=["GET", "POST"])
 @login_required
-def upload_pitchdeck():
+def upload():
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -93,33 +92,48 @@ def upload_pitchdeck():
             status = Status(StatusType.ERROR, str(e)).get_status()
             return redirect(url_for("deck.index", _external=False, **status))
 
-    analyze_deck(deck, request, pdf_data)
-
-    return jsonify({"redirect_url": url_for("deck.user_deck_detail")}), 200
+    return jsonify(deck_id=deck.id), 200
 
 
 @deck.route("/analysis", methods=["GET", "POST"])
 @login_required
-def analyze_deck(deck: Deck, request: Request, pdf_data: bytes):
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
+def analyze():
+    deck_id = request.form.get("deck_id", type=int)
 
-    audience = request.form.get("audience", "")
-    formality = request.form.get("formality", "")
-    domain = request.form.get("domain", "")
+    if not deck_id:
+        status = Status(StatusType.ERROR, "Error fetching  pitch deck ID").get_status()
+        return redirect(url_for("deck.index", _external=False, **status))
 
-    analysis_result_json = analyze_pdf(pdf_data, audience, formality, domain)
-    print(analysis_result_json)
+    goals = {key: request.form.get(key, "") for key in ["audience", "formality", "domain"]}
 
-    if analysis_result_json:
-        feedback = Feedback.create_from_json(analysis_result_json, deck, current_user)
-        if deck and feedback:
-            print("Success")
-            deck_id = deck.id
-        else:
-            print("Error")
+    if Feedback.get_by_deck_user_and_goals(
+        deck_id, current_user.id, goals["audience"], goals["formality"], goals["domain"]
+    ):
+        print("Feedback with selected goals for this deck already exists.")
+        return jsonify({"redirect_url": url_for("deck.user_deck_detail", deck_id=deck_id)}), 200
+
+    pdf_data = request.files["file"].read()
+    analysis_result_json = analyze_pdf(pdf_data, goals)
+    deck = Deck.get_by_id(deck_id)
+
+    if deck:
+        try:
+            data = json.loads(analysis_result_json)
+            feedback = Feedback.create_from_json(data, current_user)  # type: ignore
+            deck.name = data["deck_name"]
+            deck.feedbacks.append(feedback)
+
+            db.session.add(feedback)
+            db.session.add(deck)
+
+            db.session.commit()
+
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"Error decoding JSON or accessing key: {e}")
+            deck.name = "Default Deck Name"
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("deck.user_deck_list", _external=False, **status))
 
     return jsonify({"redirect_url": url_for("deck.user_deck_detail", deck_id=deck_id)}), 200
 
@@ -140,7 +154,7 @@ def user_deck_detail(deck_id):
 def deck_file(deck_id):
     deck = Deck.get_by_id(deck_id)
     try:
-        deck_pdf = load_deck(deck.hash)
+        deck_pdf = load_deck(deck.hash)  # type: ignore
         return jsonify({"deck": deck_pdf}), 200
 
     except Exception as e:
@@ -158,7 +172,7 @@ def get_deck(deck_id):
     deck_json = DeckSchema(
         id=deck.id,
         name=deck.name,
-        json_feedback=deck.json_feedback,
+        json_feedback=deck.feedbacks,
     )
 
     return jsonify(
@@ -168,30 +182,30 @@ def get_deck(deck_id):
     )
 
 
-@deck.route("scores/<int:deck_id>", methods=["GET"])
-@login_required
-def get_deck_summary(deck_id):
-    scores = Feedback.get_by_deck_id(deck_id)
-    deck = Deck.get_by_id(deck_id)
-    if not deck or not scores:
-        return jsonify({"error": "Scores/Deck not found"}), 404
+# @deck.route("scores/<int:deck_id>", methods=["GET"])
+# @login_required
+# def get_deck_summary(deck_id):
+#     scores = Feedback.get_by_deck_id(deck_id)
+#     deck = Deck.get_by_id(deck_id)
+#     if not deck or not scores:
+#         return jsonify({"error": "Scores/Deck not found"}), 404
 
-    summary_json = SummarySchema(
-        id=scores.id,
-        clarity=scores.clarity,
-        grammary=scores.grammary,
-        storytelling=scores.storytelling,
-        completeness=scores.completeness,
-        engagement=scores.engagement,
-        overall_score=deck.overall_score,
-        recommandation=deck.overall_recommendation,
-    )
+#     summary_json = SummarySchema(
+#         id=scores.id,
+#         clarity=scores.clarity,
+#         grammary=scores.grammary,
+#         storytelling=scores.storytelling,
+#         completeness=scores.completeness,
+#         engagement=scores.engagement,
+#         overall_score=deck.overall_score,
+#         recommandation=deck.overall_recommendation,
+#     )
 
-    return jsonify(
-        {
-            "summary": summary_json.model_dump(),
-        }
-    )
+#     return jsonify(
+#         {
+#             "summary": summary_json.model_dump(),
+#         }
+#     )
 
 
 @deck.route("/delete/<int:deck_id>", methods=["POST"])

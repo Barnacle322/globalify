@@ -76,6 +76,8 @@
     {{ delete_funding_round.render() }}
     {% import "components/update_funding_round.html" as update_funding_round %}
     {{ update_funding_round.render() }}
+    {% import "microwebpage/create_micro_web_page.html" as create_micro_web_page%}
+    {{ create_micro_web_page.render(company.id) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />
@@ -95,7 +97,7 @@
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
                     class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
-                    v-if="inviteMemberOpened || selectedUser || selectedInvitationId || deleteCompanyOpened || createInvestmentOpened || createFundingRoundOpened || updateFundingRoundOpened || deleteFundingRoundOpened || updateInvestmentOpened"
+                    v-if="inviteMemberOpened || selectedUser || selectedInvitationId || deleteCompanyOpened || createInvestmentOpened || createFundingRoundOpened || updateFundingRoundOpened || deleteFundingRoundOpened || updateInvestmentOpened || createMicroWebPageOpened"
                 ></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
@@ -124,6 +126,14 @@
                     @close-delete-company="deleteCompanyOpened = null"
                 ></delete-company-component>
             </transition>
+
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <create-micro-web-page-component
+                    v-if="createMicroWebPageOpened"
+                    @close-create-micro-web-page="createMicroWebPageOpened = null"
+                ></create-micro-web-page-component>
+            </transition>
+
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <create-investment-component
                     companyid="{{ company.id }}"
@@ -965,6 +975,21 @@
                             </div>
                         </div>
                     </div>
+                    <div class="my-10 grid gap-6 sm:grid-cols-6">
+                        <div class="col-span-2">
+                            <h2 class="text-2xl font-bold">Create a webpage</h2>
+                            <p class="mt-1 leading-6 text-gray-700">Create a microwebpage for your company</p>
+                        </div>
+                        <div class="lx yx md:col-span-2">
+                            <div
+                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-blue-700 px-4 text-white transition-colors ease-in-out hover:bg-red-600"
+                                @click="createMicroWebPageOpened = true"
+                            >
+                                Create a microwebpage
+                            </div>
+                        </div>
+                    </div>
+
                     {% if user_role == 'owner' %}
                     <div class="my-10 grid gap-6 sm:grid-cols-6">
                         <div class="col-span-2">

@@ -1,3 +1,80 @@
+const CreateMicroWebPageComponent = defineComponent({
+    template: "#create-micro-webpage-template",
+    methods: {
+        closeCreateMicroWebPage() {
+            this.$emit("close-create-micro-web-page");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeCreateMicroWebPage();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeCreateMicroWebPage();
+            }
+        },
+
+        async submitForm(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            try {
+                // Get CSRF token from the hidden input
+                const csrfToken = document.getElementById('csrf_token').value;
+
+                const formData = new URLSearchParams({
+                    ...this.form,
+                    csrf_token: csrfToken
+                }).toString();
+
+                const response = await fetch('/microwebpage/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                    return;
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+            }
+        },
+
+    },
+
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+        this.form.company_id = document.getElementById('company_id').value;
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+
+    data(){
+        return {
+            form: {
+                name: '',
+                description: '',
+                assets: '',
+                company_id: ''
+            }
+        }
+    },
+
+
+});
+
+
 const DeleteCompanyComponent = defineComponent({
     template: "#delete-company-template",
     methods: {
@@ -45,7 +122,6 @@ const DeleteCompanyComponent = defineComponent({
         document.removeEventListener("click", this.handleOutsideClick);
     },
 });
-
 const CancelInvitationComponent = defineComponent({
     template: "#cancel-invitation-template",
     props: ["invitation"],
@@ -1390,6 +1466,7 @@ const DeleteFundingRoundComponent = defineComponent({
     },
 });
 
+
 createApp({
     emits: ["close-confirm-restore", "close-invite-member", "close-change-role"],
     components: {
@@ -1413,6 +1490,7 @@ createApp({
         CreateFundingRoundComponent,
         UpdateFundingRoundComponent,
         DeleteFundingRoundComponent,
+        CreateMicroWebPageComponent,
     },
 
     watch: {
@@ -1763,6 +1841,7 @@ createApp({
             createFundingRoundOpened: false,
             updateFundingRoundOpened: false,
             deleteFundingRoundOpened: false,
+            createMicroWebPageOpened: false,
             selectedInvestment: null,
             selectedFundingRound: null,
             csrfToken: "",

@@ -10,7 +10,6 @@ from sqlalchemy import (
     func,
     Text
 )
-from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 
 from ..extensions import db
@@ -22,16 +21,14 @@ if TYPE_CHECKING:
 
 
 class MicroWebPage(MappedAsDataclass, db.Model, unsafe_hash=True):
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, init=False)
     company_id: Mapped[int] = mapped_column(ForeignKey("company.id", ondelete="CASCADE"), unique=True, nullable=False)
     company: Mapped["Company"] = relationship("Company", back_populates="microwebpage", single_parent=True)
-    name: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
-    logo_url: Mapped[str] = mapped_column(String(500), nullable=True)
-    website_url: Mapped[str] = mapped_column(String(500), nullable=True)
-    contact_email: Mapped[str] = mapped_column(String(255), nullable=True)
-    created_at: Mapped[str] = mapped_column(db.DateTime, server_default=db.func.now())
-    employee_number: Mapped[int] = mapped_column(Integer, nullable=True, default=0)
+    assets: Mapped[str] = mapped_column(String(200), nullable=False)
+    created: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)
+
+
 
     @staticmethod
     def get_by_id(id: int) -> MicroWebPage:

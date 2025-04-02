@@ -1,0 +1,80 @@
+{% macro render(company_id) %}
+<template id="create-micro-webpage-template">
+    <article class="fixed inset-0 z-50 flex flex-col gap-4 rounded-none bg-white px-8 py-6 transition-all">
+        <div class="flex items-start justify-between">
+            <h2 class="text-xl font-bold">Create Micro Webpage</h2>
+            <button @click="closeCreateMicroWebPage">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-6 w-6"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="flex flex-col gap-6">
+            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" id="company_id" value="{{ company_id }}" />
+
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Description -->
+                <div class="flex flex-col">
+                    <label class="font-medium">Description</label>
+                    <p class="text-sm text-gray-600">Provide a brief company description</p>
+                </div>
+                <div>
+                    <textarea
+                        name="description"
+                        v-model="form.description"
+                        class="w-full rounded border p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        rows="3"
+                        placeholder="e.g., Building AI to accelerate human scientific discovery"
+                    ></textarea>
+                </div>
+
+                <!-- Assets -->
+                <div class="flex flex-col">
+                    <label class="font-medium">Assets</label>
+                    <p class="text-sm text-gray-600">
+                        Enter the assets associated with this webpage (max 200 characters)
+                    </p>
+                </div>
+                <div>
+                    <input
+                        type="text"
+                        name="assets"
+                        v-model="form.assets"
+                        required
+                        maxlength="200"
+                        class="w-full rounded border p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="e.g., AI models, datasets, patents"
+                    />
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-end gap-4">
+                <button
+                    type="button"
+                    @click="closeCreateMicroWebPage"
+                    class="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    @click="submitForm"
+                    class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                >
+                    Create
+                </button>
+            </div>
+        </div>
+    </article>
+</template>
+{% endmacro %}

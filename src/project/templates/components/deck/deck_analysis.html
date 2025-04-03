@@ -1,0 +1,58 @@
+{% macro render() %}
+<template id="deck-analysis-template">
+    <div class="analysis-settings">
+        <div
+            v-for="(options, category) in categoryOptions"
+            :key="category"
+            :class="[
+                'flex flex-col border-gray-200',
+                category === firstCategory ? 'border-t' : '',
+                category !== lastCategory ? 'border-b' : ''
+            ]"
+        >
+            <!-- Category Group -->
+            <div class="flex flex-row items-center justify-start gap-8 pt-5 pb-5">
+                <span class="w-28 pl-3" v-text="categoryLabels[category]"></span>
+                <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
+                    <button
+                        v-for="(option, index) in options"
+                        :key="option.value"
+                        type="button"
+                        v-text="option.label"
+                        :class="[
+                            'cursor-pointer px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2',
+                            selectedGoals[category] === option.value ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500',
+                            index === 0 ? 'rounded-s-lg' : '',
+                            index === options.length - 1 ? 'rounded-e-lg' : '',
+                            index > 0 && index < options.length - 1 ? 'border-t border-b' : ''
+                        ]"
+                        @click="updateGoal(category, option.value)"
+                    ></button>
+                </div>
+            </div>
+
+            <!-- Description for current category -->
+            <div class="pb-2">
+                <p
+                    v-if="descriptions[category] && descriptions[category][selectedGoals[category]]"
+                    class="-mt-3 mb-2 ml-32 text-xs text-gray-600"
+                    v-text="descriptions[category][selectedGoals[category]]"
+                ></p>
+            </div>
+        </div>
+
+        <div class="flex w-full items-center justify-center rounded-b-lg border-r border-b border-l p-2">
+            <button
+                v-text="analyzeButtonText"
+                class="rounded-lg bg-sky-500 px-4 py-2 font-bold text-white hover:bg-sky-700"
+                :class="{
+                    'opacity-50 cursor-not-allowed': !isReady,
+                    'cursor-pointer': isReady
+                }"
+                :disabled="!isReady"
+                @click="handleAnalyze"
+            ></button>
+        </div>
+    </div>
+</template>
+{% endmacro %}

@@ -188,6 +188,7 @@ def analyze_pdf(pdf_data: bytes, goals: dict[str, str]) -> str:
 
         {{
             "deck_name": "...",
+            "recommendation": "...",
             "feedback": {{
                 "clarity": null,
                 "grammar": null,

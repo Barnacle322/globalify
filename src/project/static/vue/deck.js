@@ -168,6 +168,88 @@ const DeckGoalsComponent = defineComponent({
     },
 });
 
+const DeckAnalysisComponent = defineComponent({
+    template: "#deck-analysis-template",
+    props: ["deckId", "file"],
+    emits: ["analyze"],
+    data() {
+        return {
+            selectedGoals: {
+                audience: "",
+                formality: "",
+                domain: "",
+            },
+            categoryLabels: {
+                audience: "Audience",
+                formality: "Formality",
+                domain: "Domain",
+            },
+            analyzeButtonText: "Analyze",
+            categoryOptions: {
+                audience: [
+                    { value: "investors", label: "Investors" },
+                    { value: "clients", label: "Clients" },
+                    { value: "partners", label: "Partners" },
+                ],
+                formality: [
+                    { value: "informal", label: "Informal" },
+                    { value: "semi-formal", label: "Semi-Formal" },
+                    { value: "formal", label: "Formal" },
+                ],
+                domain: [
+                    { value: "tech", label: "Technology" },
+                    { value: "finance", label: "Finance" },
+                    { value: "healthcare", label: "Healthcare" },
+                ],
+            },
+            descriptions: {
+                audience: {
+                    investors: "Tailored for financial presentations and investment pitches.",
+                    clients: "Optimized for client-facing presentations and proposals.",
+                    partners: "Designed for partnership and collaboration opportunities.",
+                },
+                formality: {
+                    informal: "Casual tone, suitable for friendly or relaxed audiences.",
+                    "semi-formal": "Balanced tone, appropriate for most business contexts.",
+                    formal: "Professional tone, ideal for official or high-stakes presentations.",
+                },
+                domain: {
+                    tech: "Focused on technology sector and digital innovation topics.",
+                    finance: "Optimized for financial metrics and investment content.",
+                    healthcare: "Tailored for healthcare industry and medical presentations.",
+                },
+            },
+        };
+    },
+    computed: {
+        isReady() {
+            return Object.keys(this.selectedGoals).every((key) => !!this.selectedGoals[key]);
+        },
+        firstCategory() {
+            return Object.keys(this.categoryOptions)[0];
+        },
+        lastCategory() {
+            const keys = Object.keys(this.categoryOptions);
+            return keys[keys.length - 1];
+        },
+    },
+    methods: {
+        updateGoal(type, value) {
+            this.selectedGoals[type] = value;
+        },
+        handleAnalyze() {
+            if (this.isReady) {
+                this.$emit("analyze", this.selectedGoals);
+            }
+        },
+    },
+    created() {
+        this.selectedGoals.audience = "clients";
+        this.selectedGoals.formality = "semi-formal";
+        this.selectedGoals.domain = "finance";
+    },
+});
+
 const DeleteDeckComponent = defineComponent({
     template: "#delete-deck-template",
     props: {
@@ -225,6 +307,9 @@ const DeleteDeckComponent = defineComponent({
 const DeckUploadComponent = defineComponent({
     template: "#deck-upload-template",
     emits: ["close-deck-upload"],
+    components: {
+        "deck-analysis-component": DeckAnalysisComponent,
+    },
     methods: {
         async uploadFile(analysisGoals) {
             if (!this.fileData) {
@@ -234,24 +319,24 @@ const DeckUploadComponent = defineComponent({
 
             this.isAnalyzing = true;
             try {
-                const deckFile = new FormData("file", this.fileData.file);
+                const formData = new FormData();
+                formData.append("file", this.fileData);
+                formData.append("audience", analysisGoals.audience);
+                formData.append("formality", analysisGoals.formality);
+                formData.append("domain", analysisGoals.domain);
 
                 const response = await fetch("/deck/upload", {
                     method: "POST",
                     headers: {
                         "X-CSRFToken": document.getElementById("csrf_token").value,
                     },
-                    body: deckFile,
+                    body: formData,
                 });
 
                 if (!response.ok) throw new Error("Uploadind failed");
 
                 const data = await response.json();
-                if (!data.deck_id) {
-                    throw new Error("Upload succeeded but did not return a deck ID.");
-                }
-
-                await this.$refs.analysisComponent.AnalyzeDeck(deck_id, analysisGoals);
+                window.location.href = `/deck/detail/${data.deck_id}`;
             } catch (error) {
                 console.error("Error in analyzeFile:", error.message, error.stack);
                 this.isAnalyzing = false;
@@ -280,6 +365,13 @@ const DeckUploadComponent = defineComponent({
             }
             if (event.target) event.target.value = null;
         },
+        handleAnalysisGoals(goals) {
+            this.selectedAudience = goals.audience;
+            this.selectedFormality = goals.formality;
+            this.selectedDomain = goals.domain;
+            this.uploadFile(goals);
+        },
+
         closeDeckUpload() {
             this.fileData = null;
             this.isUploading = false;
@@ -305,88 +397,11 @@ const DeckUploadComponent = defineComponent({
         return {
             fileData: null,
             isUploading: false,
-            selectedButton: null,
             isAnalyzing: false,
             selectedAudience: "",
             selectedFormality: "",
             selectedDomain: "",
         };
-    },
-});
-
-const DeckAnalysisComponent = defineComponent({
-    template: "#deck-analysis-template",
-    props: {
-        goals: { type: String, default: null },
-        deckFile: { type: File, default: null },
-    },
-    computed: {
-        isReady() {
-            return this.deckFile || this.goals;
-        },
-    },
-    methods: {
-        async analyzeDeck(deckFile, goals) {
-            try {
-                this.isLoading = true;
-                const response = await fetch(`/deck/analyze`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                    body: JSON.stringify(deckFile, goals),
-                });
-
-                if (!response.ok) {
-                    console.error(`HTTP error! Status: ${response.status}`);
-                    return;
-                }
-
-                const data = await response.json();
-
-                if (document.getElementById("feedBack")) {
-                    this.$refs.feedbackComponent.fetchFeedback(data);
-                } else {
-                    window.location.href = data.redirect_url;
-                }
-            } finally {
-                this.isLoading = false;
-            }
-        },
-    },
-    data() {
-        return {
-            feedback: null,
-            isLoading: false,
-            selectedGoals: {
-                audience: "",
-                formality: "",
-                domain: "",
-            },
-            goalsGroups: {
-                Audience: [
-                    { value: "profile", label: "Profile" },
-                    { value: "settings", label: "Settings" },
-                    { value: "messages", label: "Messages" },
-                ],
-                Formality: [
-                    { value: "informal", label: "Informal" },
-                    { value: "neutral", label: "Neutral" },
-                    { value: "formal", label: "Formal" },
-                ],
-                Domain: [
-                    { value: "academic", label: "Academic" },
-                    { value: "business", label: "Business" },
-                    { value: "general", label: "General" },
-                ],
-            },
-        };
-    },
-    computed: {
-        showFileInput() {
-            return !this.initialFile;
-        },
     },
 });
 
@@ -398,7 +413,6 @@ createApp({
         NavbarComponent,
         DeckUploadComponent,
         DeleteDeckComponent,
-        DeckAnalysisComponent,
         DeckGoalsComponent,
         DeckSummaryComponent,
     },
@@ -652,6 +666,28 @@ createApp({
             deleteDeckOpened: false,
             deckToDelete: null,
             selectedDeckId: null,
+            selectedGoals: {
+                audience: "",
+                formality: "",
+                domain: "",
+            },
+            goalsGroups: {
+                Audience: [
+                    { value: "profile", label: "Profile" },
+                    { value: "settings", label: "Settings" },
+                    { value: "messages", label: "Messages" },
+                ],
+                Formality: [
+                    { value: "informal", label: "Informal" },
+                    { value: "neutral", label: "Neutral" },
+                    { value: "formal", label: "Formal" },
+                ],
+                Domain: [
+                    { value: "academic", label: "Academic" },
+                    { value: "business", label: "Business" },
+                    { value: "general", label: "General" },
+                ],
+            },
         };
     },
 }).mount("#app");

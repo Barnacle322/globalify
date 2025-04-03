@@ -26,9 +26,15 @@ class MicroWebPage(MappedAsDataclass, db.Model, unsafe_hash=True):
     company: Mapped["Company"] = relationship("Company", back_populates="microwebpage", single_parent=True)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     assets: Mapped[str] = mapped_column(String(200), nullable=False)
+    mission_statement: Mapped[str | None] = mapped_column(Text)
+    awards: Mapped[str | None] = mapped_column(Text)
+    partnerships: Mapped[str | None] = mapped_column(Text)
+    team_description: Mapped[str | None] = mapped_column(Text)
+    target_market: Mapped[str | None] = mapped_column(Text)
+    customer_testimonials: Mapped[str | None] = mapped_column(Text)
+    key_products: Mapped[str | None] = mapped_column(Text)
+    founder_bio: Mapped[str | None] = mapped_column(Text)
     created: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)
-
-
 
     @staticmethod
     def get_by_id(id: int) -> MicroWebPage:

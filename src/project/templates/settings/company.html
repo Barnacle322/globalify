@@ -35,7 +35,7 @@
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
 
         <!-- Vue -->
-        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
         <script src="/static/vue/base.js"></script>
         <script src="/static/scripts/menu.js" defer></script>
         <script src="/static/vue/settings.js" defer></script>
@@ -76,8 +76,6 @@
     {{ delete_funding_round.render() }}
     {% import "components/update_funding_round.html" as update_funding_round %}
     {{ update_funding_round.render() }}
-    {% import "microwebpage/create_micro_web_page.html" as create_micro_web_page%}
-    {{ create_micro_web_page.render(company.id) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />
@@ -125,13 +123,6 @@
                     v-if="deleteCompanyOpened"
                     @close-delete-company="deleteCompanyOpened = null"
                 ></delete-company-component>
-            </transition>
-
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <create-micro-web-page-component
-                    v-if="createMicroWebPageOpened"
-                    @close-create-micro-web-page="createMicroWebPageOpened = null"
-                ></create-micro-web-page-component>
             </transition>
 
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
@@ -981,12 +972,12 @@
                             <p class="mt-1 leading-6 text-gray-700">Create a microwebpage for your company</p>
                         </div>
                         <div class="lx yx md:col-span-2">
-                            <div
-                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-blue-700 px-4 text-white transition-colors ease-in-out hover:bg-red-600"
-                                @click="createMicroWebPageOpened = true"
+                            <a
+                                href="/microwebpage/create/{{ company.id }}"
+                                class="bg-deep-purple mt-4 flex rounded-lg px-4 py-3 text-white transition-transform duration-500 ease-in-out hover:scale-105"
                             >
-                                Create a microwebpage
-                            </div>
+                                Create Microwebpage
+                            </a>
                         </div>
                     </div>
 

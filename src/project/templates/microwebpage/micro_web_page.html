@@ -33,23 +33,13 @@
         >
             <span class="background-animate bg-linear-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text text-transparent"
                 >{{ company.name }}</span
-            ><br />{{ micropage.description }} <br />
-            <div class="relative flex h-10 justify-center overflow-hidden sm:h-12 lg:h-[60px]">
-                <span class="scroll" style="animation-delay: 2s">
-                    <div>Funders</div>
-                    <div>Founders</div>
-                    <div>Partners</div>
-                    <div>Investors</div>
-                    <div>The Future</div>
-                </span>
-            </div>
+            ><br />{{ microwebpage.description }} <br />
         </h1>
         <p
             class="move-up mx-auto mb-10 max-w-2xl text-center text-base text-slate-700 sm:text-lg"
             style="animation-delay: 0.8s"
         >
-            Unlock your business's potential with our extensive network of investors and partners. We're here to help
-            you secure the funding you need to take you to the next level.
+            {{ microwebpage.target_market }}
         </p>
     </section>
 
@@ -127,10 +117,7 @@
     </section>
 
     <section class="fade-in mx-auto mt-20 mb-12 w-full max-w-7xl px-4" style="animation-delay: 1.2s">
-        <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Globalify helps bring your ideas into
-            <span class="bg-linear-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent">reality</span>
-        </h2>
+        <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">{{microwebpage.mission_statement }}</h2>
         <div class="mt-16 flex w-full snap-x snap-mandatory gap-4 overflow-x-auto *:snap-start">
             <div
                 class="relative flex aspect-2/3 min-w-[300px] flex-col gap-4 overflow-hidden rounded-2xl bg-[#01151d] p-6 sm:w-full"
@@ -213,9 +200,7 @@
                     ><img src="/static/elements/3dcube.svg" alt="" />Testimonials</span
                 >
                 <h2 class="l mt-2 text-3xl font-semibold sm:text-[40px]">
-                    Hear it from others <br />
-                    It does
-                    <span class="bg-linear-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent">work</span>
+                    {{ microwebpage.customer_testimonials}}<br />
                 </h2>
             </div>
             <div class="relative">

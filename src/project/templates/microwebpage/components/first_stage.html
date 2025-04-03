@@ -1,0 +1,80 @@
+{% macro render() %}
+<script type="text/x-template" id="first-stage-template">
+    <div class="mx-auto mt-4 flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
+        <!-- Hidden Inputs -->
+        <div>
+            <input type="hidden" />
+            <input type="hidden" />
+        </div>
+
+        <!-- Header Section -->
+        <div class="flex flex-col gap-2">
+            <h1 class="text-4xl font-medium">Step 1 of 2: Main</h1>
+            <span>Please tell us more about your company</span>
+        </div>
+
+        <!-- Input Fields -->
+        <div class="grid grid-cols-2 gap-x-4 gap-y-6">
+            <!-- Mission Statement -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="mission_statement">Mission Statement</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    v-model="formData.mission_statement"
+                    type="text"
+                    id="mission_statement"
+                    placeholder="Enter your company's mission"
+                    required
+                />
+                <span class="text-sm text-red-500"></span>
+            </div>
+
+            <!-- Target Market -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="target_market">Target Market</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    v-model="formData.target_market"
+                    type="text"
+                    id="target_market"
+                    placeholder="Who is your audience?"
+                    required
+                />
+                <span class="text-sm text-red-500"></span>
+            </div>
+
+            <!-- Key Products -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="key_products">Key Products/Services</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    v-model="formData.key_products"
+                    type="text"
+                    id="key_products"
+                    placeholder="What do you offer?"
+                    required
+                />
+                <span class="text-sm text-red-500"></span>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-end">
+            <button class="bg-deep-purple mt-4 w-fit rounded-md px-3 py-2 text-white" @click="nextPage">
+                <div class="flex items-center gap-2">
+                    <span>Continue</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </div>
+            </button>
+        </div>
+    </div>
+</script>
+{% endmacro %}

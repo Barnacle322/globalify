@@ -1,0 +1,141 @@
+{% macro render() %}
+<script type="text/x-template" id="second-stage-template">
+    <div class="mx-auto mt-4 flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
+        <!-- Hidden Inputs -->
+        <div>
+            <input type="hidden" />
+            <input type="hidden" />
+        </div>
+
+        <!-- Header Section -->
+        <div class="flex flex-col gap-2">
+            <h1 class="text-4xl font-medium">Step 2 of 2: Secondary</h1>
+            <span>Please provide more details</span>
+        </div>
+
+        <!-- Input Fields -->
+        <div class="grid grid-cols-2 gap-x-4 gap-y-6">
+            <!-- Detailed Description -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="description">Detailed Description</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    v-model="formData.description"
+                    type="text"
+                    id="description"
+                    placeholder="Describe your company for the audience"
+                />
+            </div>
+
+            <!-- Assets -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="assets">Assets</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    v-model="formData.assets"
+                    type="text"
+                    id="assets"
+                    placeholder="List key company assets"
+                />
+            </div>
+
+            <!-- Awards -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="awards">Awards</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    v-model="formData.awards"
+                    type="text"
+                    id="awards"
+                    placeholder="Notable achievements or awards"
+                />
+            </div>
+
+            <!-- Partnerships -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="partnerships">Partnerships</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    v-model="formData.partnerships"
+                    type="text"
+                    id="partnerships"
+                    placeholder="Key business partnerships"
+                />
+            </div>
+
+            <!-- Team Description -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="team_description">Team Description</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    v-model="formData.team_description"
+                    type="text"
+                    id="team_description"
+                    placeholder="About your team"
+                />
+            </div>
+
+            <!-- Customer Testimonials -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="customer_testimonials">Customer Testimonials</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    v-model="formData.customer_testimonials"
+                    type="text"
+                    id="customer_testimonials"
+                    placeholder="Client feedback or quotes"
+                />
+            </div>
+
+            <!-- Founder Bio -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="founder_bio">Founder Bio</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg bg-transparent bg-white"
+                    v-model="formData.founder_bio"
+                    type="text"
+                    id="founder_bio"
+                    placeholder="About the founder(s)"
+                />
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-between">
+            <button
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black transition-colors ease-in-out hover:bg-gray-200"
+                @click="previousPage"
+            >
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    <span>Back</span>
+                </div>
+            </button>
+            <button class="bg-deep-purple mt-4 w-fit rounded-md px-3 py-2 text-white" @click="submit">
+                <div class="flex items-center gap-2">
+                    <span>Submit</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </div>
+            </button>
+        </div>
+    </div>
+</script>
+{% endmacro %}

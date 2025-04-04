@@ -8,10 +8,10 @@ from flask import (
 
 from ..extensions import db
 from ..models import ( Company)
-from ..models.microwebpage import MicroWebPage
+from ..models.microwebpage import MicroWebPage, WebpagePhoto
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import PICTURE_NOT_LOADED
-from ..utils.google_helpers.google_storage import upload_picture
+from ..utils.google_helpers.google_storage import upload_picture, upload_picture_for_web_page
 
 microwebpage = Blueprint("micropage", __name__)
 
@@ -49,6 +49,7 @@ def create_micro_web_page(company_id):
         founder_bio = request.form.get("founder_bio")
         assets = request.form.get("assets")
         logo = request.files.get("logo")
+        uploaded_images = request.files.getlist("images[]")
 
         # Validate required fields
         if not description:
@@ -87,6 +88,23 @@ def create_micro_web_page(company_id):
                 pass
 
         db.session.add(new_micropage)
+        db.session.flush()
+        # db.session.commit()
+        # Handle multiple image uploads
+        if uploaded_images:
+            for image in uploaded_images:
+                if image and image.filename:  # Check if the file is valid
+                    try:
+                        image_url = upload_picture_for_web_page(image)  # Assuming upload_picture returns a URL
+                        new_photo = WebpagePhoto(
+                            micro_webpage_id=new_micropage.id,
+                            picture_url=image_url,
+                        )
+                        db.session.add(new_photo)
+                    except Exception as e:
+                        print(f"Error uploading image: {str(e)}")
+                        # Continue with the next image if one fails
+                        continue
         db.session.commit()
 
         return jsonify({

@@ -30,6 +30,29 @@ const FirstStageComponent = defineComponent({
         handleLogoUpload(event) {
             this.formData.logoFile = event.target.files[0];
         },
+        handleImageUpload(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file.type.match('image.*')) continue;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.formData.images.push({
+                        file: file,
+                        preview: e.target.result
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+
+            event.target.value = '';
+        },
+        removeImage(index) {
+            this.formData.images.splice(index, 1);
+        }
     },
     watch: {
         "formData.mission_statement": function() {
@@ -74,6 +97,7 @@ createApp({
             company_id: "",
             storageKey: "microwebpage_form_data",
             formData: {
+                images: [],
                 mission_statement: '',
                 target_market: '',
                 key_products: '',
@@ -120,10 +144,14 @@ createApp({
         saveFormData() {
             const dataToSave = {...this.formData};
             delete dataToSave.logoFile;
+            dataToSave.images = dataToSave.images.map(img => ({
+                preview: img.preview
+            }));
             localStorage.setItem(this.storageKey, JSON.stringify({
                 formData: this.formData,
                 currentPage: this.currentPage
             }));
+
         },
         loadFormData() {
             const savedData = localStorage.getItem(this.storageKey);
@@ -146,13 +174,16 @@ createApp({
                 const formData = new FormData();
 
                 Object.keys(this.formData).forEach(key => {
-                    if (key !== 'logoFile' && this.formData[key] !== null) {
+                    if (key !== 'logoFile' && key !== 'images' && this.formData[key] !== null) {
                         formData.append(key, this.formData[key]);
                     }
                 });
                 if (this.formData.logoFile) {
                     formData.append('logo', this.formData.logoFile);
                 }
+                this.formData.images.forEach((image, index) => {
+                    formData.append(`images[${index}]`, image.file);
+                });
 
                 const response = await fetch(`/microwebpage/create/${this.company_id}`, {
                     method: 'POST',
@@ -179,6 +210,8 @@ createApp({
             Object.keys(this.formData).forEach(key => {
                 this.formData[key] = '';
             });
+            // NEW: Clear images array
+            this.formData.images = [];
             this.currentPage = 1;
             this.clearFormData();
         }

@@ -17,7 +17,7 @@
         <div class="grid grid-cols-2 gap-x-4 gap-y-6">
             <!-- Mission Statement -->
             <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="mission_statement">Mission Statement</label>
+                <label for="mission_statement" class="text-sm font-medium text-gray-700">Mission Statement</label>
             </div>
             <div>
                 <input
@@ -28,23 +28,24 @@
                     placeholder="Enter your company's mission"
                     required
                 />
-                <span class="text-sm text-red-500"></span>
+                <span v-if="errors.mission_statement" class="text-sm text-red-500">[[ errors.mission_statement ]]</span>
             </div>
 
             <!-- Target Market -->
             <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="target_market">Target Market</label>
+                <label for="target_market" class="text-sm font-medium text-gray-700">Target Market</label>
             </div>
             <div>
                 <input
-                    class="w-full rounded-lg bg-transparent bg-white"
+                    class="w-full rounded-lg bg-white"
                     v-model="formData.target_market"
                     type="text"
                     id="target_market"
                     placeholder="Who is your audience?"
                     required
                 />
-                <span class="text-sm text-red-500"></span>
+            <span v-if="errors.target_market" class="text-sm text-red-500">[[ errors.target_market ]]</span>
+
             </div>
 
             <!-- Key Products -->
@@ -53,19 +54,30 @@
             </div>
             <div>
                 <input
-                    class="w-full rounded-lg bg-transparent bg-white"
+                    class="w-full rounded-lg bg-white"
                     v-model="formData.key_products"
                     type="text"
                     id="key_products"
                     placeholder="What do you offer?"
                     required
                 />
-                <span class="text-sm text-red-500"></span>
+            <span v-if="errors.key_products" class="text-sm text-red-500">[[ errors.key_products ]]</span>
             </div>
         </div>
 
         <!-- Navigation -->
-        <div class="flex justify-end">
+        <div class="flex justify-between">
+            <button
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black transition-colors ease-in-out hover:bg-gray-200"
+                @click="goBack"
+            >
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    <span>Back</span>
+                </div>
+            </button>
             <button class="bg-deep-purple mt-4 w-fit rounded-md px-3 py-2 text-white" @click="nextPage">
                 <div class="flex items-center gap-2">
                     <span>Continue</span>

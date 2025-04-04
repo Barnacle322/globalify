@@ -17,6 +17,7 @@ microwebpage = Blueprint("micropage", __name__)
 
 @microwebpage.get("/webpage/<int:microwebpage_id>")
 def get_micro_web_page(microwebpage_id):
+    print(microwebpage_id)
     micro_web_page = MicroWebPage.get_by_id(microwebpage_id)
     company = micro_web_page.company
     return render_template("microwebpage/micro_web_page.html", microwebpage=micro_web_page, company=company)
@@ -25,12 +26,17 @@ def get_micro_web_page(microwebpage_id):
 
 @microwebpage.route("/create/<int:company_id>", methods=["GET", "POST"])
 def create_micro_web_page(company_id):
+    company = Company.get_by_id(company_id)
+    if not company:
+        return jsonify({"error": "Company does not exist!"}), 400
+
+    if company.microwebpage:
+        return render_template("microwebpage/micro_web_page.html", microwebpage=company.microwebpage.id, company=company)
     if request.method == "POST":
         data = request.get_json()
         if not data:
             return jsonify({"error": "Invalid JSON"}), 400
 
-        # Extract all fields from the request
         description = data.get("description")
         assets = data.get("assets")
         mission_statement = data.get("mission_statement")
@@ -72,7 +78,5 @@ def create_micro_web_page(company_id):
 
         return jsonify({"redirect_url": url_for("micropage.get_micro_web_page", microwebpage_id=new_micropage.id)}), 200
 
-
-    company = Company.get_by_id(company_id)
     return render_template("microwebpage/create_micro_web_page.html", company=company)
 

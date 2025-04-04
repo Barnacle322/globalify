@@ -277,9 +277,17 @@ const GeminiComponent = defineComponent({
                     headers: { "Content-Type": "application/json" },
                 });
 
+                if (!response.ok) {
+                    const data = await response.json();
+                    console.error("Error loading chats:", data.error || "Unknown error");
+                    this.isHistoryVisible = false;
+                    this.hasChats = false;
+                    return;
+                }
+
                 const data = await response.json();
 
-                if (data.message === "No chats found for this user") {
+                if (!data || data.length === 0) {
                     this.isHistoryVisible = false;
                     this.hasChats = false;
                     return;
@@ -289,39 +297,70 @@ const GeminiComponent = defineComponent({
                 this.isHistoryVisible = true;
                 this.selectedChatId = data[0].id;
 
-                const grouped = new Map();
-                for (const chat of data) {
-                    const category = this.formatDate(chat.created);
-
-                    if (!grouped.has(category)) {
-                        grouped.set(category, []);
-                    }
-                    grouped.get(category).push(chat);
-                }
-
-                this.userChats = new Map(
-                    [...grouped.entries()]
-                        .map(([key, value]) => [key, value.map((chat) => ({ ...chat, isNew: false }))])
-                        .sort((a, b) => {
-                            const order = [
-                                "Recently",
-                                "Yesterday",
-                                "1 Week",
-                                "2 Week",
-                                "3 Week",
-                                "1 Month",
-                                "Few months",
-                                "Long ago",
-                            ];
-
-                            const indexA = order.indexOf(a[0]);
-                            const indexB = order.indexOf(b[0]);
-                            return (indexA === -1 ? order.length : indexA) - (indexB === -1 ? order.length : indexB);
-                        }),
-                );
+                // Group chats by date category
+                const grouped = this.groupChatsByDate(data);
+                this.userChats = grouped;
             } catch (error) {
-                console.error("Error loading chat:", error);
+                console.error("Error loading chats:", error);
+                this.isHistoryVisible = false;
+                this.hasChats = false;
             }
+        },
+
+        groupChatsByDate(chats) {
+            const grouped = new Map();
+
+            for (const chat of chats) {
+                const category = this.formatDate(chat.created);
+
+                if (!grouped.has(category)) {
+                    grouped.set(category, []);
+                }
+                grouped.get(category).push({ ...chat, isNew: false });
+            }
+
+            // Sort by date category
+            return new Map(
+                [...grouped.entries()]
+                    .map(([key, value]) => [key, value])
+                    .sort((a, b) => {
+                        const order = [
+                            "Recently",
+                            "Yesterday",
+                            "1 Week",
+                            "2 Weeks",
+                            "3 Weeks",
+                            "1 Month",
+                            "Few months",
+                            "Long ago",
+                        ];
+
+                        const indexA = order.indexOf(a[0]);
+                        const indexB = order.indexOf(b[0]);
+                        return (indexA === -1 ? order.length : indexA) - (indexB === -1 ? order.length : indexB);
+                    }),
+            );
+        },
+
+        formatDate(created) {
+            const date = new Date(created);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const chatDate = new Date(date);
+            chatDate.setHours(0, 0, 0, 0);
+
+            const diffTime = today - chatDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) return "Recently";
+            if (diffDays === 1) return "Yesterday";
+            if (diffDays <= 7) return "1 Week";
+            if (diffDays <= 14) return "2 Weeks";
+            if (diffDays <= 21) return "3 Weeks";
+            if (diffDays <= 31) return "1 Month";
+            if (diffDays <= 60) return "Few months";
+            return "Long ago";
         },
         async selectChat(chatId) {
             this.selectedChatId = chatId;
@@ -489,9 +528,10 @@ const GeminiComponent = defineComponent({
             this.scrollToBottom();
             this.isGenerating = true;
             this.stopSSEStream();
-            if (chatId === null) {
-                chatId = 0;
-            }
+
+            // Use null check with default value
+            const useChatId = chatId !== null ? chatId : 0;
+
             const csrf_token = document.getElementById("csrf_token").value;
             this.isThinking = true;
             this.currentMessage = null;
@@ -502,114 +542,176 @@ const GeminiComponent = defineComponent({
             if (promptDiv === null) {
                 const userMessages = this.response.filter((message) => message.type === "user");
                 const lastUserMessage = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
-                promptText = lastUserMessage.content;
+                promptText = lastUserMessage ? lastUserMessage.content : "";
+                if (!promptText) {
+                    this.isGenerating = false;
+                    this.isThinking = false;
+                    return;
+                }
             } else {
-                promptText = promptDiv.textContent;
+                promptText = promptDiv.textContent.trim();
+                if (!promptText) {
+                    this.isGenerating = false;
+                    this.isThinking = false;
+                    return;
+                }
                 this.response.push({ content: promptText, type: "user" });
                 promptDiv.textContent = "";
             }
 
-            const url = `/message/stream?prompt=${encodeURIComponent(promptText)}&chat_id=${chatId}`;
+            const url = `/message/stream?prompt=${encodeURIComponent(promptText)}&chat_id=${useChatId}`;
             console.log(`Connecting to SSE stream at: ${url}`);
-            this.eventSource = new EventSource(url);
 
-            let accumulatedText = "";
+            try {
+                this.eventSource = new EventSource(url);
+                let accumulatedText = "";
+                let hasError = false;
 
-            this.eventSource.onopen = () => {
-                console.log("SSE connection opened");
-                this.queue = [];
-                this.isTyping = false;
-            };
+                this.eventSource.onopen = () => {
+                    console.log("SSE connection opened");
+                    this.queue = [];
+                    this.isTyping = false;
+                };
 
-            this.eventSource.onmessage = async (event) => {
-                const text = event.data;
+                this.eventSource.onmessage = async (event) => {
+                    const text = event.data;
 
-                console.log("Received message: ", text);
-
-                if (text === "[DONE]") {
-                    console.log("All messages received");
-                    this.stopSSEStream();
-                    this.isGenerating = false;
-                    if (this.selectedChatId) {
+                    // Handle error messages
+                    if (text.startsWith('{"error":')) {
                         try {
-                            const url = retry
-                                ? `/message/chat/${this.selectedChatId}/add-bot-message`
-                                : `/message/chat/${this.selectedChatId}/save-messages`;
-                            const response = await fetch(url, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
-                                body: JSON.stringify({
-                                    bot_message: accumulatedText.trim(),
-                                    chat_id: this.selectedChatId,
-                                    user_message: promptText,
-                                }),
-                            });
-
-                            const data = await response.json();
-                            if (data.error) {
-                                console.error("Error saving chat:", data.error);
-                                return;
+                            const errorObj = JSON.parse(text);
+                            console.error("Stream error:", errorObj.error);
+                            if (!this.currentMessage) {
+                                this.currentMessage = {
+                                    content: `Sorry, an error occurred: ${errorObj.error}`,
+                                    type: "gemini",
+                                    isHTML: true,
+                                    isError: true,
+                                };
+                                this.response.push(this.currentMessage);
                             }
-                        } catch (error) {
-                            console.error("Error saving chat:", error);
+                            hasError = true;
+                            this.stopSSEStream();
+                            this.isGenerating = false;
+                            this.isAborted[useChatId] = true;
+                            this.saveAbortedState();
                             return;
-                        }
-                    } else {
-                        try {
-                            const response = await fetch(`/message/chat/create`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
-                                body: JSON.stringify({
-                                    bot_message: accumulatedText,
-                                    user_message: promptText,
-                                }),
-                            });
-                            const data = await response.json();
-                            if (data.error) {
-                                console.error("Error saving chat:", data.error);
-                                return;
-                            }
-
-                            this.hasChats = true;
-                            this.isHistoryVisible = true;
-
-                            const chat = JSON.parse(data.chat);
-                            this.selectedChatId = chat.id;
-
-                            const category = "Recently";
-                            const newChat = { ...JSON.parse(data.chat), isNew: true };
-                            if (this.userChats.has(category)) {
-                                this.userChats.get(category).unshift(newChat);
-                            } else {
-                                this.userChats.set(category, [newChat]);
-                            }
-                            if (data.error) {
-                                console.error("Error saving chat:", data.error);
-                                return;
-                            }
-                        } catch (error) {
-                            console.error("Error creating chat:", error);
-                            return;
+                        } catch (e) {
+                            // If it's not valid JSON, treat as normal text
                         }
                     }
 
-                    return;
-                }
+                    if (text === "[DONE]") {
+                        console.log("All messages received");
+                        this.stopSSEStream();
+                        this.isGenerating = false;
 
-                accumulatedText += text;
+                        if (hasError) return;
 
-                if (!this.currentMessage) {
-                    this.currentMessage = { content: "", type: "gemini", isHTML: true };
-                    this.response.push(this.currentMessage);
-                }
+                        if (useChatId) {
+                            try {
+                                const url = retry
+                                    ? `/message/chat/${useChatId}/add-bot-message`
+                                    : `/message/chat/${useChatId}/save-messages`;
+                                const response = await fetch(url, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                                    body: JSON.stringify({
+                                        bot_message: accumulatedText.trim(),
+                                        chat_id: useChatId,
+                                        user_message: promptText,
+                                    }),
+                                });
 
-                this.queue.push(text);
+                                if (!response.ok) {
+                                    const data = await response.json();
+                                    console.error("Error saving chat:", data.error || "Unknown error");
+                                    return;
+                                }
+                            } catch (error) {
+                                console.error("Error saving chat:", error);
+                                return;
+                            }
+                        } else {
+                            try {
+                                const response = await fetch(`/message/chat/create`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                                    body: JSON.stringify({
+                                        bot_message: accumulatedText,
+                                        user_message: promptText,
+                                    }),
+                                });
 
-                if (!this.isTyping) {
-                    this.processQueue();
-                }
-            };
+                                if (!response.ok) {
+                                    const data = await response.json();
+                                    console.error("Error creating chat:", data.error || "Unknown error");
+                                    return;
+                                }
+
+                                const data = await response.json();
+                                this.hasChats = true;
+                                this.isHistoryVisible = true;
+
+                                const chat = JSON.parse(data.chat);
+                                this.selectedChatId = chat.id;
+
+                                const category = "Recently";
+                                const newChat = { ...JSON.parse(data.chat), isNew: true };
+                                if (this.userChats.has(category)) {
+                                    this.userChats.get(category).unshift(newChat);
+                                } else {
+                                    this.userChats.set(category, [newChat]);
+                                }
+                            } catch (error) {
+                                console.error("Error creating chat:", error);
+                                return;
+                            }
+                        }
+
+                        return;
+                    }
+
+                    accumulatedText += text;
+
+                    if (!this.currentMessage) {
+                        this.currentMessage = { content: "", type: "gemini", isHTML: true };
+                        this.response.push(this.currentMessage);
+                    }
+
+                    // Add to the queue and ensure processing starts
+                    this.queue.push(text);
+                    if (!this.isTyping) {
+                        this.processQueue();
+                    }
+                };
+
+                this.eventSource.onerror = (error) => {
+                    console.error("SSE error:", error);
+                    this.stopSSEStream();
+                    this.isGenerating = false;
+                    this.isAborted[useChatId] = true;
+                    this.saveAbortedState();
+
+                    if (!this.currentMessage) {
+                        this.currentMessage = {
+                            content: "Sorry, an error occurred while generating the response. Please try again.",
+                            type: "gemini",
+                            isHTML: true,
+                            isError: true,
+                        };
+                        this.response.push(this.currentMessage);
+                    }
+                };
+            } catch (error) {
+                console.error("Error setting up SSE:", error);
+                this.isGenerating = false;
+                this.isThinking = false;
+                this.isAborted[useChatId] = true;
+                this.saveAbortedState();
+            }
         },
+
         stopSSEStream() {
             if (this.eventSource) {
                 this.eventSource.close();
@@ -648,22 +750,22 @@ const GeminiComponent = defineComponent({
             }
 
             this.isTyping = true;
-            let text = this.queue.shift();
-            let currentIndex = 0;
+            const text = this.queue.shift();
 
-            const addLetter = () => {
-                if (currentIndex < text.length) {
-                    this.currentMessage.content += text[currentIndex];
-                    currentIndex++;
-                    if (this.isScrolledToBottom) {
-                        this.scrollToBottom();
-                    }
-                    setTimeout(addLetter, 5);
-                } else {
-                    this.processQueue();
+            // Immediately append the text to the current message
+            if (this.currentMessage) {
+                this.currentMessage.content += text;
+
+                // Scroll to bottom if needed
+                if (this.isScrolledToBottom) {
+                    this.scrollToBottom();
                 }
-            };
-            addLetter();
+            }
+
+            // Process the next item in the queue after a very short delay
+            setTimeout(() => {
+                this.processQueue();
+            }, 10);
         },
         handleScroll() {
             const chatContainer = this.$refs.chatContainer;
@@ -704,91 +806,78 @@ const GeminiComponent = defineComponent({
                 }
             }, 0);
         },
-        formatDate(created) {
-            const date = new Date(created);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const chatDate = new Date(date);
-            chatDate.setHours(0, 0, 0, 0);
-
-            const diffTime = today - chatDate;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-            if (diffDays === 0) return "Recently";
-            if (diffDays <= 1) return "Yesterday";
-            if (diffDays <= 7) return "1 Week";
-            if (diffDays <= 14) return "2 Weeks";
-            if (diffDays <= 21) return "3 Weeks";
-            if (diffDays <= 31) return "1 Month";
-            if (diffDays <= 60) return "Few months";
-            return "Long ago";
-        },
         processMarkdown(text) {
-            const lines = text.split("\n");
-            let html = "";
-            let inUl = false;
-            let needLineBreak = false;
+            if (!text) return "";
 
-            const processText = (text) => {
-                return text
-                    .replace(/\*\*([\s\S]*?)\*\*/g, "<strong>$1</strong>")
-                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, buttonText, slug) => {
-                        const cachedAvatar = this.avatarCache.get(slug);
-                        const avatarImg = `<img src="${cachedAvatar}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
-                        const buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">${avatarImg}${buttonText}</button>`;
+            try {
+                const lines = text.split("\n");
+                let html = "";
+                let inUl = false;
+                let needLineBreak = false;
 
-                        if (!this.avatarCache.has(slug)) {
-                            this.loadAvatar(slug);
+                const processText = (text) => {
+                    return text
+                        .replace(/\*\*([\s\S]*?)\*\*/g, "<strong>$1</strong>")
+                        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, buttonText, slug) => {
+                            const cachedAvatar = this.avatarCache.get(slug);
+                            const avatarImg = `<img src="${cachedAvatar || "https://unavatar.io/x/default"}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
+                            const buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">${avatarImg}${buttonText}</button>`;
+
+                            if (!this.avatarCache.has(slug)) {
+                                this.loadAvatar(slug);
+                            }
+                            return buttonHTML;
+                        });
+                };
+
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    const listItemMatch = line.match(/^(\s*)(\*|\d+\.)\s+(.*)/);
+
+                    if (listItemMatch) {
+                        const indent = listItemMatch[1].length;
+                        const content = processText(listItemMatch[3]);
+
+                        if (indent >= 4) {
+                            if (!inUl) {
+                                html += "<ul>";
+                                inUl = true;
+                            }
+                            html += `<li>${content}</li>`;
+                        } else {
+                            if (inUl) {
+                                html += "</ul>";
+                                inUl = false;
+                            }
+                            html += `<li>${content}</li>`;
                         }
-                        return buttonHTML;
-                    });
-            };
-
-            for (const line of lines) {
-                const trimmedLine = line.trim();
-                const listItemMatch = line.match(/^(\s*)(\*|\d+\.)\s+(.*)/);
-
-                if (listItemMatch) {
-                    const indent = listItemMatch[1].length;
-                    const content = processText(listItemMatch[3]);
-
-                    if (indent >= 4) {
-                        if (!inUl) {
-                            html += "<ul>";
-                            inUl = true;
-                        }
-                        html += `<li>${content}</li>`;
+                        needLineBreak = false;
                     } else {
                         if (inUl) {
                             html += "</ul>";
                             inUl = false;
                         }
-                        html += `<li>${content}</li>`;
-                    }
-                    needLineBreak = false;
-                } else {
-                    if (inUl) {
-                        html += "</ul>";
-                        inUl = false;
-                    }
 
-                    if (trimmedLine === "") {
-                        if (needLineBreak) html += "<br>";
-                        needLineBreak = false;
-                    } else {
-                        const processedLine = processText(trimmedLine);
+                        if (trimmedLine === "") {
+                            if (needLineBreak) html += "<br>";
+                            needLineBreak = false;
+                        } else {
+                            const processedLine = processText(trimmedLine);
 
-                        if (needLineBreak) html += "<br>";
-                        html += processedLine;
-                        needLineBreak = true;
+                            if (needLineBreak) html += "<br>";
+                            html += processedLine;
+                            needLineBreak = true;
+                        }
                     }
                 }
+                if (inUl) {
+                    html += "</ul>";
+                }
+                return html;
+            } catch (error) {
+                console.error("Error processing markdown:", error);
+                return text;
             }
-            if (inUl) {
-                html += "</ul>";
-            }
-            return html;
         },
         updateAvatarImages(slug, avatarUrl) {
             const images = document.querySelectorAll(`img[data-slug="${slug}"]`);

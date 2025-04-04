@@ -1,7 +1,80 @@
+const DeckHistoryComponent = defineComponent({
+    template: "#deck-history-template",
+    props: {
+        userId: {
+            type: Number,
+            required: true,
+        },
+        deckId: {
+            type: Number,
+            required: true,
+        },
+    },
+    async mounted() {
+        await this.fetchHistory();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async fetchHistory() {
+            try {
+                const response = await fetch(`/deck/feedbacks/${this.userId}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch history");
+                }
+                const data = await response.json();
+                console.log("History data:", data);
+                this.histories = data.feedbacks;
+                this.selectedHistory = this.histories[0] || null;
+            } catch (error) {
+                console.error("Error fetching history:", error.message);
+                this.error = "Failed to load history. Please try again later.";
+            }
+            this.isLoading = false;
+        },
+        closeHistory() {
+            this.$emit("close-deck-history");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeHistory();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeHistory();
+            }
+        },
+        handleHistoryClick(historyItem) {
+            this.$emit("history-selected", historyItem);
+            this.closeHistory();
+        },
+    },
+    data() {
+        return {
+            histories: [],
+            selectedHistory: null,
+            isLoading: true,
+            error: null,
+        };
+    },
+});
+
 const DeckGoalsComponent = defineComponent({
     template: "#deck-goals-template",
     props: {
-        deckId: {
+        feedbackId: {
             type: Number,
             required: true,
         },
@@ -20,7 +93,7 @@ const DeckGoalsComponent = defineComponent({
     methods: {
         async fetchGoals() {
             try {
-                const response = await fetch(`/deck/${this.deckId}`, {
+                const response = await fetch(`/deck/feedback/${this.feedbackId}/goals`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -30,7 +103,7 @@ const DeckGoalsComponent = defineComponent({
                     throw new Error("Failed to fetch goals");
                 }
                 const data = await response.json();
-                this.processGoals(data.deck?.json_feedback?.goals);
+                this.processGoals(data.goals);
             } catch (error) {
                 console.error("Error fetching goals:", error.message);
                 this.error = "Failed to load goals. Please try again later.";
@@ -70,8 +143,8 @@ const DeckGoalsComponent = defineComponent({
             selectedDomain: "business",
             activeDescriptions: {
                 Audience: "Optimized for technical or configuration-related content.", // Initial for 'settings'
-                Formality: "Balanced tone, appropriate for general communication.",   // Initial for 'neutral'
-                Domain: "Focused on corporate or professional presentations.",        // Initial for 'business'
+                Formality: "Balanced tone, appropriate for general communication.", // Initial for 'neutral'
+                Domain: "Focused on corporate or professional presentations.", // Initial for 'business'
             },
             descriptions: {
                 Audience: {
@@ -210,7 +283,7 @@ const DeckUploadComponent = defineComponent({
         updateDescription(type, value) {
             this[`selected${type}`] = value;
             this.activeDescriptions[type] = this.descriptions[type][value];
-        }
+        },
     },
     mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
@@ -266,6 +339,7 @@ createApp({
         DeckUploadComponent,
         DeleteDeckComponent,
         DeckGoalsComponent,
+        DeckHistoryComponent,
     },
     delimiters: ["[[", "]]"],
     watch: {
@@ -322,6 +396,7 @@ createApp({
                 }
 
                 this.deckThumbnails = await this.generatedeckThumbnails();
+                console.log("Thumbnails generated:", this.deckThumbnails);
                 this.allThumbnailsLoaded = true;
             } catch (error) {
                 console.error("PDF initialization failed:", error);
@@ -411,8 +486,9 @@ createApp({
         },
         fetchFeedback() {
             const feedbackElement = document.getElementById("feedback-data");
+            console.log("Feedback element:", feedbackElement);
             if (feedbackElement) {
-                this.deckFeedback = JSON.parse(feedbackElement.textContent).deck_feedback;
+                this.deckFeedback = JSON.parse(feedbackElement.textContent);
             }
         },
         findFeedbackByPageNumber(pageNumber) {
@@ -503,6 +579,7 @@ createApp({
             openAdvanced: false,
             mainSlideLoaded: false,
             allThumbnailsLoaded: false,
+            isDeckHistoryOpened: false,
             fileData: null,
             deckFile: null,
             openDropdown: null,

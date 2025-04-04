@@ -31,11 +31,22 @@
     {{ navbar.render(current_user) }}
     {% import "components/deck/deck_goals.html" as deck_goals %}
     {{ deck_goals.render() }}
+    {% import "components/deck/deck_history.html" as deck_history %}
+    {{ deck_history.render(deck.id) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
         <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
+
+            <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
+                <deck-history-component
+                    @close-deck-history="isDeckHistoryOpened = null"
+                    :user-id="{{ current_user.id }}"
+                    :deck-id="{{ deck.id }}"
+                    v-if="isDeckHistoryOpened"
+                ></deck-history-component>
+            </transition>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
                     v-if="asideExpanded"
@@ -94,41 +105,6 @@
                 </div>
             </transition>
             <div class="relative w-full">
-                <div id="modal-content-container" style="display: none">
-                    <div id="modal-summary-content">
-                        <p class="mb-5">
-                            {{ deck.overall_recommendation | default('No overall recommendation available.') | safe }}
-                        </p>
-                        <h4 class="mb-3 border-b pb-2 text-lg font-semibold">Detailed Scores</h4>
-                        <div class="space-y-3 text-gray-900">
-                            {% set score_items = [ ('Spelling & Grammar', deck.scores.grammary), ('Storytelling',
-                            deck.scores.storytelling), ('Clarity', deck.scores.clarity), ('Completeness',
-                            deck.scores.completeness), ('Engagement', deck.scores.engagement) ] %} {% for label, score
-                            in score_items %}
-                            <div
-                                class="{% if not loop.last %}border-b pb-1{% endif %} flex justify-between border-gray-200"
-                            >
-                                <h3 class="text-sm font-medium">{{ label }}</h3>
-                                <span class="text-sm font-bold text-blue-800"
-                                    >{{ score if score is not none else 'N/A' }}</span
-                                >
-                            </div>
-                            {% endfor %}
-                            <!-- Genius overall score calculating -->
-                            {% set score_values = [ deck.scores.grammary, deck.scores.storytelling, deck.scores.clarity,
-                            deck.scores.completeness, deck.scores.engagement ] %} {% set valid_scores = score_values |
-                            reject('none') | list %} {% set overall_score = (valid_scores | sum) / (valid_scores |
-                            length) if valid_scores else 0 %}
-                            <div class="mt-2 flex justify-between border-t border-gray-300 pt-3">
-                                <h3 class="text-sm font-medium">Overall Score</h3>
-                                <span class="text-sm font-bold text-green-800"
-                                    >{{ '%0.1f' % overall_score if valid_scores else 'N/A' }}</span
-                                >
-                            </div>
-                        </div>
-                    </div>
-                    <div id="modal-goals-content">ARSTAN GEAY</div>
-                </div>
                 <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
                     <div class="flex h-full w-fit gap-2 px-4 text-sm">
                         <a
@@ -188,6 +164,23 @@
                             </svg>
                             Goals
                         </a>
+                        <a
+                            href="#"
+                            @click.prevent="isDeckHistoryOpened = true"
+                            class="flex shrink-0 cursor-pointer items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 -960 960 960"
+                                class="size-6"
+                                fill="#000000"
+                            >
+                                <path
+                                    d="M480-120q-138 0-240.5-91.5T122-440h82q14 104 92.5 172T480-200q117 0 198.5-81.5T760-480q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h110v80H120v-240h80v94q51-64 124.5-99T480-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-120Zm112-192L440-464v-216h80v184l128 128-56 56Z"
+                                />
+                            </svg>
+                            History
+                        </a>
                     </div>
                 </nav>
                 <main class="flex w-full flex-col items-center gap-5 px-4 pb-16 sm:px-9">
@@ -245,7 +238,7 @@
                                         ref="thumbnailContainer"
                                         @wheel="handleScroll"
                                     >
-                                        {% for page in deck.json_feedback.deck_feedback %}
+                                        {% for page in feedback.page_feedback %}
                                         <div
                                             @click="selectPage( {{ page }} )"
                                             data-page-number="{{ page.page_number }}"
@@ -270,7 +263,7 @@
                             </div>
                             <!-- Feedback -->
                             <div class="flex w-[40%] flex-col">
-                                <div id="feedback-data" style="display: none">{{ deck.json_feedback|tojson }}</div>
+                                <div id="feedback-data" style="display: none">{{ feedback.page_feedback|tojson }}</div>
                                 <div v-if="selectedPage" class="shadow-card rounded-lg bg-white p-6">
                                     <h2 class="text-center text-xl font-bold">What to Improve</h2>
                                     <p class="mt-2 text-gray-600" v-text="selectedPage?.feedback"></p>

@@ -15,13 +15,26 @@
 
         <!-- Input Fields -->
         <div class="grid grid-cols-2 gap-x-4 gap-y-6">
-            <!-- Mission Statement -->
             <div class="flex items-center">
-                <label for="mission_statement" class="text-sm font-medium text-gray-700">Mission Statement</label>
+                <label for="logo" class="text-sm font-medium text-gray-700">Logo (PNG)</label>
             </div>
             <div>
                 <input
-                    class="w-full rounded-lg bg-transparent bg-white"
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    @change="handleLogoUpload"
+                    type="file"
+                    id="logo"
+                    ref="logoInput"
+                />
+            </div>
+
+
+            <div class="flex items-center">
+                <label for="mission_statement" class="text-sm font-medium text-gray-700">Mission Statement</label>
+            </div>
+            <div class="border-b-emerald-400">
+                <input
+                    class="w-full rounded-lg border-black bg-white"
                     v-model="formData.mission_statement"
                     type="text"
                     id="mission_statement"

@@ -153,3 +153,17 @@ def upload_picture(picture, bucket_name: str = BUCKET_NAME):
     except Exception as e:
         print(e)
         raise
+
+
+
+def upload_picture_for_web_page(picture, bucket_name: str = BUCKET_NAME):
+    if not picture or picture == "" or picture == "None":
+        raise ValueError("No picture provided")
+
+    try:
+        resized_picture = scale_to_hd(picture)
+        picture_url = upload_blob(resized_picture.read(), bucket_name=bucket_name)
+        return picture_url
+    except Exception as e:
+        print(e)
+        raise

@@ -27,6 +27,9 @@ const FirstStageComponent = defineComponent({
         goBack() {
             window.history.back();
         },
+        handleLogoUpload(event) {
+            this.formData.logoFile = event.target.files[0];
+        },
     },
     watch: {
         "formData.mission_statement": function() {
@@ -80,7 +83,8 @@ createApp({
                 partnerships: '',
                 team_description: '',
                 customer_testimonials: '',
-                founder_bio: ''
+                founder_bio: '',
+                logoFile: null
             },
         };
     },
@@ -114,6 +118,8 @@ createApp({
             }
         },
         saveFormData() {
+            const dataToSave = {...this.formData};
+            delete dataToSave.logoFile;
             localStorage.setItem(this.storageKey, JSON.stringify({
                 formData: this.formData,
                 currentPage: this.currentPage
@@ -137,15 +143,23 @@ createApp({
         async submitForm() {
             try {
                 const csrfToken = document.getElementById('csrf_token').value;
-                const dataToSend = { ...this.formData };
+                const formData = new FormData();
+
+                Object.keys(this.formData).forEach(key => {
+                    if (key !== 'logoFile' && this.formData[key] !== null) {
+                        formData.append(key, this.formData[key]);
+                    }
+                });
+                if (this.formData.logoFile) {
+                    formData.append('logo', this.formData.logoFile);
+                }
 
                 const response = await fetch(`/microwebpage/create/${this.company_id}`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
                         'X-CSRF-Token': csrfToken
                     },
-                    body: JSON.stringify(dataToSend)
+                    body: formData
                 });
 
                 if (!response.ok) {

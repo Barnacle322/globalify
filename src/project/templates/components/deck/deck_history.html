@@ -1,4 +1,4 @@
-{% macro render(deckId) %}
+{% macro render(deckIdd) %}
 <template id="deck-history-template">
     <article
         class="fixed top-0 right-0 z-[60] flex h-full w-full flex-col overflow-y-scroll overscroll-contain bg-gray-100 transition-all"
@@ -9,10 +9,9 @@
         <div class="flex flex-col" v-for="history in histories" :key="history.id">
             <div
                 class="flex flex-col gap-1 px-8 py-3 cursor-pointer hover:bg-gray-200"
-                :class="selectedHistory ? 'bg-gray-300' : ''"
-                @click="selectHistory(history.id)"
+                :class="selectedHistory == history.id ? 'bg-gray-300' : ''"
             >
-                <a :href="`/deck/detail/${deckId}/${history.id}`" class="flex flex-col gap-1">
+                <a :href="`/deck/detail/{{deckIdd}}/${history.id}`" class="flex flex-col gap-1">
                     <span class="font-bold" v-text="history.created_at"></span>
                     <div class="flex flex-row gap-1">
                         <a

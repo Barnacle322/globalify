@@ -1,3 +1,104 @@
+const DeckSummaryComponent = defineComponent({
+    template: "#deck-summary-template",
+    props: {
+        deckId: {
+            type: Number,
+            required: true,
+        },
+    },
+    emits: ["close-deck-summary"],
+    async mounted() {
+        await this.fetchSummary();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async fetchSummary() {
+            this.isLoading = true;
+            try {
+                const response = await fetch(`/deck/scores/${this.deckId}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch goals");
+                }
+                const data = await response.json();
+
+                this.summaryData = data.summary;
+                this.scoreItems = [
+                    { key: "grammar_score", label: "Spelling & Grammar" },
+                    { key: "storytelling_score", label: "Storytelling" },
+                    { key: "clarity_score", label: "Clarity" },
+                    { key: "design_score", label: "Design" },
+                    { key: "engagement_score", label: "Engagement" },
+                ];
+            } catch (error) {
+                console.error("Error fetching summary:", error.message);
+                this.error = error.message || "Failed to load summary. Please try again later.";
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        closeSummary() {
+            this.$emit("close-deck-summary");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeSummary();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeSummary();
+            }
+        },
+        getScoreBgColorClass(score) {
+            if (score === null || score === undefined) return "bg-gray-300";
+            if (score >= 8) return "bg-sky-500";
+            if (score >= 6) return "bg-green-500";
+            if (score >= 4) return "bg-yellow-500";
+            return "bg-orange-500";
+        },
+        getScoreTextColorClass(score) {
+            if (score === null || score === undefined) return "text-gray-500";
+            if (score >= 8) return "text-sky-600";
+            if (score >= 6) return "text-green-600";
+            if (score >= 4) return "text-yellow-600";
+            return "text-red-600";
+        },
+        getScoreWidthStyle(score) {
+            const numericScore = Number(score);
+            const width = numericScore && numericScore > 0 ? numericScore * 10 : 0;
+            const safeWidth = Math.min(Math.max(width, 0), 100);
+            return { width: `${safeWidth}%` };
+        },
+        formatScore(score) {
+            if (score === null || score === undefined) return "N/A";
+            return `${score}/10`;
+        },
+        formatOverallScore(score) {
+            if (score === null || score === undefined) return "N/A";
+            return typeof score === "number" ? score.toFixed(1) : "N/A";
+        },
+    },
+    data() {
+        return {
+            isLoading: true,
+            summaryData: null,
+            scoreItems: [],
+        };
+    },
+});
+
 const DeckHistoryComponent = defineComponent({
     template: "#deck-history-template",
     props: {
@@ -16,6 +117,13 @@ const DeckHistoryComponent = defineComponent({
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
         }, 0);
+    },
+    async created() {
+        const pathSegments = window.location.pathname.split("/").filter(Boolean);
+
+        const deckId = pathSegments[pathSegments.length - 1];
+        console.log("Path segments:", deckId);
+        this.selectedHistory = deckId;
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
@@ -36,12 +144,15 @@ const DeckHistoryComponent = defineComponent({
                 const data = await response.json();
                 console.log("History data:", data);
                 this.histories = data.feedbacks;
-                this.selectedHistory = this.histories[0] || null;
             } catch (error) {
                 console.error("Error fetching history:", error.message);
                 this.error = "Failed to load history. Please try again later.";
             }
             this.isLoading = false;
+        },
+        selectHistory(feedbackId) {
+            this.selectedHistory = feedbackId;
+            this.closeHistory();
         },
         closeHistory() {
             this.$emit("close-deck-history");
@@ -73,12 +184,7 @@ const DeckHistoryComponent = defineComponent({
 
 const DeckGoalsComponent = defineComponent({
     template: "#deck-goals-template",
-    props: {
-        feedbackId: {
-            type: Number,
-            required: true,
-        },
-    },
+    props: ["deck-id"],
     async mounted() {
         await this.fetchGoals();
         window.addEventListener("keydown", this.handleKeyDown);
@@ -93,7 +199,7 @@ const DeckGoalsComponent = defineComponent({
     methods: {
         async fetchGoals() {
             try {
-                const response = await fetch(`/deck/feedback/${this.feedbackId}/goals`, {
+                const response = await fetch(`/deck/feedback/${this.deckId}/goals`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -340,6 +446,7 @@ createApp({
         DeleteDeckComponent,
         DeckGoalsComponent,
         DeckHistoryComponent,
+        DeckSummaryComponent,
     },
     delimiters: ["[[", "]]"],
     watch: {
@@ -364,7 +471,8 @@ createApp({
     methods: {
         async fetchDeckFile() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
-            const deckId = pathSegments[pathSegments.length - 1];
+            console.log("Path segments:", pathSegments);
+            const deckId = pathSegments[pathSegments.length - 2];
 
             try {
                 const response = await fetch(`/deck/file/${deckId}`);
@@ -531,35 +639,6 @@ createApp({
             const container = this.$refs.thumbnailContainer;
             container.scrollLeft += event.deltaY;
         },
-        openModal(modalType) {
-            let title = "";
-            let contentElementId = "";
-
-            if (modalType === "summary") {
-                title = "Overall Summary";
-                contentElementId = "modal-summary-content";
-            } else if (modalType === "goals") {
-                title = "Improvement Goals";
-                contentElementId = "modal-goals-content";
-            } else {
-                console.warn("Unknown modal type:", modalType);
-                return;
-            }
-
-            const contentElement = document.getElementById(contentElementId);
-            if (contentElement) {
-                this.modalTitle = title;
-                this.modalContent = contentElement.innerHTML;
-                this.activeModal = modalType;
-                document.body.style.overflow = "hidden";
-            } else {
-                console.error(`Modal content element not found: #${contentElementId}`);
-                this.modalTitle = title;
-                this.modalContent = '<p class="text-red-500">Error: Content not found.</p>';
-                this.activeModal = modalType;
-                document.body.style.overflow = "hidden";
-            }
-        },
         closeModal() {
             this.activeModal = null;
             this.modalTitle = "";
@@ -580,6 +659,7 @@ createApp({
             mainSlideLoaded: false,
             allThumbnailsLoaded: false,
             isDeckHistoryOpened: false,
+            isDeckSummaryOpened: false,
             fileData: null,
             deckFile: null,
             openDropdown: null,

@@ -33,6 +33,8 @@
     {{ deck_goals.render() }}
     {% import "components/deck/deck_history.html" as deck_history %}
     {{ deck_history.render(deck.id) }}
+    {% import "components/deck/deck_summary.html" as deck_summary %}
+    {{ deck_summary.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -43,7 +45,7 @@
                 <deck-history-component
                     @close-deck-history="isDeckHistoryOpened = null"
                     :user-id="{{ current_user.id }}"
-                    :deck-id="{{ deck.id }}"
+                    :deck-id="{{ feedback.id }}"
                     v-if="isDeckHistoryOpened"
                 ></deck-history-component>
             </transition>
@@ -61,7 +63,10 @@
                 ></aside-mobile-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div v-if="isDeckGoalsOpened" class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"></div>
+                <div
+                    v-if="isDeckGoalsOpened || isDeckSummaryOpened"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
+                ></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <deck-goals-component
@@ -71,39 +76,13 @@
                 ></deck-goals-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div
-                    v-if="activeModal"
-                    @click.self="closeModal"
-                    class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-                >
-                    <div class="w-full max-w-lg overflow-hidden rounded-lg bg-white shadow-xl">
-                        <div class="flex items-center justify-between border-b border-gray-200 p-4">
-                            <h3 class="text-xl font-semibold text-gray-800" v-text="modalTitle"></h3>
-                            <button @click="closeModal" class="text-gray-400 transition-colors hover:text-gray-600">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="h-6 w-6"
-                                >
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="max-h-[60vh] overflow-y-auto p-5" v-html="modalContent"></div>
-                        <div class="flex justify-end border-t border-gray-200 bg-gray-50 p-4">
-                            <button
-                                @click="closeModal"
-                                class="rounded bg-gray-500 px-4 py-2 text-sm text-white transition-colors hover:bg-gray-600"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <deck-summary-component
+                    v-if="isDeckSummaryOpened"
+                    :deck-id="selectedDeckId"
+                    @close-deck-summary="isDeckSummaryOpened = false"
+                ></deck-summary-component>
             </transition>
+
             <div class="relative w-full">
                 <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
                     <div class="flex h-full w-fit gap-2 px-4 text-sm">
@@ -128,7 +107,7 @@
                             Back
                         </a>
                         <a
-                            @click.prevent="openModal('summary')"
+                            @click="isDeckSummaryOpened = true; selectedDeckId = {{ deck.id }}"
                             class="flex shrink-0 cursor-pointer items-center justify-center gap-2 border-b-2 border-transparent px-2 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
                         >
                             <svg

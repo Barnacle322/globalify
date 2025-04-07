@@ -39,7 +39,6 @@ def process_deck():
     pdf_data = file.read()
 
     if len(pdf_data) > MAX_FILE_SIZE:
-        print("File too large")
         return jsonify({"error": "File size exceeds the limit"}), 400
 
     file_hash = calculate_md5(pdf_data)
@@ -53,12 +52,25 @@ def process_deck():
             db.session.add(deck)
             db.session.commit()
         except Exception as e:
-            print(f"Error creating deck: {e}")
             db.session.rollback()
             return jsonify({"error": "Error creating deck"}), 500
 
     goals = {key: request.form.get(key, "") for key in ["audience", "formality", "domain"]}
     try:
+        existing_feedback = Feedback.get_by_deck_user_and_goals(
+            deck_id=deck.id,
+            user_id=current_user.id,
+            audience=goals["audience"],
+            formality=goals["formality"],
+            domain=goals["domain"],
+        )
+        if existing_feedback:
+            return jsonify(
+                {
+                    "error": "Feedback with these goals already exists",
+                }
+            ), 400
+
         analysis_result_json = analyze_pdf(pdf_data, goals)
         data = json.loads(analysis_result_json)
 
@@ -70,15 +82,21 @@ def process_deck():
         db.session.add(deck)
         db.session.commit()
     except (json.JSONDecodeError, KeyError) as e:
-        print(f"Error decoding JSON or accessing key: {e}")
         db.session.rollback()
         return jsonify({"error": "Error processing analysis"}), 500
     except Exception as e:
-        print(f"Error during analysis: {e}")
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
-    return jsonify({"deck_id": deck.id, "redirect_url": url_for("deck.user_deck_detail", deck_id=deck.id)}), 200
+    if feedback:
+        return jsonify(
+            {
+                "deck_id": deck.id,
+                "redirect_url": url_for("deck.user_deck_detail", deck_id=deck.id, feedback_id=feedback.id),
+            }
+        ), 200
+    else:
+        return jsonify({"error": "Feedback creation failed"}), 500
 
 
 @deck.route("/feedbacks/<int:user_id>", methods=["GET"])
@@ -136,7 +154,6 @@ def user_deck_detail(deck_id, feedback_id):
 @deck.route("/file/<int:deck_id>")
 @login_required
 def deck_file(deck_id):
-    print("hello world", deck_id)
     deck = Deck.get_by_id(deck_id)
     if deck:
         try:

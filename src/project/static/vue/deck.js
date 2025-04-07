@@ -354,7 +354,16 @@ const DeckUploadComponent = defineComponent({
                     body: formData,
                 });
 
-                if (!response.ok) throw new Error("Analysis failed");
+                console.log("Response status:", response.status);
+                console.log(response);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    if (errorData.error) {
+                        this.error = errorData.error;
+                    }
+                    return;
+                }
 
                 const data = await response.json();
                 if (data.redirect_url) {
@@ -407,6 +416,7 @@ const DeckUploadComponent = defineComponent({
             isUploading: false,
             selectedButton: null,
             isAnalyzing: false,
+            error: null,
             selectedAudience: "settings",
             selectedFormality: "neutral",
             selectedDomain: "business",
@@ -638,12 +648,6 @@ createApp({
             event.preventDefault();
             const container = this.$refs.thumbnailContainer;
             container.scrollLeft += event.deltaY;
-        },
-        closeModal() {
-            this.activeModal = null;
-            this.modalTitle = "";
-            this.modalContent = "";
-            document.body.style.overflow = "";
         },
         handleEscKey(event) {
             if (event.key === "Escape" && this.activeModal) {

@@ -27,6 +27,7 @@
                                 Supported formats: .txt, .docx, .odt, .epub, .pdf, .html, .htm, .tsv, .json, .xls, .xlsx
                             </sub>
                         </span>
+                        <span v-if="error" class="mt-2 text-sm text-red-500" v-text="error"></span>
                     </div>
                 </div>
             </label>

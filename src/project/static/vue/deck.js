@@ -305,25 +305,35 @@ const DeckUploadComponent = defineComponent({
             selectedFormality: "neutral",
             selectedDomain: "business",
             activeDescriptions: {
-                Audience: "Optimized for technical or configuration-related content.",
-                Formality: "Balanced tone, appropriate for general communication.",
-                Domain: "Focused on corporate or professional presentations.",
+                audience: "Analysis emphasizes product value, problem-solving clarity, and customer benefits.",
+                formality: "Feedback balances professional insights with clear, accessible explanations.",
+                domain: "Analysis focuses on business strategy, market viability, and commercial potential.",
+                agentw: "Balanced and objective feedback based on standard pitch deck best practices.",
             },
             descriptions: {
-                Audience: {
-                    profile: "Tailored for individual user profiles and personal branding.",
-                    settings: "Optimized for technical or configuration-related content.",
-                    messages: "Designed for casual or conversational messaging contexts.",
+                audience: {
+                    investors: "Analysis focuses on financial viability, market potential, and return on investment.",
+                    customers: "Analysis emphasizes product value, problem-solving clarity, and customer benefits.",
+                    partners: "Analysis highlights collaboration potential, market fit, and strategic alignment.",
                 },
-                Formality: {
-                    informal: "Casual tone, suitable for friendly or relaxed audiences.",
-                    neutral: "Balanced tone, appropriate for general communication.",
-                    formal: "Professional tone, ideal for official or academic purposes.",
+                formality: {
+                    informal: "Feedback will be casual and direct, using conversational language.",
+                    neutral: "Feedback balances professional insights with clear, accessible explanations.",
+                    formal: "Feedback employs detailed analysis and professional, industry-standard terminology.",
                 },
-                Domain: {
-                    academic: "Structured for educational or research-based content.",
-                    business: "Focused on corporate or professional presentations.",
-                    general: "Versatile for a wide range of topics and audiences.",
+                domain: {
+                    academic: "Analysis applies rigorous academic standards, focusing on methodology and research.",
+                    business: "Analysis focuses on business strategy, market viability, and commercial potential.",
+                    general: "Analysis provides versatile feedback suitable for a wide range of contexts.",
+                },
+                agentq: {
+                    standard_expert: "Balanced and objective feedback based on standard pitch deck best practices.",
+                    warren_buffett:
+                        "Analysis from a value investor's view: focuses on fundamentals, moat, and long-term value.",
+                    elon_musk:
+                        "Analysis from a visionary's view: focuses on disruption, innovation, and technical feasibility.",
+                    steve_jobs:
+                        "Analysis emphasizes product story, design elegance, user experience, and clarity ('How it works').",
                 },
             },
         };

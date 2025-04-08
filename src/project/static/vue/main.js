@@ -1,3 +1,5 @@
+import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+
 const FullInvestor = defineComponent({
     template: "#full-investor-template",
     props: { slug: String, rendercontacts: Boolean },
@@ -810,70 +812,41 @@ const GeminiComponent = defineComponent({
             if (!text) return "";
 
             try {
-                const lines = text.split("\n");
-                let html = "";
-                let inUl = false;
-                let needLineBreak = false;
+                // Configure marked to handle custom elements
+                const renderer = new marked.Renderer();
 
-                const processText = (text) => {
-                    return text
-                        .replace(/\*\*([\s\S]*?)\*\*/g, "<strong>$1</strong>")
-                        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, buttonText, slug) => {
-                            const cachedAvatar = this.avatarCache.get(slug);
-                            const avatarImg = `<img src="${cachedAvatar || "https://unavatar.io/x/default"}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
-                            const buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">${avatarImg}${buttonText}</button>`;
+                // Override the link renderer to handle investor links
+                // renderer.link = (href, title, text) => {
+                //     // Check if this is an investor slug (no http/https prefix)
+                //     if (!href.startsWith("http") && !href.startsWith("www")) {
+                //         const slug = href;
+                //         const cachedAvatar = this.avatarCache.get(slug);
+                //         const avatarImg = `<img src="${cachedAvatar || "https://unavatar.io/x/default"}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
+                //         const buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">${avatarImg}${text}</button>`;
 
-                            if (!this.avatarCache.has(slug)) {
-                                this.loadAvatar(slug);
-                            }
-                            return buttonHTML;
-                        });
-                };
+                //         if (!this.avatarCache.has(slug)) {
+                //             this.loadAvatar(slug);
+                //         }
 
-                for (const line of lines) {
-                    const trimmedLine = line.trim();
-                    const listItemMatch = line.match(/^(\s*)(\*|\d+\.)\s+(.*)/);
+                //         return buttonHTML;
+                //     }
 
-                    if (listItemMatch) {
-                        const indent = listItemMatch[1].length;
-                        const content = processText(listItemMatch[3]);
+                //     // For regular links, use default behavior
+                //     return `<a href="${href}" title="${title || ""}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+                // };
 
-                        if (indent >= 4) {
-                            if (!inUl) {
-                                html += "<ul>";
-                                inUl = true;
-                            }
-                            html += `<li>${content}</li>`;
-                        } else {
-                            if (inUl) {
-                                html += "</ul>";
-                                inUl = false;
-                            }
-                            html += `<li>${content}</li>`;
-                        }
-                        needLineBreak = false;
-                    } else {
-                        if (inUl) {
-                            html += "</ul>";
-                            inUl = false;
-                        }
+                // Set marked options
+                marked.setOptions({
+                    renderer: renderer,
+                    gfm: true, // GitHub Flavored Markdown
+                    breaks: true, // Convert line breaks to <br>
+                    sanitize: false, // Allow HTML
+                    smartLists: true,
+                    smartypants: false, // Don't use "smart" typographic punctuation
+                    xhtml: false,
+                });
 
-                        if (trimmedLine === "") {
-                            if (needLineBreak) html += "<br>";
-                            needLineBreak = false;
-                        } else {
-                            const processedLine = processText(trimmedLine);
-
-                            if (needLineBreak) html += "<br>";
-                            html += processedLine;
-                            needLineBreak = true;
-                        }
-                    }
-                }
-                if (inUl) {
-                    html += "</ul>";
-                }
-                return html;
+                return marked.parse(text);
             } catch (error) {
                 console.error("Error processing markdown:", error);
                 return text;

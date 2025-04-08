@@ -117,6 +117,7 @@ const DeckHistoryComponent = defineComponent({
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
         }, 0);
+        window.addEventListener("click", this.closeDropdown);
     },
     async created() {
         const pathSegments = window.location.pathname.split("/").filter(Boolean);
@@ -171,6 +172,17 @@ const DeckHistoryComponent = defineComponent({
             this.$emit("history-selected", historyItem);
             this.closeHistory();
         },
+        openDropdown(feedbackId) {
+            this.openedDropdownFeedbackId = feedbackId;
+            this.ignoreNextOutsideClick = true;
+        },
+        closeDropdown(event) {
+            if (this.ignoreNextOutsideClick) {
+                this.ignoreNextOutsideClick = false;
+            } else if (event && !this.$el.contains(event.target)) {
+                this.openedDropdownFeedbackId = false;
+            }
+        },
     },
     data() {
         return {
@@ -178,28 +190,71 @@ const DeckHistoryComponent = defineComponent({
             selectedHistory: null,
             isLoading: true,
             error: null,
+            openedDropdownFeedbackId: null,
+            ignoreNextOutsideClick: false,
         };
     },
 });
 
 const DeckGoalsComponent = defineComponent({
     template: "#deck-goals-template",
-    props: ["deck-id"],
+    props: ["deck-id", "feed-back-id"],
     async mounted() {
         await this.fetchGoals();
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
         }, 0);
+        this.initialAudience = this.selectedAudience;
+        this.initialFormality = this.selectedFormality;
+        this.initialDomain = this.selectedDomain;
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("click", this.handleOutsideClick);
     },
     methods: {
+        async reanalizeFile() {
+            this.isAnalyzing = true;
+
+            try {
+                const formData = new FormData();
+                formData.append("audience", this.selectedAudience);
+                formData.append("formality", this.selectedFormality);
+                formData.append("domain", this.selectedDomain);
+                formData.append("deck_id", this.deckId);
+
+                const response = await fetch("/deck/analysis", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": document.getElementById("csrf_token").value,
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to re-analyze file");
+                }
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+
+                const data = await response.json();
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                    return;
+                }
+            } catch (error) {
+                console.error("Error in re-analyzeFile:", error.message);
+            } finally {
+                this.isAnalyzing = false;
+            }
+        },
         async fetchGoals() {
             try {
-                const response = await fetch(`/deck/feedback/${this.deckId}/goals`, {
+                const response = await fetch(`/deck/feedback/${this.feedBackId}/goals`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -236,17 +291,32 @@ const DeckGoalsComponent = defineComponent({
             }
         },
         updateDescription(type, value) {
-            this[`selected${type}`] = value;
-            this.activeDescriptions[type] = this.descriptions[type][value];
+            if (this[`selected${type}`] !== value) {
+                this[`selected${type}`] = value;
+                this.activeDescriptions[type] = this.descriptions[type][value];
+            }
+            this.checkForChanges();
+        },
+        checkForChanges() {
+            this.hasChanges =
+                this.selectedAudience !== this.initialAudience ||
+                this.selectedFormality !== this.initialFormality ||
+                this.selectedDomain !== this.initialDomain;
         },
     },
     data() {
         return {
             isLoading: true,
+            isAnalyzing: false,
             error: null,
             selectedAudience: "settings",
             selectedFormality: "neutral",
             selectedDomain: "business",
+            hasChanges: false,
+            initialAudience: null,
+            initialFormality: null,
+            initialDomain: null,
+
             activeDescriptions: {
                 Audience: "Optimized for technical or configuration-related content.", // Initial for 'settings'
                 Formality: "Balanced tone, appropriate for general communication.", // Initial for 'neutral'
@@ -337,7 +407,7 @@ const DeckUploadComponent = defineComponent({
                 return;
             }
 
-            this.isAnalyzing = true; // Show analyzing state
+            this.isAnalyzing = true;
 
             try {
                 const formData = new FormData();
@@ -354,14 +424,12 @@ const DeckUploadComponent = defineComponent({
                     body: formData,
                 });
 
-                console.log("Response status:", response.status);
-                console.log(response);
-
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    if (errorData.error) {
-                        this.error = errorData.error;
-                    }
+                    throw new Error("Failed to re-analyze file");
+                }
+
+                if (response.redirected) {
+                    window.location.href = response.url;
                     return;
                 }
 
@@ -416,7 +484,6 @@ const DeckUploadComponent = defineComponent({
             isUploading: false,
             selectedButton: null,
             isAnalyzing: false,
-            error: null,
             selectedAudience: "settings",
             selectedFormality: "neutral",
             selectedDomain: "business",

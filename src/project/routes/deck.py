@@ -31,29 +31,40 @@ def index(user_id):
 @login_required
 def process_deck():
     """Handles deck creation and analysis in one action."""
-    if "file" not in request.files or request.files["file"] == "":
-        print("No file part")
-        return jsonify({"error": "No file provided"}), 400
+    deck_id = request.form.get("deck_id")
 
-    file = request.files["file"]
-    pdf_data = file.read()
-
-    if len(pdf_data) > MAX_FILE_SIZE:
-        return jsonify({"error": "File size exceeds the limit"}), 400
-
-    file_hash = calculate_md5(pdf_data)
-    deck = Deck.get_by_hash(file_hash)
-
-    if not deck:
+    if deck_id:
+        deck = Deck.get_by_id(int(deck_id))
+        if not deck:
+            return jsonify({"error": "Deck not found"}), 404
         try:
-            upload_deck(pdf_data, file_hash, "application/pdf")
-            deck = Deck(hash=file_hash)
-            deck.users.append(current_user)  # type: ignore
-            db.session.add(deck)
-            db.session.commit()
+            pdf_data = load_deck(deck.hash)  # type: ignore
         except Exception as e:
-            db.session.rollback()
-            return jsonify({"error": "Error creating deck"}), 500
+            print(f"Error loading deck: {e}")
+            return jsonify({"error": "Error loading deck"}), 500
+    else:
+        if "file" not in request.files or request.files["file"] == "":
+            return jsonify({"error": "No file provided"}), 400
+
+        file = request.files["file"]
+        pdf_data = file.read()
+
+        if len(pdf_data) > MAX_FILE_SIZE:
+            return jsonify({"error": "File size exceeds the limit"}), 400
+
+        file_hash = calculate_md5(pdf_data)
+        deck = Deck.get_by_hash(file_hash)
+
+        if not deck:
+            try:
+                upload_deck(pdf_data, file_hash, "application/pdf")
+                deck = Deck(hash=file_hash)
+                deck.users.append(current_user)  # type: ignore
+                db.session.add(deck)
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({"error": "Error creating deck"}), 500
 
     goals = {key: request.form.get(key, "") for key in ["audience", "formality", "domain"]}
     try:
@@ -65,11 +76,7 @@ def process_deck():
             domain=goals["domain"],
         )
         if existing_feedback:
-            return jsonify(
-                {
-                    "error": "Feedback with these goals already exists",
-                }
-            ), 400
+            return redirect(url_for("deck.user_deck_detail", deck_id=deck.id, feedback_id=existing_feedback.id))
 
         analysis_result_json = analyze_pdf(pdf_data, goals)
         data = json.loads(analysis_result_json)
@@ -112,7 +119,7 @@ def user_deck_list(user_id):
         feedback_json = FeedbackHistorySchema(
             id=feedback.id,
             goals=[feedback.audience, feedback.formality, feedback.domain],
-            created_at=feedback.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            created_at=feedback.created_at.strftime("%B %d, %H:%M"),
         ).model_dump()
         feedbacks.append(feedback_json)
 

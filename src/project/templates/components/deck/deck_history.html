@@ -1,18 +1,47 @@
-{% macro render(deckIdd) %}
+{% macro render(deckId) %}
 <template id="deck-history-template">
     <article
         class="fixed top-0 right-0 z-[60] flex h-full w-full flex-col overflow-y-scroll overscroll-contain bg-gray-100 transition-all"
         :class="isExpanded ? 'md:w-3/5 lg:w-2/5 2xl:w-1/3 ' : 'lg:w-1/4 2xl:w-1/5'"
     >
-        <span class="p-5 font-bold text-2xl">History</span>
+        <span class="p-5 text-2xl">History</span>
         <span v-text="history"></span>
         <div class="flex flex-col" v-for="history in histories" :key="history.id">
             <div
-                class="flex flex-col gap-1 px-8 py-3 cursor-pointer hover:bg-gray-200"
-                :class="selectedHistory == history.id ? 'bg-gray-300' : ''"
+                class="flex flex-col gap-1 px-8 py-3 cursor-pointer hover:bg-gray-200 relative"
+                :class="selectedHistory == history.id ? 'bg-gray-200' : ''"
             >
-                <a :href="`/deck/detail/{{deckIdd}}/${history.id}`" class="flex flex-col gap-1">
-                    <span class="font-bold" v-text="history.created_at"></span>
+                <div class="flex justify-end absolute top-2 right-2">
+                    <button @click.prevent="!openedDropdownFeedbackId ? openDropdown(history.id) : closeDropdown()">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-6 cursor-pointer"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+                            />
+                        </svg>
+                    </button>
+                </div>
+                <div
+                    v-if="openedDropdownFeedbackId === history.id"
+                    class="absolute top-8 right-4 z-10 flex w-36 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white py-1 shadow-xs"
+                >
+                    <button
+                        @click="deleteFeedback(hisotry.id)"
+                        class="flex w-full items-center gap-2 px-2 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                    >
+                        Delete
+                    </button>
+                </div>
+                <a :href="`/deck/detail/{{deckId}}/${history.id}`" class="flex flex-col gap-1">
+                    <span class="text-md" v-text="history.created_at"></span>
                     <div class="flex flex-row gap-1">
                         <a
                             v-for="goal in history.goals"

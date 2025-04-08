@@ -43,10 +43,10 @@
 
             <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
                 <deck-history-component
-                    @close-deck-history="isDeckHistoryOpened = null"
-                    :user-id="{{ current_user.id }}"
-                    :deck-id="{{ feedback.id }}"
                     v-if="isDeckHistoryOpened"
+                    @close-deck-history="isDeckHistoryOpened = null"
+                    :deck-id="{{ feedback.id }}"
+                    :user-id="{{ current_user.id }}"
                 ></deck-history-component>
             </transition>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
@@ -72,6 +72,7 @@
                 <deck-goals-component
                     v-if="isDeckGoalsOpened"
                     :deck-id="selectedDeckId"
+                    :feed-back-id="{{ feedback.id }}"
                     @close-deck-goals="isDeckGoalsOpened = false"
                 ></deck-goals-component>
             </transition>

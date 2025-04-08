@@ -6,12 +6,13 @@ from flask import (
     request,
     url_for,
 )
-from flask_login import current_user, login_required
+from flask_login import current_user, login_required, AnonymousUserMixin
 from sqlalchemy.exc import IntegrityError
 
 from ..extensions import db
 from ..models import (
     Company,
+    CompanyBookmark,
     Country,
     Industry,
     InvestmentFirm,
@@ -35,10 +36,32 @@ from ..utils.decorators import (
 )
 from ..utils.enums import NotificationType, SearchHistoryType
 from ..utils.funcs import generate_pagination
+
+# from ..utils.gemini import func
 from ..utils.posthog import capture_event, capture_page_visit
 from ..utils.suggestion import COMPANY_WEIGHTS, WEIGHTS, check_weights
 
 search = Blueprint("search", __name__)
+
+
+# @search.route("/gemini")
+# def home():
+#     return render_template("gemini.html")
+
+
+# @search.route("/stream/<prompt>")
+# def streamed_response(prompt):
+#     def generate():
+#         response = func(prompt)
+#         for res in response:
+#             for candidate in res._result.candidates:
+#                 for part in candidate.content.parts:
+#                     yield f"data: {part.text}\n\n".encode("utf-8")  # Ensure the chunk is in bytes and formatted for SSE
+
+#         print("\n\n\n\n\n\n\n\n")
+#         print(response)
+
+#     return Response(stream_with_context(generate()), content_type="text/event-stream")
 
 
 @search.get("/search/investors/<search>")
@@ -184,9 +207,14 @@ def investor_search():
         except IntegrityError:
             db.session.rollback()
 
+    bookmarked_investor_ids = []
+    if current_user.is_authenticated:
+        bookmarked_investor_ids = InvestorBookmark.get_id_list(current_user.id)
+
     return render_template(
         "search.html",
         investors=result.get("investors"),
+        bookmarked_investors=bookmarked_investor_ids,
         query=search_string,
         fields={
             "n_investments": "Number of Investments",
@@ -283,9 +311,12 @@ def search_investment_firms():
         except IntegrityError:
             db.session.rollback()
 
+    bookmarked_investment_firm_ids = InvestmentFirmBookmark.get_id_list(current_user.id)
+
     return render_template(
         "search_investment_firms.html",
         investment_firms=result.get("investment_firms"),
+        bookmarked_investment_firms=bookmarked_investment_firm_ids,
         query=search_string,
         fields={
             "n_investments": "Number of Investments",
@@ -363,9 +394,12 @@ def search_companies():
         except IntegrityError:
             db.session.rollback()
 
+    bookmarked_company_ids = CompanyBookmark.get_id_list(current_user.id)
+
     return render_template(
         "search_companies.html",
         companies=result.get("companies"),
+        bookmarked_companies=bookmarked_company_ids,
         query=search_string,
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),

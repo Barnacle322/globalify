@@ -59,7 +59,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -73,7 +73,7 @@
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
                     v-if="createNotableInvestmentOpened"
                 ></div>
             </transition>
@@ -162,7 +162,7 @@
                         ></textarea>
                     </div>
                     <div class="sm:col-span-full">
-                        <label for="country" class="block text-sm font-medium leading-6">Country</label>
+                        <label for="country" class="block text-sm leading-6 font-medium">Country</label>
                         <div>
                             <select
                                 name="country"
@@ -179,7 +179,7 @@
                     </div>
                     <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
                     <div class="sm:col-span-3">
-                        <label for="round" class="block text-sm font-medium leading-6">Preferred round</label>
+                        <label for="round" class="block text-sm leading-6 font-medium">Preferred round</label>
                         <div>
                             <select id="round" name="round" class="h-12 w-full rounded-xl px-2" id="round">
                                 <option value="" disabled selected>Select a round</option>
@@ -190,7 +190,7 @@
                         </div>
                     </div>
                     <div class="sm:col-span-3">
-                        <label for="industry" class="block text-sm font-medium leading-6 text-gray-900">Industry</label>
+                        <label for="industry" class="block text-sm leading-6 font-medium text-gray-900">Industry</label>
                         <div>
                             <select
                                 id="industry"

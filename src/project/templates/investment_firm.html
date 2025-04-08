@@ -51,7 +51,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -66,7 +66,7 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
-            <main class="mx-auto flex min-h-screen flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+            <main class="mx-auto flex min-h-screen flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
                 <section class="mx-auto flex w-full max-w-7xl items-center gap-4">
                     <h1 class="text-4xl font-semibold">{{ investment_firm.name }}</h1>
                 </section>
@@ -151,7 +151,7 @@
                             <div class="flex flex-wrap gap-1">
                                 {% for round in investment_firm.rounds %}
                                 <a
-                                    class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
+                                    class="rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-nowrap text-[#dd70d8]"
                                     >{{ round.name }}
                                 </a>
                                 {% endfor %}
@@ -179,7 +179,7 @@
                             <div class="flex flex-wrap gap-1">
                                 {% for industry in investment_firm.industries %}
                                 <a
-                                    class="text-nowrap rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-[#26a3f1]"
+                                    class="rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-nowrap text-[#26a3f1]"
                                     >{{ industry.name }}</a
                                 >
                                 {% endfor %}
@@ -279,7 +279,7 @@
                             <div class="mt-2 flex flex-wrap gap-1">
                                 {% for investment in investment_firm.notable_investments %}
                                 <a
-                                    class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500"
+                                    class="rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-nowrap text-violet-500"
                                     >{{ investment.name }}</a
                                 >
                                 {% endfor %}
@@ -303,7 +303,7 @@
                                 <a
                                     href="{{ investment_firm.twitter }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -334,7 +334,7 @@
                                 <a
                                     href="{{ investment_firm.linkedin }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -375,7 +375,7 @@
                                 <a
                                     href="{{ investment_firm.website }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -415,7 +415,7 @@
                                 </span>
                                 <a
                                     href="mailto:{{ investment_firm.email }}"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <span>{{ investment_firm.email }}</span>
                                 </a>

@@ -1,7 +1,7 @@
 {% extends "layouts/layout.html" %} {% block title %}Pricing{% endblock %} {% block additional_scripts %} {% endblock %}
 {% block head %} {{ super() }} {% endblock %} {% block content %}
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden text-gray-900">
-    <section class="mb-20 mt-6 flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8">
+    <section class="mt-6 mb-20 flex items-center justify-center gap-2.5 px-8 pt-10 sm:px-6 lg:px-8">
         <div class="flex w-full max-w-7xl flex-col items-center justify-center">
             <div class="flex flex-col items-center justify-center gap-4 px-4 sm:px-6 md:text-center lg:px-8">
                 <span
@@ -10,7 +10,7 @@
                 >
                 <h2 class="mt-5 max-w-2xl text-3xl font-semibold sm:text-[40px]">
                     Simple
-                    <span class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent"
+                    <span class="bg-linear-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent"
                         >pricing</span
                     >
                     for everyone
@@ -23,7 +23,7 @@
                         <span class="text-lg font-semibold">Community</span>
                         <span>
                             <span
-                                class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
+                                class="bg-linear-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
                                 >$0</span
                             >/month</span
                         >
@@ -58,7 +58,7 @@
                         <span class="text-lg font-semibold">Premium</span>
                         <span>
                             <span
-                                class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
+                                class="bg-linear-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
                                 >$29</span
                             >/month</span
                         >
@@ -114,7 +114,7 @@
                         <span class="text-lg font-semibold">Premium</span>
                         <span class="flex items-baseline justify-start">
                             <span
-                                class="leading bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
+                                class="leading bg-linear-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
                             >
                                 $280
                             </span>
@@ -160,12 +160,12 @@
                     </div>
                 </article>
                 <article class="flex w-full flex-col gap-5">
-                    <div class="flex flex-col gap-5 rounded-3xl bg-deep-purple px-5 py-7 text-white">
+                    <div class="bg-deep-purple flex flex-col gap-5 rounded-3xl px-5 py-7 text-white">
                         <span class="text-lg font-semibold">SuperConnect</span>
                         <span>
                             From
                             <span
-                                class="w-fit bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
+                                class="w-fit bg-linear-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-4xl font-semibold text-transparent"
                             >
                                 $1900</span
                             >
@@ -173,7 +173,7 @@
                         </span>
                         <p>Maximum Impact for Leaders</p>
                         <button
-                            class="mt-12 w-full rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#DE7CC8] py-3 text-center text-lg font-medium"
+                            class="mt-12 w-full rounded-xl bg-linear-to-r from-[#0EA5E9] to-[#DE7CC8] py-3 text-center text-lg font-medium"
                             onclick="openScheduler()"
                         >
                             Book a call
@@ -225,7 +225,7 @@
             </div>
         </div>
     </section>
-    <section id="schedulerContainer" class="fixed right-0 top-0 hidden h-full w-full bg-black/70">
+    <section id="schedulerContainer" class="fixed top-0 right-0 hidden h-full w-full bg-black/70">
         <div class="mx-auto h-full w-full max-w-7xl bg-white lg:my-10 lg:h-[90%] lg:w-3/4 lg:rounded-xl">
             <nav class="flex h-16 items-center justify-between gap-3 border-b px-5">
                 <h2 class="text-xl font-semibold">Schedule a call</h2>

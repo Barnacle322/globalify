@@ -63,7 +63,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -77,7 +77,7 @@
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
                     v-if="createInvestmentOpened || updateInvestmentOpened "
                 ></div>
             </transition>
@@ -126,7 +126,7 @@
                             <button
                                 id="undoButton"
                                 @click="undoInvestorData('{{investor.id}}')"
-                                class="mr-2 mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
+                                class="mt-5 mr-2 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
                             >
                                 Undo
                             </button>
@@ -225,7 +225,7 @@
                     <div class="relative col-span-full sm:col-span-3">
                         <label class="text-sm font-medium text-gray-700" for="location">Rounds</label>
                         <button
-                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-checked:border-sky-500"
                             id="round-options"
                             aria-haspopup="true"
                             aria-expanded="true"
@@ -283,7 +283,7 @@
                     <div class="relative col-span-full sm:col-span-3">
                         <label class="text-sm font-medium text-gray-700" for="location">Industries</label>
                         <button
-                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-checked:border-sky-500"
                             id="industry-options"
                             aria-haspopup="true"
                             aria-expanded="true"
@@ -363,7 +363,7 @@
                         </div>
                     </div>
                     <div class="col-span-full">
-                        <label for="investment" class="block text-sm font-medium leading-6 text-gray-900"
+                        <label for="investment" class="block text-sm leading-6 font-medium text-gray-900"
                             >Investments</label
                         >
                         {% if investments_by_round %}
@@ -381,7 +381,7 @@
                             {% for round_key, investments in investments_by_round.items() %}
 
                             <div
-                                class="mx-3 mb-3 mt-3 divide-y overflow-hidden overflow-y-auto rounded-xl border bg-gray-50 shadow-sm"
+                                class="mx-3 mt-3 mb-3 divide-y overflow-hidden overflow-y-auto rounded-xl border bg-gray-50 shadow-xs"
                             >
                                 <header class="flex cursor-pointer gap-2 bg-white px-3 py-3">
                                     <div @click.stop="toggleFundingRound('{{ round_key[0] }}')" class="mt-1">
@@ -427,7 +427,7 @@
                                 <div v-if="selectedFundingRound === '{{ round_key[0] }}'" class="flex flex-col p-3">
                                     <div class="overflow-auto rounded-t-lg border border-b-0">
                                         <table class="relative w-full table-auto">
-                                            <tr class="border-b bg-white font-medium *:text-nowrap *:px-4">
+                                            <tr class="border-b bg-white font-medium *:px-4 *:text-nowrap">
                                                 <td class="py-4 pl-4">Company</td>
                                                 <td class="py-4">Amount</td>
                                                 <td class="relative flex items-center justify-between py-4 pr-4">
@@ -457,15 +457,15 @@
                                                 class="border-b text-sm text-gray-700 *:px-4 last:border-0 odd:bg-gray-50 even:bg-white"
                                             >
                                                 {% if investment.funding_round.company %}
-                                                <td class="min-w-52 max-w-72 text-wrap py-4 pl-4">
+                                                <td class="max-w-72 min-w-52 py-4 pl-4 text-wrap">
                                                     {{ investment.funding_round.company.name if
                                                     investment.funding_round.company.name else 'N/A' }}
                                                 </td>
                                                 {% endif %}
-                                                <td class="text-nowrap py-4">
+                                                <td class="py-4 text-nowrap">
                                                     ${{ investment.amount if investment.amount else 'N/A' }}
                                                 </td>
-                                                <td class="text-nowrap py-4 pr-4">
+                                                <td class="py-4 pr-4 text-nowrap">
                                                     {{ investment.date if investment.date else 'N/A' }}
                                                 </td>
                                                 <td>
@@ -659,8 +659,8 @@
                     </div>
                     <div class="col-span-full">
                         <div>
-                            <span class="block text-sm font-medium leading-6">Visibility Settings</span>
-                            <span class="block text-sm font-medium leading-6 text-gray-500"
+                            <span class="block text-sm leading-6 font-medium">Visibility Settings</span>
+                            <span class="block text-sm leading-6 font-medium text-gray-500"
                                 >You can make your investor profile visible in the search results.
                             </span>
                         </div>
@@ -672,7 +672,7 @@
                                 <input type="checkbox" id="is_public" value="True" class="peer sr-only" />
                                 {% endif %}
                                 <div
-                                    class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                    class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                                 ></div>
                                 <span class="ms-3 text-sm font-medium text-gray-900">Show investor in search</span>
                             </label>
@@ -683,7 +683,7 @@
                                 <input type="checkbox" id="is_approved" value="True" class="peer sr-only" />
                                 {% endif %}
                                 <div
-                                    class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                    class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                                 ></div>
                                 <span class="ms-3 text-sm font-medium text-gray-900">Approve an investor</span>
                             </label>

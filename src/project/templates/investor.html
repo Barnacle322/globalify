@@ -51,7 +51,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -66,7 +66,7 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
-            <main class="mx-auto flex min-h-screen w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+            <main class="mx-auto flex min-h-screen w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
                 {% if status_type %} {% if status_type == '3' %}
                 <div class="flex w-full rounded-xl text-red-500">{{ msg }}</div>
                 {% elif status_type == '2' %}
@@ -201,7 +201,7 @@
                             <div class="flex flex-wrap gap-1">
                                 {% for round in investor.rounds %}
                                 <a
-                                    class="text-nowrap rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-[#dd70d8]"
+                                    class="rounded-full bg-[#ffdcfd] px-2 py-1.5 text-xs font-medium text-nowrap text-[#dd70d8]"
                                     >{{ round.name }}
                                 </a>
                                 {% endfor %}
@@ -229,7 +229,7 @@
                             <div class="flex flex-wrap gap-1">
                                 {% for industry in investor.industries %}
                                 <a
-                                    class="text-nowrap rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-[#26a3f1]"
+                                    class="rounded-lg bg-[#ccecff] px-2 py-1.5 text-xs font-medium text-nowrap text-[#26a3f1]"
                                     >{{ industry.name }}</a
                                 >
                                 {% endfor %}
@@ -324,18 +324,18 @@
                             <span class="text-sm text-gray-700">{{ investor.n_exits }}</span>
                         </div>
                         {% endif %} {% if investor.notable_investments %}
-                        <div class="has-[:empty]:hidden">
+                        <div class="has-empty:hidden">
                             <h2 class="mt-5 font-medium">Notable Investments</h2>
                             <div class="mt-2 flex flex-wrap gap-1">
                                 {% for investment in investor.notable_investments %} {% if investment.company %}
                                 <a
                                     href="/profile/company/{{ investment.company.slug }}"
-                                    class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500 hover:bg-violet-300"
+                                    class="rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-nowrap text-violet-500 hover:bg-violet-300"
                                     >{{ investment.name }}</a
                                 >
                                 {% elif investment.name != '' %}
                                 <a
-                                    class="text-nowrap rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-violet-500"
+                                    class="rounded-lg bg-violet-200 px-2 py-1.5 text-xs font-medium text-nowrap text-violet-500"
                                     >{{ investment.name }}</a
                                 >
                                 {% endif %} {% endfor %}
@@ -359,7 +359,7 @@
                                 <a
                                     href="{{ investor.twitter }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -390,7 +390,7 @@
                                 <a
                                     href="{{ investor.linkedin }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -431,7 +431,7 @@
                                 <a
                                     href="{{ investor.website }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -471,7 +471,7 @@
                                 </span>
                                 <a
                                     href="mailto:{{ investor.email }}"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <span>{{ investor.email }}</span>
                                 </a>

@@ -57,7 +57,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -71,7 +71,7 @@
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
                     v-if="createNotableInvestmentOpened"
                 ></div>
             </transition>
@@ -208,7 +208,7 @@
                             <input type="checkbox" id="created_by_admin" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Created by admin</span>
                         </label>
@@ -221,7 +221,7 @@
                             <input type="checkbox" id="is_verified" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Investment is verified</span>
                         </label>

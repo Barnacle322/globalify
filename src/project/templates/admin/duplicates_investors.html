@@ -56,7 +56,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -99,7 +99,7 @@
                         </a>
                     </div>
                 </nav>
-                <section class="mx-auto my-10 flex max-w-8xl flex-col gap-5 px-4 sm:my-14">
+                <section class="max-w-8xl mx-auto my-10 flex flex-col gap-5 px-4 sm:my-14">
                     <h1 class="text-3xl font-bold sm:text-5xl">Investors duplicates</h1>
                     {% if status_type %} {% if status_type == '3' %}
                     <div class="rounded-xl text-red-500">{{ msg }}</div>
@@ -123,12 +123,12 @@
                             </div>
                             <button
                                 @click="fetchDuplicates"
-                                class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
                             >
                                 Search
                             </button>
 
-                            <div class="relative group">
+                            <div class="group relative">
                                 <div class="cursor-pointer p-1 text-gray-500 hover:text-gray-700">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -145,7 +145,7 @@
                                 </div>
 
                                 <div
-                                    class="absolute hidden group-hover:block bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 px-2 py-2 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-600"
+                                    class="absolute bottom-full left-1/2 mb-2 hidden w-48 -translate-x-1/2 rounded-lg border border-gray-200 bg-white px-2 py-2 text-sm text-gray-600 shadow-lg group-hover:block"
                                 >
                                     - AND-Logic Identification. Select parameters to find duplicates. Match occurs only
                                     with full compliance of all selected parameters
@@ -161,29 +161,29 @@
                             class="flex flex-col gap-4 overflow-hidden rounded-xl border border-gray-200 bg-white p-6"
                         >
                             <!-- Header -->
-                            <div class="grid grid-cols-5 gap-4 mb-4 text-2xl">
+                            <div class="mb-4 grid grid-cols-5 gap-4 text-2xl">
                                 <div class="font-bold text-gray-700">Field Name</div>
-                                <div class="font-bold text-gray-700 text-center">
+                                <div class="text-center font-bold text-gray-700">
                                     Investor ID
                                     <span v-text="comparison.investorA.id"></span>
                                 </div>
-                                <div class="font-bold text-gray-700 text-center">
+                                <div class="text-center font-bold text-gray-700">
                                     Investor ID
                                     <span v-text="comparison.investorB.id"></span>
                                 </div>
-                                <div class="col-span-2 font-bold text-gray-700 text-center">Updated Investor</div>
+                                <div class="col-span-2 text-center font-bold text-gray-700">Updated Investor</div>
                             </div>
 
                             <!-- Fields -->
                             <template v-for="(valueA, field) in formatInvestorData(comparison.investorA)" :key="field">
-                                <div v-if="field !== 'id'" class="grid grid-cols-5 gap-4 items-center">
+                                <div v-if="field !== 'id'" class="grid grid-cols-5 items-center gap-4">
                                     <!-- Field Name -->
                                     <div class="font-medium" v-text="field"></div>
 
                                     <!-- Both None Values -->
                                     <template v-if="valueA === null && comparison.investorB[field] === null">
                                         <div
-                                            class="col-span-2 w-full text-center py-2 px-4 rounded bg-blue-500 text-white"
+                                            class="col-span-2 w-full rounded bg-blue-500 px-4 py-2 text-center text-white"
                                             v-text="'None'"
                                         ></div>
                                     </template>
@@ -244,17 +244,17 @@
                                     <!-- Updated investor Column -->
                                     <div class="col-span-2 grid place-items-center">
                                         <div
-                                            class="w-56 font-medium min-h-[40px] text-center py-2 px-3 rounded bg-gray-100 break-all"
+                                            class="min-h-[40px] w-56 rounded bg-gray-100 px-3 py-2 text-center font-medium break-all"
                                             v-text="getSelectedValue(field, index)"
                                         ></div>
                                     </div>
                                 </div>
                             </template>
 
-                            <div class="flex justify-center mt-2">
+                            <div class="mt-2 flex justify-center">
                                 <button
                                     @click="mergeInvestors(index)"
-                                    class="w-40 flex items-center font-medium justify-center gap-2 rounded-md bg-gray-300 p-2 transition-colors ease-in-out hover:bg-gray-400"
+                                    class="flex w-40 items-center justify-center gap-2 rounded-md bg-gray-300 p-2 font-medium transition-colors ease-in-out hover:bg-gray-400"
                                 >
                                     Merge
                                     <svg

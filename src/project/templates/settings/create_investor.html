@@ -61,7 +61,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl items-center justify-center">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full items-center justify-center">
             <transition :enter-active-class="enterClass" :leave-active-class="leaveClass" mode="out-in">
                 <component :is="currentComponent" @change-page="changePage"></component>
             </transition>

@@ -1,7 +1,7 @@
 {% macro render(user) %}
 <template id="profile-context-menu">
     <div
-        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col overflow-y-auto border bg-white shadow-xl sm:absolute sm:right-0 sm:top-9 sm:h-auto sm:max-h-96 sm:w-96 sm:rounded-xl"
+        class="fixed top-0 right-0 z-50 flex h-full w-full flex-col overflow-y-auto border bg-white shadow-xl sm:absolute sm:top-9 sm:right-0 sm:h-auto sm:max-h-96 sm:w-96 sm:rounded-xl"
     >
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
 
@@ -28,10 +28,14 @@
                     />
                 </a>
                 <h3 class="mt-2 text-lg font-semibold">{{ user.user_info.full_name }}</h3>
+
+                {% if user.user_info.username %}
                 <p class="text-sm text-gray-500">{{ user.user_info.username }}</p>
+                {% endif %}
+
                 <a
                     href="/settings/plan"
-                    class="mt-2 rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-300 px-2 py-1 text-xs font-medium text-white"
+                    class="mt-2 rounded-full bg-linear-to-r from-indigo-400 via-purple-400 to-pink-300 px-2 py-1 text-xs font-medium text-white"
                 >
                     {{ user.user_payment.tier.value.upper() }}
                 </a>
@@ -129,12 +133,23 @@
             >
                 Settings
             </a>
+
+            {% if user.user_info.username %}
             <a
                 href="/logout"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 transition-colors ease-in-out hover:bg-gray-50"
             >
                 Log out {{ user.user_info.username }}
             </a>
+            {% else %}
+            <a
+                href="/logout"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 transition-colors ease-in-out hover:bg-gray-50"
+            >
+                Log out
+            </a>
+
+            {% endif %}
         </div>
     </div>
 </template>

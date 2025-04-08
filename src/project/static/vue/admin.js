@@ -1077,6 +1077,7 @@ createApp({
             const custom_name = document.getElementById("custom_name").value;
             const funding_round_id = document.getElementById("funding_round").value;
             const amount = document.getElementById("amount").value;
+            const announced_date = document.getElementById("announced_date").value;
             const createdByAdminElement = document.getElementById("created_by_admin");
             const created_by_admin = createdByAdminElement ? createdByAdminElement.checked : false;
             const isVerifiedElement = document.getElementById("is_verified");
@@ -1088,6 +1089,7 @@ createApp({
                 custom_name: custom_name,
                 funding_round_id: funding_round_id,
                 amount: amount,
+                date: announced_date,
                 created_by_admin: created_by_admin,
                 is_verified: is_verified,
             });

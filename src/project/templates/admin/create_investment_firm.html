@@ -59,7 +59,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -73,7 +73,7 @@
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
                     v-if="createNotableInvestmentOpened"
                 ></div>
             </transition>
@@ -157,7 +157,7 @@
                     <div class="relative col-span-full sm:col-span-3">
                         <label class="text-sm font-medium text-gray-700" for="rounds">Rounds*</label>
                         <button
-                            class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                            class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-checked:border-sky-500"
                             id="round-options"
                             aria-haspopup="true"
                             aria-expanded="true"
@@ -208,7 +208,7 @@
                     <div class="relative col-span-full sm:col-span-3">
                         <label class="text-sm font-medium text-gray-700" for="location">Industries</label>
                         <button
-                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-checked:border-sky-500"
                             id="industry-options"
                             aria-haspopup="true"
                             aria-expanded="true"
@@ -271,7 +271,7 @@
                     <div class="relative col-span-full">
                         <label class="text-sm font-medium text-gray-700" for="rounds">Notable Investments</label>
                         <button
-                            class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                            class="flex w-full items-center justify-center gap-1 rounded-xl border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-checked:border-sky-500"
                             id="notable-investment-options"
                             aria-haspopup="true"
                             aria-expanded="true"

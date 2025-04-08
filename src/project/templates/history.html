@@ -58,9 +58,9 @@
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
         <transition enter-active-class="pop-in" leave-active-class="pop-out">
-            <div v-if="selectedItems.size > 0" class="fixed left-0 right-0 top-0 z-50 w-full bg-white">
+            <div v-if="selectedItems.size > 0" class="fixed top-0 right-0 left-0 z-50 w-full bg-white">
                 <nav
-                    class="mx-auto grid h-20 w-full max-w-8xl grid-cols-2 items-center border-b px-4 sm:grid-cols-2 lg:px-6"
+                    class="max-w-8xl mx-auto grid h-20 w-full grid-cols-2 items-center border-b px-4 sm:grid-cols-2 lg:px-6"
                 >
                     <span v-text="'Selected: ' + selectedItems.size" class="text-lg font-medium"></span>
                     <div class="flex justify-end gap-4">
@@ -94,7 +94,7 @@
                 </nav>
             </div>
         </transition>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -109,7 +109,6 @@
             <main class="flex w-full flex-col p-4 sm:p-6">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <h2 class="text-3xl font-bold sm:text-4xl">Search History</h2>
-
                 <div
                     class="relative mt-5 flex h-10 max-w-lg items-center divide-x divide-sky-500 rounded-xl border border-sky-500 bg-white shadow-md"
                 >
@@ -148,7 +147,7 @@
                         <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
                             <div
                                 v-if="dropdownOpened"
-                                class="absolute right-0 top-full z-50 mt-1 rounded-lg border border-gray-200 bg-white p-1 text-sm shadow-lg"
+                                class="absolute top-full right-0 z-50 mt-1 rounded-lg border border-gray-200 bg-white p-1 text-sm shadow-lg"
                             >
                                 <button
                                     @click="selectType('all')"
@@ -175,7 +174,7 @@
                                 <button
                                     v-for="type in historyTypes"
                                     @click="selectType(type.value)"
-                                    class="flex w-full gap-2 whitespace-nowrap rounded-md px-2 py-1.5 hover:bg-sky-500 hover:text-white"
+                                    class="flex w-full gap-2 rounded-md px-2 py-1.5 whitespace-nowrap hover:bg-sky-500 hover:text-white"
                                 >
                                     <svg
                                         v-if="type.value === 'investor'"
@@ -229,7 +228,7 @@
                     </div>
                 </div>
 
-                <div class="mb-4 mt-4 flex flex-col sm:mt-6" v-for="[day, histories] of searchHistories" :key="day">
+                <div class="mt-4 mb-4 flex flex-col sm:mt-6" v-for="[day, histories] of searchHistories" :key="day">
                     <span class="mb-1 text-lg font-medium text-gray-600" v-text="formatDate(day)"></span>
                     <transition-group name="list" tag="div">
                         <div
@@ -303,7 +302,7 @@
                             </a>
                             <button
                                 @click.stop="deleteItems([item.id])"
-                                class="my-auto flex size-8 items-center justify-center rounded-lg font-medium text-gray-400 transition-opacity hover:bg-gray-200 hover:text-red-500 group-hover:opacity-100"
+                                class="my-auto flex size-8 items-center justify-center rounded-lg font-medium text-gray-400 transition-opacity group-hover:opacity-100 hover:bg-gray-200 hover:text-red-500"
                             >
                                 X
                             </button>

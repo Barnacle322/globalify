@@ -67,7 +67,7 @@
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
         <div :class="{'bg-black/70 fixed top-0 left-0 h-full w-full z-50': confirmRestoreOpened}"></div>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -84,7 +84,7 @@
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
                     v-if="createInvestmentOpened || updateInvestmentOpened "
                 ></div>
             </transition>
@@ -225,7 +225,7 @@
                     <div class="flex flex-col gap-6 sm:grid sm:grid-cols-6">
                         <div class="top-36 col-span-2 h-fit sm:sticky">
                             <h2 class="text-2xl font-bold">Personal Information</h2>
-                            <p class="mb-2 mt-1 text-gray-700">
+                            <p class="mt-1 mb-2 text-gray-700">
                                 Manage your personal profile information and privacy settings here. This information is
                                 visible to other users on the platform.
                             </p>
@@ -272,7 +272,7 @@
                                     </div>
                                 </div>
                                 <div class="sm:col-span-3">
-                                    <label for="first-name" class="block text-sm font-medium leading-6"
+                                    <label for="first-name" class="block text-sm leading-6 font-medium"
                                         >First name</label
                                     >
                                     <input
@@ -285,7 +285,7 @@
                                     />
                                 </div>
                                 <div class="sm:col-span-3">
-                                    <label for="last-name" class="block text-sm font-medium leading-6">Last name</label>
+                                    <label for="last-name" class="block text-sm leading-6 font-medium">Last name</label>
                                     <input
                                         type="text"
                                         name="last-name"
@@ -297,7 +297,7 @@
                                 </div>
                                 <div class="col-span-full">
                                     {% if user.oauth_provider %}
-                                    <label for="email" class="block text-sm font-medium leading-6">Email address</label>
+                                    <label for="email" class="block text-sm leading-6 font-medium">Email address</label>
                                     <input
                                         id="email"
                                         name="email"
@@ -329,7 +329,7 @@
                                             />
                                             {% endif %}
                                             <div
-                                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                                             ></div>
                                             <span class="ms-3 text-sm font-medium text-gray-900">Show in profile</span>
                                         </label>
@@ -337,10 +337,10 @@
                                     {% endif %}
                                 </div>
                                 <div class="col-span-full">
-                                    <label for="username" class="block text-sm font-medium leading-6">Username</label>
+                                    <label for="username" class="block text-sm leading-6 font-medium">Username</label>
                                     <div class="mt-2">
                                         <span
-                                            class="absolute hidden h-12 select-none items-center pl-3 text-gray-500 sm:flex"
+                                            class="absolute hidden h-12 items-center pl-3 text-gray-500 select-none sm:flex"
                                         >
                                             globalify.com/profile/
                                         </span>
@@ -359,7 +359,7 @@
                                     </div>
                                 </div>
                                 <div class="col-span-full">
-                                    <label for="bio" class="block text-sm font-medium leading-6">Bio</label>
+                                    <label for="bio" class="block text-sm leading-6 font-medium">Bio</label>
                                     <textarea
                                         id="bio"
                                         name="bio"
@@ -370,7 +370,7 @@
                                     >
                                 </div>
                                 <div class="col-span-full">
-                                    <label for="linkedin" class="block text-sm font-medium leading-6">Linkedin</label>
+                                    <label for="linkedin" class="block text-sm leading-6 font-medium">Linkedin</label>
                                     <input
                                         id="linkedin"
                                         name="linkedin"
@@ -399,14 +399,14 @@
                                             {% endif %}
 
                                             <div
-                                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                                             ></div>
                                             <span class="ms-3 text-sm font-medium text-gray-900">Show in profile</span>
                                         </label>
                                     </div>
                                 </div>
                                 <div class="col-span-full">
-                                    <label for="instagram" class="block text-sm font-medium leading-6">Instagram</label>
+                                    <label for="instagram" class="block text-sm leading-6 font-medium">Instagram</label>
                                     <input
                                         id="instagram"
                                         name="instagram"
@@ -434,14 +434,14 @@
                                             />
                                             {% endif %}
                                             <div
-                                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                                             ></div>
                                             <span class="ms-3 text-sm font-medium text-gray-900">Show in profile</span>
                                         </label>
                                     </div>
                                 </div>
                                 <div class="col-span-full">
-                                    <label for="twitter" class="block text-sm font-medium leading-6">Twitter/X</label>
+                                    <label for="twitter" class="block text-sm leading-6 font-medium">Twitter/X</label>
                                     <input
                                         id="twitter"
                                         name="twitter"
@@ -469,7 +469,7 @@
                                             />
                                             {% endif %}
                                             <div
-                                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                                             ></div>
                                             <span class="ms-3 text-sm font-medium text-gray-900">Show in profile</span>
                                         </label>
@@ -477,8 +477,8 @@
                                 </div>
                                 <div class="col-span-full">
                                     <div>
-                                        <span class="block text-sm font-medium leading-6">Invitations</span>
-                                        <span class="block text-sm font-medium leading-6 text-gray-500"
+                                        <span class="block text-sm leading-6 font-medium">Invitations</span>
+                                        <span class="block text-sm leading-6 font-medium text-gray-500"
                                             >You have the right to refuse invitations from any company.</span
                                         >
                                     </div>
@@ -500,7 +500,7 @@
                                         />
                                         {% endif %}
                                         <div
-                                            class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                            class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                                         ></div>
                                         <span class="ms-3 text-sm font-medium text-gray-900">Refuse invitations</span>
                                     </label>
@@ -521,10 +521,10 @@
                             </div>
                         </form>
                     </div>
-                    <div class="mb-20 mt-10 flex flex-col gap-6 sm:grid sm:grid-cols-6" id="investor">
+                    <div class="mt-10 mb-20 flex flex-col gap-6 sm:grid sm:grid-cols-6" id="investor">
                         <div class="top-36 col-span-2 h-fit w-full sm:sticky">
                             <h2 class="text-2xl font-bold">Investor Information</h2>
-                            <p class="mb-2 mt-1 leading-6 text-gray-700">
+                            <p class="mt-1 mb-2 leading-6 text-gray-700">
                                 Manage your investor profile information here. This information is visible to other
                                 users on the platform.
                             </p>
@@ -603,7 +603,7 @@
                                 <div class="relative col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium" for="location">Rounds</label>
                                     <button
-                                        class="flex h-12 w-full items-center justify-center gap-1 rounded-xl border-2 border-gray-300 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                                        class="flex h-12 w-full items-center justify-center gap-1 rounded-xl border-2 border-gray-300 bg-white px-2 py-3 text-sm ease-in-out group-has-checked:border-sky-500"
                                         id="round-options"
                                         aria-haspopup="true"
                                         aria-expanded="true"
@@ -661,7 +661,7 @@
                                 <div class="relative col-span-full space-y-1 sm:col-span-3">
                                     <label class="text-sm font-medium text-gray-700" for="location">Industries</label>
                                     <button
-                                        class="flex h-12 w-full items-center justify-center gap-1 rounded-xl border-2 border-gray-300 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                                        class="flex h-12 w-full items-center justify-center gap-1 rounded-xl border-2 border-gray-300 bg-white px-2 py-3 text-sm ease-in-out group-has-checked:border-sky-500"
                                         id="industry-options"
                                         aria-haspopup="true"
                                         aria-expanded="true"
@@ -749,7 +749,7 @@
                                 </div>
                                 {% if investments_by_round.items() | length > 0 %}
                                 <div class="col-span-full">
-                                    <label for="investment" class="block text-sm font-medium leading-6 text-gray-900"
+                                    <label for="investment" class="block text-sm leading-6 font-medium text-gray-900"
                                         >Investments</label
                                     >
                                     <div
@@ -767,7 +767,7 @@
                                         {% for round_key, investments in investments_by_round.items() %}
 
                                         <div
-                                            class="mx-3 mb-3 mt-3 divide-y overflow-hidden overflow-y-auto rounded-xl border bg-gray-50 shadow-sm"
+                                            class="mx-3 mt-3 mb-3 divide-y overflow-hidden overflow-y-auto rounded-xl border bg-gray-50 shadow-xs"
                                         >
                                             <header class="flex cursor-pointer gap-2 bg-white px-3 py-3">
                                                 <div
@@ -819,7 +819,7 @@
                                             >
                                                 <div class="overflow-auto rounded-t-lg border border-b-0">
                                                     <table class="relative w-full table-auto">
-                                                        <tr class="border-b bg-white font-medium *:text-nowrap *:px-4">
+                                                        <tr class="border-b bg-white font-medium *:px-4 *:text-nowrap">
                                                             <td class="py-4 pl-4">Company</td>
                                                             <td class="py-4">Amount</td>
                                                             <td
@@ -860,15 +860,15 @@
                                                             class="border-b text-sm text-gray-700 *:px-4 last:border-0 odd:bg-gray-50 even:bg-white"
                                                         >
                                                             {% if investment.funding_round.company %}
-                                                            <td class="min-w-52 max-w-72 text-wrap py-4 pl-4">
+                                                            <td class="max-w-72 min-w-52 py-4 pl-4 text-wrap">
                                                                 {{ investment.funding_round.company.name if
                                                                 investment.funding_round.company.name else 'N/A' }}
                                                             </td>
                                                             {% endif %}
-                                                            <td class="text-nowrap py-4">
+                                                            <td class="py-4 text-nowrap">
                                                                 ${{ investment.amount if investment.amount else 'N/A' }}
                                                             </td>
-                                                            <td class="text-nowrap py-4 pr-4">
+                                                            <td class="py-4 pr-4 text-nowrap">
                                                                 {{ investment.date if investment.date else 'N/A' }}
                                                             </td>
                                                             <td>
@@ -997,7 +997,7 @@
                                     />
                                 </div>
                                 <div class="col-span-full">
-                                    <div class="text-sm font-medium leading-6">
+                                    <div class="text-sm leading-6 font-medium">
                                         <span class="block">Visibility Settings</span>
                                         <span class="text-gray-500"
                                             >You can make your investor profile visible in the search results.
@@ -1016,7 +1016,7 @@
                                         <input type="checkbox" id="is_public" value="True" class="peer sr-only" />
                                         {% endif %}
                                         <div
-                                            class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                            class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                                         ></div>
                                         <span class="ms-3 text-sm font-medium text-gray-900"
                                             >Show investor in search</span
@@ -1054,7 +1054,7 @@
                             <a href="/search?investor={{ claim_request.investor.slug }}" class="text-lg font-medium"
                                 >{{ claim_request.investor.full_name }}</a
                             >
-                            <span class="italic text-orange-500">{{ claim_request.status.value.title() }}</span>
+                            <span class="text-orange-500 italic">{{ claim_request.status.value.title() }}</span>
                         </div>
                         {% endfor %} {% else %}
                         <div class="col-span-4">
@@ -1087,7 +1087,7 @@
                                     >
                                     <a
                                         href="/settings/investor/create"
-                                        class="mt-4 flex rounded-lg bg-deep-purple px-4 py-3 text-white transition-transform duration-500 ease-in-out hover:scale-105"
+                                        class="bg-deep-purple mt-4 flex rounded-lg px-4 py-3 text-white transition-transform duration-500 ease-in-out hover:scale-105"
                                     >
                                         Apply
                                     </a>

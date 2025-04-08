@@ -1,3 +1,5 @@
+import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+
 const FullInvestor = defineComponent({
     template: "#full-investor-template",
     props: { slug: String, rendercontacts: Boolean },
@@ -17,7 +19,6 @@ const FullInvestor = defineComponent({
     async created() {
         await this.fetchInvestor();
         window.removeEventListener("popstate", this.checkUrlParams);
-        this.fetchInvestments(this.investor.id);
     },
     methods: {
         async fetchInvestor() {
@@ -28,6 +29,10 @@ const FullInvestor = defineComponent({
                     this.investor = data.investor;
                     this.isBookmarked = data.isBookmarked;
                     this.unpaid = data.unpaid;
+                    if (data.investments && data.n_of_investments) {
+                        this.investments = data.investments;
+                        this.n_of_investments = data.n_of_investments;
+                    }
                     await this.loadTwitterTimeline();
                 } else {
                     this.closeInvestor();
@@ -42,7 +47,7 @@ const FullInvestor = defineComponent({
         },
         async loadTwitterTimeline() {
             if (!this.investor?.twitter) return;
-            this.loadingTwitter = true; // Set loading state to true
+            this.loadingTwitter = true;
             this.ensureTwitterScriptLoaded(() => {
                 const timeline = document.querySelector(".twitter-timeline");
                 if (timeline) {
@@ -64,24 +69,6 @@ const FullInvestor = defineComponent({
                 }
             });
         },
-        ensureTwitterScriptLoaded(callback) {
-            const script_element = document.getElementById("twitter-script");
-            if (script_element) script_element.remove();
-
-            if (!this.twitterScriptLoaded) {
-                const script = document.createElement("script");
-                script.src = "https://platform.twitter.com/widgets.js";
-                script.id = "twitter-script";
-                script.async = true;
-                script.onload = () => {
-                    this.twitterScriptLoaded = true;
-                    callback();
-                };
-                document.body.appendChild(script);
-            } else {
-                callback();
-            }
-        },
         async toggleBookmark(investorId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
@@ -93,29 +80,17 @@ const FullInvestor = defineComponent({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes("/onboarding/")) {
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-investor-${investorId}`);
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { investorId: investorId, status: true });
                         this.isBookmarked = !this.isBookmarked;
                     } else {
-                        // svg.style.fill = "none";
                         this.$emit("bookmarked", { investorId: investorId, status: false });
                         this.isBookmarked = !this.isBookmarked;
                     }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async fetchInvestments(investorId) {
-            try {
-                const response = await fetch(`/investment/${investorId}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investments = data.investments;
-
-                    this.n_of_investments = data.n_of_investments;
                 }
             } catch (error) {
                 console.error(error);
@@ -134,6 +109,24 @@ const FullInvestor = defineComponent({
             this.investments = [...this.investments];
             this.sortOrder = sortType;
             this.sortDropdownOpened = false;
+        },
+        ensureTwitterScriptLoaded(callback) {
+            const script_element = document.getElementById("twitter-script");
+            if (script_element) script_element.remove();
+
+            if (!this.twitterScriptLoaded) {
+                const script = document.createElement("script");
+                script.src = "https://platform.twitter.com/widgets.js";
+                script.id = "twitter-script";
+                script.async = true;
+                script.onload = () => {
+                    this.twitterScriptLoaded = true;
+                    callback();
+                };
+                document.body.appendChild(script);
+            } else {
+                callback();
+            }
         },
         deleteInvestorParam() {
             const url = new URL(window.location.href);
@@ -186,6 +179,800 @@ const FullInvestor = defineComponent({
     },
 });
 
+const GeminiComponent = defineComponent({
+    template: "#gemini-template",
+    emits: ["close-gemini"],
+    props: ["userId"],
+    watch: {
+        response() {
+            if (this.isScrolledToBottom) {
+                this.scrollToBottom();
+            }
+        },
+    },
+    components: {
+        FullInvestor,
+    },
+    async created() {
+        await this.loadAllChats();
+        this.loadChatById(this.selectedChatId);
+        window.addEventListener("popstate", this.handlePopState);
+        this.checkAndSelectUrlParam("investor", this.selectInvestorSlug);
+    },
+    computed: {
+        currentChatName() {
+            if (!this.selectedChatId) return "";
+            for (const [date, chats] of this.userChats) {
+                const chat = chats.find((chat) => chat.id === this.selectedChatId);
+                if (chat) return chat.name;
+            }
+            return "";
+        },
+    },
+    mounted() {
+        document.addEventListener("click", this.handleHistorySidebarClickOutside);
+        document.addEventListener("click", this.handleClickOutside);
+        document.body.addEventListener("click", this.handleInvestorButtonClick);
+        this.handleScroll();
+    },
+    beforeUnmount() {
+        document.removeEventListener("click", this.handleHistorySidebarClickOutside);
+        document.removeEventListener("click", this.handleClickOutside);
+        document.body.removeEventListener("click", this.handleInvestorButtonClick);
+        window.removeEventListener("popstate", this.handlePopState);
+        this.stopSSEStream();
+    },
+    methods: {
+        async getChatById(chatId) {
+            try {
+                const response = await fetch(`/message/chat/${chatId}/details`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error("Error loading chat:", data.error);
+                    return;
+                }
+
+                this.chats = [data, ...this.chats];
+            } catch (error) {
+                console.error("Error loading chat:", error);
+            }
+        },
+        async createChat() {
+            this.response = [];
+            this.selectedChatId = null;
+        },
+        async loadChatById(chatId) {
+            if (chatId === null || chatId === undefined) {
+                console.warn("Invalid chatId, nothing to load.");
+                return;
+            }
+            try {
+                const response = await fetch(`/message/chat/${chatId}/details`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error("Error loading chat:", data.error);
+                    return;
+                }
+                this.response = data.messages.map((msg) => ({
+                    content: this.processMarkdown(msg.message),
+                    type: msg.type,
+                    isHTML: true,
+                }));
+                this.scrollToBottom();
+            } catch (error) {
+                console.error("Error loading chat:", error);
+            }
+        },
+        async loadAllChats() {
+            try {
+                const response = await fetch(`/message/chats/${this.userId}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    console.error("Error loading chats:", data.error || "Unknown error");
+                    this.isHistoryVisible = false;
+                    this.hasChats = false;
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (!data || data.length === 0) {
+                    this.isHistoryVisible = false;
+                    this.hasChats = false;
+                    return;
+                }
+
+                this.hasChats = true;
+                this.isHistoryVisible = true;
+                this.selectedChatId = data[0].id;
+
+                // Group chats by date category
+                const grouped = this.groupChatsByDate(data);
+                this.userChats = grouped;
+            } catch (error) {
+                console.error("Error loading chats:", error);
+                this.isHistoryVisible = false;
+                this.hasChats = false;
+            }
+        },
+
+        groupChatsByDate(chats) {
+            const grouped = new Map();
+
+            for (const chat of chats) {
+                const category = this.formatDate(chat.created);
+
+                if (!grouped.has(category)) {
+                    grouped.set(category, []);
+                }
+                grouped.get(category).push({ ...chat, isNew: false });
+            }
+
+            // Sort by date category
+            return new Map(
+                [...grouped.entries()]
+                    .map(([key, value]) => [key, value])
+                    .sort((a, b) => {
+                        const order = [
+                            "Recently",
+                            "Yesterday",
+                            "1 Week",
+                            "2 Weeks",
+                            "3 Weeks",
+                            "1 Month",
+                            "Few months",
+                            "Long ago",
+                        ];
+
+                        const indexA = order.indexOf(a[0]);
+                        const indexB = order.indexOf(b[0]);
+                        return (indexA === -1 ? order.length : indexA) - (indexB === -1 ? order.length : indexB);
+                    }),
+            );
+        },
+
+        formatDate(created) {
+            const date = new Date(created);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const chatDate = new Date(date);
+            chatDate.setHours(0, 0, 0, 0);
+
+            const diffTime = today - chatDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) return "Recently";
+            if (diffDays === 1) return "Yesterday";
+            if (diffDays <= 7) return "1 Week";
+            if (diffDays <= 14) return "2 Weeks";
+            if (diffDays <= 21) return "3 Weeks";
+            if (diffDays <= 31) return "1 Month";
+            if (diffDays <= 60) return "Few months";
+            return "Long ago";
+        },
+        async selectChat(chatId) {
+            this.selectedChatId = chatId;
+            this.loadChatById(chatId);
+            this.stopSSEStream();
+        },
+        async deleteChat(chatId) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/message/chat/${chatId}/delete`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                });
+                if (response.ok)
+                    for (const [date, chats] of this.userChats) {
+                        const index = chats.findIndex((c) => c.id === chatId);
+                        if (index > -1) {
+                            const chat = chats[index];
+                            chat.isDeleting = true;
+
+                            await new Promise((resolve) => setTimeout(resolve, 200));
+
+                            chats.splice(index, 1);
+
+                            if (chats.length === 0) {
+                                this.userChats.delete(date);
+                            }
+                            break;
+                        }
+                    }
+
+                if (this.selectedChatId === chatId) {
+                    this.selectedChatId = null;
+                }
+            } catch (error) {
+                console.error("Failed to delete chat:", error);
+            }
+        },
+        async saveChatName(chat) {
+            if (!this.newChatName.trim() || this.newChatName.trim() === chat.name) {
+                this.cancelEditing();
+                return;
+            }
+
+            const csrf_token = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`message/chat/${chat.id}/rename`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrf_token,
+                    },
+                    body: JSON.stringify({
+                        name: this.newChatName.trim(),
+                    }),
+                    credentials: "same-origin",
+                });
+
+                if (!response.ok) {
+                    throw new Error("Something went wrong");
+                }
+
+                const data = await response.json();
+
+                const targetChat = this.findChatById(chat.id);
+                if (targetChat) {
+                    targetChat.name = data.chat.name || this.newChatName.trim();
+                }
+            } catch (error) {
+                console.error("Error renaming chat:", error);
+                const targetChat = this.findChatById(chat.id);
+                if (targetChat) {
+                    targetChat.name = chat.name;
+                }
+            } finally {
+                this.cancelEditing();
+            }
+        },
+        async getTwitterAvatar(slug) {
+            try {
+                const response = await fetch(`/investor/${slug}/twitter`);
+                if (!response.ok) {
+                    console.error(`Error loading avatar for ${slug}: ${response.status} ${response.statusText}`);
+                    return "https://unavatar.io/x/default";
+                }
+                const data = await response.json();
+                const twitter = data.split("/").pop();
+                return `https://unavatar.io/x/${twitter}`;
+            } catch (error) {
+                console.error("Error loading avatar:", error);
+            }
+        },
+        async loadAvatar(slug) {
+            if (this.avatarCache.has(slug)) {
+                return;
+            }
+            try {
+                const avatarUrl = await this.getTwitterAvatar(slug);
+                this.avatarCache.set(slug, avatarUrl);
+                this.updateAvatarImages(slug, avatarUrl);
+            } catch (error) {
+                console.error("Error in loadAvatar:", error);
+            }
+        },
+        async fetchChat(chatId) {
+            const csrf_token = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/message/chat/${chatId}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error("Error loading chat:", data.error);
+                    return;
+                }
+
+                const category = "Recently";
+                const newChat = { ...JSON.parse(data), isNew: true };
+                if (this.userChats.has(category)) {
+                    this.userChats.get(category).unshift(newChat);
+                } else {
+                    this.userChats.set(category, [newChat]);
+                }
+            } catch (error) {
+                console.error("Error loading chat:", error);
+            }
+        },
+        async cancelGeneration() {
+            this.$nextTick(() => {
+                this.scrollToBottom();
+            });
+
+            this.stopSSEStream();
+            this.isGenerating = false;
+            this.isAborted[this.selectedChatId] = true;
+            this.saveAbortedState();
+            const csrf_token = document.getElementById("csrf_token").value;
+            const userMessages = this.response.filter((message) => message.type === "user");
+            const lastUserMessage = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
+
+            try {
+                const response = await fetch(`/message/chat/${this.selectedChatId}/save-messages`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                    body: JSON.stringify({
+                        chat_id: this.selectedChatId,
+                        user_message: lastUserMessage.content,
+                    }),
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    console.error("Error saving chat:", data.error);
+                    return;
+                }
+            } catch (error) {
+                console.error("Error saving chat:", error);
+                return;
+            }
+        },
+        async startSSEStream(chatId, retry = false) {
+            this.scrollToBottom();
+            this.isGenerating = true;
+            this.stopSSEStream();
+
+            // Use null check with default value
+            const useChatId = chatId !== null ? chatId : 0;
+
+            const csrf_token = document.getElementById("csrf_token").value;
+            this.isThinking = true;
+            this.currentMessage = null;
+            const promptDiv = this.$refs.prompt;
+
+            let promptText = "";
+
+            if (promptDiv === null) {
+                const userMessages = this.response.filter((message) => message.type === "user");
+                const lastUserMessage = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
+                promptText = lastUserMessage ? lastUserMessage.content : "";
+                if (!promptText) {
+                    this.isGenerating = false;
+                    this.isThinking = false;
+                    return;
+                }
+            } else {
+                promptText = promptDiv.textContent.trim();
+                if (!promptText) {
+                    this.isGenerating = false;
+                    this.isThinking = false;
+                    return;
+                }
+                this.response.push({ content: promptText, type: "user" });
+                promptDiv.textContent = "";
+            }
+
+            const url = `/message/stream?prompt=${encodeURIComponent(promptText)}&chat_id=${useChatId}`;
+            console.log(`Connecting to SSE stream at: ${url}`);
+
+            try {
+                this.eventSource = new EventSource(url);
+                let accumulatedText = "";
+                let hasError = false;
+
+                this.eventSource.onopen = () => {
+                    console.log("SSE connection opened");
+                    this.queue = [];
+                    this.isTyping = false;
+                };
+
+                this.eventSource.onmessage = async (event) => {
+                    const text = event.data;
+
+                    // Handle error messages
+                    if (text.startsWith('{"error":')) {
+                        try {
+                            const errorObj = JSON.parse(text);
+                            console.error("Stream error:", errorObj.error);
+                            if (!this.currentMessage) {
+                                this.currentMessage = {
+                                    content: `Sorry, an error occurred: ${errorObj.error}`,
+                                    type: "gemini",
+                                    isHTML: true,
+                                    isError: true,
+                                };
+                                this.response.push(this.currentMessage);
+                            }
+                            hasError = true;
+                            this.stopSSEStream();
+                            this.isGenerating = false;
+                            this.isAborted[useChatId] = true;
+                            this.saveAbortedState();
+                            return;
+                        } catch (e) {
+                            // If it's not valid JSON, treat as normal text
+                        }
+                    }
+
+                    if (text === "[DONE]") {
+                        console.log("All messages received");
+                        this.stopSSEStream();
+                        this.isGenerating = false;
+
+                        if (hasError) return;
+
+                        if (useChatId) {
+                            try {
+                                const url = retry
+                                    ? `/message/chat/${useChatId}/add-bot-message`
+                                    : `/message/chat/${useChatId}/save-messages`;
+                                const response = await fetch(url, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                                    body: JSON.stringify({
+                                        bot_message: accumulatedText.trim(),
+                                        chat_id: useChatId,
+                                        user_message: promptText,
+                                    }),
+                                });
+
+                                if (!response.ok) {
+                                    const data = await response.json();
+                                    console.error("Error saving chat:", data.error || "Unknown error");
+                                    return;
+                                }
+                            } catch (error) {
+                                console.error("Error saving chat:", error);
+                                return;
+                            }
+                        } else {
+                            try {
+                                const response = await fetch(`/message/chat/create`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf_token },
+                                    body: JSON.stringify({
+                                        bot_message: accumulatedText,
+                                        user_message: promptText,
+                                    }),
+                                });
+
+                                if (!response.ok) {
+                                    const data = await response.json();
+                                    console.error("Error creating chat:", data.error || "Unknown error");
+                                    return;
+                                }
+
+                                const data = await response.json();
+                                this.hasChats = true;
+                                this.isHistoryVisible = true;
+
+                                const chat = JSON.parse(data.chat);
+                                this.selectedChatId = chat.id;
+
+                                const category = "Recently";
+                                const newChat = { ...JSON.parse(data.chat), isNew: true };
+                                if (this.userChats.has(category)) {
+                                    this.userChats.get(category).unshift(newChat);
+                                } else {
+                                    this.userChats.set(category, [newChat]);
+                                }
+                            } catch (error) {
+                                console.error("Error creating chat:", error);
+                                return;
+                            }
+                        }
+
+                        return;
+                    }
+
+                    accumulatedText += text;
+
+                    if (!this.currentMessage) {
+                        this.currentMessage = { content: "", type: "gemini", isHTML: true };
+                        this.response.push(this.currentMessage);
+                    }
+
+                    // Add to the queue and ensure processing starts
+                    this.queue.push(text);
+                    if (!this.isTyping) {
+                        this.processQueue();
+                    }
+                };
+
+                this.eventSource.onerror = (error) => {
+                    console.error("SSE error:", error);
+                    this.stopSSEStream();
+                    this.isGenerating = false;
+                    this.isAborted[useChatId] = true;
+                    this.saveAbortedState();
+
+                    if (!this.currentMessage) {
+                        this.currentMessage = {
+                            content: "Sorry, an error occurred while generating the response. Please try again.",
+                            type: "gemini",
+                            isHTML: true,
+                            isError: true,
+                        };
+                        this.response.push(this.currentMessage);
+                    }
+                };
+            } catch (error) {
+                console.error("Error setting up SSE:", error);
+                this.isGenerating = false;
+                this.isThinking = false;
+                this.isAborted[useChatId] = true;
+                this.saveAbortedState();
+            }
+        },
+
+        stopSSEStream() {
+            if (this.eventSource) {
+                this.eventSource.close();
+                this.eventSource = null;
+            }
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = null;
+            }
+            this.isThinking = false;
+        },
+        retryGeneration(chatId) {
+            this.isAborted[chatId] = false;
+            this.saveAbortedState();
+            this.startSSEStream(chatId, true);
+        },
+        saveAbortedState() {
+            localStorage.setItem("isAborted", JSON.stringify(this.isAborted));
+        },
+        handleAnimationEnd(chat) {
+            if (chat.isNew) {
+                chat.isNew = false;
+            }
+        },
+        checkAndSelectUrlParam(paramName, selectFunction) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramSlug = urlParams.get(paramName);
+            if (paramSlug) {
+                selectFunction(paramSlug);
+            }
+        },
+        processQueue() {
+            if (!this.queue.length) {
+                this.isTyping = false;
+                return;
+            }
+
+            this.isTyping = true;
+            const text = this.queue.shift();
+
+            // Immediately append the text to the current message
+            if (this.currentMessage) {
+                this.currentMessage.content += text;
+
+                // Scroll to bottom if needed
+                if (this.isScrolledToBottom) {
+                    this.scrollToBottom();
+                }
+            }
+
+            // Process the next item in the queue after a very short delay
+            setTimeout(() => {
+                this.processQueue();
+            }, 10);
+        },
+        handleScroll() {
+            const chatContainer = this.$refs.chatContainer;
+            if (chatContainer);
+            this.isScrolledToBottom =
+                chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight <= 20;
+        },
+        scrollToBottom() {
+            this.$nextTick(() => {
+                const chatContainer = this.$refs.chatContainer;
+                if (chatContainer) {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            });
+        },
+        displayMessage(message) {
+            const fullMessage = message.message;
+            let currentIndex = 0;
+
+            const interval = setInterval(() => {
+                if (currentIndex < fullMessage.length) {
+                    const currentContent = fullMessage.slice(0, currentIndex);
+                    const currentMessage = this.response.find(
+                        (msg) => msg.type === message.type && msg.content === currentContent,
+                    );
+                    if (currentMessage) {
+                        currentMessage.content = fullMessage.slice(0, currentIndex + 1);
+                    } else {
+                        this.response.push({
+                            content: fullMessage.slice(0, currentIndex + 1),
+                            type: message.type,
+                            isHTML: message.type === "gemini",
+                        });
+                    }
+                    currentIndex++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 0);
+        },
+        processMarkdown(text) {
+            if (!text) return "";
+
+            try {
+                // Configure marked to handle custom elements
+                const renderer = new marked.Renderer();
+
+                // Override the link renderer to handle investor links
+                // renderer.link = (href, title, text) => {
+                //     // Check if this is an investor slug (no http/https prefix)
+                //     if (!href.startsWith("http") && !href.startsWith("www")) {
+                //         const slug = href;
+                //         const cachedAvatar = this.avatarCache.get(slug);
+                //         const avatarImg = `<img src="${cachedAvatar || "https://unavatar.io/x/default"}" data-slug="${slug}" class="h-5 w-5 mr-1 avatar-placeholder">`;
+                //         const buttonHTML = `<button data-slug="${slug}" class="investor-btn inline-flex items-center justify-center px-2 border border-gray-300 rounded-lg shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">${avatarImg}${text}</button>`;
+
+                //         if (!this.avatarCache.has(slug)) {
+                //             this.loadAvatar(slug);
+                //         }
+
+                //         return buttonHTML;
+                //     }
+
+                //     // For regular links, use default behavior
+                //     return `<a href="${href}" title="${title || ""}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+                // };
+
+                // Set marked options
+                marked.setOptions({
+                    renderer: renderer,
+                    gfm: true, // GitHub Flavored Markdown
+                    breaks: true, // Convert line breaks to <br>
+                    sanitize: false, // Allow HTML
+                    smartLists: true,
+                    smartypants: false, // Don't use "smart" typographic punctuation
+                    xhtml: false,
+                });
+
+                return marked.parse(text);
+            } catch (error) {
+                console.error("Error processing markdown:", error);
+                return text;
+            }
+        },
+        updateAvatarImages(slug, avatarUrl) {
+            const images = document.querySelectorAll(`img[data-slug="${slug}"]`);
+            images.forEach((img) => {
+                img.src = avatarUrl;
+            });
+        },
+        toggleDropdown(chatId) {
+            this.openedDropdownChatId = this.openedDropdownChatId === chatId ? null : chatId;
+        },
+        toggleHistory() {
+            this.isHistoryVisible = !this.isHistoryVisible;
+        },
+        toggleExpansion() {
+            this.isExpanded = !this.isExpanded;
+        },
+        closeGemini() {
+            this.$emit("close-gemini");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.$emit("close-gemini");
+            }
+        },
+        handleClickOutside(event) {
+            const isDropdown = event.target.closest(".dropdown-content");
+            const isButton = event.target.closest("[data-dropdown-button]");
+            const isRenameButton = event.target.closest("[data-rename-button]");
+            const isEditingInput = event.target.closest('input[ref^="nameInput-"]');
+
+            if (!isDropdown && !isButton && !isRenameButton && !isEditingInput) {
+                this.openedDropdownChatId = null;
+            }
+
+            if (this.editingChatId !== null && !isEditingInput && !isRenameButton) {
+                const currentChat = this.findChatById(this.editingChatId);
+                if (currentChat) {
+                    this.saveChatName(currentChat);
+                }
+            }
+        },
+        handleHistorySidebarClickOutside(event) {
+            const historyContainer = this.$refs.historyContainer;
+            if (historyContainer && !historyContainer.contains(event.target)) {
+                this.isHistoryVisible = false;
+            }
+        },
+        startEditing(chat) {
+            this.editingChatId = chat.id;
+            this.newChatName = chat.name;
+            this.openedDropdownChatId = null;
+
+            this.$nextTick(() => {
+                const inputRef = this.$refs[`nameInput-${chat.id}`];
+                if (inputRef) {
+                    inputRef[0].focus();
+                }
+            });
+        },
+        cancelEditing() {
+            this.editingChatId = null;
+            this.newChatName = "";
+        },
+        findChatById(chatId) {
+            for (const [, chats] of this.userChats) {
+                const found = chats.find((c) => c.id === chatId);
+                if (found) return found;
+            }
+            return null;
+        },
+        selectInvestorSlug(investorSlug) {
+            if (!investorSlug) {
+                this.handleCloseInvestor();
+                return;
+            }
+            this.selectedInvestorSlug = investorSlug;
+        },
+        handleCloseInvestor() {
+            this.selectedInvestorSlug = null;
+            const url = new URL(window.location);
+            url.searchParams.delete("investor");
+            window.history.replaceState({}, "", url);
+        },
+        handleInvestorButtonClick(event) {
+            const investorBtn = event.target.closest(".investor-btn");
+            if (investorBtn) {
+                const slug = investorBtn.dataset.slug;
+                this.selectInvestorSlug(slug);
+                event.stopPropagation();
+            }
+        },
+    },
+    data() {
+        return {
+            response: [],
+            messages: {},
+            selectedChatId: null,
+            userChats: new Map(),
+            avatarCache: new Map(),
+            chats: [],
+            isExpanded: false,
+            isGeminiOpened: true,
+            isHistoryVisible: true,
+            isScrolledToBottom: true,
+            dropdownOpened: false,
+            openedDropdownChatId: null,
+            queue: [],
+            editingChatId: null,
+            eventSource: null,
+            newChatName: "",
+            currentMessage: null,
+            interval: null,
+            selectedInvestorSlug: null,
+            isTyping: false,
+            isThinking: false,
+            isGenerating: false,
+            isAborted: JSON.parse(localStorage.getItem("isAborted")) || {},
+            hasChats: false,
+        };
+    },
+});
+
 const SearchHistory = defineComponent({
     template: "#search-history-template",
     delimiters: ["[[", "]]"],
@@ -228,18 +1015,20 @@ const FullInvestmentFirm = defineComponent({
     async created() {
         await this.fetchInvestmentFirm();
         window.removeEventListener("popstate", this.checkUrlParams);
-        this.fetchInvestments(this.investmentFirm.id);
     },
     methods: {
         async fetchInvestmentFirm() {
             this.isLoading = true;
             try {
-                const response = await fetch(`/investment-firm/${this.slug}`);
+                const response = await fetch(`/investment-firm/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
                     this.investmentFirm = data.investment_firm;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
+                    if (data.investments) {
+                        this.investments = data.investments;
+                    }
                 } else {
                     this.closeInvestmentFirm();
                     return;
@@ -261,8 +1050,10 @@ const FullInvestmentFirm = defineComponent({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes("/onboarding/")) {
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-firm-${firmId}`);
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { firmId: firmId, status: true });
                         this.isBookmarked = !this.isBookmarked;
@@ -270,17 +1061,6 @@ const FullInvestmentFirm = defineComponent({
                         this.$emit("bookmarked", { firmId: firmId, status: false });
                         this.isBookmarked = !this.isBookmarked;
                     }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async fetchInvestments(firmId) {
-            try {
-                const response = await fetch(`/investment-firm/investment/${firmId}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investments = data.investments;
                 }
             } catch (error) {
                 console.error(error);
@@ -366,18 +1146,20 @@ const FullCompany = defineComponent({
     async created() {
         await this.fetchCompany();
         window.removeEventListener("popstate", this.checkUrlParams);
-        this.fetchInvestments(this.company.id);
     },
     methods: {
         async fetchCompany() {
             this.isLoading = true;
             try {
-                const response = await fetch(`/company/${this.slug}`);
+                const response = await fetch(`/company/${this.slug}/get`);
                 if (response.ok) {
                     const data = await response.json();
                     this.company = data.company;
                     this.unpaid = data.unpaid;
                     this.isBookmarked = data.isBookmarked;
+                    if (data.investments) {
+                        this.investments = data.investments;
+                    }
                 } else {
                     this.closeCompany();
                     return;
@@ -399,13 +1181,14 @@ const FullCompany = defineComponent({
                     },
                 });
                 if (response.ok) {
+                    if (response.url.includes("/onboarding/")) {
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
-                    var svg = document.getElementById(`bookmark-svg-company-${companyId}`);
                     if (data[0].bookmarked) {
                         this.$emit("bookmarked", { companyId: companyId, status: true });
                         this.isBookmarked = !this.isBookmarked;
                     } else {
-                        svg.style.fill = "none";
                         this.$emit("bookmarked", { companyId: companyId, status: false });
                         this.isBookmarked = !this.isBookmarked;
                     }
@@ -414,17 +1197,7 @@ const FullCompany = defineComponent({
                 console.error(error);
             }
         },
-        async fetchInvestments(companyId) {
-            try {
-                const response = await fetch(`/company/investment/${companyId}/get`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investments = data.investments;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         async sortInvestments(sortType) {
             const compareDates = (a, b) => {
                 const dateA = new Date(a.announced_date);
@@ -497,24 +1270,20 @@ const app = createApp({
         FullInvestmentFirm,
         FullCompany,
         SearchHistory,
+        GeminiComponent,
     },
     watch: {
         asideMinified(value) {
             localStorage.setItem("asideMinified", value);
         },
-        selectedInvestorId(value) {
-            if (value) {
-                document.body.classList.add("overflow-hidden");
-            } else {
-                document.body.classList.remove("overflow-hidden");
-            }
+        isGeminiOpened() {
+            this.updateOverflow();
         },
-        selectedInvestmentFirmId(value) {
-            if (value) {
-                document.body.classList.add("overflow-hidden");
-            } else {
-                document.body.classList.remove("overflow-hidden");
-            }
+        selectedInvestorSlug() {
+            this.updateOverflow();
+        },
+        selectedInvestmentFirmId() {
+            this.updateOverflow();
         },
     },
     created() {
@@ -547,10 +1316,10 @@ const app = createApp({
             searchBtn.addEventListener("click", this.search);
         }
 
+        this.updateOverflow();
         this.setupMenuToggle();
         this.initializeValuesFromParams();
         this.updateLinksWithQueryParams();
-
         window.addEventListener("popstate", this.checkUrlParams("investor", this.selectInvestorSlug, "close-investor"));
         window.addEventListener(
             "popstate",
@@ -574,59 +1343,153 @@ const app = createApp({
             try {
                 if (data.status) {
                     this.investorBookmakrIds.push(data.investorId); // Corrected typo
+                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = "#FFC9FC";
                 } else {
                     this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== data.investorId); // Corrected typo
+                    document.getElementById(`bookmark-svg-investor-${data.investorId}`).style.fill = "none";
                 }
             } catch (error) {
                 console.error("Error handling investor bookmark:", error);
             }
         },
-        async fetchInvestorBookmarks() {
-            try {
-                const response = await fetch("/bookmarks/investor");
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investorBookmakrIds = data.bookmark_ids;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
         async handleInvestmentFirmBookmark(data) {
             if (data.status) {
                 this.investmentFirmBookmakrIds.push(data.firmId);
+                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = "#FFC9FC";
             } else {
                 this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== data.firmId);
-            }
-        },
-        async fetchInvestmentFirmBookmarks() {
-            try {
-                const response = await fetch("/bookmarks/investment-firm");
-                if (response.ok) {
-                    const data = await response.json();
-                    this.investmentFirmBookmakrIds = data.bookmark_ids;
-                }
-            } catch (error) {
-                console.error(error);
+                document.getElementById(`bookmark-svg-firm-${data.firmId}`).style.fill = "none";
             }
         },
         async handleCompanyBookmark(data) {
             try {
                 if (data.status) {
                     this.companyBookmarkIds.push(data.companyId);
+                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = "#FFC9FC";
                 } else {
                     this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== data.companyId);
+                    document.getElementById(`bookmark-svg-company-${data.companyId}`).style.fill = "none";
                 }
             } catch (error) {
                 console.error("Error handling company bookmark:", error);
             }
         },
-        async fetchCompanyBookmarks() {
+        async getCountryList(searchInput) {
+            let country_list = this.$refs.countryListElement;
+            for (let i = 0; i < country_list.children.length; i++) {
+                if (country_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    country_list.children[i].classList.remove("hidden");
+                } else {
+                    country_list.children[i].classList.add("hidden");
+                }
+            }
+        },
+        async getIndustryList(searchInput) {
+            let industry_list = this.$refs.industryListElement;
+            for (let i = 0; i < industry_list.children.length; i++) {
+                if (industry_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
+                    industry_list.children[i].classList.remove("hidden");
+                } else {
+                    industry_list.children[i].classList.add("hidden");
+                }
+            }
+        },
+        async toggleInvestorBookmark(investorId) {
+            const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch("/bookmarks/company");
+                const response = await fetch(`/investor/${investorId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
                 if (response.ok) {
+                    if (response.url.includes("/onboarding/")) {
+                        window.location.href = response.url;
+                    }
                     const data = await response.json();
-                    this.companyBookmarkIds = data.bookmark_ids;
+                    if (data[0].bookmarked) {
+                        this.investorBookmakrIds.push(investorId);
+                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = "#FFC9FC";
+                    } else {
+                        this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== investorId);
+                        document.getElementById(`bookmark-svg-investor-${investorId}`).style.fill = "none";
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async toggleInvestmentFirmBookmark(firmId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    if (response.url.includes("/onboarding/")) {
+                        window.location.href = response.url;
+                    }
+                    const data = await response.json();
+
+                    if (data[0].bookmarked) {
+                        this.investmentFirmBookmakrIds.push(firmId);
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = "#FFC9FC";
+                    } else {
+                        this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== firmId);
+                        document.getElementById(`bookmark-svg-firm-${firmId}`).style.fill = "none";
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async toggleCompanyBookmark(companyId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/company/${companyId}/bookmark`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.ok) {
+                    if (response.url.includes("/onboarding/")) {
+                        window.location.href = response.url;
+                    }
+                    const data = await response.json();
+                    if (data[0].bookmarked) {
+                        this.companyBookmarkIds.push(companyId);
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = "#FFC9FC";
+                    } else {
+                        this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== companyId);
+                        document.getElementById(`bookmark-svg-company-${companyId}`).style.fill = "none";
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async markAsRead(notificationId) {
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const response = await fetch(`/notification/mark-read/${notificationId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (!response.ok) {
+                    console.error("An error occurred while marking the notification as read.");
                 }
             } catch (error) {
                 console.error(error);
@@ -658,6 +1521,13 @@ const app = createApp({
                 window.history.pushState({}, "", url);
             }
             this[stateKey] = paramValue;
+        },
+        updateOverflow() {
+            if (this.isGeminiOpened || this.selectedInvestorSlug || this.selectedInvestmentFirmId) {
+                document.body.classList.add("overflow-hidden");
+            } else {
+                document.body.classList.remove("overflow-hidden");
+            }
         },
         selectInvestorSlug(investorSlug) {
             this.updateUrlParam("investor", investorSlug, "selectedInvestorSlug");
@@ -888,111 +1758,7 @@ const app = createApp({
                 link.setAttribute("href", this.applyQueryParams(link.getAttribute("href")));
             });
         },
-        async getCountryList(searchInput) {
-            let country_list = this.$refs.countryListElement;
-            for (let i = 0; i < country_list.children.length; i++) {
-                if (country_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
-                    country_list.children[i].classList.remove("hidden");
-                } else {
-                    country_list.children[i].classList.add("hidden");
-                }
-            }
-        },
-        async getIndustryList(searchInput) {
-            let industry_list = this.$refs.industryListElement;
-            for (let i = 0; i < industry_list.children.length; i++) {
-                if (industry_list.children[i].textContent.toUpperCase().includes(searchInput.toUpperCase())) {
-                    industry_list.children[i].classList.remove("hidden");
-                } else {
-                    industry_list.children[i].classList.add("hidden");
-                }
-            }
-        },
-        async toggleInvestorBookmark(investorId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/investor/${investorId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data[0].bookmarked) {
-                        this.investorBookmakrIds.push(investorId);
-                    } else {
-                        this.investorBookmakrIds = this.investorBookmakrIds.filter((id) => id !== investorId);
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async toggleInvestmentFirmBookmark(firmId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/investment-firm/${firmId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data[0].bookmarked) {
-                        this.investmentFirmBookmakrIds.push(firmId);
-                    } else {
-                        this.investmentFirmBookmakrIds = this.investmentFirmBookmakrIds.filter((id) => id !== firmId);
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async toggleCompanyBookmark(companyId) {
-            const csrfToken = document.getElementById("csrf_token").value;
-            try {
-                const response = await fetch(`/company/${companyId}/bookmark`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data[0].bookmarked) {
-                        this.companyBookmarkIds.push(companyId);
-                    } else {
-                        this.companyBookmarkIds = this.companyBookmarkIds.filter((id) => id !== companyId);
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async markAsRead(notificationId) {
-            try {
-                const csrfToken = document.getElementById("csrf_token").value;
-                const response = await fetch(`/notification/mark-read/${notificationId}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,
-                    },
-                });
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else if (!response.ok) {
-                    console.error("An error occurred while marking the notification as read.");
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        },
+
         closeSortDropdownOutside() {
             this.sortDropdownOpened = false;
         },
@@ -1012,6 +1778,8 @@ const app = createApp({
             asideMinified: false,
             openAdvanced: false,
             isSearchHistoryVisible: false,
+            isGeminiOpened: false,
+            showPopover: false,
             selectedInvestorSlug: null,
             selectedInvestmentFirmSlug: null,
             selectedCompanySlug: null,

@@ -48,7 +48,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -63,7 +63,9 @@
                     @close-aside="asideExpanded = false"
                 ></aside-mobile-component>
             </transition>
-            <main class="flex w-full flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+            {% set is_profile_empty = not user_info.twitter_public and not user_info.linkedin_public and not
+            user_info.instagram_public and not user_info.email_public and not companies %}
+            <main class="flex w-full flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
                 <!-- prettier-ignore -->
                 {% if current_user.id != user_info.id and is_profile_empty %}
                 <div class="mt-32 flex w-full flex-col items-center justify-center gap-1">
@@ -87,7 +89,6 @@
                     </span>
                 </div>
                 <!-- prettier-ignore -->
-                {% set is_profile_empty = not user_info.twitter_public and not user_info.linkedin_public and not user_info.instagram_public and not user_info.email_public and not companies %}
                 {% elif is_profile_empty %}
                 <div class="mt-32 flex w-full flex-col items-center justify-center gap-1">
                     <svg
@@ -193,7 +194,7 @@
                                 <a
                                     href="{{ user_info.twitter_url }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -224,7 +225,7 @@
                                 <a
                                     href="{{ user_info.linkedin_url }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -255,7 +256,7 @@
                                 <a
                                     href="{{ user_info.instagram_url }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -295,7 +296,7 @@
                                 </span>
                                 <a
                                     href="mailto:{{ user.email }}"
-                                    class="flex select-text items-center gap-1 text-gray-700 underline"
+                                    class="flex items-center gap-1 text-gray-700 underline select-text"
                                 >
                                     <span>{{ user.email }}</span>
                                 </a>
@@ -313,13 +314,13 @@
                             </h2>
                             {% if company.industry %}
                             <div
-                                class="h-fit text-nowrap rounded-lg bg-[#B9E5FF] px-2 py-1.5 text-xs font-medium text-[#3EB5FD]"
+                                class="h-fit rounded-lg bg-[#B9E5FF] px-2 py-1.5 text-xs font-medium text-nowrap text-[#3EB5FD]"
                             >
                                 {{ company.industry.name }}
                             </div>
                             {% endif %} {% if company.preferred_round %}
                             <div
-                                class="h-fit text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
+                                class="h-fit rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-nowrap text-[#D182CD]"
                             >
                                 {{ company.preferred_round.name }}
                             </div>
@@ -352,7 +353,7 @@
                                 <a
                                     href="{{ company.website_url }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-sm text-gray-700 underline"
+                                    class="flex items-center gap-1 text-sm text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -383,7 +384,7 @@
                                 <a
                                     href="{{ company.instagram_url }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-sm text-gray-700 underline"
+                                    class="flex items-center gap-1 text-sm text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -414,7 +415,7 @@
                                 <a
                                     href="{{ company.linkedin_url }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-sm text-gray-700 underline"
+                                    class="flex items-center gap-1 text-sm text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -445,7 +446,7 @@
                                 <a
                                     href="{{ company.twitter_url }}"
                                     target="_blank"
-                                    class="flex select-text items-center gap-1 text-sm text-gray-700 underline"
+                                    class="flex items-center gap-1 text-sm text-gray-700 underline select-text"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"

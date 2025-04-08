@@ -73,7 +73,7 @@
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
             <aside-component :minified="asideMinified"></aside-component>
             <transition enter-active-class="pop-in" leave-active-class="pop-out">
                 <div
@@ -87,7 +87,7 @@
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
                     v-if="createInvestmentOpened || updateInvestmentOpened || createFundingRoundOpened || updateFundingRoundOpened || deleteFundingRoundOpened || editMemberOpened || addMemberOpened"
                 ></div>
             </transition>
@@ -230,7 +230,7 @@
                         >
                     </div>
                     <div class="sm:col-span-full">
-                        <label for="country" class="block text-sm font-medium leading-6">Country</label>
+                        <label for="country" class="block text-sm leading-6 font-medium">Country</label>
                         <div>
                             <select
                                 id="country"
@@ -252,7 +252,7 @@
                     </div>
                     <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
                     <div class="sm:col-span-3">
-                        <label for="round" class="block text-sm font-medium leading-6">Preferred round</label>
+                        <label for="round" class="block text-sm leading-6 font-medium">Preferred round</label>
                         <div>
                             <select id="round" name="round" class="h-12 w-full rounded-xl px-2" required id="round">
                                 <option value="" disabled selected>Select a round</option>
@@ -265,7 +265,7 @@
                         </div>
                     </div>
                     <div class="sm:col-span-3">
-                        <label for="industry" class="block text-sm font-medium leading-6 text-gray-900">Industry</label>
+                        <label for="industry" class="block text-sm leading-6 font-medium text-gray-900">Industry</label>
                         <div>
                             <select
                                 id="industry"
@@ -288,7 +288,7 @@
                         </div>
                     </div>
                     <div class="col-span-full">
-                        <label for="investment" class="block text-sm font-medium leading-6 text-gray-900"
+                        <label for="investment" class="block text-sm leading-6 font-medium text-gray-900"
                             >Investments</label
                         >
                         {% if True %}
@@ -324,7 +324,7 @@
                             </button>
                             {% for funding_round in funding_rounds %}
                             <div
-                                class="mx-3 mb-3 divide-y overflow-hidden overflow-y-auto rounded-xl border bg-gray-50 shadow-sm"
+                                class="mx-3 mb-3 divide-y overflow-hidden overflow-y-auto rounded-xl border bg-gray-50 shadow-xs"
                             >
                                 <header class="flex cursor-pointer gap-2 bg-white px-3 py-3">
                                     <div @click.stop="toggleFundingRound('{{ funding_round.id }}')" class="mt-1">
@@ -412,7 +412,7 @@
                                 <div v-if="selectedFundingRound === '{{ funding_round.id }}'" class="flex flex-col p-3">
                                     <div class="overflow-auto rounded-t-lg border border-b-0">
                                         <table class="relative w-full table-auto">
-                                            <tr class="border-b bg-white font-medium *:text-nowrap *:px-4">
+                                            <tr class="border-b bg-white font-medium *:px-4 *:text-nowrap">
                                                 <td class="py-4 pl-4">Investor</td>
                                                 <td class="py-4">Amount</td>
                                                 <td class="relative flex items-center justify-between py-4 pr-4">
@@ -442,20 +442,20 @@
                                                 class="border-b text-sm text-gray-700 *:px-4 last:border-0 odd:bg-gray-50 even:bg-white"
                                             >
                                                 {% if investment.investor %}
-                                                <td class="min-w-52 max-w-72 text-wrap py-4 pl-4">
+                                                <td class="max-w-72 min-w-52 py-4 pl-4 text-wrap">
                                                     {{ investment.investor.full_name if investment.investor.full_name
                                                     else 'N/A' }}
                                                 </td>
                                                 {% else %}
-                                                <td class="min-w-52 max-w-72 text-wrap py-4 pl-4">
+                                                <td class="max-w-72 min-w-52 py-4 pl-4 text-wrap">
                                                     {{ investment.investment_firm.name if
                                                     investment.investment_firm.name else 'N/A' }}
                                                 </td>
                                                 {% endif %}
-                                                <td class="text-nowrap py-4">
+                                                <td class="py-4 text-nowrap">
                                                     ${{ investment.amount if investment.amount else 'N/A' }}
                                                 </td>
-                                                <td class="text-nowrap py-4 pr-4">
+                                                <td class="py-4 pr-4 text-nowrap">
                                                     {{ investment.date if investment.date else 'N/A' }}
                                                 </td>
                                                 <td>
@@ -585,7 +585,7 @@
                         />
                     </div>
                     <div class="col-span-full">
-                        <div class="text-sm font-medium leading-6">
+                        <div class="text-sm leading-6 font-medium">
                             <span class="block">Visibility Settings</span>
                             <span class="leading-6 text-gray-500"
                                 >You can make the company visible in the search results.
@@ -605,7 +605,7 @@
                             <input type="checkbox" name="is_public" value="True" class="peer sr-only" id="is_public" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-hidden after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
                             ></div>
                             <span class="ms-3 text-sm font-medium text-gray-900">Show company in search</span>
                         </label>

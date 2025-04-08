@@ -1,9 +1,9 @@
 {% macro render(company, users_in_company) %}
 <template id="invite-member-template">
     <article
-        class="fixed right-0 top-0 z-50 flex h-full w-full flex-col gap-4 bg-white p-8 sm:right-1/2 sm:top-1/2 sm:h-auto sm:max-w-2xl sm:-translate-y-1/2 sm:translate-x-1/2 sm:rounded-xl"
+        class="fixed top-0 right-0 z-50 flex h-full w-full flex-col gap-4 bg-white p-8 sm:top-1/2 sm:right-1/2 sm:h-auto sm:max-w-2xl sm:translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
     >
-        <button class="absolute right-3 top-3" @click="closeInviteMember">
+        <button class="absolute top-3 right-3" @click="closeInviteMember">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -117,7 +117,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h3 class="text-md font-semibold" v-text="user.email"></h3>
-                            <span v-if="{{ users_in_company }}.includes( user.id )" class="text-sm italic text-gray-500"
+                            <span v-if="{{ users_in_company }}.includes( user.id )" class="text-sm text-gray-500 italic"
                                 >exists</span
                             >
                         </div>

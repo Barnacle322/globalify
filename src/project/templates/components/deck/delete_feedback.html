@@ -1,12 +1,12 @@
 {% macro render() %}
-<template id="delete-deck-template">
+<template id="delete-feedback-template">
     <article
         class="fixed top-1/2 right-1/2 z-50 flex w-10/12 translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
     >
         <div class="flex items-start justify-between">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-            <span class="text-dark text-xl font-medium">Are you sure you want to delete your deck?</span>
-            <button class="cursor-pointer hover:bg-gray-200 rounded-lg" @click="closeDeck">
+            <span class="text-dark text-xl font-medium">Are you sure you want to delete this feedback?</span>
+            <button class="cursor-pointer hover:bg-gray-200 rounded-lg" @click="closeFeedback">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -19,15 +19,18 @@
                 </svg>
             </button>
         </div>
-        <span class="text-dark">This action will delete the deck.</span>
+        <span class="text-dark">This action will delete the feedback.</span>
         <div class="flex justify-end gap-5">
             <button
-                @click="closeDeck"
+                @click="closeFeedback"
                 class="cursor-pointer rounded-lg border border-gray-300 px-3 py-2 hover:bg-gray-100"
             >
                 Close
             </button>
-            <button @click="deleteDeck(deckId)" class="cursor-pointer rounded-lg bg-red-500 px-3 py-2 text-white">
+            <button
+                @click="deleteFeedback(feedbackId)"
+                class="cursor-pointer rounded-lg bg-red-500 px-3 py-2 text-white"
+            >
                 Confirm
             </button>
         </div>

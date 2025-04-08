@@ -59,6 +59,12 @@ class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_by_hash(hash: str) -> Deck:
         return db.session.scalar(db.select(Deck).where(Deck.hash == hash))
 
+    @property
+    def overall_score(self) -> float:
+        if self.feedbacks:
+            return sum([feedback.overall_score for feedback in self.feedbacks]) / len(self.feedbacks)
+        return 0
+
 
 class Feedback(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)

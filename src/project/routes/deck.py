@@ -78,7 +78,7 @@ def process_deck():
         if existing_feedback:
             return redirect(url_for("deck.user_deck_detail", deck_id=deck.id, feedback_id=existing_feedback.id))
 
-        analysis_result_json = analyze_pdf(pdf_data, goals)
+        analysis_result_json = analyze_pdf(pdf_data, goals)  # type: ignore
         data = json.loads(analysis_result_json)
 
         feedback = Feedback.create_from_json(analysis_data=data, goals=goals, current_user=current_user)  # type: ignore
@@ -146,7 +146,7 @@ def get_feedback_goals(feedback_id):
     return jsonify({"goals": goals}), 200
 
 
-@deck.route("/detail/<int:deck_id>/<int:feedback_id>", methods=["GET"])
+@deck.route("/<int:deck_id>/feedback/<int:feedback_id>", methods=["GET"])
 @login_required
 def user_deck_detail(deck_id, feedback_id):
     deck = Deck.get_by_id(deck_id)
@@ -225,7 +225,7 @@ def delete_deck(deck_id):
     deck = Deck.get_by_id(deck_id)
     if not deck:
         status = Status(StatusType.ERROR, "Deck not found").get_status()
-        return redirect(url_for("deck.user_deck_list", _external=False, **status))
+        return redirect(url_for("deck.index", _external=False, **status))
 
     try:
         db.session.delete(deck)
@@ -236,3 +236,41 @@ def delete_deck(deck_id):
         status = Status(StatusType.ERROR, str(e)).get_status()
 
     return redirect(url_for("deck.index", _external=False, **status, user_id=current_user.id))
+
+
+@deck.route("/feedback/delete/<int:feedback_id>", methods=["POST"])
+@login_required
+def delete_feedback(feedback_id):
+    feedback = Feedback.get_by_id(feedback_id)
+    if not feedback:
+        status = Status(StatusType.ERROR, "Feedback not found").get_status()
+        return redirect(url_for("deck.index", _external=False, **status))
+
+    try:
+        db.session.delete(feedback)
+        db.session.commit()
+        status = Status(StatusType.SUCCESS, "Feedback deleted successfully").get_status()
+    except Exception as e:
+        db.session.rollback()
+        status = Status(StatusType.ERROR, str(e)).get_status()
+
+    latest_feedback = Feedback.get_latest_by_deck_id(feedback.deck_id)
+    if latest_feedback:
+        return redirect(url_for("deck.user_deck_detail", deck_id=feedback.deck_id, feedback_id=latest_feedback.id))
+    else:
+        return redirect(url_for("deck.index", _external=False, **status, user_id=current_user.id))
+
+
+@deck.route("/get/latest/feedback/<int:deck_id>", methods=["GET"])
+@login_required
+def get_latest_feedback(deck_id):
+    deck = Deck.get_by_id(deck_id)
+    if not deck:
+        return jsonify({"error": "Deck not found"}), 404
+
+    latest_feedback = Feedback.get_latest_by_deck_id(deck_id)
+
+    if not latest_feedback:
+        return jsonify({"error": "No feedback found for this deck"}), 404
+
+    return jsonify({"feedback_id": latest_feedback.id}), 200

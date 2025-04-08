@@ -1,3 +1,57 @@
+const DeleteFeedbackComponent = defineComponent({
+    template: "#delete-feedback-template",
+    props: {
+        feedbackId: {
+            type: Number,
+            required: true,
+        },
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async deleteFeedback(feedbackId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/deck/feedback/delete/${feedbackId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-deck");
+                }
+            } catch (error) {
+                console.error("Error cancelling invitation:", error.message);
+            }
+        },
+        closeFeedback() {
+            this.$emit("close-delete-feedback");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeFeedback();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeFeedback();
+            }
+        },
+    },
+});
+
 const DeckSummaryComponent = defineComponent({
     template: "#deck-summary-template",
     props: {
@@ -100,6 +154,9 @@ const DeckSummaryComponent = defineComponent({
 });
 
 const DeckHistoryComponent = defineComponent({
+    components: {
+        DeleteFeedbackComponent,
+    },
     template: "#deck-history-template",
     props: {
         userId: {
@@ -129,6 +186,7 @@ const DeckHistoryComponent = defineComponent({
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("click", this.handleOutsideClick);
+        window.removeEventListener("click", this.closeDropdown);
     },
     methods: {
         async fetchHistory() {
@@ -177,11 +235,10 @@ const DeckHistoryComponent = defineComponent({
             this.ignoreNextOutsideClick = true;
         },
         closeDropdown(event) {
-            if (this.ignoreNextOutsideClick) {
-                this.ignoreNextOutsideClick = false;
-            } else if (event && !this.$el.contains(event.target)) {
-                this.openedDropdownFeedbackId = false;
+            if (this.openedDropdownFeedbackId && !this.ignoreNextOutsideClick) {
+                this.openedDropdownFeedbackId = null;
             }
+            this.ignoreNextOutsideClick = false;
         },
     },
     data() {
@@ -192,6 +249,9 @@ const DeckHistoryComponent = defineComponent({
             error: null,
             openedDropdownFeedbackId: null,
             ignoreNextOutsideClick: false,
+            isExpanded: false,
+            feedbackToDelete: null,
+            deleteFeedbackOpened: false,
         };
     },
 });
@@ -382,7 +442,7 @@ const DeleteDeckComponent = defineComponent({
             }
         },
         closeDeck() {
-            this.$emit("close-delete-company");
+            this.$emit("close-delete-deck");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
@@ -549,7 +609,7 @@ createApp({
         async fetchDeckFile() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
             console.log("Path segments:", pathSegments);
-            const deckId = pathSegments[pathSegments.length - 2];
+            const deckId = pathSegments[pathSegments.length - 3];
 
             try {
                 const response = await fetch(`/deck/file/${deckId}`);
@@ -649,6 +709,32 @@ createApp({
 
             return thumbnails;
         },
+        async getLatestFeedbackId(deckId) {
+            try {
+                const response = await fetch(`/deck/get/latest/feedback/${deckId}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch feedback");
+                }
+                const data = await response.json();
+                this.latestFeedbackId = data.feedback_id;
+            } catch (error) {
+                console.error("Error fetching feedback:", error.message);
+                return null;
+            }
+        },
+        async opneDeckFeedbacks(deckId) {
+            await this.getLatestFeedbackId(deckId);
+            if (this.latestFeedbackId) {
+                window.location.href = `/deck/${deckId}/feedback/${this.latestFeedbackId}`;
+            } else {
+                throw new Error("No feedback found for this deck.");
+            }
+        },
         scrollToThumbnail(pageNumber) {
             this.$nextTick(() => {
                 const container = this.$refs.thumbnailContainer;
@@ -747,6 +833,7 @@ createApp({
             deleteDeckOpened: false,
             deckToDelete: null,
             selectedDeckId: null,
+            latestFeedbackId: null,
         };
     },
 }).mount("#app");

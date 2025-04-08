@@ -35,6 +35,8 @@
     {{ deck_history.render(deck.id) }}
     {% import "components/deck/deck_summary.html" as deck_summary %}
     {{ deck_summary.render() }}
+    {% import "components/deck/delete_feedback.html" as delete_feedback %}
+    {{ delete_feedback.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>

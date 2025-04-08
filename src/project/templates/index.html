@@ -11,6 +11,29 @@
 {% endblock %} 
 {% block content %}
 
+<article class="fixed bottom-0 right-0 max-w-md z-50 sm:p-6 p-3 transition-all ease-in-out">
+    <div class="p-5 bg-white rounded-xl shadow-xl relative">
+        <button
+            onclick="this.parentNode.parentNode.classList.add('opacity-0', 'pointer-events-none')"
+            class="top-3 right-3 absolute"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <h2 class="text-lg font-medium">❌ We are NOT hiring!</h2>
+        <p class="mt-2">We are NOT located in Ukraine and we are NOT recruiting anyone at the moment!</p>
+        <p class="mt-2">If you believe that you are being deceived, contact us at <a class="font-medium underline" href="mailto:info@globalify.xyz">info@globalify.xyz</a></p>
+    </div>
+</article>
+
 <main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
     <section
         class="relative mx-auto flex max-w-7xl flex-col items-center justify-center px-6 pb-5 pt-5 text-center lg:pt-24"

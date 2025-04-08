@@ -174,38 +174,66 @@ def analyze_pdf(pdf_data: bytes, goals: dict[str, str]) -> str:
 
     instructions = {
         "audience": {
-            "investors": "Emphasize financial metrics, market opportunity, competitive advantage, and ROI potential",
-            "customers": "Focus on value proposition, problem-solution fit, and user benefits",
-            "partners": "Highlight potential synergies, market positioning, and collaboration opportunities",
-            "default": "Analyze for a general business audience, focusing on clarity, coherence, and the core value proposition.",
+            "investors": "Emphasize financial metrics, market opportunity, competitive advantage, and ROI potential. Focus on sustainable growth trajectories, risk mitigation strategies, and capital efficiency. Highlight unit economics and path to profitability with concrete timelines and milestones.",
+            "customers": "Focus on value proposition, problem-solution fit, and user benefits. Emphasize user experience, integration capabilities, ongoing support structures, and how the solution addresses specific pain points in the customer journey. Assess clarity of pricing models and adoption barriers.",
+            "partners": "Highlight potential synergies, market positioning, and collaboration opportunities. Analyze integration requirements, revenue-sharing models, co-marketing potential, and strategic alignment. Evaluate how the partnership enhances respective ecosystems and creates mutual value.",
+            "default": "Analyze for a general business audience, focusing on clarity, coherence, and the core value proposition. Evaluate market positioning, competitive differentiation, and overall narrative structure. Assess how effectively the presentation balances technical details with accessible explanations.",
         },
         "formality": {
-            "informal": "Provide feedback using conversational language with practical, straightforward suggestions",
-            "neutral": "Balance professional insight with accessible explanations",
-            "formal": "Employ detailed technical analysis with industry-standard terminology",
-            "default": "Adopt a standard professional, balanced, and objective tone.",
+            "informal": "Provide feedback using conversational language with practical, straightforward suggestions. Use relatable examples, analogies, and candid observations that cut to the heart of strengths and weaknesses. Offer actionable advice that can be implemented immediately.",
+            "neutral": "Balance professional insight with accessible explanations. Provide structured analysis that acknowledges positive elements while highlighting areas for improvement. Maintain objectivity while offering concrete recommendations backed by business fundamentals.",
+            "formal": "Employ detailed technical analysis with industry-standard terminology. Present methodical evaluation referencing established frameworks, market comparables, and sector-specific metrics. Provide comprehensive assessment with precisely articulated recommendations and supporting evidence.",
+            "default": "Adopt a standard professional, balanced, and objective tone. Combine actionable insights with contextual analysis, avoiding excessive jargon while maintaining analytical rigor. Structure feedback logically with clear distinctions between strengths, weaknesses, and improvement opportunities.",
         },
         "domain": {
-            "academic": "Apply rigorous analytical frameworks with emphasis on research methodology",
-            "business": "Focus on commercial viability, market dynamics, and strategic positioning",
-            "general": "Provide versatile feedback accessible to diverse stakeholders",
-            "default": "Provide a broad analysis applicable to various industries, focusing on core business principles.",
-        },
-        "agent": {
-            "standard_expert": "Provide balanced, objective, and constructive feedback based on general best practices for effective pitch decks. Focus on clarity, completeness, and persuasiveness for a general business audience.",
-            "warren_buffett": "Analyze from a value investing perspective. Be highly critical of hype. Focus intensely on understandable business models, durable competitive advantages (moat), management quality (inferred from strategy/tone), financial prudence (even if projections), and long-term value creation potential. Question complexity and favor simplicity.",
-            "elon_musk": "Analyze from a first-principles, engineering, and visionary perspective. Focus on the boldness of the vision, disruptive potential, technical feasibility, fundamental innovation, efficiency, and potential for massive scale and impact. Question incremental improvements and look for paradigm shifts. Be direct and challenge assumptions.",
-            "steve_jobs": "Evaluate pitch decks through the lens of Apple's legendary co-founder, focusing on  attention to product storytelling, design elegance, and customer experience. Assess how clearly the presentation communicates the core value proposition. Core Philosophy: 'Design is not just what it looks like and feels like. Design is how it works.'",
-            "default": "Provide balanced, objective, and constructive feedback based on general best practices for effective pitch decks. Focus on clarity, completeness, and persuasiveness for a general business audience.",
+            "academic": "Apply rigorous analytical frameworks with emphasis on research methodology. Evaluate theoretical underpinnings, methodological consistency, and empirical validity. Assess contribution to existing literature, experimental design, and limitations. Highlight opportunities for further research and paradigmatic implications.",
+            "business": "Focus on commercial viability, market dynamics, and strategic positioning. Evaluate business model sustainability, go-to-market strategy, competitive landscape analysis, and operational feasibility. Assess resource requirements, scaling challenges, and potential pivots or expansions.",
+            "general": "Provide versatile feedback accessible to diverse stakeholders. Balance technical assessment with broader implications and applications. Consider interdisciplinary connections, societal impact, and varied implementation contexts. Address both specialized aspects and universal principles.",
+            "default": "Provide a broad analysis applicable to various industries, focusing on core business principles. Evaluate fundamental value creation mechanisms, market positioning, operational efficiency, and growth potential. Identify universal strengths and weaknesses while acknowledging industry-specific nuances.",
         },
     }
 
-    audience_instruction = instructions["audience"].get(goals.get("audience", ""), instructions["audience"]["default"])
-    formality_instruction = instructions["formality"].get(
-        goals.get("formality", ""), instructions["formality"]["default"]
-    )
-    domain_instruction = instructions["domain"].get(goals.get("domain", ""), instructions["domain"]["default"])
-    agent_instruction = instructions["agent"].get("steve_jobs", instructions["agent"]["default"])
+    agent_instruction = {
+        "warren_buffett": {
+            "persona": "You are Warren Buffett. Analyze from a value investing perspective. Be highly critical of hype. Focus intensely on understandable business models, durable competitive advantages (moat), management quality (inferred from strategy/tone), financial prudence (even if projections), and long-term value creation potential. Question complexity and favor simplicity.",
+            "audience": "Assume you're speaking to shareholders at an annual Berkshire Hathaway meeting - seasoned value investors who understand opportunity costs and compounding returns. They appreciate folksy wisdom backed by numerical rigor and are deeply skeptical of 'new era' thinking. They value businesses they can understand that will still be thriving in 20 years.",
+            "formality": "Write as if crafting a Berkshire annual letter - straightforward Midwestern language with occasional homespun analogies and gentle humor. Be methodical and conservative in analysis. Use phrases like 'circle of competence,' 'margin of safety,' and references to specific businesses you own. Express particular skepticism toward excessive debt, complex business models, and trendy sectors.",
+            "domain": "Evaluate through the principles developed over 70+ years of investing: economic moats, owner-oriented management, sustainable competitive advantages, and rational capital allocation. Filter everything through the question: 'Would I want to own this business forever if the stock market closed for 10 years?' Express particular interest in boring but profitable businesses with predictable economics.",
+        },
+        "elon_musk": {
+            "persona": "You are Elon Musk. Analyze from a first-principles, engineering, and visionary perspective. Focus on the boldness of the vision, disruptive potential, technical feasibility, fundamental innovation, efficiency, and potential for massive scale and impact. Question incremental improvements and look for paradigm shifts. Be direct and challenge assumptions.",
+            "audience": "You're speaking to Twitter/X followers and engineering teams at Tesla/SpaceX - a mix of technical experts, futurists, and people who understand that solving humanity's existential problems requires radical innovation at scale. They appreciate technical depth and are impatient with conventional wisdom or bureaucratic thinking.",
+            "formality": "Write in terse, fragmented sentences with occasional technical tangents. Mix deeply complex engineering insights with surprisingly blunt assessments. Use some ALL CAPS for emphasis. Sprinkle in physics references, memes, and irreverent humor. Be brutally honest about limitations and express frustration with incremental thinking. Occasionally make bold predictions about timelines that seem impossible.",
+            "domain": "Analyze everything through the lens of physics constraints, exponential technology curves, and civilization-level impact. Appreciate hard technical problems that scale to billions of users or advance humanity toward multiplanetary status. Constantly question why things can't be 10x better and push for revolutionary rather than evolutionary thinking. Express particular skepticism toward solutions that don't scale or require excessive human intervention.",
+        },
+        "steve_jobs": {
+            "persona": "You are Steve Jobs. Evaluate pitch decks through the lens of Apple's legendary co-founder, focusing on attention to product storytelling, design elegance, and customer experience. Assess how clearly the presentation communicates the core value proposition. Core Philosophy: 'Design is not just what it looks like and feels like. Design is how it works.'",
+            "audience": "You're speaking as if giving feedback at an Apple product review - designers, engineers and marketers who understand that technology should be invisible, that simplicity is the ultimate sophistication, and that products must create emotional connections with users. They value the intersection of technology and liberal arts that makes people's hearts sing.",
+            "formality": "Speak with intense passion and conviction using rhythmic, emphatic speech patterns. Express strong binary opinions - things are either 'insanely great' or 'total crap.' Use phrases like 'one more thing,' 'magical,' and 'revolutionary.' Be ruthlessly critical of anything that compromises user experience or adds complexity. Demand perfection in every pixel and interaction while focusing relentlessly on what should be eliminated.",
+            "domain": "Judge everything by whether it follows the principle that 'people don't know what they want until you show it to them.' Evaluate how the product creates delight, removes friction, and disappears into the background of users' lives. Express particular appreciation for designs that connect emotionally and reject anything that feels like a feature checklist or technological showing-off without purpose.",
+        },
+        "default_expert": {
+            "persona": "You are an Expert Pitch Deck Analyst. Provide balanced, objective, and constructive feedback based on general best practices for effective pitch decks. Focus on clarity, completeness, and persuasiveness for a general business audience."
+        },
+    }
+
+    agent_key = goals.get("agent")
+
+    if agent_key:
+        agent_preset = agent_instruction[agent_key]
+        audience_instruction = agent_preset["audience"]
+        formality_instruction = agent_preset["formality"]
+        domain_instruction = agent_preset["domain"]
+        persona_instruction = agent_preset["persona"]
+    else:
+        audience_instruction = instructions["audience"].get(
+            goals.get("audience", ""), instructions["audience"]["default"]
+        )
+        formality_instruction = instructions["formality"].get(
+            goals.get("formality", ""), instructions["formality"]["default"]
+        )
+        domain_instruction = instructions["domain"].get(goals.get("domain", ""), instructions["domain"]["default"])
+        persona_instruction = agent_instruction["default_expert"].get("persona")
 
     prompt = f"""
         # Pitch Deck Analysis Expert System
@@ -230,25 +258,17 @@ def analyze_pdf(pdf_data: bytes, goals: dict[str, str]) -> str:
 
         If the document fails either the Appropriateness Check or the Relevance Check, respond with a JSON object indicating the reason for failure. Be as specific as possible in the "description" field, detailing exactly what triggered the failure.
 
-        Examples Error Responses:
-
-        {{
-            "ER": "Unrelated content",
-            "description": "The document is a recipe for chocolate cake and is not a business presentation."
-        }}
-
-        {{
-            "error": "Inappropriate content",
-            "description": "The pitch deck contains sexually suggestive images that violate our content policy on the page 13."
-        }}
+        If validation fails, respond **ONLY** with a JSON error object:
+        - Inappropriate: `{{"error": "Inappropriate content", "description": "Specific reason (e.g., detected hate speech on page X)."}}`
+        - Unrelated: `{{"error": "Unrelated content", "description": "Specific reason (e.g., Document appears to be a personal travel blog)."}}`
 
 
         ## Customization Parameters
 
+        *   **Persona:** Defines the persona/mindset for analysis. Use this instruction: `{persona_instruction}`
         *   **Audience:** Defines the target audience perspective. Use this instruction: `{audience_instruction}`
         *   **Formality:** Defines the required tone and style. Use this instruction: `{formality_instruction}`
         *   **Domain:** Defines the industry focus. Use this instruction: `{domain_instruction}`
-        *   **Persona:** Defines the persona/mindset for analysis. Use this instruction: `{agent_instruction}`
 
         ## Comprehensive Analysis Framework
 
@@ -277,6 +297,16 @@ def analyze_pdf(pdf_data: bytes, goals: dict[str, str]) -> str:
         - Financials/Projections
         - Ask/Use of Funds
         - Other (specify)
+
+        ## Slide Cohesion Analysis
+
+        For each slide, assess:
+        - How the slide builds upon previous slides
+        - Whether it creates a natural bridge to upcoming content
+        - If the information sequence follows logical progression
+        - Whether design elements, terminology, and metrics remain consistent
+        - If there are any contradictions or disconnects with other slides
+        - How effectively the slide reinforces the overall narrative arc
 
         ## Output Requirements
 

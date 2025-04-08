@@ -11,7 +11,7 @@ from ..models import Deck, Feedback
 from ..schemas.deck import DeckSchema, FeedbackHistorySchema, FeedbackSchema
 from ..utils.funcs import calculate_md5
 from ..utils.gemini import analyze_pdf
-from ..utils.google_helpers.google_storage import load_deck, upload_deck
+from ..utils.google_helpers.google_storage import load_deck, upload_deck, upload_picture_hd
 
 deck = Blueprint("deck", __name__)
 MAX_FILE_SIZE = 15 * 1024 * 1024  # bytes == 15mb
@@ -159,7 +159,11 @@ def process_deck():
     if not deck:
         try:
             upload_deck(pdf_data, file_hash, "application/pdf")
-            deck = Deck(hash=file_hash)
+            preview_file = request.files["preview_image"]
+            deck_preview = preview_file.read()
+            picture_url = upload_picture_hd(deck_preview)
+            print(picture_url)
+            deck = Deck(hash=file_hash, picture_url=picture_url)
             deck.users.append(current_user)  # type: ignore
             db.session.add(deck)
             db.session.commit()
@@ -168,7 +172,9 @@ def process_deck():
             db.session.rollback()
             return jsonify({"error": "Error creating deck"}), 500
 
-    goals = {key: request.form.get(key, "") for key in ["audience", "formality", "domain"]}
+    goals = {key: request.form.get(key, "") for key in ["audience", "formality", "domain", "agent"]}
+    # goals = {"audience": "steve_jobs", "formality": "steve_jobs", "domain": "steve_jobs", "agent": "steve_jobs"}
+
     try:
         analysis_result_json = analyze_pdf(pdf_data, goals)
         data = json.loads(analysis_result_json)

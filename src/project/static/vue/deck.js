@@ -239,6 +239,7 @@ const DeckUploadComponent = defineComponent({
                 formData.append("audience", this.selectedAudience);
                 formData.append("formality", this.selectedFormality);
                 formData.append("domain", this.selectedDomain);
+                formData.append("preview_image", this.previewBlob);
 
                 const response = await fetch("/deck/analysis", {
                     method: "POST",
@@ -261,11 +262,61 @@ const DeckUploadComponent = defineComponent({
                 this.isAnalyzing = false; // Hide analyzing state
             }
         },
+        async generatePDFPreview() {
+            try {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_URL;
+
+                const file = this.fileData.file;
+
+                if (!file) {
+                    console.warn("No file data available.");
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    const arrayBuffer = event.target.result;
+
+                    try {
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        const page = await pdf.getPage(1);
+
+                        const viewport = page.getViewport({ scale: 0.4 });
+                        const canvas = document.createElement("canvas");
+                        const context = canvas.getContext("2d");
+
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+
+                        await page.render({
+                            canvasContext: context,
+                            viewport: viewport,
+                        }).promise;
+
+                        canvas.toBlob((blob) => {
+                            this.previewBlob = blob;
+                        }, "image/png");
+                    } catch (pdfError) {
+                        console.error("Error loading PDF with pdfjsLib:", pdfError);
+                    }
+                };
+
+                reader.onerror = (error) => {
+                    console.error("Error reading file:", error);
+                };
+
+                reader.readAsArrayBuffer(file); // Start reading the file
+            } catch (error) {
+                console.error("Error generating PDF preview:", error);
+            }
+        },
         handleFileUpload(event) {
             this.fileData = {
                 file: event.target.files[0],
                 filename: event.target.files[0]?.name || null,
             };
+
+            this.generatePDFPreview();
         },
         closeDeckUpload() {
             this.$emit("close-deck-upload");
@@ -308,7 +359,7 @@ const DeckUploadComponent = defineComponent({
                 audience: "Analysis emphasizes product value, problem-solving clarity, and customer benefits.",
                 formality: "Feedback balances professional insights with clear, accessible explanations.",
                 domain: "Analysis focuses on business strategy, market viability, and commercial potential.",
-                agentw: "Balanced and objective feedback based on standard pitch deck best practices.",
+                agent: "Balanced and objective feedback based on standard pitch deck best practices.",
             },
             descriptions: {
                 audience: {
@@ -326,7 +377,7 @@ const DeckUploadComponent = defineComponent({
                     business: "Analysis focuses on business strategy, market viability, and commercial potential.",
                     general: "Analysis provides versatile feedback suitable for a wide range of contexts.",
                 },
-                agentq: {
+                agent: {
                     standard_expert: "Balanced and objective feedback based on standard pitch deck best practices.",
                     warren_buffett:
                         "Analysis from a value investor's view: focuses on fundamentals, moat, and long-term value.",

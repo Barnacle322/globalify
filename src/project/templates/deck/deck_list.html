@@ -29,6 +29,8 @@
     {{ navbar.render(current_user) }}
     {% import "components/deck/deck_upload.html" as deck_upload %}
     {{ deck_upload.render() }}
+    {% import "components/deck/deck_goals.html" as deck_goals %}
+    {{ deck_goals.render() }}
     {% import "components/deck/delete_deck.html" as delete_deck %}
     {{ delete_deck.render() }}
 

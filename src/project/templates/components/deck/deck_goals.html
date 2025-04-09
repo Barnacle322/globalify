@@ -12,143 +12,63 @@
                     ></path>
                 </svg>
                 <div class="flex flex-col gap-3">
-                    <span class="font-bold">Set goals</span
-                    ><span>Get tailored writing suggestions based on your goals and audience</span>
+                    <span class="font-bold">Set goals</span>
+                    <span>Get tailored writing suggestions based on your goals and audience</span>
                 </div>
             </div>
-            <div class="flex flex-row items-center justify-start gap-8 border-t border-b pt-5 pb-5">
-                <span class="w-28 pl-3">Audience</span>
-                <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedAudience === 'profile' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Audience', 'profile')"
-                    >
-                        Profile
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedAudience === 'settings' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Audience', 'settings')"
-                    >
-                        Settings
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedAudience === 'messages' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Audience', 'messages')"
-                    >
-                        Messages
-                    </button>
-                </div>
-            </div>
-            <p
-                v-if="activeDescriptions.Audience"
-                class="-mt-5 mb-2 ml-32 text-xs text-gray-600"
-                v-text="activeDescriptions.Audience"
-            ></p>
-            <div class="flex flex-row items-center justify-start gap-8 border-b pt-5 pb-5">
-                <span class="w-28 pl-3">Formality</span>
-                <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedFormality === 'informal' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Formality', 'informal')"
-                    >
-                        Informal
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedFormality === 'neutral' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Formality', 'neutral')"
-                    >
-                        Neutral
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedFormality === 'formal' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Formality', 'formal')"
-                    >
-                        Formal
-                    </button>
-                </div>
-            </div>
-            <p
-                v-if="activeDescriptions.Formality"
-                class="-mt-5 mb-2 ml-32 text-xs text-gray-600"
-                v-text="activeDescriptions.Formality"
-            ></p>
-            <div class="flex flex-row items-center justify-start gap-8 pt-5">
-                <span class="w-28 pl-3">Domain</span>
-                <div class="inline-flex rounded-md shadow-xs" role="group">
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedDomain === 'academic' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Domain', 'academic')"
-                    >
-                        Academic
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedDomain === 'business' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Domain', 'business')"
-                    >
-                        Business
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedDomain === 'general' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Domain', 'general')"
-                    >
-                        General
-                    </button>
-                </div>
-            </div>
-            <p
-                v-if="activeDescriptions.Domain"
-                class="mb-2 ml-32 text-xs text-gray-600"
-                v-text="activeDescriptions.Domain"
-            ></p>
-        </div>
 
-        <div class="flex w-full items-center justify-end rounded-b-lg border-r border-b border-l bg-gray-50 p-4">
-            <button
-                class="rounded-lg bg-sky-500 px-4 py-2 font-bold text-white hover:bg-sky-700"
-                :class="{
-                    'opacity-50 cursor-not-allowed': !hasChanges,
-                    'cursor-pointer': hasChanges
-                }"
-                :disabled="!hasChanges"
-                @click="reanalizeFile"
+            <!-- Categories -->
+            <div
+                v-for="(options, category) in categoryOptions"
+                :key="category"
+                :class="[
+                    'flex flex-col border-gray-200',
+                    category === firstCategory ? '' : 'border-t',
+                    category !== lastCategory ? 'border-b' : ''
+                ]"
             >
-                Reanalyze
-            </button>
-        </div>
-
-        <!-- Loading Component -->
-        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-            <div v-if="isAnalyzing" class="fixed inset-0 z-50 flex items-center justify-center bg-white/90">
-                <div class="flex flex-col items-center">
-                    <svg
-                        class="h-10 w-10 animate-spin text-blue-500"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                        ></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                    </svg>
-                    <p class="mt-3 text-lg font-semibold text-gray-700">Analyzing...</p>
+                <div class="flex flex-row items-center justify-start gap-8 pt-5 pb-5">
+                    <span class="w-28 pl-3" v-text="categoryLabels[category]"></span>
+                    <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
+                        <button
+                            v-for="(option, index) in options"
+                            :key="option.value"
+                            type="button"
+                            v-text="option.label"
+                            :class="[
+                                'px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2',
+                                selectedGoals[category] === option.value ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200',
+                                index === 0 ? 'rounded-s-lg' : '',
+                                index === options.length - 1 ? 'rounded-e-lg' : '',
+                                index > 0 && index < options.length - 1 ? 'border-t border-b' : '',
+                                (category !== 'agent' && areGoalsDisabled) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500 hover:text-white'
+                            ]"
+                            @click="updateGoal(category, option.value)"
+                            :disabled="category !== 'agent' && areGoalsDisabled"
+                        ></button>
+                    </div>
                 </div>
+                <!-- Description -->
+                <p
+                    v-if="descriptions[category] && descriptions[category][selectedGoals[category]]"
+                    class="-mt-5 mb-2 ml-32 text-xs text-gray-600"
+                    v-text="descriptions[category][selectedGoals[category]]"
+                ></p>
             </div>
-        </transition>
+
+            <div class="flex w-full items-center justify-center rounded-b-lg p-5">
+                <button
+                    class="rounded-lg px-4 py-2 font-bold text-white"
+                    :class="{
+                        'bg-sky-500 hover:bg-sky-700': hasChanges && !isAnalyzing,
+                        'bg-gray-400 cursor-not-allowed': !hasChanges || isAnalyzing
+                    }"
+                    :disabled="!hasChanges || isAnalyzing"
+                    @click="handleAnalyze"
+                    v-text="isAnalyzing ? 'Analyzing...' : 'Reanalyze'"
+                ></button>
+            </div>
+        </div>
     </article>
 </template>
 {% endmacro %}

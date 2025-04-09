@@ -27,126 +27,26 @@
                                 Supported formats: .txt, .docx, .odt, .epub, .pdf, .html, .htm, .tsv, .json, .xls, .xlsx
                             </sub>
                         </span>
-                        <span v-if="error" class="mt-2 text-sm text-red-500" v-text="error"></span>
                     </div>
                 </div>
             </label>
-
-            <!-- Audience -->
-            <div class="flex flex-row items-center justify-start gap-8 border-t border-b pt-5 pb-5">
-                <span class="w-28 pl-3">Audience</span>
-                <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedAudience === 'profile' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Audience', 'profile')"
-                    >
-                        Profile
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedAudience === 'settings' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Audience', 'settings')"
-                    >
-                        Settings
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedAudience === 'messages' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Audience', 'messages')"
-                    >
-                        Messages
-                    </button>
-                </div>
-            </div>
-            <p
-                v-if="activeDescriptions.Audience"
-                class="-mt-5 mb-2 ml-32 text-xs text-gray-600"
-                v-text="activeDescriptions.Audience"
-            ></p>
-
-            <!-- Formality -->
-            <div class="flex flex-row items-center justify-start gap-8 border-b pt-5 pb-5">
-                <span class="w-28 pl-3">Formality</span>
-                <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedFormality === 'informal' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Formality', 'informal')"
-                    >
-                        Informal
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedFormality === 'neutral' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Formality', 'neutral')"
-                    >
-                        Neutral
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedFormality === 'formal' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Formality', 'formal')"
-                    >
-                        Formal
-                    </button>
-                </div>
-            </div>
-            <p
-                v-if="activeDescriptions.Formality"
-                class="-mt-5 mb-2 ml-32 text-xs text-gray-600"
-                v-text="activeDescriptions.Formality"
-            ></p>
-
-            <!-- Domain -->
-            <div class="flex flex-row items-center justify-start gap-8 pt-5 pb-5">
-                <span class="w-28 pl-3">Domain</span>
-                <div class="inline-flex rounded-md shadow-xs" role="group">
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2', selectedDomain === 'academic' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Domain', 'academic')"
-                    >
-                        Academic
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border-t border-b focus:z-10 focus:ring-2', selectedDomain === 'business' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Domain', 'business')"
-                    >
-                        Business
-                    </button>
-                    <button
-                        type="button"
-                        :class="['cursor-pointer px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2', selectedDomain === 'general' ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200 hover:text-white hover:bg-sky-500']"
-                        @click="updateDescription('Domain', 'general')"
-                    >
-                        General
-                    </button>
-                </div>
-            </div>
-            <p
-                v-if="activeDescriptions.Domain"
-                class="-mt-5 mb-2 ml-32 text-xs text-gray-600"
-                v-text="activeDescriptions.Domain"
-            ></p>
         </div>
+        <deck-goals-component @update-goals="updateGoals" :deck-id="''" :feed-back-id="''"></deck-goals-component>
 
         <div class="flex w-full items-center justify-end rounded-b-lg border-r border-b border-l bg-gray-50 p-4">
             <button
                 class="rounded-lg bg-sky-500 px-4 py-2 font-bold text-white hover:bg-sky-700"
                 :class="{
-                    'opacity-50 cursor-not-allowed': !fileData,
-                    'cursor-pointer': fileData
+                    'opacity-50 cursor-not-allowed': !fileData || !selectedGoals,
+                    'cursor-pointer': fileData && selectedGoals
                 }"
-                :disabled="!fileData"
+                :disabled="!fileData || !selectedGoals"
                 @click="analyzeFile"
             >
                 Analyze
             </button>
         </div>
 
-        <!-- Loading Component -->
         <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
             <div v-if="isAnalyzing" class="fixed inset-0 z-50 flex items-center justify-center bg-white/90">
                 <div class="flex flex-col items-center">

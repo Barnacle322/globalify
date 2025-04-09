@@ -9,7 +9,6 @@ from sqlalchemy import (
     String,
     func,
     Text,
-    Integer
 )
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 

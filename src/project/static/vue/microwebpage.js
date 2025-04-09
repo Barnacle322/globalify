@@ -116,17 +116,18 @@ const FirstStageComponent = defineComponent({
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                if (!file.type.match('image.*')) continue;
+                        if (!file.type.match('image.*')) continue;
 
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    this.formData.images.push({
-                        file: file,
-                        preview: e.target.result
-                    });
-                };
-                reader.readAsDataURL(file);
-            }
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.formData.images.push({
+                                file: file,  // Ensure the original File object is stored
+                                preview: e.target.result
+                            });
+                            console.log('Added image:', file); // Debug here
+                        };
+                        reader.readAsDataURL(file);
+                    }
 
             event.target.value = '';
             // Clear images error if we now have images
@@ -464,8 +465,11 @@ createApp({
                 }
 
                 // Append images
-                this.formData.images.forEach((image, index) => {
-                    formData.append(`images[${index}]`, image.file);
+                this.formData.images.forEach((img, index) => {
+                    if (img.file) {
+                        console.log(`Appending image ${index}:`, img.file); // Debug each image
+                        formData.append("images[]", img.file);
+                    }
                 });
 
                 const response = await fetch(`/microwebpage/create/${this.company_id}`, {

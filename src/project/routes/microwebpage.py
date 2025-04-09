@@ -54,7 +54,6 @@ def create_micro_web_page(company_id):
                 return jsonify({"error": error_msg}), 400
             form_data[field] = value  # store the valid field for later use
 
-
         uploaded_images = request.files.getlist("images[]")
         logo = request.files.get("logo")
 
@@ -62,7 +61,6 @@ def create_micro_web_page(company_id):
         customer_testimonials = request.form.get("customer_testimonials")
         team_title = request.form.get("team_title")
         team_subtitle = request.form.get("team_subtitle")
-        uploaded_images = request.files.getlist("images[]")
         description = request.form.get("description")
         target_market = request.form.get("target_market")
         key_products = request.form.get("key_products")
@@ -110,6 +108,7 @@ def create_micro_web_page(company_id):
                 if image and image.filename:  # Check if the file is valid
                     try:
                         image_url = upload_picture_for_web_page(image)  # Assuming upload_picture returns a URL
+                        print(image_url)
                         new_photo = WebpageMedia(
                             micro_webpage=new_micropage,
                             micro_webpage_id=new_micropage.id,
@@ -117,6 +116,7 @@ def create_micro_web_page(company_id):
                             press_kit_url=None
                         )
                         db.session.add(new_photo)
+                        print("Success uploading pictures")
                     except Exception as e:
                         print(f"Error uploading image: {str(e)}")
                         # Continue with the next image if one fails

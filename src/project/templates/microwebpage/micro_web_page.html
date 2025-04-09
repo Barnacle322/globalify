@@ -17,7 +17,7 @@
                     <div class="flex lg:flex-1">
                         <a href="#" class="-m-1.5 p-1.5">
                             <span class="sr-only">Your Company</span>
-                            <img class="h-8 w-auto" src="{{ microwebpage.logo_url }}" alt="Company Logo" />
+                            <img class="h-12 w-auto" src="{{ microwebpage.logo_url }}" alt="Company Logo" />
                         </a>
                     </div>
                     <div class="flex lg:gap-x-12">
@@ -76,56 +76,18 @@
                 </div>
                 <div class="mt-12 w-full">
                     <div class="flex w-full">
+                        {% for image in microwebpage.webpage_media %}
                         <div class="relative mx-2 flex-1">
                             <img
-                                src="https://images.unsplash.com/photo-1551288049-b5f3c2e9ef0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                                alt="Data Analytics Dashboard"
-                                class="h-64 w-full rounded-lg object-cover shadow-md"
-                            />
-                            <div class="bg-opacity-50 absolute right-0 bottom-0 left-0 rounded-b-lg bg-black p-4">
-                                <p class="text-sm font-medium text-white">Advanced Data Analytics</p>
-                            </div>
-                        </div>
-                        <div class="relative mx-2 flex-1">
-                            <img
-                                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                                alt="Team Collaboration"
-                                class="h-64 w-full rounded-lg object-cover shadow-md"
-                            />
-                            <div class="bg-opacity-50 absolute right-0 bottom-0 left-0 rounded-b-lg bg-black p-4">
-                                <p class="text-sm font-medium text-white">Seamless Team Collaboration</p>
-                            </div>
-                        </div>
-                        <div class="relative mx-2 flex-1">
-                            <img
-                                src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                                alt="Business Growth"
-                                class="h-64 w-full rounded-lg object-cover shadow-md"
-                            />
-                            <div class="bg-opacity-50 absolute right-0 bottom-0 left-0 rounded-b-lg bg-black p-4">
-                                <p class="text-sm font-medium text-white">Drive Business Growth</p>
-                            </div>
-                        </div>
-                        <div class="relative mx-2 flex-1">
-                            <img
-                                src="weary-eyed-teenager-playing-computer-games-at-nighttime-2023-11-27-05-28-05-utc.JPG"
-                                alt="Data Insights"
-                                class="h-64 w-full rounded-lg object-cover shadow-md"
-                            />
-                            <div class="bg-opacity-50 absolute right-0 bottom-0 left-0 rounded-b-lg bg-black p-4">
-                                <p class="text-sm font-medium text-white">Actionable Data Insights</p>
-                            </div>
-                        </div>
-                        <div class="relative mx-2 flex-1">
-                            <img
-                                src="https://images.unsplash.com/photo-1661956602116-aa6865609028?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                                src="{{image.picture_url}}"
                                 alt="Technology Innovation"
                                 class="h-64 w-full rounded-lg object-cover shadow-md"
                             />
-                            <div class="bg-opacity-50 absolute right-0 bottom-0 left-0 rounded-b-lg bg-black p-4">
-                                <p class="text-sm font-medium text-white">Cutting-Edge Technology</p>
+                            <div class="bg-opacity-90 absolute right-0 bottom-0 left-0 rounded-b-lg bg-white p-4">
+                                <p class="text-sm font-medium text-gray-900">Cutting-Edge Technology</p>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
                 <div
@@ -314,7 +276,7 @@
                     <!-- Logo and Description -->
                     <div class="flex flex-col items-start">
                         <a href="#" class="mb-4">
-                            <img class="h-8 w-auto" src="{{ microwebpage.logo_url }}" alt="Company Logo" />
+                            <img class="h-12 w-auto" src="{{ microwebpage.logo_url }}" alt="Company Logo" />
                         </a>
                         <p class="text-sm text-gray-600">{{ microwebpage.hero_title }}</p>
                     </div>

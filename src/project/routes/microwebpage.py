@@ -8,7 +8,7 @@ from flask import (
 
 from ..extensions import db
 from ..models import ( Company)
-from ..models.microwebpage import MicroWebPage, WebpagePhoto
+from ..models.microwebpage import MicroWebPage, WebpageMedia
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import PICTURE_NOT_LOADED
 from ..utils.google_helpers.google_storage import upload_picture, upload_picture_for_web_page
@@ -96,7 +96,7 @@ def create_micro_web_page(company_id):
                 if image and image.filename:  # Check if the file is valid
                     try:
                         image_url = upload_picture_for_web_page(image)  # Assuming upload_picture returns a URL
-                        new_photo = WebpagePhoto(
+                        new_photo = WebpageMedia(
                             micro_webpage_id=new_micropage.id,
                             picture_url=image_url,
                         )

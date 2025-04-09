@@ -201,13 +201,43 @@ const DeckHistoryComponent = defineComponent({
                     throw new Error("Failed to fetch history");
                 }
                 const data = await response.json();
-                console.log("History data:", data);
                 this.histories = data.feedbacks;
+                this.groupHistoriesByDate();
             } catch (error) {
                 console.error("Error fetching history:", error.message);
                 this.error = "Failed to load history. Please try again later.";
             }
             this.isLoading = false;
+        },
+        groupHistoriesByDate() {
+            const today = new Date();
+            const formatDate = (date) => {
+                const diff = Math.floor((today - new Date(date)) / (1000 * 60 * 60 * 24));
+                if (diff === 0) return "Today";
+                if (diff === 1) return "Yesterday";
+                if (diff <= 7) return `${diff} days ago`;
+                return new Date(date).toLocaleDateString();
+            };
+
+            const grouped = this.histories.reduce((groups, history) => {
+                const groupName = formatDate(history.created_at);
+                if (!groups[groupName]) groups[groupName] = [];
+                groups[groupName].push(history);
+                return groups;
+            }, {});
+
+            // Сортируем группы в нужном порядке
+            const sortedGroupNames = [
+                "Today",
+                "Yesterday",
+                ...Object.keys(grouped).filter((name) => !["Today", "Yesterday"].includes(name)),
+            ];
+            this.groupedHistories = sortedGroupNames.reduce((sortedGroups, groupName) => {
+                if (grouped[groupName]) {
+                    sortedGroups[groupName] = grouped[groupName];
+                }
+                return sortedGroups;
+            }, {});
         },
         selectHistory(feedbackId) {
             this.selectedHistory = feedbackId;
@@ -252,6 +282,7 @@ const DeckHistoryComponent = defineComponent({
             isExpanded: false,
             feedbackToDelete: null,
             deleteFeedbackOpened: false,
+            groupedHistories: {},
         };
     },
 });

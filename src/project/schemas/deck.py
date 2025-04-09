@@ -25,6 +25,7 @@ class FeedbackHistorySchema(BaseModel):
     id: int
     goals: list
     created_at: str
+    formated_created_at: str
 
     class Config:
         orm_mode = True

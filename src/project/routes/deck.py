@@ -119,7 +119,8 @@ def user_deck_list(user_id):
         feedback_json = FeedbackHistorySchema(
             id=feedback.id,
             goals=[feedback.audience, feedback.formality, feedback.domain],
-            created_at=feedback.created_at.strftime("%B %d, %H:%M"),
+            created_at=feedback.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            formated_created_at=feedback.created_at.strftime("%d %b %Y %H:%M"),
         ).model_dump()
         feedbacks.append(feedback_json)
 

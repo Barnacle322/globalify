@@ -2,10 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta
-            name="viewport"
-            content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
-        />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
         <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
         <link rel="stylesheet" href="/static/css/main.css" />
@@ -20,101 +17,13 @@
                     <div class="flex lg:flex-1">
                         <a href="#" class="-m-1.5 p-1.5">
                             <span class="sr-only">Your Company</span>
-                            <img class="h-8 w-auto" src="{{ microwebpage.logo_url }}" alt="" />
+                            <img class="h-8 w-auto" src="{{ microwebpage.logo_url }}" alt="Company Logo" />
                         </a>
                     </div>
-                    <div class="flex lg:hidden">
-                        <button
-                            type="button"
-                            class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
-                        >
-                            <span class="sr-only">Open main menu</span>
-                            <svg
-                                class="size-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                                aria-hidden="true"
-                                data-slot="icon"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                                />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="hidden lg:flex lg:gap-x-12">
+                    <div class="flex lg:gap-x-12">
                         <a href="#" class="text-sm font-semibold text-gray-900 hover:text-indigo-600">About</a>
                     </div>
                 </nav>
-                <!-- Mobile Menu -->
-                <div class="lg:hidden" role="dialog" aria-modal="true">
-                    <div class="fixed inset-0 z-50"></div>
-                    <div
-                        class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10"
-                    >
-                        <div class="flex items-center justify-between">
-                            <a href="#" class="-m-1.5 p-1.5">
-                                <span class="sr-only">Your Company</span>
-                                <img
-                                    class="h-8 w-auto"
-                                    src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-                                    alt=""
-                                />
-                            </a>
-                            <button type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700">
-                                <span class="sr-only">Close menu</span>
-                                <svg
-                                    class="size-6"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    aria-hidden="true"
-                                    data-slot="icon"
-                                >
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="mt-6 flow-root">
-                            <div class="-my-6 divide-y divide-gray-500/10">
-                                <div class="space-y-2 py-6">
-                                    <a
-                                        href="#"
-                                        class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50"
-                                        >Product</a
-                                    >
-                                    <a
-                                        href="#"
-                                        class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50"
-                                        >Features</a
-                                    >
-                                    <a
-                                        href="#"
-                                        class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50"
-                                        >Marketplace</a
-                                    >
-                                    <a
-                                        href="#"
-                                        class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50"
-                                        >Company</a
-                                    >
-                                </div>
-                                <div class="py-6">
-                                    <a
-                                        href="#"
-                                        class="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-gray-900 hover:bg-gray-50"
-                                        >Log in</a
-                                    >
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </header>
 
             <!-- Hero Section -->
@@ -148,24 +57,11 @@
                     ></div>
                 </div>
                 <div class="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
-                    <div class="hidden sm:mb-8 sm:flex sm:justify-center">
-                        <div
-                            class="relative rounded-lg px-3 py-1 text-sm font-medium text-gray-600 ring-1 ring-gray-200 hover:ring-indigo-300"
-                        >
-                            Announcing our next round of funding.
-                            <a href="#" class="font-semibold text-indigo-600"
-                                ><span class="absolute inset-0" aria-hidden="true"></span>Read more
-                                <span aria-hidden="true">→</span></a
-                            >
-                        </div>
-                    </div>
                     <div class="text-center">
                         <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-                            {{ microwebpage.description }}
+                            {{ microwebpage.hero_title }}
                         </h1>
-                        <p class="mt-6 text-lg text-gray-600">
-                            Discover iconic design and seamless performance with our groundbreaking technology.
-                        </p>
+                        <p class="mt-6 text-lg text-gray-600">{{ microwebpage.hero_subtitle}}</p>
                         <div class="mt-10 flex items-center justify-center gap-x-6">
                             <a
                                 href="#"
@@ -180,7 +76,7 @@
                 </div>
                 <div class="mt-12 w-full">
                     <div class="flex w-full">
-                        <div class="relative flex-1">
+                        <div class="relative mx-2 flex-1">
                             <img
                                 src="https://images.unsplash.com/photo-1551288049-b5f3c2e9ef0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                                 alt="Data Analytics Dashboard"
@@ -190,7 +86,7 @@
                                 <p class="text-sm font-medium text-white">Advanced Data Analytics</p>
                             </div>
                         </div>
-                        <div class="relative flex-1">
+                        <div class="relative mx-2 flex-1">
                             <img
                                 src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                                 alt="Team Collaboration"
@@ -200,7 +96,7 @@
                                 <p class="text-sm font-medium text-white">Seamless Team Collaboration</p>
                             </div>
                         </div>
-                        <div class="relative flex-1">
+                        <div class="relative mx-2 flex-1">
                             <img
                                 src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                                 alt="Business Growth"
@@ -210,9 +106,9 @@
                                 <p class="text-sm font-medium text-white">Drive Business Growth</p>
                             </div>
                         </div>
-                        <div class="relative flex-1">
+                        <div class="relative mx-2 flex-1">
                             <img
-                                src=" weary-eyed-teenager-playing-computer-games-at-nighttime-2023-11-27-05-28-05-utc.JPG"
+                                src="weary-eyed-teenager-playing-computer-games-at-nighttime-2023-11-27-05-28-05-utc.JPG"
                                 alt="Data Insights"
                                 class="h-64 w-full rounded-lg object-cover shadow-md"
                             />
@@ -220,7 +116,7 @@
                                 <p class="text-sm font-medium text-white">Actionable Data Insights</p>
                             </div>
                         </div>
-                        <div class="relative flex-1">
+                        <div class="relative mx-2 flex-1">
                             <img
                                 src="https://images.unsplash.com/photo-1661956602116-aa6865609028?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                                 alt="Technology Innovation"
@@ -264,15 +160,11 @@
         </div>
 
         <!-- Our Mission Section -->
-        <!-- Our Mission Section -->
         <div class="bg-white py-32 sm:py-10">
             <div class="mx-auto max-w-7xl px-8 lg:px-12">
                 <div class="mx-auto max-w-3xl text-center">
                     <h2 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">Our Mission</h2>
-                    <p class="mt-8 text-xl text-gray-600">
-                        To empower businesses worldwide with innovative data solutions that drive growth, efficiency,
-                        and meaningful impact.
-                    </p>
+                    <p class="mt-8 text-xl text-gray-600">{{microwebpage.mission_title}}</p>
                 </div>
                 <div class="mt-16 rounded-lg bg-white p-8 shadow-md">
                     <p class="text-base text-gray-600">{{ microwebpage.mission_statement }}</p>
@@ -284,10 +176,10 @@
         <div class="bg-white py-24 sm:py-32">
             <div class="mx-auto max-w-7xl px-6 lg:px-8">
                 <div class="mx-auto max-w-2xl text-center">
-                    <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Our Leadership Team</h2>
-                    <p class="mt-6 text-lg text-gray-600">
-                        Meet the visionaries steering our company toward innovation and excellence.
-                    </p>
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                        {{ microwebpage.leadership_title }}
+                    </h2>
+                    <p class="mt-6 text-lg text-gray-600">{{ microwebpage.leadership_subtitle }}</p>
                 </div>
                 <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                     <div class="overflow-hidden rounded-lg bg-white shadow-md">
@@ -314,7 +206,7 @@
                             <h3 class="text-xl font-semibold text-gray-900">John Doe</h3>
                             <p class="text-sm font-medium text-indigo-600">Chief Technology Officer</p>
                             <p class="mt-3 text-sm text-gray-600">
-                                John architects our tech stack, pushing the boundaries of what’s possible.
+                                John architects our tech stack, pushing the boundaries of what's possible.
                             </p>
                         </div>
                     </div>
@@ -360,10 +252,10 @@
         <div class="bg-white py-24 sm:py-32">
             <div class="mx-auto max-w-7xl px-6 lg:px-8">
                 <div class="mx-auto max-w-2xl text-center">
-                    <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">What Our Customers Say</h2>
-                    <p class="mt-6 text-lg text-gray-600">
-                        Hear from the people who trust us to power their businesses and enrich their lives.
-                    </p>
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                        {{ microwebpage.customer_testimonials_title }}
+                    </h2>
+                    <p class="mt-6 text-lg text-gray-600">{{microwebpage.customer_testimonials_subtitle}}</p>
                 </div>
                 <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                     <div class="rounded-lg bg-white p-6 text-center shadow-md">
@@ -403,7 +295,7 @@
                             class="mx-auto h-16 w-16 rounded-full"
                         />
                         <p class="mt-4 text-sm text-gray-600">
-                            "We’ve seen incredible growth since integrating their solutions. Highly recommend to anyone
+                            "We've seen incredible growth since integrating their solutions. Highly recommend to anyone
                             serious about scaling."
                         </p>
                         <div class="mt-4">
@@ -422,13 +314,9 @@
                     <!-- Logo and Description -->
                     <div class="flex flex-col items-start">
                         <a href="#" class="mb-4">
-                            <img
-                                class="h-8 w-auto"
-                                src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-                                alt="Your Company"
-                            />
+                            <img class="h-8 w-auto" src="{{ microwebpage.logo_url }}" alt="Company Logo" />
                         </a>
-                        <p class="text-sm text-gray-600">Empowering your business with data-driven solutions.</p>
+                        <p class="text-sm text-gray-600">{{ microwebpage.hero_title }}</p>
                     </div>
                     <!-- Navigation -->
                     <div>

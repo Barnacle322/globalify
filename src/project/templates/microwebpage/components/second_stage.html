@@ -9,94 +9,196 @@
 
         <!-- Header Section -->
         <div class="flex flex-col gap-2">
-            <h1 class="text-4xl font-medium">Step 2 of 2: Secondary</h1>
-            <span>Please provide more details</span>
+            <h1 class="text-4xl font-medium">Step 2 of 2: Company Details</h1>
+            <span>Please provide detailed company information</span>
         </div>
 
         <!-- Input Fields -->
         <div class="grid grid-cols-2 gap-x-4 gap-y-6">
-            <!-- Detailed Description -->
+            <!-- Team Section -->
             <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="description">Detailed Description</label>
+                <label class="text-sm font-medium text-gray-700" for="team_title">Team Title</label>
             </div>
             <div>
                 <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    v-model="formData.description"
+                    class="w-full rounded-lg bg-white"
+                    v-model="formData.team_title"
                     type="text"
-                    id="description"
-                    placeholder="Describe your company for the audience"
+                    id="team_title"
+                    placeholder="Section header about your team (e.g., 'Our Talented Team')"
                 />
             </div>
 
-            <!-- Assets -->
             <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="assets">Assets</label>
+                <label class="text-sm font-medium text-gray-700" for="team_subtitle">Team Subtitle</label>
             </div>
             <div>
                 <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    v-model="formData.assets"
+                    class="w-full rounded-lg bg-white"
+                    v-model="formData.team_subtitle"
                     type="text"
-                    id="assets"
-                    placeholder="List key company assets"
+                    id="team_subtitle"
+                    placeholder="Brief team description (e.g., 'Dedicated professionals driving innovation')"
                 />
             </div>
 
-            <!-- Awards -->
+            <!-- Business Information -->
             <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="awards">Awards</label>
+                <label class="text-sm font-medium text-gray-700" for="legal_structure">Legal Structure</label>
             </div>
             <div>
                 <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    v-model="formData.awards"
+                    class="w-full rounded-lg bg-white"
+                    v-model="formData.legal_structure"
                     type="text"
-                    id="awards"
-                    placeholder="Notable achievements or awards"
+                    id="legal_structure"
+                    placeholder="Company legal structure (e.g., LLC, Corporation)"
                 />
             </div>
 
-            <!-- Partnerships -->
             <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="partnerships">Partnerships</label>
+                <label class="text-sm font-medium text-gray-700" for="year_founded">Year Founded</label>
             </div>
             <div>
                 <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    v-model="formData.partnerships"
-                    type="text"
-                    id="partnerships"
-                    placeholder="Key business partnerships"
+                    class="w-full rounded-lg bg-white"
+                    v-model="formData.year_founded"
+                    type="date"
+                    id="year_founded"
                 />
             </div>
 
-            <!-- Team Description -->
             <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="team_description">Team Description</label>
+                <label class="text-sm font-medium text-gray-700" for="business_model">Business Model</label>
             </div>
             <div>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    v-model="formData.team_description"
-                    type="text"
-                    id="team_description"
-                    placeholder="About your team"
-                />
+                <textarea
+                    class="w-full rounded-lg bg-white"
+                    v-model="formData.business_model"
+                    id="business_model"
+                    placeholder="Describe your revenue model and strategy"
+                    rows="3"
+                ></textarea>
             </div>
 
-            <!-- Customer Testimonials -->
+            <!-- Market Information -->
             <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="customer_testimonials">Customer Testimonials</label>
+                <label class="text-sm font-medium text-gray-700" for="target_market">Target Market</label>
+            </div>
+            <div>
+                <textarea
+                    class="w-full rounded-lg bg-white"
+                    v-model="formData.target_market"
+                    id="target_market"
+                    placeholder="Describe your ideal customers and market segments"
+                    rows="3"
+                ></textarea>
+            </div>
+
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="market_positioning">Market Positioning</label>
+            </div>
+            <div>
+                <textarea
+                    class="w-full rounded-lg bg-white"
+                    v-model="formData.market_positioning"
+                    id="market_positioning"
+                    placeholder="How you differentiate from competitors"
+                    rows="3"
+                ></textarea>
+            </div>
+
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="revenue_streams">Revenue Streams</label>
+            </div>
+            <div>
+                <textarea
+                    class="w-full rounded-lg bg-white"
+                    v-model="formData.revenue_streams"
+                    id="revenue_streams"
+                    placeholder="Primary sources of revenue"
+                    rows="3"
+                ></textarea>
+            </div>
+
+            <!-- Technical Information -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="tech_stack">Technology Stack</label>
             </div>
             <div>
                 <input
-                    class="w-full rounded-lg bg-transparent bg-white"
-                    v-model="formData.customer_testimonials"
+                    class="w-full rounded-lg bg-white"
+                    v-model="formData.tech_stack_input"
                     type="text"
-                    id="customer_testimonials"
-                    placeholder="Client feedback or quotes"
+                    id="tech_stack"
+                    placeholder="Add technologies (press Enter after each)"
+                    @keydown.enter="addTechStackItem"
                 />
+                <div class="mt-2 flex flex-wrap gap-2" v-if="formData.tech_stack && formData.tech_stack.length > 0">
+                    <span v-for="(tech, index) in formData.tech_stack" :key="index" class="rounded-full bg-gray-200 px-3 py-1 text-sm">
+                        [[ tech ]]
+                        <button @click="removeTechStackItem(index)" class="ml-1 text-gray-500 hover:text-gray-700">×</button>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Key Products/Services -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="key_products">Key Products/Services</label>
+            </div>
+            <div class="space-y-2">
+                <div v-for="(product, index) in formData.key_products" :key="index" class="flex items-center gap-2">
+                    <input
+                        class="flex-1 rounded-lg bg-white"
+                        v-model="product.name"
+                        type="text"
+                        :placeholder="'Product/Service ' + (index + 1)"
+                    />
+                    <textarea
+                        class="flex-1 rounded-lg bg-white"
+                        v-model="product.description"
+                        :placeholder="'Description for product ' + (index + 1)"
+                        rows="2"
+                    ></textarea>
+                    <button @click="removeKeyProduct(index)" class="text-red-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+                <button @click="addKeyProduct" class="mt-2 flex items-center text-sm text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Add Product/Service
+                </button>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="intellectual_property">Intellectual Property</label>
+            </div>
+            <div>
+                <textarea
+                    class="w-full rounded-lg bg-white"
+                    v-model="formData.intellectual_property"
+                    id="intellectual_property"
+                    placeholder="Patents, trademarks, or proprietary technology"
+                    rows="3"
+                ></textarea>
+            </div>
+
+            <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-700" for="sustainability_initiatives">Sustainability Initiatives</label>
+            </div>
+            <div>
+                <textarea
+                    class="w-full rounded-lg bg-white"
+                    v-model="formData.sustainability_initiatives"
+                    id="sustainability_initiatives"
+                    placeholder="Environmental or social responsibility programs"
+                    rows="3"
+                ></textarea>
             </div>
 
             <!-- Founder Bio -->
@@ -104,13 +206,13 @@
                 <label class="text-sm font-medium text-gray-700" for="founder_bio">Founder Bio</label>
             </div>
             <div>
-                <input
-                    class="w-full rounded-lg bg-transparent bg-white"
+                <textarea
+                    class="w-full rounded-lg bg-white"
                     v-model="formData.founder_bio"
-                    type="text"
                     id="founder_bio"
-                    placeholder="About the founder(s)"
-                />
+                    placeholder="Background and vision of the founder(s)"
+                    rows="4"
+                ></textarea>
             </div>
         </div>
 
@@ -131,7 +233,7 @@
                     :disabled="!isFirstStageValid"
                     class="bg-deep-purple mt-4 w-fit rounded-md px-3 py-2 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:scale-102"
             >
-                <div class="flex items-center gap-2 ">
+                <div class="flex items-center gap-2">
                     <span>Submit</span>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />

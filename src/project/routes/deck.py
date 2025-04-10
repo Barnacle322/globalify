@@ -10,7 +10,7 @@ from ..models import Deck, Feedback
 from ..schemas.deck import DeckSchema, FeedbackHistorySchema, SummarySchema
 from ..utils.funcs import calculate_md5
 from ..utils.gemini import analyze_pdf
-from ..utils.google_helpers.google_storage import load_deck, upload_deck
+from ..utils.google_helpers.google_storage import load_deck, upload_deck, upload_picture_hd
 
 deck = Blueprint("deck", __name__)
 MAX_FILE_SIZE = 15 * 1024 * 1024  # bytes == 15mb
@@ -38,7 +38,17 @@ def process_deck():
         if not deck:
             return jsonify({"error": "Deck not found"}), 404
         try:
+            upload_deck(pdf_data, file_hash, "application/pdf")
+            preview_file = request.files["preview_image"]
+            deck_preview = preview_file.read()
+            picture_url = upload_picture_hd(deck_preview)
+            print(picture_url)
+            deck = Deck(hash=file_hash, picture_url=picture_url)
+            deck.users.append(current_user)  # type: ignore
+            db.session.add(deck)
+            db.session.commit()
             pdf_data = load_deck(deck.hash)  # type: ignore
+
         except Exception as e:
             print(f"Error loading deck: {e}")
             return jsonify({"error": "Error loading deck"}), 500
@@ -66,7 +76,9 @@ def process_deck():
                 db.session.rollback()
                 return jsonify({"error": "Error creating deck"}), 500
 
-    goals = {key: request.form.get(key, "") for key in ["audience", "formality", "domain"]}
+    goals = {key: request.form.get(key, "") for key in ["audience", "formality", "domain", "agent"]}
+    # goals = {"audience": "steve_jobs", "formality": "steve_jobs", "domain": "steve_jobs", "agent": "steve_jobs"}
+
     try:
         existing_feedback = Feedback.get_by_deck_user_and_goals(
             deck_id=deck.id,

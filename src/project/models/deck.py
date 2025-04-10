@@ -31,7 +31,7 @@ class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String, nullable=True, init=False)
     hash: Mapped[str] = mapped_column(String, nullable=False)
-    # picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), init=False
     )
@@ -168,7 +168,7 @@ class Feedback(MappedAsDataclass, db.Model, unsafe_hash=True):
                 audience=goals["audience"],
                 formality=goals["formality"],
                 domain=goals["domain"],
-                agent="agent",
+                agent="steve_jobs",
                 clarity_score=scores.get("clarity"),
                 grammar_score=scores.get("grammar"),
                 design_score=scores.get("design"),

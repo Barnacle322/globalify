@@ -9,12 +9,12 @@ class DeckSchema(BaseModel):
 
 class SummarySchema(BaseModel):
     id: int
-    agent: str
-    clarity_score: float
-    grammar_score: float
-    design_score: float
-    storytelling_score: float
-    engagement_score: float
+    clarity_score: int
+    grammar_score: int
+    design_score: int
+    storytelling_score: int
+    engagement_score: int
+    overall_score: float
     recommendation: str
 
     class Config:

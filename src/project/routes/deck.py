@@ -200,15 +200,14 @@ def get_deck_summary(feedback_id):
 
     if not feedback:
         return jsonify({"error": "Feedback not found"}), 404
-
     summary_json = SummarySchema(
         id=feedback.id,
-        agent=feedback.agent,
         clarity_score=feedback.clarity_score,
         grammar_score=feedback.grammar_score,
         design_score=feedback.design_score,
         storytelling_score=feedback.storytelling_score,
         engagement_score=feedback.engagement_score,
+        overall_score = feedback.overall_score,
         recommendation=feedback.recommendation,
     )
 

@@ -117,31 +117,29 @@ const DeckSummaryComponent = defineComponent({
         },
         getScoreBgColorClass(score) {
             if (score === null || score === undefined) return "bg-gray-300";
-            if (score >= 8) return "bg-sky-500";
-            if (score >= 6) return "bg-green-500";
-            if (score >= 4) return "bg-yellow-500";
+            if (score >= 80) return "bg-sky-500";
+            if (score >= 60) return "bg-green-500";
+            if (score >= 40) return "bg-yellow-500";
             return "bg-orange-500";
         },
         getScoreTextColorClass(score) {
             if (score === null || score === undefined) return "text-gray-500";
-            if (score >= 8) return "text-sky-600";
-            if (score >= 6) return "text-green-600";
-            if (score >= 4) return "text-yellow-600";
+            if (score >= 80) return "text-sky-600";
+            if (score >= 60) return "text-green-600";
+            if (score >= 40) return "text-yellow-600";
             return "text-red-600";
         },
         getScoreWidthStyle(score) {
-            const numericScore = Number(score);
-            const width = numericScore && numericScore > 0 ? numericScore * 10 : 0;
-            const safeWidth = Math.min(Math.max(width, 0), 100);
-            return { width: `${safeWidth}%` };
+            const width = score && score > 0 ? score : 0;
+            return { width: `${Math.min(Math.max(width, 0), 100)}%` };
         },
         formatScore(score) {
-            if (score === null || score === undefined) return "N/A";
-            return `${score}/10`;
+            if (score === null || score === undefined) return "0.0";
+            return `${score / 10}/10`;
         },
         formatOverallScore(score) {
-            if (score === null || score === undefined) return "N/A";
-            return typeof score === "number" ? score.toFixed(1) : "N/A";
+            if (score === null || score === undefined) return "0.0";
+            return typeof score === "number" ? score.toFixed(1) : "0.0";
         },
     },
     data() {
@@ -807,12 +805,32 @@ createApp({
                 return null;
             }
         },
-        async opneDeckFeedbacks(deckId) {
+        async openDeckFeedbacks(deckId) {
             await this.getLatestFeedbackId(deckId);
             if (this.latestFeedbackId) {
                 window.location.href = `/deck/${deckId}/feedback/${this.latestFeedbackId}`;
             } else {
                 throw new Error("No feedback found for this deck.");
+            }
+        },
+        async saveDeckName(deckId) {
+            if (this.newDeckName.trim() === "") return;
+            try {
+                const response = await fetch(`/deck/edit/${deckId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": document.getElementById("csrf_token").value,
+                    },
+                    body: JSON.stringify({ deck_id: deckId, new_name: this.newDeckName }),
+                });
+                if (!response.ok) {
+                    throw new Error("Edit error");
+                }
+                deck.name = this.newDeckName;
+                this.editingDeckId = null;
+            } catch (error) {
+                console.error("Edit error:", error.message);
             }
         },
         scrollToThumbnail(pageNumber) {
@@ -860,7 +878,12 @@ createApp({
                 const nextPageFeedback = this.findFeedbackByPageNumber(nextPageNum);
                 this.selectedPage = nextPageFeedback || {
                     page_number: nextPageNum,
-                    feedback: "No specific feedback for this page.",
+                    feedback: "No feedback for this page.",
+                    clarity: null,
+                    grammar: null,
+                    design: null,
+                    storytelling: null,
+                    engagement: null,
                 };
                 this.scrollToThumbnail(nextPageNum);
             }
@@ -872,10 +895,30 @@ createApp({
                 const prevPageFeedback = this.findFeedbackByPageNumber(prevPageNum);
                 this.selectedPage = prevPageFeedback || {
                     page_number: prevPageNum,
-                    feedback: "No specific feedback for this page.",
+                    feedback: "No feedback for this page.",
+                    clarity: null,
+                    grammar: null,
+                    design: null,
+                    storytelling: null,
+                    engagement: null,
                 };
                 this.scrollToThumbnail(prevPageNum);
             }
+        },
+        getScoreBgColorClass(score) {
+            if (score === null || score === undefined) return "bg-gray-300";
+            if (score >= 80) return "bg-sky-500";
+            if (score >= 60) return "bg-green-500";
+            if (score >= 40) return "bg-yellow-500";
+            return "bg-orange-500";
+        },
+        getScoreWidthStyle(score) {
+            const width = score && score > 0 ? score : 0;
+            return { width: `${Math.min(Math.max(width, 0), 100)}%` };
+        },
+        formatScore(score) {
+            if (score === null || score === undefined) return "0.0";
+            return `${score / 10}/10`;
         },
         handleScroll(event) {
             event.preventDefault();
@@ -886,6 +929,27 @@ createApp({
             if (event.key === "Escape" && this.activeModal) {
                 this.closeModal();
             }
+        },
+        toggleDropdown(deckId) {
+            this.openedDropdownDeckId = this.openedDropdownDeckId === deckId ? null : deckId;
+        },
+        handleClickOutside(event) {
+            const dropdown = this.$refs.dropdown;
+            if (dropdown && !dropdown.contains(event.target)) {
+                this.openedDropdownDeckId = null;
+            }
+        },
+        startEditing(deckId) {
+            this.editingDeckId = deckId;
+            this.newDeckName = deck.name || "No Name Available";
+            this.openedDropdownDeckId = null;
+            this.$nextTick(() => {
+                this.$refs[`nameInput-${deck.id}`][0].focus();
+            });
+        },
+        cancelEditing() {
+            this.editingDeckId = null;
+            this.newDeckName = "";
         },
     },
     data() {
@@ -900,7 +964,15 @@ createApp({
             fileData: null,
             deckFile: null,
             openDropdown: null,
-            selectedPage: null,
+            selectedPage: {
+                page_number: null,
+                feedback: "",
+                clarity: null,
+                grammar: null,
+                design: null,
+                storytelling: null,
+                engagement: null,
+            },
             activeModal: null,
             modalTitle: "",
             modalContent: "",
@@ -908,10 +980,20 @@ createApp({
             totalPages: 0,
             deckFeedback: [],
             deckThumbnails: [],
+            scoreItems: [
+                { key: "clarity", label: "Clarity" },
+                { key: "grammar", label: "Grammar" },
+                { key: "design", label: "Design" },
+                { key: "storytelling", label: "Storytelling" },
+                { key: "engagement", label: "Engagement" },
+            ],
             isDeckGoalsOpened: false,
             isDeckUploadOpened: false,
-            deleteDeckOpened: false,
+            openedDropdownDeckId: null,
+            editingDeckId: null,
+            newDeckName: "",
             deckToDelete: null,
+            deleteDeckOpened: false,
             selectedDeckId: null,
             latestFeedbackId: null,
         };

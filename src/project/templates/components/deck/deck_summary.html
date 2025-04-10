@@ -55,7 +55,7 @@
                         <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-2">Recommendation</h3>
                         <p
                             class="text-sm sm:text-base text-gray-700 leading-relaxed"
-                            v-text="summaryData.recommandation || 'No recommendation provided.'"
+                            v-text="summaryData.recommendation || 'No recommendation provided.'"
                         ></p>
                     </div>
 
@@ -81,31 +81,31 @@
                                     :class="getScoreBgColorClass(summaryData[item.key])"
                                     :style="[
                                         getScoreWidthStyle(summaryData[item.key]),
-                                        { transitionDelay: `calc(var(--delay-index) * 100ms)` } // Задержка = индекс * 100мс
+                                        { transitionDelay: `calc(var(--delay-index) * 100ms)` }
                                      ]"
                                 ></div>
                             </div>
                         </div>
                         <div
-                            class="score-item pt-4 mt-5 border-t border-gray-200"
+                            class="score-item pt-4 mt-5 pb-3 border-t border-gray-200"
                             :style="{ '--delay-index': scoreItems.length }"
                         >
                             <div class="flex justify-between items-center mb-1">
-                                <span class="text-sm font-semibold text-gray-700">Overall Score</span>
+                                <span class="text-s font-bold text-gray-700">Overall Score</span>
                                 <span
-                                    class="text-sm font-bold tabular-nums"
+                                    class="text-s font-bold tabular-nums"
                                     :class="getScoreTextColorClass(summaryData.overall_score)"
                                     v-text="formatOverallScore(summaryData.overall_score)"
                                 >
                                 </span>
                             </div>
-                            <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                                 <div
-                                    class="progress-bar-fill h-1.5 rounded-full transition-[width] duration-500 ease-out"
+                                    class="progress-bar-fill h-2 rounded-full transition-[width] duration-500 ease-out"
                                     :class="getScoreBgColorClass(summaryData.overall_score)"
                                     :style="[
                                         getScoreWidthStyle(summaryData.overall_score),
-                                        { transitionDelay: `calc(var(--delay-index) * 100ms)` }
+                                        { transitionDelay: `calc(var(--delay-index) * 200ms)` }
                                      ]"
                                 ></div>
                             </div>

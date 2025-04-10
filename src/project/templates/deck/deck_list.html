@@ -28,11 +28,11 @@
 
     <!-- prettier-ignore -->
     {% import "components/navbar.html" as navbar %}
-{{ navbar.render(current_user) }}
-{% import "components/deck/deck_upload.html" as deck_upload %}
-{{ deck_upload.render() }}
-{% import "components/deck/delete_deck.html" as delete_deck %}
-{{ delete_deck.render() }}
+    {{ navbar.render(current_user) }}
+    {% import "components/deck/deck_upload.html" as deck_upload %}
+    {{ deck_upload.render() }}
+    {% import "components/deck/delete_deck.html" as delete_deck %}
+    {{ delete_deck.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -71,7 +71,7 @@
                 <delete-deck-component
                     v-if="deleteDeckOpened"
                     :deck-id="deckToDelete"
-                    @close-delete-company="deleteDeckOpened = null"
+                    @close-delete-deck="deleteDeckOpened = null"
                 ></delete-deck-component>
             </transition>
 
@@ -79,7 +79,7 @@
                 <section class="w-full px-4">
                     <div class="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         <div
-                            class="shadow-card-hover flex min-h-[250px] cursor-pointer flex-col items-center justify-center rounded-xl bg-white p-4 shadow-lg"
+                            class="shadow-card-hover flex min-h-[250px] cursor-pointer flex-col items-center justify-center rounded-xl bg-white p-4 shadow-lg hover:scale-105"
                             @click="isDeckUploadOpened = true"
                         >
                             <!-- Upload Icon -->
@@ -101,7 +101,10 @@
                             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                         </div>
                         {% for deck in decks %}
-                        <a href="/deck/detail/{{ deck.id }}" class="shadow-card-hover rounded-2xl transition-transform">
+                        <a
+                            @click="opneDeckFeedbacks({{deck.id}})"
+                            class="shadow-card-hover rounded-2xl transition-transform cursor-pointer hover:scale-105"
+                        >
                             <article class="flex h-full min-h-[250px] flex-col rounded-2xl bg-white p-4 shadow-lg">
                                 <img
                                     src="{{ deck.picture_url }}"

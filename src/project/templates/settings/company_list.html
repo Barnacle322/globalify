@@ -307,7 +307,7 @@
                                         viewBox="0 0 24 24"
                                         stroke-width="1.5"
                                         stroke="currentColor"
-                                        class="size-6"
+                                        class="size-6 cursor-pointer"
                                     >
                                         <path
                                             stroke-linecap="round"
@@ -323,7 +323,7 @@
                                 >
                                     <button
                                         @click="makePrimary({{ company.company.id }})"
-                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-sky-500 hover:text-white"
+                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-sky-500 hover:text-white cursor-pointer"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -344,7 +344,7 @@
                                     {% if company.company.is_public %}
                                     <button
                                         @click="togglePublic({{ company.company.id }})"
-                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-sky-500 hover:text-white"
+                                        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-sky-500 hover:text-white cursor-pointer"
                                     >
                                         {% if company.is_public %}
 

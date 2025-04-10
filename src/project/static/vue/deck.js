@@ -1,4 +1,162 @@
+const DeleteFeedbackComponent = defineComponent({
+    template: "#delete-feedback-template",
+    props: {
+        feedbackId: {
+            type: Number,
+            required: true,
+        },
+    },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async deleteFeedback(feedbackId) {
+            const csrfToken = document.getElementById("csrf_token").value;
+            try {
+                const response = await fetch(`/deck/feedback/delete/${feedbackId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-deck");
+                }
+            } catch (error) {
+                console.error("Error cancelling invitation:", error.message);
+            }
+        },
+        closeFeedback() {
+            this.$emit("close-delete-feedback");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeFeedback();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeFeedback();
+            }
+        },
+    },
+});
+
+const DeckSummaryComponent = defineComponent({
+    template: "#deck-summary-template",
+    props: {
+        deckId: {
+            type: Number,
+            required: true,
+        },
+    },
+    emits: ["close-deck-summary"],
+    async mounted() {
+        await this.fetchSummary();
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    methods: {
+        async fetchSummary() {
+            this.isLoading = true;
+            try {
+                const response = await fetch(`/deck/scores/${this.deckId}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch goals");
+                }
+                const data = await response.json();
+
+                this.summaryData = data.summary;
+                this.scoreItems = [
+                    { key: "grammar_score", label: "Spelling & Grammar" },
+                    { key: "storytelling_score", label: "Storytelling" },
+                    { key: "clarity_score", label: "Clarity" },
+                    { key: "design_score", label: "Design" },
+                    { key: "engagement_score", label: "Engagement" },
+                ];
+            } catch (error) {
+                console.error("Error fetching summary:", error.message);
+                this.error = error.message || "Failed to load summary. Please try again later.";
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        closeSummary() {
+            this.$emit("close-deck-summary");
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeSummary();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeSummary();
+            }
+        },
+        getScoreBgColorClass(score) {
+            if (score === null || score === undefined) return "bg-gray-300";
+            if (score >= 8) return "bg-sky-500";
+            if (score >= 6) return "bg-green-500";
+            if (score >= 4) return "bg-yellow-500";
+            return "bg-orange-500";
+        },
+        getScoreTextColorClass(score) {
+            if (score === null || score === undefined) return "text-gray-500";
+            if (score >= 8) return "text-sky-600";
+            if (score >= 6) return "text-green-600";
+            if (score >= 4) return "text-yellow-600";
+            return "text-red-600";
+        },
+        getScoreWidthStyle(score) {
+            const numericScore = Number(score);
+            const width = numericScore && numericScore > 0 ? numericScore * 10 : 0;
+            const safeWidth = Math.min(Math.max(width, 0), 100);
+            return { width: `${safeWidth}%` };
+        },
+        formatScore(score) {
+            if (score === null || score === undefined) return "N/A";
+            return `${score}/10`;
+        },
+        formatOverallScore(score) {
+            if (score === null || score === undefined) return "N/A";
+            return typeof score === "number" ? score.toFixed(1) : "N/A";
+        },
+    },
+    data() {
+        return {
+            isLoading: true,
+            summaryData: null,
+            scoreItems: [],
+        };
+    },
+});
+
 const DeckHistoryComponent = defineComponent({
+    components: {
+        DeleteFeedbackComponent,
+    },
     template: "#deck-history-template",
     props: {
         userId: {
@@ -16,10 +174,19 @@ const DeckHistoryComponent = defineComponent({
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
         }, 0);
+        window.addEventListener("click", this.closeDropdown);
+    },
+    async created() {
+        const pathSegments = window.location.pathname.split("/").filter(Boolean);
+
+        const deckId = pathSegments[pathSegments.length - 1];
+        console.log("Path segments:", deckId);
+        this.selectedHistory = deckId;
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("click", this.handleOutsideClick);
+        window.removeEventListener("click", this.closeDropdown);
     },
     methods: {
         async fetchHistory() {
@@ -34,14 +201,47 @@ const DeckHistoryComponent = defineComponent({
                     throw new Error("Failed to fetch history");
                 }
                 const data = await response.json();
-                console.log("History data:", data);
                 this.histories = data.feedbacks;
-                this.selectedHistory = this.histories[0] || null;
+                this.groupHistoriesByDate();
             } catch (error) {
                 console.error("Error fetching history:", error.message);
                 this.error = "Failed to load history. Please try again later.";
             }
             this.isLoading = false;
+        },
+        groupHistoriesByDate() {
+            const today = new Date();
+            const formatDate = (date) => {
+                const diff = Math.floor((today - new Date(date)) / (1000 * 60 * 60 * 24));
+                if (diff === 0) return "Today";
+                if (diff === 1) return "Yesterday";
+                if (diff <= 7) return `${diff} days ago`;
+                return new Date(date).toLocaleDateString();
+            };
+
+            const grouped = this.histories.reduce((groups, history) => {
+                const groupName = formatDate(history.created_at);
+                if (!groups[groupName]) groups[groupName] = [];
+                groups[groupName].push(history);
+                return groups;
+            }, {});
+
+            // Сортируем группы в нужном порядке
+            const sortedGroupNames = [
+                "Today",
+                "Yesterday",
+                ...Object.keys(grouped).filter((name) => !["Today", "Yesterday"].includes(name)),
+            ];
+            this.groupedHistories = sortedGroupNames.reduce((sortedGroups, groupName) => {
+                if (grouped[groupName]) {
+                    sortedGroups[groupName] = grouped[groupName];
+                }
+                return sortedGroups;
+            }, {});
+        },
+        selectHistory(feedbackId) {
+            this.selectedHistory = feedbackId;
+            this.closeHistory();
         },
         closeHistory() {
             this.$emit("close-deck-history");
@@ -60,6 +260,16 @@ const DeckHistoryComponent = defineComponent({
             this.$emit("history-selected", historyItem);
             this.closeHistory();
         },
+        openDropdown(feedbackId) {
+            this.openedDropdownFeedbackId = feedbackId;
+            this.ignoreNextOutsideClick = true;
+        },
+        closeDropdown(event) {
+            if (this.openedDropdownFeedbackId && !this.ignoreNextOutsideClick) {
+                this.openedDropdownFeedbackId = null;
+            }
+            this.ignoreNextOutsideClick = false;
+        },
     },
     data() {
         return {
@@ -67,33 +277,75 @@ const DeckHistoryComponent = defineComponent({
             selectedHistory: null,
             isLoading: true,
             error: null,
+            openedDropdownFeedbackId: null,
+            ignoreNextOutsideClick: false,
+            isExpanded: false,
+            feedbackToDelete: null,
+            deleteFeedbackOpened: false,
+            groupedHistories: {},
         };
     },
 });
 
 const DeckGoalsComponent = defineComponent({
     template: "#deck-goals-template",
-    props: {
-        feedbackId: {
-            type: Number,
-            required: true,
-        },
-    },
+    props: ["deck-id", "feed-back-id"],
     async mounted() {
         await this.fetchGoals();
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
         }, 0);
+        this.initialAudience = this.selectedAudience;
+        this.initialFormality = this.selectedFormality;
+        this.initialDomain = this.selectedDomain;
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("click", this.handleOutsideClick);
     },
     methods: {
+        async reanalizeFile() {
+            this.isAnalyzing = true;
+
+            try {
+                const formData = new FormData();
+                formData.append("audience", this.selectedAudience);
+                formData.append("formality", this.selectedFormality);
+                formData.append("domain", this.selectedDomain);
+                formData.append("deck_id", this.deckId);
+
+                const response = await fetch("/deck/analysis", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": document.getElementById("csrf_token").value,
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to re-analyze file");
+                }
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+
+                const data = await response.json();
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                    return;
+                }
+            } catch (error) {
+                console.error("Error in re-analyzeFile:", error.message);
+            } finally {
+                this.isAnalyzing = false;
+            }
+        },
         async fetchGoals() {
             try {
-                const response = await fetch(`/deck/feedback/${this.feedbackId}/goals`, {
+                const response = await fetch(`/deck/feedback/${this.feedBackId}/goals`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -130,17 +382,32 @@ const DeckGoalsComponent = defineComponent({
             }
         },
         updateDescription(type, value) {
-            this[`selected${type}`] = value;
-            this.activeDescriptions[type] = this.descriptions[type][value];
+            if (this[`selected${type}`] !== value) {
+                this[`selected${type}`] = value;
+                this.activeDescriptions[type] = this.descriptions[type][value];
+            }
+            this.checkForChanges();
+        },
+        checkForChanges() {
+            this.hasChanges =
+                this.selectedAudience !== this.initialAudience ||
+                this.selectedFormality !== this.initialFormality ||
+                this.selectedDomain !== this.initialDomain;
         },
     },
     data() {
         return {
             isLoading: true,
+            isAnalyzing: false,
             error: null,
             selectedAudience: "settings",
             selectedFormality: "neutral",
             selectedDomain: "business",
+            hasChanges: false,
+            initialAudience: null,
+            initialFormality: null,
+            initialDomain: null,
+
             activeDescriptions: {
                 Audience: "Optimized for technical or configuration-related content.", // Initial for 'settings'
                 Formality: "Balanced tone, appropriate for general communication.", // Initial for 'neutral'
@@ -206,7 +473,7 @@ const DeleteDeckComponent = defineComponent({
             }
         },
         closeDeck() {
-            this.$emit("close-delete-company");
+            this.$emit("close-delete-deck");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
@@ -231,7 +498,7 @@ const DeckUploadComponent = defineComponent({
                 return;
             }
 
-            this.isAnalyzing = true; // Show analyzing state
+            this.isAnalyzing = true;
 
             try {
                 const formData = new FormData();
@@ -249,7 +516,14 @@ const DeckUploadComponent = defineComponent({
                     body: formData,
                 });
 
-                if (!response.ok) throw new Error("Analysis failed");
+                if (!response.ok) {
+                    throw new Error("Failed to re-analyze file");
+                }
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
 
                 const data = await response.json();
                 if (data.redirect_url) {
@@ -401,6 +675,7 @@ createApp({
         DeleteDeckComponent,
         DeckGoalsComponent,
         DeckHistoryComponent,
+        DeckSummaryComponent,
     },
     delimiters: ["[[", "]]"],
     watch: {
@@ -425,7 +700,8 @@ createApp({
     methods: {
         async fetchDeckFile() {
             const pathSegments = window.location.pathname.split("/").filter(Boolean);
-            const deckId = pathSegments[pathSegments.length - 1];
+            console.log("Path segments:", pathSegments);
+            const deckId = pathSegments[pathSegments.length - 3];
 
             try {
                 const response = await fetch(`/deck/file/${deckId}`);
@@ -525,6 +801,32 @@ createApp({
 
             return thumbnails;
         },
+        async getLatestFeedbackId(deckId) {
+            try {
+                const response = await fetch(`/deck/get/latest/feedback/${deckId}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch feedback");
+                }
+                const data = await response.json();
+                this.latestFeedbackId = data.feedback_id;
+            } catch (error) {
+                console.error("Error fetching feedback:", error.message);
+                return null;
+            }
+        },
+        async opneDeckFeedbacks(deckId) {
+            await this.getLatestFeedbackId(deckId);
+            if (this.latestFeedbackId) {
+                window.location.href = `/deck/${deckId}/feedback/${this.latestFeedbackId}`;
+            } else {
+                throw new Error("No feedback found for this deck.");
+            }
+        },
         scrollToThumbnail(pageNumber) {
             this.$nextTick(() => {
                 const container = this.$refs.thumbnailContainer;
@@ -592,41 +894,6 @@ createApp({
             const container = this.$refs.thumbnailContainer;
             container.scrollLeft += event.deltaY;
         },
-        openModal(modalType) {
-            let title = "";
-            let contentElementId = "";
-
-            if (modalType === "summary") {
-                title = "Overall Summary";
-                contentElementId = "modal-summary-content";
-            } else if (modalType === "goals") {
-                title = "Improvement Goals";
-                contentElementId = "modal-goals-content";
-            } else {
-                console.warn("Unknown modal type:", modalType);
-                return;
-            }
-
-            const contentElement = document.getElementById(contentElementId);
-            if (contentElement) {
-                this.modalTitle = title;
-                this.modalContent = contentElement.innerHTML;
-                this.activeModal = modalType;
-                document.body.style.overflow = "hidden";
-            } else {
-                console.error(`Modal content element not found: #${contentElementId}`);
-                this.modalTitle = title;
-                this.modalContent = '<p class="text-red-500">Error: Content not found.</p>';
-                this.activeModal = modalType;
-                document.body.style.overflow = "hidden";
-            }
-        },
-        closeModal() {
-            this.activeModal = null;
-            this.modalTitle = "";
-            this.modalContent = "";
-            document.body.style.overflow = "";
-        },
         handleEscKey(event) {
             if (event.key === "Escape" && this.activeModal) {
                 this.closeModal();
@@ -641,6 +908,7 @@ createApp({
             mainSlideLoaded: false,
             allThumbnailsLoaded: false,
             isDeckHistoryOpened: false,
+            isDeckSummaryOpened: false,
             fileData: null,
             deckFile: null,
             openDropdown: null,
@@ -657,6 +925,7 @@ createApp({
             deleteDeckOpened: false,
             deckToDelete: null,
             selectedDeckId: null,
+            latestFeedbackId: null,
         };
     },
 }).mount("#app");

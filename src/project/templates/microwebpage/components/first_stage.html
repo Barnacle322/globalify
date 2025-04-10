@@ -1,22 +1,17 @@
 {% macro render() %}
 <script type="text/x-template" id="first-stage-template">
     <div class="mx-auto mt-4 flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
-        <!-- Hidden Inputs -->
         <div>
-            <input type="hidden" />
-            <input type="hidden" />
+            <input type="hidden" v-model="formData.id" />
+            <input type="hidden" v-model="formData.company_id" />
         </div>
-
-        <!-- Header Section -->
         <div class="flex flex-col gap-2">
-            <h1 class="text-4xl font-medium">Step 1 of 2: Main</h1>
-            <span>Please fill out main important fields.</span>
+            <h1 class="text-4xl font-medium">Step 1 of 7: Main</h1>
+            <span>Please fill out the required main fields.</span>
         </div>
-
-        <!-- Input Fields -->
         <div class="grid grid-cols-2 gap-x-4 gap-y-6">
             <div class="flex items-center">
-                <label for="logo" class="text-sm font-medium text-gray-700">Logo (PNG)</label>
+                <label for="logo" class="text-sm font-medium text-gray-700">Primary Logo (PNG)</label>
             </div>
             <div>
                 <input
@@ -25,15 +20,16 @@
                     type="file"
                     id="logo"
                     ref="logoInput"
+                    accept="image/png"
                 />
+                <span v-if="errors.logo_url" class="text-sm text-red-500">[[ errors.logo_url ]]</span>
             </div>
-
             <div class="flex items-center">
                 <label for="hero_title" class="text-sm font-medium text-gray-700">Hero Title</label>
             </div>
-            <div class="border-b-emerald-400">
+            <div>
                 <input
-                    class="w-full rounded-lg border-black bg-white"
+                    class="w-full rounded-lg border border-black bg-white p-2"
                     v-model="formData.hero_title"
                     type="text"
                     id="hero_title"
@@ -42,13 +38,12 @@
                 />
                 <span v-if="errors.hero_title" class="text-sm text-red-500">[[ errors.hero_title ]]</span>
             </div>
-
             <div class="flex items-center">
                 <label for="hero_subtitle" class="text-sm font-medium text-gray-700">Hero Subtitle</label>
             </div>
             <div>
                 <input
-                    class="w-full rounded-lg bg-white"
+                    class="w-full rounded-lg border border-black bg-white p-2"
                     v-model="formData.hero_subtitle"
                     type="text"
                     id="hero_subtitle"
@@ -57,98 +52,6 @@
                 />
                 <span v-if="errors.hero_subtitle" class="text-sm text-red-500">[[ errors.hero_subtitle ]]</span>
             </div>
-
-            <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="mission_title">Mission Title</label>
-            </div>
-            <div>
-                <input
-                    class="w-full rounded-lg bg-white"
-                    v-model="formData.mission_title"
-                    type="text"
-                    id="mission_title"
-                    placeholder="What drives your company? (e.g., 'Our Commitment to Excellence')"
-                    required
-                />
-                <span v-if="errors.mission_title" class="text-sm text-red-500">[[ errors.mission_title ]]</span>
-            </div>
-
-            <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="mission_statement">Mission Statement</label>
-            </div>
-            <div>
-                <input
-                    class="w-full rounded-lg bg-white"
-                    v-model="formData.mission_statement"
-                    type="text"
-                    id="mission_statement"
-                    placeholder="Your company's purpose in 1-2 sentences (e.g., 'We exist to simplify technology for everyday users')"
-                    required
-                />
-                <span v-if="errors.mission_statement" class="text-sm text-red-500">[[ errors.mission_statement ]]</span>
-            </div>
-
-            <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="leadership_title">Leadership Title</label>
-            </div>
-            <div>
-                <input
-                    class="w-full rounded-lg bg-white"
-                    v-model="formData.leadership_title"
-                    type="text"
-                    id="leadership_title"
-                    placeholder="Section header for leadership (e.g., 'Meet Our Visionary Team')"
-                    required
-                />
-                <span v-if="errors.leadership_title" class="text-sm text-red-500">[[ errors.leadership_title ]]</span>
-            </div>
-
-            <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="leadership_subtitle">Leadership Subtitle</label>
-            </div>
-            <div>
-                <input
-                    class="w-full rounded-lg bg-white"
-                    v-model="formData.leadership_subtitle"
-                    type="text"
-                    id="leadership_subtitle"
-                    placeholder="Brief intro about your team (e.g., 'Experienced professionals driving innovation')"
-                    required
-                />
-                <span v-if="errors.leadership_subtitle" class="text-sm text-red-500">[[ errors.leadership_subtitle ]]</span>
-            </div>
-
-            <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="customer_testimonials_title">Customer Testimonials Title</label>
-            </div>
-            <div>
-                <input
-                    class="w-full rounded-lg bg-white"
-                    v-model="formData.customer_testimonials_title"
-                    type="text"
-                    id="customer_testimonials_title"
-                    placeholder="Section header for testimonials (e.g., 'What Our Clients Say')"
-                    required
-                />
-                <span v-if="errors.customer_testimonials_title" class="text-sm text-red-500">[[ errors.customer_testimonials_title ]]</span>
-            </div>
-
-            <div class="flex items-center">
-                <label class="text-sm font-medium text-gray-700" for="customer_testimonials_subtitle">Customer Testimonials Subtitle</label>
-            </div>
-            <div>
-                <input
-                    class="w-full rounded-lg bg-white"
-                    v-model="formData.customer_testimonials_subtitle"
-                    type="text"
-                    id="customer_testimonials_subtitle"
-                    placeholder="Intro to testimonials (e.g., 'Hear from businesses we've transformed')"
-                    required
-                />
-                <span v-if="errors.customer_testimonials_subtitle" class="text-sm text-red-500">[[ errors.customer_testimonials_subtitle ]]</span>
-            </div>
-
-            <!-- Image Upload -->
             <div class="flex items-center">
                 <label for="company_images" class="text-sm font-medium text-gray-700">Company Photos</label>
             </div>
@@ -178,8 +81,6 @@
                 <span v-if="errors.images" class="text-sm text-red-500">[[ errors.images ]]</span>
             </div>
         </div>
-
-        <!-- Navigation -->
         <div class="flex justify-between">
             <button
                 class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black transition-colors ease-in-out hover:bg-gray-200"
@@ -195,7 +96,7 @@
             <button class="bg-deep-purple mt-4 w-fit rounded-md px-3 py-2 text-white hover:scale-102" @click="nextPage">
                 <div class="flex items-center gap-2">
                     <span>Continue</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" admittedlystroke-width="1.5" stroke="currentColor" class="size-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                     </svg>
                 </div>

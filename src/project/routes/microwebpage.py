@@ -1,3 +1,5 @@
+import json
+
 from flask import (
     Blueprint,
     jsonify,
@@ -8,9 +10,7 @@ from flask import (
 
 from ..extensions import db
 from ..models import ( Company)
-from ..models.microwebpage import MicroWebPage, WebpageMedia
-from ..utils.enums import Status, StatusType
-from ..utils.errors.error_messages import PICTURE_NOT_LOADED
+from ..models.microwebpage import MicroWebPage, WebpageMedia, WebpageCompanyCustomer, WebpageCompanyEmployee
 from ..utils.google_helpers.google_storage import upload_picture, upload_picture_for_web_page
 
 microwebpage = Blueprint("micropage", __name__)
@@ -23,7 +23,6 @@ def get_micro_web_page(microwebpage_id):
     micro_web_page = MicroWebPage.get_by_id(microwebpage_id)
     company = micro_web_page.company
     return render_template("microwebpage/micro_web_page.html", microwebpage=micro_web_page, company=company)
-
 
 
 @microwebpage.route("/create/<int:company_id>", methods=["GET", "POST"])
@@ -39,12 +38,6 @@ def create_micro_web_page(company_id):
         required_fields = {
             "hero_title": "Hero title is required",
             "hero_subtitle": "Hero subtitle is required",
-            "mission_title": "Mission title is required",
-            "mission_statement": "Mission statement is required",
-            "leadership_title": "Leadership title is required",
-            "leadership_subtitle": "Leadership subtitle is required",
-            "customer_testimonials_title": "Customer testimonials title is required",
-            "customer_testimonials_subtitle": "Customer testimonials subtitle is required",
         }
 
         form_data = {}
@@ -52,75 +45,184 @@ def create_micro_web_page(company_id):
             value = request.form.get(field)
             if not value:
                 return jsonify({"error": error_msg}), 400
-            form_data[field] = value  # store the valid field for later use
+            form_data[field] = value
 
+        # File uploads
         uploaded_images = request.files.getlist("images[]")
         logo = request.files.get("logo")
+        cloud_logos = request.files.getlist("cloud_logos[]")
 
-        # Optional fields
-        customer_testimonials = request.form.get("customer_testimonials")
-        team_title = request.form.get("team_title")
-        team_subtitle = request.form.get("team_subtitle")
-        description = request.form.get("description")
-        target_market = request.form.get("target_market")
-        key_products = request.form.get("key_products")
-        awards = request.form.get("awards")
-        partnerships = request.form.get("partnerships")
-        team_description = request.form.get("team_description")
-        founder_bio = request.form.get("founder_bio")
-        assets = request.form.get("assets")
+        # Optional fields from form
+        logo_cloud_title = request.form.get("logo_cloud_title")
+        benefit_title = request.form.get("benefit_title")
+        benefit_subtitle = request.form.get("benefit_subtitle")
+        stat_title = request.form.get("stat_title")
+        stat_subtitle = request.form.get("stat_subtitle")
+        statistics_json = request.form.get("statistics")
+        mission_title = request.form.get("mission_title")
+        mission_statement = request.form.get("mission_statement")
+        leadership_title = request.form.get("leadership_title")
+        leadership_subtitle = request.form.get("leadership_subtitle")
+        customer_testimonials_title = request.form.get("customer_testimonials_title")
+        customer_testimonials_subtitle = request.form.get("customer_testimonials_subtitle")
+        faq_title = request.form.get("faq_title")
+        faq_json = request.form.get("faq")
 
-        # Now use both required and optional data to create the object
+        # Parse JSON fields if they exist
+        statistics = json.loads(statistics_json) if statistics_json else None
+        faq = json.loads(faq_json) if faq_json else None
+
+        # Process employees and customers without while loops
+        employees_data = []
+        customers_data = []
+
+        # Extract employees from form data
+        employee_keys = [key for key in request.form.keys() if key.startswith("employees[")]
+        if employee_keys:
+            # Group by index (e.g., employees[0], employees[1])
+            employee_indices = sorted(set(key.split('[')[1].split(']')[0] for key in employee_keys))
+            for index in employee_indices:
+                prefix = f"employees[{index}]"
+                first_name = request.form.get(f"{prefix}[first_name]", "")
+                if first_name:  # Only process if first_name exists
+                    employee_data = {
+                        "first_name": first_name,
+                        "last_name": request.form.get(f"{prefix}[last_name]", ""),
+                        "position": request.form.get(f"{prefix}[position]", ""),
+                        "bio": request.form.get(f"{prefix}[bio]", ""),
+                        "picture": request.files.get(f"{prefix}[picture]")
+                    }
+                    employees_data.append(employee_data)
+
+        # Extract customers from form data
+        customer_keys = [key for key in request.form.keys() if key.startswith("customers[")]
+        if customer_keys:
+            # Group by index (e.g., customers[0], customers[1])
+            customer_indices = sorted(set(key.split('[')[1].split(']')[0] for key in customer_keys))
+            for index in customer_indices:
+                prefix = f"customers[{index}]"
+                first_name = request.form.get(f"{prefix}[first_name]", "")
+                if first_name:  # Only process if first_name exists
+                    customer_data = {
+                        "first_name": first_name,
+                        "last_name": request.form.get(f"{prefix}[last_name]", ""),
+                        "position": request.form.get(f"{prefix}[position]", ""),
+                        "feedback": request.form.get(f"{prefix}[feedback]", ""),
+                        "picture": request.files.get(f"{prefix}[picture]")
+                    }
+                    customers_data.append(customer_data)
+
+        # Create new MicroWebPage instance
         new_micropage = MicroWebPage(
             company=company,
             company_id=company_id,
+            logo_url=None,
             hero_title=form_data["hero_title"],
             hero_subtitle=form_data["hero_subtitle"],
-            mission_title=form_data["mission_title"],
-            mission_statement=form_data["mission_statement"],
-            leadership_title=form_data["leadership_title"],
-            leadership_subtitle=form_data["leadership_subtitle"],
-            customer_testimonials_title=form_data["customer_testimonials_title"],
-            customer_testimonials_subtitle=form_data["customer_testimonials_subtitle"],
-            team_title=team_title,
-            team_subtitle=team_subtitle,
-            logo_url=logo.filename if logo else None,
-            target_market=target_market,
-            founder_bio=founder_bio,
-            assets=assets,
+            logo_cloud_title=logo_cloud_title,
+            benefit_title=benefit_title,
+            benefit_subtitle=benefit_subtitle,
+            stat_title=stat_title,
+            stat_subtitle=stat_subtitle,
+            statistics=statistics,
+            mission_title=mission_title,
+            mission_statement=mission_statement,
+            leadership_title=leadership_title,
+            leadership_subtitle=leadership_subtitle,
+            customer_testimonials_title=customer_testimonials_title,
+            customer_testimonials_subtitle=customer_testimonials_subtitle,
+            faq_title=faq_title,
+            faq=faq
         )
 
-        # Handle logo upload if present
-        if logo:
+        db.session.add(new_micropage)
+        db.session.flush()
+
+        # Handle primary logo upload
+        if logo and logo.filename:
             try:
                 logo_url = upload_picture(logo)
                 new_micropage.logo_url = logo_url
             except Exception as e:
-                print(f"Error uploading logo: {str(e)}")
-                # Continue without logo if upload fails
-                pass
+                print(f"Error uploading primary logo: {str(e)}")
 
-        db.session.add(new_micropage)
-        db.session.flush()
-        # Handle multiple image uploads
-        if uploaded_images:
-            for image in uploaded_images:
-                if image and image.filename:  # Check if the file is valid
+        # Handle cloud logos upload
+        if cloud_logos:
+            for cloud_logo in cloud_logos:
+                if cloud_logo and cloud_logo.filename:
                     try:
-                        image_url = upload_picture_for_web_page(image)  # Assuming upload_picture returns a URL
-                        print(image_url)
-                        new_photo = WebpageMedia(
+                        logo_url = upload_picture(cloud_logo)
+                        new_media = WebpageMedia(
                             micro_webpage=new_micropage,
                             micro_webpage_id=new_micropage.id,
-                            picture_url=image_url,
-                            press_kit_url=None
+                            press_kit_url=None,
+                            picture_url=None,
+                            logo_url=logo_url
                         )
-                        db.session.add(new_photo)
-                        print("Success uploading pictures")
+                        db.session.add(new_media)
+                    except Exception as e:
+                        print(f"Error uploading cloud logo: {str(e)}")
+                        continue
+
+        # Handle multiple image uploads
+        print(uploaded_images)
+        if uploaded_images:
+            for image in uploaded_images:
+                if image and image.filename:
+                    try:
+                        image_url = upload_picture_for_web_page(image)
+                        new_media = WebpageMedia(
+                            micro_webpage=new_micropage,
+                            micro_webpage_id=new_micropage.id,
+                            press_kit_url=None,
+                            picture_url=image_url,
+                            logo_url=None
+                        )
+                        db.session.add(new_media)
                     except Exception as e:
                         print(f"Error uploading image: {str(e)}")
-                        # Continue with the next image if one fails
                         continue
+
+        # Handle employee uploads
+        for employee in employees_data:
+            picture_url = None
+            if employee["picture"] and employee["picture"].filename:
+                try:
+                    picture_url = upload_picture(employee["picture"])
+                except Exception as e:
+                    print(f"Error uploading employee picture: {str(e)}")
+                    continue
+            new_employee = WebpageCompanyEmployee(
+                micro_webpage=new_micropage,
+                micro_webpage_id=new_micropage.id,
+                first_name=employee["first_name"],
+                last_name=employee["last_name"],
+                position=employee["position"],
+                picture_url=picture_url,
+                bio=employee["bio"]
+            )
+            db.session.add(new_employee)
+
+        # Handle customer uploads
+        for customer in customers_data:
+            picture_url = None
+            if customer["picture"] and customer["picture"].filename:
+                try:
+                    picture_url = upload_picture(customer["picture"])
+                except Exception as e:
+                    print(f"Error uploading customer picture: {str(e)}")
+                    continue
+            new_customer = WebpageCompanyCustomer(
+                micro_webpage=new_micropage,
+                micro_webpage_id=new_micropage.id,
+                first_name=customer["first_name"],
+                last_name=customer["last_name"],
+                position=customer["position"],
+                picture_url=picture_url,
+                feedback=customer["feedback"]
+            )
+            db.session.add(new_customer)
+
         db.session.commit()
 
         return jsonify({

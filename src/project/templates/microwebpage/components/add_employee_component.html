@@ -1,0 +1,166 @@
+{% macro render() %}
+<script type="text/x-template" id="add-employee-template">
+    <div class="mx-auto mt-4 flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
+        <!-- Hidden Inputs -->
+        <div>
+            <input type="hidden" v-model="formData.id" />
+            <input type="hidden" v-model="formData.company_id" />
+        </div>
+
+                <!-- Header Section -->
+        <div class="flex flex-col gap-2">
+            <h1 class="text-4xl font-medium">Step 7 of 8: Add Team Members</h1>
+            <span>Add your company team members with their photos and bios.</span>
+        </div>
+
+        <!-- Input Fields -->
+        <div class="grid grid-cols-2 gap-x-4 gap-y-6">
+            <!-- Leadership Title -->
+            <div class="flex items-center">
+                <label for="leadership_title" class="text-sm font-medium text-gray-700">Leadership Section Title</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    v-model="formData.leadership_title"
+                    type="text"
+                    id="leadership_title"
+                    placeholder="Section header (e.g., 'Our Team')"
+                />
+            </div>
+
+            <!-- Leadership Subtitle -->
+            <div class="flex items-center">
+                <label for="leadership_subtitle" class="text-sm font-medium text-gray-700">Leadership Section Subtitle</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    v-model="formData.leadership_subtitle"
+                    type="text"
+                    id="leadership_subtitle"
+                    placeholder="Section subtitle (e.g., 'Meet the leadership team')"
+                />
+            </div>
+
+            <!-- Employees -->
+            <div class="col-span-2">
+                <div class="flex items-center">
+                    <label class="text-sm font-medium text-gray-700">Team Members</label>
+                </div>
+                <div class="mt-2 space-y-6">
+                    <div v-for="(employee, index) in formData.employees" :key="index" class="grid grid-cols-2 gap-4 rounded-lg border p-4">
+                        <!-- Employee Photo -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-gray-700">Photo</label>
+                                <span v-if="errors.picture_url" class="text-sm text-red-500">[[ errors.picture_url ]]</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div v-if="employee.picture_url" class="h-20 w-20 overflow-hidden rounded-full">
+                                    <img :src="employee.picture_url" class="h-full w-full object-cover" />
+                                </div>
+                                <input
+                                    type="file"
+                                    :id="'employee-photo-' + index"
+                                    class="hidden"
+                                    @change="handleEmployeePhotoUpload($event, index)"
+                                    accept="image/*"
+                                />
+                                <label :for="'employee-photo-' + index" class="cursor-pointer rounded-md bg-gray-200 px-3 py-2 text-sm hover:bg-gray-300">
+                                    [[ employee.picture_url ? 'Change' : 'Upload' ]] Photo
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Employee Details -->
+                        <div class="grid gap-4">
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">First Name</label>
+                                <input
+                                    class="w-full rounded-lg border border-black bg-white p-2"
+                                    v-model="employee.first_name"
+                                    type="text"
+                                    placeholder="First name"
+                                />
+                                <span v-if="errors.first_name" class="text-sm text-red-500">[[ errors.first_name ]]</span>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">Last Name</label>
+                                <input
+                                    class="w-full rounded-lg border border-black bg-white p-2"
+                                    v-model="employee.last_name"
+                                    type="text"
+                                    placeholder="Last name"
+                                />
+                                <span v-if="errors.last_name" class="text-sm text-red-500">[[ errors.last_name ]]</span>
+                            </div>
+                        </div>
+
+                        <!-- Position and Bio -->
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Position</label>
+                            <input
+                                class="w-full rounded-lg border border-black bg-white p-2"
+                                v-model="employee.position"
+                                type="text"
+                                placeholder="Position/Role"
+                            />
+                            <span v-if="errors.position" class="text-sm text-red-500">[[ errors.position ]]</span>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Bio</label>
+                            <textarea
+                                class="w-full rounded-lg border border-black bg-white p-2"
+                                v-model="employee.bio"
+                                placeholder="Short bio"
+                                rows="3"
+                            ></textarea>
+                        </div>
+
+                        <!-- Remove Button -->
+                        <div class="col-span-2 flex justify-end">
+                            <button
+                                @click="removeEmployee(index)"
+                                class="rounded-md bg-red-500 px-3 py-2 text-white"
+                            >
+                                Remove Team Member
+                            </button>
+                        </div>
+                    </div>
+
+                    <button
+                        @click="addEmployee"
+                        class="mt-2 rounded-md bg-green-500 px-3 py-2 text-white"
+                    >
+                        Add Team Member
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-between">
+            <button
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black transition-colors ease-in-out hover:bg-gray-200"
+                @click="previousPage"
+            >
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    <span>Back</span>
+                </div>
+            </button>
+            <button class="bg-deep-purple mt-4 w-fit rounded-md px-3 py-2 text-white hover:scale-102" @click="nextPage">
+                <div class="flex items-center gap-2">
+                    <span>Continue</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </div>
+            </button>
+        </div>
+    </div>
+</script>
+{% endmacro %}

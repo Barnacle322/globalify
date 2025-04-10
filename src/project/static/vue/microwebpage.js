@@ -5,14 +5,9 @@ const FirstStageComponent = defineComponent({
     data() {
         return {
             errors: {
+                logo_url: '',
                 hero_title: '',
                 hero_subtitle: '',
-                mission_title: '',
-                mission_statement: '',
-                leadership_title: '',
-                leadership_subtitle: '',
-                customer_testimonials_title: '',
-                customer_testimonials_subtitle: '',
                 images: ''
             }
         };
@@ -20,21 +15,13 @@ const FirstStageComponent = defineComponent({
     methods: {
         validateFields() {
             let isValid = true;
-
-            // Reset errors
             this.errors = {
+                logo_url: '',
                 hero_title: '',
                 hero_subtitle: '',
-                mission_title: '',
-                mission_statement: '',
-                leadership_title: '',
-                leadership_subtitle: '',
-                customer_testimonials_title: '',
-                customer_testimonials_subtitle: '',
                 images: ''
             };
 
-            // Validate required fields
             if (!this.formData.hero_title?.trim()) {
                 this.errors.hero_title = 'Hero title is required';
                 isValid = false;
@@ -42,36 +29,6 @@ const FirstStageComponent = defineComponent({
 
             if (!this.formData.hero_subtitle?.trim()) {
                 this.errors.hero_subtitle = 'Hero subtitle is required';
-                isValid = false;
-            }
-
-            if (!this.formData.mission_title?.trim()) {
-                this.errors.mission_title = 'Mission title is required';
-                isValid = false;
-            }
-
-            if (!this.formData.mission_statement?.trim()) {
-                this.errors.mission_statement = 'Mission statement is required';
-                isValid = false;
-            }
-
-            if (!this.formData.leadership_title?.trim()) {
-                this.errors.leadership_title = 'Leadership title is required';
-                isValid = false;
-            }
-
-            if (!this.formData.leadership_subtitle?.trim()) {
-                this.errors.leadership_subtitle = 'Leadership subtitle is required';
-                isValid = false;
-            }
-
-            if (!this.formData.customer_testimonials_title?.trim()) {
-                this.errors.customer_testimonials_title = 'Testimonials title is required';
-                isValid = false;
-            }
-
-            if (!this.formData.customer_testimonials_subtitle?.trim()) {
-                this.errors.customer_testimonials_subtitle = 'Testimonials subtitle is required';
                 isValid = false;
             }
 
@@ -95,15 +52,14 @@ const FirstStageComponent = defineComponent({
             const file = event.target.files[0];
             if (!file) return;
 
-            if (!file.type.match('image.*')) {
-                alert('Please upload an image file (PNG, JPG, etc.)');
+            if (!file.type.match('image/png')) {
+                this.errors.logo_url = 'Please upload a PNG image file';
                 event.target.value = '';
                 return;
             }
 
+            this.errors.logo_url = '';
             this.formData.logoFile = file;
-
-            // Create preview
             const reader = new FileReader();
             reader.onload = (e) => {
                 this.formData.logoPreview = e.target.result;
@@ -116,28 +72,26 @@ const FirstStageComponent = defineComponent({
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                        if (!file.type.match('image.*')) continue;
+                if (!file.type.match('image.*')) {
+                    this.errors.images = 'Please upload valid image files';
+                    continue;
+                }
 
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            this.formData.images.push({
-                                file: file,  // Ensure the original File object is stored
-                                preview: e.target.result
-                            });
-                            console.log('Added image:', file); // Debug here
-                        };
-                        reader.readAsDataURL(file);
-                    }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.formData.images.push({
+                        file: file,
+                        preview: e.target.result
+                    });
+                    this.errors.images = '';
+                };
+                reader.readAsDataURL(file);
+            }
 
             event.target.value = '';
-            // Clear images error if we now have images
-            if (this.formData.images.length > 0) {
-                this.errors.images = '';
-            }
         },
         removeImage(index) {
             this.formData.images.splice(index, 1);
-            // If no images left, set error
             if (this.formData.images.length === 0) {
                 this.errors.images = 'At least one company photo is required';
             }
@@ -154,36 +108,6 @@ const FirstStageComponent = defineComponent({
                 this.errors.hero_subtitle = '';
             }
         },
-        "formData.mission_title": function() {
-            if (this.formData.mission_title?.trim()) {
-                this.errors.mission_title = '';
-            }
-        },
-        "formData.mission_statement": function() {
-            if (this.formData.mission_statement?.trim()) {
-                this.errors.mission_statement = '';
-            }
-        },
-        "formData.leadership_title": function() {
-            if (this.formData.leadership_title?.trim()) {
-                this.errors.leadership_title = '';
-            }
-        },
-        "formData.leadership_subtitle": function() {
-            if (this.formData.leadership_subtitle?.trim()) {
-                this.errors.leadership_subtitle = '';
-            }
-        },
-        "formData.customer_testimonials_title": function() {
-            if (this.formData.customer_testimonials_title?.trim()) {
-                this.errors.customer_testimonials_title = '';
-            }
-        },
-        "formData.customer_testimonials_subtitle": function() {
-            if (this.formData.customer_testimonials_subtitle?.trim()) {
-                this.errors.customer_testimonials_subtitle = '';
-            }
-        },
         "formData.images": {
             handler: function(newVal) {
                 if (newVal.length > 0) {
@@ -192,24 +116,221 @@ const FirstStageComponent = defineComponent({
             },
             deep: true
         }
-    },
+    }
 });
 
 const SecondStageComponent = defineComponent({
     template: "#second-stage-template",
     delimiters: ["[[", "]]"],
-    props: ['formData', 'isFirstStageValid'],
+    props: ['formData'],
+    methods: {
+        previousPage() {
+            this.$emit("change-page", -1);
+        },
+        nextPage() {
+            this.$emit("change-page", 1);
+        },
+        handleCloudLogosUpload(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file.type.match('image/png')) continue;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.formData.cloud_logos.push({
+                        file: file,
+                        preview: e.target.result
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+
+            event.target.value = '';
+        },
+        removeCloudLogo(index) {
+            this.formData.cloud_logos.splice(index, 1);
+        }
+    },
+    mounted() {
+        if (!this.formData.faq) {
+            this.formData.faq = [];
+        }
+    }
+});
+
+const ThirdStageComponent = defineComponent({
+    template: "#third-stage-template",
+    delimiters: ["[[", "]]"],
+    props: ['formData'],
+    methods: {
+        previousPage() {
+            this.$emit("change-page", -1);
+        },
+        nextPage() {
+            this.$emit("change-page", 1);
+        },
+        addStatistic() {
+            if (!this.formData.statistics) {
+                this.formData.statistics = [];
+            }
+            this.formData.statistics.push({ key: '', value: '' });
+        },
+        removeStatistic(index) {
+            this.formData.statistics.splice(index, 1);
+        }
+    }
+});
+
+const FourthStageComponent = defineComponent({
+    template: "#fourth-stage-template",
+    delimiters: ["[[", "]]"],
+    props: ['formData'],
+    methods: {
+        previousPage() {
+            this.$emit("change-page", -1);
+        },
+        nextPage() {
+            this.$emit("change-page", 1);
+        }
+    }
+});
+
+const FifthStageComponent = defineComponent({
+    template: "#fifth-stage-template",
+    delimiters: ["[[", "]]"],
+    props: ['formData'],
+    methods: {
+        previousPage() {
+            this.$emit("change-page", -1);
+        },
+        nextPage() {
+            this.$emit("change-page", 1);
+        },
+        addFaqItem() {
+            if (!this.formData.faq) {
+                this.formData.faq = [];
+            }
+            this.formData.faq.push({ question: '', answer: '' });
+        },
+        removeFaqItem(index) {
+            this.formData.faq.splice(index, 1);
+        }
+    }
+});
+
+const AddEmployeeComponent = defineComponent({
+    template: "#add-employee-template",
+    delimiters: ["[[", "]]"],
+    props: ['formData'],
     data() {
         return {
-            tech_stack_input: '',
-            new_faq_question: '',
-            new_faq_answer: '',
-            new_award_title: '',
-            new_award_description: '',
-            new_partnership_name: '',
-            new_partnership_details: '',
-            new_growth_metric: '',
-            new_growth_value: ''
+            errors: {
+                first_name: '',
+                last_name: '',
+                position: '',
+                picture_url: '',
+                bio: ''
+            }
+        };
+    },
+    methods: {
+        previousPage() {
+            this.$emit("change-page", -1);
+        },
+        nextPage() {
+            this.$emit("change-page", 1);
+        },
+        validateFields() {
+            let isValid = true;
+            this.errors = {
+                first_name: '',
+                last_name: '',
+                position: '',
+                picture_url: '',
+                bio: ''
+            };
+
+            if (!this.formData.employees) {
+                this.formData.employees = [];
+            }
+
+            this.formData.employees.forEach(employee => {
+                if (!employee.first_name?.trim()) {
+                    this.errors.first_name = 'First name is required';
+                    isValid = false;
+                }
+                if (!employee.last_name?.trim()) {
+                    this.errors.last_name = 'Last name is required';
+                    isValid = false;
+                }
+                if (!employee.position?.trim()) {
+                    this.errors.position = 'Position is required';
+                    isValid = false;
+                }
+            });
+
+            return isValid;
+        },
+        addEmployee() {
+            if (!this.formData.employees) {
+                this.formData.employees = [];
+            }
+            this.formData.employees.push({
+                first_name: '',
+                last_name: '',
+                position: '',
+                picture_url: '',
+                bio: '',
+                pictureFile: null
+            });
+        },
+        removeEmployee(index) {
+            this.formData.employees.splice(index, 1);
+        },
+        handleEmployeePhotoUpload(event, index) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.match('image.*')) {
+                this.errors.picture_url = 'Please upload a valid image file';
+                event.target.value = '';
+                return;
+            }
+
+            this.errors.picture_url = '';
+            this.formData.employees[index].pictureFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.formData.employees[index].picture_url = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    },
+    mounted() {
+        if (!this.formData.employees) {
+            this.formData.employees = [];
+        }
+    }
+});
+
+const AddCustomerComponent = defineComponent({
+    template: "#add-customer-feedback-template",
+    delimiters: ["[[", "]]"],
+    props: ['formData'],
+    data() {
+        return {
+            errors: {
+                first_name: '',
+                last_name: '',
+                position: '',
+                picture_url: '',
+                feedback: '',
+                customer_testimonials_title: '',
+                customer_testimonials_subtitle: ''
+            }
         };
     },
     methods: {
@@ -217,113 +338,103 @@ const SecondStageComponent = defineComponent({
             this.$emit("change-page", -1);
         },
         submit() {
-            this.$emit("submit-form");
+            if (this.validateFields()) {
+                this.$emit("submit-form");
+            }
         },
-        addTechStackItem() {
-            if (this.tech_stack_input.trim()) {
-                if (!this.formData.tech_stack) {
-                    this.formData.tech_stack = [];
+        validateFields() {
+            let isValid = true;
+            this.errors = {
+                first_name: '',
+                last_name: '',
+                position: '',
+                picture_url: '',
+                feedback: '',
+                customer_testimonials_title: '',
+                customer_testimonials_subtitle: ''
+            };
+
+            if (!this.formData.customer_testimonials_title?.trim()) {
+                this.errors.customer_testimonials_title = 'Testimonials section title is required';
+                isValid = false;
+            }
+
+            if (!this.formData.customer_testimonials_subtitle?.trim()) {
+                this.errors.customer_testimonials_subtitle = 'Testimonials section subtitle is required';
+                isValid = false;
+            }
+
+            if (!this.formData.customers) {
+                this.formData.customers = [];
+            }
+
+            this.formData.customers.forEach(customer => {
+                if (!customer.first_name?.trim()) {
+                    this.errors.first_name = 'First name is required';
+                    isValid = false;
                 }
-                this.formData.tech_stack.push(this.tech_stack_input.trim());
-                this.tech_stack_input = '';
-            }
-        },
-        removeTechStackItem(index) {
-            this.formData.tech_stack.splice(index, 1);
-        },
-        addKeyProduct() {
-            if (!this.formData.key_products) {
-                this.formData.key_products = [];
-            }
-            this.formData.key_products.push({ name: '', description: '' });
-        },
-        removeKeyProduct(index) {
-            this.formData.key_products.splice(index, 1);
-        },
-        addFaqItem() {
-            if (this.new_faq_question.trim() && this.new_faq_answer.trim()) {
-                if (!this.formData.faq) {
-                    this.formData.faq = [];
+                if (!customer.last_name?.trim()) {
+                    this.errors.last_name = 'Last name is required';
+                    isValid = false;
                 }
-                this.formData.faq.push({
-                    question: this.new_faq_question.trim(),
-                    answer: this.new_faq_answer.trim()
-                });
-                this.new_faq_question = '';
-                this.new_faq_answer = '';
-            }
-        },
-        removeFaqItem(index) {
-            this.formData.faq.splice(index, 1);
-        },
-        addAwardItem() {
-            if (this.new_award_title.trim()) {
-                if (!this.formData.awards) {
-                    this.formData.awards = [];
+                if (!customer.feedback?.trim()) {
+                    this.errors.feedback = 'Feedback is required';
+                    isValid = false;
                 }
-                this.formData.awards.push({
-                    title: this.new_award_title.trim(),
-                    description: this.new_award_description.trim()
-                });
-                this.new_award_title = '';
-                this.new_award_description = '';
+            });
+
+            return isValid;
+        },
+        addCustomer() {
+            if (!this.formData.customers) {
+                this.formData.customers = [];
+            }
+            this.formData.customers.push({
+                first_name: '',
+                last_name: '',
+                position: '',
+                picture_url: '',
+                feedback: '',
+                pictureFile: null
+            });
+        },
+        removeCustomer(index) {
+            this.formData.customers.splice(index, 1);
+        },
+        handleCustomerPhotoUpload(event, index) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.match('image.*')) {
+                this.errors.picture_url = 'Please upload a valid image file';
+                event.target.value = '';
+                return;
+            }
+
+            this.errors.picture_url = '';
+            this.formData.customers[index].pictureFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.formData.customers[index].picture_url = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    },
+    watch: {
+        "formData.customer_testimonials_title": function(newVal) {
+            if (newVal?.trim()) {
+                this.errors.customer_testimonials_title = '';
             }
         },
-        removeAwardItem(index) {
-            this.formData.awards.splice(index, 1);
-        },
-        addPartnershipItem() {
-            if (this.new_partnership_name.trim()) {
-                if (!this.formData.partnerships) {
-                    this.formData.partnerships = [];
-                }
-                this.formData.partnerships.push({
-                    name: this.new_partnership_name.trim(),
-                    details: this.new_partnership_details.trim()
-                });
-                this.new_partnership_name = '';
-                this.new_partnership_details = '';
+        "formData.customer_testimonials_subtitle": function(newVal) {
+            if (newVal?.trim()) {
+                this.errors.customer_testimonials_subtitle = '';
             }
-        },
-        removePartnershipItem(index) {
-            this.formData.partnerships.splice(index, 1);
-        },
-        addGrowthItem() {
-            if (this.new_growth_metric.trim() && this.new_growth_value.trim()) {
-                if (!this.formData.user_growth) {
-                    this.formData.user_growth = [];
-                }
-                this.formData.user_growth.push({
-                    metric: this.new_growth_metric.trim(),
-                    value: this.new_growth_value.trim()
-                });
-                this.new_growth_metric = '';
-                this.new_growth_value = '';
-            }
-        },
-        removeGrowthItem(index) {
-            this.formData.user_growth.splice(index, 1);
         }
     },
     mounted() {
-        // Initialize arrays if they don't exist
-        if (!this.formData.tech_stack) {
-            this.$set(this.formData, 'tech_stack', []);
-        }
-        if (!this.formData.key_products) {
-            this.$set(this.formData, 'key_products', [{}]);
-        }
-        if (!this.formData.faq) {
-            this.$set(this.formData, 'faq', []);
-        }
-        if (!this.formData.awards) {
-            this.$set(this.formData, 'awards', []);
-        }
-        if (!this.formData.partnerships) {
-            this.$set(this.formData, 'partnerships', []);
-        }
-        if (!this.formData.user_growth) {
-            this.$set(this.formData, 'user_growth', []);
+        if (!this.formData.customers) {
+            this.formData.customers = [];
         }
     }
 });
@@ -332,6 +443,11 @@ createApp({
     components: {
         FirstStageComponent,
         SecondStageComponent,
+        ThirdStageComponent,
+        FourthStageComponent,
+        FifthStageComponent,
+        AddEmployeeComponent,
+        AddCustomerComponent
     },
     data() {
         return {
@@ -341,53 +457,49 @@ createApp({
             company_id: "",
             storageKey: "microwebpage_form_data",
             formData: {
-                // First stage fields
-                images: [],
+                id: null,
+                company_id: null,
                 logoFile: null,
                 logoPreview: null,
+                cloud_logos: [],
+                images: [],
                 hero_title: '',
                 hero_subtitle: '',
+                logo_cloud_title: '',
+                benefit_title: '',
+                benefit_subtitle: '',
+                stat_title: '',
+                stat_subtitle: '',
+                statistics: [],
                 mission_title: '',
                 mission_statement: '',
                 leadership_title: '',
                 leadership_subtitle: '',
-                customer_testimonials_title: '',
-                customer_testimonials_subtitle: '',
-
-                // Second stage fields
-                team_title: '',
-                team_subtitle: '',
-                legal_structure: '',
-                year_founded: null,
-                business_model: '',
-                target_market: '',
-                market_positioning: '',
-                revenue_streams: '',
-                intellectual_property: '',
-                sustainability_initiatives: '',
-                founder_bio: '',
-                tech_stack: [],
-                key_products: [],
+                faq_title: '',
                 faq: [],
-                awards: [],
-                partnerships: [],
-                user_growth: []
-            },
+                employees: [],
+                customers: [],
+                customer_testimonials_title: '',
+                customer_testimonials_subtitle: ''
+            }
         };
     },
     computed: {
         currentComponent() {
-            return this.currentPage === 1 ? 'FirstStageComponent' : 'SecondStageComponent';
+            const components = [
+                FirstStageComponent,
+                SecondStageComponent,
+                ThirdStageComponent,
+                FourthStageComponent,
+                FifthStageComponent,
+                AddEmployeeComponent,
+                AddCustomerComponent
+            ];
+            return components[this.currentPage - 1];
         },
         isFirstStageValid() {
             return this.formData.hero_title.trim() !== '' &&
                    this.formData.hero_subtitle.trim() !== '' &&
-                   this.formData.mission_title.trim() !== '' &&
-                   this.formData.mission_statement.trim() !== '' &&
-                   this.formData.leadership_title.trim() !== '' &&
-                   this.formData.leadership_subtitle.trim() !== '' &&
-                   this.formData.customer_testimonials_title.trim() !== '' &&
-                   this.formData.customer_testimonials_subtitle.trim() !== '' &&
                    this.formData.images.length > 0;
         }
     },
@@ -399,7 +511,7 @@ createApp({
     methods: {
         changePage(pageNumber) {
             const newPage = this.currentPage + pageNumber;
-            if (newPage >= 1 && newPage <= 2) {
+            if (newPage >= 1 && newPage <= 7) {
                 this.enterClass = pageNumber > 0 ? "slide-fade-in-left" : "slide-fade-in-right";
                 this.leaveClass = pageNumber > 0 ? "slide-fade-out-left" : "slide-fade-out-right";
                 this.currentPage = newPage;
@@ -407,15 +519,10 @@ createApp({
             }
         },
         saveFormData() {
-            const dataToSave = {...this.formData};
-            // Remove file objects that can't be serialized
+            const dataToSave = { ...this.formData };
             delete dataToSave.logoFile;
-            // Convert images array to serializable format
-            dataToSave.images = dataToSave.images.map(img => ({
-                preview: img.preview
-                // file object is not saved
-            }));
-
+            dataToSave.images = dataToSave.images.map(img => ({ preview: img.preview }));
+            dataToSave.cloud_logos = dataToSave.cloud_logos.map(logo => ({ preview: logo.preview }));
             localStorage.setItem(this.storageKey, JSON.stringify({
                 formData: dataToSave,
                 currentPage: this.currentPage
@@ -441,36 +548,58 @@ createApp({
                 const csrfToken = document.getElementById('csrf_token').value;
                 const formData = new FormData();
 
-                // Append all simple fields
                 Object.keys(this.formData).forEach(key => {
-                    if (key !== 'logoFile' && key !== 'images' &&
-                        key !== 'tech_stack' && key !== 'key_products' &&
-                        key !== 'faq' && key !== 'awards' &&
-                        key !== 'partnerships' && key !== 'user_growth' &&
-                        this.formData[key] !== null) {
+                    if (key !== 'logoFile' && key !== 'images' && key !== 'cloud_logos' &&
+                        key !== 'statistics' && key !== 'faq' && this.formData[key] !== null) {
                         formData.append(key, this.formData[key]);
                     }
                 });
 
-                // Append arrays as JSON strings
-                ['tech_stack', 'key_products', 'faq', 'awards', 'partnerships', 'user_growth'].forEach(arrayField => {
+                ['statistics', 'faq'].forEach(arrayField => {
                     if (this.formData[arrayField] && this.formData[arrayField].length > 0) {
                         formData.append(arrayField, JSON.stringify(this.formData[arrayField]));
                     }
                 });
 
-                // Append logo file if exists
                 if (this.formData.logoFile) {
                     formData.append('logo', this.formData.logoFile);
                 }
 
-                // Append images
                 this.formData.images.forEach((img, index) => {
                     if (img.file) {
-                        console.log(`Appending image ${index}:`, img.file); // Debug each image
                         formData.append("images[]", img.file);
                     }
                 });
+
+                this.formData.cloud_logos.forEach((logo, index) => {
+                    if (logo.file) {
+                        formData.append("cloud_logos[]", logo.file);
+                    }
+                });
+
+                if (this.formData.employees) {
+                    this.formData.employees.forEach((employee, index) => {
+                        if (employee.pictureFile) {
+                            formData.append(`employees[${index}][picture]`, employee.pictureFile);
+                        }
+                        formData.append(`employees[${index}][first_name]`, employee.first_name || '');
+                        formData.append(`employees[${index}][last_name]`, employee.last_name || '');
+                        formData.append(`employees[${index}][position]`, employee.position || '');
+                        formData.append(`employees[${index}][bio]`, employee.bio || '');
+                    });
+                }
+
+                if (this.formData.customers) {
+                    this.formData.customers.forEach((customer, index) => {
+                        if (customer.pictureFile) {
+                            formData.append(`customers[${index}][picture]`, customer.pictureFile);
+                        }
+                        formData.append(`customers[${index}][first_name]`, customer.first_name || '');
+                        formData.append(`customers[${index}][last_name]`, customer.last_name || '');
+                        formData.append(`customers[${index}][position]`, customer.position || '');
+                        formData.append(`customers[${index}][feedback]`, customer.feedback || '');
+                    });
+                }
 
                 const response = await fetch(`/microwebpage/create/${this.company_id}`, {
                     method: 'POST',
@@ -495,34 +624,30 @@ createApp({
         },
         resetForm() {
             this.formData = {
-                images: [],
+                id: null,
+                company_id: null,
                 logoFile: null,
                 logoPreview: null,
+                cloud_logos: [],
+                images: [],
                 hero_title: '',
                 hero_subtitle: '',
+                logo_cloud_title: '',
+                benefit_title: '',
+                benefit_subtitle: '',
+                stat_title: '',
+                stat_subtitle: '',
+                statistics: [],
                 mission_title: '',
                 mission_statement: '',
                 leadership_title: '',
                 leadership_subtitle: '',
-                customer_testimonials_title: '',
-                customer_testimonials_subtitle: '',
-                team_title: '',
-                team_subtitle: '',
-                legal_structure: '',
-                year_founded: null,
-                business_model: '',
-                target_market: '',
-                market_positioning: '',
-                revenue_streams: '',
-                intellectual_property: '',
-                sustainability_initiatives: '',
-                founder_bio: '',
-                tech_stack: [],
-                key_products: [],
+                faq_title: '',
                 faq: [],
-                awards: [],
-                partnerships: [],
-                user_growth: []
+                employees: [],
+                customers: [],
+                customer_testimonials_title: '',
+                customer_testimonials_subtitle: ''
             };
             this.currentPage = 1;
             this.clearFormData();

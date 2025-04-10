@@ -1,0 +1,168 @@
+{% macro render() %}
+<script type="text/x-template" id="add-customer-feedback-template">
+    <div class="mx-auto mt-4 flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
+        <!-- Hidden Inputs -->
+        <div>
+            <input type="hidden" v-model="formData.id" />
+            <input type="hidden" v-model="formData.company_id" />
+        </div>
+
+        <!-- Header Section -->
+        <div class="flex flex-col gap-2">
+            <h1 class="text-4xl font-medium">Step 7 of 7: Add Customer Feedback</h1>
+            <span>Add customer feedback with their photos and details.</span>
+        </div>
+
+        <!-- Input Fields -->
+        <div class="grid grid-cols-2 gap-x-4 gap-y-6">
+            <!-- Customer Testimonials Title -->
+            <div class="flex items-center">
+                <label for="customer_testimonials_title" class="text-sm font-medium text-gray-700">Testimonials Section Title</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    v-model="formData.customer_testimonials_title"
+                    type="text"
+                    id="customer_testimonials_title"
+                    placeholder="Section header (e.g., 'What Our Customers Say')"
+                />
+                <span v-if="errors.customer_testimonials_title" class="text-sm text-red-500">[[ errors.customer_testimonials_title ]]</span>
+            </div>
+
+            <!-- Customer Testimonials Subtitle -->
+            <div class="flex items-center">
+                <label for="customer_testimonials_subtitle" class="text-sm font-medium text-gray-700">Testimonials Section Subtitle</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    v-model="formData.customer_testimonials_subtitle"
+                    type="text"
+                    id="customer_testimonials_subtitle"
+                    placeholder="Section subtitle (e.g., 'Hear from our happy clients')"
+                />
+                <span v-if="errors.customer_testimonials_subtitle" class="text-sm text-red-500">[[ errors.customer_testimonials_subtitle ]]</span>
+            </div>
+
+            <!-- Customers -->
+            <div class="col-span-2">
+                <div class="flex items-center">
+                    <label class="text-sm font-medium text-gray-700">Customer Feedback</label>
+                </div>
+                <div class="mt-2 space-y-6">
+                    <div v-for="(customer, index) in formData.customers" :key="index" class="grid grid-cols-2 gap-4 rounded-lg border p-4">
+                        <!-- Customer Photo -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-gray-700">Photo</label>
+                                <span v-if="errors.picture_url" class="text-sm text-red-500">[[ errors.picture_url ]]</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div v-if="customer.picture_url" class="h-20 w-20 overflow-hidden rounded-full">
+                                    <img :src="customer.picture_url" class="h-full w-full object-cover" />
+                                </div>
+                                <input
+                                    type="file"
+                                    :id="'customer-photo-' + index"
+                                    class="hidden"
+                                    @change="handleCustomerPhotoUpload($event, index)"
+                                    accept="image/*"
+                                />
+                                <label :for="'customer-photo-' + index" class="cursor-pointer rounded-md bg-gray-200 px-3 py-2 text-sm hover:bg-gray-300">
+                                    [[ customer.picture_url ? 'Change' : 'Upload' ]] Photo
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Customer Details -->
+                        <div class="grid gap-4">
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">First Name</label>
+                                <input
+                                    class="w-full rounded-lg border border-black bg-white p-2"
+                                    v-model="customer.first_name"
+                                    type="text"
+                                    placeholder="First name"
+                                />
+                                <span v-if="errors.first_name" class="text-sm text-red-500">[[ errors.first_name ]]</span>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">Last Name</label>
+                                <input
+                                    class="w-full rounded-lg border border-black bg-white p-2"
+                                    v-model="customer.last_name"
+                                    type="text"
+                                    placeholder="Last name"
+                                />
+                                <span v-if="errors.last_name" class="text-sm text-red-500">[[ errors.last_name ]]</span>
+                            </div>
+                        </div>
+
+                        <!-- Position and Feedback -->
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Position</label>
+                            <input
+                                class="w-full rounded-lg border border-black bg-white p-2"
+                                v-model="customer.position"
+                                type="text"
+                                placeholder="Position/Role"
+                            />
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Feedback</label>
+                            <textarea
+                                class="w-full rounded-lg border border-black bg-white p-2"
+                                v-model="customer.feedback"
+                                placeholder="Customer feedback"
+                                rows="3"
+                            ></textarea>
+                            <span v-if="errors.feedback" class="text-sm text-red-500">[[ errors.feedback ]]</span>
+                        </div>
+
+                        <!-- Remove Button -->
+                        <div class="col-span-2 flex justify-end">
+                            <button
+                                @click="removeCustomer(index)"
+                                class="rounded-md bg-red-500 px-3 py-2 text-white"
+                            >
+                                Remove Customer
+                            </button>
+                        </div>
+                    </div>
+
+                    <button
+                        @click="addCustomer"
+                        class="mt-2 rounded-md bg-green-500 px-3 py-2 text-white"
+                    >
+                        Add Customer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-between">
+            <button
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black transition-colors ease-in-out hover:bg-gray-200"
+                @click="previousPage"
+            >
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    <span>Back</span>
+                </div>
+            </button>
+            <button class="bg-deep-purple mt-4 w-fit rounded-md px-3 py-2 text-white hover:scale-102" @click="submit">
+                <div class="flex items-center gap-2">
+                    <span>Submit</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </div>
+            </button>
+        </div>
+    </div>
+</script>
+{% endmacro %}

@@ -1,0 +1,91 @@
+{% macro render() %}
+<script type="text/x-template" id="fifth-stage-template">
+    <div class="mx-auto mt-4 flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
+        <!-- Hidden Inputs -->
+        <div>
+            <input type="hidden" v-model="formData.id" />
+            <input type="hidden" v-model="formData.company_id" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <h1 class="text-4xl font-medium">Step 5 of 7: FAQ</h1>
+            <span>Add optional frequently asked questions.</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-x-4 gap-y-6">
+            <div class="flex items-center">
+                <label for="faq_title" class="text-sm font-medium text-gray-700">FAQ Title</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    v-model="formData.faq_title"
+                    type="text"
+                    id="faq_title"
+                    placeholder="Section header for FAQ (e.g., 'Frequently Asked Questions')"
+                />
+            </div>
+
+            <div class="col-span-2">
+                <div class="flex items-center">
+                    <label class="text-sm font-medium text-gray-700">FAQ Items</label>
+                </div>
+                <div class="mt-2 space-y-4">
+                    <div v-for="(faqItem, index) in formData.faq" :key="index" class="grid grid-cols-2 gap-4">
+                        <input
+                            class="w-full rounded-lg border border-black bg-white p-2"
+                            v-model="faqItem.question"
+                            type="text"
+                            :placeholder="'Question ' + (index + 1)"
+                        />
+                        <div class="flex gap-2">
+                            <textarea
+                                class="w-full rounded-lg border border-black bg-white p-2"
+                                v-model="faqItem.answer"
+                                :placeholder="'Answer ' + (index + 1)"
+                                rows="2"
+                            ></textarea>
+                            <button
+                                @click="removeFaqItem(index)"
+                                class="rounded-md bg-red-500 p-2 text-white"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                    <button
+                        @click="addFaqItem"
+                        class="mt-2 rounded-md bg-green-500 px-3 py-2 text-white"
+                    >
+                        Add FAQ Item
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-between">
+            <button
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black transition-colors ease-in-out hover:bg-gray-200"
+                @click="previousPage"
+            >
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    <span>Back</span>
+                </div>
+            </button>
+            <button class="bg-deep-purple mt-4 w-fit rounded-md px-3 py-2 text-white hover:scale-102" @click="nextPage">
+                <div class="flex items-center gap-2">
+                    <span>Continue</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </div>
+            </button>
+
+        </div>
+    </div>
+</script>
+{% endmacro %}

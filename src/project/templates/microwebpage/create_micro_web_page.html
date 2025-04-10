@@ -37,9 +37,6 @@
         <!-- Vue -->
         <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
         <script src="/static/vue/base.js"></script>
-        {#
-        <script src="/static/scripts/menu.js" defer></script>
-        #}
         <script src="/static/vue/microwebpage.js" defer></script>
 
         <!-- Font -->
@@ -57,6 +54,16 @@
     {{ first_stage.render() }}
     {% import "microwebpage/components/second_stage.html" as second_stage %}
     {{ second_stage.render() }}
+    {% import "microwebpage/components/third_stage.html" as third_stage %}
+    {{ third_stage.render() }}
+    {% import "microwebpage/components/fourth_stage.html" as fourth_stage %}
+    {{ fourth_stage.render() }}
+    {% import "microwebpage/components/fifth_stage.html" as fifth_stage %}
+    {{ fifth_stage.render() }}
+    {% import "microwebpage/components/add_employee_component.html" as add_employee %}
+    {{ add_employee.render() }}
+    {% import "microwebpage/components/add_customer_feedback_component.html" as add_customer_feedback %}
+    {{ add_customer_feedback.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />

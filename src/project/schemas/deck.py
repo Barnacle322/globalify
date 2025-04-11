@@ -26,6 +26,25 @@ class FeedbackHistorySchema(BaseModel):
     goals: list
     created_at: str
     formated_created_at: str
+    agent: str | None
 
     class Config:
         orm_mode = True
+
+
+class PageFeedback(BaseModel):
+    page_number: int
+    feedback: str
+    clarity: int
+    grammar: int
+    design: int
+    storytelling: int
+    engagement: int
+
+
+class DeckAnalysisResponse(BaseModel):
+    deck_name: str
+    recommendation: str
+    investment_readiness: int
+    feedback: dict[str, int]
+    page_feedback: list[PageFeedback]

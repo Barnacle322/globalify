@@ -41,3 +41,8 @@ def calculate_md5(data: bytes):
     """Calculates the MD5 hash of a file."""
     hash_md5 = hashlib.md5(data).hexdigest()
     return hash_md5
+
+
+def normalize_name(name):
+    """Normalize names by capitalizing and replacing underscores with spaces."""
+    return name.replace("_", " ").title()

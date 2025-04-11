@@ -167,6 +167,7 @@ const DeckHistoryComponent = defineComponent({
         },
     },
     async mounted() {
+        console.log(this.deckId);
         await this.fetchHistory();
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
@@ -178,8 +179,8 @@ const DeckHistoryComponent = defineComponent({
         const pathSegments = window.location.pathname.split("/").filter(Boolean);
 
         const deckId = pathSegments[pathSegments.length - 1];
-        console.log("Path segments:", deckId);
         this.selectedHistory = deckId;
+        console.log("Selected history:", this.selectedHistory);
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
@@ -189,7 +190,7 @@ const DeckHistoryComponent = defineComponent({
     methods: {
         async fetchHistory() {
             try {
-                const response = await fetch(`/deck/feedbacks/${this.userId}`, {
+                const response = await fetch(`/deck/feedbacks/${this.deckId}`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -200,6 +201,7 @@ const DeckHistoryComponent = defineComponent({
                 }
                 const data = await response.json();
                 this.histories = data.feedbacks;
+                console.log("Fetched histories:", this.histories);
                 this.groupHistoriesByDate();
             } catch (error) {
                 console.error("Error fetching history:", error.message);
@@ -224,7 +226,6 @@ const DeckHistoryComponent = defineComponent({
                 return groups;
             }, {});
 
-            // Сортируем группы в нужном порядке
             const sortedGroupNames = [
                 "Today",
                 "Yesterday",
@@ -284,9 +285,11 @@ const DeckHistoryComponent = defineComponent({
         };
     },
 });
+
 const DeckGoalsComponent = defineComponent({
     template: "#deck-goals-template",
     props: ["deck-id", "feed-back-id"],
+    emits: ["close-deck-goals"],
     async mounted() {
         await this.fetchGoals();
         window.addEventListener("keydown", this.handleKeyDown);
@@ -308,7 +311,7 @@ const DeckGoalsComponent = defineComponent({
             return categories[categories.length - 1];
         },
         isReady() {
-            return !this.isLoading && !this.error;
+            return !this.isLoading;
         },
         areGoalsDisabled() {
             return this.selectedGoals.agent !== "";
@@ -378,7 +381,6 @@ const DeckGoalsComponent = defineComponent({
                 this.processGoals(data.goals);
             } catch (error) {
                 console.error("Error fetching goals:", error.message);
-                this.error = "Failed to load goals. Please try again later.";
             } finally {
                 this.isLoading = false;
             }
@@ -437,7 +439,6 @@ const DeckGoalsComponent = defineComponent({
         return {
             isLoading: true,
             isAnalyzing: false,
-            error: null,
             originalGoals: null,
             selectedGoals: {
                 audience: "Customers",
@@ -451,7 +452,6 @@ const DeckGoalsComponent = defineComponent({
                 domain: "",
                 agent: "",
             },
-            previousGoals: null,
             categoryLabels: {
                 audience: "Audience",
                 formality: "Formality",
@@ -506,15 +506,22 @@ const DeckGoalsComponent = defineComponent({
     },
 });
 
-const DeleteDeckComponent = defineComponent({
-    template: "#delete-deck-template",
+const DeckEditComponent = defineComponent({
+    template: "#deck-edit-template",
     props: {
         deckId: {
             type: Number,
             required: true,
         },
+        deckName: {
+            type: String,
+            required: true,
+        },
     },
-    mounted() {
+    emits: ["close-deck-edit"],
+    async mounted() {
+        console.log("Deck ID:", this.deckId);
+        console.log("Deck Name:", this.deckName);
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
@@ -525,6 +532,31 @@ const DeleteDeckComponent = defineComponent({
         document.removeEventListener("click", this.handleOutsideClick);
     },
     methods: {
+        async updateDeck() {
+            this.isLoading = true;
+            const name = document.getElementById("name").value;
+            try {
+                const csrfToken = document.getElementById("csrf_token").value;
+                const response = await fetch(`/deck/update/${this.deckId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ name: name }),
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    this.$emit("close-deck-edit");
+                }
+            } catch (error) {
+                console.error("Error updating deck:", error.message);
+            } finally {
+                this.isLoading = false;
+            }
+        },
         async deleteDeck(deckId) {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
@@ -544,44 +576,52 @@ const DeleteDeckComponent = defineComponent({
                 console.error("Error cancelling invitation:", error.message);
             }
         },
-        closeDeck() {
-            this.$emit("close-delete-deck");
+        close() {
+            this.$emit("close-deck-edit");
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
-                this.closeDeck();
+                this.close();
             }
         },
         handleOutsideClick(event) {
             if (!this.$el.contains(event.target)) {
-                this.closeDeck();
+                this.close();
             }
         },
+    },
+    data() {
+        return {
+            isLoading: true,
+        };
     },
 });
 
 const DeckUploadComponent = defineComponent({
     template: "#deck-upload-template",
-    components: {
-        DeckGoalsComponent,
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
     },
-    data() {
-        return {
-            fileData: null,
-            isAnalyzing: false,
-            selectedGoals: null,
-        };
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
+    computed: {
+        firstCategory() {
+            return Object.keys(this.categoryOptions)[0];
+        },
+        lastCategory() {
+            const categories = Object.keys(this.categoryOptions);
+            return categories[categories.length - 1];
+        },
+        areGoalsDisabled() {
+            return this.selectedGoals.agent !== "";
+        },
     },
     methods: {
-        handleFileUpload(event) {
-            this.fileData = {
-                file: event.target.files[0],
-                filename: event.target.files[0]?.name || null,
-            };
-        },
-        updateGoals(newGoals) {
-            this.selectedGoals = { ...newGoals };
-        },
         async analyzeFile() {
             if (!this.fileData) {
                 console.log("Please select a file first");
@@ -598,6 +638,7 @@ const DeckUploadComponent = defineComponent({
             try {
                 const formData = new FormData();
                 formData.append("file", this.fileData.file);
+                formData.append("filename", this.fileData.filename);
                 formData.append("audience", this.selectedGoals.audience);
                 formData.append("formality", this.selectedGoals.formality);
                 formData.append("domain", this.selectedGoals.domain);
@@ -680,6 +721,9 @@ const DeckUploadComponent = defineComponent({
                 console.error("Error generating PDF preview:", error);
             }
         },
+        updateGoals(newGoals) {
+            this.selectedGoals = { ...newGoals };
+        },
         handleFileUpload(event) {
             this.fileData = {
                 file: event.target.files[0],
@@ -701,19 +745,31 @@ const DeckUploadComponent = defineComponent({
                 this.closeDeckUpload();
             }
         },
+        updateGoal(category, value) {
+            if (category === "agent") {
+                if (this.selectedGoals.agent === value) {
+                    this.selectedGoals.agent = "";
+                    if (this.originalGoals) {
+                        this.selectedGoals.audience = this.originalGoals.audience;
+                        this.selectedGoals.formality = this.originalGoals.formality;
+                        this.selectedGoals.domain = this.originalGoals.domain;
+                    }
+                } else {
+                    if (!this.originalGoals) {
+                        this.originalGoals = { ...this.selectedGoals };
+                    }
+                    this.selectedGoals.agent = value;
+                    this.selectedGoals.audience = "";
+                    this.selectedGoals.formality = "";
+                    this.selectedGoals.domain = "";
+                }
+            } else if (!this.selectedGoals.agent) {
+                this.selectedGoals[category] = value;
+            }
+        },
         updateDescription(type, value) {
             this[`selected${type}`] = value;
             this.activeDescriptions[type] = this.descriptions[type][value];
-        },
-        mounted() {
-            window.addEventListener("keydown", this.handleKeyDown);
-            setTimeout(() => {
-                document.addEventListener("click", this.handleOutsideClick);
-            }, 0);
-        },
-        beforeUnmount() {
-            window.removeEventListener("keydown", this.handleKeyDown);
-            document.removeEventListener("click", this.handleOutsideClick);
         },
     },
     data() {
@@ -725,36 +781,60 @@ const DeckUploadComponent = defineComponent({
             selectedAudience: "settings",
             selectedFormality: "neutral",
             selectedDomain: "business",
-            activeDescriptions: {
-                audience: "Analysis emphasizes product value, problem-solving clarity, and customer benefits.",
-                formality: "Feedback balances professional insights with clear, accessible explanations.",
-                domain: "Analysis focuses on business strategy, market viability, and commercial potential.",
-                agent: "Balanced and objective feedback based on standard pitch deck best practices.",
+            selectedGoals: {
+                audience: "Customers",
+                formality: "Neutral",
+                domain: "General",
+                agent: "",
+            },
+            categoryLabels: {
+                audience: "Audience",
+                formality: "Formality",
+                domain: "Domain",
+                agent: "Agent",
+            },
+            categoryOptions: {
+                audience: [
+                    { value: "investors", label: "Investors" },
+                    { value: "customers", label: "Customers" },
+                    { value: "partners", label: "Partners" },
+                ],
+                formality: [
+                    { value: "informal", label: "Informal" },
+                    { value: "neutral", label: "Neutral" },
+                    { value: "formal", label: "Formal" },
+                ],
+                domain: [
+                    { value: "academic", label: "Academic" },
+                    { value: "general", label: "General" },
+                    { value: "business", label: "Business" },
+                ],
+                agent: [
+                    { value: "steve_jobs", label: "Steve Jobs" },
+                    { value: "elon_musk", label: "Elon Musk" },
+                    { value: "warren_buffett", label: "Warren Buffett" },
+                ],
             },
             descriptions: {
                 audience: {
-                    investors: "Analysis focuses on financial viability, market potential, and return on investment.",
-                    customers: "Analysis emphasizes product value, problem-solving clarity, and customer benefits.",
-                    partners: "Analysis highlights collaboration potential, market fit, and strategic alignment.",
+                    investors: "Tailored for investors and financial stakeholders.",
+                    customers: "Focused on customer needs and product benefits.",
+                    partners: "Designed for business partners and collaborations.",
                 },
                 formality: {
-                    informal: "Feedback will be casual and direct, using conversational language.",
-                    neutral: "Feedback balances professional insights with clear, accessible explanations.",
-                    formal: "Feedback employs detailed analysis and professional, industry-standard terminology.",
+                    informal: "Casual tone, suitable for friendly or relaxed audiences.",
+                    neutral: "Balanced tone, appropriate for general communication.",
+                    formal: "Professional tone, ideal for official or academic purposes.",
                 },
                 domain: {
-                    academic: "Analysis applies rigorous academic standards, focusing on methodology and research.",
-                    business: "Analysis focuses on business strategy, market viability, and commercial potential.",
-                    general: "Analysis provides versatile feedback suitable for a wide range of contexts.",
+                    academic: "Structured for educational or research-based content.",
+                    business: "Focused on corporate or professional presentations.",
+                    general: "Versatile for a wide range of topics and audiences.",
                 },
                 agent: {
-                    standard_expert: "Balanced and objective feedback based on standard pitch deck best practices.",
-                    warren_buffett:
-                        "Analysis from a value investor's view: focuses on fundamentals, moat, and long-term value.",
-                    elon_musk:
-                        "Analysis from a visionary's view: focuses on disruption, innovation, and technical feasibility.",
-                    steve_jobs:
-                        "Analysis emphasizes product story, design elegance, user experience, and clarity ('How it works').",
+                    steve_jobs: "Communicate with the visionary style and product focus of Steve Jobs.",
+                    elon_musk: "Adopt the innovative and future-oriented perspective of Elon Musk.",
+                    warren_buffett: "Write with the practical wisdom and value-based approach of Warren Buffett.",
                 },
             },
         };
@@ -768,7 +848,7 @@ createApp({
         AsideMobileComponent,
         NavbarComponent,
         DeckUploadComponent,
-        DeleteDeckComponent,
+        DeckEditComponent,
         DeckGoalsComponent,
         DeckHistoryComponent,
         DeckSummaryComponent,
@@ -788,10 +868,12 @@ createApp({
             this.initializePDFViewer();
             window.addEventListener("keydown", this.handleEscKey);
         }
+        window.addEventListener("keydown", this.handleKeyDown);
     },
     beforeUnmount() {
         document.removeEventListener("click", this.handleClickOutside);
         window.removeEventListener("keydown", this.handleEscKey);
+        window.removeEventListener("keydown", this.handleKeyDown);
     },
     methods: {
         async fetchDeckFile() {
@@ -923,26 +1005,7 @@ createApp({
                 throw new Error("No feedback found for this deck.");
             }
         },
-        async saveDeckName(deckId) {
-            if (this.newDeckName.trim() === "") return;
-            try {
-                const response = await fetch(`/deck/edit/${deckId}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": document.getElementById("csrf_token").value,
-                    },
-                    body: JSON.stringify({ deck_id: deckId, new_name: this.newDeckName }),
-                });
-                if (!response.ok) {
-                    throw new Error("Edit error");
-                }
-                deck.name = this.newDeckName;
-                this.editingDeckId = null;
-            } catch (error) {
-                console.error("Edit error:", error.message);
-            }
-        },
+
         scrollToThumbnail(pageNumber) {
             this.$nextTick(() => {
                 const container = this.$refs.thumbnailContainer;
@@ -1036,7 +1099,7 @@ createApp({
             container.scrollLeft += event.deltaY;
         },
         handleEscKey(event) {
-            if (event.key === "Escape" && this.activeModal) {
+            if (event.key === "Escape") {
                 this.closeModal();
             }
         },
@@ -1049,17 +1112,12 @@ createApp({
                 this.openedDropdownDeckId = null;
             }
         },
-        startEditing(deckId) {
-            this.editingDeckId = deckId;
-            this.newDeckName = deck.name || "No Name Available";
-            this.openedDropdownDeckId = null;
-            this.$nextTick(() => {
-                this.$refs[`nameInput-${deck.id}`][0].focus();
-            });
-        },
-        cancelEditing() {
-            this.editingDeckId = null;
-            this.newDeckName = "";
+        handleKeyDown(event) {
+            if (event.key === "ArrowLeft") {
+                this.prevPage();
+            } else if (event.key === "ArrowRight") {
+                this.nextPage();
+            }
         },
     },
     data() {
@@ -1071,6 +1129,9 @@ createApp({
             allThumbnailsLoaded: false,
             isDeckHistoryOpened: false,
             isDeckSummaryOpened: false,
+            isDeckGoalsOpened: false,
+            isDeckUploadOpened: false,
+            isDeckEditOpened: false,
             fileData: null,
             deckFile: null,
             openDropdown: null,
@@ -1083,9 +1144,6 @@ createApp({
                 storytelling: null,
                 engagement: null,
             },
-            activeModal: null,
-            modalTitle: "",
-            modalContent: "",
             currentPage: 1,
             totalPages: 0,
             deckFeedback: [],
@@ -1097,13 +1155,9 @@ createApp({
                 { key: "storytelling", label: "Storytelling" },
                 { key: "engagement", label: "Engagement" },
             ],
-            isDeckGoalsOpened: false,
-            isDeckUploadOpened: false,
             openedDropdownDeckId: null,
             editingDeckId: null,
-            newDeckName: "",
-            deckToDelete: null,
-            deleteDeckOpened: false,
+            editingDeckName: "",
             selectedDeckId: null,
             latestFeedbackId: null,
         };

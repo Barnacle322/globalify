@@ -30,9 +30,44 @@
                     </div>
                 </div>
             </label>
+            <div
+                v-for="(options, category) in categoryOptions"
+                :key="category"
+                :class="[
+                    'flex flex-col border-gray-200',
+                    category === firstCategory ? '' : 'border-t',
+                    category !== lastCategory ? 'border-b' : ''
+                ]"
+            >
+                <div class="flex flex-row items-center justify-start gap-8 pt-4 pb-4">
+                    <span class="w-28 pl-3" v-text="categoryLabels[category]"></span>
+                    <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
+                        <button
+                            v-for="(option, index) in options"
+                            :key="option.value"
+                            type="button"
+                            v-text="option.label"
+                            :class="[
+                                'px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2',
+                                selectedGoals[category] === option.value ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200',
+                                index === 0 ? 'rounded-s-lg' : '',
+                                index === options.length - 1 ? 'rounded-e-lg' : '',
+                                index > 0 && index < options.length - 1 ? 'border-t border-b' : '',
+                                (category !== 'agent' && areGoalsDisabled) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500 hover:text-white'
+                            ]"
+                            @click="updateGoal(category, option.value)"
+                            :disabled="category !== 'agent' && areGoalsDisabled"
+                        ></button>
+                    </div>
+                </div>
+                <!-- Description -->
+                <p
+                    v-if="descriptions[category] && descriptions[category][selectedGoals[category]]"
+                    class="mb-2 ml-32 text-xs text-gray-600"
+                    v-text="descriptions[category][selectedGoals[category]]"
+                ></p>
+            </div>
         </div>
-        <deck-goals-component @update-goals="updateGoals" :deck-id="''" :feed-back-id="''"></deck-goals-component>
-
         <div class="flex w-full items-center justify-end rounded-b-lg border-r border-b border-l bg-gray-50 p-4">
             <button
                 class="rounded-lg bg-sky-500 px-4 py-2 font-bold text-white hover:bg-sky-700"
@@ -48,7 +83,7 @@
         </div>
 
         <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-            <div v-if="isAnalyzing" class="fixed inset-0 z-50 flex items-center justify-center bg-white/90">
+            <div v-if="isAnalyzing" class="fixed inset-0 z-50 flex items-center justify-center bg-white/90 rounded-xl">
                 <div class="flex flex-col items-center">
                     <svg
                         class="h-10 w-10 animate-spin text-blue-500"

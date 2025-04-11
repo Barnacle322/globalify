@@ -27,7 +27,7 @@
                     category !== lastCategory ? 'border-b' : ''
                 ]"
             >
-                <div class="flex flex-row items-center justify-start gap-8 pt-5 pb-5">
+                <div class="flex flex-row items-center justify-start gap-8 pt-4 pb-4">
                     <span class="w-28 pl-3" v-text="categoryLabels[category]"></span>
                     <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
                         <button
@@ -51,24 +51,48 @@
                 <!-- Description -->
                 <p
                     v-if="descriptions[category] && descriptions[category][selectedGoals[category]]"
-                    class="-mt-5 mb-2 ml-32 text-xs text-gray-600"
+                    class="mb-2 ml-32 text-xs text-gray-600"
                     v-text="descriptions[category][selectedGoals[category]]"
                 ></p>
             </div>
-
-            <div class="flex w-full items-center justify-center rounded-b-lg p-5">
-                <button
-                    class="rounded-lg px-4 py-2 font-bold text-white"
-                    :class="{
-                        'bg-sky-500 hover:bg-sky-700': hasChanges && !isAnalyzing,
-                        'bg-gray-400 cursor-not-allowed': !hasChanges || isAnalyzing
-                    }"
-                    :disabled="!hasChanges || isAnalyzing"
-                    @click="handleAnalyze"
-                    v-text="isAnalyzing ? 'Analyzing...' : 'Reanalyze'"
-                ></button>
-            </div>
         </div>
+        <div class="flex w-full items-center justify-end rounded-b-lg border bg-gray-50 p-4">
+            <button
+                class="rounded-lg bg-sky-500 px-4 py-2 font-bold text-white hover:bg-sky-700"
+                :class="{
+                    'opacity-50 cursor-not-allowed': !hasChanges,
+                    'cursor-pointer': hasChanges
+                }"
+                :disabled="!hasChanges"
+                @click="reanalizeFile"
+            >
+                Reanalyze
+            </button>
+        </div>
+        <!-- Loading Component -->
+        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+            <div v-if="isAnalyzing" class="fixed inset-0 z-50 flex items-center justify-center bg-white/90 rounded-xl">
+                <div class="flex flex-col items-center">
+                    <svg
+                        class="h-10 w-10 animate-spin text-blue-500"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                        ></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <p class="mt-3 text-lg font-semibold text-gray-700">Analyzing...</p>
+                </div>
+            </div>
+        </transition>
     </article>
 </template>
 {% endmacro %}

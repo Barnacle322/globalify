@@ -1,6 +1,7 @@
 import google.generativeai as genai
 from google.generativeai.types.content_types import BlobDict, FunctionDeclaration, Tool
 
+from ..schemas.deck import DeckAnalysisResponse
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
 )
@@ -172,10 +173,11 @@ def analyze_pdf(pdf_data: bytes, goals: dict[str, str]) -> str:
     genai.configure(api_key="AIzaSyCslKgJDAckdMD34arTHWJ8fSHB0ERFTmA")
     model = genai.GenerativeModel("gemini-2.0-flash")
 
+    print("Analyzing PDF with Gemini...")
     instructions = {
         "audience": {
             "investors": "Emphasize financial metrics, market opportunity, competitive advantage, and ROI potential. Focus on sustainable growth trajectories, risk mitigation strategies, and capital efficiency. Highlight unit economics and path to profitability with concrete timelines and milestones.",
-            "customers": "Focus on value proposition, problem-solution fit, and user benefits. Emphasize user experience, integration capabilities, ongoing support structures, and how the solution addresses specific pain points in the customer journey. Assess clarity of pricing models and adoption barriers.",
+            "profile": "Focus on value proposition, problem-solution fit, and user benefits. Emphasize user experience, integration capabilities, ongoing support structures, and how the solution addresses specific pain points in the customer journey. Assess clarity of pricing models and adoption barriers.",
             "partners": "Highlight potential synergies, market positioning, and collaboration opportunities. Analyze integration requirements, revenue-sharing models, co-marketing potential, and strategic alignment. Evaluate how the partnership enhances respective ecosystems and creates mutual value.",
             "default": "Analyze for a general business audience, focusing on clarity, coherence, and the core value proposition. Evaluate market positioning, competitive differentiation, and overall narrative structure. Assess how effectively the presentation balances technical details with accessible explanations.",
         },
@@ -474,7 +476,7 @@ def analyze_pdf(pdf_data: bytes, goals: dict[str, str]) -> str:
                     "engagement": <0-100>
                 }},
             ]
-        }}s
+        }}
     """
 
     contents = [
@@ -484,6 +486,8 @@ def analyze_pdf(pdf_data: bytes, goals: dict[str, str]) -> str:
         ),
         prompt,
     ]
+
+    print("Generating content with Gemini...")
 
     response = model.generate_content(contents=contents)
     text_response = response.text

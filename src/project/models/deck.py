@@ -29,7 +29,7 @@ user_deck_association = Table(
 
 class Deck(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    name: Mapped[str] = mapped_column(String, nullable=True, init=False)
+    name: Mapped[str] = mapped_column(String, nullable=True)
     hash: Mapped[str] = mapped_column(String, nullable=False)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -184,8 +184,8 @@ class Feedback(MappedAsDataclass, db.Model, unsafe_hash=True):
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
             db.session.rollback()
-            return None
+            raise e
         except Exception as e:
             print(f"Error creating feedback: {e}")
             db.session.rollback()
-            return None
+            raise e

@@ -31,10 +31,8 @@
     {{ navbar.render(current_user) }}
     {% import "components/deck/deck_upload.html" as deck_upload %}
     {{ deck_upload.render() }}
-    {% import "components/deck/deck_goals.html" as deck_goals %}
-    {{ deck_goals.render() }}
-    {% import "components/deck/delete_deck.html" as delete_deck %}
-    {{ delete_deck.render() }}
+    {% import "components/deck/edit_deck.html" as edit_deck %}
+    {{ edit_deck.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -57,7 +55,7 @@
 
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
-                    v-if="isDeckUploadOpened || deleteDeckOpened"
+                    v-if="isDeckUploadOpened || isDeckEditOpened"
                     class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
                 ></div>
             </transition>
@@ -70,11 +68,12 @@
             </transition>
 
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <delete-deck-component
-                    v-if="deleteDeckOpened"
-                    :deck-id="deckToDelete"
-                    @close-delete-deck="deleteDeckOpened = null"
-                ></delete-deck-component>
+                <deck-edit-component
+                    v-if="isDeckEditOpened"
+                    :deck-id="editingDeckId"
+                    :deck-name="editingDeckName"
+                    @close-deck-edit="isDeckEditOpened = null"
+                ></deck-edit-component>
             </transition>
 
             <main class="flex w-full flex-col items-center px-4 pt-5 sm:px-9">
@@ -114,20 +113,7 @@
                                     class="aspect-[16/9] w-full rounded-lg object-cover"
                                 />
                                 <div class="my-4 line-clamp-3 w-full text-center text-sm text-gray-500">
-                                    <div v-if="editingDeckId !== {{deck.id}}">
-                                        {{ deck.name if deck.name else "No Name Available" }}
-                                    </div>
-                                    <div v-else>
-                                        <input
-                                            v-model="newDeckName"
-                                            @click.stop
-                                            @keyup.enter="saveDeckName({{deck.id}})"
-                                            @keyup.esc="cancelEditing"
-                                            maxlength="30"
-                                            class="w-full rounded-lg border-b border-sky-500 bg-transparent py-0 text-center text-sm outline-none"
-                                            :ref="`nameInput-${{deck.id}}`"
-                                        />
-                                    </div>
+                                    <span>{{ deck.name if deck.name else "No Name Available" }}</span>
                                 </div>
                                 <hr class="mt-auto mb-3 h-px border-0 bg-gray-50 font-bold dark:bg-gray-300" />
 
@@ -161,57 +147,32 @@
                                             </svg>
                                         </button>
 
-                                        <transition
-                                            enter-active-class="animate-zoom-in"
-                                            leave-active-class="animate-zoom-out"
+                                        <div
+                                            ref="dropdown"
+                                            v-if="openedDropdownDeckId === {{deck.id}}"
+                                            class="absolute top-8 -right-25 z-10 flex w-28 flex-col items-start justify-centre gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
                                         >
-                                            <div
-                                                ref="dropdown"
-                                                v-if="openedDropdownDeckId === {{deck.id}}"
-                                                class="absolute top-8 -right-25 z-10 flex w-28 flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
+                                            <button
+                                                @click.stop.prevent="isDeckEditOpened = true; editingDeckId = {{deck.id}}; editingDeckName = '{{deck.name}}'; openedDropdownDeckId = null"
+                                                class="cursor-pointer flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
                                             >
-                                                <button
-                                                    @click.stop.prevent="startEditing({{deck.id}})"
-                                                    class="cursor-pointer flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
+                                                <span>Edit</span>
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 22 22"
+                                                    stroke-width="1.5"
+                                                    stroke="currentColor"
+                                                    class="size-5"
                                                 >
-                                                    <span>Rename</span>
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="none"
-                                                        viewBox="0 0 22 22"
-                                                        stroke-width="1.5"
-                                                        stroke="currentColor"
-                                                        class="size-5"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                                                        />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    @click.stop.prevent="deleteDeckOpened = true; deckToDelete = {{ deck.id }}"
-                                                    class="cursor-pointer flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-red-500 hover:text-white"
-                                                >
-                                                    <span>Delete</span>
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke-width="1.5"
-                                                        stroke="currentColor"
-                                                        class="size-5"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                                                        />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </transition>
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                                                    />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </article>

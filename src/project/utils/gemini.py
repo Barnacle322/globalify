@@ -441,9 +441,9 @@ def analyze_pdf(pdf_data: bytes, goals: dict[str, str]) -> str:
     oldPrompt = f"""
         You are an expert pitch deck analyst. Analyze the provided pitch deck and provide:
 
-        * Overall recommendations for improvement (maximum 250 words). Focus on the key areas that need the most attention.
-        * An overall score for the following categories (1-10): clarity, grammar, design, storytelling, engagement.
-        * Feedback for each page of the pitch deck. Provide the page number and a short feedback (maximum 150 words) for each page.
+        * Overall recommendations for improvement (maximum 300 words). Focus on the key areas that need the most attention.
+        * An overall score for the following categories (1-100): clarity, grammar, design, storytelling, engagement.
+        * Feedback for each page of the pitch deck. Provide the page number and a short feedback (maximum 200 words) for each page.
         * Provide short informative name for pitchdeck (maximum 3 words).
 
         The audience for this pitch deck is: {goals['audience']}.
@@ -453,27 +453,28 @@ def analyze_pdf(pdf_data: bytes, goals: dict[str, str]) -> str:
         Output in JSON format:
 
         {{
-            "deck_name": "...",
-            "recommendation": "...",
+            "deck_name": "Concise descriptive name (max 3 words)",
+            "recommendation": "Overall recommendation summary (max 300 words)",
+            "investment_readiness": <0-100>,
             "feedback": {{
-                "clarity": null,
-                "grammar": null,
-                "design": null,
-                "storytelling": null,
-                "engagement": null
+                "clarity": <0-100>,
+                "grammar": <0-100>,
+                "design": <0-100>,
+                "storytelling": <0-100>,
+                "engagement": <0-100>
             }},
             "page_feedback": [
                 {{
-                    "page_number": null,
-                    "feedback": "..."
-                    "clarity": null,
-                    "grammar": null,
-                    "design": null,
-                    "storytelling": null,
-                    "engagement": null
-                }}
+                    "page_number": <integer>,
+                    "feedback": "Page-specific feedback (max 150 words)",
+                    "clarity": <0-100>,
+                    "grammar": <0-100>,
+                    "design": <0-100>,
+                    "storytelling": <0-100>,
+                    "engagement": <0-100>
+                }},
             ]
-        }}
+        }}s
     """
 
     contents = [

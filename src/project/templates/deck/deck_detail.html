@@ -246,9 +246,46 @@
                             <!-- Feedback -->
                             <div class="flex w-[40%] flex-col">
                                 <div id="feedback-data" style="display: none">{{ feedback.page_feedback|tojson }}</div>
-                                <div v-if="selectedPage" class="shadow-card rounded-lg bg-white p-6">
+                                <div v-if="selectedPage" class="shadow-card rounded-lg bg-white p-6 min-h-60">
                                     <h2 class="text-center text-xl font-bold">What to Improve</h2>
-                                    <p class="mt-2 text-gray-600" v-text="selectedPage?.feedback"></p>
+                                    <div v-if="!mainSlideLoaded" class="flex justify-center items-center h-full">
+                                        <div
+                                            class="h-12 w-12 animate-spin rounded-full border-t-2 border-b-2 border-blue-500"
+                                        ></div>
+                                    </div>
+                                    <div v-show="mainSlideLoaded">
+                                        <p class="mt-2 text-gray-600" v-text="selectedPage?.feedback"></p>
+
+                                        <div class="space-y-4 pt-4">
+                                            <div
+                                                v-for="(item, index) in scoreItems"
+                                                :key="item.key"
+                                                class="score-item"
+                                                :style="{ '--delay-index': index }"
+                                            >
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <span
+                                                        class="text-sm font-medium text-gray-600"
+                                                        v-text="item.label"
+                                                    ></span>
+                                                    <span
+                                                        class="text-sm font-bold tabular-nums"
+                                                        v-text="formatScore(selectedPage[item.key] !== undefined ? selectedPage[item.key] : null)"
+                                                    ></span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                                    <div
+                                                        class="progress-bar-fill h-1.5 rounded-full transition-[width] duration-500 ease-out"
+                                                        :class="getScoreBgColorClass(selectedPage[item.key] !== undefined ? selectedPage[item.key] : null)"
+                                                        :style="[
+                                                            getScoreWidthStyle(selectedPage[item.key] !== undefined ? selectedPage[item.key] : null),
+                                                            { transitionDelay: `calc(var(--delay-index) * 100ms)` }
+                                                        ]"
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -154,7 +154,7 @@ class Feedback(MappedAsDataclass, db.Model, unsafe_hash=True):
                 + (self.design_score or 0)
                 + (self.storytelling_score or 0)
                 + (self.engagement_score or 0)
-            ) / 5.0
+            ) / 50.0
         return 0
 
     @classmethod
@@ -168,7 +168,7 @@ class Feedback(MappedAsDataclass, db.Model, unsafe_hash=True):
                 audience=goals["audience"],
                 formality=goals["formality"],
                 domain=goals["domain"],
-                agent="steve_jobs",
+                agent=goals["agent"],
                 clarity_score=scores.get("clarity"),
                 grammar_score=scores.get("grammar"),
                 design_score=scores.get("design"),

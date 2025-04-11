@@ -199,13 +199,43 @@ const DeckHistoryComponent = defineComponent({
                     throw new Error("Failed to fetch history");
                 }
                 const data = await response.json();
-                console.log("History data:", data);
                 this.histories = data.feedbacks;
+                this.groupHistoriesByDate();
             } catch (error) {
                 console.error("Error fetching history:", error.message);
                 this.error = "Failed to load history. Please try again later.";
             }
             this.isLoading = false;
+        },
+        groupHistoriesByDate() {
+            const today = new Date();
+            const formatDate = (date) => {
+                const diff = Math.floor((today - new Date(date)) / (1000 * 60 * 60 * 24));
+                if (diff === 0) return "Today";
+                if (diff === 1) return "Yesterday";
+                if (diff <= 7) return `${diff} days ago`;
+                return new Date(date).toLocaleDateString();
+            };
+
+            const grouped = this.histories.reduce((groups, history) => {
+                const groupName = formatDate(history.created_at);
+                if (!groups[groupName]) groups[groupName] = [];
+                groups[groupName].push(history);
+                return groups;
+            }, {});
+
+            // Сортируем группы в нужном порядке
+            const sortedGroupNames = [
+                "Today",
+                "Yesterday",
+                ...Object.keys(grouped).filter((name) => !["Today", "Yesterday"].includes(name)),
+            ];
+            this.groupedHistories = sortedGroupNames.reduce((sortedGroups, groupName) => {
+                if (grouped[groupName]) {
+                    sortedGroups[groupName] = grouped[groupName];
+                }
+                return sortedGroups;
+            }, {});
         },
         selectHistory(feedbackId) {
             this.selectedHistory = feedbackId;
@@ -250,6 +280,7 @@ const DeckHistoryComponent = defineComponent({
             isExpanded: false,
             feedbackToDelete: null,
             deleteFeedbackOpened: false,
+            groupedHistories: {},
         };
     },
 });
@@ -567,11 +598,11 @@ const DeckUploadComponent = defineComponent({
             try {
                 const formData = new FormData();
                 formData.append("file", this.fileData.file);
-
                 formData.append("audience", this.selectedGoals.audience);
                 formData.append("formality", this.selectedGoals.formality);
                 formData.append("domain", this.selectedGoals.domain);
                 formData.append("agent", this.selectedGoals.agent);
+                formData.append("preview_image", this.previewBlob);
 
                 const response = await fetch("/deck/analysis", {
                     method: "POST",
@@ -601,11 +632,61 @@ const DeckUploadComponent = defineComponent({
                 this.isAnalyzing = false;
             }
         },
+        async generatePDFPreview() {
+            try {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_URL;
+
+                const file = this.fileData.file;
+
+                if (!file) {
+                    console.warn("No file data available.");
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    const arrayBuffer = event.target.result;
+
+                    try {
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        const page = await pdf.getPage(1);
+
+                        const viewport = page.getViewport({ scale: 0.4 });
+                        const canvas = document.createElement("canvas");
+                        const context = canvas.getContext("2d");
+
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+
+                        await page.render({
+                            canvasContext: context,
+                            viewport: viewport,
+                        }).promise;
+
+                        canvas.toBlob((blob) => {
+                            this.previewBlob = blob;
+                        }, "image/png");
+                    } catch (pdfError) {
+                        console.error("Error loading PDF with pdfjsLib:", pdfError);
+                    }
+                };
+
+                reader.onerror = (error) => {
+                    console.error("Error reading file:", error);
+                };
+
+                reader.readAsArrayBuffer(file); // Start reading the file
+            } catch (error) {
+                console.error("Error generating PDF preview:", error);
+            }
+        },
         handleFileUpload(event) {
             this.fileData = {
                 file: event.target.files[0],
                 filename: event.target.files[0]?.name || null,
             };
+
+            this.generatePDFPreview();
         },
         closeDeckUpload() {
             this.$emit("close-deck-upload");
@@ -641,11 +722,40 @@ const DeckUploadComponent = defineComponent({
             isUploading: false,
             selectedButton: null,
             isAnalyzing: false,
-            selectedGoals: {
-                audience: "Customers",
-                formality: "Neutral",
-                domain: "General",
-                agent: "",
+            selectedAudience: "settings",
+            selectedFormality: "neutral",
+            selectedDomain: "business",
+            activeDescriptions: {
+                audience: "Analysis emphasizes product value, problem-solving clarity, and customer benefits.",
+                formality: "Feedback balances professional insights with clear, accessible explanations.",
+                domain: "Analysis focuses on business strategy, market viability, and commercial potential.",
+                agent: "Balanced and objective feedback based on standard pitch deck best practices.",
+            },
+            descriptions: {
+                audience: {
+                    investors: "Analysis focuses on financial viability, market potential, and return on investment.",
+                    customers: "Analysis emphasizes product value, problem-solving clarity, and customer benefits.",
+                    partners: "Analysis highlights collaboration potential, market fit, and strategic alignment.",
+                },
+                formality: {
+                    informal: "Feedback will be casual and direct, using conversational language.",
+                    neutral: "Feedback balances professional insights with clear, accessible explanations.",
+                    formal: "Feedback employs detailed analysis and professional, industry-standard terminology.",
+                },
+                domain: {
+                    academic: "Analysis applies rigorous academic standards, focusing on methodology and research.",
+                    business: "Analysis focuses on business strategy, market viability, and commercial potential.",
+                    general: "Analysis provides versatile feedback suitable for a wide range of contexts.",
+                },
+                agent: {
+                    standard_expert: "Balanced and objective feedback based on standard pitch deck best practices.",
+                    warren_buffett:
+                        "Analysis from a value investor's view: focuses on fundamentals, moat, and long-term value.",
+                    elon_musk:
+                        "Analysis from a visionary's view: focuses on disruption, innovation, and technical feasibility.",
+                    steve_jobs:
+                        "Analysis emphasizes product story, design elegance, user experience, and clarity ('How it works').",
+                },
             },
         };
     },

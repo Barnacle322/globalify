@@ -159,6 +159,17 @@ def upload_picture(picture, bucket_name: str = BUCKET_NAME):
         print(e)
         raise
 
+def upload_picture_hd(picture, bucket_name: str = BUCKET_NAME):
+    if not picture or picture == "" or picture == "None":
+        raise ValueError("No picture provided")
+
+    try:
+        picture_url = upload_blob(picture, bucket_name=bucket_name, content_type="image/jpeg")
+        return picture_url
+    except Exception as e:
+        print(e)
+        raise
+
 
 def load_deck(deck_uuid):
     if not deck_uuid:

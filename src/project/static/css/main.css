@@ -2238,6 +2238,9 @@
     --tw-border-style: dashed;
     border-style: dashed;
   }
+  .border-black {
+    border-color: var(--color-black);
+  }
   .border-blue-500 {
     border-color: var(--color-blue-500);
   }
@@ -2381,6 +2384,8 @@
   }
   .bg-blue-700 {
     background-color: var(--color-blue-700);
+  .bg-blue-600 {
+    background-color: var(--color-blue-600);
   }
   .bg-deep-purple {
     background-color: #231645;
@@ -3067,6 +3072,8 @@
   }
   .text-blue-900 {
     color: var(--color-blue-900);
+  .text-blue-600 {
+    color: var(--color-blue-600);
   }
   .text-emerald-600 {
     color: var(--color-emerald-600);
@@ -3899,6 +3906,13 @@
       }
     }
   }
+  .hover\:bg-red-50 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-red-50);
+      }
+    }
+  }
   .hover\:bg-red-100 {
     &:hover {
       @media (hover: hover) {
@@ -4085,6 +4099,14 @@
     &:hover {
       @media (hover: hover) {
         --tw-shadow: 0 25px 50px -12px var(--tw-shadow-color, rgb(0 0 0 / 0.25));
+        box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+      }
+    }
+  }
+  .hover\:shadow-lg {
+    &:hover {
+      @media (hover: hover) {
+        --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
         box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
       }
     }

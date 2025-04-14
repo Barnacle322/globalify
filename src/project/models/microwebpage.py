@@ -106,7 +106,7 @@ class WebpageCompanyEmployee(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class WebpageCompanyCustomer(MappedAsDataclass, db.Model, unsafe_hash=True):
-    id: Mapped[int] = mapped_column(primary_key=True, unsafe_hash=True, init=False)
+    id: Mapped[int] = mapped_column(primary_key=True, init=False)
     micro_webpage_id: Mapped[int] = mapped_column(ForeignKey("micro_web_page.id"), nullable=False)
     micro_webpage: Mapped["MicroWebPage"] = relationship("MicroWebPage", back_populates="customers")
 

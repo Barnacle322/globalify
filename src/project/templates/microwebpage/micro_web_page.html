@@ -6,6 +6,7 @@
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
         <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
         <link rel="stylesheet" href="/static/css/main.css" />
+        <script src="/static/scripts/microwebpage.js" defer></script>
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
         <title>Document</title>
     </head>
@@ -75,17 +76,17 @@
                     </div>
                 </div>
                 <div class="mt-12 w-full">
-                    <div class="flex w-full">
-                        {% for image in microwebpage.webpage_media %}
-                        <div class="relative mx-2 flex-1">
+                    <div
+                        id="gallery"
+                        class="no-scrollbar flex w-full snap-x overflow-x-auto overflow-y-hidden scroll-smooth px-[200px] py-8"
+                    >
+                        {% for picture in microwebpage.webpage_media %}
+                        <div class="relative min-w-[500px] snap-center px-4 transition-all duration-50">
                             <img
-                                src="{{ image.picture_url }}"
+                                src="{{ picture.picture_url }}"
                                 alt="Technology Innovation"
-                                class="h-80 w-full rounded-lg object-cover shadow-md"
+                                class="h-[300px] w-[500px] rounded-lg object-cover shadow-md transition-transform duration-50 ease-in-out"
                             />
-                            <div class="bg-opacity-90 absolute right-0 bottom-0 left-0 rounded-b-lg bg-white p-4">
-                                <p class="text-sm font-medium text-gray-900">Cutting-Edge Technology</p>
-                            </div>
                         </div>
                         {% endfor %}
                     </div>
@@ -93,64 +94,13 @@
 
                 <div class="bg-white py-24 sm:py-32">
                     <div class="mx-auto max-w-7xl px-6 lg:px-8">
-                        <h2 class="text-center text-lg/8 font-semibold text-gray-900">
-                            {{ microwebpage.logo_cloud_title }}
-                        </h2>
-                        <div
-                            class="mx-auto mt-10 grid max-w-lg grid-cols-4 items-center gap-x-8 gap-y-10 sm:max-w-xl sm:grid-cols-6 sm:gap-x-10 lg:mx-0 lg:max-w-none lg:grid-cols-5"
-                        >
-                            <img
-                                class="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
-                                src="https://tailwindcss.com/plus-assets/img/logos/158x48/transistor-logo-gray-900.svg"
-                                alt="Transistor"
-                                width="158"
-                                height="48"
-                            />
-                            <img
-                                class="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
-                                src="https://tailwindcss.com/plus-assets/img/logos/158x48/reform-logo-gray-900.svg"
-                                alt="Reform"
-                                width="158"
-                                height="48"
-                            />
-                            <img
-                                class="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
-                                src="https://tailwindcss.com/plus-assets/img/logos/158x48/tuple-logo-gray-900.svg"
-                                alt="Tuple"
-                                width="158"
-                                height="48"
-                            />
-                            <img
-                                class="col-span-2 max-h-12 w-full object-contain sm:col-start-2 lg:col-span-1"
-                                src="https://tailwindcss.com/plus-assets/img/logos/158x48/savvycal-logo-gray-900.svg"
-                                alt="SavvyCal"
-                                width="158"
-                                height="48"
-                            />
-                            <img
-                                class="col-span-2 col-start-2 max-h-12 w-full object-contain sm:col-start-auto lg:col-span-1"
-                                src="https://tailwindcss.com/plus-assets/img/logos/158x48/statamic-logo-gray-900.svg"
-                                alt="Statamic"
-                                width="158"
-                                height="48"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white py-24 sm:py-32">
-                    <div class="mx-auto max-w-7xl px-6 lg:px-8">
                         <div class="mx-auto max-w-2xl lg:text-center">
-                            <h2 class="text-base/7 font-semibold text-indigo-600">Deploy faster</h2>
                             <p
                                 class="mt-2 text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl lg:text-balance"
                             >
-                                Everything you need to deploy your app
+                                {{ microwebpage.benefit_title }}
                             </p>
-                            <p class="mt-6 text-lg/8 text-gray-600">
-                                Quis tellus eget adipiscing convallis sit sit eget aliquet quis. Suspendisse eget
-                                egestas a elementum pulvinar et feugiat blandit at. In mi viverra elit nunc.
-                            </p>
+                            <p class="mt-6 text-lg/8 text-gray-600">{{ microwebpage.benefit_subtitle }}</p>
                         </div>
                         <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
                             <dl
@@ -318,21 +268,22 @@
         </div>
 
         <!-- Stats Section -->
+
         <div class="bg-white py-24 sm:py-32">
             <div class="mx-auto max-w-7xl px-6 lg:px-8">
-                <dl class="grid grid-cols-1 gap-8 sm:grid-cols-3">
-                    <div class="rounded-lg bg-white p-6 text-center shadow-md">
-                        <dt class="text-sm font-medium text-gray-600">Transactions every 24 hours</dt>
-                        <dd class="mt-2 text-3xl font-bold text-gray-900">44 million</dd>
+                <!-- Centered title and subtitle -->
+                <h2 class="mb-4 text-center text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">Our Stats</h2>
+                <p class="mb-12 text-center text-xl text-gray-600">{{ microwebpage.stat_subtitle }}</p>
+
+                <dl class="flex flex-wrap justify-center gap-8">
+                    {% for stat in microwebpage.statistics %}
+                    <div
+                        class="w-full rounded-lg bg-white p-6 text-center shadow-md sm:w-auto sm:max-w-[300px] sm:min-w-[200px]"
+                    >
+                        <dt class="text-sm font-medium text-gray-600">{{ stat.key }}</dt>
+                        <dd class="mt-2 text-3xl font-bold text-gray-900">{{ stat.value }}</dd>
                     </div>
-                    <div class="rounded-lg bg-white p-6 text-center shadow-md">
-                        <dt class="text-sm font-medium text-gray-600">Assets under holding</dt>
-                        <dd class="mt-2 text-3xl font-bold text-gray-900">$119 trillion</dd>
-                    </div>
-                    <div class="rounded-lg bg-white p-6 text-center shadow-md">
-                        <dt class="text-sm font-medium text-gray-600">New users annually</dt>
-                        <dd class="mt-2 text-3xl font-bold text-gray-900">46,000</dd>
-                    </div>
+                    {% endfor %}
                 </dl>
             </div>
         </div>
@@ -346,59 +297,32 @@
                     </h2>
                     <p class="mt-6 text-lg text-gray-600">{{ microwebpage.customer_testimonials_subtitle }}</p>
                 </div>
-                <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                    <div class="rounded-lg bg-white p-6 text-center shadow-md">
+                <div class="mt-16 flex flex-wrap justify-center gap-8">
+                    {% for customer in microwebpage.customers %}
+                    <div
+                        class="w-full rounded-lg bg-white p-6 text-center shadow-md sm:w-auto sm:max-w-[350px] sm:min-w-[250px]"
+                    >
                         <img
-                            src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                            alt="Customer 1"
+                            src="{{ customer.picture_url }}"
+                            alt="{{ customer.first_name }} {{ customer.last_name }}"
                             class="mx-auto h-16 w-16 rounded-full"
                         />
-                        <p class="mt-4 text-sm text-gray-600">
-                            "This platform transformed the way we handle data. The insights we get are unparalleled, and
-                            the support team is top-notch."
-                        </p>
+                        <p class="mt-4 text-sm text-gray-600">{{ customer.feedback }}</p>
                         <div class="mt-4">
-                            <p class="text-sm font-semibold text-gray-900">James Carter</p>
-                            <p class="text-sm font-medium text-indigo-600">Founder, DataSync</p>
+                            <p class="text-sm font-semibold text-gray-900">
+                                {{ customer.first_name }} {{ customer.last_name }}
+                            </p>
+                            <p class="text-sm font-medium text-indigo-600">{{ customer.position }}</p>
                         </div>
                     </div>
-                    <div class="rounded-lg bg-white p-6 text-center shadow-md">
-                        <img
-                            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                            alt="Customer 2"
-                            class="mx-auto h-16 w-16 rounded-full"
-                        />
-                        <p class="mt-4 text-sm text-gray-600">
-                            "A game-changer for our online business. The tools are intuitive, and the results speak for
-                            themselves."
-                        </p>
-                        <div class="mt-4">
-                            <p class="text-sm font-semibold text-gray-900">Emily Rodriguez</p>
-                            <p class="text-sm font-medium text-indigo-600">CEO, BrightFuture</p>
-                        </div>
-                    </div>
-                    <div class="rounded-lg bg-white p-6 text-center shadow-md">
-                        <img
-                            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                            alt="Customer 3"
-                            class="mx-auto h-16 w-16 rounded-full"
-                        />
-                        <p class="mt-4 text-sm text-gray-600">
-                            "We've seen incredible growth since integrating their solutions. Highly recommend to anyone
-                            serious about scaling."
-                        </p>
-                        <div class="mt-4">
-                            <p class="text-sm font-semibold text-gray-900">Michael Lee</p>
-                            <p class="text-sm font-medium text-indigo-600">CTO, InnovateNow</p>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
 
         <!-- FAQ Section (Matching the Image) -->
-        <div class="bg-white py-24 sm:py-32">
-            <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="w-full bg-white py-24 sm:py-32">
+            <div class="mx-auto w-full px-6 lg:px-8">
                 <div class="mx-auto max-w-2xl">
                     <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
                         {{ microwebpage.faq_title | default('Frequently asked questions') }}

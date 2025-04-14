@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Store original image containers
         const originalContainers = Array.from(gallery.querySelectorAll('div.relative'));
 
-        if (numImages === 3) {
+        if (numImages === 1) { // Adjusted to check for 1 image explicitly
             // Single image: apply styles and exit
             images[0].classList.add('scale-110', 'z-20', 'shadow-lg');
             gallery.children[0].classList.add('px-8');
@@ -23,15 +23,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Multiple images: proceed with infinite scrolling
         // Clone images for infinite scrolling
         const cloneImages = () => {
-            // Clone four sets at the beginning
-            for (let set = 0; set < 4; set++) {
+            // Clone five sets at the beginning (increased for smoother buffer)
+            for (let set = 0; set < 5; set++) {
                 for (let i = numImages - 1; i >= 0; i--) {
                     const cloneContainer = originalContainers[i].cloneNode(true);
                     gallery.insertBefore(cloneContainer, gallery.firstChild);
                 }
             }
-            // Clone four sets at the end
-            for (let set = 0; set < 4; set++) {
+            // Clone five sets at the end
+            for (let set = 0; set < 5; set++) {
                 for (let i = 0; i < numImages; i++) {
                     const cloneContainer = originalContainers[i].cloneNode(true);
                     gallery.appendChild(cloneContainer);
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initial centering
         if (numImages > 0) {
-            const bufferSets = 4;
+            const bufferSets = 5; // Increased buffer
             const centerImageIndex = (bufferSets * numImages) + Math.floor(numImages / 2); // Middle of original set
             const scrollPosition =
                 centerImageIndex * imageWidth - (gallery.offsetWidth - imageWidth) / 2;
@@ -73,16 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const scrollLeft = gallery.scrollLeft;
             const totalWidth = numImages * imageWidth;
-            const bufferSets = 4;
-            const bufferZoneStart = bufferSets * totalWidth;
-            const bufferZoneEnd = (bufferSets + 1) * totalWidth;
+            const bufferSets = 5; // Match initial buffer
+            // Adjusted buffer zones to start transitions earlier
+            const bufferZoneStart = (bufferSets - 0.5) * totalWidth;
+            const bufferZoneEnd = (bufferSets + 0.5) * totalWidth;
 
             // Infinite scroll logic
             if (scrollLeft <= bufferZoneStart) {
                 isAdjusting = true;
-                gallery.style.scrollSnapType = 'none';
                 gallery.style.scrollBehavior = 'auto'; // Disable smooth scrolling temporarily
-                gallery.removeEventListener('scroll', debouncedHandleScroll);
 
                 // Move last set to start
                 for (let i = 0; i < numImages; i++) {
@@ -90,28 +89,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     gallery.removeChild(lastChild);
                     gallery.insertBefore(lastChild, gallery.firstChild);
                 }
-                // Add a new set to the end to maintain buffer
+                // Add a new set to the end
                 for (let i = 0; i < numImages; i++) {
                     const cloneContainer = originalContainers[i].cloneNode(true);
                     gallery.appendChild(cloneContainer);
                 }
-                // Adjust scroll position precisely
+                // Adjust scroll position
                 const newScrollLeft = scrollLeft + totalWidth;
                 gallery.scrollLeft = newScrollLeft;
                 images = gallery.querySelectorAll('img');
 
-                // Re-enable snap and listener after DOM stabilizes
-                setTimeout(() => {
-                    gallery.style.scrollSnapType = 'x mandatory';
+                // Use requestAnimationFrame for smoother re-enabling
+                requestAnimationFrame(() => {
                     gallery.style.scrollBehavior = 'smooth';
-                    gallery.addEventListener('scroll', debouncedHandleScroll);
                     isAdjusting = false;
-                }, 150);
+                });
             } else if (scrollLeft >= bufferZoneEnd) {
                 isAdjusting = true;
-                gallery.style.scrollSnapType = 'none';
                 gallery.style.scrollBehavior = 'auto'; // Disable smooth scrolling temporarily
-                gallery.removeEventListener('scroll', debouncedHandleScroll);
 
                 // Move first set to end
                 for (let i = 0; i < numImages; i++) {
@@ -119,29 +114,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     gallery.removeChild(firstChild);
                     gallery.appendChild(firstChild);
                 }
-                // Add a new set to the start to maintain buffer
+                // Add a new set to the start
                 for (let i = numImages - 1; i >= 0; i--) {
                     const cloneContainer = originalContainers[i].cloneNode(true);
                     gallery.insertBefore(cloneContainer, gallery.firstChild);
                 }
-                // Adjust scroll position precisely
+                // Adjust scroll position
                 const newScrollLeft = scrollLeft - totalWidth;
                 gallery.scrollLeft = newScrollLeft;
                 images = gallery.querySelectorAll('img');
 
-                // Re-enable snap and listener after DOM stabilizes
-                setTimeout(() => {
-                    gallery.style.scrollSnapType = 'x mandatory';
+                // Use requestAnimationFrame for smoother re-enabling
+                requestAnimationFrame(() => {
                     gallery.style.scrollBehavior = 'smooth';
-                    gallery.addEventListener('scroll', debouncedHandleScroll);
                     isAdjusting = false;
-                }, 150);
+                });
             }
 
             // Update styles for all images
             const galleryRect = gallery.getBoundingClientRect();
             const viewportCenter = galleryRect.left + galleryRect.width / 2;
-            images = gallery.querySelectorAll('img'); // Refresh images after DOM changes
+            images = gallery.querySelectorAll('img'); // Refresh images
             images.forEach((img, index) => {
                 const imgRect = img.getBoundingClientRect();
                 const imgCenter = imgRect.left + imgRect.width / 2;
@@ -161,8 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        // Attach debounced scroll handler
-        const debouncedHandleScroll = debounce(handleScroll, 50);
+        // Attach debounced scroll handler with slightly longer delay
+        const debouncedHandleScroll = debounce(handleScroll, 100); // Increased to 100ms
         gallery.addEventListener('scroll', debouncedHandleScroll);
     }
 });

@@ -13,20 +13,27 @@
     <body>
         <div class="bg-white">
             <!-- Header -->
-            <header class="absolute inset-x-0 top-0 z-50">
-                <nav class="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
-                    <div class="flex lg:flex-1">
-                        <a href="#" class="-m-1.5 p-1.5">
-                            <span class="sr-only">Your Company</span>
-                            <img class="h-12 w-auto" src="{{ microwebpage.logo_url }}" alt="Company Logo" />
-                        </a>
-                    </div>
-                    <div class="flex lg:gap-x-12">
-                        <a href="#" class="text-sm font-semibold text-gray-900 hover:text-indigo-600">About</a>
-                    </div>
-                </nav>
-            </header>
-
+            <div class="bg-white">
+                <!-- Header -->
+                <header class="absolute inset-x-0 top-0 z-50">
+                    <nav class="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
+                        <div class="flex items-center lg:flex-1">
+                            <a href="#" class="-m-1.5 flex items-center p-1.5">
+                                <span class="sr-only">Your Company</span>
+                                <img class="h-12 w-auto" src="{{ microwebpage.logo_url }}" alt="Company Logo" />
+                                <h3
+                                    class="ml-4 text-2xl font-extrabold text-indigo-800 hover:text-indigo-500 transition-colors duration-300 tracking-wide {{ company.name }}"
+                                >
+                                    {{ company.name }}
+                                </h3>
+                            </a>
+                        </div>
+                        <div class="flex lg:gap-x-12">
+                            <a href="#" class="text-sm font-semibold text-gray-900 hover:text-indigo-600">About</a>
+                        </div>
+                    </nav>
+                </header>
+            </div>
             <!-- Hero Section -->
             <div class="relative isolate px-6 pt-14 lg:px-8">
                 <div

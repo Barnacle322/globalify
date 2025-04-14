@@ -154,7 +154,7 @@ class Feedback(MappedAsDataclass, db.Model, unsafe_hash=True):
                 + (self.design_score or 0)
                 + (self.storytelling_score or 0)
                 + (self.engagement_score or 0)
-            ) / 50.0
+            ) / 5.0
         return 0
 
     @classmethod

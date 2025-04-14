@@ -48,3 +48,18 @@ class DeckAnalysisResponse(BaseModel):
     investment_readiness: int
     feedback: dict[str, int]
     page_feedback: list[PageFeedback]
+
+
+class OverallFeedbackScores(BaseModel):
+    clarity: int
+    grammar: int
+    design: int
+    storytelling: int
+    engagement: int
+
+
+class GeminiFeedback(BaseModel):
+    deck_name: str
+    recommendation: str
+    feedback: OverallFeedbackScores
+    page_feedback: list[PageFeedback]

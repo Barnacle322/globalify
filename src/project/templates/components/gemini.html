@@ -1,14 +1,12 @@
 {% macro render(user) %}
 <template id="gemini-template">
-    <article
-        class="fixed top-0 right-0 z-50 flex h-full w-full flex-col rounded-l-3xl bg-gray-100 transition-all"
-        :class="isExpanded ? 'md:w-full rounded-l-none' : 'md:w-4/5 lg:w-2/3 2xl:w-1/2'"
-    >
+    <article class="fixed top-0 right-0 z-50 flex h-full w-full flex-col overflow-clip bg-gray-100 transition-all">
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
         <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
             <div
                 v-if="selectedInvestorSlug"
                 @click="selectedInvestorSlug = null"
-                class="fixed top-0 left-0 z-50 h-full w-full"
+                class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
             ></div>
         </transition>
         <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
@@ -20,227 +18,187 @@
                 v-if="selectedInvestorSlug"
             ></full-investor>
         </transition>
-        <nav class="sticky top-0 z-10 flex h-20 items-center justify-between rounded-tl-3xl bg-white px-4 py-4 sm:px-6">
-            <div class="flex w-1/3 items-center gap-3">
-                <button
-                    @click="toggleHistory"
-                    :disabled="!hasChats"
-                    class="rounded-lg p-2 transition-colors hover:bg-gray-100"
+        <nav class="sticky top-0 z-10 flex h-20 items-center justify-between bg-white px-2 py-4">
+            <button
+                @click="toggleHistory"
+                :disabled="!hasChats"
+                class="rounded-lg p-2 transition-colors hover:bg-gray-100"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 -960 960 960"
+                    width="24px"
+                    v-if="isHistoryVisible"
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 -960 960 960"
-                        height="24px"
-                        width="24px"
-                        fill="#5f6368"
-                        class="size-6"
-                    >
-                        <path
-                            v-if="isHistoryVisible"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M660-368v-224q0-14-12-19t-22 5l-98 98q-12 12-12 28t12 28l98 98q10 10 22 5t12-19ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm120-80v-560H200v560h120Zm80 0h360v-560H400v560Zm-80 0H200h120Z"
-                        />
-                        <path
-                            v-else
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M400-160h-41q-17 0-28-11.5T320-200q0-17 11.5-28t28.5-11h40v-481h-40q-17 0-28.5-11.5T320-760q0-17 11.5-28.5T360-800h40q33 0 56.5 23.5T480-720v480q0 33-23.5 56.5T400-160Zm240 0q-33 0-56.5-23.5T560-240v-480q0-33 23.5-56.5T640-800h200q33 0 56.5 23.5T920-720v480q0 33-23.5 56.5T840-160H640Zm0-79h200v-481H640v481ZM206-440H80q-17 0-28.5-11.5T40-480q0-17 11.5-28.5T80-520h126l-35-35q-12-12-11.5-28.5T172-612q12-12 28.5-12t28.5 12l103 104q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L228-348q-11 11-27.5 11.5T172-348q-12-11-12-28t11-29l35-35Zm434 201v-481 481Z"
-                        />
-                    </svg>
-                </button>
-                <button @click="createChat" class="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-gray-100">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="size-5"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    New Chat
-                </button>
-            </div>
-            <div class="flex w-1/3 items-center justify-center">
-                <span class="text-bold max-w-full truncate text-center font-bold" v-text="currentChatName || ' '">
-                </span>
-            </div>
-            <div class="flex w-1/3 justify-end gap-2">
-                <button @click="toggleExpansion" class="hidden rounded-lg p-2 hover:bg-gray-100 md:block">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="size-5"
-                        :class="{'rotate-180': isExpanded}"
-                    >
-                        <path
-                            v-if="!isExpanded"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
-                        />
-                        <path
-                            v-else
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"
-                        />
-                    </svg>
-                </button>
-                <button @click="closeGemini" class="rounded-lg p-2 hover:bg-gray-100">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="size-6"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
+                    <path
+                        d="M641.92-379.92v-200.16q0-12.46-11.04-17.07-11.04-4.62-19.88 4.23l-87.62 87.61q-10.84 10.85-10.84 25.31 0 14.46 10.84 25.31L611-367.08q8.84 8.85 19.88 4.23 11.04-4.61 11.04-17.07ZM212.31-140q-29.92 0-51.12-21.19Q140-182.39 140-212.31v-535.38q0-29.92 21.19-51.12Q182.39-820 212.31-820h535.38q29.92 0 51.12 21.19Q820-777.61 820-747.69v535.38q0 29.92-21.19 51.12Q777.61-140 747.69-140H212.31ZM320-200v-560H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85H320Zm60 0h367.69q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H380v560Zm-60 0H200h120Z"
+                    />
+                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" v-else>
+                    <path
+                        d="M498.08-580.08v200.16q0 12.46 11.04 17.07 11.03 4.62 19.88-4.23l87.61-87.61q10.85-10.85 10.85-25.31 0-14.46-10.85-25.31L529-592.92q-8.85-8.85-19.88-4.23-11.04 4.61-11.04 17.07ZM212.31-140q-29.92 0-51.12-21.19Q140-182.39 140-212.31v-535.38q0-29.92 21.19-51.12Q182.39-820 212.31-820h535.38q29.92 0 51.12 21.19Q820-777.61 820-747.69v535.38q0 29.92-21.19 51.12Q777.61-140 747.69-140H212.31ZM320-200v-560H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85H320Zm60 0h367.69q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H380v560Zm-60 0H200h120Z"
+                    />
+                </svg>
+            </button>
+            <h2 class="text-bold max-w-lg truncate text-center font-bold" v-text="currentChatName || ' '"></h2>
+            <button @click="closeGemini" class="rounded-lg p-2 hover:bg-gray-100">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-6"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </nav>
 
         <main class="relative flex h-full overflow-hidden">
-            <transition name="history">
-                <div
-                    v-show="isHistoryVisible"
-                    class="custom-scrollbar h-full w-64 overflow-y-auto border-r bg-gray-50 p-2"
-                >
-                    <div class="flex flex-col gap-3 bg-gray-50">
-                        <div v-for="[date, chats] of userChats" :key="date">
-                            <span class="px-2 text-xs text-gray-500" v-text="date"></span>
-                            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                            <transition-group name="list" tag="div">
-                                <a
-                                    v-for="chat in chats"
-                                    :key="chat.id"
-                                    class="list-item"
-                                    :class="{ 'animate-fade-out': chat.isDeleting, 'typewriter': chat.isNew }"
-                                    :ref="'chat-' + chat.id"
-                                    @animationend="handleAnimationEnd(chat)"
+            <aside
+                class="custom-scrollbar relative h-full overflow-x-clip overflow-y-auto rounded-l-3xl border-r bg-gray-50 transition-all duration-400 ease-in-out"
+                :class="isHistoryVisible? 'min-w-64 w-64' : 'min-w-0 w-0'"
+            >
+                <ul class="flex min-w-64 flex-col gap-3 p-2">
+                    <button @click="createChat" class="flex items-center gap-2 rounded-lg p-2 hover:bg-gray-100">
+                        <div class="rounded-full bg-sky-500 p-1 text-white">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-4"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                        </div>
+                        <span class="text-sm font-medium">New Chat</span>
+                    </button>
+                    <li v-for="[date, chats] of userChats" :key="date">
+                        <span class="shrink-0 px-2 text-xs text-gray-500" v-text="date"></span>
+                        <transition-group name="list" tag="div">
+                            <a
+                                v-for="chat in chats"
+                                :key="chat.id"
+                                class="list-item"
+                                :class="{ 'animate-fade-out': chat.isDeleting, 'typewriter': chat.isNew }"
+                                :ref="'chat-' + chat.id"
+                                @animationend="handleAnimationEnd(chat)"
+                            >
+                                <div
+                                    class="group relative w-full cursor-pointer rounded-lg p-2"
+                                    @click="selectChat(chat.id)"
+                                    :class="selectedChatId === chat.id ? 'bg-sky-500 hover:bg-sky-400' : 'hover:bg-[#ccecff]'"
                                 >
-                                    <div
-                                        class="group relative w-full cursor-pointer rounded-lg p-2"
-                                        @click="selectChat(chat.id)"
-                                        :class="selectedChatId === chat.id ? 'bg-sky-500 hover:bg-sky-400' : 'hover:bg-[#ccecff]'"
-                                    >
-                                        <span
-                                            v-if="editingChatId !== chat.id"
-                                            class="mask-linear-gradient block overflow-hidden whitespace-nowrap"
+                                    <span
+                                        v-if="editingChatId !== chat.id"
+                                        class="mask-linear-gradient block overflow-hidden whitespace-nowrap"
+                                        :class="selectedChatId === chat.id ? 'text-white' : 'text-black'"
+                                        v-text="chat.name"
+                                    ></span>
+                                    <div v-else class="flex">
+                                        <input
+                                            v-model="newChatName"
+                                            @click.stop
+                                            @keyup.enter="saveChatName(chat)"
+                                            @keyup.esc="cancelEditing"
+                                            maxlength="30"
+                                            class="m-0 w-full rounded-lg border-b border-sky-500 bg-transparent py-0 leading-normal text-inherit outline-none"
                                             :class="selectedChatId === chat.id ? 'text-white' : 'text-black'"
-                                            v-text="chat.name"
-                                        ></span>
-
-                                        <div v-else class="flex">
-                                            <input
-                                                v-model="newChatName"
-                                                @click.stop
-                                                @keyup.enter="saveChatName(chat)"
-                                                @keyup.esc="cancelEditing"
-                                                maxlength="30"
-                                                class="m-0 w-full rounded-lg border-b border-sky-500 bg-transparent py-0 leading-normal text-inherit outline-none"
-                                                :class="selectedChatId === chat.id ? 'text-white' : 'text-black'"
-                                                :ref="`nameInput-${chat.id}`"
-                                                style="min-height: 0; max-height: none"
-                                            />
-                                        </div>
-                                        <button
-                                            data-dropdown-button
-                                            @click.stop="toggleDropdown(chat.id)"
-                                            class="absolute top-1/2 -right-1 hidden -translate-1/2 group-hover:block"
+                                            :ref="`nameInput-${chat.id}`"
+                                            style="min-height: 0; max-height: none"
+                                        />
+                                    </div>
+                                    <button
+                                        data-dropdown-button
+                                        @click.stop="toggleDropdown(chat.id)"
+                                        class="absolute top-1/2 -right-1 hidden -translate-1/2 group-hover:block"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="size-6 text-white"
                                         >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke-width="1.5"
-                                                stroke="currentColor"
-                                                class="size-6 text-white"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
-                                                />
-                                            </svg>
-                                        </button>
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+                                            />
+                                        </svg>
+                                    </button>
 
-                                        <transition
-                                            enter-active-class="animate-zoom-in"
-                                            leave-active-class="animate-zoom-out"
+                                    <transition
+                                        enter-active-class="animate-zoom-in"
+                                        leave-active-class="animate-zoom-out"
+                                    >
+                                        <div
+                                            v-if="openedDropdownChatId === chat.id"
+                                            class="absolute top-8 right-1 z-10 flex w-24 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
                                         >
                                             <div
-                                                v-if="openedDropdownChatId === chat.id"
-                                                class="absolute top-8 right-1 z-10 flex w-24 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
+                                                class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
+                                                data-rename-button
+                                                @click.stop="startEditing(chat)"
                                             >
-                                                <div
-                                                    class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-sky-500 hover:text-white"
-                                                    data-rename-button
-                                                    @click.stop="startEditing(chat)"
+                                                <span>Rename</span>
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 22 22"
+                                                    stroke-width="1.5"
+                                                    stroke="currentColor"
+                                                    class="size-5"
                                                 >
-                                                    <span>Rename</span>
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="none"
-                                                        viewBox="0 0 22 22"
-                                                        stroke-width="1.5"
-                                                        stroke="currentColor"
-                                                        class="size-5"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                                                        />
-                                                    </svg>
-                                                </div>
-                                                <div
-                                                    class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm text-red-600 hover:bg-sky-500 hover:text-white"
-                                                    @click.stop="deleteChat(chat.id)"
-                                                >
-                                                    <span>Delete</span>
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke-width="1.5"
-                                                        stroke="currentColor"
-                                                        class="size-4"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                                                        />
-                                                    </svg>
-                                                </div>
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                                                    />
+                                                </svg>
                                             </div>
-                                        </transition>
-                                    </div>
-                                </a>
-                            </transition-group>
-                        </div>
-                    </div>
-                </div>
-            </transition>
-
+                                            <div
+                                                class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm text-red-600 hover:bg-sky-500 hover:text-white"
+                                                @click.stop="deleteChat(chat.id)"
+                                            >
+                                                <span>Delete</span>
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke-width="1.5"
+                                                    stroke="currentColor"
+                                                    class="size-4"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                                                    />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </transition>
+                                </div>
+                            </a>
+                        </transition-group>
+                    </li>
+                </ul>
+            </aside>
             <div
-                class="relative mx-auto flex w-full flex-col justify-center overflow-hidden transition-all duration-300"
+                class="relative mx-auto flex w-full flex-col items-center justify-center overflow-hidden px-2 transition-all duration-300"
             >
-                <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <div
-                    class="custom-scrollbar flex justify-center overflow-y-auto"
+                    class="custom-scrollbar flex h-full w-full justify-center overflow-y-auto"
                     ref="chatContainer"
                     @scroll="handleScroll"
                 >
-                    <div class="prose max-w-3xl p-4">
+                    <div class="prose mt-10 w-full max-w-3xl">
                         <template v-if="response.length">
                             <div
                                 v-for="(message, index) in response"
@@ -250,28 +208,35 @@
                             >
                                 <div
                                     class="relative rounded-xl p-3"
-                                    :class="{'bg-sky-500 max-w-[75%] text-white rounded-br-none': message.type === 'user', 'text-gray-800 ': message.type === 'gemini'}"
+                                    :class="{
+                                        'bg-sky-500 max-w-[75%] text-white rounded-br-none': message.type === 'user', 
+                                        'text-gray-800': message.type === 'gemini',
+                                        'border border-red-200 bg-red-50 text-red-600': message.isError
+                                    }"
                                 >
                                     <span v-if="message.isHTML" v-html="processMarkdown(message.content)"></span>
                                     <span v-else v-text="message.content"></span>
                                     <div
                                         class="absolute -bottom-2 h-3 w-3"
                                         :class="{'right-0 bg-sky-500': message.type === 'user'}"
-                                        :style="{clipPath: message.type === 'user' ? 'polygon(0 0, 100% 0, 100% 100%)' : 'polygon(0 0, 100% 0, 0 100%)'}"
+                                        :style="{clipPath: message.type === 'user' ? 'polygon(0 0, 100% 0, 100% 100%)' : ''}"
                                     ></div>
                                 </div>
                             </div>
                             <div v-if="isThinking" class="mb-4 flex">
-                                <svg
-                                    class="animate-breathe"
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 8 8"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <circle cx="4" cy="4" r="4" fill="#000"></circle>
-                                </svg>
+                                <div class="flex items-center space-x-2">
+                                    <svg
+                                        class="animate-breathe"
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 8 8"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <circle cx="4" cy="4" r="4" fill="#000"></circle>
+                                    </svg>
+                                    <span class="text-sm text-gray-500">AI is thinking...</span>
+                                </div>
                             </div>
                             <div v-if="isAborted[selectedChatId]" class="mb-4 flex">
                                 <div
@@ -292,36 +257,40 @@
                                 </div>
                             </div>
                         </template>
-                        <div v-else class="flex h-full flex-col items-center justify-center">
+                        <div v-else class="flex h-full w-full flex-col items-center justify-center px-2">
                             <h2 class="text-3xl font-semibold">What can I help with?</h2>
-
-                            <div class="relative flex w-full items-center">
-                                <div
-                                    ref="prompt"
-                                    v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
-                                    contenteditable="true"
-                                    @keyup.enter="startSSEStream(selectedChatId)"
-                                    class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-500 empty:before:content-['Write_GlobalifAI']"
-                                ></div>
-                                <button
-                                    @click="startSSEStream(selectedChatId)"
-                                    class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke-width="1.5"
-                                        stroke="#0ea5e9"
-                                        class="size-6"
+                            <div class="mx-2 w-full rounded-3xl bg-white p-4">
+                                <div class="relative flex w-full items-center">
+                                    <div
+                                        ref="prompt"
+                                        v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
+                                        contenteditable="true"
+                                        @keyup.enter="startSSEStream(selectedChatId)"
+                                        role="textbox"
+                                        tabindex="0"
+                                        aria-label="Ask GlobalifAI a question"
+                                        class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-500 empty:before:content-['Write_GlobalifAI']"
+                                    ></div>
+                                    <button
+                                        @click="startSSEStream(selectedChatId)"
+                                        class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
                                     >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"
-                                        />
-                                    </svg>
-                                </button>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="#0ea5e9"
+                                            class="size-6"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -329,85 +298,90 @@
 
                 <div
                     v-if="response.length"
-                    class="mx-auto my-2 w-full max-w-3xl rounded-3xl border-t border-gray-200 bg-white p-4"
+                    class="m-2 w-full max-w-3xl rounded-3xl border-t border-gray-200 bg-white p-4"
                 >
-                    <div class="mx-2">
-                        <div class="relative flex items-center">
-                            <div
-                                v-if="!isAborted[selectedChatId]"
-                                ref="prompt"
-                                v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
-                                @keyup.enter="startSSEStream(selectedChatId)"
-                                contenteditable="true"
-                                :class="{ 'pointer-events-none opacity-50': isGenerating }"
-                                class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-400 empty:before:content-['Ask_GlobalifAI']"
-                            ></div>
-                            <button
-                                v-if="isGenerating"
-                                @click="cancelGeneration"
-                                class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-red-100"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    height="24px"
-                                    viewBox="0 -960 960 960"
-                                    width="24px"
-                                    fill="#0ea5e9"
-                                >
-                                    <path
-                                        d="M480-280q83 0 141.5-58.5T680-480q0-83-58.5-141.5T480-680q-83 0-141.5 58.5T280-480q0 83 58.5 141.5T480-280Zm0 200q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"
-                                    />
-                                </svg>
-                            </button>
-                            <button
-                                v-else-if="!isAborted[selectedChatId]"
-                                @click="startSSEStream(selectedChatId)"
-                                class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="#0ea5e9"
-                                    class="size-6"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
+                    <div class="relative flex items-center">
                         <div
-                            v-if="isAborted[selectedChatId]"
-                            class="flex h-full cursor-pointer flex-col items-center justify-center"
+                            v-if="!isAborted[selectedChatId]"
+                            ref="prompt"
+                            v-on="$options.methods.handleEnterKey ? { keydown: handleEnterKey } : {}"
+                            @keyup.enter="startSSEStream(selectedChatId)"
+                            role="textbox"
+                            tabindex="0"
+                            aria-label="Ask GlobalifAI a question"
+                            contenteditable="true"
+                            :class="{ 'pointer-events-none opacity-50': isGenerating }"
+                            class="max-h-48 w-full rounded-xl border-2 border-sky-500 bg-white p-4 pr-12 shadow-sm outline-none before:text-gray-400 empty:before:content-['Ask_GlobalifAI']"
+                        ></div>
+                        <button
+                            v-if="isGenerating"
+                            @click="cancelGeneration"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-red-100"
                         >
-                            <span>An error occurred while generating the response</span>
-                            <div
-                                class="mt-2 flex items-center justify-center gap-2 rounded-full bg-sky-500 p-4 text-white"
-                                @click="retryGeneration(selectedChatId)"
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                height="24px"
+                                viewBox="0 -960 960 960"
+                                width="24px"
+                                fill="#0ea5e9"
                             >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    class="size-6"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-                                    />
-                                </svg>
-                                <button class="cursor-pointer transition-colors">Повторно сгенерировать</button>
-                            </div>
+                                <path
+                                    d="M480-280q83 0 141.5-58.5T680-480q0-83-58.5-141.5T480-680q-83 0-141.5 58.5T280-480q0 83 58.5 141.5T480-280Zm0 200q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            v-else-if="!isAborted[selectedChatId]"
+                            @click="startSSEStream(selectedChatId)"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg p-2 transition-colors hover:bg-sky-100"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="#0ea5e9"
+                                class="size-6"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div
+                        v-if="isAborted[selectedChatId]"
+                        class="flex h-full cursor-pointer flex-col items-center justify-center"
+                    >
+                        <span>An error occurred while generating the response</span>
+                        <div
+                            class="mt-2 flex items-center justify-center gap-2 rounded-full bg-sky-500 p-4 text-white"
+                            @click="retryGeneration(selectedChatId)"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-6"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+                                />
+                            </svg>
+                            <button class="cursor-pointer transition-colors">Generate Again</button>
                         </div>
                     </div>
                 </div>
+                <span class="mx-2 mb-2 text-xs text-gray-400">
+                    GlobalifAI is still learning! Mistakes can occur, always double check information.
+                </span>
             </div>
         </main>
     </article>

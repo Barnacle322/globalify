@@ -7,6 +7,7 @@ from google.genai import types
 
 from src.project.schemas.deck import GeminiFeedback
 
+
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
 )

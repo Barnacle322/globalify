@@ -254,9 +254,18 @@ def about_micro_web_page(company_id):
     company = microwebpage.company
     return render_template("microwebpage/about.html", company=company, microwebpage=microwebpage)
 
-@microwebpage.post("/unpublish/<int:company_id>")
-def unpublish(company_id):
-    microwebpage = MicroWebPage.get_by_id(company_id)
-    microwebpage.is_published = False
-    db.session.commit()
-    return jsonify({"message": f"MicroWebPage for company {company_id} unpublished successfully"}), 200
+@microwebpage.route("/publish/<int:microwebpage_id>", methods=["POST"])
+def toggle_publish(microwebpage_id):
+    microwebpage = MicroWebPage.get_by_id(microwebpage_id)
+    data = request.get_json()
+    if data is None or 'is_published' not in data:
+        return jsonify({"error": "Missing is_published parameter"}), 400
+
+    is_published = data['is_published']
+    microwebpage.is_published = is_published
+    try:
+        db.session.commit()
+        return jsonify({"message": f"MicroWebPage {'published' if is_published else 'unpublished'} successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to update publish status: {str(e)}"}), 500

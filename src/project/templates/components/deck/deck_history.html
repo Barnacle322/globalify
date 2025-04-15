@@ -1,0 +1,82 @@
+{% macro render(deckId) %}<template id="deck-history-template">
+    <article
+        class="fixed top-0 right-0 z-[60] flex h-full w-full flex-col overflow-y-scroll overscroll-contain bg-gray-50 transition-all shadow-lg"
+        :class="isExpanded ? 'md:w-3/5 lg:w-2/5 2xl:w-1/3' : 'lg:w-1/4 2xl:w-1/5'"
+    >
+        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+            <div v-if="deleteFeedbackOpened" class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"></div>
+        </transition>
+        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+            <delete-feedback-component
+                v-if="deleteFeedbackOpened"
+                :feedback-id="feedbackToDelete"
+                @close-delete-feedback="deleteFeedbackOpened = null"
+            ></delete-feedback-component>
+        </transition>
+        <header class="p-5 bg-gradient-to-r from-blue-400 to-blue-700 text-white text-2xl font-semibold shadow-md">
+            History
+        </header>
+
+        <div v-for="(group, groupName) in groupedHistories" :key="groupName" class="flex flex-col">
+            <span class="px-8 py-2 text-lg font-semibold text-gray-700 rounded-md mt-1" v-text="groupName"></span>
+            <div
+                v-for="history in group"
+                :key="history.id"
+                class="flex flex-col gap-3 px-5 py-3 bg-white shadow-md rounded-lg mt-1 hover:shadow-lg transition-shadow cursor-pointer relative border"
+                :class="selectedHistory == history.id ? 'border-3 border-blue-500' : 'border-gray-200'"
+            >
+                <a :href="`/deck/{{deckId}}/feedback//${history.id}`" class="flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500" v-text="history.formated_created_at"></span>
+                        <button
+                            @click.prevent="!openedDropdownFeedbackId ? openDropdown(history.id) : closeDropdown()"
+                            class="rounded-full hover:bg-gray-100"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="w-5 h-5 text-gray-600"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                    <div
+                        v-if="openedDropdownFeedbackId === history.id"
+                        class="absolute top-10 right-6 z-10 flex w-40 flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white py-2 shadow-lg"
+                    >
+                        <button
+                            @click.prevent="deleteFeedbackOpened = true; feedbackToDelete = history.id"
+                            class="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md"
+                        >
+                            Delete
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                        <span
+                            v-if="history.agent"
+                            v-text="history.agent"
+                            class="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-600"
+                        ></span>
+                        <span
+                            v-else
+                            v-for="goal in history.goals"
+                            :key="goal.id"
+                            class="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-600"
+                            v-text="goal"
+                        ></span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </article>
+</template>
+{% endmacro %}

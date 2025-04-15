@@ -29,8 +29,10 @@ def delete_blob_from_url(blob_url: str, bucket_name: str = BUCKET_NAME) -> None:
 
 def upload_blob(
     content: bytes,
+    content_type: str,
     destination_blob_name: UUID | None = None,
     old_blob_id: str | None = None,
+    blob_name: str | None = None,
     bucket_name: str = BUCKET_NAME,
 ) -> str:
     if not destination_blob_name:
@@ -42,10 +44,13 @@ def upload_blob(
     blob = bucket.blob(str(destination_blob_name))
 
     # Set the content type of the blob
-    blob.content_type = "image/jpeg"
+    blob.content_type = content_type
+
+    if blob_name:
+        blob.name = blob_name
 
     try:
-        blob.upload_from_file(io.BytesIO(content), content_type="image/jpeg")
+        blob.upload_from_file(io.BytesIO(content), content_type=content_type)
     except Exception as e:
         print(e)
         raise
@@ -148,8 +153,45 @@ def upload_picture(picture, bucket_name: str = BUCKET_NAME):
 
     try:
         resized_picture = prepare_picture(picture)
-        picture_url = upload_blob(resized_picture.read(), bucket_name=bucket_name)
+        picture_url = upload_blob(resized_picture.read(), bucket_name=bucket_name, content_type="image/jpeg")
         return picture_url
+    except Exception as e:
+        print(e)
+        raise
+
+def upload_picture_hd(picture, bucket_name: str = BUCKET_NAME):
+    if not picture or picture == "" or picture == "None":
+        raise ValueError("No picture provided")
+
+    try:
+        picture_url = upload_blob(picture, bucket_name=bucket_name, content_type="image/jpeg")
+        return picture_url
+    except Exception as e:
+        print(e)
+        raise
+
+
+def load_deck(deck_uuid):
+    if not deck_uuid:
+        return False
+
+    try:
+        deck = download_blob_into_memory(deck_uuid)
+        deck_base64 = base64.b64encode(deck).decode("utf-8")
+    except Exception as e:
+        print(e)
+        raise
+
+    return deck_base64
+
+
+def upload_deck(deck, blob_name, content_type, bucket_name: str = BUCKET_NAME):
+    if not deck or deck == "" or deck == "None":
+        raise ValueError("No deck provided")
+
+    try:
+        deck_url = upload_blob(deck, blob_name=blob_name, bucket_name=bucket_name, content_type=content_type)
+        return deck_url
     except Exception as e:
         print(e)
         raise

@@ -1,0 +1,110 @@
+{% macro render() %}
+<template id="deck-upload-template">
+    <article
+        class="fixed top-0 right-0 z-50 flex h-full w-full flex-col bg-white p-8 sm:top-1/2 sm:right-1/2 sm:h-auto sm:max-w-2xl sm:translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
+    >
+        <div class="mx-auto w-full gap-4 rounded-t-lg border p-5">
+            <label for="pdf-upload" class="cursor-pointer">
+                <div class="mb-5 rounded-md border-2 border-dashed border-sky-500 bg-blue-50 p-10">
+                    <div class="flex flex-col items-center justify-center">
+                        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="size-12 fill-sky-500">
+                            <path
+                                d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q25-92 100-149t170-57q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H520q-33 0-56.5-23.5T440-240v-206l-64 62-56-56 160-160 160 160-56 56-64-62v206h220q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-83 0-141.5 58.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41h100v80H260Zm220-280Z"
+                            />
+                        </svg>
+                        <span class="cursor-pointer text-lg text-sky-500 underline hover:text-sky-700" v-if="!fileData">
+                            Select a file to upload
+                        </span>
+                        <span
+                            class="font-bold text-sky-700"
+                            v-text="'Selected File: ' + fileData.filename"
+                            v-else
+                        ></span>
+                        <input id="pdf-upload" type="file" class="hidden" accept=".pdf" @change="handleFileUpload" />
+                        <span class="text-md text-gray-500">
+                            <sub>
+                                Supported formats: .txt, .docx, .odt, .epub, .pdf, .html, .htm, .tsv, .json, .xls, .xlsx
+                            </sub>
+                        </span>
+                    </div>
+                </div>
+            </label>
+            <div
+                v-for="(options, category) in categoryOptions"
+                :key="category"
+                :class="[
+                    'flex flex-col border-gray-200',
+                    category === firstCategory ? '' : 'border-t',
+                    category !== lastCategory ? 'border-b' : ''
+                ]"
+            >
+                <div class="flex flex-row items-center justify-start gap-8 pt-4 pb-4">
+                    <span class="w-28 pl-3" v-text="categoryLabels[category]"></span>
+                    <div class="inline-flex cursor-pointer rounded-md shadow-xs" role="group">
+                        <button
+                            v-for="(option, index) in options"
+                            :key="option.value"
+                            type="button"
+                            v-text="option.label"
+                            :class="[
+                                'px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2',
+                                selectedGoals[category] === option.value ? 'bg-sky-500 text-white' : 'bg-white text-gray-900 border-gray-200',
+                                index === 0 ? 'rounded-s-lg' : '',
+                                index === options.length - 1 ? 'rounded-e-lg' : '',
+                                index > 0 && index < options.length - 1 ? 'border-t border-b' : '',
+                                (category !== 'agent' && areGoalsDisabled) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500 hover:text-white'
+                            ]"
+                            @click="updateGoal(category, option.value)"
+                            :disabled="category !== 'agent' && areGoalsDisabled"
+                        ></button>
+                    </div>
+                </div>
+                <!-- Description -->
+                <p
+                    v-if="descriptions[category] && descriptions[category][selectedGoals[category]]"
+                    class="mb-2 ml-32 text-xs text-gray-600"
+                    v-text="descriptions[category][selectedGoals[category]]"
+                ></p>
+            </div>
+        </div>
+        <div class="flex w-full items-center justify-end rounded-b-lg border-r border-b border-l bg-gray-50 p-4">
+            <button
+                class="rounded-lg bg-sky-500 px-4 py-2 font-bold text-white hover:bg-sky-700"
+                :class="{
+                    'opacity-50 cursor-not-allowed': !fileData || !selectedGoals,
+                    'cursor-pointer': fileData && selectedGoals
+                }"
+                :disabled="!fileData || !selectedGoals"
+                @click="analyzeFile"
+            >
+                Analyze
+            </button>
+        </div>
+
+        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+            <div v-if="isAnalyzing" class="fixed inset-0 z-50 flex items-center justify-center bg-white/90 rounded-xl">
+                <div class="flex flex-col items-center">
+                    <svg
+                        class="h-10 w-10 animate-spin text-blue-500"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                        ></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <p class="mt-3 text-lg font-semibold text-gray-700">Analyzing...</p>
+                </div>
+            </div>
+        </transition>
+    </article>
+</template>
+{% endmacro %}

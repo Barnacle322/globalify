@@ -1,6 +1,7 @@
 import traceback
 
-from flask import Blueprint, Response, jsonify, request, stream_with_context
+from flask import Blueprint, Response, jsonify, request, stream_with_context, render_template
+
 from flask_login import current_user, login_required
 from sqlalchemy import delete
 
@@ -283,3 +284,7 @@ def rename_chat(chat_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Failed to rename chat: {str(e)}"}), 500
+
+
+
+

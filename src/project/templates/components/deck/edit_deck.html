@@ -1,0 +1,31 @@
+{% macro render() %}
+<template id="deck-edit-template">
+    <article
+        class="fixed top-1/2 right-1/2 z-50 flex w-10/12 translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
+    >
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="grid grid-cols-6 gap-x-2 gap-y-1">
+            <div class="col-span-full">
+                <label class="text-sm font-medium text-gray-700" for="name">Name</label>
+                <input class="w-full rounded-lg bg-white" v-model="deckName" type="text" id="name" required />
+            </div>
+        </div>
+        <div class="flex flex-row items-center gap-5 justify-between">
+            <button @click="deleteDeck(deckId)" class="cursor-pointer rounded-lg bg-red-500 px-3 py-2 text-white">
+                Delete
+            </button>
+            <div class="flex gap-2">
+                <button @click="close" class="rounded-lg border border-gray-300 px-3 py-2 cursor-pointer">
+                    Cancel
+                </button>
+                <button
+                    @click="updateDeck(deckId)"
+                    class="rounded-lg bg-sky-500 px-3 py-2 text-white hover:bg-sky-600 cursor-pointer"
+                >
+                    Update
+                </button>
+            </div>
+        </div>
+    </article>
+</template>
+{% endmacro %}

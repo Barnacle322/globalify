@@ -1,13 +1,11 @@
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from flask import current_app
 from google import genai
 from google.genai import types
 
-from src.project.schemas.deck import GeminiFeedback
-
-
+from ..schemas.deck import GeminiFeedback
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
 )
@@ -33,7 +31,7 @@ def generate_response(query: str, old_messages: list):
         raise
 
 
-def search_geographic(location: str) -> Dict[str, Any]:
+def search_geographic(location: str) -> dict[str, Any]:
     """
     Search for investors based on geographic location.
 
@@ -53,7 +51,7 @@ def search_geographic(location: str) -> Dict[str, Any]:
         return {"hits": []}
 
 
-def search_semantic(query: str, industries: Optional[List[str]] = None) -> Dict[str, Any]:
+def search_semantic(query: str, industries: list[str] | None = None) -> dict[str, Any]:
     """
     Search for investors based on semantic meaning, industries, or interests.
 
@@ -83,7 +81,7 @@ def search_semantic(query: str, industries: Optional[List[str]] = None) -> Dict[
         return {"hits": []}
 
 
-def combined_search(query: str) -> Dict[str, Any]:
+def combined_search(query: str) -> dict[str, Any]:
     """
     Perform both geographic and semantic searches and combine results.
     This is a fallback for general queries.
@@ -125,7 +123,7 @@ def combined_search(query: str) -> Dict[str, Any]:
         return {"hits": []}
 
 
-def perform_search(query: str) -> Dict[str, Any]:
+def perform_search(query: str) -> dict[str, Any]:
     """
     Search for investors using Typesense based on the query. It can get any kind of query, including geographic and semantic. This should be used if other tools aren't available.
     It is a fallback for general queries.
@@ -164,7 +162,7 @@ def perform_search(query: str) -> Dict[str, Any]:
         return {"hits": []}
 
 
-def extract_context(search_results: Dict[str, Any]) -> str:
+def extract_context(search_results: dict[str, Any]) -> str:
     """
     Extract context from search results.
 
@@ -217,7 +215,7 @@ def extract_context(search_results: Dict[str, Any]) -> str:
     return context.strip()
 
 
-def generate_ai_response(query: str, old_messages: List[Dict[str, Any]]):
+def generate_ai_response(query: str, old_messages: list[dict[str, Any]]):
     """
     Generate AI response using Gemini API with function calling.
 

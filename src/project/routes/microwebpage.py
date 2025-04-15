@@ -56,6 +56,7 @@ def create_micro_web_page(company_id):
         logo_cloud_title = request.form.get("logo_cloud_title")
         benefit_title = request.form.get("benefit_title")
         benefit_subtitle = request.form.get("benefit_subtitle")
+        benefit_statement_json = request.form.get("benefit_statement")
         stat_title = request.form.get("stat_title")
         stat_subtitle = request.form.get("stat_subtitle")
         statistics_json = request.form.get("statistics")
@@ -67,10 +68,19 @@ def create_micro_web_page(company_id):
         customer_testimonials_subtitle = request.form.get("customer_testimonials_subtitle")
         faq_title = request.form.get("faq_title")
         faq_json = request.form.get("faq")
+        about_title = request.form.get("about_title")
+        about_subtitle = request.form.get("about_subtitle")
+        about_statement_json = request.form.get("about_statement")
+        values_title = request.form.get("values_title")
+        values_subtitle = request.form.get("values_subtitle")
+        values_statement_json = request.form.get("values_statement")
 
         # Parse JSON fields if they exist
+        benefit_statement = json.loads(benefit_statement_json) if benefit_statement_json else None
         statistics = json.loads(statistics_json) if statistics_json else None
         faq = json.loads(faq_json) if faq_json else None
+        about_statement = json.loads(about_statement_json) if about_statement_json else None
+        values_statement = json.loads(values_statement_json) if values_statement_json else None
 
         # Process employees and customers without while loops
         employees_data = []
@@ -122,6 +132,7 @@ def create_micro_web_page(company_id):
             logo_cloud_title=logo_cloud_title,
             benefit_title=benefit_title,
             benefit_subtitle=benefit_subtitle,
+            benefit_statement=benefit_statement,
             stat_title=stat_title,
             stat_subtitle=stat_subtitle,
             statistics=statistics,
@@ -132,7 +143,13 @@ def create_micro_web_page(company_id):
             customer_testimonials_title=customer_testimonials_title,
             customer_testimonials_subtitle=customer_testimonials_subtitle,
             faq_title=faq_title,
-            faq=faq
+            faq=faq,
+            about_title=about_title,
+            about_subtitle=about_subtitle,
+            about_statement=about_statement,
+            values_title=values_title,
+            values_subtitle=values_subtitle,
+            values_statement=values_statement
         )
 
         db.session.add(new_micropage)
@@ -165,7 +182,6 @@ def create_micro_web_page(company_id):
                         continue
 
         # Handle multiple image uploads
-        print(uploaded_images)
         if uploaded_images:
             for image in uploaded_images:
                 if image and image.filename:
@@ -230,3 +246,17 @@ def create_micro_web_page(company_id):
         }), 200
 
     return render_template("microwebpage/create_micro_web_page.html", company=company)
+
+
+@microwebpage.get("/about/<int:company_id>")
+def about_micro_web_page(company_id):
+    microwebpage = MicroWebPage.get_by_id(company_id)
+    company = microwebpage.company
+    return render_template("microwebpage/about.html", company=company, microwebpage=microwebpage)
+
+@microwebpage.post("/unpublish/<int:company_id>")
+def unpublish(company_id):
+    microwebpage = MicroWebPage.get_by_id(company_id)
+    microwebpage.is_published = False
+    db.session.commit()
+    return jsonify({"message": f"MicroWebPage for company {company_id} unpublished successfully"}), 200

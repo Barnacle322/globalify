@@ -1,6 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
+from xmlrpc.client import Boolean
 
 from sqlalchemy import (
     DateTime,
@@ -9,6 +10,7 @@ from sqlalchemy import (
     String,
     func,
     Text,
+    Boolean
 )
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 
@@ -25,7 +27,6 @@ class MicroWebPage(MappedAsDataclass, db.Model, unsafe_hash=True):
     logo_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
 
     #Hero section
-
     hero_title: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     hero_subtitle: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
 
@@ -35,6 +36,7 @@ class MicroWebPage(MappedAsDataclass, db.Model, unsafe_hash=True):
     #Benefit section
     benefit_title: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     benefit_subtitle: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    benefit_statement: Mapped[list[dict[str, str]]] = mapped_column(JSON, nullable=True, default=None)
 
     #Statistic section
     stat_title: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
@@ -47,16 +49,25 @@ class MicroWebPage(MappedAsDataclass, db.Model, unsafe_hash=True):
     leadership_title: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     leadership_subtitle: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
 
-
     # Customer Testimonials section:
     customer_testimonials_title: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     customer_testimonials_subtitle: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
 
-
-
     #FAQ section
     faq_title: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     faq: Mapped[list[dict[str, str]]] = mapped_column(JSON, nullable=True, default=None)
+
+    #About section
+    about_title: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    about_subtitle: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    about_statement: Mapped[list[dict[str, str]]] = mapped_column(JSON, nullable=True, default=None)
+
+    #Values section
+    values_title: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    values_subtitle: Mapped[str| None] = mapped_column(String, nullable=True, default=None)
+    values_statement: Mapped[list[dict[str, str]]] = mapped_column(JSON, nullable=True, default=None)
+
+    is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), init=False)
 
     webpage_media: Mapped[list["WebpageMedia"]] = relationship(

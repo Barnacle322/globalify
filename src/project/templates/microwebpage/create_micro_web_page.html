@@ -50,20 +50,22 @@
     </head>
 
     <!-- prettier-ignore -->
-    {% import "microwebpage/components/first_stage.html" as first_stage %}
-    {{ first_stage.render() }}
-    {% import "microwebpage/components/second_stage.html" as second_stage %}
-    {{ second_stage.render() }}
-    {% import "microwebpage/components/third_stage.html" as third_stage %}
-    {{ third_stage.render() }}
-    {% import "microwebpage/components/fourth_stage.html" as fourth_stage %}
-    {{ fourth_stage.render() }}
-    {% import "microwebpage/components/fifth_stage.html" as fifth_stage %}
-    {{ fifth_stage.render() }}
-    {% import "microwebpage/components/add_employee_component.html" as add_employee %}
-    {{ add_employee.render() }}
-    {% import "microwebpage/components/add_customer_feedback_component.html" as add_customer_feedback %}
-    {{ add_customer_feedback.render() }}
+    {% import "microwebpage/components/main_component.html" as main_component %}
+    {{ main_component.render() }}
+    {% import "microwebpage/components/logo_cloud_component.html" as logo_cloud_component %}
+    {{ logo_cloud_component.render() }}
+    {% import "microwebpage/components/statistics_component.html" as statistics_component %}
+    {{ statistics_component.render() }}
+    {% import "microwebpage/components/mission_component.html" as mission_component %}
+    {{ mission_component.render() }}
+    {% import "microwebpage/components/faq_component.html" as faq_component %}
+    {{ faq_component.render() }}
+    {% import "microwebpage/components/about_component.html" as about_component %}
+    {{ about_component.render() }}
+    {% import "microwebpage/components/add_employee_component.html" as add_employee_component %}
+    {{ add_employee_component.render() }}
+    {% import "microwebpage/components/add_customer_feedback_component.html" as add_customer_feedback_component %}
+    {{ add_customer_feedback_component.render() }}
 
     <body class="h-full overflow-x-clip" id="app">
         <input type="hidden" id="company_id" value="{{ company.id }}" />
@@ -76,6 +78,7 @@
                     :is-first-stage-valid="isFirstStageValid"
                     @change-page="changePage"
                     @submit-form="submitForm"
+                    @first-stage-valid="updateFirstStageValid"
                 ></component>
             </transition>
         </div>

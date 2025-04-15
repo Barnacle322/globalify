@@ -1,21 +1,15 @@
 {% macro render() %}
-<script type="text/x-template" id="third-stage-template">
+<script type="text/x-template" id="statistics-component-template">
     <div class="mx-auto mt-4 flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
-        <!-- Hidden Inputs -->
         <div>
             <input type="hidden" v-model="formData.id" />
             <input type="hidden" v-model="formData.company_id" />
         </div>
-
-        <!-- Header Section -->
         <div class="flex flex-col gap-2">
-            <h1 class="text-4xl font-medium">Step 3 of 7: Statistics</h1>
+            <h1 class="text-4xl font-medium">Step 3 of 8: Statistics</h1>
             <span>Add optional company statistics.</span>
         </div>
-
-        <!-- Input Fields -->
         <div class="grid grid-cols-2 gap-x-4 gap-y-6">
-            <!-- Statistics Title -->
             <div class="flex items-center">
                 <label for="stat_title" class="text-sm font-medium text-gray-700">Statistics Title</label>
             </div>
@@ -28,8 +22,6 @@
                     placeholder="Stats headline (e.g., 'By the Numbers')"
                 />
             </div>
-
-            <!-- Statistics Subtitle -->
             <div class="flex items-center">
                 <label for="stat_subtitle" class="text-sm font-medium text-gray-700">Statistics Subtitle</label>
             </div>
@@ -42,8 +34,6 @@
                     placeholder="Stats description (e.g., 'Our impact in numbers')"
                 />
             </div>
-
-            <!-- Statistics -->
             <div class="col-span-2">
                 <div class="flex items-center">
                     <label class="text-sm font-medium text-gray-700">Statistics</label>
@@ -80,8 +70,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Navigation -->
         <div class="flex justify-between">
             <button
                 class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black transition-colors ease-in-out hover:bg-gray-200"

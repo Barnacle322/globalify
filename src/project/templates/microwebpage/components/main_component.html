@@ -1,12 +1,12 @@
 {% macro render() %}
-<script type="text/x-template" id="first-stage-template">
+<script type="text/x-template" id="main-component-template">
     <div class="mx-auto mt-4 flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
         <div>
             <input type="hidden" v-model="formData.id" />
             <input type="hidden" v-model="formData.company_id" />
         </div>
         <div class="flex flex-col gap-2">
-            <h1 class="text-4xl font-medium">Step 1 of 7: Main</h1>
+            <h1 class="text-4xl font-medium">Step 1 of 8: Main</h1>
             <span>Please fill out the required main fields.</span>
         </div>
         <div class="grid grid-cols-2 gap-x-4 gap-y-6">
@@ -23,6 +23,7 @@
                     accept="image/png"
                 />
                 <span v-if="errors.logo_url" class="text-sm text-red-500">[[ errors.logo_url ]]</span>
+                <img v-if="formData.logoPreview" :src="formData.logoPreview" class="mt-2 h-24 w-auto rounded-md" />
             </div>
             <div class="flex items-center">
                 <label for="hero_title" class="text-sm font-medium text-gray-700">Hero Title</label>
@@ -51,6 +52,65 @@
                     required
                 />
                 <span v-if="errors.hero_subtitle" class="text-sm text-red-500">[[ errors.hero_subtitle ]]</span>
+            </div>
+            <div class="flex items-center">
+                <label for="benefit_title" class="text-sm font-medium text-gray-700">Benefit Title</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    v-model="formData.benefit_title"
+                    type="text"
+                    id="benefit_title"
+                    placeholder="Benefits headline (e.g., 'Why Choose Us')"
+                />
+            </div>
+            <div class="flex items-center">
+                <label for="benefit_subtitle" class="text-sm font-medium text-gray-700">Benefit Subtitle</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    v-model="formData.benefit_subtitle"
+                    type="text"
+                    id="benefit_subtitle"
+                    placeholder="Benefits description (e.g., 'Our unique advantages')"
+                />
+            </div>
+            <div class="col-span-2">
+                <div class="flex items-center">
+                    <label class="text-sm font-medium text-gray-700">Benefit Statements</label>
+                </div>
+                <div class="mt-2 space-y-4">
+                    <div v-for="(statement, index) in formData.benefit_statement" :key="index" class="grid grid-cols-2 gap-4">
+                        <input
+                            class="w-full rounded-lg border border-black bg-white p-2"
+                            v-model="statement.title"
+                            type="text"
+                            :placeholder="'Benefit #' + (index + 1) + ' Title (e.g., Innovation)'"
+                        />
+                        <div class="flex gap-2">
+                            <textarea
+                                class="w-full rounded-lg border border-black bg-white p-2"
+                                v-model="statement.description"
+                                :placeholder="'Description (e.g., Cutting-edge solutions...)'"
+                                rows="2"
+                            ></textarea>
+                            <button
+                                @click="removeBenefitStatement(index)"
+                                class="rounded-md bg-red-500 p-2 text-white"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                    <button
+                        @click="addBenefitStatement"
+                        class="mt-2 rounded-md bg-green-500 px-3 py-2 text-white"
+                    >
+                        Add Benefit Statement
+                    </button>
+                </div>
             </div>
             <div class="flex items-center">
                 <label for="company_images" class="text-sm font-medium text-gray-700">Company Photos</label>
@@ -96,7 +156,7 @@
             <button class="bg-deep-purple mt-4 w-fit rounded-md px-3 py-2 text-white hover:scale-102" @click="nextPage">
                 <div class="flex items-center gap-2">
                     <span>Continue</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" admittedlystroke-width="1.5" stroke="currentColor" class="size-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                     </svg>
                 </div>

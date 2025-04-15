@@ -1,7 +1,7 @@
-const FirstStageComponent = defineComponent({
-    template: "#first-stage-template",
+const MainComponent = defineComponent({
+    template: "#main-component-template",
     delimiters: ["[[", "]]"],
-    props: ['formData'],
+    props: ['formData', 'isFirstStageValid'],
     data() {
         return {
             errors: {
@@ -95,6 +95,15 @@ const FirstStageComponent = defineComponent({
             if (this.formData.images.length === 0) {
                 this.errors.images = 'At least one company photo is required';
             }
+        },
+        addBenefitStatement() {
+            if (!this.formData.benefit_statement) {
+                this.formData.benefit_statement = [];
+            }
+            this.formData.benefit_statement.push({ title: '', description: '' });
+        },
+        removeBenefitStatement(index) {
+            this.formData.benefit_statement.splice(index, 1);
         }
     },
     watch: {
@@ -119,8 +128,8 @@ const FirstStageComponent = defineComponent({
     }
 });
 
-const SecondStageComponent = defineComponent({
-    template: "#second-stage-template",
+const LogoCloudComponent = defineComponent({
+    template: "#logo-cloud-component-template",
     delimiters: ["[[", "]]"],
     props: ['formData'],
     methods: {
@@ -153,16 +162,11 @@ const SecondStageComponent = defineComponent({
         removeCloudLogo(index) {
             this.formData.cloud_logos.splice(index, 1);
         }
-    },
-    mounted() {
-        if (!this.formData.faq) {
-            this.formData.faq = [];
-        }
     }
 });
 
-const ThirdStageComponent = defineComponent({
-    template: "#third-stage-template",
+const StatisticsComponent = defineComponent({
+    template: "#statistics-component-template",
     delimiters: ["[[", "]]"],
     props: ['formData'],
     methods: {
@@ -184,8 +188,8 @@ const ThirdStageComponent = defineComponent({
     }
 });
 
-const FourthStageComponent = defineComponent({
-    template: "#fourth-stage-template",
+const MissionComponent = defineComponent({
+    template: "#mission-component-template",
     delimiters: ["[[", "]]"],
     props: ['formData'],
     methods: {
@@ -198,8 +202,8 @@ const FourthStageComponent = defineComponent({
     }
 });
 
-const FifthStageComponent = defineComponent({
-    template: "#fifth-stage-template",
+const FaqComponent = defineComponent({
+    template: "#faq-component-template",
     delimiters: ["[[", "]]"],
     props: ['formData'],
     methods: {
@@ -217,6 +221,46 @@ const FifthStageComponent = defineComponent({
         },
         removeFaqItem(index) {
             this.formData.faq.splice(index, 1);
+        }
+    }
+});
+
+const AboutComponent = defineComponent({
+    template: "#about-component-template",
+    delimiters: ["[[", "]]"],
+    props: ['formData'],
+    methods: {
+        previousPage() {
+            this.$emit("change-page", -1);
+        },
+        nextPage() {
+            this.$emit("change-page", 1);
+        },
+        addAboutStatement() {
+            if (!this.formData.about_statement) {
+                this.formData.about_statement = [];
+            }
+            this.formData.about_statement.push({ title: '', description: '' });
+        },
+        removeAboutStatement(index) {
+            this.formData.about_statement.splice(index, 1);
+        },
+        addValuesStatement() {
+            if (!this.formData.values_statement) {
+                this.formData.values_statement = [];
+            }
+            this.formData.values_statement.push({ title: '', description: '' });
+        },
+        removeValuesStatement(index) {
+            this.formData.values_statement.splice(index, 1);
+        }
+    },
+    mounted() {
+        if (!this.formData.about_statement) {
+            this.formData.about_statement = [];
+        }
+        if (!this.formData.values_statement) {
+            this.formData.values_statement = [];
         }
     }
 });
@@ -316,7 +360,7 @@ const AddEmployeeComponent = defineComponent({
     }
 });
 
-const AddCustomerComponent = defineComponent({
+const AddCustomerFeedbackComponent = defineComponent({
     template: "#add-customer-feedback-template",
     delimiters: ["[[", "]]"],
     props: ['formData'],
@@ -441,13 +485,14 @@ const AddCustomerComponent = defineComponent({
 
 createApp({
     components: {
-        FirstStageComponent,
-        SecondStageComponent,
-        ThirdStageComponent,
-        FourthStageComponent,
-        FifthStageComponent,
+        MainComponent,
+        LogoCloudComponent,
+        StatisticsComponent,
+        MissionComponent,
+        FaqComponent,
+        AboutComponent,
         AddEmployeeComponent,
-        AddCustomerComponent
+        AddCustomerFeedbackComponent
     },
     data() {
         return {
@@ -456,6 +501,7 @@ createApp({
             leaveClass: "slide-fade-out-left",
             company_id: "",
             storageKey: "microwebpage_form_data",
+            isFirstStageValid: false,
             formData: {
                 id: null,
                 company_id: null,
@@ -468,6 +514,7 @@ createApp({
                 logo_cloud_title: '',
                 benefit_title: '',
                 benefit_subtitle: '',
+                benefit_statement: [],
                 stat_title: '',
                 stat_subtitle: '',
                 statistics: [],
@@ -477,6 +524,12 @@ createApp({
                 leadership_subtitle: '',
                 faq_title: '',
                 faq: [],
+                about_title: '',
+                about_subtitle: '',
+                about_statement: [],
+                values_title: '',
+                values_subtitle: '',
+                values_statement: [],
                 employees: [],
                 customers: [],
                 customer_testimonials_title: '',
@@ -487,20 +540,16 @@ createApp({
     computed: {
         currentComponent() {
             const components = [
-                FirstStageComponent,
-                SecondStageComponent,
-                ThirdStageComponent,
-                FourthStageComponent,
-                FifthStageComponent,
+                MainComponent,
+                LogoCloudComponent,
+                StatisticsComponent,
+                MissionComponent,
+                FaqComponent,
+                AboutComponent,
                 AddEmployeeComponent,
-                AddCustomerComponent
+                AddCustomerFeedbackComponent
             ];
             return components[this.currentPage - 1];
-        },
-        isFirstStageValid() {
-            return this.formData.hero_title.trim() !== '' &&
-                   this.formData.hero_subtitle.trim() !== '' &&
-                   this.formData.images.length > 0;
         }
     },
     mounted() {
@@ -511,12 +560,15 @@ createApp({
     methods: {
         changePage(pageNumber) {
             const newPage = this.currentPage + pageNumber;
-            if (newPage >= 1 && newPage <= 7) {
+            if (newPage >= 1 && newPage <= 8) {
                 this.enterClass = pageNumber > 0 ? "slide-fade-in-left" : "slide-fade-in-right";
                 this.leaveClass = pageNumber > 0 ? "slide-fade-out-left" : "slide-fade-out-right";
                 this.currentPage = newPage;
                 this.saveFormData();
             }
+        },
+        updateFirstStageValid(isValid) {
+            this.isFirstStageValid = isValid;
         },
         saveFormData() {
             const dataToSave = { ...this.formData };
@@ -550,12 +602,15 @@ createApp({
 
                 Object.keys(this.formData).forEach(key => {
                     if (key !== 'logoFile' && key !== 'images' && key !== 'cloud_logos' &&
-                        key !== 'statistics' && key !== 'faq' && this.formData[key] !== null) {
+                        key !== 'statistics' && key !== 'faq' && key !== 'about_statement' &&
+                        key !== 'values_statement' && key !== 'benefit_statement' &&
+                        key !== 'employees' && key !== 'customers' &&
+                        this.formData[key] !== null) {
                         formData.append(key, this.formData[key]);
                     }
                 });
 
-                ['statistics', 'faq'].forEach(arrayField => {
+                ['statistics', 'faq', 'about_statement', 'values_statement', 'benefit_statement'].forEach(arrayField => {
                     if (this.formData[arrayField] && this.formData[arrayField].length > 0) {
                         formData.append(arrayField, JSON.stringify(this.formData[arrayField]));
                     }
@@ -635,6 +690,7 @@ createApp({
                 logo_cloud_title: '',
                 benefit_title: '',
                 benefit_subtitle: '',
+                benefit_statement: [],
                 stat_title: '',
                 stat_subtitle: '',
                 statistics: [],
@@ -644,6 +700,12 @@ createApp({
                 leadership_subtitle: '',
                 faq_title: '',
                 faq: [],
+                about_title: '',
+                about_subtitle: '',
+                about_statement: [],
+                values_title: '',
+                values_subtitle: '',
+                values_statement: [],
                 employees: [],
                 customers: [],
                 customer_testimonials_title: '',

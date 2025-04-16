@@ -8,6 +8,7 @@ from flask import (
     url_for,
 )
 
+from .main import bad_request
 from ..extensions import db
 from ..models import ( Company)
 from ..models.microwebpage import MicroWebPage, WebpageMedia, WebpageCompanyCustomer, WebpageCompanyEmployee
@@ -25,9 +26,13 @@ def get_micro_web_page(microwebpage_id):
     return render_template("microwebpage/micro_web_page.html", microwebpage=micro_web_page, company=company)
 
 
+
 @microwebpage.route("/create/<int:company_id>", methods=["GET", "POST"])
 def create_micro_web_page(company_id):
     company = Company.get_by_id(company_id)
+    webpage = MicroWebPage.get_by_id(company_id)
+    if not webpage.is_published:
+        return bad_request(400)
     if not company:
         return jsonify({"error": "Company does not exist!"}), 400
 

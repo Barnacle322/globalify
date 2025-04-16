@@ -986,21 +986,20 @@
                             >
                                 View Microwebpage
                             </a>
-                            {% if company.microwebpage.is_published %}
-                            <button
-                                onclick="togglePublish({{ company.microwebpage.id }})"
-                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-blue-700 px-4 py-3 text-white transition-colors ease-in-out hover:bg-blue-800"
+                            {% endif %}
+
+                            <div
+                                id="publishButton"
+                                :data-initial-published="`{{ company.microwebpage.is_published }}`"
+                                data-microwebpage-id="{{ company.microwebpage.id }}"
                             >
-                                Unpublish
-                            </button>
-                            {% else %}
-                            <button
-                                onclick="togglePublish({{ company.microwebpage.id }})"
-                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-blue-700 px-4 py-3 text-white transition-colors ease-in-out hover:bg-blue-800"
-                            >
-                                Publish
-                            </button>
-                            {% endif %} {% endif %}
+                                <button
+                                    @click="togglePublish(microwebpageId, !isPublished)"
+                                    class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-blue-700 px-4 py-3 text-white transition-colors ease-in-out hover:bg-blue-800"
+                                >
+                                    <span v-text="isPublished ? 'Unpublish' : 'Publish'"></span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 

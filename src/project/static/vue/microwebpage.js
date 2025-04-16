@@ -499,7 +499,6 @@ createApp({
             currentPage: 1,
             enterClass: "slide-fade-in-left",
             leaveClass: "slide-fade-out-left",
-            company_id: "",
             storageKey: "microwebpage_form_data",
             isFirstStageValid: false,
             formData: {
@@ -558,36 +557,6 @@ createApp({
         this.loadFormData();
     },
     methods: {
-        async togglePublish(microwebpageId, newStatus) {
-            try {
-                // Optimistically update the UI
-                this.isPublished = newStatus;
-
-                const csrfToken = document.getElementById('csrf_token').value;
-                const response = await fetch(`/microwebpage/publish/${microwebpageId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfToken
-                    },
-                    body: JSON.stringify({ is_published: newStatus })
-                });
-
-                const result = await response.json();
-
-                if (!response.ok) {
-                    // Revert if failed
-                    this.isPublished = !newStatus;
-                    alert(result.error || 'Failed to update publish status');
-                }
-            } catch (error) {
-                // Revert if error
-                this.isPublished = !newStatus;
-                alert('An error occurred while updating publish status.');
-                console.error(error);
-            }
-        },
-
         changePage(pageNumber) {
             const newPage = this.currentPage + pageNumber;
             if (newPage >= 1 && newPage <= 8) {

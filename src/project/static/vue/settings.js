@@ -1413,7 +1413,6 @@ createApp({
         CreateFundingRoundComponent,
         UpdateFundingRoundComponent,
         DeleteFundingRoundComponent,
-        // CreateMicroWebPageComponent,
     },
 
     watch: {
@@ -1446,6 +1445,30 @@ createApp({
         this.asideMinified = localStorage.getItem("asideMinified") === "true";
     },
     methods: {
+        async togglePublish(id, newStatus) {
+            console.log(newStatus)
+            try {
+                this.isPublished = newStatus;
+
+                const csrfToken = document.getElementById('csrf_token').value;
+                const response = await fetch(`/microwebpage/publish/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken // Note: Fixed header name to match standard Django usage
+                    },
+                    body: JSON.stringify({ is_published: newStatus })
+                });
+
+                if (!response.ok) {
+                    this.isPublished = !newStatus;
+                    const error = await response.json();
+                }
+            } catch (error) {
+                this.isPublished = !newStatus;
+                console.error('Error:', error);
+            }
+        },
         changePage(pageNumber) {
             if (pageNumber > 0) {
                 this.enterClass = "slide-fade-in-left";
@@ -1733,7 +1756,17 @@ createApp({
         );
         this.setupMenuToggle();
         window.addEventListener("click", this.closeDropdown);
+        const publishButton = document.getElementById('publishButton');
+        if (publishButton) {
+            if (publishButton.dataset.initialPublished==="False"){
+                this.isPublished = false;
+                this.microwebpageId = publishButton.dataset.microwebpageId}
+            else {
+                this.isPublished = true;
+                this.microwebpageId = publishButton.dataset.microwebpageId}
+        }
     },
+
     computed: {
         currentComponent() {
             switch (this.currentPage) {
@@ -1750,6 +1783,8 @@ createApp({
     },
     data() {
         return {
+            isPublished: false,
+            microwebpageId: null,
             asideExpanded: false,
             asideMinified: false,
             confirmRestoreOpened: false,

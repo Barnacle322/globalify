@@ -28,7 +28,7 @@ def get_micro_web_page(microwebpage_id):
 
 
 @microwebpage.route("/create/<int:company_id>", methods=["GET", "POST"])
-def create_micro_web_page(company_id):
+def get_or_create_micro_web_page(company_id):
     company = Company.get_by_id(company_id)
     webpage = MicroWebPage.get_by_id(company_id)
     if not webpage.is_published:
@@ -57,7 +57,6 @@ def create_micro_web_page(company_id):
         logo = request.files.get("logo")
         cloud_logos = request.files.getlist("cloud_logos[]")
 
-        # Optional fields from form
         logo_cloud_title = request.form.get("logo_cloud_title")
         benefit_title = request.form.get("benefit_title")
         benefit_subtitle = request.form.get("benefit_subtitle")
@@ -87,7 +86,6 @@ def create_micro_web_page(company_id):
         about_statement = json.loads(about_statement_json) if about_statement_json else None
         values_statement = json.loads(values_statement_json) if values_statement_json else None
 
-        # Process employees and customers without while loops
         employees_data = []
         customers_data = []
 
@@ -258,6 +256,8 @@ def about_micro_web_page(company_id):
     microwebpage = MicroWebPage.get_by_id(company_id)
     company = microwebpage.company
     return render_template("microwebpage/about.html", company=company, microwebpage=microwebpage)
+
+
 
 @microwebpage.route("/publish/<int:microwebpage_id>", methods=["POST"])
 def toggle_publish(microwebpage_id):

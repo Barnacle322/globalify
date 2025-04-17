@@ -971,25 +971,25 @@
                             <h2 class="text-2xl font-bold">Create a webpage</h2>
                             <p class="mt-1 leading-6 text-gray-700">Create a microwebpage for your company</p>
                         </div>
-                        <div class="lx yx flex gap-4 md:col-span-2">
+                        <div class="flex gap-4 md:col-span-2">
                             {% if not company.microwebpage %}
                             <a
                                 href="/microwebpage/create/{{ company.id }}"
-                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-sky-500 px-4 py-3 text-white transition-colors ease-in-out"
+                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-sky-500 px-4 py-3 text-white transition-colors ease-in-out hover:bg-sky-400 whitespace-nowrap"
                             >
                                 Create Microwebpage
                             </a>
                             {% else %}
                             <a
                                 href="/microwebpage/create/{{ company.id }}"
-                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-sky-500 px-4 py-3 text-white transition-colors ease-in-out"
+                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-sky-500 px-4 py-3 text-white transition-colors ease-in-out hover:bg-sky-400 whitespace-nowrap"
                             >
                                 View Microwebpage
                             </a>
                             {% endif %} {% if company.microwebpage %}
                             <a
                                 href="/microwebpage/update/{{ company.id }}"
-                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-yellow-600 px-4 py-3 text-white transition-colors ease-in-out"
+                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-yellow-600 px-4 py-3 text-white transition-colors ease-in-out hover:bg-yellow-500 whitespace-nowrap"
                             >
                                 Update Microwebpage
                             </a>
@@ -1002,7 +1002,7 @@
                             >
                                 <button
                                     @click="togglePublish(microwebpageId, !isPublished)"
-                                    class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-green-500 px-4 py-3 text-white transition-colors ease-in-out"
+                                    class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-green-500 px-4 py-3 text-white transition-colors ease-in-out hover:bg-green-400"
                                 >
                                     <span v-text="isPublished ? 'Unpublish' : 'Publish'"></span>
                                 </button>

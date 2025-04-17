@@ -975,24 +975,25 @@
                             {% if not company.microwebpage %}
                             <a
                                 href="/microwebpage/create/{{ company.id }}"
-                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-blue-700 px-4 py-3 text-white transition-colors ease-in-out hover:bg-blue-800"
+                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-sky-500 px-4 py-3 text-white transition-colors ease-in-out"
                             >
                                 Create Microwebpage
                             </a>
                             {% else %}
                             <a
                                 href="/microwebpage/create/{{ company.id }}"
-                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-blue-700 px-4 py-3 text-white transition-colors ease-in-out hover:bg-blue-800"
+                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-sky-500 px-4 py-3 text-white transition-colors ease-in-out"
                             >
                                 View Microwebpage
                             </a>
-                            {% endif %}
+                            {% endif %} {% if company.microwebpage %}
                             <a
                                 href="/microwebpage/update/{{ company.id }}"
-                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-blue-700 px-4 py-3 text-white transition-colors ease-in-out hover:bg-blue-800"
+                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-yellow-600 px-4 py-3 text-white transition-colors ease-in-out"
                             >
                                 Update Microwebpage
                             </a>
+                            {% endif %} {% if company.microwebpage %}
 
                             <div
                                 id="publishButton"
@@ -1001,11 +1002,13 @@
                             >
                                 <button
                                     @click="togglePublish(microwebpageId, !isPublished)"
-                                    class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-blue-700 px-4 py-3 text-white transition-colors ease-in-out hover:bg-blue-800"
+                                    class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-green-500 px-4 py-3 text-white transition-colors ease-in-out"
                                 >
                                     <span v-text="isPublished ? 'Unpublish' : 'Publish'"></span>
                                 </button>
                             </div>
+
+                            {% endif %}
                         </div>
                     </div>
 

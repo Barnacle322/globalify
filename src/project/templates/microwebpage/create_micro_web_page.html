@@ -1,95 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Primary Meta Tags -->
-    <meta name="title" content="Globalify — Connect to the whole world of investment" />
-    <meta
-      name="description"
-      content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-    />
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            name="description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://globalify.xyz/" />
-    <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
-    <meta
-      property="og:description"
-      content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-    />
-    <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="og:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://globalify.xyz/" />
-    <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
-    <meta
-      property="twitter:description"
-      content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-    />
-    <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="twitter:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="/static/css/main.css" />
-    <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+        <!-- Styles -->
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
 
-    <!-- Vue -->
-    <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
-    <script src="/static/vue/base.js"></script>
-    <script src="/static/vue/microwebpage.js" defer></script>
+        <!-- Vue -->
+        <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
+        <script src="/static/vue/base.js"></script>
+        <script src="/static/vue/microwebpage.js" defer></script>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-      rel="stylesheet"
-    />
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
 
-    <title>Create MicroWebPage | Globalify</title>
-  </head>
+        <title>Create MicroWebPage | Globalify</title>
+    </head>
 
-  <body class="h-full overflow-x-clip">
-    <!-- Component Templates -->
-    {% import "microwebpage/components/main_component.html" as main_component %}
-    {{ main_component.render() }}
-    {% import "microwebpage/components/logo_cloud_component.html" as logo_cloud_component %}
-    {{ logo_cloud_component.render() }}
-    {% import "microwebpage/components/statistics_component.html" as statistics_component %}
-    {{ statistics_component.render() }}
-    {% import "microwebpage/components/mission_component.html" as mission_component %}
-    {{ mission_component.render() }}
-    {% import "microwebpage/components/faq_component.html" as faq_component %}
-    {{ faq_component.render() }}
-    {% import "microwebpage/components/about_component.html" as about_component %}
-    {{ about_component.render() }}
-    {% import "microwebpage/components/add_employee_component.html" as add_employee_component %}
-    {{ add_employee_component.render() }}
-    {% import "microwebpage/components/add_customer_feedback_component.html" as add_customer_feedback_component %}
-    {{ add_customer_feedback_component.render() }}
+    <body class="h-full overflow-x-clip">
+        <!-- Component Templates -->
+        {% import "microwebpage/components/main_component.html" as main_component %} {{ main_component.render() }} {%
+        import "microwebpage/components/logo_cloud_component.html" as logo_cloud_component %} {{
+        logo_cloud_component.render() }} {% import "microwebpage/components/statistics_component.html" as
+        statistics_component %} {{ statistics_component.render() }} {% import
+        "microwebpage/components/mission_component.html" as mission_component %} {{ mission_component.render() }} {%
+        import "microwebpage/components/faq_component.html" as faq_component %} {{ faq_component.render() }} {% import
+        "microwebpage/components/about_component.html" as about_component %} {{ about_component.render() }} {% import
+        "microwebpage/components/add_employee_component.html" as add_employee_component %} {{
+        add_employee_component.render() }} {% import "microwebpage/components/add_customer_feedback_component.html" as
+        add_customer_feedback_component %} {{ add_customer_feedback_component.render() }}
 
-    <!-- Vue App -->
-    <div id="app">
-      <!-- Hidden Inputs -->
-      <input type="hidden" id="company_id" value="{{ company.id }}" />
-      <input type="hidden" id="microwebpage_id" value="{{ microwebpage.id if microwebpage else '' }}" />
-      <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+        <!-- Vue App -->
+        <div id="app">
+            <!-- Hidden Inputs -->
+            <input type="hidden" id="company_id" value="{{ company.id }}" />
+            <input type="hidden" id="microwebpage_id" value="{{ microwebpage.id if microwebpage else '' }}" />
+            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
 
-      <!-- Form Container -->
-      <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl items-center justify-center">
-        <transition :enter-active-class="enterClass" :leave-active-class="leaveClass" mode="out-in">
-          <component
-            :is="currentComponent"
-            :form-data="formData"
-            :is-first-stage-valid="isFirstStageValid"
-            @change-page="changePage"
-            @submit-form="submitForm"
-            @first-stage-valid="updateFirstStageValid"
-          ></component>
-        </transition>
-      </div>
-    </div>
-  </body>
+            <!-- Form Container -->
+            <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full items-center justify-center">
+                <transition :enter-active-class="enterClass" :leave-active-class="leaveClass" mode="out-in">
+                    <component
+                        :is="currentComponent"
+                        :form-data="formData"
+                        :is-first-stage-valid="isFirstStageValid"
+                        @change-page="changePage"
+                        @submit-form="submitForm"
+                        @first-stage-valid="updateFirstStageValid"
+                    ></component>
+                </transition>
+            </div>
+        </div>
+    </body>
 </html>

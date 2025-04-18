@@ -6,8 +6,8 @@
             <input type="hidden" v-model="formData.company_id" />
         </div>
         <div class="flex flex-col gap-2">
-            <h1 class="text-4xl font-medium">Step 6 of 8: About & Values</h1>
-            <span>Add optional information about your company and its values.</span>
+            <h1 class="text-4xl font-medium">Step 6 of 8: About</h1>
+            <span>Add optional about and values information.</span>
         </div>
         <div class="grid grid-cols-2 gap-x-4 gap-y-6">
             <div class="flex items-center">
@@ -19,7 +19,7 @@
                     v-model="formData.about_title"
                     type="text"
                     id="about_title"
-                    placeholder="About headline (e.g., 'Our Story')"
+                    placeholder="About headline (e.g., 'Who We Are')"
                 />
             </div>
             <div class="flex items-center">
@@ -31,7 +31,7 @@
                     v-model="formData.about_subtitle"
                     type="text"
                     id="about_subtitle"
-                    placeholder="About description (e.g., 'Who we are')"
+                    placeholder="About description (e.g., 'Our story')"
                 />
             </div>
             <div class="col-span-2">
@@ -44,13 +44,13 @@
                             class="w-full rounded-lg border border-black bg-white p-2"
                             v-model="statement.title"
                             type="text"
-                            :placeholder="'Statement #' + (index + 1) + ' Title (e.g., Our History)'"
+                            :placeholder="'About #' + (index + 1) + ' Title'"
                         />
                         <div class="flex gap-2">
                             <textarea
                                 class="w-full rounded-lg border border-black bg-white p-2"
                                 v-model="statement.description"
-                                :placeholder="'Description (e.g., Founded in 2010...)'"
+                                :placeholder="'Description'"
                                 rows="2"
                             ></textarea>
                             <button
@@ -103,13 +103,13 @@
                             class="w-full rounded-lg border border-black bg-white p-2"
                             v-model="statement.title"
                             type="text"
-                            :placeholder="'Value #' + (index + 1) + ' Title (e.g., Integrity)'"
+                            :placeholder="'Value #' + (index + 1) + ' Title'"
                         />
                         <div class="flex gap-2">
                             <textarea
                                 class="w-full rounded-lg border border-black bg-white p-2"
                                 v-model="statement.description"
-                                :placeholder="'Description (e.g., We uphold honesty...)'"
+                                :placeholder="'Description'"
                                 rows="2"
                             ></textarea>
                             <button

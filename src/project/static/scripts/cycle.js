@@ -1,4 +1,3 @@
-// /static/scripts/microwebpage.js
 document.addEventListener('DOMContentLoaded', () => {
   const gallery = document.getElementById('gallery');
   if (gallery) {

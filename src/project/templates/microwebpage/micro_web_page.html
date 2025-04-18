@@ -78,21 +78,21 @@
                         <p class="mt-6 text-base text-gray-600">{{ microwebpage.hero_subtitle }}</p>
                     </div>
                 </div>
-                <div class="mt-12 w-full">
-                    <div
-                        id="gallery"
-                        class="no-scrollbar flex w-full snap-x overflow-x-auto overflow-y-hidden scroll-smooth px-[200px] py-8"
-                    >
-                        {% for picture in microwebpage.webpage_media %}
-                        <div class="relative min-w-[500px] snap-center px-4 transition-all duration-50">
-                            <img
-                                src="{{ picture.picture_url }}"
-                                alt="Technology Innovation"
-                                class="shadow-card h-[300px] w-[500px] rounded-lg object-cover transition-transform duration-50 ease-in-out"
-                            />
-                        </div>
-                        {% endfor %}
+                <div
+                    id="gallery"
+                    class="no-scrollbar flex w-full snap-x overflow-x-auto overflow-y-hidden scroll-smooth px-[200px] py-8"
+                >
+                    {% for picture in microwebpage.webpage_media %} {% if picture.picture_url and picture.picture_url !=
+                    'None' %}
+                    <div class="relative min-w-[500px] snap-center px-4 transition-all duration-50">
+                        <img
+                            src="{{ picture.picture_url }}"
+                            data-original-src="{{ picture.picture_url }}"
+                            alt="Technology Innovation"
+                            class="shadow-card h-[300px] w-[500px] rounded-lg object-cover transition-transform duration-50 ease-in-out"
+                        />
                     </div>
+                    {% endif %} {% endfor %}
                 </div>
 
                 <div

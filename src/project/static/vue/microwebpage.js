@@ -93,7 +93,12 @@ const MainComponent = defineComponent({
             event.target.value = "";
         },
         removeImage(index) {
+            const removedImage = this.formData.images[index];
+            if (removedImage.id) {
+                this.formData.deletedImageIds.push(removedImage.id);
+            }
             this.formData.images.splice(index, 1);
+            console.log("After removing image at index", index, "images:", this.formData.images.map(img => ({ id: img.id, preview: img.preview })));
             if (this.formData.images.length === 0) {
                 this.errors.images = "At least one company photo is required";
             }
@@ -551,7 +556,8 @@ createApp({
                 employees: [],
                 customers: [],
                 customer_testimonials_title: "",
-                customer_testimonials_subtitle: ""
+                customer_testimonials_subtitle: "",
+                deletedImageIds: []
             }
         };
     },
@@ -571,12 +577,10 @@ createApp({
         }
     },
     async mounted() {
-        // Initialize companyId and microwebpageId from hidden inputs
         this.companyId = document.getElementById("company_id")?.value || null;
         this.microwebpageId = document.getElementById("microwebpage_id")?.value || null;
         this.storageKey = `microwebpage_form_${this.companyId || "new"}`;
 
-        // Load data based on whether we're updating or creating
         if (this.microwebpageId) {
             await this.loadMicroWebPageData();
         } else {
@@ -585,7 +589,6 @@ createApp({
     },
     methods: {
         async loadMicroWebPageData() {
-            // Load data from backend for update flow (no localStorage)
             try {
                 const response = await fetch(`/microwebpage/get/data/${this.microwebpageId}`);
                 if (!response.ok) {
@@ -596,18 +599,33 @@ createApp({
                     ...this.formData,
                     ...data,
                     logoPreview: data.logo_url || null,
-                    images: data.images?.map(img => ({ preview: img.picture_url })) || [],
-                    cloud_logos: data.cloud_logos?.map(logo => ({ preview: logo.logo_url })) || [],
+                    images: data.images?.map(img => ({
+                        id: img.id,
+                        preview: img.picture_url
+                    })) || [],
+                    cloud_logos: data.cloud_logos?.map(logo => ({
+                        id: logo.id,
+                        preview: logo.logo_url
+                    })) || [],
                     employees: data.employees?.map(emp => ({
-                        ...emp,
+                        id: emp.id,
+                        first_name: emp.first_name,
+                        last_name: emp.last_name,
+                        position: emp.position,
                         picture_url: emp.picture_url || "",
+                        bio: emp.bio || "",
                         pictureFile: null
                     })) || [],
                     customers: data.customers?.map(cust => ({
-                        ...cust,
+                        id: cust.id,
+                        first_name: cust.first_name,
+                        last_name: cust.last_name,
+                        position: cust.position,
                         picture_url: cust.picture_url || "",
+                        feedback: cust.feedback || "",
                         pictureFile: null
-                    })) || []
+                    })) || [],
+                    deletedImageIds: []
                 };
                 this.isFirstStageValid = this.validateFirstStage();
             } catch (error) {
@@ -616,7 +634,6 @@ createApp({
             }
         },
         loadFormData() {
-            // Load data from localStorage for create flow
             if (!this.microwebpageId) {
                 const savedData = localStorage.getItem(this.storageKey);
                 if (savedData) {
@@ -631,12 +648,11 @@ createApp({
             }
         },
         saveFormData() {
-            // Save form data to localStorage only in create flow
             if (!this.microwebpageId) {
                 const dataToSave = { ...this.formData };
                 delete dataToSave.logoFile;
-                dataToSave.images = dataToSave.images.map(img => ({ preview: img.preview }));
-                dataToSave.cloud_logos = dataToSave.cloud_logos.map(logo => ({ preview: logo.preview }));
+                dataToSave.images = dataToSave.images.map(img => ({ id: img.id, preview: img.preview }));
+                dataToSave.cloud_logos = dataToSave.cloud_logos.map(logo => ({ id: logo.id, preview: logo.preview }));
                 localStorage.setItem(this.storageKey, JSON.stringify({
                     formData: dataToSave,
                     currentPage: this.currentPage
@@ -644,13 +660,11 @@ createApp({
             }
         },
         clearFormData() {
-            // Clear localStorage after successful submission (only in create flow)
             if (!this.microwebpageId) {
                 localStorage.removeItem(this.storageKey);
             }
         },
         validateFirstStage() {
-            // Validate first stage for navigation
             return (
                 this.formData.hero_title?.trim() &&
                 this.formData.hero_subtitle?.trim() &&
@@ -658,7 +672,6 @@ createApp({
             );
         },
         changePage(pageNumber) {
-            // Navigate between form steps
             const newPage = this.currentPage + pageNumber;
             if (newPage >= 1 && newPage <= 8) {
                 this.enterClass = pageNumber > 0 ? "slide-fade-in-left" : "slide-fade-in-right";
@@ -668,11 +681,9 @@ createApp({
             }
         },
         updateFirstStageValid(isValid) {
-            // Update validation status for first stage
             this.isFirstStageValid = isValid;
         },
         async submitForm() {
-            // Submit form data to backend
             try {
                 const csrfToken = document.getElementById("csrf_token").value;
                 const formData = new FormData();
@@ -680,7 +691,9 @@ createApp({
                     ? `/microwebpage/update/${this.microwebpageId}`
                     : `/microwebpage/create/${this.companyId}`;
 
-                // Append scalar fields
+                console.log("Images before submission:", this.formData.images.map(img => ({ id: img.id, preview: img.preview, hasFile: !!img.file })));
+                console.log("Deleted image IDs:", this.formData.deletedImageIds);
+
                 Object.keys(this.formData).forEach(key => {
                     if (
                         ![
@@ -693,7 +706,8 @@ createApp({
                             "values_statement",
                             "benefit_statement",
                             "employees",
-                            "customers"
+                            "customers",
+                            "deletedImageIds"
                         ].includes(key) &&
                         this.formData[key] !== null
                     ) {
@@ -701,35 +715,45 @@ createApp({
                     }
                 });
 
-                // Append JSON array fields
                 ["statistics", "faq", "about_statement", "values_statement", "benefit_statement"].forEach(arrayField => {
                     if (this.formData[arrayField]?.length > 0) {
                         formData.append(arrayField, JSON.stringify(this.formData[arrayField]));
                     }
                 });
 
-                // Append logo file
                 if (this.formData.logoFile) {
                     formData.append("logo", this.formData.logoFile);
                 }
 
-                // Append images
-                this.formData.images.forEach((img, index) => {
+                this.formData.images.forEach(img => {
+                    if (img.id) {
+                        formData.append(`images_ids[]`, img.id);
+                    }
                     if (img.file) {
-                        formData.append("images[]", img.file);
+                        formData.append(`images[]`, img.file);
                     }
                 });
 
-                // Append cloud logos
+                this.formData.deletedImageIds.forEach(id => {
+                    formData.append(`deleted_images[]`, id);
+                });
+
                 this.formData.cloud_logos.forEach((logo, index) => {
-                    if (logo.file) {
-                        formData.append("cloud_logos[]", logo.file);
+                    if (logo.id || logo.file) {
+                        if (logo.id) {
+                            formData.append(`cloud_logos[${index}][id]`, logo.id);
+                        }
+                        if (logo.file) {
+                            formData.append(`cloud_logos[]`, logo.file);
+                        }
                     }
                 });
 
-                // Append employees
                 if (this.formData.employees) {
                     this.formData.employees.forEach((employee, index) => {
+                        if (employee.id) {
+                            formData.append(`employees[${index}][id]`, employee.id);
+                        }
                         if (employee.pictureFile) {
                             formData.append(`employees[${index}][picture]`, employee.pictureFile);
                         }
@@ -740,9 +764,11 @@ createApp({
                     });
                 }
 
-                // Append customers
                 if (this.formData.customers) {
                     this.formData.customers.forEach((customer, index) => {
+                        if (customer.id) {
+                            formData.append(`customers[${index}][id]`, customer.id);
+                        }
                         if (customer.pictureFile) {
                             formData.append(`customers[${index}][picture]`, customer.pictureFile);
                         }
@@ -768,6 +794,7 @@ createApp({
                 const result = await response.json();
                 if (result.redirect_url) {
                     this.clearFormData();
+                    this.formData.deletedImageIds = [];
                     window.location.href = result.redirect_url;
                 }
             } catch (error) {
@@ -776,7 +803,6 @@ createApp({
             }
         },
         resetForm() {
-            // Reset form to initial state
             this.formData = {
                 id: null,
                 company_id: null,
@@ -808,7 +834,8 @@ createApp({
                 employees: [],
                 customers: [],
                 customer_testimonials_title: "",
-                customer_testimonials_subtitle: ""
+                customer_testimonials_subtitle: "",
+                deletedImageIds: []
             };
             this.currentPage = 1;
             this.clearFormData();

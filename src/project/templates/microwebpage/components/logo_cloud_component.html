@@ -32,7 +32,7 @@
                     accept="image/png"
                 />
                 <div class="mt-2 grid grid-cols-3 gap-2" v-if="formData.cloud_logos.length > 0">
-                    <div v-for="(logo, index) in formData.cloud_logos" :key="index" class="relative">
+                    <div v-for="(logo, index) in formData.cloud_logos" :key="logo.id || 'new-' + index" class="relative">
                         <img :src="logo.preview" class="h-24 w-full rounded-md object-cover" />
                         <button
                             @click="removeCloudLogo(index)"

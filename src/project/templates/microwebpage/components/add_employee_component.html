@@ -39,7 +39,7 @@
                     <label class="text-sm font-medium text-gray-700">Team Members</label>
                 </div>
                 <div class="mt-2 space-y-6">
-                    <div v-for="(employee, index) in formData.employees" :key="index" class="grid grid-cols-2 gap-4 rounded-lg border p-4">
+                    <div v-for="(employee, index) in formData.employees" :key="employee.id || 'new-' + index" class="grid grid-cols-2 gap-4 rounded-lg border p-4">
                         <div class="flex flex-col gap-2">
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-700">Photo</label>

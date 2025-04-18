@@ -52,6 +52,7 @@ if TYPE_CHECKING:
     from .investor import InvestmentFirmBookmark, Investor, InvestorBackup, InvestorBookmark, NotableInvestment
     from .message import Chat
     from .search import SearchHistory
+    from .superconnect import Expert
 
 
 class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
@@ -75,6 +76,7 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
         "ClaimVerification", back_populates="user", init=False
     )
 
+    expert: Mapped[Expert] = relationship("Expert", back_populates="user", uselist=False, init=False)
     investor: Mapped[Investor] = relationship("Investor", back_populates="user", uselist=False, init=False)
     investor_backup: Mapped[InvestorBackup | None] = relationship(
         "InvestorBackup", back_populates="user", uselist=False, init=False
@@ -92,6 +94,7 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     search_histories: Mapped[list[SearchHistory]] = relationship(
         "SearchHistory", back_populates="user", uselist=True, init=False
     )
+   # events: Mapped[list[Event]] = relationship("Events", back_populates="user", uselist=True, init=False)
     oauth_provider: Mapped[OauthProvider] = mapped_column(SQLEnum(OauthProvider))
     id: Mapped[int] = mapped_column(Integer, init=False, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)

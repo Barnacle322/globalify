@@ -76,3 +76,27 @@ class SearchHistoryType(Enum):
     INVESTOR = "investor"
     INVESTMENT_FIRM = "investment_firm"
     COMPANY = "company"
+
+
+class EventStatus(Enum):
+    IN_PROCESS = "in process"
+    UNCONFIRMED = "unconfirmed"
+    CONFIRMED = "confirmed"
+    CANCELED = "canceled"
+    PAST = "past"
+
+
+class EventType(Enum):
+    TRAINING = "training"
+    INTRO = "intro"
+    SHORT = "short"
+    LONG = "long"
+
+
+class QualificationType(Enum):
+    EDUCATION = "education"
+    FREELANCE = "freelance"
+    CONTRACT = "contract"
+    OFFICE = "office"
+    REMOTE = "remote"
+    TRAINEE = "trainee"

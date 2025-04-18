@@ -31,6 +31,7 @@ from .routes.payment import payment
 from .routes.profile import profile
 from .routes.search import search
 from .routes.settings import settings
+from .routes.superconnect import superconnect
 
 
 def get_apple_client_secret():
@@ -104,6 +105,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.register_blueprint(onboarding, url_prefix="/onboarding")
     app.register_blueprint(investment, url_prefix="/investment")
     app.register_blueprint(message, url_prefix="/message")
+    app.register_blueprint(superconnect, url_prefix="/superconnect")
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

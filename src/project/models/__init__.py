@@ -12,6 +12,7 @@ from .investor import (
 )
 from .message import Chat, Message
 from .search import SearchHistory
+from .superconnect import Expert, Qualification
 from .user import (
     Company,
     CompanyBookmark,
@@ -51,4 +52,6 @@ __all__ = [
     "SearchHistory",
     "Chat",
     "Message",
+    "Expert",
+    "Qualification",
 ]

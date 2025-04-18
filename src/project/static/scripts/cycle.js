@@ -1,43 +1,46 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const gallery = document.getElementById('gallery');
-  if (gallery) {
-    const imageContainers = gallery.querySelectorAll('div.relative');
-    const images = gallery.querySelectorAll('img');
-    const numImages = images.length;
-    const imageWidth = 500 + 16; // 500px + 16px (mx-2)
+let theListElement = document.getElementById("thelist");
+let theListChildren = theListElement.children;
 
-    // Initial centering and scaling
-    if (numImages > 0) {
-      const centerImageIndex = Math.floor(numImages / 2);
-      const scrollPosition = centerImageIndex * imageWidth - (gallery.offsetWidth - imageWidth) / 2;
-      gallery.scrollLeft = scrollPosition;
-      images[centerImageIndex].classList.add('scale-150', 'z-20', 'shadow-lg');
-      imageContainers[centerImageIndex].classList.add('min-w-[750px]', 'mx-4');
+function cycleForward() {
+    theListChildren[0].classList.add("fade-scale-out");
+    for (let i = 1; i < theListChildren.length; i++) {
+        theListChildren[i].classList.add("slide-left");
+    }
+    setTimeout(() => {
+        theListChildren[0].classList.remove("fade-scale-out");
+        for (let i = 1; i < theListChildren.length; i++) {
+            theListChildren[i].classList.remove("slide-left");
+        }
+        theListElement.appendChild(theListChildren[0]);
+        let lastChild = theListChildren[theListChildren.length - 1];
+        lastChild.classList.add("short-fade-in");
+        setTimeout(() => {
+            lastChild.classList.remove("short-fade-in");
+        }, 300);
+    }, 300);
+}
+
+function cycleBack() {
+    let lastChild = theListChildren[theListChildren.length - 1];
+    lastChild.classList.add("fade-scale-out");
+    theListChildren[1].classList.add("slide-right");
+    theListChildren[0].classList.add("slide-right");
+
+    for (let i = 0; i < theListChildren.length; i++) {
+        theListChildren[i].classList.add("slide-right");
     }
 
-    // Dynamic scaling on scroll
-    gallery.addEventListener('scroll', () => {
-      const galleryRect = gallery.getBoundingClientRect();
-      const viewportCenter = galleryRect.left + galleryRect.width / 2;
-
-      images.forEach((img, index) => {
-        const imgRect = img.getBoundingClientRect();
-        const imgCenter = imgRect.left + imgRect.width / 2;
-        const distance = Math.abs(viewportCenter - imgCenter);
-
-        // Scale and adjust container if within 200px of center
-        if (distance < 200) {
-          img.classList.add('scale-150', 'z-20', 'shadow-lg');
-          img.classList.remove('shadow-md');
-          imageContainers[index].classList.add('min-w-[750px]', 'mx-4');
-          imageContainers[index].classList.remove('min-w-[500px]', 'mx-2');
-        } else {
-          img.classList.remove('scale-150', 'z-20', 'shadow-lg');
-          img.classList.add('shadow-md');
-          imageContainers[index].classList.remove('min-w-[750px]', 'mx-4');
-          imageContainers[index].classList.add('min-w-[500px]', 'mx-2');
+    // Remove the last element from the DOM after the animation is done and put it at the beginning
+    setTimeout(() => {
+        let lastChild = theListChildren[theListChildren.length - 1];
+        lastChild.classList.remove("fade-scale-out");
+        for (let i = 0; i < theListChildren.length; i++) {
+            theListChildren[i].classList.remove("slide-right");
         }
-      });
-    });
-  }
-});
+        theListElement.insertBefore(lastChild, theListChildren[0]);
+        theListChildren[0].classList.add("short-fade-in");
+        setTimeout(() => {
+            theListChildren[0].classList.remove("short-fade-in");
+        }, 300);
+    }, 300);
+}

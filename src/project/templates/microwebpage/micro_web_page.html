@@ -40,34 +40,6 @@
             </div>
             <!-- Hero Section -->
             <div class="relative isolate px-6 pt-14 lg:px-8">
-                <div
-                    class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-                    aria-hidden="true"
-                >
-                    <div
-                        class="to-deep-purple relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] opacity-50 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-                        style="
-                            clip-path: polygon(
-                                74.1% 44.1%,
-                                100% 61.6%,
-                                97.5% 26.9%,
-                                85.5% 0.1%,
-                                80.7% 2%,
-                                72.5% 32.5%,
-                                60.2% 62.4%,
-                                52.4% 68.1%,
-                                47.5% 58.3%,
-                                45.2% 34.5%,
-                                27.5% 76.7%,
-                                0.1% 64.9%,
-                                17.9% 100%,
-                                27.6% 76.8%,
-                                76.1% 97.7%,
-                                74.1% 44.1%
-                            );
-                        "
-                    ></div>
-                </div>
                 <div class="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
                     <div class="text-center">
                         <h1
@@ -78,21 +50,55 @@
                         <p class="mt-6 text-base text-gray-600">{{ microwebpage.hero_subtitle }}</p>
                     </div>
                 </div>
-                <div
-                    id="gallery"
-                    class="no-scrollbar flex w-full snap-x overflow-x-auto overflow-y-hidden scroll-smooth px-[200px] py-8"
-                >
-                    {% for picture in microwebpage.webpage_media %} {% if picture.picture_url and picture.picture_url !=
-                    'None' %}
-                    <div class="relative min-w-[500px] snap-center px-4 transition-all duration-50">
-                        <img
-                            src="{{ picture.picture_url }}"
-                            data-original-src="{{ picture.picture_url }}"
-                            alt="Technology Innovation"
-                            class="shadow-card h-[300px] w-[500px] rounded-lg object-cover transition-transform duration-50 ease-in-out"
-                        />
+                <div class="relative">
+                    <!-- Image Gallery -->
+                    <div id="gallery" class="relative mt-20 flex w-full gap-5 overflow-hidden">
+                        {% for picture in microwebpage.webpage_media %} {% if picture.picture_url and
+                        picture.picture_url != 'None' %}
+                        <div
+                            class="relative min-w-full rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
+                        >
+                            <img
+                                src="{{ picture.picture_url }}"
+                                data-original-src="{{ picture.picture_url }}"
+                                alt="Technology Innovation"
+                                class="shadow-card h-[300px] w-full rounded-3xl object-cover transition-transform duration-300 ease-in-out"
+                            />
+                        </div>
+                        {% endif %} {% endfor %}
                     </div>
-                    {% endif %} {% endfor %}
+
+                    <!-- Navigation Buttons (left & right arrows) -->
+                    <button
+                        class="absolute top-1/2 -left-5 size-16 rounded-full border bg-white transition-colors ease-in-out hover:bg-neutral-50"
+                        onclick="cycleBack()"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="mx-auto size-6"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                        </svg>
+                    </button>
+                    <button
+                        class="absolute top-1/2 -right-5 size-16 rounded-full border bg-white transition-colors ease-in-out hover:bg-neutral-50"
+                        onclick="cycleForward()"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="mx-auto size-6"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
                 </div>
 
                 <div

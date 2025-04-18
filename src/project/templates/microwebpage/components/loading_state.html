@@ -1,0 +1,13 @@
+{% macro render() %}
+
+<script type="text/x-template" id="loading-state-template">
+    <div class="mx-auto mt-4 flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto items-center">
+        <div class="flex flex-col items-center gap-4">
+            <h1 class="text-4xl font-medium">Publishing Your MicroWebPage</h1>
+            <span class="text-gray-600">Please wait while we process your submission...</span>
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-sky-500"></div>
+        </div>
+    </div>
+</script>
+
+{% endmacro %}

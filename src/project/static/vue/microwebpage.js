@@ -505,6 +505,14 @@ const AddCustomerFeedbackComponent = defineComponent({
     }
 });
 
+
+
+const LoadingStateComponent = defineComponent({
+    template: "#loading-state-template",
+    delimiters: ["[[", "]]"]
+});
+
+
 createApp({
     components: {
         MainComponent,
@@ -514,7 +522,8 @@ createApp({
         FaqComponent,
         AboutComponent,
         AddEmployeeComponent,
-        AddCustomerFeedbackComponent
+        AddCustomerFeedbackComponent,
+        LoadingStateComponent,
     },
     data() {
         return {
@@ -525,6 +534,7 @@ createApp({
             isFirstStageValid: false,
             companyId: null,
             microwebpageId: null,
+            isLoading: false, // Track loading state
             formData: {
                 id: null,
                 company_id: null,
@@ -563,6 +573,9 @@ createApp({
     },
     computed: {
         currentComponent() {
+            if (this.isLoading) {
+                return LoadingStateComponent;
+            }
             const components = [
                 MainComponent,
                 LogoCloudComponent,
@@ -572,6 +585,7 @@ createApp({
                 AboutComponent,
                 AddEmployeeComponent,
                 AddCustomerFeedbackComponent
+
             ];
             return components[this.currentPage - 1];
         }
@@ -684,6 +698,7 @@ createApp({
         },
         async submitForm() {
             try {
+                this.isLoading = true;
                 const csrfToken = document.getElementById("csrf_token").value;
                 const formData = new FormData();
                 const endpoint = this.microwebpageId

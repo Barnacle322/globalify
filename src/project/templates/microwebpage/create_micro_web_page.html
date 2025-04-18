@@ -62,7 +62,9 @@
         "microwebpage/components/about_component.html" as about_component %} {{ about_component.render() }} {% import
         "microwebpage/components/add_employee_component.html" as add_employee_component %} {{
         add_employee_component.render() }} {% import "microwebpage/components/add_customer_feedback_component.html" as
-        add_customer_feedback_component %} {{ add_customer_feedback_component.render() }}
+        add_customer_feedback_component %} {{ add_customer_feedback_component.render() }}{% import
+        "microwebpage/components/loading_state.html" as loading_state_component %} {{ loading_state_component.render()
+        }}
 
         <!-- Vue App -->
         <div id="app">

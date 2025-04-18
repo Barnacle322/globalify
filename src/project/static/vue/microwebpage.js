@@ -630,7 +630,6 @@ createApp({
                 this.isFirstStageValid = this.validateFirstStage();
             } catch (error) {
                 console.error("Error loading MicroWebPage data:", error);
-                alert("Failed to load MicroWebPage data. Please try again.");
             }
         },
         loadFormData() {
@@ -799,7 +798,6 @@ createApp({
                 }
             } catch (error) {
                 console.error("Error submitting form:", error);
-                alert("An error occurred while submitting the form. Please try again.");
             }
         },
         resetForm() {

@@ -526,6 +526,7 @@ def update_micro_web_page(microwebpage_id):
                     continue
 
                 new_media = WebpageMedia(
+                    micro_webpage=microwebpage,
                     micro_webpage_id=microwebpage.id,
                     press_kit_url=None,
                     picture_url=image_url,

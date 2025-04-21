@@ -11,7 +11,7 @@
         </div>
         <div class="grid grid-cols-2 gap-x-4 gap-y-6">
             <div class="flex items-center">
-                <label for="logo" class="text-sm font-medium text-gray-700">Primary Logo (PNG)</label>
+                <label for="logo" class="text-sm font-medium text-gray-700">Primary Logo (PNG)*</label>
             </div>
             <div>
                 <input
@@ -26,7 +26,7 @@
                 <img v-if="formData.logoPreview" :src="formData.logoPreview" class="mt-2 h-24 w-auto rounded-md" />
             </div>
             <div class="flex items-center">
-                <label for="hero_title" class="text-sm font-medium text-gray-700">Hero Title</label>
+                <label for="hero_title" class="text-sm font-medium text-gray-700">Hero Title*</label>
             </div>
             <div>
                 <input
@@ -40,7 +40,7 @@
                 <span v-if="errors.hero_title" class="text-sm text-red-500">[[ errors.hero_title ]]</span>
             </div>
             <div class="flex items-center">
-                <label for="hero_subtitle" class="text-sm font-medium text-gray-700">Hero Subtitle</label>
+                <label for="hero_subtitle" class="text-sm font-medium text-gray-700">Hero Subtitle*</label>
             </div>
             <div>
                 <input
@@ -54,7 +54,7 @@
                 <span v-if="errors.hero_subtitle" class="text-sm text-red-500">[[ errors.hero_subtitle ]]</span>
             </div>
             <div class="flex items-center">
-                <label for="benefit_title" class="text-sm font-medium text-gray-700">Benefit Title</label>
+                <label for="benefit_title" class="text-sm font-medium text-gray-700">Benefit Title*</label>
             </div>
             <div>
                 <input
@@ -66,7 +66,7 @@
                 />
             </div>
             <div class="flex items-center">
-                <label for="benefit_subtitle" class="text-sm font-medium text-gray-700">Benefit Subtitle</label>
+                <label for="benefit_subtitle" class="text-sm font-medium text-gray-700">Benefit Subtitle*</label>
             </div>
             <div>
                 <input
@@ -79,7 +79,7 @@
             </div>
             <div class="col-span-2">
                 <div class="flex items-center">
-                    <label class="text-sm font-medium text-gray-700">Benefit Statements</label>
+                    <label class="text-sm font-medium text-gray-700">Benefit Statements*</label>
                 </div>
                 <div class="mt-2 space-y-4">
                     <div v-for="(statement, index) in formData.benefit_statement" :key="index" class="grid grid-cols-2 gap-4">
@@ -113,7 +113,7 @@
                 </div>
             </div>
             <div class="flex items-center">
-                <label for="company_images" class="text-sm font-medium text-gray-700">Company Photos</label>
+                <label for="company_images" class="text-sm font-medium text-gray-700">Company Photos*</label>
             </div>
             <div>
                 <input

@@ -8,7 +8,7 @@
         <link rel="stylesheet" href="/static/css/main.css" />
         <script src="/static/scripts/microwebpage.js" defer></script>
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
-        <title>Document</title>
+        <title>{{ company.name }}</title>
     </head>
     <body>
         <div class="bg-white">
@@ -19,7 +19,6 @@
                     <nav class="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
                         <div class="flex items-center lg:flex-1">
                             <a href="#" class="-m-1.5 flex items-center p-1.5">
-                                <span class="sr-only">Your Company</span>
                                 <img class="h-12 w-auto" src="{{ microwebpage.logo_url }}" alt="Company Logo" />
                                 <h3
                                     class="ml-4 text-2xl font-extrabold text-indigo-800 hover:text-indigo-500 transition-colors duration-300 tracking-wide {{ company.name }}"
@@ -28,6 +27,7 @@
                                 </h3>
                             </a>
                         </div>
+                        {% if microwebpage.about_title %}
                         <div class="flex lg:gap-x-12">
                             <a
                                 href="/microwebpage/about/{{ company.id }}"
@@ -35,6 +35,7 @@
                                 >About</a
                             >
                         </div>
+                        {% endif %}
                     </nav>
                 </header>
             </div>
@@ -100,35 +101,6 @@
                         </svg>
                     </button>
                 </div>
-
-                <div
-                    class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
-                    aria-hidden="true"
-                >
-                    <div
-                        class="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
-                        style="
-                            clip-path: polygon(
-                                74.1% 44.1%,
-                                100% 61.6%,
-                                97.5% 26.9%,
-                                85.5% 0.1%,
-                                80.7% 2%,
-                                72.5% 32.5%,
-                                60.2% 62.4%,
-                                52.4% 68.1%,
-                                47.5% 58.3%,
-                                45.2% 34.5%,
-                                27.5% 76.7%,
-                                0.1% 64.9%,
-                                17.9% 100%,
-                                27.6% 76.8%,
-                                76.1% 97.7%,
-                                74.1% 44.1%
-                            );
-                        "
-                    ></div>
-                </div>
             </div>
         </div>
         <div class="mt-10 w-full bg-[#1C1236] py-24">
@@ -144,8 +116,26 @@
                 <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
                     <dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
                         {% for benefit in microwebpage.benefit_statement %}
-                        <div class="relative pl-16">
-                            <dt class="text-base/7 font-semibold text-slate-200">{{ benefit.title }}</dt>
+                        <div class="relative">
+                            <div class="flex items-center">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="size-6"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                        />
+                                    </svg>
+                                </div>
+                                <dt class="ml-4 text-base/7 font-semibold text-slate-200">{{ benefit.title }}</dt>
+                            </div>
                             <dd class="mt-2 text-base/7 text-gray-600">{{ benefit.description }}</dd>
                         </div>
                         {% endfor %}
@@ -154,16 +144,14 @@
             </div>
         </div>
 
+        {% if microwebpage.mission_title %}
         <!-- Our Mission Section -->
         <div class="bg-gradient-to-b from-gray-50 to-white py-16 sm:py-20">
             <div class="mx-auto max-w-7xl px-6 lg:px-12">
                 <div class="mx-auto max-w-3xl text-center">
-                    <h2 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">Our Mission</h2>
-                    <p
-                        class="mt-6 text-xl font-medium text-gray-700 leading-relaxed {{ microwebpage.mission_title }} transition-opacity duration-500 ease-in-out hover:opacity-90"
-                    >
+                    <h2 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
                         {{ microwebpage.mission_title }}
-                    </p>
+                    </h2>
                 </div>
                 <div class="shadow-card mt-12 rounded-2xl bg-white p-10 transition-shadow duration-300">
                     <p
@@ -174,19 +162,24 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- Stats Section -->
+
+        {% if microwebpage.stat_title %}
 
         <div class="mt-10 bg-white py-24 sm:py-32">
             <div class="mx-auto max-w-7xl px-6 lg:px-8">
                 <!-- Centered title and subtitle -->
-                <h2 class="mb-4 text-center text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">Our Stats</h2>
+                <h2 class="mb-4 text-center text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+                    {{ microwebpage.stat_title }}
+                </h2>
                 <p class="mb-12 text-center text-xl text-gray-600">{{ microwebpage.stat_subtitle }}</p>
 
                 <dl class="flex flex-wrap justify-center gap-8">
                     {% for stat in microwebpage.statistics %}
                     <div
-                        class="shadow-card w-full rounded-lg bg-white p-6 text-center sm:w-auto sm:max-w-[300px] sm:min-w-[200px]"
+                        class="shadow-card w-full rounded-lg bg-white p-6 text-center sm:w-auto sm:max-w-[400px] sm:min-w-[200px]"
                     >
                         <dt class="text-sm font-medium text-gray-600">{{ stat.key }}</dt>
                         <dd class="mt-2 text-3xl font-bold text-gray-900">{{ stat.value }}</dd>
@@ -195,6 +188,7 @@
                 </dl>
             </div>
         </div>
+        {% endif %}
 
         <!-- Testimonial Section -->
 
@@ -229,6 +223,7 @@
             </div>
         </div>
 
+        {% if microwebpage.faq_title %}
         <!-- FAQ Section (Matching the Image) -->
         <div class="w-full bg-gray-100 py-24 sm:py-32">
             <div class="mx-auto w-full px-6 lg:px-8">
@@ -251,6 +246,8 @@
                 </div>
             </div>
         </div>
+
+        {% endif %}
 
         <!-- Footer -->
         <footer class="bg-white py-12">

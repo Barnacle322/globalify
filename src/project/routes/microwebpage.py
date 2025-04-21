@@ -478,6 +478,7 @@ def update_micro_web_page(microwebpage_id):
                         media.logo_url = logo_url
                     else:
                         new_media = WebpageMedia(
+                            micro_webpage=microwebpage,
                             micro_webpage_id=microwebpage.id,
                             press_kit_url=None,
                             picture_url=None,

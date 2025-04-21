@@ -4,54 +4,78 @@ from flask import (
     Blueprint,
     jsonify,
     request,
+    url_for,
 )
-from flask_login import current_user, login_required
+from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
 
-from src.project.models.helpers import Industry
-from src.project.models.user import User
-from src.project.utils.enums import QualificationType
-
 from ...extensions import db
+from ...models.helpers import Industry
 from ...models.superconnect import (
     # Event,
     Expert,
     Qualification,
     # TimeSlot,
 )
-from ...utils.decorators import check_user_info_complete, check_verification
+from ...models.user import Company, Notification, User
+from ...schemas.notification import NotificationItem, NotificationLayout
+from ...utils.decorators import admin_only
+from ...utils.enums import NotificationType, QualificationType
 
 superconnect = Blueprint("superconnect", __name__)
 
 
-@superconnect.get("admin/superconnect/")
-@login_required
-@check_user_info_complete
-@check_verification
+@superconnect.get("//")
+@admin_only
 def index():
     experts = Expert.get_all()
 
     return jsonify({"experts": experts})
 
 
-@superconnect.get("admin/superconnect/expert/create")
-@login_required
-@check_user_info_complete
-@check_verification
+@superconnect.get("/expert/create")
 def create_expert():
+    form_data = {
+        "user_id": 1,
+        "bio": "Experienced software engineer with a passion for AI.",
+        "description": "I have over 10 years of experience in software development and specialize in machine learning and artificial intelligence.",
+        "picture_url": "https://example.com/images/expert123.jpg",
+        "industries": [1, 2, 3],
+        "qualifications": [
+            {
+                "type": "CONTRACT",
+                "title": "Senior Software Engineer",
+                "start_date": "2018-01-01T00:00:00",
+                "end_date": "2023-12-31T00:00:00",
+                "qual_description": "Developed and maintained key features for a large-scale web application.",
+                "company_name": "Acme Corp",
+                "company_description": "A leading technology company.",
+                "company_url": "https://acme.com",
+            },
+            {
+                "type": "OFFICE",
+                "title": "Master of Science in Computer Science",
+                "start_date": "2016-09-01T00:00:00",
+                "end_date": "2018-05-31T00:00:00",
+                "qual_description": "Specialized in artificial intelligence and machine learning.",
+                "company_id": None,
+                "company_name": "University of Example",
+                "company_description": None,
+                "company_url": "https://example.edu",
+                "set_as_current": True,
+            },
+        ],
+    }
     try:
-        form_data = request.get_json()
         if not form_data:
             return jsonify({"error": "No data provided"}), 400
 
         bio = form_data.get("bio")
         description = form_data.get("description")
         picture_url = form_data.get("picture_url")
-        current_position_id = form_data.get("current_position_id")
         industry_ids = form_data.get("industries", [])
         qualifications_data = form_data.get("qualifications", [])
         user_id = form_data.get("user_id")
-
         if user_id:
             existing_expert = Expert.query.filter_by(user_id=current_user.id).first()
             if existing_expert:
@@ -70,20 +94,30 @@ def create_expert():
             bio=bio,
             description=description,
             picture_url=picture_url,
-            current_position_id=current_position_id,
         )
 
         qualifications: list[Qualification] = []
         for qual_data in qualifications_data:
             qual_type = qual_data.get("type")
             title = qual_data.get("title")
-            description = qual_data.get("description")
+            description = qual_data.get("qual_description")
             company_id = qual_data.get("company_id")
-            company_name = qual_data.get("company_name")
-            company_description = qual_data.get("company_description")
-            company_url = qual_data.get("company_url")
-            start_date = qual_data.get("start_date")
-            end_date = qual_data.get("end_date")
+            company = Company.get_by_id(company_id) if company_id else None
+            if company:
+                company_name = company.name
+                company_description = company.description
+                company_url = "globalify.xyz/company/" + company.slug
+            else:
+                company_name = qual_data.get("company_name")
+                company_description = qual_data.get("company_description")
+                company_url = qual_data.get("company_url")
+            start_date_str = qual_data.get("start_date")
+            end_date_str = qual_data.get("end_date")
+            start_date = datetime.datetime.fromisoformat(start_date_str) if start_date_str else None
+            end_date = datetime.datetime.fromisoformat(end_date_str) if end_date_str else None
+            if start_date and end_date and end_date < start_date:
+                return jsonify({"error": "Validation error: end_date cannot be before start_date"}), 400
+            set_as_current = qual_data.get("set_as_current", False)
 
             if not (qual_type and title):
                 return jsonify({"error": "Qualification type and title are required"}), 400
@@ -104,12 +138,31 @@ def create_expert():
             )
             qualifications.append(qualification)
 
+            if set_as_current and (qual_type != QualificationType.EDUCATION):
+                db.session.add(qualification)
+                db.session.flush()
+                expert.current_position_id = qualification.id
+
         expert.qualifications = qualifications
 
         db.session.add(expert)
         db.session.commit()
 
-        # Формирование ответа
+        if expert and user:
+            notification = Notification(
+                user=user,
+                json_data=NotificationLayout(
+                    title="You are expert now!",
+                    msg="Click here to view your expert page.",
+                    type="system",
+                    item=NotificationItem(
+                        url=url_for("superconnect.get_expert", expert_id=user_id, _external=True),
+                        type=NotificationType.INFO.value,
+                    ),
+                ).model_dump(),
+            )
+            db.session.add(notification)
+
         expert_data = {
             "id": expert.id,
             "user_id": expert.user_id,
@@ -117,7 +170,6 @@ def create_expert():
             "description": expert.description,
             "picture_url": expert.picture_url,
             "current_position_id": expert.current_position_id,
-            "created_at": expert.created_at.isoformat(),  # type: ignore
             "qualifications": [
                 {
                     "id": q.id,

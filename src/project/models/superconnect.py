@@ -36,7 +36,7 @@ class Expert(MappedAsDataclass, db.Model, unsafe_hash=True):
     description: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     current_position_id: Mapped[int] = mapped_column(Integer, nullable=True, default=None)
-    industries: Mapped[list[Industry]] = relationship(secondary=expert_industry, init=False)  # Maybe??
+    industries: Mapped[list[Industry]] = relationship(secondary=expert_industry, nullable=True, default=None)  # Maybe??
     # minimum_notice_minutes: Mapped[int] = mapped_column(Integer, default=60)
     # minimum_free_time: Mapped[int] = mapped_column(Integer, default=15)
     created_at: Mapped[datetime.datetime | None] = mapped_column(
@@ -81,7 +81,7 @@ class Qualification(MappedAsDataclass, db.Model, unsafe_hash=True):
     end_date: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     company_id: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
-    company_name: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    company_name: Mapped[str | None] = mapped_column(String, nullable=False, default=None)
     company_description: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     company_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
 

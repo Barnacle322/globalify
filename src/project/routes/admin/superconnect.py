@@ -3,6 +3,7 @@ import datetime
 from flask import (
     Blueprint,
     jsonify,
+    redirect,
     request,
     url_for,
 )
@@ -21,6 +22,8 @@ from ...models.user import Company, Notification, User
 from ...schemas.notification import NotificationItem, NotificationLayout
 from ...utils.decorators import admin_only
 from ...utils.enums import NotificationType, QualificationType
+from ...utils.google_helpers.google_storage import upload_picture
+from ...utils.scraper import add_https_prefix
 
 superconnect = Blueprint("superconnect", __name__)
 
@@ -72,7 +75,6 @@ def create_expert():
 
         bio = form_data.get("bio")
         description = form_data.get("description")
-        picture_url = form_data.get("picture_url")
         industry_ids = form_data.get("industries", [])
         qualifications_data = form_data.get("qualifications", [])
         user_id = form_data.get("user_id")
@@ -87,11 +89,23 @@ def create_expert():
             industries = Industry.query.filter(Industry.id.in_(industry_ids)).all()
             if len(industries) != len(industry_ids):
                 return jsonify({"error": "Some industries not found"}), 404
+            elif len(industries) > 5:  # mb industries limit for experts ####################
+                return jsonify({"error": "Expert can't have more thatn 5 industries"}), 404
+        else:
+            industries = []
+
+        if picture := request.files.get("picture"):
+            try:
+                picture_url = upload_picture(picture)
+            except Exception as e:
+                print(e)
+                return jsonify({"error": "Picture uploading error"}), 400
 
         expert = Expert(
             user_id=user_id if user_id else None,
             user=user if user else None,
             bio=bio,
+            industries=industries,
             description=description,
             picture_url=picture_url,
         )
@@ -111,6 +125,8 @@ def create_expert():
                 company_name = qual_data.get("company_name")
                 company_description = qual_data.get("company_description")
                 company_url = qual_data.get("company_url")
+                if company_url:
+                    company_url = add_https_prefix(company_url)
             start_date_str = qual_data.get("start_date")
             end_date_str = qual_data.get("end_date")
             start_date = datetime.datetime.fromisoformat(start_date_str) if start_date_str else None
@@ -119,8 +135,8 @@ def create_expert():
                 return jsonify({"error": "Validation error: end_date cannot be before start_date"}), 400
             set_as_current = qual_data.get("set_as_current", False)
 
-            if not (qual_type and title):
-                return jsonify({"error": "Qualification type and title are required"}), 400
+            if not (qual_type or title or company_name):
+                return jsonify({"error": "Qualification type, title, employment name are required"}), 400
 
             if qual_type not in QualificationType.__members__:
                 return jsonify({"error": f"Invalid qualification type: {qual_type}"}), 400

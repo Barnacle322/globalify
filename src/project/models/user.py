@@ -46,11 +46,13 @@ from ..utils.typesense_helpers.typesense_search import (
 )
 from .helpers import Country, Industry, Round
 from .investment import FundingRound
+from .microwebpage import MicroWebPage
 
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
     from .investor import InvestmentFirmBookmark, Investor, InvestorBackup, InvestorBookmark, NotableInvestment
     from .message import Chat
+    from .microwebpage import MicroWebPage
     from .search import SearchHistory
 
 
@@ -485,6 +487,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     funding_rounds: Mapped[list[FundingRound]] = relationship(
         "FundingRound", back_populates="company", uselist=True, init=False
     )
+    microwebpage: Mapped["MicroWebPage"] = relationship("MicroWebPage", back_populates="company", init=False, uselist=False)
 
     country: Mapped[Country] = relationship(init=False)
     preferred_round: Mapped[Round] = relationship(init=False)

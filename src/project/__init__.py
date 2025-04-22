@@ -26,6 +26,7 @@ from .routes.main import (
     unauthorized,
 )
 from .routes.message import message
+from .routes.microwebpage import microwebpage
 from .routes.onboarding import onboarding
 from .routes.payment import payment
 from .routes.profile import profile
@@ -104,6 +105,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.register_blueprint(onboarding, url_prefix="/onboarding")
     app.register_blueprint(investment, url_prefix="/investment")
     app.register_blueprint(message, url_prefix="/message")
+    app.register_blueprint(microwebpage, url_prefix="/microwebpage")
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

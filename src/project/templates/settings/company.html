@@ -35,7 +35,7 @@
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
 
         <!-- Vue -->
-        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
         <script src="/static/vue/base.js"></script>
         <script src="/static/scripts/menu.js" defer></script>
         <script src="/static/vue/settings.js" defer></script>
@@ -95,7 +95,7 @@
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <div
                     class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
-                    v-if="inviteMemberOpened || selectedUser || selectedInvitationId || deleteCompanyOpened || createInvestmentOpened || createFundingRoundOpened || updateFundingRoundOpened || deleteFundingRoundOpened || updateInvestmentOpened"
+                    v-if="inviteMemberOpened || selectedUser || selectedInvitationId || deleteCompanyOpened || createInvestmentOpened || createFundingRoundOpened || updateFundingRoundOpened || deleteFundingRoundOpened || updateInvestmentOpened || createMicroWebPageOpened"
                 ></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
@@ -124,6 +124,7 @@
                     @close-delete-company="deleteCompanyOpened = null"
                 ></delete-company-component>
             </transition>
+
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <create-investment-component
                     companyid="{{ company.id }}"
@@ -965,6 +966,52 @@
                             </div>
                         </div>
                     </div>
+                    <div class="my-10 grid gap-6 sm:grid-cols-6">
+                        <div class="col-span-2">
+                            <h2 class="text-2xl font-bold">Create a webpage</h2>
+                            <p class="mt-1 leading-6 text-gray-700">Create a microwebpage for your company</p>
+                        </div>
+                        <div class="flex gap-4 md:col-span-2">
+                            {% if not company.microwebpage %}
+                            <a
+                                href="/microwebpage/create/{{ company.id }}"
+                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-sky-500 px-4 py-3 whitespace-nowrap text-white transition-colors ease-in-out hover:bg-sky-400"
+                            >
+                                Create Microwebpage
+                            </a>
+                            {% else %}
+                            <a
+                                href="/microwebpage/create/{{ company.id }}"
+                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-sky-500 px-4 py-3 whitespace-nowrap text-white transition-colors ease-in-out hover:bg-sky-400"
+                            >
+                                View Microwebpage
+                            </a>
+                            {% endif %} {% if company.microwebpage %}
+                            <a
+                                href="/microwebpage/update/{{ company.id }}"
+                                class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-yellow-600 px-4 py-3 whitespace-nowrap text-white transition-colors ease-in-out hover:bg-yellow-500"
+                            >
+                                Update Microwebpage
+                            </a>
+                            {% endif %} {% if company.microwebpage %}
+
+                            <div
+                                id="publishButton"
+                                :data-initial-published="`{{ company.microwebpage.is_published }}`"
+                                data-microwebpage-id="{{ company.microwebpage.id }}"
+                            >
+                                <button
+                                    @click="togglePublish(microwebpageId, !isPublished)"
+                                    class="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-green-500 px-4 py-3 text-white transition-colors ease-in-out hover:bg-green-400"
+                                >
+                                    <span v-text="isPublished ? 'Unpublish' : 'Publish'"></span>
+                                </button>
+                            </div>
+
+                            {% endif %}
+                        </div>
+                    </div>
+
                     {% if user_role == 'owner' %}
                     <div class="my-10 grid gap-6 sm:grid-cols-6">
                         <div class="col-span-2">

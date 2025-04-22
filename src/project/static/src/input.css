@@ -18,6 +18,7 @@
     --spacing-8xl: 90rem;
     --shadow-card: 0 3px 8px rgb(0, 0, 0, 0.24);
 
+
     @keyframes border {
         0%,
         100% {backgroundPosition: 0% 50%;}
@@ -626,4 +627,13 @@ textarea {
 
 .shadow-card-hover:hover {
     @apply shadow-[0px_4px_16px_rgba(17,17,26,0.1),_0px_8px_24px_rgba(17,17,26,0.1),_0px_16px_56px_rgba(17,17,26,0.1)];
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none; /* Internet Explorer and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and Opera */
 }

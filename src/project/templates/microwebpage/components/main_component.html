@@ -1,0 +1,167 @@
+{% macro render() %}
+<script type="text/x-template" id="main-component-template">
+    <div class="mx-auto mt-4 flex h-full w-full max-w-xl flex-col justify-center gap-9 overflow-y-auto">
+        <div>
+            <input type="hidden" v-model="formData.id" />
+            <input type="hidden" v-model="formData.company_id" />
+        </div>
+        <div class="flex flex-col gap-2">
+            <h1 class="text-4xl font-medium">Step 1 of 8: Main</h1>
+            <span>Please fill out the required main fields.</span>
+        </div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-6">
+            <div class="flex items-center">
+                <label for="logo" class="text-sm font-medium text-gray-700">Primary Logo (PNG)*</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    @change="handleLogoUpload"
+                    type="file"
+                    id="logo"
+                    ref="logoInput"
+                    accept="image/png"
+                />
+                <span v-if="errors.logo_url" class="text-sm text-red-500">[[ errors.logo_url ]]</span>
+                <img v-if="formData.logoPreview" :src="formData.logoPreview" class="mt-2 h-24 w-auto rounded-md" />
+            </div>
+            <div class="flex items-center">
+                <label for="hero_title" class="text-sm font-medium text-gray-700">Hero Title*</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    v-model="formData.hero_title"
+                    type="text"
+                    id="hero_title"
+                    placeholder="Your compelling headline (e.g., 'Innovating for a Better Tomorrow')"
+                    required
+                />
+                <span v-if="errors.hero_title" class="text-sm text-red-500">[[ errors.hero_title ]]</span>
+            </div>
+            <div class="flex items-center">
+                <label for="hero_subtitle" class="text-sm font-medium text-gray-700">Hero Subtitle*</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    v-model="formData.hero_subtitle"
+                    type="text"
+                    id="hero_subtitle"
+                    placeholder="Brief description of who you serve (e.g., 'Empowering small businesses with AI solutions')"
+                    required
+                />
+                <span v-if="errors.hero_subtitle" class="text-sm text-red-500">[[ errors.hero_subtitle ]]</span>
+            </div>
+            <div class="flex items-center">
+                <label for="benefit_title" class="text-sm font-medium text-gray-700">Benefit Title*</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    v-model="formData.benefit_title"
+                    type="text"
+                    id="benefit_title"
+                    placeholder="Benefits headline (e.g., 'Why Choose Us')"
+                />
+            </div>
+            <div class="flex items-center">
+                <label for="benefit_subtitle" class="text-sm font-medium text-gray-700">Benefit Subtitle*</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    v-model="formData.benefit_subtitle"
+                    type="text"
+                    id="benefit_subtitle"
+                    placeholder="Benefits description (e.g., 'Our unique advantages')"
+                />
+            </div>
+            <div class="col-span-2">
+                <div class="flex items-center">
+                    <label class="text-sm font-medium text-gray-700">Benefit Statements*</label>
+                </div>
+                <div class="mt-2 space-y-4">
+                    <div v-for="(statement, index) in formData.benefit_statement" :key="index" class="grid grid-cols-2 gap-4">
+                        <input
+                            class="w-full rounded-lg border border-black bg-white p-2"
+                            v-model="statement.title"
+                            type="text"
+                            :placeholder="'Benefit #' + (index + 1) + ' Title (e.g., Innovation)'"
+                        />
+                        <div class="flex gap-2">
+                            <textarea
+                                class="w-full rounded-lg border border-black bg-white p-2"
+                                v-model="statement.description"
+                                :placeholder="'Description (e.g., Cutting-edge solutions...)'"
+                                rows="2"
+                            ></textarea>
+                            <button
+                                @click="removeBenefitStatement(index)"
+                                class="rounded-md bg-red-500 p-2 text-white"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                    <button
+                        @click="addBenefitStatement"
+                        class="mt-2 rounded-md bg-green-500 px-3 py-2 text-white"
+                    >
+                        Add Benefit Statement
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center">
+                <label for="company_images" class="text-sm font-medium text-gray-700">Company Photos*</label>
+            </div>
+            <div>
+                <input
+                    class="w-full rounded-lg border border-black bg-white p-2"
+                    @change="handleImageUpload"
+                    type="file"
+                    id="company_images"
+                    ref="imageInput"
+                    multiple
+                    accept="image/*"
+                />
+                <div class="mt-2 grid grid-cols-3 gap-2" v-if="formData.images.length > 0">
+                    <div v-for="(image, index) in formData.images" :key="image.id || 'new-' + index" class="relative">
+                        <img :src="image.preview" class="h-24 w-full rounded-md object-cover" />
+                        <button
+                            @click="removeImage(index)"
+                            class="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <span v-if="errors.images" class="text-sm text-red-500">[[ errors.images ]]</span>
+            </div>
+        </div>
+        <div class="flex justify-between">
+            <button
+                class="mt-4 w-fit rounded-md bg-gray-300 px-3 py-2 text-black transition-colors ease-in-out hover:bg-gray-200"
+                @click="goBack"
+            >
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    <span>Back</span>
+                </div>
+            </button>
+            <button class="bg-deep-purple mt-4 w-fit rounded-md px-3 py-2 text-white hover:scale-102" @click="nextPage">
+                <div class="flex items-center gap-2">
+                    <span>Continue</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </div>
+            </button>
+        </div>
+    </div>
+</script>
+{% endmacro %}

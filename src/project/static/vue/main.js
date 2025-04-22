@@ -1,4 +1,4 @@
-import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+
 
 const FullInvestor = defineComponent({
     template: "#full-investor-template",

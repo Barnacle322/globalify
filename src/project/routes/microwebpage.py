@@ -12,7 +12,7 @@ from .main import bad_request
 from ..extensions import db
 from ..models import ( Company)
 from ..models.microwebpage import MicroWebPage, WebpageMedia, WebpageCompanyCustomer, WebpageCompanyEmployee
-from ..utils.google_helpers.google_storage import upload_picture, upload_picture_for_web_page
+from ..utils.google_helpers.google_storage import upload_picture, upload_picture_for_web_page, delete_blob_from_url
 
 microwebpage = Blueprint("micropage", __name__)
 
@@ -444,6 +444,8 @@ def update_micro_web_page(microwebpage_id):
             # Handle primary logo upload
             if logo and logo.filename:
                 try:
+                    if microwebpage.logo_url:
+                        delete_blob_from_url(microwebpage.logo_url)
                     logo_url = upload_picture(logo)
                     microwebpage.logo_url = logo_url
                 except Exception as e:
@@ -475,6 +477,8 @@ def update_micro_web_page(microwebpage_id):
 
                     if cloud_logo_id and cloud_logo_id in existing_cloud_logos:
                         media = existing_cloud_logos[cloud_logo_id]
+                        if media.logo_url:
+                            delete_blob_from_url(media.logo_url)
                         media.logo_url = logo_url
                     else:
                         new_media = WebpageMedia(
@@ -489,6 +493,8 @@ def update_micro_web_page(microwebpage_id):
                 submitted_cloud_logo_ids = {cl["id"] for cl in new_cloud_logos if cl["id"]}
                 for media_id, media in existing_cloud_logos.items():
                     if media_id not in submitted_cloud_logo_ids:
+                        if media.logo_url:
+                            delete_blob_from_url(media.logo_url)
                         db.session.delete(media)
 
             # Handle images (update or create)
@@ -537,6 +543,8 @@ def update_micro_web_page(microwebpage_id):
 
             for media_id, media in existing_images.items():
                 if media_id not in submitted_image_ids or media_id in deleted_image_ids:
+                    if media.picture_url:
+                        delete_blob_from_url(media.picture_url)
                     db.session.delete(media)
 
             # Handle employees (update or create)
@@ -557,6 +565,11 @@ def update_micro_web_page(microwebpage_id):
 
                     if employee_id and employee_id in existing_employees:
                         employee = existing_employees[employee_id]
+                        if picture_url:
+                            if employee.picture_url:
+                                delete_blob_from_url(employee.picture_url)
+                            employee.picture_url = picture_url
+
                         employee.first_name = employee_data["first_name"]
                         employee.last_name = employee_data["last_name"]
                         employee.position = employee_data["position"]
@@ -578,6 +591,8 @@ def update_micro_web_page(microwebpage_id):
                 submitted_employee_ids = {emp["id"] for emp in employees_data if emp["id"]}
                 for emp_id, emp in existing_employees.items():
                     if emp_id not in submitted_employee_ids:
+                        if emp.picture_url:
+                            delete_blob_from_url(emp.picture_url)
                         db.session.delete(emp)
 
             # Handle customers (update or create)
@@ -598,6 +613,10 @@ def update_micro_web_page(microwebpage_id):
 
                     if customer_id and customer_id in existing_customers:
                         customer = existing_customers[customer_id]
+                        if picture_url:  # If new picture is uploaded
+                            if customer.picture_url:  # Delete old picture if it exists
+                                delete_blob_from_url(customer.picture_url)
+                            customer.picture_url = picture_url
                         customer.first_name = customer_data["first_name"]
                         customer.last_name = customer_data["last_name"]
                         customer.position = customer_data["position"]
@@ -619,8 +638,9 @@ def update_micro_web_page(microwebpage_id):
                 submitted_customer_ids = {cust["id"] for cust in customers_data if cust["id"]}
                 for cust_id, cust in existing_customers.items():
                     if cust_id not in submitted_customer_ids:
+                        if cust.picture_url:
+                            delete_blob_from_url(cust.picture_url)
                         db.session.delete(cust)
-
             db.session.commit()
 
             return jsonify({

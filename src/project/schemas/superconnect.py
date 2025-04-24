@@ -1,10 +1,27 @@
+from datetime import date
+
 from pydantic import BaseModel
 
 
-class Expert(BaseModel):
+class QualificationSchema(BaseModel):
     id: int
-    bio: str
-    full_name: str
-    picture_url: str | None = None
-    current_position_info: str
-    industries: list[object] | None
+    type: str
+    title: str
+    description: str | None
+    company_id: str | None
+    company_name: str | None
+    company_description: str | None
+    company_url: str | None
+    start_date: date | None
+    end_date: date | None
+
+
+class ExpertSchema(BaseModel):
+    id: int
+    user_id: int | None
+    name: str
+    bio: str | None
+    description: str | None
+    picture_url: str | None
+    current_position_id: int | None
+    qualifications: list[QualificationSchema]

@@ -14,11 +14,14 @@ from ..extensions import db
 from ..models import Company, User
 from ..models.helpers import Industry
 from ..models.superconnect import (
+    EventStatus,
+    # TimeSlot,
     # Event,
     Expert,
     Qualification,
-    # TimeSlot,
+    SessionRequest,
 )
+from ..schemas.superconnect import ExpertSchema, QualificationSchema
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import QualificationType, Status, StatusType
 from ..utils.errors.error_messages import PICTURE_NOT_LOADED
@@ -28,15 +31,10 @@ from ..utils.scraper import add_https_prefix
 superconnect = Blueprint("superconnect", __name__)
 
 
-@superconnect.get("/superconnect/")
-@login_required
-@check_user_info_complete
-@check_verification
+@superconnect.route("/list")
 def index():
     experts = Expert.get_all()
-
-    #  return jsonify({"experts": experts})
-    return render_template("superconnect.html", experts=experts)
+    return render_template("superconnect/index.html", experts=experts)
 
 
 @superconnect.get("/superconnect/expert/<expert_id>")
@@ -227,3 +225,59 @@ def update_expert():
 #     except Exception as e:
 #         db.session.rollback()
 #         return jsonify({"error": f"Failed to book event: {str(e)}"}), 500
+
+
+@superconnect.get("/expert/<expert_id>")
+def get_expert_by_id(expert_id):
+    expert = Expert.get_by_id(expert_id)
+    if not expert:
+        return jsonify({"error": "Expert not found"}), 404
+
+    # Сериализация данных через Pydantic-схему
+    expert_data = ExpertSchema(
+        id=expert.id,
+        name=expert.user.user_info.full_name,
+        user_id=expert.user_id,
+        bio=expert.bio,
+        description=expert.description,
+        picture_url=expert.picture_url,
+        current_position_id=expert.current_position_id,
+        qualifications=[
+            QualificationSchema(
+                id=q.id,
+                type=q.type.value,
+                title=q.title,
+                description=q.description,
+                company_id=q.company_id,
+                company_name=q.company_name,
+                company_description=q.company_description,
+                company_url=q.company_url,
+                start_date=q.start_date,
+                end_date=q.end_date,
+            )
+            for q in expert.qualifications
+        ],
+    )
+
+    # Преобразование Pydantic-объекта в словарь
+    return jsonify({"expert": expert_data.model_dump()})
+
+
+@superconnect.post("/book-session/<expert_id>")
+def book_session(expert_id):
+    expert = Expert.get_by_id(expert_id)
+    if not expert:
+        return jsonify({"error": "Expert not found"}), 404
+
+    existing_request = SessionRequest.get_existing_by_expert_id(expert_id=expert_id)
+    if existing_request:
+        return jsonify({"error": "You have already requested a session with this expert"}), 400
+    print("Booking session with expert ID:", expert_id)
+    try:
+        session_request = SessionRequest(expert_id=expert_id)
+        db.session.add(session_request)
+        db.session.commit()
+    except Exception as e:
+        print("Error while creating session request:", e)
+
+    return jsonify({"message": "Session request sent successfully!"}), 200

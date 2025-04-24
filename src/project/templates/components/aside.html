@@ -197,6 +197,17 @@
             </a>
             {% endif %}
             <a
+                ref="deck"
+                href="/superconnect/list"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
+                :class="currentPath == 'superconnect' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+            >
+                <transition enter-active-class="animate-fade-in">
+                    <span v-if="!minified"> Superconnect </span>
+                </transition>
+            </a>
+
+            <a
                 ref="settings"
                 href="/settings"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"

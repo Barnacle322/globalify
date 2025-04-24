@@ -84,6 +84,7 @@ class EventStatus(Enum):
     CONFIRMED = "confirmed"
     CANCELED = "canceled"
     PAST = "past"
+    PENDING = "pending"
 
 
 class EventType(Enum):

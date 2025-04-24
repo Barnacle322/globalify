@@ -1,0 +1,109 @@
+{% macro render(user) %}
+<template id="full-expert-template">
+    <article
+        class="fixed top-0 right-0 z-[60] flex h-full w-full flex-col overflow-y-scroll overscroll-contain bg-white transition-all"
+        :class="isExpanded ? 'md:w-full lg:w-full 2xl:w-full' : 'md:w-4/5 md:rounded-l-3xl lg:w-2/3 2xl:w-1/2'"
+    >
+        <nav class="sticky top-0 right-0 z-10 flex w-full items-center justify-between bg-white px-4 py-4 sm:px-9">
+            <button
+                @click="toggleExpansion"
+                class="hidden rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50 md:block"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                    v-if="!isExpanded"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+                    />
+                </svg>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                    v-else
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"
+                    />
+                </svg>
+            </button>
+            <button
+                @click="closeExpert"
+                class="ml-auto flex aspect-square h-full items-center justify-center rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-6"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </nav>
+        <div v-if="isLoading" class="grid h-full w-full place-content-center">
+            <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+            </svg>
+        </div>
+        <div v-else-if="!isLoading">
+            <main class="mx-auto flex flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
+                <!-- Фото эксперта -->
+                <img
+                    src="https://pikuco.ru/upload/test_stable/25e/25e71f01406774ba0fd7fcfee1141326.webp"
+                    alt="Фото эксперта"
+                    class="h-32 w-32 rounded-full object-cover"
+                />
+                <!-- Имя эксперта -->
+                <h2 class="text-2xl font-bold text-gray-900">
+                    <span v-text="expert.name"></span>
+                </h2>
+                <!-- Биография -->
+                <p class="text-gray-600" v-text="expert.bio || 'Описание отсутствует'"></p>
+                <!-- Квалификации -->
+                <div class="w-full">
+                    <h3 class="text-lg font-semibold text-gray-800">Квалификации</h3>
+                    <ul class="mt-2 space-y-2">
+                        <li
+                            v-for="qualification in expert.qualifications"
+                            :key="qualification.id"
+                            class="p-4 border border-gray-200 rounded-lg"
+                        >
+                            <h4 class="font-bold text-gray-900" v-text="qualification.title"></h4>
+                            <p class="text-sm text-gray-600" v-text="qualification.description || 'Нет описания'"></p>
+                            <p class="text-sm text-gray-600">
+                                Компания: <span v-text="qualification.company_name || 'Не указано'"></span>
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                Период:
+                                <span v-text="qualification.start_date || 'Не указано'"></span> -
+                                <span v-text="qualification.end_date || 'Не указано'"></span>
+                            </p>
+                        </li>
+                    </ul>
+                </div>
+            </main>
+        </div>
+    </article>
+</template>
+{% endmacro %}

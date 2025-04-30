@@ -4,10 +4,12 @@
         class="fixed top-0 right-0 z-[60] flex h-full w-full flex-col overflow-y-scroll overscroll-contain bg-white transition-all"
         :class="isExpanded ? 'md:w-full lg:w-full 2xl:w-full' : 'md:w-4/5 md:rounded-l-3xl lg:w-2/3 2xl:w-1/2'"
     >
-        <nav class="sticky top-0 right-0 z-10 flex w-full items-center justify-between bg-white px-4 py-4 sm:px-9">
+        <nav
+            class="sticky top-0 right-0 z-10 flex w-full items-center justify-between px-4 py-4 sm:px-9 backdrop-blur-lg bg-white/80 border-b border-gray-100 shadow-sm"
+        >
             <button
                 @click="toggleExpansion"
-                class="hidden rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50 md:block"
+                class="hidden rounded-full p-2 transition-all duration-200 hover:bg-indigo-50 hover:text-indigo-600 md:block"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -42,7 +44,7 @@
             </button>
             <button
                 @click="closeExpert"
-                class="ml-auto flex aspect-square h-full items-center justify-center rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-50"
+                class="ml-auto flex aspect-square h-full items-center justify-center rounded-full p-2 transition-all duration-200 hover:bg-red-50 hover:text-red-500"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -50,57 +52,328 @@
                     viewBox="0 0 24 24"
                     stroke-width="1.5"
                     stroke="currentColor"
-                    class="size-6"
+                    class="size-5"
                 >
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
             </button>
         </nav>
         <div v-if="isLoading" class="grid h-full w-full place-content-center">
-            <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-            </svg>
+            <div class="flex flex-col items-center gap-3">
+                <svg
+                    class="size-10 animate-spin text-indigo-600"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                </svg>
+                <p class="text-sm text-gray-500">Loading expert profile...</p>
+            </div>
         </div>
         <div v-else-if="!isLoading">
-            <main class="mx-auto flex flex-col items-center gap-5 px-4 pt-5 pb-16 sm:px-9">
-                <!-- Фото эксперта -->
-                <img
-                    src="https://pikuco.ru/upload/test_stable/25e/25e71f01406774ba0fd7fcfee1141326.webp"
-                    alt="Фото эксперта"
-                    class="h-32 w-32 rounded-full object-cover"
-                />
-                <!-- Имя эксперта -->
-                <h2 class="text-2xl font-bold text-gray-900">
-                    <span v-text="expert.name"></span>
-                </h2>
-                <!-- Биография -->
-                <p class="text-gray-600" v-text="expert.bio || 'Описание отсутствует'"></p>
-                <!-- Квалификации -->
-                <div class="w-full">
-                    <h3 class="text-lg font-semibold text-gray-800">Квалификации</h3>
-                    <ul class="mt-2 space-y-2">
+            <main class="mx-auto flex flex-col items-center gap-8 px-5 pt-8 pb-16 sm:px-10 max-w-3xl">
+                <!-- Header section with photo and name -->
+                <div class="relative w-full flex flex-col items-center rounded-3xl overflow-hidden bg-white shadow-md">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 opacity-60 -z-10"
+                    ></div>
+                    <div class="w-full h-32 bg-gradient-to-r from-indigo-500/20 to-purple-500/20"></div>
+
+                    <div class="relative -mt-16 flex flex-col items-center px-6 pb-6 w-full">
+                        <div class="ring-4 ring-white rounded-full shadow-lg p-1 bg-white">
+                            <img
+                                :src="expert.picture_url || 'https://ui-avatars.com/api/?name='+(expert.user?.first_name || 'Expert')+'&background=6366f1&color=fff&size=200'"
+                                :alt="expert.name || 'Expert'"
+                                class="h-40 w-40 rounded-full object-cover shadow-inner"
+                                onerror="this.src='https://ui-avatars.com/api/?name='+encodeURIComponent(this.alt)+'&background=6366f1&color=fff&size=200'"
+                            />
+                        </div>
+
+                        <!-- Expert's name with verified badge -->
+                        <div class="flex items-center gap-2 mt-5">
+                            <h2 class="text-2xl font-bold text-gray-900">
+                                <span v-text="expert.name"></span>
+                            </h2>
+                            <svg
+                                v-if="expert.verified"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                class="size-5 text-indigo-600"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                        </div>
+
+                        <!-- Current position if available -->
+                        <div class="mt-2 mb-1" v-if="expert.current_position_id">
+                            <span
+                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-4"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z"
+                                    />
+                                </svg>
+                                <span v-text="getCurrentPosition(expert.current_position_id)"></span>
+                            </span>
+                        </div>
+
+                        <!-- Biography -->
+                        <div class="flex flex-col gap-4 w-full mt-2">
+                            <div
+                                v-if="expert.bio || expert.description"
+                                class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm"
+                            >
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3">About</h3>
+                                <p
+                                    class="text-gray-700 text-sm leading-relaxed"
+                                    v-if="expert.bio"
+                                    v-text="expert.bio"
+                                ></p>
+                                <p
+                                    class="text-gray-600 text-sm mt-2 leading-relaxed"
+                                    v-if="expert.description"
+                                    v-text="expert.description"
+                                ></p>
+                            </div>
+                        </div>
+
+                        <!-- Quick stats -->
+                        <div
+                            class="grid grid-cols-3 gap-4 w-full mt-4 bg-white rounded-xl border border-gray-100 p-4 shadow-sm"
+                        >
+                            <div class="flex flex-col items-center py-3">
+                                <span
+                                    class="text-lg font-bold text-indigo-600"
+                                    v-text="getExperienceYears(expert.qualifications) || '0+'"
+                                ></span>
+                                <span class="text-xs text-gray-500 text-center">Years Experience</span>
+                            </div>
+                            <div class="flex flex-col items-center py-3 border-x border-gray-100">
+                                <span
+                                    class="text-lg font-bold text-indigo-600"
+                                    v-text="expert.qualifications?.length || '0'"
+                                ></span>
+                                <span class="text-xs text-gray-500 text-center">Qualifications</span>
+                            </div>
+                            <div class="flex flex-col items-center py-3">
+                                <span
+                                    class="text-lg font-bold text-indigo-600"
+                                    v-text="expert.session_requests?.length || '0'"
+                                ></span>
+                                <span class="text-xs text-gray-500 text-center">Consultations</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Qualifications -->
+                <div class="w-full mt-4">
+                    <div class="flex items-center gap-3 mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800">Qualifications</h3>
+                        <div class="h-px flex-grow bg-gray-200"></div>
+                    </div>
+
+                    <div
+                        v-if="!expert.qualifications || expert.qualifications.length === 0"
+                        class="text-center py-8 text-gray-500"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-8 mx-auto mb-2 text-gray-400"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                            />
+                        </svg>
+                        <p>No qualifications available</p>
+                    </div>
+
+                    <ul v-else class="space-y-6">
                         <li
                             v-for="qualification in expert.qualifications"
                             :key="qualification.id"
-                            class="p-4 border border-gray-200 rounded-lg"
+                            class="group p-6 border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 bg-white relative overflow-hidden hover:border-indigo-200"
                         >
-                            <h4 class="font-bold text-gray-900" v-text="qualification.title"></h4>
-                            <p class="text-sm text-gray-600" v-text="qualification.description || 'Нет описания'"></p>
-                            <p class="text-sm text-gray-600">
-                                Компания: <span v-text="qualification.company_name || 'Не указано'"></span>
-                            </p>
-                            <p class="text-sm text-gray-600">
-                                Период:
-                                <span v-text="qualification.start_date || 'Не указано'"></span> -
-                                <span v-text="qualification.end_date || 'Не указано'"></span>
-                            </p>
+                            <div
+                                class="absolute top-0 left-0 w-1.5 h-full"
+                                :class="getQualificationColorClass(qualification.type)"
+                            ></div>
+
+                            <div class="flex flex-col gap-4 pl-4">
+                                <!-- Qualification Type Badge -->
+                                <div class="flex justify-between items-start">
+                                    <span
+                                        class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10"
+                                        v-text="qualification.type"
+                                    ></span>
+
+                                    <!-- Period -->
+                                    <div class="flex items-center gap-1.5 text-sm text-gray-500">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="size-4"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                                            />
+                                        </svg>
+                                        <span class="inline-flex items-center gap-1">
+                                            <span
+                                                v-text="formatDate(qualification.start_date) || 'Not specified'"
+                                            ></span>
+                                            <span class="mx-1">—</span>
+                                            <span
+                                                v-text="formatDate(qualification.end_date) || 'Current'"
+                                                :class="{'text-green-600 font-medium': !qualification.end_date}"
+                                            ></span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Qualification Title -->
+                                <h4
+                                    class="text-xl font-bold text-gray-900 group-hover:text-indigo-700 transition-colors"
+                                    v-text="qualification.title"
+                                ></h4>
+
+                                <!-- Company section -->
+                                <div v-if="qualification.company_name" class="flex items-center gap-3 mt-1">
+                                    <div
+                                        class="w-9 h-9 bg-gray-100 rounded-md flex items-center justify-center text-gray-500 shadow-sm"
+                                    >
+                                        <span
+                                            class="text-xs font-bold"
+                                            v-text="(qualification.company_name || '').charAt(0).toUpperCase()"
+                                        ></span>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span
+                                            class="text-indigo-600 font-medium"
+                                            v-text="qualification.company_name"
+                                        ></span>
+                                        <a
+                                            v-if="qualification.company_url"
+                                            :href="qualification.company_url"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="text-xs text-gray-500 hover:text-indigo-600 hover:underline flex items-center gap-1"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke-width="1.5"
+                                                stroke="currentColor"
+                                                class="size-3"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
+                                                />
+                                            </svg>
+                                            Website
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Qualification Description -->
+                                <p
+                                    class="text-sm text-gray-700 leading-relaxed mt-2"
+                                    v-if="qualification.description"
+                                    v-text="qualification.description"
+                                ></p>
+
+                                <!-- Company Info (collapsible) -->
+                                <div
+                                    v-if="qualification.company_description"
+                                    class="mt-3 pt-3 border-t border-gray-100"
+                                >
+                                    <details class="group/details cursor-pointer">
+                                        <summary
+                                            class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-indigo-600"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke-width="1.5"
+                                                stroke="currentColor"
+                                                class="size-4 transition-transform group-open/details:rotate-180"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                                                />
+                                            </svg>
+                                            About the company
+                                        </summary>
+                                        <p
+                                            class="pl-6 mt-2 text-sm text-gray-600 leading-relaxed"
+                                            v-text="qualification.company_description"
+                                        ></p>
+                                    </details>
+                                </div>
+                            </div>
                         </li>
                     </ul>
+                </div>
+
+                <!-- Contact section -->
+                <div class="w-full mt-8 pt-6 border-t border-gray-200">
+                    <button
+                        class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 group"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-5 transition-transform group-hover:scale-110"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"
+                            />
+                        </svg>
+                        Connect with Expert
+                    </button>
                 </div>
             </main>
         </div>

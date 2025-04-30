@@ -51,9 +51,17 @@ const FullExpertComponent = defineComponent({
     props: ["expertId"],
     async mounted() {
         await this.fetchExpert(this.expertId);
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
     },
     async created() {
         await this.fetchExpert(this.expertId);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
     },
     methods: {
         async fetchExpert(expertId) {
@@ -82,6 +90,57 @@ const FullExpertComponent = defineComponent({
         },
         toggleExpansion() {
             this.isExpanded = !this.isExpanded;
+        },
+        formatDate(dateString) {
+            if (!dateString) return null;
+            const date = new Date(dateString);
+            if (isNaN(date)) return dateString;
+            return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+        },
+        getExperienceYears(qualifications) {
+            if (!qualifications || !qualifications.length) return 0;
+
+            // Find earliest start date
+            let earliestDate = new Date();
+            qualifications.forEach((qual) => {
+                if (qual.start_date) {
+                    const startDate = new Date(qual.start_date);
+                    if (!isNaN(startDate) && startDate < earliestDate) {
+                        earliestDate = startDate;
+                    }
+                }
+            });
+
+            // Calculate years of experience
+            const now = new Date();
+            const years = now.getFullYear() - earliestDate.getFullYear();
+            return years > 0 ? years : "<1";
+        },
+        getQualificationColorClass(type) {
+            const classes = {
+                EDUCATION: "bg-gradient-to-b from-blue-500 to-indigo-600",
+                WORK: "bg-gradient-to-b from-indigo-500 to-purple-600",
+                CERTIFICATE: "bg-gradient-to-b from-green-500 to-teal-600",
+                AWARD: "bg-gradient-to-b from-amber-500 to-orange-600",
+                OTHER: "bg-gradient-to-b from-gray-500 to-slate-600",
+            };
+
+            return classes[type] || classes["OTHER"];
+        },
+        getCurrentPosition(positionId) {
+            // Replace with your actual implementation to fetch position by ID
+            // For now, return a placeholder
+            return "Current Position";
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeExpert();
+            }
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeExpert();
+            }
         },
     },
     data() {

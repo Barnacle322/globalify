@@ -17,11 +17,11 @@ if TYPE_CHECKING:
     from .user import User
 
 
-expert_industry = db.Table(
-    "expert_industry",
-    Column("expert_id", Integer, ForeignKey("expert.id"), primary_key=True),
-    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
-)
+# expert_industry = db.Table(
+#     "expert_industry",
+#     Column("expert_id", Integer, ForeignKey("expert.id"), primary_key=True),
+#     Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+# )
 
 
 class Expert(MappedAsDataclass, db.Model, unsafe_hash=True):
@@ -94,24 +94,30 @@ class SessionRequest(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     expert_id: Mapped[int] = mapped_column(Integer, ForeignKey("expert.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), init=False
     )
     status: Mapped[EventStatus] = mapped_column(SQLEnum(EventStatus), nullable=False, default=EventStatus.PENDING)
 
     expert: Mapped[Expert] = relationship("Expert", back_populates="session_requests", init=False)
+    user: Mapped[User] = relationship("User", back_populates="session_requests", init=False)
 
     @staticmethod
     def get_by_id(id: int) -> SessionRequest | None:
         return db.session.scalar(db.select(SessionRequest).where(SessionRequest.id == id))
 
     @staticmethod
-    def get_existing_by_expert_id(expert_id: int) -> SessionRequest | None:
-        return db.session.scalar(
+    def get_all_by_user_id(user_id: int) -> Sequence[SessionRequest] | None:
+        return db.session.scalars(db.select(SessionRequest).where(SessionRequest.user_id == user_id)).all()
+
+    @staticmethod
+    def get_existing_by_user_id(user_id: int) -> Sequence[SessionRequest] | None:
+        return db.session.scalars(
             db.select(SessionRequest).where(
-                SessionRequest.expert_id == expert_id, SessionRequest.status == EventStatus.PENDING
+                SessionRequest.user_id == user_id, SessionRequest.status == EventStatus.PENDING
             )
-        )
+        ).all()
 
 
 # Change name

@@ -21,7 +21,7 @@ from ..models.superconnect import (
     Qualification,
     SessionRequest,
 )
-from ..schemas.superconnect import ExpertSchema, QualificationSchema
+from ..schemas.superconnect import ExpertSchema, QualificationSchema, SessionSchema
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import QualificationType, Status, StatusType
 from ..utils.errors.error_messages import PICTURE_NOT_LOADED
@@ -101,18 +101,18 @@ def update_expert():
             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
             return redirect(url_for("settings.index", _external=False, **status))
 
-    industry_ids = form_data.get("industries", [])
-    if industry_ids:
-        industries = Industry.query.filter(Industry.id.in_(industry_ids)).all()
-        if len(industries) != len(industry_ids):
-            return jsonify({"error": "Some industries not found"}), 404
+    # industry_ids = form_data.get("industries", [])
+    # if industry_ids:
+    #     industries = Industry.query.filter(Industry.id.in_(industry_ids)).all()
+    #     if len(industries) != len(industry_ids):
+    #         return jsonify({"error": "Some industries not found"}), 404
 
-        elif len(industries) > 5:  # mb industries limit for experts ####################
-            return jsonify({"error": "Expert can't have more thatn 5 industries"}), 404
+    #     elif len(industries) > 5:  # mb industries limit for experts ####################
+    #         return jsonify({"error": "Expert can't have more thatn 5 industries"}), 404
 
-        expert.industries = industries
-    else:
-        expert.industries = []
+    #     expert.industries = industries
+    # else:
+    #     expert.industries = []
 
     qualifications: list[Qualification] = []
     for qual_data in qualifications_data:
@@ -189,7 +189,7 @@ def update_expert():
             }
             for q in expert.qualifications
         ],
-        "industries": [i.id for i in expert.industries],
+        # "industries": [i.id for i in expert.industries],
     }
 
     return jsonify({"expert": expert_data})
@@ -248,7 +248,7 @@ def get_expert_by_id(expert_id):
                 type=q.type.value,
                 title=q.title,
                 description=q.description,
-                company_id=q.company_id,
+                company_id=q.company_id if q.company_id else None,
                 company_name=q.company_name,
                 company_description=q.company_description,
                 company_url=q.company_url,
@@ -269,15 +269,48 @@ def book_session(expert_id):
     if not expert:
         return jsonify({"error": "Expert not found"}), 404
 
-    existing_request = SessionRequest.get_existing_by_expert_id(expert_id=expert_id)
+    existing_request = SessionRequest.get_existing_by_user_id(expert_id)
     if existing_request:
         return jsonify({"error": "You have already requested a session with this expert"}), 400
     print("Booking session with expert ID:", expert_id)
     try:
-        session_request = SessionRequest(expert_id=expert_id)
+        session_request = SessionRequest(expert_id=expert_id, user_id=current_user.id)
         db.session.add(session_request)
         db.session.commit()
     except Exception as e:
         print("Error while creating session request:", e)
 
     return jsonify({"message": "Session request sent successfully!"}), 200
+
+
+@superconnect.get("/sessions/")
+def get_user_sessions():
+    user = User.get_by_id(1)
+    if not user:
+        return jsonify({"error": "Expert not found"}), 404
+
+    session_requests = SessionRequest.get_all_by_user_id(1)
+    return render_template("superconnect/sessions.html", session_requests=session_requests)
+    # return jsonify("superconnect/sessions.html", session_requests=session_requests)
+
+
+@superconnect.get("/get_sessions/")
+def user_sessions():
+    print(current_user.id)
+    session_requests = SessionRequest.get_all_by_user_id(current_user.id)
+
+    if session_requests is None:
+        return jsonify({"sessions": []})
+
+    session_list = []
+    for s_request in session_requests:
+        session_data = SessionSchema(
+            id=s_request.id,
+            expert_name="s_request.expert.user.user_info.full_name",
+            picture_url=s_request.expert.picture_url or "",
+            status=s_request.status.value,
+            created_at=s_request.created_at.date(),
+        )
+        session_list.append(session_data.model_dump())
+
+    return jsonify({"sessions": session_list})

@@ -81,10 +81,11 @@ class SearchHistoryType(Enum):
 class EventStatus(Enum):
     IN_PROCESS = "in process"
     UNCONFIRMED = "unconfirmed"
-    CONFIRMED = "confirmed"
+    UPCOMING = "upcoming"
     CANCELED = "canceled"
-    PAST = "past"
+    DELETED = "deleted"
     PENDING = "pending"
+    PAST = "past"
 
 
 class EventType(Enum):

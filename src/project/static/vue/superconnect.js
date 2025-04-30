@@ -186,24 +186,13 @@ const SessionComponent = defineComponent({
             if (session.deleteConfirmed) {
             }
         },
-        resetConfirmation(session, config) {
-            // Таймер для плавного перехода
-            setTimeout(() => {
-                if (config.type === "pending") session.approveConfirmed = false;
-                if (config.type === "upcoming") session.cancelConfirmed = false;
-                if (config.type === "past") session.deleteConfirmed = false;
-            }, 300); // Задержка для предотвращения мгновенного сброса
-        },
-        handleAction(session, config) {
-            // Переключение состояния только при клике
-            config.action(session);
-
-            // Автоматический сброс через 2 секунды если не подтверждено
-            if (!session[config.confirmKey]) {
-                this.autoResetTimer = setTimeout(() => {
-                    session[config.confirmKey] = false;
-                }, 2000);
-            }
+        handleAction(session, action) {
+            const actionsMap = {
+                approve: "toggleApproveConfirm",
+                cancel: "toggleCancelConfirm",
+                delete: "toggleDeleteConfirm",
+            };
+            this[actionsMap[action]](session);
         },
     },
     data() {

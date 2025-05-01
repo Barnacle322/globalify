@@ -1,0 +1,67 @@
+{% macro render(user) %}
+<template id="session-info-template">
+    <article
+        class="fixed top-0 right-0 z-[60] flex h-full w-full flex-col bg-white p-8 sm:top-1/2 sm:right-1/2 sm:h-auto sm:max-w-2xl sm:translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
+    >
+        <div class="mx-auto w-full gap-4 rounded-t-lg p-5">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold">Session Details</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Title</label>
+                        <p class="mt-1 text-lg font-semibold">Title</p>
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Status</label>
+                        <span
+                            class="px-3 py-1 rounded-full text-sm"
+                            :class="statusClasses[session.status]"
+                            v-text="session.status"
+                        ></span>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Participants</label>
+                        <div class="mt-1 space-y-2">
+                            <span class="ml-2" v-text="session.expert_name"></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Description</label>
+                        <p class="mt-1 text-gray-600">Description</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end space-x-4">
+                <button @click="$emit('close')" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Close</button>
+            </div>
+            <button
+                v-if="session.status === 'upcoming'"
+                class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-400 transition-colors"
+            >
+                Cancel Session
+            </button>
+            <button
+                v-else-if="session.status === 'pending'"
+                class="rounded-lg bg-sky-500 px-4 py-2 text-white hover:bg-blue-700 transition-colors"
+            >
+                Approve session
+            </button>
+            <button
+                v-else-if="session.status === 'canceled'"
+                class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-700 transition-colors"
+            >
+                Delete session
+            </button>
+        </div>
+    </article>
+</template>
+{% endmacro %}

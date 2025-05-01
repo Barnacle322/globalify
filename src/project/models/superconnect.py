@@ -36,6 +36,9 @@ class Expert(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     bio: Mapped[str | None] = mapped_column(String, nullable=True)
+    # first_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    # second_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    # email: Mapped[str | None] = mapped_column(String, nullable=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
     current_position_id: Mapped[int] = mapped_column(Integer, nullable=True)
@@ -56,11 +59,11 @@ class Expert(MappedAsDataclass, db.Model, unsafe_hash=True):
     # def full_name(self) -> str:
     #     return f"{self.user.user_info.first_name} {self.user.user_info.last_name or ''}"
 
-    @validates("industries")  # limit??
-    def validate_industries(self, key, industries):
-        if len(industries) > 5:
-            raise ValueError("An expert can have at most 5 industries.")
-        return industries
+    # @validates("industries")  # limit??
+    # def validate_industries(self, key, industries):
+    #     if len(industries) > 5:
+    #         raise ValueError("An expert can have at most 5 industries.")
+    #     return industries
 
     @staticmethod
     def get_by_id(id: int) -> Expert | None:

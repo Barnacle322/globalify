@@ -155,146 +155,190 @@ const FullExpertComponent = defineComponent({
     },
 });
 
+const SessionInfoComponent = defineComponent({
+    template: "#session-info-template",
+    props: {
+        session: {
+            type: Object,
+            required: true,
+        },
+    },
+    data() {
+        return {
+            statusClasses: {
+                pending: "bg-yellow-100 text-yellow-800",
+                upcoming: "bg-green-100 text-green-800",
+                past: "bg-gray-100 text-gray-800",
+                canceled: "bg-red-100 text-red-800",
+            },
+        };
+    },
+    methods: {
+        formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            });
+        },
+        formatTime(timeString) {
+            return new Date(`1970-01-01T${timeString}`).toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+            });
+        },
+    },
+});
+
 const SessionComponent = defineComponent({
     template: "#session-template",
-
     computed: {
         filteredSessions() {
-            if (this.sessions.length == 0) return null;
-
+            if (!this.sessions.length) return null;
             const now = new Date();
-            console.log(now);
-            const groups = {
-                pending: {
-                    type: "pending",
-                    title: "Awaiting Approval",
-                    sessions: [],
-                },
-                upcoming: {
-                    type: "upcoming",
-                    title: "Upcoming Sessions",
-                    sessions: [],
-                },
-                past: {
-                    type: "past",
-                    title: "Past Sessions",
-                    sessions: [],
-                },
-            };
-
-            this.sessions.forEach((session) => {
-                const sessionDate = new Date(session.created_at);
-                if (session.status === "pending" && this.filters.pending) {
-                    groups.pending.sessions.push(session);
-                } else if (session.status === "upcoming" && sessionDate > now && this.filters.upcoming) {
-                    groups.upcoming.sessions.push(session);
-                } else if ((session.status === "past" || session.status === "canceled") && this.filters.past) {
-                    groups.past.sessions.push(session);
-                }
-            });
-
-            return this.filterOrder
+            return this.types
                 .filter((type) => this.filters[type])
-                .map((type) => groups[type])
-                .filter((group) => group.sessions.length > 0);
+                .map((type) => {
+                    const sessions = this.sessions.filter((session) => {
+                        const sessionDate = new Date(session.created_at);
+                        return this.getSessionType(session, sessionDate, now) === type;
+                    });
+                    const sortedSessions = this.sortSessions(sessions);
+                    return sessions.length ? { type, title: this.config[type].title, sessions: sortedSessions } : null;
+                })
+                .filter(Boolean);
         },
     },
     mounted() {
         this.fetchSessions();
+        document.addEventListener("click", this.handleClickOutside);
+    },
+    beforeUnmount() {
+        document.removeEventListener("click", this.handleClickOutside);
     },
     methods: {
         async fetchSessions() {
             try {
-                const response = await fetch(`/superconnect/get_sessions/`);
-                if (!response.ok) throw new Error("Failed to fetch sessions");
+                const response = await fetch("/superconnect/get_sessions/");
+                if (!response.ok) {
+                    throw new Error("Failed to fetch sessions");
+                }
                 const { sessions } = await response.json();
                 this.sessions = sessions.map((session) => ({
                     ...session,
-                    approveConfirmed: false,
-                    cancelConfirmed: false,
-                    deleteConfirmed: false,
+                    confirmRequested: false,
                 }));
-                console.log(this.sessions);
             } catch (error) {
                 console.error("Error fetching sessions:", error);
                 this.sessions = [];
             }
         },
-        formatDate(dateString) {
-            const options = { weekday: "long", day: "numeric", month: "long", year: "numeric" };
-            return new Date(dateString).toLocaleDateString("en-US", options);
-        },
-        formatTime(dateString) {
-            return new Date(dateString).toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
+        sortSessions(sessions) {
+            return [...sessions].sort((a, b) => {
+                const dateA = new Date(a.created_at);
+                const dateB = new Date(b.created_at);
+                return this.sortOrder === "newest" ? dateB - dateA : dateA - dateB;
             });
         },
-        toggleApproveConfirm(session) {
-            session.approveConfirmed = !session.approveConfirmed;
-            if (session.approveConfirmed) {
+        getSessionType(session, sessionDate, now) {
+            if (session.status === "pending") return "pending";
+            if (session.status === "upcoming" && sessionDate > now) return "upcoming";
+            if (session.status === "past" || session.status === "canceled") return "past";
+            return null;
+        },
+        formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString("en-US", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+            });
+        },
+        formatTime(dateString) {
+            return new Date(dateString).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+        },
+        toggleSortOrder() {
+            this.sortOrder = this.sortOrder === "newest" ? "oldest" : "newest";
+        },
+        toggleFilter(type) {
+            this.filters[type] = !this.filters[type];
+        },
+        // async processAction(session, actionConfig) {
+        //     try {
+        //         const response = await fetch(`/sessions/${session.id}`, {
+        //             method: "PATCH",
+        //             body: JSON.stringify({ status: actionConfig.nextStatus }),
+        //         });
+
+        //         if (response.ok) {
+        //             session.status = actionConfig.nextStatus;
+        //             this.$nextTick(() => {
+        //                 this.sessions = this.sessions.filter((s) => s.id !== session.id);
+        //                 this.sessions.push(session);
+        //             });
+        //         }
+        //     } catch (error) {
+        //         console.error("Action failed:", error);
+        //     }
+        // },
+        handleAction(session, groupType) {
+            const actionConfig = this.config[groupType];
+            if (!session.confirmRequested) {
+                session.confirmRequested = true;
+            } else {
+                session.status = actionConfig.nextStatus;
+                session.confirmRequested = false;
+                this.$nextTick(() => {
+                    this.sessions = [...this.sessions];
+                });
             }
         },
-        toggleCancelConfirm(session) {
-            session.cancelConfirmed = !session.cancelConfirmed;
-            if (session.cancelConfirmed) {
-            }
+        resetConfirm(session) {
+            session.confirmRequested = false;
         },
-        toggleDeleteConfirm(session) {
-            session.deleteConfirmed = !session.deleteConfirmed;
-            if (session.deleteConfirmed) {
-            }
+        getButtonColor(session, groupType) {
+            return session.confirmRequested ? this.config[groupType].confirmColor : this.config[groupType].baseColor;
         },
-        handleAction(session, action) {
-            const actionsMap = {
-                approve: "toggleApproveConfirm",
-                cancel: "toggleCancelConfirm",
-                delete: "toggleDeleteConfirm",
-            };
-            this[actionsMap[action]](session);
+        handleClickOutside(event) {
+            const dropdown = this.$refs.dropdownContainer;
+            if (dropdown && !dropdown.contains(event.target)) {
+                this.dropdownOpened = false;
+            }
         },
     },
     data() {
         return {
             sessions: [],
-            filters: {
-                pending: true,
-                upcoming: true,
-                past: true,
-            },
-            filterOrder: ["pending", "upcoming", "past"],
-            buttonConfigs: {
+            filters: { pending: true, upcoming: true, past: true },
+            types: ["pending", "upcoming", "past"],
+            config: {
                 pending: {
-                    type: "pending",
-                    action: "approve",
+                    title: "Awaiting Approval",
                     defaultText: "Approve",
                     confirmText: "Sure?",
-                    confirmKey: "approveConfirmed",
-                    baseClasses: "bg-transparent",
-                    hoverClasses: "hover:bg-gradient-to-r hover:from-transparent hover:to-sky-500",
-                    confirmClasses: "hover:bg-gradient-to-r hover:from-transparent hover:to-green-500",
+                    baseColor: "#3b82f6",
+                    confirmColor: "#22c55e",
+                    nextStatus: "upcoming",
                 },
                 upcoming: {
-                    type: "upcoming",
-                    action: "cancel",
+                    title: "Upcoming Sessions",
                     defaultText: "Cancel",
                     confirmText: "Sure?",
-                    confirmKey: "cancelConfirmed",
-                    baseClasses: "bg-transparent",
-                    hoverClasses: "hover:bg-gradient-to-r hover:from-transparent hover:to-green-500",
-                    confirmClasses: "hover:bg-gradient-to-r hover:from-transparent hover:to-red-500",
+                    baseColor: "#22c55e",
+                    confirmColor: "#ef4444",
+                    nextStatus: "past",
                 },
                 past: {
-                    type: "past",
-                    action: "delete",
+                    title: "Past Sessions",
                     defaultText: "Delete",
                     confirmText: "Sure?",
-                    confirmKey: "deleteConfirmed",
-                    baseClasses: "bg-transparent",
-                    hoverClasses: "hover:bg-gradient-to-r hover:from-transparent hover:to-red-500",
-                    confirmClasses: "hover:bg-gradient-to-r hover:from-transparent hover:to-red-700",
+                    baseColor: "#ef4444",
+                    confirmColor: "#b91c1c",
+                    nextStatus: null,
                 },
             },
+            sortOrder: "newest",
+            dropdownOpened: false,
         };
     },
 });
@@ -307,6 +351,7 @@ createApp({
         FullExpertComponent,
         SessionRequestComponent,
         SessionComponent,
+        SessionInfoComponent,
     },
     watch: {
         asideMinified(value) {
@@ -338,6 +383,10 @@ createApp({
             this.isSessionRequestOpened = true;
             this.selectedExpertId = expertId;
         },
+        openSessionInfo(session) {
+            this.isSessionInfoOpened = true;
+            this.selectedSession = session;
+        },
     },
     data() {
         return {
@@ -346,8 +395,9 @@ createApp({
             asideExpanded: true,
             selectedExpertId: null,
             isSessionRequestOpened: false,
-            isSessionOpened: true,
             isFullExpertOpened: false,
+            isSessionInfoOpened: false,
+            selectedSession: null,
         };
     },
 }).mount("#app");

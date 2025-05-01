@@ -25,9 +25,9 @@
                         Sessions
                     </a>
                 </div>
-                <div class="ml-auto">
-                    <a
-                        href="#"
+                <div class="relative ml-auto self-start" ref="dropdownContainer">
+                    <button
+                        @click.stop="dropdownOpened = !dropdownOpened"
                         class="flex shrink-0 cursor-pointer items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="size-6" fill="#000000">
@@ -36,10 +36,37 @@
                             />
                         </svg>
                         Filter
-                    </a>
+                    </button>
                 </div>
             </div>
         </nav>
+        <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
+            <div
+                v-if="dropdownOpened"
+                class="absolute top-4 right-2 z-10 flex w-50 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-xs"
+            >
+                <div class="p-2">
+                    <div class="mb-3 font-medium">Categories</div>
+                    <div v-for="type in types" :key="type" class="flex items-center mb-2" @click.stop.prevent>
+                        <input
+                            @click.stop
+                            :id="type"
+                            type="checkbox"
+                            class="h-4 w-4 rounded border-gray-300 text-sky-600"
+                            v-model="filters[type]"
+                        />
+                        <label :for="type" class="ml-2 block text-s text-gray-700" v-text="config[type].title"></label>
+                    </div>
+                    <div class="my-3 border-t border-gray-200"></div>
+                    <div class="mb-2 font-medium">Sort by</div>
+                    <button
+                        @click.stop="toggleSortOrder"
+                        class="w-full text-left px-3 py-2 text-s rounded-md hover:bg-gray-100"
+                        v-text="sortOrder === 'newest' ? 'Newest first' : 'Oldest first'"
+                    ></button>
+                </div>
+            </div>
+        </transition>
         <main class="sm:p-6">
             <div class="container mx-auto">
                 <div v-if="!filteredSessions" class="flex flex-col items-center justify-center h-64 text-center">
@@ -59,7 +86,7 @@
                     </svg>
                     <h3 class="text-2xl font-semibold text-gray-500 mb-2">No Sessions Found</h3>
                     <p class="text-lg text-gray-400 mb-6">
-                        It looks like you haven't booked any sessions yet. Let's get Cocked!
+                        It looks like you haven't booked any sessions yet. Let's get globalified :0
                     </p>
                     <a
                         href="/book-session"
@@ -68,59 +95,59 @@
                         Find an expert Now
                     </a>
                 </div>
-                <div v-for="(group, index) in filteredSessions" :key="index">
-                    <h2 class="text-2xl font-bold mb-4" v-text="group.title"></h2>
-
-                    <div
-                        v-for="session in group.sessions"
-                        :key="session.id"
-                        class="bg-white rounded-lg shadow-xl mb-4 border-l-4 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-50 hover:shadow-md h-32 group"
-                        :class="{
-                            'border-sky-500': group.type === 'pending',
-                            'border-green-500': group.type === 'upcoming',
-                            'border-red-500': group.type === 'past'
-                        }"
-                    >
-                        <div class="flex items-stretch h-full cursor-pointer">
-                            <!-- Info Section -->
-                            <div class="flex items-center w-3/4 p-4">
-                                <div class="flex flex-col items-start w-1/3">
-                                    <img
-                                        class="h-16 w-16 rounded-xl bg-gray-400 object-cover mr-4 mb-2"
-                                        :src="session.picture_url || '/static/elements/default_pfp.svg'"
-                                        alt="Expert"
-                                    />
-                                    <span class="text-gray-500 text-sm" v-text="formatDate(session.created_at) "></span>
-                                </div>
-                                <div class="flex flex-col justify-center w-1/3 pl-4">
-                                    <div class="text-lg font-bold mb-1">Mikhail Zubenko</div>
-                                    <div class="text-gray-600 text-sm" v-text="formatTime(session.created_at)"></div>
-                                </div>
-
-                                <div class="w-1/3 text-center">
-                                    <span class="font-semibold text-gray-700"> Type: Training Session</span>
-                                </div>
-                            </div>
-
-                            <!-- Button Section -->
-                            <div class="flex flex-col w-1/4 h-full pl-4">
-                                <template v-for="typeConfig in buttonConfigs" :key="typeConfig.type">
-                                    <template v-if="group.type === typeConfig.type">
+                <transition-group name="session-group" tag="div" class="relative" mode="out-in">
+                    <div class="session-group" v-for="(group, index) in filteredSessions" :key="index">
+                        <h2 class="text-2xl font-bold mb-4" v-text="group.title" mode="out-in"></h2>
+                        <transition-group name="session-list" tag="div">
+                            <div
+                                v-for="session in group.sessions"
+                                :key="session.id"
+                                class="bg-white rounded-lg shadow-xl mb-4 border-l-4 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-50 hover:shadow-md h-32 group"
+                                :style="{ borderLeftColor: config[group.type].baseColor }"
+                            >
+                                <div class="flex items-stretch h-full cursor-pointer">
+                                    <div class="flex items-center w-3/4 p-4" @click="$emit('open-session', session)">
+                                        <div class="flex flex-col items-start w-1/3">
+                                            <img
+                                                class="h-16 w-16 rounded-xl bg-gray-400 object-cover mr-4 mb-2"
+                                                :src="session.picture_url || '/static/elements/default_pfp.svg'"
+                                                alt="Expert"
+                                            />
+                                            <span
+                                                class="text-gray-500 text-sm"
+                                                v-text="formatDate(session.created_at)"
+                                            ></span>
+                                        </div>
+                                        <div class="flex flex-col justify-center w-1/3 pl-4">
+                                            <div class="text-lg font-bold mb-1">Mikhail Zubenko</div>
+                                            <div
+                                                class="text-gray-600 text-sm"
+                                                v-text="formatTime(session.created_at)"
+                                            ></div>
+                                        </div>
+                                        <div class="w-1/3 text-center">
+                                            <span class="font-semibold text-gray-700">Type: Training Session</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col w-1/4 h-full pl-4">
                                         <button
-                                            @click="handleAction(session, typeConfig.action)"
-                                            class="text-lg font-medium h-full w-full flex items-center justify-center transition-colors duration-400 ease-in-out rounded-r-lg"
-                                            :class="[
-                                                typeConfig.baseClasses,
-                                                session[typeConfig.confirmKey] ? typeConfig.confirmClasses : typeConfig.hoverClasses
-                                            ]"
-                                            v-text="session[typeConfig.confirmKey] ? typeConfig.confirmText : typeConfig.defaultText "
-                                        ></button>
-                                    </template>
-                                </template>
+                                            @click="handleAction(session, group.type)"
+                                            @mouseleave="resetConfirm(session)"
+                                            class="cursor-pointer text-lg font-medium h-full w-full flex items-center justify-center text-black rounded-r-lg button-hover"
+                                            :style="{ '--current-color': getButtonColor(session, group.type) }"
+                                        >
+                                            <span
+                                                v-if="!session.confirmRequested"
+                                                v-text="config[group.type].defaultText"
+                                            ></span>
+                                            <span v-else v-text="config[group.type].confirmText"></span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </transition-group>
                     </div>
-                </div>
+                </transition-group>
             </div>
         </main>
     </div>
@@ -184,6 +211,8 @@
     {{ navbar.render(current_user) }}
     {% import "components/superconnect/full_expert.html" as full_expert %}
     {{ full_expert.render(current_user) }}
+    {% import "components/superconnect/session_info.html" as session_info %}
+    {{ session_info.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -213,7 +242,18 @@
                     @close-expert="isFullExpertOpened = false"
                 ></full-expert-component>
             </transition>
-            <session-component></session-component>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <session-info-component
+                    v-if="isSessionInfoOpened"
+                    :session="selectedSession"
+                    @close="isSessionInfoOpened = false"
+                ></session-info-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div v-if="isSessionInfoOpened" class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"></div>
+            </transition>
+
+            <session-component @open-session="openSessionInfo"></session-component>
         </div>
     </body>
 </html>

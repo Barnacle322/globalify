@@ -1,66 +1,213 @@
 {% macro render(user) %}
 <template id="session-info-template">
     <article
-        class="fixed top-0 right-0 z-[60] flex h-full w-full flex-col bg-white p-8 sm:top-1/2 sm:right-1/2 sm:h-auto sm:max-w-2xl sm:translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
+        class="fixed top-0 right-0 z-[60] flex h-full w-full flex-col bg-white p-8 sm:top-1/2 sm:right-1/2 sm:h-auto sm:w-full sm:max-w-xl sm:translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
     >
-        <div class="mx-auto w-full gap-4 rounded-t-lg p-5">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold">Session Details</h2>
+        <div class="mx-auto w-full">
+            <div class="flex justify-center items-center mb-4">
+                <div v-if="session.status === 'pending'" class="bg-indigo-100 p-3 rounded-full">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-8 w-8 text-indigo-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                    </svg>
+                </div>
+                <div v-else-if="session.status === 'upcoming'" class="bg-green-100 p-3 rounded-full">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-8 w-8 text-green-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                    </svg>
+                </div>
+                <div v-else-if="session.status === 'past'" class="bg-green-100 p-3 rounded-full">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-8 w-8 text-green-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div v-else-if="session.status === 'canceled'" class="bg-red-100 p-3 rounded-full">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-8 w-8 text-red-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                        />
+                    </svg>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Title</label>
-                        <p class="mt-1 text-lg font-semibold">Title</p>
-                    </div>
+            <h1
+                class="text-2xl font-bold text-center mb-2"
+                v-text="session.status === 'pending' ? 'Your booking has been submitted' : 'Session Details'"
+            ></h1>
 
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Status</label>
-                        <span
-                            class="px-3 py-1 rounded-full text-sm"
-                            :class="statusClasses[session.status]"
-                            v-text="session.status"
-                        ></span>
+            <p
+                class="text-center text-lg mb-8"
+                v-if="session.status === 'pending'"
+                v-text="session.expert_name + ' still needs to confirm or reject the booking.'"
+            ></p>
+
+            <hr class="my-6 border-gray-200" />
+
+            <div class="space-y-6">
+                <div class="flex">
+                    <div class="w-1/4">
+                        <label class="text-lg font-medium text-gray-600">What</label>
+                    </div>
+                    <div class="w-3/4">
+                        <p class="text-lg font-semibold">
+                            <span
+                                v-if="session.type === 'intro'"
+                                v-text="session.type +' meeting between ' + session.expert_name + ' and ' + session.user_name"
+                            ></span>
+                            <span
+                                v-else-if="session.type === 'short'"
+                                v-text="'45 Min Meeting between ' + session.expert_name + ' and ' + session.user_name"
+                            ></span>
+                            <span
+                                v-else-if="session.type === 'training'"
+                                v-text="'Training Session with ' + session.expert_name"
+                            ></span>
+                            <span
+                                v-else-if="session.type === 'business'"
+                                v-text="'Business Consultation with ' + session.expert_name"
+                            ></span>
+                            <span
+                                v-else-if="session.type === 'demo'"
+                                v-text="'Demo Session with ' + session.expert_name"
+                            ></span>
+                            <span
+                                v-else-if="session.type === 'long'"
+                                v-text="'90 Min Meeting between ' + session.expert_name + ' and ' + session.user_name"
+                            ></span>
+                        </p>
                     </div>
                 </div>
 
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Participants</label>
-                        <div class="mt-1 space-y-2">
-                            <span class="ml-2" v-text="session.expert_name"></span>
+                <div class="flex">
+                    <div class="w-1/4">
+                        <label class="text-lg font-medium text-gray-600">Who</label>
+                    </div>
+                    <div class="w-3/4 space-y-4">
+                        <div class="flex flex-col">
+                            <div class="flex items-center">
+                                <p class="text-lg font-semibold" v-text="session.expert_name"></p>
+                                <span
+                                    class="ml-2 px-2 py-0.5 bg-indigo-200 text-indigo-700 rounded text-sm font-semibold"
+                                    >Expert</span
+                                >
+                            </div>
+                            <p class="text-gray-600" v-text="'artur@globalify.xyz'"></p>
+                        </div>
+
+                        <div class="flex flex-col">
+                            <p class="text-lg font-semibold" v-text="session.user_name"></p>
+                            <p class="text-gray-600" v-text="'lolwatisdat@lol.heh'"></p>
                         </div>
                     </div>
+                </div>
 
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Description</label>
-                        <p class="mt-1 text-gray-600">Description</p>
+                <!-- Where (Location)
+                <div class="flex">
+                    <div class="w-1/4">
+                        <label class="text-lg font-medium text-gray-600">Where</label>
+                    </div>
+                    <div class="w-3/4">
+                        <p class="text-lg">Web conferencing details to follow in the confirmation email.</p>
+                    </div>
+                </div> -->
+
+                <div class="flex">
+                    <div class="w-1/4">
+                        <label class="text-lg font-medium text-gray-600">Additional notes</label>
+                    </div>
+                    <div class="w-3/4">
+                        <p class="text-lg" v-text="session.notes || 'No additional notes'"></p>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-8 flex justify-end space-x-4">
-                <button @click="$emit('close')" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Close</button>
+            <div class="flex">
+                <div class="w-1/4">
+                    <label class="text-lg font-medium text-gray-600">Created</label>
+                </div>
+                <div class="w-3/4">
+                    <p class="text-lg font-semibold" v-text="formatDate(session.created_at)"></p>
+                </div>
             </div>
-            <button
-                v-if="session.status === 'upcoming'"
-                class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-400 transition-colors"
-            >
-                Cancel Session
-            </button>
-            <button
-                v-else-if="session.status === 'pending'"
-                class="rounded-lg bg-sky-500 px-4 py-2 text-white hover:bg-blue-700 transition-colors"
-            >
-                Approve session
-            </button>
-            <button
-                v-else-if="session.status === 'canceled'"
-                class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-700 transition-colors"
-            >
-                Delete session
-            </button>
+
+            <!-- Buttons -->
+            <div class="mt-8 flex justify-end space-x-4">
+                <template v-if="session.status === 'pending' || session.status === 'upcoming'">
+                    <button
+                        @click="processAction(session, 'cancel')"
+                        class="px-6 py-3 border border-red-500 text-red-600 text-lg font-medium rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                </template>
+
+                <button
+                    v-if="session.status === 'pending'"
+                    @click="processAction(session, 'approve')"
+                    class="px-6 py-3 bg-blue-600 text-white text-lg font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                    Approve
+                </button>
+
+                <button
+                    v-if="session.status === 'upcoming'"
+                    @click="processAction(session, 'past')"
+                    class="px-6 py-3 bg-green-500 text-white text-lg font-medium rounded-lg hover:bg-green-600 transition-colors"
+                >
+                    Complete Session
+                </button>
+
+                <button
+                    v-if="session.status === 'canceled' || session.status === 'past'"
+                    @click="processAction(session, 'delete')"
+                    class="px-6 py-3 bg-red-800 text-white text-lg font-medium rounded-lg hover:bg-red-900 transition-colors"
+                >
+                    Delete Session
+                </button>
+
+                <button
+                    @click="$emit('close')"
+                    class="px-6 py-3 border text-gray-700 text-lg font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                    Close
+                </button>
+            </div>
         </div>
     </article>
 </template>

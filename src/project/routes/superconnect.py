@@ -14,7 +14,7 @@ from ..extensions import db
 from ..models import Company, User
 from ..models.helpers import Industry
 from ..models.superconnect import (
-    EventStatus,
+    SessionStatus,
     # TimeSlot,
     # Event,
     Expert,
@@ -297,6 +297,11 @@ def get_user_sessions():
 @superconnect.get("/get_sessions/")
 def user_sessions():
     print(current_user.id)
+    user = User.get_by_id(current_user.id)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
     session_requests = SessionRequest.get_all_by_user_id(current_user.id)
 
     if session_requests is None:
@@ -306,11 +311,48 @@ def user_sessions():
     for s_request in session_requests:
         session_data = SessionSchema(
             id=s_request.id,
-            expert_name="s_request.expert.user.user_info.full_name",
+            expert_name=s_request.expert.full_name,
+            user_name=user.user_info.full_name,
             picture_url=s_request.expert.picture_url or "",
+            notes=s_request.notes or "",
+            type=s_request.type.value,
             status=s_request.status.value,
             created_at=s_request.created_at.date(),
         )
         session_list.append(session_data.model_dump())
 
     return jsonify({"sessions": session_list})
+
+
+@superconnect.post("/session/action/")
+def change_session_status():
+    print("///////////")
+    form_data = request.get_json()
+    if not form_data:
+        return jsonify({"error": "No data provided"}), 400
+    print("///////////2")
+
+    session_id = form_data.get("session_id")
+    session = SessionRequest.get_by_id(session_id)
+
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+
+    action = form_data.get("action")
+
+    action_map = {
+        "cancel": SessionStatus.CANCELED,
+        "delete": SessionStatus.DELETED,
+        "past": SessionStatus.PAST,
+        "upcoming": SessionStatus.UPCOMING,
+    }
+
+    new_status = action_map.get(action)
+
+    if new_status is None:
+        return jsonify({"error": "Invalid action"}), 400
+
+    session.status = new_status
+    db.session.commit()
+
+    return jsonify({"message": "Session status updated successfully"}), 200

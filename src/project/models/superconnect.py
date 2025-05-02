@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationshi
 from src.project.models.helpers import Industry
 
 from ..extensions import db
-from ..utils.enums import EventStatus, EventType, QualificationType
+from ..utils.enums import QualificationType, SessionStatus, SessionType
 
 if TYPE_CHECKING:
     from .user import User
@@ -36,9 +36,9 @@ class Expert(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     bio: Mapped[str | None] = mapped_column(String, nullable=True)
-    # first_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    # second_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    # email: Mapped[str | None] = mapped_column(String, nullable=True)
+    first_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
     current_position_id: Mapped[int] = mapped_column(Integer, nullable=True)
@@ -52,12 +52,12 @@ class Expert(MappedAsDataclass, db.Model, unsafe_hash=True):
     # time_slots: Mapped[list[TimeSlot]] = relationship("TimeSlot", back_populates="expert", uselist=True, init=False)
     # events: Mapped[list[Event]] = relationship("Events", back_populates="expert", uselist=True, init=False)
 
-    # def __repr__(self):
-    #     return f"<Exper {self.user.user_info.first_name} {self.user.user_info.last_name}>"
+    def __repr__(self):
+        return f"<Expert {self.first_name} {self.last_name}>"
 
-    # @property
-    # def full_name(self) -> str:
-    #     return f"{self.user.user_info.first_name} {self.user.user_info.last_name or ''}"
+    @property
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name or ''}"
 
     # @validates("industries")  # limit??
     # def validate_industries(self, key, industries):
@@ -98,10 +98,12 @@ class SessionRequest(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     expert_id: Mapped[int] = mapped_column(Integer, ForeignKey("expert.id"), nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    notes: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), init=False
     )
-    status: Mapped[EventStatus] = mapped_column(SQLEnum(EventStatus), nullable=False, default=EventStatus.PENDING)
+    status: Mapped[SessionStatus] = mapped_column(SQLEnum(SessionStatus), nullable=False, default=SessionStatus.PENDING)
+    type: Mapped[SessionType] = mapped_column(SQLEnum(SessionType), nullable=False, default=SessionType.SHORT)
 
     expert: Mapped[Expert] = relationship("Expert", back_populates="session_requests", init=False)
     user: Mapped[User] = relationship("User", back_populates="session_requests", init=False)
@@ -118,7 +120,7 @@ class SessionRequest(MappedAsDataclass, db.Model, unsafe_hash=True):
     def get_existing_by_user_id(user_id: int) -> Sequence[SessionRequest] | None:
         return db.session.scalars(
             db.select(SessionRequest).where(
-                SessionRequest.user_id == user_id, SessionRequest.status == EventStatus.PENDING
+                SessionRequest.user_id == user_id, SessionRequest.status == SessionStatus.PENDING
             )
         ).all()
 
@@ -141,8 +143,8 @@ class SessionRequest(MappedAsDataclass, db.Model, unsafe_hash=True):
 #     updated_at: Mapped[datetime.datetime] = mapped_column(
 #         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
 #     )
-#     type: Mapped[EventType] = mapped_column(SQLEnum(EventType), nullable=False, default=EventType.SHORT)
-#     status: Mapped[EventStatus] = mapped_column(SQLEnum(EventStatus), nullable=True, default=EventStatus.UNCONFIRMED)
+#     type: Mapped[SessionType] = mapped_column(SQLEnum(SessionType), nullable=False, default=SessionType.SHORT)
+#     status: Mapped[SessionStatus] = mapped_column(SQLEnum(SessionStatus), nullable=True, default=SessionStatus.UNCONFIRMED)
 
 #     @staticmethod
 #     def get_by_id(event_id: int) -> Event | None:

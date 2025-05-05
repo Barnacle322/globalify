@@ -4,7 +4,7 @@ import datetime
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, desc, func
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, desc, func
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship, validates
 
@@ -24,26 +24,48 @@ expert_industry = db.Table(
 )
 
 
-class Expert(MappedAsDataclass, db.Model, unsafe_hash=True):
+class ExpertBase(db.Model):
+    __abstract__ = True
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    first_name: Mapped[str] = mapped_column(String, nullable=False)
+    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
+    firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    position: Mapped[str | None] = mapped_column(String, nullable=True)
+    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
+    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True, unique=False)
+    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
+
+
+class Expert(ExpertBase):
     user: Mapped[User | None] = relationship("User", back_populates="expert", uselist=False)
     qualifications: Mapped[list[Qualification]] = relationship(
-        "Qualification", back_populates="expert", uselist=True, init=False
+        "Qualification",
+        back_populates="expert",
+        uselist=True,
     )
     session_requests: Mapped[list[SessionRequest]] = relationship(
-        "SessionRequest", back_populates="expert", uselist=True, init=False
+        "SessionRequest",
+        back_populates="expert",
+        uselist=True,
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     bio: Mapped[str | None] = mapped_column(String, nullable=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
     current_position_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    price: Mapped[float] = mapped_column(Float, nullable=True)
     # industries: Mapped[list[Industry]] = relationship(secondary=expert_industry, nullable=True)  # Maybe??
     # minimum_notice_minutes: Mapped[int] = mapped_column(Integer, default=60)
     # minimum_free_time: Mapped[int] = mapped_column(Integer, default=15)
     created_at: Mapped[datetime.datetime | None] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), init=False
+        DateTime(timezone=True),
+        server_default=func.now(),
     )
 
     # time_slots: Mapped[list[TimeSlot]] = relationship("TimeSlot", back_populates="expert", uselist=True, init=False)

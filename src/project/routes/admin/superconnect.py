@@ -28,7 +28,7 @@ from ...utils.scraper import add_https_prefix
 superconnect = Blueprint("superconnect", __name__)
 
 
-@superconnect.get("//")
+@superconnect.get("/")
 @admin_only
 def index():
     experts = Expert.get_all()

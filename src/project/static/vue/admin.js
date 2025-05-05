@@ -1222,6 +1222,61 @@ createApp({
                 console.error("Error:", error);
             }
         },
+        async submitExpertData(){
+            const csrfToken = document.getElementById("csrf_token").value;
+            const first_name = document.getElementById("first_name").value;
+            const last_name = document.getElementById("last_name").value;
+            const slug = document.getElementById("slug").value;
+            const firm_name = document.getElementById("firm_name").value;
+            const position = document.getElementById("position").value;
+            const location = document.getElementById("location").value;
+            const bio = document.getElementById("bio").value;
+            const price = document.getElementById("price").value;
+            const description = document.getElementById("description").value;
+            const website = document.getElementById("website").value;
+            const linkedin = document.getElementById("linkedin").value;
+            const twitter = document.getElementById("twitter").value;
+            const email = document.getElementById("email").value;
+            const phone_number = document.getElementById("phone_number").value;
+            const user_email = document.getElementById("searchInput").value;
+            let data = {
+                first_name: first_name,
+                last_name: last_name,
+                slug: slug,
+                firm_name: firm_name,
+                position: position,
+                location: location,
+                bio: bio,
+                price: price,
+                description: description,
+                website: website,
+                linkedin: linkedin,
+                twitter: twitter,
+                email: email,
+                phone_number: phone_number,
+                user_email: user_email,
+
+            };
+
+            let dataString = JSON.stringify(data);
+
+            try {
+                const response = await fetch("/admin/experts/create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: dataString,
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+
+        },
         async deleteInvestor(id) {
             const csrfToken = document.getElementById("csrf_token").value;
 

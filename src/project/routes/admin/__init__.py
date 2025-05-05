@@ -29,6 +29,7 @@ from .investment_firm import investment_firm as investment_firm_blueprint
 from .investments import investment as investment_blueprint
 from .investor import investor as investor_blueprint
 from .superconnect import superconnect as superconnect_blueprint
+from .experts import experts as experts_blueprint
 from .user import user as user_blueprint
 
 admin = Blueprint("admin", __name__)
@@ -39,6 +40,7 @@ admin.register_blueprint(funding_round_blueprint, url_prefix="/funding-rounds")
 admin.register_blueprint(user_blueprint, url_prefix="/users")
 admin.register_blueprint(investment_blueprint, url_prefix="/investments")
 admin.register_blueprint(superconnect_blueprint, url_prefix="/superconnect")
+admin.register_blueprint(experts_blueprint, url_prefix="/experts")
 
 
 @admin.get("/users/search/<search_input>")

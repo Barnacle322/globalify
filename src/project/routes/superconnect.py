@@ -31,10 +31,76 @@ from ..utils.scraper import add_https_prefix
 superconnect = Blueprint("superconnect", __name__)
 
 
-@superconnect.route("/list")
+@superconnect.route("/api/experts")
+def api_experts():
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 9, type=int)
+
+    expertise = request.args.get("expertise", "All")
+    region = request.args.get("region", "Worldwide")
+    search_query = request.args.get("search", "")
+
+    query = Expert.query
+
+    if expertise != "All":
+        query = query.join(Expert.qualifications).filter(Qualification.type == expertise)
+
+    if region != "Worldwide":
+        query = query.join(Expert.user).join(User.user_info).filter(User.user_info.country == region)
+
+    if search_query:
+        from ..models import UserInfo
+
+        query = (
+            query.join(Expert.user)
+            .join(User.user_info)
+            .filter(
+                db.or_(
+                    UserInfo.first_name.ilike(f"%{search_query}%"),
+                    UserInfo.last_name.ilike(f"%{search_query}%"),
+                    Expert.bio.ilike(f"%{search_query}%"),
+                )
+            )
+        )
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    experts_data = []
+    for expert in pagination.items:
+        expert_data = {
+            "id": expert.id,
+            "name": f"{expert.user.user_info.first_name} {expert.user.user_info.last_name}",
+            "picture_url": expert.picture_url,
+            "bio": expert.bio or "This expert helps businesses expand globally.",
+            "current_position_id": expert.current_position_id,
+            "experience_years": len(expert.qualifications) if expert.qualifications else 0,
+            "qualifications": [{"id": q.id, "type": q.type.value, "title": q.title} for q in expert.qualifications][:3],
+        }
+        experts_data.append(expert_data)
+
+    pagination_meta = {
+        "page": page,
+        "per_page": per_page,
+        "total": pagination.total,
+        "pages": pagination.pages,
+        "has_next": pagination.has_next,
+        "has_prev": pagination.has_prev,
+        "next_num": pagination.next_num if pagination.has_next else None,
+        "prev_num": pagination.prev_num if pagination.has_prev else None,
+    }
+
+    return jsonify(
+        {
+            "experts": experts_data,
+            "pagination": pagination_meta,
+            "filters": {"expertise": expertise, "region": region, "search": search_query},
+        }
+    )
+
+
+@superconnect.route("/list", methods=["GET"])
 def index():
-    experts = Expert.get_all()
-    return render_template("superconnect/index.html", experts=experts)
+    return render_template("superconnect/index.html")
 
 
 @superconnect.get("/superconnect/expert/<expert_id>")
@@ -47,7 +113,6 @@ def get_expert(expert_id):
     if not expert:
         return redirect(url_for("superconnect.index"))
 
-    # return jsonify({"expert": expert})
     return render_template("superconnect/expert.html", expert=expert)
 
 

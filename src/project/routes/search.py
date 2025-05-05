@@ -6,7 +6,7 @@ from flask import (
     request,
     url_for,
 )
-from flask_login import current_user, login_required, AnonymousUserMixin
+from flask_login import AnonymousUserMixin, current_user, login_required
 from sqlalchemy.exc import IntegrityError
 
 from ..extensions import db

@@ -4,7 +4,7 @@ import datetime
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, desc, func, Float
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, desc, func
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship, validates
 
@@ -33,7 +33,6 @@ class ExpertBase(db.Model):
     slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
     firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
     position: Mapped[str | None] = mapped_column(String, nullable=True)
-    website: Mapped[str | None] = mapped_column(String, nullable=True)
     linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
     twitter: Mapped[str | None] = mapped_column(String, nullable=True)
     email: Mapped[str | None] = mapped_column(String, nullable=True, unique=False)
@@ -44,10 +43,14 @@ class ExpertBase(db.Model):
 class Expert(ExpertBase):
     user: Mapped[User | None] = relationship("User", back_populates="expert", uselist=False)
     qualifications: Mapped[list[Qualification]] = relationship(
-        "Qualification", back_populates="expert", uselist=True,
+        "Qualification",
+        back_populates="expert",
+        uselist=True,
     )
     session_requests: Mapped[list[SessionRequest]] = relationship(
-        "SessionRequest", back_populates="expert", uselist=True,
+        "SessionRequest",
+        back_populates="expert",
+        uselist=True,
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -61,7 +64,8 @@ class Expert(ExpertBase):
     # minimum_notice_minutes: Mapped[int] = mapped_column(Integer, default=60)
     # minimum_free_time: Mapped[int] = mapped_column(Integer, default=15)
     created_at: Mapped[datetime.datetime | None] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(),
+        DateTime(timezone=True),
+        server_default=func.now(),
     )
 
     # time_slots: Mapped[list[TimeSlot]] = relationship("TimeSlot", back_populates="expert", uselist=True, init=False)
@@ -87,8 +91,6 @@ class Expert(ExpertBase):
     @staticmethod
     def get_all() -> Sequence[Expert] | None:
         return (db.session.scalars(db.select(Expert))).all()
-
-
 
 
 class Qualification(MappedAsDataclass, db.Model, unsafe_hash=True):

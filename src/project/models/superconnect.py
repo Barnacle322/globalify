@@ -74,9 +74,9 @@ class Expert(ExpertBase):
     # def __repr__(self):
     #     return f"<Exper {self.user.user_info.first_name} {self.user.user_info.last_name}>"
 
-    # @property
-    # def full_name(self) -> str:
-    #     return f"{self.user.user_info.first_name} {self.user.user_info.last_name or ''}"
+    @property
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name or ''}"
 
     @validates("industries")  # limit??
     def validate_industries(self, key, industries):

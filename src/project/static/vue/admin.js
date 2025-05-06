@@ -1222,7 +1222,7 @@ createApp({
                 console.error("Error:", error);
             }
         },
-        async submitExpertData(){
+        async submitExpertData() {
             const csrfToken = document.getElementById("csrf_token").value;
             const first_name = document.getElementById("first_name").value;
             const last_name = document.getElementById("last_name").value;
@@ -1233,7 +1233,6 @@ createApp({
             const bio = document.getElementById("bio").value;
             const price = document.getElementById("price").value;
             const description = document.getElementById("description").value;
-            const website = document.getElementById("website").value;
             const linkedin = document.getElementById("linkedin").value;
             const twitter = document.getElementById("twitter").value;
             const email = document.getElementById("email").value;
@@ -1249,13 +1248,11 @@ createApp({
                 bio: bio,
                 price: price,
                 description: description,
-                website: website,
                 linkedin: linkedin,
                 twitter: twitter,
                 email: email,
                 phone_number: phone_number,
                 user_email: user_email,
-
             };
 
             let dataString = JSON.stringify(data);
@@ -1275,7 +1272,6 @@ createApp({
             } catch (error) {
                 console.error("Error:", error);
             }
-
         },
         async deleteInvestor(id) {
             const csrfToken = document.getElementById("csrf_token").value;

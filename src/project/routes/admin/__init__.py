@@ -24,12 +24,12 @@ from ...utils.errors.error_messages import (
     NO_CLAIM_REQUEST,
 )
 from .company import company as company_blueprint
+from .experts import expert as experts_blueprint
 from .funding_round import funding_round as funding_round_blueprint
 from .investment_firm import investment_firm as investment_firm_blueprint
 from .investments import investment as investment_blueprint
 from .investor import investor as investor_blueprint
 from .superconnect import superconnect as superconnect_blueprint
-from .experts import experts as experts_blueprint
 from .user import user as user_blueprint
 
 admin = Blueprint("admin", __name__)

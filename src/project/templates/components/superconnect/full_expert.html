@@ -88,7 +88,7 @@
                     <div class="relative -mt-16 flex flex-col items-center px-6 pb-6 w-full">
                         <div class="ring-4 ring-white rounded-full shadow-lg p-1 bg-white">
                             <img
-                                :src="expert.picture_url || 'https://ui-avatars.com/api/?name='+(expert.user?.first_name || 'Expert')+'&background=6366f1&color=fff&size=200'"
+                                :src="expert.picture_url || '/static/elements/default_pfp.svg'"
                                 :alt="expert.name || 'Expert'"
                                 class="h-40 w-40 rounded-full object-cover shadow-inner"
                                 onerror="this.src='https://ui-avatars.com/api/?name='+encodeURIComponent(this.alt)+'&background=6366f1&color=fff&size=200'"

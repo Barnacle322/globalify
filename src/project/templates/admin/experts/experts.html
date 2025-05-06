@@ -47,7 +47,7 @@
             href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
             rel="stylesheet"
         />
-        <title>Investors</title>
+        <title>Experts</title>
     </head>
 
     <!-- prettier-ignore -->
@@ -75,7 +75,7 @@
                     <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">
                         <a
                             href="/admin/investors"
-                            class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
                             >Investors
                         </a>
                         <a
@@ -112,13 +112,13 @@
                         </a>
                         <a
                             href="/admin/experts"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
                             >Experts
                         </a>
                     </div>
                 </nav>
                 <section class="mx-auto my-10 flex max-w-3xl flex-col gap-5 px-4 sm:my-14">
-                    <h1 class="text-3xl font-bold sm:text-5xl">Investors</h1>
+                    <h1 class="text-3xl font-bold sm:text-5xl">Experts</h1>
                     {% if status_type %} {% if status_type == '3' %}
                     <div class="rounded-xl text-red-500">{{ msg }}</div>
                     {% elif status_type == '2' %}
@@ -183,7 +183,7 @@
                             />
                         </svg>
                     </a>
-                    {% if investors %}
+                    {% if experts %}
                     <div class="flex flex-col gap-3">
                         {% for expert in experts %}
                         <div
@@ -191,24 +191,12 @@
                         >
                             <div class="relative flex w-full items-start justify-between gap-3">
                                 <div class="flex flex-col gap-2">
-                                    <span class="font-medium">{{ expert.name }}</span>
-                                    <p class="line-clamp-3">{{investor.about}}</p>
-{#                                    {% if investor.rounds %}#}
-{#                                    <div class="flex flex-wrap gap-1">#}
-{#                                        {% for round in investor.rounds %}#}
-{#                                        <a#}
-{#                                            class="rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-nowrap text-[#D182CD]"#}
-{#                                            >{{ round }}#}
-{#                                        </a>#}
-{#                                        {% endfor %}#}
-{#                                    </div>#}
-{#                                    {% endif %} {% if investor.industries %}#}
-{#                                    <p class="text-sm text-gray-500">{{ ", ".join(investor.industries) }}</p>#}
-{#                                    {% endif %}#}
+                                    <span class="font-medium">{{ expert.full_name }}</span>
+                                    <p class="line-clamp-3">{{expert.bio}}</p>
                                 </div>
                                 <div class="ml-auto flex h-full flex-col gap-2">
                                     <a
-                                        href="/admin/investors/{{investor.id}}"
+                                        href="/admin/experts/{{expert.id}}"
                                         class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
                                     >
                                         <svg
@@ -226,33 +214,10 @@
                                             />
                                         </svg>
                                     </a>
-                                    <a
-                                        href="/search?investor={{ investor.slug }}"
-                                        class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.5"
-                                            stroke="currentColor"
-                                            class="size-4"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
-                                            />
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                                            />
-                                        </svg>
-                                    </a>
+
                                     <button
                                         class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
-                                        @click="deleteInvestor('{{investor.id}}')"
+                                        @click="deleteInvestor('{{expert.id}}')"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -279,7 +244,7 @@
                         {% if pagination and pagination.has_other_pages %} {% if pagination.has_prev %}
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors?page=1&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page=1&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -299,7 +264,7 @@
                         <a
                             id="prev"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -316,7 +281,7 @@
                         <a
                             id="current"
                             class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500 transition-opacity duration-200 ease-in-out hover:opacity-90"
-                            href="/admin/investors?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ pagination.current_page }}
                         </a>
@@ -324,7 +289,7 @@
                         <a
                             id="page"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white text-sm font-medium"
-                            href="/admin/investors?page={{ page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page={{ page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ page }}
                         </a>
@@ -332,7 +297,7 @@
                         <a
                             id="next"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -347,7 +312,7 @@
                         </a>
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/investors?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"

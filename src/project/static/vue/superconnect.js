@@ -58,6 +58,7 @@ const FullExpertComponent = defineComponent({
     },
     async created() {
         await this.fetchExpert(this.expertId);
+        console.log("Expert data:", this.expert);
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);

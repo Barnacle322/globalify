@@ -78,19 +78,20 @@ class SearchHistoryType(Enum):
     COMPANY = "company"
 
 
-class EventStatus(Enum):
-    IN_PROCESS = "in process"
-    UNCONFIRMED = "unconfirmed"
-    CONFIRMED = "confirmed"
+class SessionStatus(Enum):
+    UPCOMING = "upcoming"
     CANCELED = "canceled"
-    PAST = "past"
+    DELETED = "deleted"
     PENDING = "pending"
+    PAST = "past"
 
 
-class EventType(Enum):
+class SessionType(Enum):
     TRAINING = "training"
+    BUSINESS = "business"
     INTRO = "intro"
     SHORT = "short"
+    DEMO = "demo"
     LONG = "long"
 
 

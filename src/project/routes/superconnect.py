@@ -12,7 +12,12 @@ from ..models.superconnect import (
     Qualification,
     SessionRequest,
 )
-from ..schemas.superconnect import ExpertSchema, QualificationSchema
+from ..schemas.superconnect import ExpertSchema, QualificationSchema, SessionSchema
+from ..utils.decorators import check_user_info_complete, check_verification
+from ..utils.enums import QualificationType, Status, StatusType
+from ..utils.errors.error_messages import PICTURE_NOT_LOADED
+from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
+from ..utils.scraper import add_https_prefix
 
 superconnect = Blueprint("superconnect", __name__)
 
@@ -110,7 +115,7 @@ def get_expert_by_id(expert_id):
                 type=q.type.value,
                 title=q.title,
                 description=q.description,
-                company_id=q.company_id,
+                company_id=q.company_id if q.company_id else None,
                 company_name=q.company_name,
                 company_description=q.company_description,
                 company_url=q.company_url,
@@ -131,15 +136,90 @@ def book_session(expert_id):
     if not expert:
         return jsonify({"error": "Expert not found"}), 404
 
-    existing_request = SessionRequest.get_existing_by_expert_id(expert_id=expert_id)
+    existing_request = SessionRequest.get_existing_by_user_id(expert_id)
     if existing_request:
         return jsonify({"error": "You have already requested a session with this expert"}), 400
     print("Booking session with expert ID:", expert_id)
     try:
-        session_request = SessionRequest(expert_id=expert_id)
+        session_request = SessionRequest(expert_id=expert_id, user_id=current_user.id)
         db.session.add(session_request)
         db.session.commit()
     except Exception as e:
         print("Error while creating session request:", e)
 
     return jsonify({"message": "Session request sent successfully!"}), 200
+
+
+@superconnect.get("/sessions/")
+def get_user_sessions():
+    user = User.get_by_id(1)
+    if not user:
+        return jsonify({"error": "Expert not found"}), 404
+
+    session_requests = SessionRequest.get_all_by_user_id(1)
+    return render_template("superconnect/sessions.html", session_requests=session_requests)
+    # return jsonify("superconnect/sessions.html", session_requests=session_requests)
+
+
+@superconnect.get("/get_sessions/")
+def user_sessions():
+    print(current_user.id)
+    user = User.get_by_id(current_user.id)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    session_requests = SessionRequest.get_all_by_user_id(current_user.id)
+
+    if session_requests is None:
+        return jsonify({"sessions": []})
+
+    session_list = []
+    for s_request in session_requests:
+        session_data = SessionSchema(
+            id=s_request.id,
+            expert_name=s_request.expert.full_name,
+            expert_email=s_request.expert.email or "",
+            user_name=user.user_info.full_name,
+            user_email=user.email or "",
+            picture_url=s_request.expert.picture_url or "",
+            notes=s_request.notes or "",
+            type=s_request.type.value,
+            status=s_request.status.value,
+            created_at=s_request.created_at.date(),
+        )
+        session_list.append(session_data.model_dump())
+
+    return jsonify({"sessions": session_list})
+
+
+@superconnect.post("/session/action/")
+def change_session_status():
+    form_data = request.get_json()
+    if not form_data:
+        return jsonify({"error": "No data provided"}), 400
+
+    session_id = form_data.get("session_id")
+    session = SessionRequest.get_by_id(session_id)
+
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+
+    action = form_data.get("action")
+
+    action_map = {
+        "cancel": SessionStatus.CANCELED,
+        "delete": SessionStatus.DELETED,
+        "past": SessionStatus.PAST,
+        "upcoming": SessionStatus.UPCOMING,
+    }
+
+    new_status = action_map.get(action)
+
+    if new_status is None:
+        return jsonify({"error": "Invalid action"}), 400
+
+    session.status = new_status
+    db.session.commit()
+
+    return jsonify({"message": "Session status updated successfully"}), 200

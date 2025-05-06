@@ -8,7 +8,7 @@ class QualificationSchema(BaseModel):
     type: str
     title: str
     description: str | None
-    company_id: str | None
+    company_id: int | None
     company_name: str | None
     company_description: str | None
     company_url: str | None
@@ -25,3 +25,16 @@ class ExpertSchema(BaseModel):
     picture_url: str | None
     current_position_id: int | None
     qualifications: list[QualificationSchema]
+
+
+class SessionSchema(BaseModel):
+    id: int
+    expert_name: str
+    expert_email: str | None
+    user_name: str
+    user_email: str
+    notes: str | None
+    picture_url: str | None
+    type: str
+    status: str
+    created_at: date

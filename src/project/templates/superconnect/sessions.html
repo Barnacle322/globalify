@@ -102,7 +102,7 @@
                             <div
                                 v-for="session in group.sessions"
                                 :key="session.id"
-                                class="bg-white rounded-lg shadow-xl mb-4 border-l-4 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-50 hover:shadow-md h-32 group"
+                                class="bg-white rounded-lg shadow-md mb-4 border-l-4 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-50 hover:shadow-xl h-32 group"
                                 :style="{ borderLeftColor: config[group.type].baseColor }"
                             >
                                 <div class="flex items-stretch h-full cursor-pointer">
@@ -256,7 +256,7 @@
                 <session-info-component
                     v-if="isSessionInfoOpened"
                     :session="selectedSession"
-                    @close="isSessionInfoOpened = false"
+                    @close-session-info="isSessionInfoOpened = false"
                 ></session-info-component>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">

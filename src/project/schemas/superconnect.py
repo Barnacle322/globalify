@@ -30,7 +30,9 @@ class ExpertSchema(BaseModel):
 class SessionSchema(BaseModel):
     id: int
     expert_name: str
+    expert_email: str | None
     user_name: str
+    user_email: str
     notes: str | None
     picture_url: str | None
     type: str

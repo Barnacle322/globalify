@@ -86,30 +86,7 @@
                     </div>
                     <div class="w-3/4">
                         <p class="text-lg font-semibold">
-                            <span
-                                v-if="session.type === 'intro'"
-                                v-text="session.type +' meeting between ' + session.expert_name + ' and ' + session.user_name"
-                            ></span>
-                            <span
-                                v-else-if="session.type === 'short'"
-                                v-text="'45 Min Meeting between ' + session.expert_name + ' and ' + session.user_name"
-                            ></span>
-                            <span
-                                v-else-if="session.type === 'training'"
-                                v-text="'Training Session with ' + session.expert_name"
-                            ></span>
-                            <span
-                                v-else-if="session.type === 'business'"
-                                v-text="'Business Consultation with ' + session.expert_name"
-                            ></span>
-                            <span
-                                v-else-if="session.type === 'demo'"
-                                v-text="'Demo Session with ' + session.expert_name"
-                            ></span>
-                            <span
-                                v-else-if="session.type === 'long'"
-                                v-text="'90 Min Meeting between ' + session.expert_name + ' and ' + session.user_name"
-                            ></span>
+                            <span v-text="session.type +' meeting with ' + session.expert_name"></span>
                         </p>
                     </div>
                 </div>
@@ -127,12 +104,12 @@
                                     >Expert</span
                                 >
                             </div>
-                            <p class="text-gray-600" v-text="'artur@globalify.xyz'"></p>
+                            <p class="text-gray-600" v-if="session.expert_email" v-text="session.expert_email"></p>
                         </div>
 
                         <div class="flex flex-col">
                             <p class="text-lg font-semibold" v-text="session.user_name"></p>
-                            <p class="text-gray-600" v-text="'lolwatisdat@lol.heh'"></p>
+                            <p class="text-gray-600" v-if="session.user_email" v-text="session.user_email"></p>
                         </div>
                     </div>
                 </div>
@@ -157,7 +134,7 @@
                 </div>
             </div>
 
-            <div class="flex">
+            <div class="flex mt-2">
                 <div class="w-1/4">
                     <label class="text-lg font-medium text-gray-600">Created</label>
                 </div>
@@ -193,20 +170,13 @@
                     Complete Session
                 </button>
 
-                <button
+                <!-- <button
                     v-if="session.status === 'canceled' || session.status === 'past'"
                     @click="processAction(session, 'delete')"
                     class="px-6 py-3 bg-red-800 text-white text-lg font-medium rounded-lg hover:bg-red-900 transition-colors"
                 >
                     Delete Session
-                </button>
-
-                <button
-                    @click="$emit('close')"
-                    class="px-6 py-3 border text-gray-700 text-lg font-medium rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                    Close
-                </button>
+                </button> -->
             </div>
         </div>
     </article>

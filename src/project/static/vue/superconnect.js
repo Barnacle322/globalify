@@ -163,20 +163,17 @@ const SessionInfoComponent = defineComponent({
             required: true,
         },
     },
+    mounted() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        setTimeout(() => {
+            document.addEventListener("click", this.handleOutsideClick);
+        }, 0);
+    },
+    beforeUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("click", this.handleOutsideClick);
+    },
     methods: {
-        formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            });
-        },
-        formatTime(timeString) {
-            return new Date(`1970-01-01T${timeString}`).toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-            });
-        },
         async processAction(session, action) {
             try {
                 const csrf_token = document.getElementById("csrf_token").value;
@@ -219,6 +216,32 @@ const SessionInfoComponent = defineComponent({
             } catch (error) {
                 console.error("Action failed:", error);
                 return;
+            }
+        },
+        formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            });
+        },
+        formatTime(timeString) {
+            return new Date(`1970-01-01T${timeString}`).toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+            });
+        },
+        closeSessionInfo() {
+            this.$emit("close-session-info");
+        },
+        handleOutsideClick(event) {
+            if (!this.$el.contains(event.target)) {
+                this.closeSessionInfo();
+            }
+        },
+        handleKeyDown(event) {
+            if (event.key === "Escape") {
+                this.closeSessionInfo();
             }
         },
     },
@@ -322,8 +345,6 @@ const SessionComponent = defineComponent({
         },
         async processAction(session, actionConfig) {
             try {
-                console.log(session.id);
-                console.log(actionConfig.nextStatus);
                 const csrf_token = document.getElementById("csrf_token").value;
                 const response = await fetch("/superconnect/session/action/", {
                     method: "POST",

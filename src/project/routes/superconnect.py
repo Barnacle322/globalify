@@ -312,7 +312,9 @@ def user_sessions():
         session_data = SessionSchema(
             id=s_request.id,
             expert_name=s_request.expert.full_name,
+            expert_email=s_request.expert.email or "",
             user_name=user.user_info.full_name,
+            user_email=user.email or "",
             picture_url=s_request.expert.picture_url or "",
             notes=s_request.notes or "",
             type=s_request.type.value,
@@ -326,11 +328,9 @@ def user_sessions():
 
 @superconnect.post("/session/action/")
 def change_session_status():
-    print("///////////")
     form_data = request.get_json()
     if not form_data:
         return jsonify({"error": "No data provided"}), 400
-    print("///////////2")
 
     session_id = form_data.get("session_id")
     session = SessionRequest.get_by_id(session_id)

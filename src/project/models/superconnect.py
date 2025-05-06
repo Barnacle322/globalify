@@ -103,6 +103,8 @@ class SessionRequest(MappedAsDataclass, db.Model, unsafe_hash=True):
         DateTime(timezone=True), server_default=func.now(), init=False
     )
     status: Mapped[SessionStatus] = mapped_column(SQLEnum(SessionStatus), nullable=False, default=SessionStatus.PENDING)
+    # user_status: Mapped[SessionStatus] = mapped_column(SQLEnum(SessionStatus), nullable=False, default=SessionStatus.PENDING)
+    # expert_status: Mapped[SessionStatus] = mapped_column(SQLEnum(SessionStatus), nullable=False, default=SessionStatus.PENDING)
     type: Mapped[SessionType] = mapped_column(SQLEnum(SessionType), nullable=False, default=SessionType.SHORT)
 
     expert: Mapped[Expert] = relationship("Expert", back_populates="session_requests", init=False)

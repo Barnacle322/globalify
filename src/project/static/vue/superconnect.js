@@ -58,6 +58,7 @@ const FullExpertComponent = defineComponent({
     },
     async created() {
         await this.fetchExpert(this.expertId);
+        console.log("Expert data:", this.expert);
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
@@ -451,19 +452,63 @@ createApp({
     mounted() {
         document.addEventListener("click", this.handleClickOutside);
         this.asideMinified = localStorage.getItem("asideMinified") == "true";
+        this.loadExperts(1);
+    },
+    computed: {
+        startPage() {
+            return Math.max(1, this.pagination.page - 2);
+        },
+        endPage() {
+            return Math.min(this.pagination.pages, this.pagination.page + 2);
+        },
+        pageNumbers() {
+            const pages = [];
+            for (let i = this.startPage; i <= this.endPage; i++) {
+                if (i !== 1 && i !== this.pagination.pages) {
+                    pages.push(i);
+                }
+            }
+            return pages;
+        },
     },
     methods: {
-        async fetchTimeslots() {
+        async loadExperts(page) {
+            this.loading = true;
+
             try {
-                const response = await fetch("/superconnect/fake-slots");
+                const queryParams = new URLSearchParams({
+                    page: page,
+                    per_page: this.pagination.per_page || 9,
+                    expertise: this.filters.expertise,
+                    region: this.filters.region,
+                    search: this.filters.search,
+                });
+
+                const response = await fetch(`/superconnect/api/experts?${queryParams}`);
                 if (!response.ok) {
-                    throw new Error("Failed to fetch timeslots");
+                    throw new Error("Failed to fetch experts");
                 }
+
                 const data = await response.json();
-                this.timeslots = data;
+                this.experts = data.experts;
+                this.pagination = data.pagination;
+
+                window.history.replaceState(null, "", `/superconnect/list?${queryParams.toString()}`);
             } catch (error) {
-                console.error("Error fetching timeslots:", error);
+                console.error("Error loading experts:", error);
+            } finally {
+                this.loading = false;
             }
+        },
+
+        debouncedSearch() {
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                this.loadExperts(1);
+            }, 500);
+        },
+        setDefaultImage(event, name) {
+            event.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff&size=150`;
         },
         openExpert(expertId) {
             this.isFullExpertOpened = true;
@@ -480,6 +525,24 @@ createApp({
     },
     data() {
         return {
+            loading: false,
+            experts: [],
+            filters: {
+                expertise: "All",
+                region: "Worldwide",
+                search: "",
+            },
+            pagination: {
+                page: 1,
+                per_page: 2,
+                total: 0,
+                pages: 0,
+                has_next: false,
+                has_prev: false,
+                next_num: null,
+                prev_num: null,
+            },
+            searchTimeout: null,
             timeslots: [],
             asideMinified: false,
             asideExpanded: true,

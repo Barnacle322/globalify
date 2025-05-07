@@ -1226,7 +1226,6 @@ createApp({
             const csrfToken = document.getElementById("csrf_token").value;
             const first_name = document.getElementById("first_name").value;
             const last_name = document.getElementById("last_name").value;
-            const slug = document.getElementById("slug").value;
             const firm_name = document.getElementById("firm_name").value;
             const position = document.getElementById("position").value;
             const location = document.getElementById("location").value;
@@ -1241,7 +1240,6 @@ createApp({
             let data = {
                 first_name: first_name,
                 last_name: last_name,
-                slug: slug,
                 firm_name: firm_name,
                 position: position,
                 location: location,

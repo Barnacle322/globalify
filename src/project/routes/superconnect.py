@@ -4,20 +4,18 @@ from flask import (
     render_template,
     request,
 )
+from flask_login import current_user
 
 from ..extensions import db
 from ..models import User
 from ..models.superconnect import (
     Expert,
     Qualification,
+    QualificationType,
     SessionRequest,
+    SessionStatus,
 )
 from ..schemas.superconnect import ExpertSchema, QualificationSchema, SessionSchema
-from ..utils.decorators import check_user_info_complete, check_verification
-from ..utils.enums import QualificationType, Status, StatusType
-from ..utils.errors.error_messages import PICTURE_NOT_LOADED
-from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
-from ..utils.scraper import add_https_prefix
 
 superconnect = Blueprint("superconnect", __name__)
 
@@ -28,12 +26,14 @@ def api_experts():
     per_page = request.args.get("per_page", 9, type=int)
 
     expertise = request.args.get("expertise", "All")
+    print("Agahan", expertise)
     region = request.args.get("region", "Worldwide")
     search_query = request.args.get("search", "")
 
     query = Expert.query
 
     if expertise != "All":
+        print("Agahan2", expertise)
         query = query.join(Expert.qualifications).filter(Qualification.type == expertise)
 
     if region != "Worldwide":
@@ -63,7 +63,7 @@ def api_experts():
             "name": f"{expert.first_name} {expert.last_name}",
             "picture_url": expert.picture_url,
             "bio": expert.bio or "This expert helps businesses expand globally.",
-            "current_position_id": expert.current_position_id,
+            "position": expert.position,
             "experience_years": len(expert.qualifications) if expert.qualifications else 0,
             "qualifications": [{"id": q.id, "type": q.type.value, "title": q.title} for q in expert.qualifications][:3],
         }
@@ -89,12 +89,19 @@ def api_experts():
     )
 
 
+@superconnect.route("/api/qualification-types", methods=["GET"])
+def get_qualification_types():
+    types = [{"value": typ.name, "name": typ.value.capitalize()} for typ in QualificationType]
+
+    return jsonify({"qualification_types": types})
+
+
 @superconnect.route("/list", methods=["GET"])
 def index():
     return render_template("superconnect/index.html")
 
 
-@superconnect.get("/expert/<expert_id>")
+@superconnect.get("/get/<expert_id>")
 def get_expert_by_id(expert_id):
     expert = Expert.get_by_id(expert_id)
     if not expert:
@@ -108,7 +115,13 @@ def get_expert_by_id(expert_id):
         bio=expert.bio,
         description=expert.description,
         picture_url=expert.picture_url,
-        current_position_id=expert.current_position_id,
+        position=expert.position,
+        linkedin=expert.linkedin,
+        twitter=expert.twitter,
+        email=expert.email,
+        phone_number=expert.phone_number,
+        location=expert.location,
+        price=expert.price,
         qualifications=[
             QualificationSchema(
                 id=q.id,
@@ -132,22 +145,30 @@ def get_expert_by_id(expert_id):
 
 @superconnect.post("/book-session/<expert_id>")
 def book_session(expert_id):
+    # Получаем данные из JSON запроса
+    request_data = request.get_json()
+    notes = request_data.get("notes", "") if request_data else ""
+
     expert = Expert.get_by_id(expert_id)
     if not expert:
         return jsonify({"error": "Expert not found"}), 404
 
-    existing_request = SessionRequest.get_existing_by_user_id(expert_id)
-    if existing_request:
-        return jsonify({"error": "You have already requested a session with this expert"}), 400
+    # existing_request = SessionRequest.get_existing_by_user_id(expert_id)
+    # if existing_request:
+    #     return jsonify({"error": "You have already requested a session with this expert"}), 400
+
     print("Booking session with expert ID:", expert_id)
     try:
-        session_request = SessionRequest(expert_id=expert_id, user_id=current_user.id)
+        # Создаем запрос на сессию с полем notes
+        session_request = SessionRequest(expert_id=expert_id, user_id=current_user.id, notes=notes)
         db.session.add(session_request)
         db.session.commit()
     except Exception as e:
         print("Error while creating session request:", e)
+        db.session.rollback()
+        return jsonify({"error": f"Failed to create session request: {str(e)}"}), 500
 
-    return jsonify({"message": "Session request sent successfully!"}), 200
+    return jsonify({"message": "Session request sent successfully!", "redirect_url": "/expert/sessions/"}), 200
 
 
 @superconnect.get("/sessions/")

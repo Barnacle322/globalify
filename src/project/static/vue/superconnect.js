@@ -1,30 +1,57 @@
 const SessionRequestComponent = defineComponent({
     template: "#session-request-template",
     props: ["expertId"],
-    mounted() {
+    async mounted() {
         window.addEventListener("keydown", this.handleKeyDown);
         setTimeout(() => {
             document.addEventListener("click", this.handleOutsideClick);
         }, 0);
+        await this.fetchExpert(this.expertId);
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("click", this.handleOutsideClick);
     },
     methods: {
-        async bookSession() {
+        async requestSession() {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/superconnect/book-session/${this.expertId}`, {
+                const response = await fetch(`/expert/book-session/${this.expertId}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": csrfToken,
                     },
+                    body: JSON.stringify({
+                        expert_id: this.expertId,
+                        notes: this.notes,
+                    }),
                 });
-                console.log("Booking response:", response);
+                const result = await response.json();
+
+                if (result.error) {
+                    this.errorMessage = result.error;
+                    return;
+                }
+
+                console.log("Session booking result:", result);
+
+                window.location.href = result.redirect_url;
             } catch (error) {
                 console.error("Error booking session:", error);
+            }
+        },
+        async fetchExpert(expertId) {
+            try {
+                const response = await fetch(`/expert/get/${expertId}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch expert data");
+                }
+                const data = await response.json();
+                this.expert = data.expert;
+                console.log("Expert data:", this.expert);
+            } catch (error) {
+                console.error("Error fetching expert data:", error);
             }
         },
         closeSession() {
@@ -42,13 +69,27 @@ const SessionRequestComponent = defineComponent({
         },
     },
     data() {
-        return {};
+        return {
+            expert: null,
+            loading: false,
+            notes: "",
+            error: null,
+            errorMessage: "",
+        };
     },
 });
 
 const FullExpertComponent = defineComponent({
     template: "#full-expert-template",
-    props: ["expertId"],
+    components: {
+        SessionRequestComponent,
+    },
+    props: {
+        expertId: {
+            type: [Number, String],
+            required: true,
+        },
+    },
     async mounted() {
         await this.fetchExpert(this.expertId);
         window.addEventListener("keydown", this.handleKeyDown);
@@ -60,6 +101,19 @@ const FullExpertComponent = defineComponent({
         await this.fetchExpert(this.expertId);
         console.log("Expert data:", this.expert);
     },
+    watch: {
+        expertId() {
+            this.loadExpert();
+        },
+    },
+    computed: {
+        hasContactInfo() {
+            return (
+                this.expert &&
+                (this.expert.linkedin || this.expert.twitter || this.expert.email || this.expert.phone_number)
+            );
+        },
+    },
     beforeUnmount() {
         window.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("click", this.handleOutsideClick);
@@ -67,27 +121,19 @@ const FullExpertComponent = defineComponent({
     methods: {
         async fetchExpert(expertId) {
             try {
-                const response = await fetch(`/superconnect/expert/${expertId}`);
+                const response = await fetch(`/expert/get/${expertId}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch expert data");
                 }
                 const data = await response.json();
                 this.expert = data.expert;
-                console.log("Expert data:", this.expert.picture_url);
+                console.log("Expert data:", this.expert);
             } catch (error) {
                 console.error("Error fetching expert data:", error);
             }
         },
-        closeModal() {
-            this.showModal = false;
-        },
         closeExpert() {
             this.$emit("close-expert");
-        },
-        confirmBooking() {
-            // Handle booking confirmation logic here
-            console.log("Booking confirmed for:", this.selectedTimeslot);
-            this.closeModal();
         },
         toggleExpansion() {
             this.isExpanded = !this.isExpanded;
@@ -118,20 +164,21 @@ const FullExpertComponent = defineComponent({
             return years > 0 ? years : "<1";
         },
         getQualificationColorClass(type) {
+            // Обновленные классы для значений из бэкенда
             const classes = {
-                EDUCATION: "bg-gradient-to-b from-blue-500 to-indigo-600",
-                WORK: "bg-gradient-to-b from-indigo-500 to-purple-600",
-                CERTIFICATE: "bg-gradient-to-b from-green-500 to-teal-600",
-                AWARD: "bg-gradient-to-b from-amber-500 to-orange-600",
-                OTHER: "bg-gradient-to-b from-gray-500 to-slate-600",
+                education: "bg-gradient-to-b from-blue-500 to-indigo-600",
+                freelance: "bg-gradient-to-b from-green-500 to-teal-600",
+                contract: "bg-gradient-to-b from-amber-500 to-orange-600",
+                office: "bg-gradient-to-b from-indigo-500 to-purple-600",
+                remote: "bg-gradient-to-b from-sky-500 to-blue-600",
+                trainee: "bg-gradient-to-b from-pink-500 to-rose-600",
             };
 
-            return classes[type] || classes["OTHER"];
-        },
-        getCurrentPosition(positionId) {
-            // Replace with your actual implementation to fetch position by ID
-            // For now, return a placeholder
-            return "Current Position";
+            // Конвертируем тип в нижний регистр для единообразной обработки
+            const normalizedType = type ? type.toLowerCase() : "";
+
+            // Возвращаем соответствующий класс или класс по умолчанию
+            return classes[normalizedType] || classes["OTHER"] || "bg-gradient-to-b from-gray-500 to-slate-600";
         },
         handleKeyDown(event) {
             if (event.key === "Escape") {
@@ -143,6 +190,9 @@ const FullExpertComponent = defineComponent({
                 this.closeExpert();
             }
         },
+        setDefaultImage(event, name) {
+            event.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "Expert")}&background=6366f1&color=fff&size=150`;
+        },
     },
     data() {
         return {
@@ -151,6 +201,7 @@ const FullExpertComponent = defineComponent({
             showModal: false,
             isLoading: false,
             isExpanded: false,
+            isSessionRequestOpened: false,
             expert: null,
         };
     },
@@ -179,7 +230,7 @@ const SessionInfoComponent = defineComponent({
             try {
                 const csrf_token = document.getElementById("csrf_token").value;
 
-                const response = await fetch("/superconnect/session/action/", {
+                const response = await fetch("/expert/session/action/", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -300,7 +351,7 @@ const SessionComponent = defineComponent({
     methods: {
         async fetchSessions() {
             try {
-                const response = await fetch("/superconnect/get_sessions/");
+                const response = await fetch("/expert/get_sessions/");
                 if (!response.ok) {
                     throw new Error("Failed to fetch sessions");
                 }
@@ -314,40 +365,10 @@ const SessionComponent = defineComponent({
                 this.sessions = [];
             }
         },
-        sortSessions(sessions) {
-            return [...sessions].sort((a, b) => {
-                const dateA = new Date(a.created_at);
-                const dateB = new Date(b.created_at);
-                return this.sortOrder === "newest" ? dateB - dateA : dateA - dateB;
-            });
-        },
-        getSessionType(session) {
-            if (session.status === "pending") return "pending";
-            if (session.status === "upcoming") return "upcoming";
-            if (session.status === "past" || session.status === "canceled") return "past";
-            return null;
-        },
-        formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString("en-US", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-            });
-        },
-        formatTime(dateString) {
-            return new Date(dateString).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-        },
-        toggleSortOrder() {
-            this.sortOrder = this.sortOrder === "newest" ? "oldest" : "newest";
-        },
-        toggleFilter(type) {
-            this.filters[type] = !this.filters[type];
-        },
         async processAction(session, actionConfig) {
             try {
                 const csrf_token = document.getElementById("csrf_token").value;
-                const response = await fetch("/superconnect/session/action/", {
+                const response = await fetch("/expert/session/action/", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -384,6 +405,37 @@ const SessionComponent = defineComponent({
                 await this.processAction(session, actionConfig);
             }
         },
+        sortSessions(sessions) {
+            return [...sessions].sort((a, b) => {
+                const dateA = new Date(a.created_at);
+                const dateB = new Date(b.created_at);
+                return this.sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+            });
+        },
+        getSessionType(session) {
+            if (session.status === "pending") return "pending";
+            if (session.status === "upcoming") return "upcoming";
+            if (session.status === "past" || session.status === "canceled") return "past";
+            return null;
+        },
+        formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString("en-US", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+            });
+        },
+        formatTime(dateString) {
+            return new Date(dateString).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+        },
+        toggleSortOrder() {
+            this.sortOrder = this.sortOrder === "newest" ? "oldest" : "newest";
+        },
+        toggleFilter(type) {
+            this.filters[type] = !this.filters[type];
+        },
+
         resetConfirm(session) {
             session.confirmRequested = false;
         },
@@ -452,6 +504,7 @@ createApp({
     mounted() {
         document.addEventListener("click", this.handleClickOutside);
         this.asideMinified = localStorage.getItem("asideMinified") == "true";
+        this.loadQualificationTypes();
         this.loadExperts(1);
     },
     computed: {
@@ -472,6 +525,28 @@ createApp({
         },
     },
     methods: {
+        async loadQualificationTypes() {
+            try {
+                const response = await fetch("/expert/api/qualification-types");
+                if (!response.ok) {
+                    throw new Error("Не удалось загрузить типы квалификаций");
+                }
+
+                const data = await response.json();
+                this.qualificationTypes = data.qualification_types;
+            } catch (error) {
+                console.error("Ошибка при загрузке типов квалификаций:", error);
+
+                this.qualificationTypes = [
+                    { value: "EDUCATION", name: "Education" },
+                    { value: "FREELANCE", name: "Freelance" },
+                    { value: "CONTRACT", name: "Contract" },
+                    { value: "OFFICE", name: "Office" },
+                    { value: "REMOTE", name: "Remote" },
+                    { value: "TRAINEE", name: "Trainee" },
+                ];
+            }
+        },
         async loadExperts(page) {
             this.loading = true;
 
@@ -479,12 +554,12 @@ createApp({
                 const queryParams = new URLSearchParams({
                     page: page,
                     per_page: this.pagination.per_page || 9,
-                    expertise: this.filters.expertise,
+                    expertise: this.filters.expertise === "All" ? "All" : this.filters.expertise,
                     region: this.filters.region,
                     search: this.filters.search,
                 });
 
-                const response = await fetch(`/superconnect/api/experts?${queryParams}`);
+                const response = await fetch(`/expert/api/experts?${queryParams}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch experts");
                 }
@@ -493,14 +568,13 @@ createApp({
                 this.experts = data.experts;
                 this.pagination = data.pagination;
 
-                window.history.replaceState(null, "", `/superconnect/list?${queryParams.toString()}`);
+                window.history.replaceState(null, "", `/expert/list?${queryParams.toString()}`);
             } catch (error) {
                 console.error("Error loading experts:", error);
             } finally {
                 this.loading = false;
             }
         },
-
         debouncedSearch() {
             clearTimeout(this.searchTimeout);
             this.searchTimeout = setTimeout(() => {
@@ -551,6 +625,7 @@ createApp({
             isFullExpertOpened: false,
             isSessionInfoOpened: false,
             selectedSession: null,
+            qualificationTypes: [],
         };
     },
 }).mount("#app");

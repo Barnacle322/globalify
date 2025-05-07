@@ -23,7 +23,13 @@ class ExpertSchema(BaseModel):
     bio: str | None
     description: str | None
     picture_url: str | None
-    current_position_id: int | None
+    position: str | None
+    linkedin: str | None
+    twitter: str | None
+    email: str | None
+    phone_number: str | None
+    location: str | None
+    price: float | None
     qualifications: list[QualificationSchema]
 
 

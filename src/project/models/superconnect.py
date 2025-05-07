@@ -30,7 +30,6 @@ class ExpertBase(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    slug: Mapped[str] = mapped_column(String, nullable=True, unique=True)
     firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
     position: Mapped[str | None] = mapped_column(String, nullable=True)
     linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -56,12 +55,8 @@ class Expert(ExpertBase):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     bio: Mapped[str | None] = mapped_column(String, nullable=True)
-    first_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    email: Mapped[str | None] = mapped_column(String, nullable=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    current_position_id: Mapped[int] = mapped_column(Integer, nullable=True)
     price: Mapped[float] = mapped_column(Float, nullable=True)
     # industries: Mapped[list[Industry]] = relationship(secondary=expert_industry, nullable=True)  # Maybe??
     # minimum_notice_minutes: Mapped[int] = mapped_column(Integer, default=60)
@@ -120,7 +115,7 @@ class SessionRequest(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     expert_id: Mapped[int] = mapped_column(Integer, ForeignKey("expert.id"), nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-    notes: Mapped[str | None] = mapped_column(String, nullable=True, init=False)
+    notes: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), init=False
     )

@@ -105,7 +105,7 @@ def create_app(database_url="sqlite:///db.sqlite"):
     app.register_blueprint(onboarding, url_prefix="/onboarding")
     app.register_blueprint(investment, url_prefix="/investment")
     app.register_blueprint(message, url_prefix="/message")
-    app.register_blueprint(superconnect, url_prefix="/superconnect")
+    app.register_blueprint(superconnect, url_prefix="/expert")
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

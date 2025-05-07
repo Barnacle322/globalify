@@ -156,14 +156,13 @@
                     </div>
                     <div class="col-span-full">
                         <label class="text-sm font-medium text-gray-700" for="about">Bio</label>
-                        <textarea
+                        <input
                             class="w-full rounded-lg"
                             type="text"
                             id="about"
                             placeholder="John Doe is good person."
-                        >
-                            {{expert.bio if expert.bio else ''}}</textarea
-                        >
+                            value="{{expert.bio if expert.bio else ''}}"
+                        />
                     </div>
 
                     <h2 class="col-span-full mt-3 text-2xl font-medium">Secondary Information</h2>
@@ -255,6 +254,160 @@
                             ></p>
                         </div>
                     </div>
+                </div>
+                <h2 class="col-span-full mt-3 text-2xl font-medium">Qualifications</h2>
+
+                <div class="col-span-full space-y-4">
+                    {% for qualification in expert.qualifications %}
+                    <div class="rounded-lg border border-gray-200 p-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="text-sm font-medium text-gray-700"
+                                    for="qualification_type_{{ loop.index }}"
+                                    >Type*</label
+                                >
+                                <select
+                                    name="qualifications[{{ loop.index }}][type]"
+                                    id="qualification_type_{{ loop.index }}"
+                                    class="w-full rounded-lg border-gray-300 bg-transparent"
+                                >
+                                    {% for type in qualificationTypes %}
+                                    <!-- prettier-ignore -->
+                                    <option value="{{ type }}" {% if qualification.type.value == type %}selected{% endif %}>
+                                        {{ type }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    class="text-sm font-medium text-gray-700"
+                                    for="qualification_title_{{ loop.index }}"
+                                    >Title*</label
+                                >
+                                <input
+                                    name="qualifications[{{ loop.index }}][title]"
+                                    id="qualification_title_{{ loop.index }}"
+                                    type="text"
+                                    class="w-full rounded-lg bg-transparent"
+                                    value="{{ qualification.title }}"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="mt-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="text-sm font-medium text-gray-700"
+                                    for="qualification_start_date_{{ loop.index }}"
+                                    >Start Date</label
+                                >
+                                <input
+                                    name="qualifications[{{ loop.index }}][start_date]"
+                                    id="qualification_start_date_{{ loop.index }}"
+                                    type="date"
+                                    class="w-full rounded-lg bg-transparent"
+                                    value="{{ qualification.start_date.strftime('%Y-%m-%d') if qualification.start_date else '' }}"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    class="text-sm font-medium text-gray-700"
+                                    for="qualification_end_date_{{ loop.index }}"
+                                    >End Date</label
+                                >
+                                <input
+                                    name="qualifications[{{ loop.index }}][end_date]"
+                                    id="qualification_end_date_{{ loop.index }}"
+                                    type="date"
+                                    class="w-full rounded-lg bg-transparent"
+                                    value="{{ qualification.end_date.strftime('%Y-%m-%d') if qualification.end_date else '' }}"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Описание -->
+                        <div class="mt-4">
+                            <label
+                                class="text-sm font-medium text-gray-700"
+                                for="qualification_description_{{ loop.index }}"
+                                >Description</label
+                            >
+                            <textarea
+                                name="qualifications[{{ loop.index }}][description]"
+                                id="qualification_description_{{ loop.index }}"
+                                class="w-full rounded-lg bg-transparent"
+                                rows="2"
+                                value="{{ qualification.description }}"
+                            >
+                            </textarea>
+                        </div>
+
+                        <!-- Компания -->
+                        <div class="mt-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="text-sm font-medium text-gray-700"
+                                    for="qualification_company_name_{{ loop.index }}"
+                                    >Company Name</label
+                                >
+                                <input
+                                    name="qualifications[{{ loop.index }}][company_name]"
+                                    id="qualification_company_name_{{ loop.index }}"
+                                    type="text"
+                                    class="w-full rounded-lg bg-transparent"
+                                    value="{{ qualification.company_name }}"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    class="text-sm font-medium text-gray-700"
+                                    for="qualification_company_url_{{ loop.index }}"
+                                    >Company URL</label
+                                >
+                                <input
+                                    name="qualifications[{{ loop.index }}][company_url]"
+                                    id="qualification_company_url_{{ loop.index }}"
+                                    type="url"
+                                    class="w-full rounded-lg bg-transparent"
+                                    value="{{ qualification.company_url }}"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- ID квалификации (скрытое поле) -->
+                        <input
+                            type="hidden"
+                            name="qualifications[{{ loop.index }}][id]"
+                            value="{{ qualification.id }}"
+                        />
+                    </div>
+                    {% endfor %}
+
+                    <button
+                        @click="addQualification"
+                        :disabled="qualifications.length >= 8"
+                        type="button"
+                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-700 p-3 transition-shadow hover:shadow-md"
+                        :class="{ 'cursor-not-allowed opacity-50': qualifications.length >= 8 }"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-6"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                            />
+                        </svg>
+                        <span class="text-sm font-medium"> Add Qualification</span>
+                    </button>
                 </div>
                 <button
                     id="saveButton"

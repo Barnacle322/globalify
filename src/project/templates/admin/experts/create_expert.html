@@ -252,6 +252,132 @@
                                 ></p>
                             </div>
                         </div>
+                        <h2 class="col-span-full mt-3 text-2xl font-medium">Qualifications</h2>
+
+                        <div id="qualifications-container" class="col-span-full space-y-4">
+                            <div
+                                v-for="(qualification, index) in qualifications"
+                                :key="index"
+                                class="relative rounded-lg border border-gray-500 p-4"
+                            >
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Type*</label>
+                                        <select
+                                            v-model="qualification.type"
+                                            class="w-full rounded-lg border-gray-300 bg-transparent"
+                                        >
+                                            {% for type in qualificationTypes %}
+                                            <option value="{{ type }}">{{ type }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Title*</label>
+                                        <input
+                                            v-model="qualification.title"
+                                            type="text"
+                                            class="w-full rounded-lg bg-transparent"
+                                            placeholder="MBA in Finance"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="mt-4 grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Start Date</label>
+                                        <input
+                                            v-model="qualification.start_date"
+                                            type="date"
+                                            class="w-full rounded-lg bg-transparent"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">End Date</label>
+                                        <input
+                                            v-model="qualification.end_date"
+                                            type="date"
+                                            class="w-full rounded-lg bg-transparent"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <label class="text-sm font-medium text-gray-700">Description</label>
+                                    <textarea
+                                        v-model="qualification.company_description"
+                                        class="w-full rounded-lg bg-transparent"
+                                        rows="2"
+                                        placeholder="Relevant coursework and achievements"
+                                    ></textarea>
+                                </div>
+
+                                <div class="mt-4 grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Company Name</label>
+                                        <input
+                                            v-model="qualification.company_name"
+                                            type="text"
+                                            class="w-full rounded-lg bg-transparent"
+                                            placeholder="Harvard University"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Company URL</label>
+                                        <input
+                                            v-model="qualification.company_url"
+                                            type="url"
+                                            class="w-full rounded-lg bg-transparent"
+                                            placeholder="https://harvard.edu"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    @click="removeQualification(index)"
+                                    type="button"
+                                    class="absolute right-1 top-1 text-red-500 hover:text-red-700"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        class="h-6 w-6"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                            clip-rule="evenodd"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <button
+                                @click="addQualification"
+                                :disabled="qualifications.length >= 8"
+                                type="button"
+                                class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-700 p-3 transition-shadow hover:shadow-md"
+                                :class="{ 'cursor-not-allowed opacity-50': qualifications.length >= 8 }"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-6"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                    />
+                                </svg>
+                                <span class="text-sm font-medium"> Add Qualification</span>
+                            </button>
+                        </div>
                     </div>
 
                     <button

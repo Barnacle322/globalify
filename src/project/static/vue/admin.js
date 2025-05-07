@@ -1251,6 +1251,7 @@ createApp({
                 email: email,
                 phone_number: phone_number,
                 user_email: user_email,
+                qualifications: this.validateQualifications(),
             };
 
             let dataString = JSON.stringify(data);
@@ -1798,6 +1799,30 @@ createApp({
                 }
             }
         },
+        addQualification() {
+            if (this.qualifications.length >= 8) return;
+            this.qualifications.push({
+                type: this.qualificationTypes[0],
+                title: "",
+                start_date: null,
+                end_date: null,
+                company_description: "",
+                company_name: "",
+                company_url: "",
+            });
+        },
+        removeQualification(index) {
+            this.qualifications.splice(index, 1);
+        },
+        validateQualifications() {
+            const valid = [];
+            this.qualifications.forEach((q) => {
+                if (!q.type || !q.title) return;
+                if (q.start_date && q.end_date && q.end_date < q.start_date) return;
+                valid.push(q);
+            });
+            return valid;
+        },
     },
     mounted() {
         this.setupMenuToggle();
@@ -1838,6 +1863,8 @@ createApp({
             userList: [],
             notableInvestments: [],
             industryList: [],
+            qualifications: [],
+            qualificationTypes: [],
             dataString: "",
             menus: [
                 { menu: "industry-options-menu", button: "industry-options" },

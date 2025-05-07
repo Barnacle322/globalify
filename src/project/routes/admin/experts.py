@@ -9,6 +9,7 @@ from flask import (
     url_for,
 )
 from flask_login import current_user
+from slugify import slugify
 from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
@@ -53,7 +54,7 @@ def index():
 
 @expert.get("/<int:id>")
 @admin_only
-def update_investor_view(id):
+def update_expert_view(id):
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
@@ -64,9 +65,12 @@ def update_investor_view(id):
         status = Status(StatusType.ERROR, "Expert not found.").get_status()
         return redirect(url_for("admin.expert.index", _external=True, **status))
 
+    qualification_types = [qt.value for qt in QualificationType]
+
     return render_template(
         "admin/experts/update_expert.html",
         expert=expert,
+        qualificationTypes=qualification_types,
         status_type=status_type,
         msg=msg,
     )
@@ -81,8 +85,11 @@ def create_expert():
             status_type = query.get("type")
             msg = query.get("msg")
 
+        qualification_types = [qt.value for qt in QualificationType]
+
         return render_template(
             "admin/experts/create_expert.html",
+            qualificationTypes=qualification_types,
             status_type=status_type,
             msg=msg,
         )
@@ -110,7 +117,7 @@ def create_expert():
             except Exception as e:
                 print(e)
                 status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
-                return redirect(url_for("settings.create_company_view", _external=False, **status))
+                return redirect(url_for("admin.experts.create_expert", _external=True, **status))
 
         price = None
         if price_str and price_str.strip():  # Check if non-empty and non-whitespace
@@ -118,13 +125,21 @@ def create_expert():
                 price = float(price_str)
                 if price < 0:
                     return jsonify({"error": "Price cannot be negative"}), 400
-            except ValueError:
-                return jsonify({"error": "Invalid price format: must be a number"}), 400
+            except Exception as e:
+                print(e)
+                status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
+                return redirect(url_for("admin.experts.create_expert", _external=True, **status))
+
+        first_name = form_data.get("first_name") or None
+        last_name = form_data.get("last_name") or None
+        if first_name is None or last_name is None:
+            return jsonify({"error": "First name and last name are required"}), 400
 
         expert = Expert(
-            first_name=form_data.get("first_name") or None,
-            last_name=form_data.get("last_name") or None,
+            first_name=first_name,
+            last_name=last_name,
             firm_name=form_data.get("firm_name") or None,
+            slug=slugify(f"{first_name} {last_name}"),
             position=form_data.get("position") or None,
             location=form_data.get("location") or None,
             bio=form_data.get("bio") or None,
@@ -136,65 +151,118 @@ def create_expert():
             phone_number=form_data.get("phone_number") or None,
             user_id=user.id if user else None,
             picture_url=picture_url,
-            created_at=datetime.datetime.now(),
         )
+
         db.session.add(expert)
-        db.session.commit()
+        db.session.flush()
 
-        return jsonify({"message": "Expert created successfully", "id": expert.id}), 201
+        qualifications_data = form_data.get("qualifications", [])
+        if qualifications_data:
+            for qual_data in qualifications_data:
+                qual_type = qual_data.get("type")
+                title = qual_data.get("title")
+                description = qual_data.get("description")
+                company_id = qual_data.get("company_id")
+                company = Company.get_by_id(company_id) if company_id else None
+                if company:
+                    company_name = company.name
+                    company_description = company.description
+                    company_url = "globalify.xyz/company/" + company.slug
+                else:
+                    company_name = qual_data.get("company_name")
+                    company_description = qual_data.get("company_description")
+                    company_url = qual_data.get("company_url") or None
+                    if company_url:
+                        company_url = add_https_prefix(company_url)
+                start_date_str = qual_data.get("start_date")
+                end_date_str = qual_data.get("end_date")
+                start_date = datetime.datetime.fromisoformat(start_date_str) if start_date_str else None
+                end_date = datetime.datetime.fromisoformat(end_date_str) if end_date_str else None
+                if start_date and end_date and end_date < start_date:
+                    return jsonify({"error": "Validation error: end_date cannot be before start_date"}), 400
 
+                if not qual_type or not title or not company_name:
+                    return jsonify({"error": "Qualification type, title, and company name are required"}), 400
 
-@expert.post("/update/<int:id>")
-@admin_only
-def update_expert(id):
-    form_data = request.get_json()
-    if not form_data:
-        return jsonify({"error": "No data provided"}), 400
+                if qual_type not in [qt.value for qt in QualificationType]:
+                    return jsonify({"error": f"Invalid qualification type: {qual_type}"}), 400
 
-    expert = Expert.get_by_id(id)
-    if not expert:
-        return jsonify({"error": "Expert not found"}), 404
+                qualification = Qualification(
+                    expert_id=expert.id,
+                    type=QualificationType(qual_type),
+                    title=title,
+                    description=description,
+                    company_id=company_id,
+                    company_name=company_name,
+                    company_description=company_description,
+                    company_url=company_url,
+                    start_date=start_date,
+                    end_date=end_date,
+                )
+                db.session.add(qualification)
 
-    # Update the expert's attributes
-    expert.first_name = form_data.get("first_name") or None
-    expert.last_name = form_data.get("last_name") or None
-    expert.firm_name = form_data.get("firm_name") or None
-    expert.position = form_data.get("position") or None
-    expert.location = form_data.get("location") or None
-    expert.bio = form_data.get("bio") or None
-    expert.description = form_data.get("description") or None
-    expert.linkedin = add_https_prefix(form_data.get("linkedin")) if form_data.get("linkedin") else None
-    expert.twitter = add_https_prefix(form_data.get("twitter")) if form_data.get("twitter") else None
-    expert.email = form_data.get("email") or None
-    expert.phone_number = form_data.get("phone_number") or None
-
-    # Handle picture upload
-    picture = request.files.get("picture")
-    if picture:
         try:
-            picture_url = upload_picture(picture)
-            expert.picture_url = picture_url
+            db.session.commit()
         except Exception as e:
-            print(e)
-            status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
-            return redirect(url_for("settings.create_company_view", _external=False, **status))
+            print(f"Error: {e}")
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("admin.experts.create_expert", _external=True, **status))
 
-    # Handle price update
-    price_str = form_data.get("price")
-    if price_str and price_str.strip():
-        try:
-            price = float(price_str)
-            if price < 0:
-                return jsonify({"error": "Price cannot be negative"}), 400
-            expert.price = price
-        except ValueError:
-            return jsonify({"error": "Invalid price format: must be a number"}), 400
-    # Handle user assignment
-    user_email = form_data.get("user_email")
-    if user_email:
-        user = User.query.filter_by(email=user_email).first()
-        if not user:
-            return jsonify({"error": "User with provided email does not exist"}), 400
-        expert.user_id = user.id
-    else:
-        expert.user_id = None
+        status = Status(StatusType.SUCCESS, "Expert created successfully!").get_status()
+        return redirect(url_for("admin.experts.index", _external=True, **status))
+
+
+# @expert.post("/update/<int:id>")
+# @admin_only
+# def update_expert(id):
+#     form_data = request.get_json()
+#     if not form_data:
+#         return jsonify({"error": "No data provided"}), 400
+
+#     expert = Expert.get_by_id(id)
+#     if not expert:
+#         return jsonify({"error": "Expert not found"}), 404
+
+#     # Update the expert's attributes
+#     expert.first_name = form_data.get("first_name") or None
+#     expert.last_name = form_data.get("last_name") or None
+#     expert.firm_name = form_data.get("firm_name") or None
+#     expert.position = form_data.get("position") or None
+#     expert.location = form_data.get("location") or None
+#     expert.bio = form_data.get("bio") or None
+#     expert.description = form_data.get("description") or None
+#     expert.linkedin = add_https_prefix(form_data.get("linkedin")) if form_data.get("linkedin") else None
+#     expert.twitter = add_https_prefix(form_data.get("twitter")) if form_data.get("twitter") else None
+#     expert.email = form_data.get("email") or None
+#     expert.phone_number = form_data.get("phone_number") or None
+
+#     # Handle picture upload
+#     picture = request.files.get("picture")
+#     if picture:
+#         try:
+#             picture_url = upload_picture(picture)
+#             expert.picture_url = picture_url
+#         except Exception as e:
+#             print(e)
+#             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
+#             return redirect(url_for("settings.create_company_view", _external=False, **status))
+
+#     # Handle price update
+#     price_str = form_data.get("price")
+#     if price_str and price_str.strip():
+#         try:
+#             price = float(price_str)
+#             if price < 0:
+#                 return jsonify({"error": "Price cannot be negative"}), 400
+#             expert.price = price
+#         except ValueError:
+#             return jsonify({"error": "Invalid price format: must be a number"}), 400
+#     # Handle user assignment
+#     user_email = form_data.get("user_email")
+#     if user_email:
+#         user = User.query.filter_by(email=user_email).first()
+#         if not user:
+#             return jsonify({"error": "User with provided email does not exist"}), 400
+#         expert.user_id = user.id
+#     else:
+#         expert.user_id = None

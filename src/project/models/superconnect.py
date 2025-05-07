@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import datetime
+import uuid
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, desc, func
+from slugify import slugify
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, func
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship, validates
-
-from src.project.models.helpers import Industry
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 
 from ..extensions import db
 from ..utils.enums import QualificationType, SessionStatus, SessionType
@@ -52,22 +53,30 @@ class Expert(ExpertBase):
         uselist=True,
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     bio: Mapped[str | None] = mapped_column(String, nullable=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
     price: Mapped[float] = mapped_column(Float, nullable=True)
-    # industries: Mapped[list[Industry]] = relationship(secondary=expert_industry, nullable=True)  # Maybe??
-    # minimum_notice_minutes: Mapped[int] = mapped_column(Integer, default=60)
-    # minimum_free_time: Mapped[int] = mapped_column(Integer, default=15)
     created_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
     )
 
+    # industries: Mapped[list[Industry]] = relationship(secondary=expert_industry, nullable=True)  # Maybe??
+    # minimum_notice_minutes: Mapped[int] = mapped_column(Integer, default=60)
+    # minimum_free_time: Mapped[int] = mapped_column(Integer, default=15)
     # time_slots: Mapped[list[TimeSlot]] = relationship("TimeSlot", back_populates="expert", uselist=True, init=False)
     # events: Mapped[list[Event]] = relationship("Events", back_populates="expert", uselist=True, init=False)
+
+    # @validates("industries")  # limit??
+    # def validate_industries(self, key, industries):
+    #     if len(industries) > 5:
+    #         raise ValueError("An expert can have at most 5 industries.")
+    #     return industries
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f"<Expert {self.first_name} {self.last_name}>"
@@ -75,12 +84,6 @@ class Expert(ExpertBase):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name or ''}"
-
-    # @validates("industries")  # limit??
-    # def validate_industries(self, key, industries):
-    #     if len(industries) > 5:
-    #         raise ValueError("An expert can have at most 5 industries.")
-    #     return industries
 
     @staticmethod
     def get_by_id(id: int) -> Expert | None:
@@ -90,14 +93,29 @@ class Expert(ExpertBase):
     def get_all() -> Sequence[Expert] | None:
         return (db.session.scalars(db.select(Expert))).all()
 
+    def set_slug(self):
+        base_slug = slugify(f"{self.first_name} {self.last_name}")
+
+        existing_slug = db.session.scalar(db.select(Expert).where(Expert.slug == base_slug))
+
+        if existing_slug:
+            base_slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+
+        self.slug = base_slug
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            self.slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+            db.session.commit()
+
 
 class Qualification(MappedAsDataclass, db.Model, unsafe_hash=True):
     expert: Mapped[Expert] = relationship("Expert", back_populates="qualifications", init=False)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    expert_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("expert.id", ondelete="CASCADE"), nullable=False, init=False
-    )
+    expert_id: Mapped[int] = mapped_column(Integer, ForeignKey("expert.id", ondelete="CASCADE"), nullable=False)
     type: Mapped[QualificationType] = mapped_column(SQLEnum(QualificationType), nullable=False)
     title: Mapped[str] = mapped_column(String, nullable=False)
     start_date: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

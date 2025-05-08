@@ -40,7 +40,8 @@ class SessionSchema(BaseModel):
     user_name: str
     user_email: str
     notes: str | None
-    picture_url: str | None
+    expert_picture_url: str | None
+    user_picture_url: str | None
     type: str
     status: str
     created_at: date

@@ -16,11 +16,17 @@ from ..models.superconnect import (
     SessionStatus,
 )
 from ..schemas.superconnect import ExpertSchema, QualificationSchema, SessionSchema
+from ..utils.decorators import (
+    check_user_info_complete,
+    check_verification,
+)
 
 superconnect = Blueprint("superconnect", __name__)
 
 
 @superconnect.route("/api/experts")
+@check_user_info_complete
+@check_verification
 def api_experts():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 9, type=int)
@@ -90,6 +96,8 @@ def api_experts():
 
 
 @superconnect.route("/api/qualification-types", methods=["GET"])
+@check_user_info_complete
+@check_verification
 def get_qualification_types():
     types = [{"value": typ.name, "name": typ.value.capitalize()} for typ in QualificationType]
 
@@ -97,11 +105,15 @@ def get_qualification_types():
 
 
 @superconnect.route("/list", methods=["GET"])
+@check_user_info_complete
+@check_verification
 def index():
-    return render_template("superconnect/index.html")
+    return render_template("superconnect/index.html", current_user=current_user)
 
 
 @superconnect.get("/get/<expert_id>")
+@check_user_info_complete
+@check_verification
 def get_expert_by_id(expert_id):
     expert = Expert.get_by_id(expert_id)
     if not expert:
@@ -144,6 +156,8 @@ def get_expert_by_id(expert_id):
 
 
 @superconnect.post("/book-session/<expert_id>")
+@check_user_info_complete
+@check_verification
 def book_session(expert_id):
     # Получаем данные из JSON запроса
     request_data = request.get_json()
@@ -172,17 +186,15 @@ def book_session(expert_id):
 
 
 @superconnect.get("/sessions/")
+@check_user_info_complete
+@check_verification
 def get_user_sessions():
-    user = User.get_by_id(1)
-    if not user:
-        return jsonify({"error": "Expert not found"}), 404
-
-    session_requests = SessionRequest.get_all_by_user_id(1)
-    return render_template("superconnect/sessions.html", session_requests=session_requests)
-    # return jsonify("superconnect/sessions.html", session_requests=session_requests)
+    return render_template("superconnect/sessions.html", current_user=current_user)
 
 
 @superconnect.get("/get_sessions/")
+@check_user_info_complete
+@check_verification
 def user_sessions():
     print(current_user.id)
     user = User.get_by_id(current_user.id)
@@ -190,7 +202,15 @@ def user_sessions():
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    session_requests = SessionRequest.get_all_by_user_id(current_user.id)
+    if not user.is_expert:
+        print("User is a client")
+        session_requests = SessionRequest.get_all_by_user_id(current_user.id)
+    else:
+        print("User is an expert")
+        expert = Expert.get_by_user_id(current_user.id)
+        if not expert:
+            return jsonify({"error": "Expert not found"}), 404
+        session_requests = SessionRequest.get_all_by_expert_id(expert.id)
 
     if session_requests is None:
         return jsonify({"sessions": []})
@@ -201,9 +221,10 @@ def user_sessions():
             id=s_request.id,
             expert_name=s_request.expert.full_name,
             expert_email=s_request.expert.email or "",
-            user_name=user.user_info.full_name,
-            user_email=user.email or "",
-            picture_url=s_request.expert.picture_url or "",
+            user_name=s_request.user.user_info.full_name,
+            user_email=s_request.user.email or "",
+            expert_picture_url=s_request.expert.picture_url or "",
+            user_picture_url=s_request.user.user_info.picture_url or "",
             notes=s_request.notes or "",
             type=s_request.type.value,
             status=s_request.status.value,
@@ -215,6 +236,8 @@ def user_sessions():
 
 
 @superconnect.post("/session/action/")
+@check_user_info_complete
+@check_verification
 def change_session_status():
     form_data = request.get_json()
     if not form_data:

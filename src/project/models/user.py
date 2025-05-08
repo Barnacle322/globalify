@@ -145,6 +145,14 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
         )
         db.session.commit()
 
+    @property
+    def is_expert(self) -> bool:
+        """Check if the user is an expert."""
+        from ..models.superconnect import Expert
+
+        expert = db.session.scalar(db.select(Expert).where(Expert.user_id == self.id))
+        return expert is not None
+
 
 class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     user: Mapped[User] = relationship(User, back_populates="user_info", uselist=False)

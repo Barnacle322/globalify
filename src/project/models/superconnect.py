@@ -93,24 +93,6 @@ class Expert(ExpertBase):
     def get_all() -> Sequence[Expert] | None:
         return (db.session.scalars(db.select(Expert))).all()
 
-    def set_slug(self):
-        base_slug = slugify(f"{self.first_name} {self.last_name}")
-
-        existing_slug = db.session.scalar(db.select(Expert).where(Expert.slug == base_slug))
-
-        if existing_slug:
-            base_slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
-
-        self.slug = base_slug
-
-        try:
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            self.slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
-            db.session.commit()
-
-
 class Qualification(MappedAsDataclass, db.Model, unsafe_hash=True):
     expert: Mapped[Expert] = relationship("Expert", back_populates="qualifications", init=False)
 

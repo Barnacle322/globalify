@@ -158,7 +158,6 @@ def create_expert():
             first_name=first_name,
             last_name=last_name,
             firm_name=form_data.get("firm_name") or None,
-            slug=slugify(f"{first_name} {last_name}"),
             position=form_data.get("position") or None,
             location=form_data.get("location") or None,
             bio=form_data.get("bio") or None,

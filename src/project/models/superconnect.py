@@ -93,6 +93,11 @@ class Expert(ExpertBase):
     def get_all() -> Sequence[Expert] | None:
         return (db.session.scalars(db.select(Expert))).all()
 
+    @staticmethod
+    def get_by_user_id(user_id: int) -> Expert | None:
+        return db.session.scalar(db.select(Expert).where(Expert.user_id == user_id))
+
+
 class Qualification(MappedAsDataclass, db.Model, unsafe_hash=True):
     expert: Mapped[Expert] = relationship("Expert", back_populates="qualifications", init=False)
 
@@ -146,6 +151,10 @@ class SessionRequest(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_all_by_user_id(user_id: int) -> Sequence[SessionRequest] | None:
         return db.session.scalars(db.select(SessionRequest).where(SessionRequest.user_id == user_id)).all()
+
+    @staticmethod
+    def get_all_by_expert_id(expert_id: int) -> Sequence[SessionRequest] | None:
+        return db.session.scalars(db.select(SessionRequest).where(SessionRequest.expert_id == expert_id)).all()
 
     @staticmethod
     def get_existing_by_user_id(user_id: int) -> Sequence[SessionRequest] | None:

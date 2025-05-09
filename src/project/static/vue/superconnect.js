@@ -147,7 +147,6 @@ const FullExpertComponent = defineComponent({
         getExperienceYears(qualifications) {
             if (!qualifications || !qualifications.length) return 0;
 
-            // Find earliest start date
             let earliestDate = new Date();
             qualifications.forEach((qual) => {
                 if (qual.start_date) {
@@ -158,13 +157,11 @@ const FullExpertComponent = defineComponent({
                 }
             });
 
-            // Calculate years of experience
             const now = new Date();
             const years = now.getFullYear() - earliestDate.getFullYear();
             return years > 0 ? years : "<1";
         },
         getQualificationColorClass(type) {
-            // Обновленные классы для значений из бэкенда
             const classes = {
                 education: "bg-gradient-to-b from-blue-500 to-indigo-600",
                 freelance: "bg-gradient-to-b from-green-500 to-teal-600",
@@ -173,11 +170,8 @@ const FullExpertComponent = defineComponent({
                 remote: "bg-gradient-to-b from-sky-500 to-blue-600",
                 trainee: "bg-gradient-to-b from-pink-500 to-rose-600",
             };
-
-            // Конвертируем тип в нижний регистр для единообразной обработки
             const normalizedType = type ? type.toLowerCase() : "";
 
-            // Возвращаем соответствующий класс или класс по умолчанию
             return classes[normalizedType] || classes["OTHER"] || "bg-gradient-to-b from-gray-500 to-slate-600";
         },
         handleKeyDown(event) {
@@ -360,6 +354,7 @@ const SessionComponent = defineComponent({
                     ...session,
                     confirmRequested: false,
                 }));
+                console.log("Fetched sessions:", this.sessions);
             } catch (error) {
                 console.error("Error fetching sessions:", error);
                 this.sessions = [];
@@ -504,8 +499,10 @@ createApp({
     mounted() {
         document.addEventListener("click", this.handleClickOutside);
         this.asideMinified = localStorage.getItem("asideMinified") == "true";
-        this.loadQualificationTypes();
-        this.loadExperts(1);
+        if (window.location.pathname.includes("/expert/list")) {
+            this.loadQualificationTypes();
+            this.loadExperts(1);
+        }
     },
     computed: {
         startPage() {
@@ -568,7 +565,9 @@ createApp({
                 this.experts = data.experts;
                 this.pagination = data.pagination;
 
-                window.history.replaceState(null, "", `/expert/list?${queryParams.toString()}`);
+                if (window.location.pathname.includes("/expert/list")) {
+                    window.history.replaceState(null, "", `/expert/list?${queryParams.toString()}`);
+                }
             } catch (error) {
                 console.error("Error loading experts:", error);
             } finally {

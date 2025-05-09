@@ -1224,6 +1224,7 @@ createApp({
         },
         async submitExpertData() {
             const csrfToken = document.getElementById("csrf_token").value;
+            const action_flag = document.getElementById("action_flag").value;
             const first_name = document.getElementById("first_name").value;
             const last_name = document.getElementById("last_name").value;
             const firm_name = document.getElementById("firm_name").value;
@@ -1252,12 +1253,18 @@ createApp({
                 phone_number: phone_number,
                 user_email: user_email,
                 qualifications: this.validateQualifications(),
+                deleted_qualifications: this.deletedQualifications,
             };
 
             let dataString = JSON.stringify(data);
+            if (action_flag == "update") {
+                fetch_url = `/admin/experts/update/${this.expertId}`;
+            } else if (action_flag == "create") {
+                fetch_url = `/admin/experts/create`;
+            }
 
             try {
-                const response = await fetch("/admin/experts/create", {
+                const response = await fetch(fetch_url, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -1748,6 +1755,20 @@ createApp({
                 `/admin/investment-firms/search_notable_investments/${searchInput.trim()}/${investmentFirmId}`,
             );
         },
+        async fetchExpertQualifications() {
+            try {
+                const response = await fetch(`/admin/experts/qualifications/${this.expertId}`);
+                if (!response.ok) throw new Error("Failed to fetch qualifications");
+                const data = await response.json();
+                this.qualifications = data.map((q) => ({
+                    ...q,
+                    start_date: q.start_date ? q.start_date.split("T")[0] : "",
+                    end_date: q.end_date ? q.end_date.split("T")[0] : "",
+                }));
+            } catch (error) {
+                console.error("Error fetching qualifications:", error);
+            }
+        },
         addNotableInvestment(newInvestment) {
             this.notableInvestments.push(newInvestment);
         },
@@ -1811,14 +1832,21 @@ createApp({
                 company_url: "",
             });
         },
-        removeQualification(index) {
+        removeQualification(index, q_id) {
+            this.deletedQualifications.push(q_id);
             this.qualifications.splice(index, 1);
         },
         validateQualifications() {
             const valid = [];
             this.qualifications.forEach((q) => {
-                if (!q.type || !q.title) return;
-                if (q.start_date && q.end_date && q.end_date < q.start_date) return;
+                if (!q.type || !q.title || !q.company_name) {
+                    console.log("Missing required fields in qualification", q);
+                    return;
+                }
+                if (q.start_date && q.end_date && q.end_date < q.start_date) {
+                    console.log("End date is before start date");
+                    return;
+                }
                 valid.push(q);
             });
             return valid;
@@ -1834,6 +1862,12 @@ createApp({
             if (key === "page") {
                 this.currentPage = parseInt(value) || 1;
             }
+        }
+
+        const expertIdElement = document.getElementById("expert-id");
+        if (expertIdElement && expertIdElement.value) {
+            this.expertId = expertIdElement.value;
+            this.fetchExpertQualifications();
         }
     },
     data() {
@@ -1858,12 +1892,14 @@ createApp({
             selectedNotableInvestments: [],
             selectedIndustry: "",
             selectedNotableInvestment: "",
+            expertId: null,
             selectedInvestment: null,
             selectedFundingRound: null,
             userList: [],
             notableInvestments: [],
             industryList: [],
             qualifications: [],
+            deletedQualifications: [],
             qualificationTypes: [],
             dataString: "",
             menus: [

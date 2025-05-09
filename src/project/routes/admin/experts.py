@@ -8,24 +8,18 @@ from flask import (
     request,
     url_for,
 )
-from flask_login import current_user
 from slugify import slugify
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import delete
 
 from ...extensions import db
-from ...models.helpers import Country, Industry
 from ...models.superconnect import (
-    # Event,
     Expert,
     Qualification,
-    # TimeSlot,
 )
-from ...models.user import Company, Notification, User
-from ...schemas.notification import NotificationItem, NotificationLayout
+from ...models.user import Company, User
 from ...utils.decorators import admin_only
-from ...utils.enums import NotificationType, QualificationType, Status, StatusType
+from ...utils.enums import QualificationType, Status, StatusType
 from ...utils.errors.error_messages import PICTURE_NOT_LOADED
-from ...utils.funcs import generate_pagination
 from ...utils.google_helpers.google_storage import upload_picture
 from ...utils.scraper import add_https_prefix
 
@@ -74,6 +68,31 @@ def update_expert_view(id):
         status_type=status_type,
         msg=msg,
     )
+
+
+@expert.get("/qualifications/<int:id>")
+@admin_only
+def get_expert_qualifications(id):
+    qualifications = Qualification.get_all_by_expert_id(id)
+
+    if qualifications:
+        json_qualifications = [
+            {
+                "id": q.id,
+                "type": q.type.value,
+                "title": q.title,
+                "start_date": q.start_date.isoformat() if q.start_date else None,
+                "end_date": q.end_date.isoformat() if q.end_date else None,
+                "description": q.description,
+                "company_name": q.company_name,
+                "company_url": q.company_url,
+            }
+            for q in qualifications
+        ]
+    else:
+        json_qualifications = []
+
+    return jsonify(json_qualifications), 200
 
 
 @expert.route("/create", methods=["GET", "POST"])
@@ -212,57 +231,142 @@ def create_expert():
         return redirect(url_for("admin.experts.index", _external=True, **status))
 
 
-# @expert.post("/update/<int:id>")
-# @admin_only
-# def update_expert(id):
-#     form_data = request.get_json()
-#     if not form_data:
-#         return jsonify({"error": "No data provided"}), 400
+@expert.post("/update/<int:id>")
+@admin_only
+def update_expert(id):
+    form_data = request.get_json()
+    if not form_data:
+        print("No data provided")
+        return jsonify({"error": "No data provided"}), 400
 
-#     expert = Expert.get_by_id(id)
-#     if not expert:
-#         return jsonify({"error": "Expert not found"}), 404
+    expert = Expert.get_by_id(id)
+    if not expert:
+        print("Expert not found")
+        return jsonify({"error": "Expert not found"}), 404
 
-#     # Update the expert's attributes
-#     expert.first_name = form_data.get("first_name") or None
-#     expert.last_name = form_data.get("last_name") or None
-#     expert.firm_name = form_data.get("firm_name") or None
-#     expert.position = form_data.get("position") or None
-#     expert.location = form_data.get("location") or None
-#     expert.bio = form_data.get("bio") or None
-#     expert.description = form_data.get("description") or None
-#     expert.linkedin = add_https_prefix(form_data.get("linkedin")) if form_data.get("linkedin") else None
-#     expert.twitter = add_https_prefix(form_data.get("twitter")) if form_data.get("twitter") else None
-#     expert.email = form_data.get("email") or None
-#     expert.phone_number = form_data.get("phone_number") or None
+    try:
+        if not expert.first_name or not expert.last_name:
+            print("First name and last name are required")
+            return jsonify({"error": "First name and last name are required"}), 400
+        expert.first_name = form_data.get("first_name")
+        expert.last_name = form_data.get("last_name") or None
+        expert.firm_name = form_data.get("firm_name") or None
+        expert.position = form_data.get("position") or None
+        expert.location = form_data.get("location") or None
+        expert.bio = form_data.get("bio") or None
+        expert.description = form_data.get("description") or None
+        expert.linkedin = add_https_prefix(form_data.get("linkedin")) if form_data.get("linkedin") else None
+        expert.twitter = add_https_prefix(form_data.get("twitter")) if form_data.get("twitter") else None
+        expert.email = form_data.get("email") or None
+        expert.phone_number = form_data.get("phone_number") or None
 
-#     # Handle picture upload
-#     picture = request.files.get("picture")
-#     if picture:
-#         try:
-#             picture_url = upload_picture(picture)
-#             expert.picture_url = picture_url
-#         except Exception as e:
-#             print(e)
-#             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
-#             return redirect(url_for("settings.create_company_view", _external=False, **status))
+        price_str = form_data.get("price")
+        if price_str and price_str.strip():
+            try:
+                price = float(price_str)
+                if price < 0:
+                    return jsonify({"error": "Price cannot be negative"}), 400
+                expert.price = price
+            except ValueError:
+                return jsonify({"error": "Invalid price format: must be a number"}), 400
 
-#     # Handle price update
-#     price_str = form_data.get("price")
-#     if price_str and price_str.strip():
-#         try:
-#             price = float(price_str)
-#             if price < 0:
-#                 return jsonify({"error": "Price cannot be negative"}), 400
-#             expert.price = price
-#         except ValueError:
-#             return jsonify({"error": "Invalid price format: must be a number"}), 400
-#     # Handle user assignment
-#     user_email = form_data.get("user_email")
-#     if user_email:
-#         user = User.query.filter_by(email=user_email).first()
-#         if not user:
-#             return jsonify({"error": "User with provided email does not exist"}), 400
-#         expert.user_id = user.id
-#     else:
-#         expert.user_id = None
+        user_email = form_data.get("user_email")
+        if user_email:
+            user = User.query.filter_by(email=user_email).first()
+            if not user:
+                print("User with provided email does not exist")
+                return jsonify({"error": "User with provided email does not exist"}), 400
+            expert.user_id = user.id
+        else:
+            expert.user_id = None
+
+        picture = request.files.get("picture")
+        if picture:
+            try:
+                picture_url = upload_picture(picture)
+                expert.picture_url = picture_url
+            except Exception as e:
+                print(e)
+                status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
+                return redirect(url_for("admin.experts.update_expert", _external=True, **status))
+
+        qualifications_data = form_data.get("qualifications", [])
+        deleted_ids = form_data.get("deleted_qualifications", [])
+
+        if deleted_ids:
+            Qualification.delete_by_id_list(deleted_ids)
+
+        for qual_data in qualifications_data:
+            qual_id = qual_data.get("id")
+            qual_type = qual_data.get("type")
+            title = qual_data.get("title")
+            description = qual_data.get("description")
+            company_id = qual_data.get("company_id")
+            company_name = qual_data.get("company_name")
+            company_description = qual_data.get("company_description")
+            company_url = qual_data.get("company_url")
+            start_date_str = qual_data.get("start_date")
+            end_date_str = qual_data.get("end_date")
+
+            start_date = datetime.datetime.fromisoformat(start_date_str) if start_date_str else None
+            end_date = datetime.datetime.fromisoformat(end_date_str) if end_date_str else None
+
+            if start_date and end_date and end_date < start_date:
+                print("Validation error: end_date cannot be before start_date")
+                return jsonify({"error": "Validation error: end_date cannot be before start_date"}), 400
+
+            if not qual_type or not title or not company_name:
+                print("Qualification type, title, and company name are required")
+                return jsonify({"error": "Qualification type, title, and company name are required"}), 400
+
+            if qual_type not in [qt.value for qt in QualificationType]:
+                print(f"Invalid qualification type: {qual_type}")
+                return jsonify({"error": f"Invalid qualification type: {qual_type}"}), 400
+
+            if qual_id:
+                qualification = Qualification.get_by_id(qual_id)
+                if not qualification:
+                    continue
+
+                qualification.type = QualificationType(qual_type)
+                qualification.title = title
+                qualification.description = description
+                qualification.company_id = company_id
+                qualification.company_name = company_name
+                qualification.company_description = company_description
+                qualification.company_url = add_https_prefix(company_url) if company_url else None
+                qualification.start_date = start_date
+                qualification.end_date = end_date
+                db.session.add(qualification)
+            else:
+                company = Company.get_by_id(company_id) if company_id else None
+                if company:
+                    company_name = company.name
+                    company_description = company.description
+                    company_url = "globalify.xyz/company/" + company.slug
+                else:
+                    company_url = add_https_prefix(company_url) if company_url else None
+
+                qualification = Qualification(
+                    expert_id=expert.id,
+                    type=QualificationType(qual_type),
+                    title=title,
+                    description=description,
+                    company_id=company_id,
+                    company_name=company_name,
+                    company_description=company_description,
+                    company_url=company_url,
+                    start_date=start_date,
+                    end_date=end_date,
+                )
+                db.session.add(qualification)
+
+        db.session.commit()
+        status = Status(StatusType.SUCCESS, "Expert updated successfully!").get_status()
+        return redirect(url_for("admin.experts.index", _external=True, **status))
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error: {e}")
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.experts.update_expert", id=id, _external=True, **status))

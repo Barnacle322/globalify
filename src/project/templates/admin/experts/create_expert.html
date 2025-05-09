@@ -74,6 +74,7 @@
 
                 <main class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
                     <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" id="action_flag" value="create" />
                     <div class="flex">
                         <a href="/admin/experts" class="group flex items-center gap-1 text-gray-500">
                             <svg
@@ -102,7 +103,6 @@
                             <div class="rounded-xl text-lime-500">{{ msg }}</div>
                             {% endif %} {% endif %}
                         </div>
-
                         <div class="col-span-full flex items-start gap-x-8">
                             <img
                                 class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
@@ -302,19 +302,9 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-4">
-                                    <label class="text-sm font-medium text-gray-700">Description</label>
-                                    <textarea
-                                        v-model="qualification.company_description"
-                                        class="w-full rounded-lg bg-transparent"
-                                        rows="2"
-                                        placeholder="Relevant coursework and achievements"
-                                    ></textarea>
-                                </div>
-
                                 <div class="mt-4 grid grid-cols-2 gap-4">
                                     <div>
-                                        <label class="text-sm font-medium text-gray-700">Company Name</label>
+                                        <label class="text-sm font-medium text-gray-700">Company Name*</label>
                                         <input
                                             v-model="qualification.company_name"
                                             type="text"
@@ -332,6 +322,16 @@
                                             placeholder="https://harvard.edu"
                                         />
                                     </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <label class="text-sm font-medium text-gray-700">Description</label>
+                                    <textarea
+                                        v-model="qualification.company_description"
+                                        class="w-full rounded-lg bg-transparent"
+                                        rows="2"
+                                        placeholder="Relevant coursework and achievements"
+                                    ></textarea>
                                 </div>
 
                                 <button

@@ -53,7 +53,7 @@ class Expert(ExpertBase):
         uselist=True,
     )
 
-    user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
+    user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     bio: Mapped[str | None] = mapped_column(String, nullable=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -125,6 +125,18 @@ class Qualification(MappedAsDataclass, db.Model, unsafe_hash=True):
     company_name: Mapped[str | None] = mapped_column(String, nullable=False)
     company_description: Mapped[str | None] = mapped_column(String, nullable=True)
     company_url: Mapped[str | None] = mapped_column(String, nullable=True)
+
+    @staticmethod
+    def get_by_id(id: int) -> Qualification | None:
+        return db.session.scalar(db.select(Qualification).where(Qualification.id == id))
+
+    @staticmethod
+    def get_all_by_expert_id(expert_id: int) -> Sequence[Qualification] | None:
+        return db.session.scalars(db.select(Qualification).where(Qualification.expert_id == expert_id)).all()
+    
+    @staticmethod
+    def delete_by_id_list(id_list: list[int]):
+        return db.session.execute(db.delete(Qualification).where(Qualification.id.in_(id_list)))
 
 
 class SessionRequest(MappedAsDataclass, db.Model, unsafe_hash=True):

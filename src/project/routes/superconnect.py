@@ -111,6 +111,26 @@ def index():
     return render_template("superconnect/index.html", current_user=current_user)
 
 
+@superconnect.route("/profile", methods=["GET"])
+@check_user_info_complete
+@check_verification
+def profile():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    expert = Expert.get_by_id(3)
+    print(expert)
+
+    return render_template(
+        "superconnect/profile.html",
+        expert=expert,
+        status_type=status_type,
+        msg=msg,
+    )
+
+
 @superconnect.get("/get/<expert_id>")
 @check_user_info_complete
 @check_verification

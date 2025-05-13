@@ -244,10 +244,11 @@ def update_expert(id):
         return jsonify({"error": "Expert not found"}), 404
 
     try:
-        if not expert.first_name or not expert.last_name:
-            print("First name and last name are required")
-            return jsonify({"error": "First name and last name are required"}), 400
-        expert.first_name = form_data.get("first_name")
+        first_name = form_data.get("first_name")
+        if not first_name:
+            print("First name is required")
+            return jsonify({"error": "First name is required"}), 400
+        expert.first_name = first_name
         expert.last_name = form_data.get("last_name") or None
         expert.firm_name = form_data.get("firm_name") or None
         expert.position = form_data.get("position") or None

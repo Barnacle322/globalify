@@ -122,16 +122,18 @@ def index():
     return render_template("superconnect/index.html", current_user=current_user)
 
 
-@superconnect.route("/profile/<expert_id>", methods=["GET"])
+@superconnect.route("/profile", methods=["GET"])
 @check_user_info_complete
 @check_verification
-def profile(expert_id):
+def profile():
     status_type, msg = None, None
     if query := request.args:
         status_type = query.get("type")
         msg = query.get("msg")
 
-    expert = Expert.get_by_id(expert_id)
+    expert = Expert.get_by_id(current_user.expert.id)
+    if not expert:
+        return jsonify({"error": "Expert not found"}), 404
     qualification_types = [qt.value for qt in QualificationType]
 
     return render_template(

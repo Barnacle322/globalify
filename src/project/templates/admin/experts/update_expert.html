@@ -165,8 +165,17 @@
                             value="{{expert.bio if expert.bio else ''}}"
                         />
                     </div>
+                    <div class="col-span-full">
+                        <label for="bio" class="block text-sm leading-6 font-medium">Description</label>
+                        <input
+                            id="description"
+                            name="description"
+                            class="w-full rounded-lg"
+                            placeholder="Description of your expertise and experience"
+                            value="{{expert.description if expert.description else ''}}"
+                        />
+                    </div>
 
-                    <h2 class="col-span-full mt-3 text-2xl font-medium">Secondary Information</h2>
                     <div class="col-span-full sm:col-span-3">
                         <label class="text-sm font-medium text-gray-700" for="price">Price</label>
                         <input
@@ -175,16 +184,6 @@
                             id="price"
                             placeholder="14"
                             value="{{ expert.price if expert.price else 0 }}"
-                        />
-                    </div>
-
-                    <div class="col-span-full">
-                        <label class="text-sm font-medium text-gray-700" for="description">Description</label>
-                        <input
-                            class="w-full rounded-lg bg-transparent"
-                            type="text"
-                            id="description"
-                            value="{{ expert.description if expert.description else ''}}"
                         />
                     </div>
 
@@ -228,6 +227,7 @@
                             id="phone_number"
                             value="{{ expert.phone_number if expert.phone_number else ''}}"
                             placeholder="+1 123 456 7890"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                         />
                     </div>
                     <div class="relative col-span-full">

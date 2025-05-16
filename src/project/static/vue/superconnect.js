@@ -503,6 +503,11 @@ createApp({
             this.loadQualificationTypes();
             this.loadExperts(1);
         }
+        const expertIdElement = document.getElementById("expert-id");
+        if (expertIdElement && expertIdElement.value) {
+            this.expertId = expertIdElement.value;
+            this.fetchExpertQualifications();
+        }
     },
     computed: {
         startPage() {
@@ -574,6 +579,108 @@ createApp({
                 this.loading = false;
             }
         },
+        async submitExpertData() {
+            const csrfToken = document.getElementById("csrf_token")?.value;
+            const pictureInput = document.getElementById("picture");
+            const picture = pictureInput?.files[0] || null;
+            const first_name = document.getElementById("first_name")?.value || "";
+            const last_name = document.getElementById("last_name")?.value || "";
+            const firm_name = document.getElementById("firm_name")?.value || "";
+            const position = document.getElementById("position")?.value || "";
+            const location = document.getElementById("location")?.value || "";
+            const bio = document.getElementById("bio")?.value || "";
+            const price = document.getElementById("price")?.value || "";
+            const description = document.getElementById("description")?.value || "";
+            const linkedin = document.getElementById("linkedin")?.value || "";
+            const twitter = document.getElementById("twitter")?.value || "";
+            const email = document.getElementById("email")?.value || "";
+            const phone_number = document.getElementById("phone_number")?.value || "";
+            const user_email = document.getElementById("searchInput")?.value || "";
+
+            const formData = new FormData();
+
+            formData.append("csrf_token", csrfToken);
+            formData.append("first_name", first_name);
+            formData.append("last_name", last_name);
+            formData.append("firm_name", firm_name);
+            formData.append("position", position);
+            formData.append("location", location);
+            formData.append("bio", bio);
+            formData.append("price", price);
+            formData.append("description", description);
+            formData.append("linkedin", linkedin);
+            formData.append("twitter", twitter);
+            formData.append("email", email);
+            formData.append("phone_number", phone_number);
+            formData.append("user_email", user_email);
+            if (picture) {
+                formData.append("picture", picture);
+            }
+
+            formData.append("qualifications", JSON.stringify(this.validateQualifications()));
+            formData.append("deleted_qualifications", JSON.stringify(this.deletedQualifications));
+
+            try {
+                const response = await fetch(`/expert/update/${this.expertId}`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: formData,
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        },
+        async fetchExpertQualifications() {
+            try {
+                const response = await fetch(`/expert/qualifications/${this.expertId}`);
+                if (!response.ok) throw new Error("Failed to fetch qualifications");
+                const data = await response.json();
+                this.qualifications = data.map((q) => ({
+                    ...q,
+                    start_date: q.start_date ? q.start_date.split("T")[0] : "",
+                    end_date: q.end_date ? q.end_date.split("T")[0] : "",
+                }));
+            } catch (error) {
+                console.error("Error fetching qualifications:", error);
+            }
+        },
+        addQualification() {
+            if (this.qualifications.length >= 8) return;
+            this.qualifications.push({
+                type: this.qualificationTypes[0],
+                title: "",
+                start_date: null,
+                end_date: null,
+                company_description: "",
+                company_name: "",
+                company_url: "",
+            });
+        },
+        removeQualification(index, q_id) {
+            this.deletedQualifications.push(q_id);
+            this.qualifications.splice(index, 1);
+        },
+        validateQualifications() {
+            const valid = [];
+            this.qualifications.forEach((q) => {
+                if (!q.type || !q.title || !q.company_name) {
+                    console.log("Missing required fields in qualification", q);
+                    return;
+                }
+                if (q.start_date && q.end_date && q.end_date < q.start_date) {
+                    console.log("End date is before start date");
+                    return;
+                }
+                valid.push(q);
+            });
+            return valid;
+        },
         debouncedSearch() {
             clearTimeout(this.searchTimeout);
             this.searchTimeout = setTimeout(() => {
@@ -624,7 +731,10 @@ createApp({
             isFullExpertOpened: false,
             isSessionInfoOpened: false,
             selectedSession: null,
+            expertId: null,
             qualificationTypes: [],
+            qualifications: [],
+            deletedQualifications: [],
         };
     },
 }).mount("#app");

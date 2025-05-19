@@ -193,7 +193,6 @@ def create_expert():
                 price = stripe.Price.create(
                     unit_amount=int(price * 100),
                     currency="usd",
-                    recurring={"interval": "day"},
                     product=product.id,
                 )
 

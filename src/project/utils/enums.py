@@ -87,9 +87,9 @@ class SessionStatus(Enum):
 
 
 class SessionType(Enum):
+    CONSULTATION = "consultation"
     TRAINING = "training"
     BUSINESS = "business"
-    INTRO = "intro"
     SHORT = "short"
     DEMO = "demo"
     LONG = "long"

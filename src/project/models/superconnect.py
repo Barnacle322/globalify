@@ -132,14 +132,18 @@ class SessionRequest(MappedAsDataclass, db.Model, unsafe_hash=True):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     expert_id: Mapped[int] = mapped_column(Integer, ForeignKey("expert.id"), nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+
     notes: Mapped[str | None] = mapped_column(String, nullable=True)
+    status: Mapped[SessionStatus] = mapped_column(SQLEnum(SessionStatus), nullable=False, default=SessionStatus.PENDING)
+    type: Mapped[SessionType] = mapped_column(SQLEnum(SessionType), nullable=False, default=SessionType.SHORT)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), init=False
     )
-    status: Mapped[SessionStatus] = mapped_column(SQLEnum(SessionStatus), nullable=False, default=SessionStatus.PENDING)
-    # user_status: Mapped[SessionStatus] = mapped_column(SQLEnum(SessionStatus), nullable=False, default=SessionStatus.PENDING)
-    # expert_status: Mapped[SessionStatus] = mapped_column(SQLEnum(SessionStatus), nullable=False, default=SessionStatus.PENDING)
-    type: Mapped[SessionType] = mapped_column(SQLEnum(SessionType), nullable=False, default=SessionType.SHORT)
+
+    stripe_session_id: Mapped[str] = mapped_column(String, nullable=True, init=False)
+    stripe_payment_intent_id: Mapped[str] = mapped_column(String, nullable=True, init=False)
+    paid_amount: Mapped[float | None] = mapped_column(Float, nullable=True, init=False)
+    payment_date: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, init=False)
 
     expert: Mapped[Expert] = relationship("Expert", back_populates="session_requests", init=False)
     user: Mapped[User] = relationship("User", back_populates="session_requests", init=False)

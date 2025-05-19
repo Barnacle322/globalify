@@ -1,5 +1,7 @@
-import datetime
+import os
+from datetime import UTC, datetime, timedelta
 
+import stripe
 from flask import (
     Blueprint,
     json,
@@ -27,7 +29,7 @@ from ..utils.decorators import (
     check_user_info_complete,
     check_verification,
 )
-from ..utils.enums import Status, StatusType
+from ..utils.enums import SessionType, Status, StatusType
 from ..utils.errors.error_messages import PICTURE_NOT_LOADED
 from ..utils.google_helpers.google_storage import upload_picture
 from ..utils.scraper import add_https_prefix
@@ -189,47 +191,257 @@ def get_expert_by_id(expert_id):
     return jsonify({"expert": expert_data.model_dump()})
 
 
-@superconnect.post("/book-session/<expert_id>")
+def get_or_create_stripe_product(expert):
+    """Получает существующий или создает новый продукт Stripe для эксперта"""
+    stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
+
+    # Ищем существующий продукт
+    products = stripe.Product.list(limit=100, active=True, expand=["data.default_price"])
+
+    for product in products.data:
+        if product.metadata.get("expert_id") == str(expert.id):
+            return product.id
+
+    # Создаем новый продукт если не найден
+    product = stripe.Product.create(
+        name=f"Expert Session: {expert.full_name}",
+        description=expert.bio[:500] if expert.bio else f"Expert session with {expert.full_name}",
+        metadata={
+            "expert_id": str(expert.id),
+            "expert_name": str(expert.full_name),
+            "expert_email": str(expert.email),
+            "type": "expert_session",
+        },
+        images=[expert.picture_url] if expert.picture_url else [],
+        active=True,
+    )
+    return product.id
+
+
+def get_or_create_stripe_price(product_id, amount):
+    """Получает существующую или создает новую цену для продукта"""
+    stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
+
+    # Ищем существующую цену
+    prices = stripe.Price.list(product=product_id, active=True, limit=10)
+
+    # Ищем цену с нужной суммой
+    for price in prices.data:
+        if price.unit_amount == int(amount * 100):
+            return price.id
+
+    # Создаем новую цену
+    price = stripe.Price.create(
+        unit_amount=int(amount * 100),
+        currency="usd",
+        product=product_id,
+    )
+    return price.id
+
+
+def create_payment_intent(expert, user, session_type, notes):
+    """Создает PaymentIntent с manual capture"""
+    stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
+
+    return stripe.PaymentIntent.create(
+        amount=int(expert.price * 100),
+        currency="usd",
+        capture_method="manual",
+        metadata={
+            "expert_id": str(expert.id),
+            "user_id": str(user.id),
+            "session_type": session_type,
+            "notes": notes,
+        },
+    )
+
+
+@superconnect.post("/create-checkout/<int:expert_id>")
 @check_user_info_complete
 @check_verification
-def book_session(expert_id):
-    # Получаем данные из JSON запроса
-    request_data = request.get_json()
-    notes = request_data.get("notes", "") if request_data else ""
-
+def create_checkout_session(expert_id):
     expert = Expert.get_by_id(expert_id)
     if not expert:
-        return jsonify({"error": "Expert not found"}), 404
+        return jsonify({"success": False, "error": "Expert not found"}), 404
 
-    # existing_request = SessionRequest.get_existing_by_user_id(expert_id)
-    # if existing_request:
-    #     return jsonify({"error": "You have already requested a session with this expert"}), 400
+    if not expert.price or expert.price <= 0:
+        return jsonify({"success": False, "error": "This expert doesn't have a session price set"}), 400
 
-    print("Booking session with expert ID:", expert_id)
+    form_data = request.get_json()
+    notes = form_data.get("notes", "")
+    session_type = form_data.get("session_type", "consultation")
+
     try:
-        # Создаем запрос на сессию с полем notes
-        session_request = SessionRequest(expert_id=expert_id, user_id=current_user.id, notes=notes)
-        db.session.add(session_request)
-        db.session.commit()
-    except Exception as e:
-        print("Error while creating session request:", e)
-        db.session.rollback()
-        return jsonify({"error": f"Failed to create session request: {str(e)}"}), 500
+        # Создаем запрос на сессию
+        session_request = SessionRequest(
+            user_id=current_user.id,
+            expert_id=expert.id,
+            notes=notes,
+            type=SessionType(session_type),
+            status=SessionStatus.PENDING,
+        )
 
-    return jsonify({"message": "Session request sent successfully!", "redirect_url": "/expert/sessions/"}), 200
+        # Создаем PaymentIntent с manual capture
+        payment_intent = create_payment_intent(expert, current_user, session_type, notes)
+
+        session_request.stripe_payment_intent_id = payment_intent.id
+        db.session.add(session_request)
+        db.session.flush()
+
+        # Получаем или создаем продукт и цену Stripe
+        product_id = get_or_create_stripe_product(expert)
+        price_id = get_or_create_stripe_price(product_id, expert.price)
+
+        # Создаем checkout сессию
+        success_url = (
+            url_for("superconnect.checkout_success", session_request_id=session_request.id, _external=True)
+            + "?session_id={CHECKOUT_SESSION_ID}"
+        )
+
+        cancel_url = url_for("superconnect.checkout_cancel", session_request_id=session_request.id, _external=True)
+
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=current_user.email,
+            payment_method_types=["card"],
+            payment_intent_data={
+                "setup_future_usage": "off_session",  # Для будущих платежей
+            },
+            line_items=[
+                {
+                    "price": price_id,
+                    "quantity": 1,
+                }
+            ],
+            mode="payment",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "session_request_id": str(session_request.id),
+                "user_id": str(current_user.id),
+                "expert_id": str(expert.id),
+                "payment_intent_id": payment_intent.id,
+            },
+            expires_at=int((datetime.now(UTC) + timedelta(days=3)).timestamp()),  # Сессия истекает через 3 дня
+        )
+
+        session_request.stripe_session_id = checkout_session.id
+        db.session.commit()
+
+        return jsonify({"success": True, "checkout_url": checkout_session.url, "session_id": checkout_session.id})
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating checkout session: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@superconnect.get("/checkout-success/<int:session_request_id>")
+@check_user_info_complete
+@check_verification
+def checkout_success(session_request_id):
+    session_request = SessionRequest.get_by_id(session_request_id)
+    if not session_request:
+        print("Session request not found", "error")
+        return redirect(url_for("superconnect.expert_list"))
+
+    session_id = request.args.get("session_id")
+    if not session_id:
+        print("Invalid checkout session", "error")
+        return redirect(url_for("superconnect.expert_list"))
+
+    try:
+        stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
+        checkout_session = stripe.checkout.Session.retrieve(session_id)
+        # Проверяем статус платежа
+        if checkout_session.payment_status == "paid":
+            # send_expert_notification(session_request)
+            # send_user_confirmation(session_request)
+
+            print("Payment successful! Your session request has been sent to the expert.", "success")
+        else:
+            print("Payment is pending or incomplete. Please check your payment status.", "warning")
+
+    except Exception as e:
+        print(f"Error processing checkout success: {e}")
+        print("Error processing your payment. Please contact support.", "error")
+
+    return redirect(url_for("superconnect.user_sessions"))
+
+
+@superconnect.get("/checkout-cancel/<int:session_request_id>")
+@check_user_info_complete
+@check_verification
+def checkout_cancel(session_request_id):
+    session_request = SessionRequest.get_by_id(session_request_id)
+    if session_request:
+        # Обновляем статус запроса на отмененный ########### Или удаление сессии
+        session_request.status = SessionStatus.CANCELED
+        db.session.commit()
+
+    print("Payment was canceled. You can try again later.", "info")
+    return redirect(url_for("superconnect.expert_list"))
+
+
+@superconnect.post("/session/action/")
+@check_user_info_complete
+@check_verification
+def change_session_status():
+    form_data = request.get_json()
+    session_id = form_data.get("session_id")
+    action = form_data.get("action")
+
+    if not session_id or not action:
+        return jsonify({"error": "Missing required parameters"}), 400
+
+    session = SessionRequest.get_by_id(session_id)
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+
+    if session.expert_id != current_user.id:
+        return jsonify({"error": "Access denied"}), 403
+
+    if action == "confirm":
+        try:
+            if session.status != SessionStatus.PENDING:
+                return jsonify({"error": "Session cannot be modified"}), 400
+            # Проверяем, что платеж не был отменен
+            if session.stripe_payment_intent_id:
+                payment_intent = stripe.PaymentIntent.retrieve(session.stripe_payment_intent_id)
+                if payment_intent.status == "canceled":
+                    return jsonify({"error": "Payment was canceled"}), 400
+
+            # Захватываем платеж (деньги переводятся эксперту)
+            stripe.PaymentIntent.capture(session.stripe_payment_intent_id)
+            session.status = SessionStatus.UPCOMING
+
+            # send_session_confirmed_notification(session)
+        except Exception as e:
+            return jsonify({"error": f"Capture failed: {str(e)}"}), 400
+    elif action == "cancel":
+        try:
+            # Отменяем платеж (возврат средств клиенту)
+            stripe.PaymentIntent.cancel(session.stripe_payment_intent_id)
+            session.status = SessionStatus.CANCELED
+
+            # send_session_declined_notification(session)
+        except Exception as e:
+            return jsonify({"error": f"Cancel failed: {str(e)}"}), 400
+
+    db.session.commit()
+    return jsonify({"message": "Session status updated"}), 200
 
 
 @superconnect.get("/sessions/")
 @check_user_info_complete
 @check_verification
-def get_user_sessions():
+def user_sessions():
     return render_template("superconnect/sessions.html", current_user=current_user)
 
 
 @superconnect.get("/get_sessions/")
 @check_user_info_complete
 @check_verification
-def user_sessions():
+def get_user_sessions():
     print(current_user.id)
     user = User.get_by_id(current_user.id)
 
@@ -267,40 +479,6 @@ def user_sessions():
         session_list.append(session_data.model_dump())
 
     return jsonify({"sessions": session_list})
-
-
-@superconnect.post("/session/action/")
-@check_user_info_complete
-@check_verification
-def change_session_status():
-    form_data = request.get_json()
-    if not form_data:
-        return jsonify({"error": "No data provided"}), 400
-
-    session_id = form_data.get("session_id")
-    session = SessionRequest.get_by_id(session_id)
-
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
-
-    action = form_data.get("action")
-
-    action_map = {
-        "cancel": SessionStatus.CANCELED,
-        "delete": SessionStatus.DELETED,
-        "past": SessionStatus.PAST,
-        "upcoming": SessionStatus.UPCOMING,
-    }
-
-    new_status = action_map.get(action)
-
-    if new_status is None:
-        return jsonify({"error": "Invalid action"}), 400
-
-    session.status = new_status
-    db.session.commit()
-
-    return jsonify({"message": "Session status updated successfully"}), 200
 
 
 @superconnect.get("/qualifications/<int:expert_id>")

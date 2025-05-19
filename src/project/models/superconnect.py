@@ -120,7 +120,7 @@ class Qualification(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_all_by_expert_id(expert_id: int) -> Sequence[Qualification] | None:
         return db.session.scalars(db.select(Qualification).where(Qualification.expert_id == expert_id)).all()
-    
+
     @staticmethod
     def delete_by_id_list(id_list: list[int]):
         return db.session.execute(db.delete(Qualification).where(Qualification.id.in_(id_list)))

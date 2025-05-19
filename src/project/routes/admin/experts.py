@@ -1,5 +1,7 @@
 import datetime
+import os
 
+import stripe
 from flask import (
     Blueprint,
     jsonify,
@@ -8,8 +10,6 @@ from flask import (
     request,
     url_for,
 )
-from slugify import slugify
-from sqlalchemy import delete
 
 from ...extensions import db
 from ...models.superconnect import (
@@ -174,6 +174,35 @@ def create_expert():
         db.session.add(expert)
         db.session.flush()
 
+        try:
+            stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
+            product = stripe.Product.create(
+                name=f"Expert Session: {expert.full_name}",
+                description=expert.bio[:500] if expert.bio else f"Expert session with {expert.full_name}",
+                metadata={
+                    "expert_id": str(expert.id),
+                    "expert_name": str(expert.full_name),
+                    "expert_email": str(expert.email),
+                    "type": "expert_session",
+                },
+                images=[expert.picture_url] if expert.picture_url else [],
+                active=True,
+            )
+
+            if price is not None:
+                price = stripe.Price.create(
+                    unit_amount=int(price * 100),
+                    currency="usd",
+                    recurring={"interval": "day"},
+                    product=product.id,
+                )
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating Stripe product: {e}")
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("admin.experts.create_expert", _external=True, **status))
+
         qualifications_data = form_data.get("qualifications", [])
         if qualifications_data:
             for qual_data in qualifications_data:
@@ -228,6 +257,50 @@ def create_expert():
 
         status = Status(StatusType.SUCCESS, "Expert created successfully!").get_status()
         return redirect(url_for("admin.experts.index", _external=True, **status))
+
+
+@expert.get("/stripe-product/<int:expert_id>")
+@admin_only
+def check_stripe_product(expert_id):
+    expert = Expert.get_by_id(expert_id)
+    if not expert:
+        return jsonify({"error": "Expert not found"}), 404
+
+    try:
+        stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
+
+        # Поиск продукта по метаданным
+        products = stripe.Product.list(
+            limit=100,
+            active=True,
+        )
+
+        expert_products = []
+        for product in products.data:
+            if product.metadata.get("expert_id") == str(expert.id):
+                expert_products.append(
+                    {
+                        "id": product.id,
+                        "name": product.name,
+                        "description": product.description,
+                        "created": product.created,
+                        "metadata": product.metadata,
+                        "active": product.active,
+                    }
+                )
+
+        if not expert_products:
+            return jsonify({"message": "No Stripe products found for this expert", "expert_id": expert_id}), 200
+
+        return jsonify(
+            {
+                "expert": {"id": expert.id, "name": expert.full_name, "email": expert.email},
+                "stripe_products": expert_products,
+            }
+        ), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error checking Stripe product: {str(e)}"}), 500
 
 
 @expert.post("/update/<int:id>")

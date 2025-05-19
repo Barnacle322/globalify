@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            name="description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="og:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="twitter:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="/static/vue/base.js"></script>
+        <script src="/static/scripts/menu.js" defer></script>
+        <script src="/static/vue/admin.js" defer></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+        <title>Edit Expert | Globalify</title>
+    </head>
+
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %} 
+    {{ navbar.render(current_user) }}
+
+    <body class="h-full overflow-x-clip" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
+            </transition>
+
+            <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
+                <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="hidden" id="action_flag" value="update" />
+                <div class="flex">
+                    <a href="/admin/experts" class="group flex items-center gap-1 text-gray-500">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            class="size-4 transition-colors ease-in-out group-hover:text-gray-700"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        <div class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Admin</div>
+                    </a>
+                </div>
+                {% if expert %}
+                <div class="grid grid-cols-6 gap-x-2 gap-y-1">
+                    <div class="col-span-full flex justify-between">
+                        <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
+                    </div>
+                    <div class="col-span-full empty:hidden">
+                        {% if status_type %} {% if status_type == '3' %}
+                        <div class="rounded-xl text-red-500">{{ msg }}</div>
+                        {% elif status_type == '2' %}
+                        <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                        {% elif status_type == '1' %}
+                        <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                        {% endif %} {% endif %}
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="first_name">First Name*</label>
+                        <input
+                            class="w-full rounded-lg bg-white"
+                            type="text"
+                            id="first_name"
+                            value="{{ expert.first_name }}"
+                            placeholder="John"
+                            required
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="last_name">Last Name</label>
+                        <input
+                            class="w-full rounded-lg bg-white"
+                            type="text"
+                            id="last_name"
+                            value="{{ expert.last_name if expert.last_name else ''}}"
+                            placeholder="Doe"
+                            required
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="firm_name">Firm Name</label>
+                        <input
+                            class="w-full rounded-lg bg-white"
+                            type="text"
+                            id="firm_name"
+                            value="{{ expert.firm_name if expert.firm_name else '' }}"
+                            placeholder="ACME Inc."
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="position">Position</label>
+                        <input
+                            class="w-full rounded-lg bg-white"
+                            type="text"
+                            id="position"
+                            value="{{ expert.position if expert.position else ''}}"
+                            placeholder="CEO"
+                        />
+                    </div>
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="location">Location</label>
+                        <input
+                            class="w-full rounded-lg bg-white"
+                            type="text"
+                            id="location"
+                            value="{{ expert.location if expert.location else ''}}"
+                            placeholder="New York, NY"
+                        />
+                    </div>
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="about">Bio</label>
+                        <input
+                            class="w-full rounded-lg"
+                            type="text"
+                            id="bio"
+                            placeholder="John Doe is good person."
+                            value="{{expert.bio if expert.bio else ''}}"
+                        />
+                    </div>
+                    <div class="col-span-full">
+                        <label for="bio" class="block text-sm leading-6 font-medium">Description</label>
+                        <input
+                            id="description"
+                            name="description"
+                            class="w-full rounded-lg"
+                            placeholder="Description of your expertise and experience"
+                            value="{{expert.description if expert.description else ''}}"
+                        />
+                    </div>
+
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="price">Price</label>
+                        <input
+                            class="w-full rounded-lg bg-transparent"
+                            type="number"
+                            id="price"
+                            placeholder="14"
+                            value="{{ expert.price if expert.price else 0 }}"
+                        />
+                    </div>
+
+                    <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
+
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="linkedin">Linkedin</label>
+                        <input
+                            class="w-full rounded-lg bg-white"
+                            type="text"
+                            id="linkedin"
+                            value="{{ expert.linkedin if expert.linkedin else ''}}"
+                            placeholder="https://www.linkedin.com/in/johndoe"
+                        />
+                    </div>
+                    <div class="col-span-full">
+                        <label class="text-sm font-medium text-gray-700" for="twitter">Twitter</label>
+                        <input
+                            class="w-full rounded-lg bg-white"
+                            type="text"
+                            id="twitter"
+                            value="{{ expert.twitter if expert.twitter else '' }}"
+                            placeholder="https://twitter.com/johndoe"
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="email">Email</label>
+                        <input
+                            class="w-full rounded-lg bg-white"
+                            type="text"
+                            id="email"
+                            value="{{ expert.email if expert.email else '' }}"
+                            placeholder="johndoe@gmail.com"
+                        />
+                    </div>
+                    <div class="col-span-full sm:col-span-3">
+                        <label class="text-sm font-medium text-gray-700" for="phone_number">Phone Number</label>
+                        <input
+                            class="w-full rounded-lg bg-white"
+                            type="text"
+                            id="phone_number"
+                            value="{{ expert.phone_number if expert.phone_number else ''}}"
+                            placeholder="+1 123 456 7890"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                        />
+                    </div>
+                    <div class="relative col-span-full">
+                        <label class="text-sm font-medium text-gray-700">User</label>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            ref="searchInput"
+                            value="{{ expert.user.email }}"
+                            class="w-full rounded-lg bg-white"
+                            placeholder="jennifer@gmail.com"
+                            @input="getUserList"
+                        />
+                        <div
+                            id="userList"
+                            v-show="userList.length > 0"
+                            class="flex max-h-60 w-full origin-top-right flex-col gap-1 overflow-y-auto overscroll-y-contain rounded-md border border-gray-200 bg-white shadow-lg transition duration-100 ease-in-out"
+                        >
+                            <p
+                                v-for="(email, index) in userList"
+                                :key="index"
+                                class="cursor-pointer px-3 py-2 transition-colors ease-in-out hover:bg-gray-100 hover:text-gray-900"
+                                @click="selectUser(email)"
+                                v-text="email"
+                            ></p>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="expert-id" value="{{ expert.id }}" />
+                <h2 class="col-span-full mt-3 text-2xl font-medium">Qualifications</h2>
+                <div class="col-span-full space-y-4" id="qualifications-container">
+                    <div class="col-span-full space-y-4">
+                        <div
+                            v-for="(qualification, index) in qualifications"
+                            :key="qualification.id || 'new-' + index"
+                            class="relative rounded-lg border border-gray-500 p-4"
+                        >
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">Type*</label>
+                                    <select
+                                        v-model="qualification.type"
+                                        class="w-full rounded-lg border-gray-300 bg-transparent"
+                                    >
+                                        {% for type in qualificationTypes %}
+                                        <option value="{{ type }}">{{ type }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">Title*</label>
+                                    <input
+                                        v-model="qualification.title"
+                                        type="text"
+                                        class="w-full rounded-lg bg-transparent"
+                                        placeholder="MBA in Finance"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">Start Date</label>
+                                    <input
+                                        v-model="qualification.start_date"
+                                        type="date"
+                                        class="w-full rounded-lg bg-transparent"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">End Date</label>
+                                    <input
+                                        v-model="qualification.end_date"
+                                        type="date"
+                                        class="w-full rounded-lg bg-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">Company Name*</label>
+                                    <input
+                                        v-model="qualification.company_name"
+                                        type="text"
+                                        class="w-full rounded-lg bg-transparent"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">Company URL</label>
+                                    <input
+                                        v-model="qualification.company_url"
+                                        type="url"
+                                        class="w-full rounded-lg bg-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="text-sm font-medium text-gray-700">Description</label>
+                                <textarea
+                                    v-model="qualification.description"
+                                    class="w-full rounded-lg bg-transparent"
+                                    rows="2"
+                                ></textarea>
+                            </div>
+
+                            <button
+                                @click="removeQualification(index, qualification.id)"
+                                type="button"
+                                class="absolute right-1 top-1 text-red-500 hover:text-red-700"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <button
+                            @click="addQualification"
+                            :disabled="qualifications.length >= 8"
+                            type="button"
+                            class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-700 p-3 transition-shadow hover:shadow-md"
+                            :class="{ 'cursor-not-allowed opacity-50': qualifications.length >= 8 }"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-6"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                />
+                            </svg>
+                            <span class="text-sm font-medium">Add Qualification</span>
+                        </button>
+                        <button
+                            id="saveButton"
+                            @click="submitExpertData"
+                            class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white"
+                        >
+                            Save
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </main>
+        </div>
+    </body>
+</html>

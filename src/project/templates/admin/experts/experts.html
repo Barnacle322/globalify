@@ -47,11 +47,11 @@
             href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
             rel="stylesheet"
         />
-        <title>Companies</title>
+        <title>Experts</title>
     </head>
 
     <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %} 
+    {% import "components/navbar.html" as navbar %}
     {{ navbar.render(current_user) }}
 
     <body class="h-full overflow-x-clip" id="app">
@@ -76,7 +76,6 @@
                         <a
                             href="/admin/investors"
                             class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
-                            @click="resetSearchQuery"
                             >Investors
                         </a>
                         <a
@@ -87,7 +86,8 @@
                         </a>
                         <a
                             href="/admin/companies"
-                            class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            @click="resetSearchQuery"
                             >Companies
                         </a>
                         <a
@@ -112,13 +112,13 @@
                         </a>
                         <a
                             href="/admin/experts"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
                             >Experts
                         </a>
                     </div>
                 </nav>
                 <section class="mx-auto my-10 flex max-w-3xl flex-col gap-5 px-4 sm:my-14">
-                    <h1 class="text-3xl font-bold sm:text-5xl">Companies</h1>
+                    <h1 class="text-3xl font-bold sm:text-5xl">Experts</h1>
                     {% if status_type %} {% if status_type == '3' %}
                     <div class="rounded-xl text-red-500">{{ msg }}</div>
                     {% elif status_type == '2' %}
@@ -164,10 +164,10 @@
                         </button>
                     </div>
                     <a
-                        href="/admin/companies/create"
+                        href="/admin/experts/create"
                         class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium transition-shadow ease-in-out hover:shadow-md sm:text-base"
                     >
-                        Create an Company
+                        Create an Expert
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -183,48 +183,20 @@
                             />
                         </svg>
                     </a>
-                    <a
-                        href="/admin/companies/filter"
-                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white p-3 py-4 text-sm font-medium transition-shadow ease-in-out hover:shadow-md sm:text-base"
-                    >
-                        Companies Errors section
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            height="24px"
-                            viewBox="0 -960 960 960"
-                            width="24px"
-                            fill="#5f6368"
-                            class="size-5"
-                        >
-                            <path
-                                d="m40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm302-40q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm-40-120h80v-200h-80v200Zm40-100Z"
-                            />
-                        </svg>
-                    </a>
-                    {% if companies %}
+                    {% if experts %}
                     <div class="flex flex-col gap-3">
-                        {% for company in companies %}
+                        {% for expert in experts %}
                         <div
                             class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 sm:flex-row"
                         >
                             <div class="relative flex w-full items-start justify-between gap-3">
                                 <div class="flex flex-col gap-2">
-                                    <span class="font-medium">{{ company.name }}</span>
-                                    <p class="line-clamp-3">{{company.description}}</p>
-                                    {% if company.preferred_round %}
-                                    <div class="flex flex-wrap gap-1">
-                                        <a
-                                            class="rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-nowrap text-[#D182CD]"
-                                            >{{ company.preferred_round }}
-                                        </a>
-                                    </div>
-                                    {% endif %} {% if company.industry %}
-                                    <p class="text-sm text-gray-500">{{ company.industry }}</p>
-                                    {% endif %}
+                                    <span class="font-medium">{{ expert.full_name }}</span>
+                                    <p class="line-clamp-3">{{expert.bio}}</p>
                                 </div>
                                 <div class="ml-auto flex h-full flex-col gap-2">
                                     <a
-                                        href="/admin/companies/{{company.id}}"
+                                        href="/admin/experts/{{expert.id}}"
                                         class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
                                     >
                                         <svg
@@ -242,33 +214,10 @@
                                             />
                                         </svg>
                                     </a>
-                                    <a
-                                        href="/profile/company/{{ company.slug }}"
-                                        class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.5"
-                                            stroke="currentColor"
-                                            class="size-4"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
-                                            />
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                                            />
-                                        </svg>
-                                    </a>
+
                                     <button
                                         class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
-                                        @click="deleteCompany('{{company.id}}')"
+                                        @click="deleteInvestor('{{expert.id}}')"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -295,7 +244,7 @@
                         {% if pagination and pagination.has_other_pages %} {% if pagination.has_prev %}
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/companies?page=1&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page=1&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -315,7 +264,7 @@
                         <a
                             id="prev"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/companies?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -332,7 +281,7 @@
                         <a
                             id="current"
                             class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500 transition-opacity duration-200 ease-in-out hover:opacity-90"
-                            href="/admin/companies?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ pagination.current_page }}
                         </a>
@@ -340,7 +289,7 @@
                         <a
                             id="page"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white text-sm font-medium"
-                            href="/admin/companies?page={{ page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page={{ page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ page }}
                         </a>
@@ -348,7 +297,7 @@
                         <a
                             id="next"
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/companies?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -363,7 +312,7 @@
                         </a>
                         <a
                             class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
-                            href="/admin/companies?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
+                            href="/admin/experts?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"

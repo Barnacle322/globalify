@@ -1,0 +1,396 @@
+<template id="session-template">
+    <div class="relative w-full">
+        <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
+            <div class="flex h-full items-center justify-between px-4">
+                <div class="flex gap-5 text-sm">
+                    {% if not current_user.is_expert %}
+                    <a
+                        href="/expert/list"
+                        class="flex items-center justify-center gap-2 px-3 py-2 font-medium transition-colors ease-in-out"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+                            />
+                        </svg>
+                        Experts
+                    </a>
+                    <a
+                        href="/expert/sessions"
+                        class="flex items-center justify-center gap-2 px-3 py-2 border-b-2 border-sky-500 font-medium transition-colors ease-in-out"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"
+                            />
+                        </svg>
+                        My Bookings
+                    </a>
+
+                    {% else %}
+                    <a
+                        href="/expert/list"
+                        class="flex items-center justify-center gap-2 px-3 py-2 font-medium transition-colors ease-in-out"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+                            />
+                        </svg>
+                        Experts
+                    </a>
+                    <a
+                        href="/expert/sessions"
+                        class="flex items-center justify-center gap-2 px-3 py-2 border-b-2 border-sky-500 font-medium transition-colors ease-in-out"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"
+                            />
+                        </svg>
+                        My Sessions
+                    </a>
+                    <a
+                        href="/expert/profile"
+                        class="flex items-center justify-center gap-2 px-3 py-2 font-medium transition-colors ease-in-out"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            class="size-6 shrink-0"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
+                            ></path>
+                        </svg>
+                        My profile
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="relative ml-auto self-start" ref="dropdownContainer">
+                    <button
+                        @click.stop="dropdownOpened = !dropdownOpened"
+                        class="flex shrink-0 cursor-pointer items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="size-6" fill="#000000">
+                            <path
+                                d="M480-120q-138 0-240.5-91.5T122-440h82q14 104 92.5 172T480-200q117 0 198.5-81.5T760-480q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h110v80H120v-240h80v94q51-64 124.5-99T480-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-120Zm112-192L440-464v-216h80v184l128 128-56 56Z"
+                            />
+                        </svg>
+                        Filter
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
+            <div
+                v-if="dropdownOpened"
+                class="absolute top-6 right-2 z-30 flex w-50 origin-top-right flex-col items-start justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-xs"
+            >
+                <div class="p-2">
+                    <div class="mb-3 font-medium">Categories</div>
+                    <div v-for="type in types" :key="type" class="flex items-center mb-2" @click.stop.prevent>
+                        <input
+                            @click.stop
+                            :id="type"
+                            type="checkbox"
+                            class="h-4 w-4 rounded border-gray-300 text-sky-600"
+                            v-model="filters[type]"
+                        />
+                        <label :for="type" class="ml-2 block text-s text-gray-700" v-text="config[type].title"></label>
+                    </div>
+                    <div class="my-3 border-t border-gray-200"></div>
+                    <div class="mb-2 font-medium">Sort by</div>
+                    <button
+                        @click.stop="toggleSortOrder"
+                        class="w-full text-left px-3 py-2 text-s rounded-md hover:bg-gray-100"
+                        v-text="sortOrder === 'newest' ? 'Newest first' : 'Oldest first'"
+                    ></button>
+                </div>
+            </div>
+        </transition>
+        <main class="sm:p-6">
+            <div class="container mx-auto">
+                <div v-if="!filteredSessions" class="flex flex-col items-center justify-center h-64 text-center">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-16 h-16 text-gray-400 mb-4"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M3 8.25v12.75A2.25 2.25 0 005.25 23.25h13.5A2.25 2.25 0 0021 21V8.25M9 12.75h6m-6 3.75h6"
+                        />
+                    </svg>
+                    {% if current_user.is_expert %}
+                    <h3 class="text-2xl font-semibold text-gray-500 mb-2">No Sessions Found</h3>
+                    <p class="text-lg text-gray-400 mb-6">
+                        You haven't received any session requests yet. Complete your profile to attract more clients.
+                    </p>
+                    <a
+                        href="/expert/profile"
+                        class="inline-block bg-sky-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-sky-600 transition-colors duration-300"
+                    >
+                        Update Profile
+                    </a>
+                    {% else %}
+                    <h3 class="text-2xl font-semibold text-gray-500 mb-2">No Bookings Found</h3>
+                    <p class="text-lg text-gray-400 mb-6">
+                        It looks like you haven't booked any sessions yet. Let's get globalified :)
+                    </p>
+                    <a
+                        href="/expert/list"
+                        class="inline-block bg-sky-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-sky-600 transition-colors duration-300"
+                    >
+                        Find an expert Now
+                    </a>
+                    {% endif %}
+                </div>
+                <transition-group name="session-group" tag="div" class="relative" mode="out-in">
+                    <div class="session-group" v-for="(group, index) in filteredSessions" :key="index">
+                        <h2 class="text-2xl font-bold mb-4" v-text="group.title" mode="out-in"></h2>
+                        <transition-group name="session-list" tag="div">
+                            <div
+                                v-for="session in group.sessions"
+                                :key="session.id"
+                                class="bg-white rounded-lg shadow-md mb-4 border-l-4 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-50 hover:shadow-xl h-32 group"
+                                :style="{ borderLeftColor: config[group.type].baseColor }"
+                            >
+                                <div class="flex items-stretch h-full cursor-pointer">
+                                    <div class="flex items-center w-3/4 p-4" @click="$emit('open-session', session)">
+                                        {% if current_user.is_expert %}
+                                        <div class="flex flex-col items-start w-1/3">
+                                            <img
+                                                class="h-16 w-16 rounded-xl bg-gray-400 object-cover mr-4 mb-2"
+                                                :src="session.user_picture_url || '/static/elements/default_pfp.svg'"
+                                                alt="Client"
+                                            />
+                                            <span
+                                                class="text-gray-500 text-sm"
+                                                v-text="formatDate(session.created_at)"
+                                            ></span>
+                                        </div>
+                                        <div class="flex flex-col justify-center w-1/3 pl-4">
+                                            <div class="text-lg font-bold mb-1" v-text="session.user_name"></div>
+                                            <div
+                                                class="text-gray-600 text-sm"
+                                                v-text="formatTime(session.created_at)"
+                                            ></div>
+                                        </div>
+                                        {% else %}
+                                        <div class="flex flex-col items-start w-1/3">
+                                            <img
+                                                class="h-16 w-16 rounded-xl bg-gray-400 object-cover mr-4 mb-2"
+                                                :src="session.expert_picture_url || '/static/elements/default_pfp.svg'"
+                                                alt="Expert"
+                                            />
+                                            <span
+                                                class="text-gray-500 text-sm"
+                                                v-text="formatDate(session.created_at)"
+                                            ></span>
+                                        </div>
+                                        <div class="flex flex-col justify-center w-1/3 pl-4">
+                                            <div class="text-lg font-bold mb-1" v-text="session.expert_name"></div>
+                                            <div
+                                                class="text-gray-600 text-sm"
+                                                v-text="formatTime(session.created_at)"
+                                            ></div>
+                                        </div>
+                                        {% endif %}
+                                        <div class="w-1/3 text-center">
+                                            <span
+                                                class="font-semibold text-gray-700"
+                                                v-text="session.type + ' session'"
+                                            ></span>
+                                        </div>
+                                    </div>
+                                    {% if current_user.is_expert %}
+                                    <div class="flex flex-col w-1/4 h-full pl-4">
+                                        <input
+                                            type="hidden"
+                                            id="csrf_token"
+                                            name="csrf_token"
+                                            value="{{ csrf_token() }}"
+                                        />
+
+                                        <button
+                                            @click="handleAction(session, group.type)"
+                                            @mouseleave="resetConfirm(session)"
+                                            class="cursor-pointer text-lg font-medium h-full w-full flex items-center justify-center text-black rounded-r-lg button-hover"
+                                            :style="{ '--current-color': getButtonColor(session, group.type) }"
+                                        >
+                                            <span
+                                                class="z-20"
+                                                v-if="!session.confirmRequested"
+                                                v-text="config[group.type].defaultText"
+                                            ></span>
+                                            <span class="z-20" v-else v-text="config[group.type].confirmText"></span>
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </transition-group>
+                    </div>
+                </transition-group>
+            </div>
+        </main>
+    </div>
+</template>
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            name="description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="og:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="twitter:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
+
+        <script src="/static/vue/base.js"></script>
+        <script src="/static/scripts/menu.js" defer></script>
+        <script src="/static/vue/superconnect.js" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/posthog-js@latest/dist/posthog.umd.min.js"></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+        <title>{% if current_user.is_expert %}My Sessions{% else %}My Bookings{% endif %} | Globalify</title>
+    </head>
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %}
+    {{ navbar.render(current_user) }}
+    {% import "components/superconnect/full_expert.html" as full_expert %}
+    {{ full_expert.render(current_user) }}
+    {% import "components/superconnect/session_info.html" as session_info %}
+    {{ session_info.render(current_user) }}
+
+    <body class="h-full overflow-x-clip" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div
+                    v-if="isFullExpertOpened || isSessionRequestOpened"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
+                ></div>
+            </transition>
+            {% if current_user.is_expert %}
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <full-expert-component
+                    v-if="isFullExpertOpened"
+                    :expert-id="current_user.id"
+                    @close-expert="isFullExpertOpened = false"
+                ></full-expert-component>
+            </transition>
+            {% endif %}
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <session-info-component
+                    v-if="isSessionInfoOpened"
+                    :session="selectedSession"
+                    :is-expert="{{ 'true' if current_user.is_expert else 'false' }}"
+                    @close-session-info="isSessionInfoOpened = false"
+                ></session-info-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div v-if="isSessionInfoOpened" class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"></div>
+            </transition>
+
+            <session-component
+                @open-session="openSessionInfo"
+                :is-expert="{{ 'true' if current_user.is_expert else 'false' }}"
+            ></session-component>
+        </div>
+    </body>
+</html>

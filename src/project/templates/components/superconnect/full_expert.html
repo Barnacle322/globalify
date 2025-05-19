@@ -1,0 +1,536 @@
+{% macro render(user) %}
+<template id="full-expert-template">
+    <article
+        class="fixed top-0 right-0 z-[60] flex h-full w-full flex-col overflow-y-scroll overscroll-contain bg-white transition-all"
+        :class="isExpanded ? 'md:w-full lg:w-full 2xl:w-full' : 'md:w-4/5 md:rounded-l-3xl lg:w-2/3 2xl:w-1/2'"
+    >
+        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+            <div v-if="isSessionRequestOpened" class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"></div>
+        </transition>
+        <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+            <session-request-component
+                v-if="isSessionRequestOpened"
+                :expert-id="expert.id"
+                @close-session="isSessionRequestOpened = false"
+            ></session-request-component>
+        </transition>
+        <nav
+            class="sticky top-0 right-0 z-10 flex w-full items-center justify-between px-4 py-4 sm:px-9 backdrop-blur-lg bg-white/80 border-b border-gray-100 shadow-sm"
+        >
+            <button
+                @click="toggleExpansion"
+                class="hidden rounded-full p-2 transition-all duration-200 hover:bg-sky-50 hover:text-sky-600 md:block"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                    v-if="!isExpanded"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+                    />
+                </svg>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                    v-else
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"
+                    />
+                </svg>
+            </button>
+            <button
+                @click="closeExpert"
+                class="ml-auto flex aspect-square h-full items-center justify-center rounded-full p-2 transition-all duration-200 hover:bg-red-50 hover:text-red-500"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </nav>
+        <div v-if="isLoading" class="grid h-full w-full place-content-center">
+            <div class="flex flex-col items-center gap-3">
+                <svg
+                    class="size-10 animate-spin text-sky-600"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                </svg>
+                <p class="text-sm text-gray-500">Loading expert profile...</p>
+            </div>
+        </div>
+        <div v-else-if="!isLoading">
+            <main class="mx-auto flex flex-col items-center gap-8 px-5 pt-8 pb-16 sm:px-10 max-w-3xl">
+                <!-- Header section with photo and name -->
+                <div class="relative w-full flex flex-col items-center rounded-3xl overflow-hidden bg-white shadow-md">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-sky-50 via-purple-50 to-blue-50 opacity-60 -z-10"
+                    ></div>
+                    <div class="w-full h-32 bg-gradient-to-r from-sky-500/20 to-blue-500/20"></div>
+
+                    <div class="relative -mt-16 flex flex-col items-center px-6 pb-6 w-full">
+                        <div class="ring-4 ring-white rounded-full shadow-lg p-1 bg-white">
+                            <img
+                                :src="expert.picture_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(expert.name)+'&background=0D9DE3&color=fff&size=60'"
+                                :alt="expert.name || 'Expert'"
+                                class="h-40 w-40 rounded-full object-cover shadow-inner"
+                            />
+                        </div>
+
+                        <!-- Expert's name with verified badge -->
+                        <div class="flex items-center gap-2 mt-5">
+                            <h2 class="text-2xl font-bold text-gray-900">
+                                <span v-text="expert.name"></span>
+                            </h2>
+                            <svg
+                                v-if="expert.verified"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                class="size-5 text-sky-600"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                        </div>
+
+                        <!-- Current position if available -->
+                        <div class="mt-2 mb-1" v-if="expert.position">
+                            <span
+                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-sky-100 text-sky-800"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-4"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z"
+                                    />
+                                </svg>
+                                <span v-text="expert.position"></span>
+                            </span>
+                        </div>
+
+                        <!-- Biography -->
+                        <div class="flex flex-col gap-4 w-full mt-2">
+                            <div
+                                v-if="expert.bio || expert.description"
+                                class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm"
+                            >
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3">About</h3>
+                                <p
+                                    class="text-gray-700 text-sm leading-relaxed"
+                                    v-if="expert.bio"
+                                    v-text="expert.bio"
+                                ></p>
+                                <p
+                                    class="text-gray-600 text-sm mt-2 leading-relaxed"
+                                    v-if="expert.description"
+                                    v-text="expert.description"
+                                ></p>
+                            </div>
+                        </div>
+
+                        <!-- Quick stats -->
+                        <div
+                            class="grid grid-cols-3 gap-4 w-full mt-4 bg-white rounded-xl border border-gray-100 p-4 shadow-sm"
+                        >
+                            <div class="flex flex-col items-center py-3">
+                                <span
+                                    class="text-lg font-bold text-sky-600"
+                                    v-text="getExperienceYears(expert.qualifications) || '0+'"
+                                ></span>
+                                <span class="text-xs text-gray-500 text-center">Years Experience</span>
+                            </div>
+                            <div class="flex flex-col items-center py-3 border-x border-gray-100">
+                                <span
+                                    class="text-lg font-bold text-sky-600"
+                                    v-text="expert.qualifications?.length || '0'"
+                                ></span>
+                                <span class="text-xs text-gray-500 text-center">Qualifications</span>
+                            </div>
+                            <div class="flex flex-col items-center py-3">
+                                <span
+                                    class="text-lg font-bold text-sky-600"
+                                    v-text="expert.session_requests?.length || '0'"
+                                ></span>
+                                <span class="text-xs text-gray-500 text-center">Consultations</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Qualifications -->
+                <div class="w-full mt-4">
+                    <div class="flex items-center gap-3 mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800">Qualifications</h3>
+                        <div class="h-px flex-grow bg-gray-200"></div>
+                    </div>
+
+                    <div
+                        v-if="!expert.qualifications || expert.qualifications.length === 0"
+                        class="text-center py-8 text-gray-500"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-8 mx-auto mb-2 text-gray-400"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                            />
+                        </svg>
+                        <p>No qualifications available</p>
+                    </div>
+
+                    <ul v-else class="space-y-6">
+                        <li
+                            v-for="qualification in expert.qualifications"
+                            :key="qualification.id"
+                            class="group p-6 border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 bg-white relative overflow-hidden hover:border-sky-200"
+                        >
+                            <div
+                                class="absolute top-0 left-0 w-1.5 h-full"
+                                :class="getQualificationColorClass(qualification.type)"
+                            ></div>
+
+                            <div class="flex flex-col gap-4 pl-4">
+                                <!-- Qualification Type Badge -->
+                                <div class="flex justify-between items-start">
+                                    <span
+                                        class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10"
+                                        v-text="qualification.type"
+                                    ></span>
+
+                                    <!-- Period -->
+                                    <div class="flex items-center gap-1.5 text-sm text-gray-500">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="size-4"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                                            />
+                                        </svg>
+                                        <span class="inline-flex items-center gap-1">
+                                            <span
+                                                v-text="formatDate(qualification.start_date) || 'Not specified'"
+                                            ></span>
+                                            <span class="mx-1">—</span>
+                                            <span
+                                                v-text="formatDate(qualification.end_date) || 'Current'"
+                                                :class="{'text-green-600 font-medium': !qualification.end_date}"
+                                            ></span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Qualification Title -->
+                                <h4
+                                    class="text-xl font-bold text-gray-900 group-hover:text-sky-700 transition-colors"
+                                    v-text="qualification.title"
+                                ></h4>
+
+                                <!-- Company section -->
+                                <div v-if="qualification.company_name" class="flex items-center gap-3 mt-1">
+                                    <div
+                                        class="w-9 h-9 bg-gray-100 rounded-md flex items-center justify-center text-gray-500 shadow-sm"
+                                    >
+                                        <span
+                                            class="text-xs font-bold"
+                                            v-text="(qualification.company_name || '').charAt(0).toUpperCase()"
+                                        ></span>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span
+                                            class="text-sky-600 font-medium"
+                                            v-text="qualification.company_name"
+                                        ></span>
+                                        <a
+                                            v-if="qualification.company_url"
+                                            :href="qualification.company_url"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="text-xs text-gray-500 hover:text-sky-600 hover:underline flex items-center gap-1"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke-width="1.5"
+                                                stroke="currentColor"
+                                                class="size-3"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
+                                                />
+                                            </svg>
+                                            Website
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Qualification Description -->
+                                <p
+                                    class="text-sm text-gray-700 leading-relaxed mt-2"
+                                    v-if="qualification.description"
+                                    v-text="qualification.description"
+                                ></p>
+
+                                <!-- Company Info (collapsible) -->
+                                <div
+                                    v-if="qualification.company_description"
+                                    class="mt-3 pt-3 border-t border-gray-100"
+                                >
+                                    <details class="group/details cursor-pointer">
+                                        <summary
+                                            class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-sky-600"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke-width="1.5"
+                                                stroke="currentColor"
+                                                class="size-4 transition-transform group-open/details:rotate-180"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                                                />
+                                            </svg>
+                                            About the company
+                                        </summary>
+                                        <p
+                                            class="pl-6 mt-2 text-sm text-gray-600 leading-relaxed"
+                                            v-text="qualification.company_description"
+                                        ></p>
+                                    </details>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Contact Information Section -->
+                <div class="w-full mt-4">
+                    <div class="flex items-center gap-3 mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800">Contact Information</h3>
+                        <div class="h-px flex-grow bg-gray-200"></div>
+                    </div>
+
+                    <div v-if="!hasContactInfo" class="text-center py-8 text-gray-500">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-8 mx-auto mb-2 text-gray-400"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                            />
+                        </svg>
+                        <p>No contact information available</p>
+                    </div>
+
+                    <ul v-else class="space-y-3">
+                        <!-- LinkedIn -->
+                        <li
+                            v-if="expert.linkedin"
+                            class="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white hover:border-sky-100 transition-colors shadow-sm"
+                        >
+                            <div class="flex-shrink-0 p-2 bg-blue-50 rounded-lg">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="size-5 text-blue-600"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        fill="currentColor"
+                                        d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="text-sm font-medium text-gray-700">LinkedIn</h4>
+                                <a
+                                    :href="expert.linkedin"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-sky-600 text-sm hover:underline truncate block"
+                                    v-text="expert.linkedin"
+                                ></a>
+                            </div>
+                        </li>
+
+                        <!-- Twitter -->
+                        <li
+                            v-if="expert.twitter"
+                            class="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white hover:border-sky-100 transition-colors shadow-sm"
+                        >
+                            <div class="flex-shrink-0 p-2 bg-blue-50 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-5 text-sky-500" viewBox="0 0 24 24">
+                                    <path
+                                        fill="currentColor"
+                                        d="M22.46 6c-.77.35-1.6.58-2.46.69c.88-.53 1.56-1.37 1.88-2.38c-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29c0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15c0 1.49.75 2.81 1.91 3.56c-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07a4.28 4.28 0 0 0 4 2.98a8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21C16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56c.84-.6 1.56-1.36 2.14-2.23z"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="text-sm font-medium text-gray-700">Twitter</h4>
+                                <a
+                                    :href="expert.twitter"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-sky-600 text-sm hover:underline truncate block"
+                                    v-text="expert.twitter"
+                                ></a>
+                            </div>
+                        </li>
+
+                        <!-- Email -->
+                        <li
+                            v-if="expert.email"
+                            class="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white hover:border-sky-100 transition-colors shadow-sm"
+                        >
+                            <div class="flex-shrink-0 p-2 bg-amber-50 rounded-lg">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-5 text-amber-600"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="text-sm font-medium text-gray-700">Email</h4>
+                                <a
+                                    :href="'mailto:' + expert.email"
+                                    class="text-sky-600 text-sm hover:underline truncate block"
+                                    v-text="expert.email"
+                                ></a>
+                            </div>
+                        </li>
+
+                        <!-- Phone -->
+                        <li
+                            v-if="expert.phone_number"
+                            class="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white hover:border-sky-100 transition-colors shadow-sm"
+                        >
+                            <div class="flex-shrink-0 p-2 bg-green-50 rounded-lg">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-5 text-green-600"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="text-sm font-medium text-gray-700">Phone</h4>
+                                <a
+                                    :href="'tel:' + expert.phone_number"
+                                    class="text-sky-600 text-sm hover:underline truncate block"
+                                    v-text="expert.phone_number"
+                                ></a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Contact section -->
+                <div class="w-full mt-8 pt-6 border-t border-gray-200">
+                    <button
+                        class="w-full py-3.5 px-4 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 group"
+                        @click="isSessionRequestOpened = true"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-5 transition-transform group-hover:scale-110"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"
+                            />
+                        </svg>
+                        Connect with Expert
+                    </button>
+                </div>
+            </main>
+        </div>
+    </article>
+</template>
+{% endmacro %}

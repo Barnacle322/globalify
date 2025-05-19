@@ -76,3 +76,29 @@ class SearchHistoryType(Enum):
     INVESTOR = "investor"
     INVESTMENT_FIRM = "investment_firm"
     COMPANY = "company"
+
+
+class SessionStatus(Enum):
+    UPCOMING = "upcoming"
+    CANCELED = "canceled"
+    DELETED = "deleted"
+    PENDING = "pending"
+    PAST = "past"
+
+
+class SessionType(Enum):
+    TRAINING = "training"
+    BUSINESS = "business"
+    INTRO = "intro"
+    SHORT = "short"
+    DEMO = "demo"
+    LONG = "long"
+
+
+class QualificationType(Enum):
+    EDUCATION = "education"
+    FREELANCE = "freelance"
+    CONTRACT = "contract"
+    OFFICE = "office"
+    REMOTE = "remote"
+    TRAINEE = "trainee"

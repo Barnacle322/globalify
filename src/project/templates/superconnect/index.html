@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <!-- Primary Meta Tags -->
+        <meta name="title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            name="description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://globalify.xyz/" />
+        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="og:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="og:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://globalify.xyz/" />
+        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
+        <meta
+            property="twitter:description"
+            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
+        />
+        <meta property="twitter:image" content="https://globalify.xyz/static/elements/metapreview.png" />
+
+        <link rel="stylesheet" href="/static/css/main.css" />
+        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
+
+        <!-- Vue -->
+        <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.min.js"></script>
+
+        <script src="/static/vue/base.js"></script>
+        <script src="/static/scripts/menu.js" defer></script>
+        <script src="/static/vue/superconnect.js" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/posthog-js@latest/dist/posthog.umd.min.js"></script>
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+        <title>Superconnect | Globalify</title>
+    </head>
+
+    <!-- prettier-ignore -->
+    {% import "components/navbar.html" as navbar %}
+    {{ navbar.render(current_user) }}
+    {% import "components/superconnect/full_expert.html" as full_expert %}
+    {{ full_expert.render(current_user) }}
+    {% import "components/superconnect/session_request.html" as session_request %}
+    {{ session_request.render() }}
+
+    <body class="h-full overflow-x-clip bg-gray-50" id="app">
+        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
+
+        <div class="max-w-8xl relative mx-auto flex h-full min-h-screen w-full">
+            <aside-component :minified="asideMinified"></aside-component>
+            <transition enter-active-class="pop-in" leave-active-class="pop-out">
+                <div
+                    v-if="asideExpanded"
+                    @click="asideExpanded = false"
+                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
+                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <div
+                    v-if="isFullExpertOpened || isSessionRequestOpened"
+                    class="fixed top-0 left-0 z-50 h-full w-full bg-black/70"
+                ></div>
+            </transition>
+            <transition enter-active-class="animate-slide-in-right" leave-active-class="animate-slide-out-right">
+                <full-expert-component
+                    v-if="isFullExpertOpened"
+                    :expert-id="selectedExpertId"
+                    @close-expert="isFullExpertOpened = false"
+                ></full-expert-component>
+            </transition>
+            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+                <session-request-component
+                    v-if="isSessionRequestOpened"
+                    :expert-id="selectedExpertId"
+                    @close-session="isSessionRequestOpened = false"
+                ></session-request-component>
+            </transition>
+
+            <div class="relative w-full">
+                <!-- Добавить после заголовка и перед фильтрами -->
+                <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
+                    <div class="flex h-full items-center justify-between px-4">
+                        <div class="flex gap-5 text-sm">
+                            {% if not current_user.is_expert %}
+                            <a
+                                href="/expert/list"
+                                class="flex items-center justify-center gap-2 px-3 py-2 border-b-2 border-sky-500 font-medium transition-colors ease-in-out"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+                                    />
+                                </svg>
+                                Experts
+                            </a>
+                            <a
+                                href="/expert/sessions"
+                                class="flex items-center justify-center gap-2 px-3 py-2 font-medium transition-colors ease-in-out"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"
+                                    />
+                                </svg>
+                                My Bookings
+                            </a>
+
+                            {% else %}
+                            <a
+                                href="/expert/list"
+                                class="flex items-center justify-center gap-2 px-3 py-2 border-b-2 border-sky-500 font-medium transition-colors ease-in-out"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+                                    />
+                                </svg>
+                                Experts
+                            </a>
+                            <a
+                                href="/expert/sessions"
+                                class="flex items-center justify-center gap-2 px-3 py-2 font-medium transition-colors ease-in-out"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"
+                                    />
+                                </svg>
+                                My Sessions
+                            </a>
+                            <a
+                                href="/expert/profile"
+                                class="flex items-center justify-center gap-2 px-3 py-2 font-medium transition-colors ease-in-out"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    aria-hidden="true"
+                                    class="size-6 shrink-0"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
+                                    ></path>
+                                </svg>
+                                My profile
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </nav>
+                <!-- Header section -->
+                <div class="mb-10 text-center md:text-left p-3">
+                    <h1 class="text-3xl font-bold text-gray-900 md:text-4xl">Connect with Global Experts</h1>
+                    <p class="mt-2 text-gray-600">
+                        Find the perfect mentor to help expand your business internationally
+                    </p>
+                </div>
+
+                <!-- Обновить секцию с фильтрами и поиском: -->
+                <div class="mb-8 flex flex-wrap gap-4 rounded-xl bg-white p-4 m-3 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <label for="expertiseFilter" class="text-sm font-medium text-gray-700">Expertise:</label>
+                        <select
+                            id="expertiseFilter"
+                            v-model="filters.expertise"
+                            @change="loadExperts(1)"
+                            class="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                        >
+                            <option value="All">All</option>
+                            <option
+                                v-for="qualificationType in qualificationTypes"
+                                :key="qualificationType.value"
+                                :value="qualificationType.value"
+                                v-text="qualificationType.name"
+                            ></option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2 ml-auto">
+                        <input
+                            type="text"
+                            v-model="filters.search"
+                            @input="debouncedSearch"
+                            placeholder="Search experts..."
+                            class="rounded-md border border-gray-300 px-4 py-1.5 text-sm w-full md:w-60"
+                        />
+                    </div>
+                </div>
+
+                <!-- Обновить секцию отображения экспертов: -->
+                <div class="relative">
+                    <!-- Индикатор загрузки -->
+                    <div v-if="loading" class="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                        <div class="flex flex-col items-center gap-3">
+                            <svg
+                                class="size-10 animate-spin text-indigo-600"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                ></circle>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                            </svg>
+                            <p class="text-sm text-gray-500">Loading experts...</p>
+                        </div>
+                    </div>
+
+                    <!-- Список экспертов -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 m-3">
+                        <div
+                            v-for="expert in experts"
+                            :key="expert.id"
+                            class="group flex flex-col rounded-2xl bg-white overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-xl hover:border-sky-200 cursor-pointer"
+                            @click="openExpert(expert.id)"
+                        >
+                            <!-- Expert header with gradient background -->
+                            <div
+                                class="relative h-28 w-full bg-gradient-to-r from-sky-500/20 to-blue-500/20 overflow-visible"
+                            >
+                                <!-- Profile image -->
+                                <div class="absolute bottom-0 left-6 transform translate-y-1/2">
+                                    <div class="ring-4 ring-white rounded-full p-0.5 bg-white shadow-lg">
+                                        <img
+                                            :src="expert.picture_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(expert.name)+'&background=0D9DE3&color=fff&size=60'"
+                                            :alt="expert.name"
+                                            class="h-20 w-20 rounded-full object-cover"
+                                            @error="setDefaultImage($event, expert.name)"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Expert info -->
+                            <div class="flex flex-1 flex-col p-6 pt-12">
+                                <div class="mb-4">
+                                    <div class="flex items-center justify-between">
+                                        <h3
+                                            class="font-bold text-xl text-sky-600 transition-colors"
+                                            v-text="expert.name"
+                                        ></h3>
+                                    </div>
+
+                                    <!-- Expertise badges -->
+                                    <div class="mt-1.5 flex flex-wrap gap-1.5">
+                                        <span
+                                            v-if="expert.position"
+                                            class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"
+                                            v-text="expert.position"
+                                        >
+                                        </span>
+
+                                        <span
+                                            v-for="qualification in expert.qualifications.slice(0, 1)"
+                                            :key="qualification.id"
+                                            class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"
+                                            v-text="qualification.type"
+                                        >
+                                        </span>
+
+                                        <span
+                                            v-if="expert.qualifications && expert.qualifications.length > 1"
+                                            class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800"
+                                            v-text="'+' + (expert.qualifications.length - 1) + ' more'"
+                                        >
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Bio -->
+                                <p class="text-sm text-gray-600 line-clamp-2 flex-grow mb-4" v-text="expert.bio"></p>
+
+                                <!-- Stats row -->
+                                <div
+                                    class="mt-auto flex items-center justify-between text-xs text-gray-500 border-t border-gray-100 pt-4"
+                                >
+                                    <div class="flex items-center gap-1">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="size-4"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z"
+                                            />
+                                        </svg>
+                                        <span v-text="'Experience: ' + expert.experience_years + ' years'"></span>
+                                    </div>
+
+                                    <!-- Book button -->
+                                    <button
+                                        class="ml-auto inline-flex items-center gap-1 rounded-full bg-sky-500 px-3.5 py-1.5 text-xs font-medium text-white transition-all hover:bg-sky-600 group-hover:shadow-md"
+                                        @click.stop="openSessionRequest(expert.id)"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="size-3.5"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                                            />
+                                        </svg>
+                                        Book Session
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Пустое состояние -->
+                    <div
+                        v-if="experts.length === 0 && !loading"
+                        class="flex flex-col items-center justify-center py-16 text-center"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-16 mb-4 text-gray-400"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                            />
+                        </svg>
+                        <h3 class="text-xl font-medium text-gray-900">No experts found</h3>
+                        <p class="mt-2 text-gray-600">We couldn't find any experts matching your criteria.</p>
+                    </div>
+
+                    <!-- Пагинация Vue -->
+                    <div class="mt-10 flex items-center justify-center" v-if="pagination.pages > 1">
+                        <nav class="flex items-center gap-1">
+                            <!-- Previous page button -->
+                            <button
+                                @click="loadExperts(pagination.prev_num)"
+                                :disabled="!pagination.has_prev"
+                                class="rounded-md px-2 py-1.5 text-sm"
+                                :class="pagination.has_prev ? 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-600' : 'text-gray-300 cursor-not-allowed'"
+                            >
+                                <span class="sr-only">Previous</span>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M15.75 19.5L8.25 12l7.5-7.5"
+                                    />
+                                </svg>
+                            </button>
+
+                            <!-- First page -->
+                            <button
+                                v-if="startPage > 1"
+                                @click="loadExperts(1)"
+                                class="rounded-md px-3 py-1.5 text-sm"
+                                :class="pagination.page === 1 ? 'font-medium bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-indigo-50 hover:text-indigo-600'"
+                                v-text="1"
+                            ></button>
+
+                            <!-- Ellipsis if needed -->
+                            <span v-if="startPage > 2" class="px-2 text-gray-400" v-text="'...'"></span>
+
+                            <!-- Page numbers -->
+                            <button
+                                v-for="pageNum in pageNumbers"
+                                :key="pageNum"
+                                @click="loadExperts(pageNum)"
+                                class="rounded-md px-3 py-1.5 text-sm"
+                                :class="pagination.page === pageNum ? 'font-medium bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-indigo-50 hover:text-indigo-600'"
+                                v-text="pageNum"
+                            ></button>
+
+                            <!-- Ellipsis if needed -->
+                            <span
+                                v-if="endPage < pagination.pages - 1"
+                                class="px-2 text-gray-400"
+                                v-text="'...'"
+                            ></span>
+
+                            <!-- Last page -->
+                            <button
+                                v-if="endPage < pagination.pages"
+                                @click="loadExperts(pagination.pages)"
+                                class="rounded-md px-3 py-1.5 text-sm"
+                                :class="pagination.page === pagination.pages ? 'font-medium bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-indigo-50 hover:text-indigo-600'"
+                                v-text="pagination.pages"
+                            ></button>
+
+                            <!-- Next page button -->
+                            <button
+                                @click="loadExperts(pagination.next_num)"
+                                :disabled="!pagination.has_next"
+                                class="rounded-md px-2 py-1.5 text-sm"
+                                :class="pagination.has_next ? 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-600' : 'text-gray-300 cursor-not-allowed'"
+                            >
+                                <span class="sr-only">Next</span>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                                    />
+                                </svg>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

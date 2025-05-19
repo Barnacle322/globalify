@@ -1,0 +1,157 @@
+{% macro render() %}
+<template id="session-request-template">
+    <article
+        class="fixed top-1/2 right-1/2 z-50 flex w-10/12 translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-3xl bg-white px-8 py-6 transition-all sm:w-1/2 sm:rounded-xl xl:w-2/5"
+    >
+        <div class="flex items-start justify-between">
+            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+            <span class="text-dark text-xl font-medium">Request a session with expert</span>
+            <button
+                @click="closeSession"
+                class="rounded-lg p-1 transition-colors duration-75 ease-in-out hover:bg-gray-300"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-6 w-6 cursor-pointer"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div
+            v-if="errorMessage"
+            class="flex items-center p-3 mb-2 rounded-lg bg-red-50 text-red-700 border border-red-200"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2 flex-shrink-0"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+            >
+                <path
+                    fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                    clip-rule="evenodd"
+                />
+            </svg>
+            <span v-text="errorMessage"></span>
+        </div>
+
+        <div v-if="expert" class="flex items-center gap-3 mb-4">
+            <img
+                :src="expert.picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(expert.name || 'Expert')}&background=0D9DE3&color=fff&size=60`"
+                :alt="expert.name || 'Expert'"
+                class="h-12 w-12 rounded-full object-cover"
+                @error="setDefaultImage($event, expert.name || 'Expert')"
+            />
+            <div>
+                <h3 class="font-medium text-gray-900" v-text="expert.name || 'Expert'"></h3>
+                <div class="mt-2 mb-1" v-if="expert.position">
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-sky-100 text-sky-800"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-4"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z"
+                            />
+                        </svg>
+                        <span v-text="expert.position"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="expert && expert.price" class="bg-sky-50 rounded-lg p-4 mb-2">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-5 h-5 text-sky-600"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                    </svg>
+                    <span class="font-medium text-gray-700">Session Rate</span>
+                </div>
+                <div>
+                    <span class="text-xl font-bold text-sky-700">$<span v-text="expert.price"></span></span>
+                </div>
+            </div>
+            <p class="text-xs text-gray-600 mt-2">
+                Actual duration and final price will be discussed after your request is accepted.
+            </p>
+        </div>
+
+        <p class="text-sm text-gray-600 my-2">
+            By requesting a session, you're expressing interest in consulting with this expert. They will contact you to
+            arrange a convenient time for both of you.
+        </p>
+
+        <div class="space-y-2 mb-2">
+            <label for="session-notes" class="block text-sm font-medium text-gray-700">Your message (optional)</label>
+            <textarea
+                id="session-notes"
+                v-model="notes"
+                rows="3"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm"
+                placeholder="Let the expert know what you'd like to discuss"
+            ></textarea>
+        </div>
+
+        <div class="flex justify-between items-center gap-3">
+            <div v-if="loading" class="flex items-center">
+                <svg
+                    class="animate-spin mr-2 h-4 w-4 text-sky-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                </svg>
+                <span class="text-sm text-gray-600">Processing request...</span>
+            </div>
+            <div class="flex justify-end gap-3 ml-auto">
+                <button
+                    @click="closeSession"
+                    class="cursor-pointer rounded-lg border border-gray-300 px-3 py-2 transition-colors duration-300 hover:bg-gray-300"
+                >
+                    Cancel
+                </button>
+                <button
+                    @click="requestSession"
+                    class="cursor-pointer rounded-lg bg-sky-500 px-3 py-2 text-white transition-colors duration-300 hover:bg-sky-600"
+                    :disabled="loading"
+                >
+                    <span>Request Session</span>
+                </button>
+            </div>
+        </div>
+    </article>
+</template>
+{% endmacro %}

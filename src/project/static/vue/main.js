@@ -1771,6 +1771,42 @@ const app = createApp({
                 this.isSearchHistoryVisible = false;
             }, 200);
         },
+        addQualification() {
+            if (this.qualifications.length >= this.maxQualifications) {
+                this.qualificationError = `You can't add more than ${this.maxQualifications} qualifications`;
+                return;
+            }
+            this.qualifications.push({
+                type: this.qualificationTypes[0],
+                title: "",
+                start_date: null,
+                end_date: null,
+                description: "",
+                company_name: "",
+                company_url: "",
+            });
+        },
+        removeQualification(index) {
+            this.qualifications.splice(index, 1);
+        },
+        validateQualifications() {
+            const validQualifications = [];
+            const invalidQualifications = [];
+
+            this.qualifications.forEach((qualification, index) => {
+                if (!qualification.type || !qualification.title) {
+                    invalidQualifications.push(index + 1);
+                    return;
+                }
+                validQualifications.push(qualification);
+            });
+
+            if (invalidQualifications.length > 0) {
+                this.qualificationError = `Please fill in required fields for qualification(s) #${invalidQualifications.join(", #")}`;
+            }
+
+            return validQualifications;
+        },
     },
     data() {
         return {

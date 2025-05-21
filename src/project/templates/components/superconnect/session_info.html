@@ -210,22 +210,16 @@
                                     </span>
                                     <span class="text-gray-900 font-semibold" v-else> Not available </span>
                                     <span
-                                        v-if="session.paid_amount"
-                                        class="ml-2 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium"
-                                    >
-                                        Paid
-                                    </span>
-                                    <span
-                                        v-else-if="session.status === 'canceled' && session.refund_id"
+                                        v-if="session.status === 'canceled' && session.refund_id"
                                         class="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium"
                                     >
                                         Refunded
                                     </span>
                                     <span
-                                        v-else-if="session.status === 'pending'"
-                                        class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium"
+                                        v-else="session.paid_amount"
+                                        class="ml-2 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium"
                                     >
-                                        Pending
+                                        Paid
                                     </span>
                                 </div>
                                 <p

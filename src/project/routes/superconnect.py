@@ -472,8 +472,11 @@ def get_user_sessions():
             notes=s_request.notes or "",
             type=s_request.type.value,
             status=s_request.status.value,
-            created_at=s_request.created_at.date(),
+            created_at=s_request.created_at,
             paid_amount=s_request.paid_amount,
+            refund_id=s_request.refund_id,
+            canceled_at=s_request.canceled_at if s_request.canceled_at else None,
+            payment_date=s_request.payment_date if s_request.payment_date else None,
         )
         session_list.append(session_data.model_dump())
 

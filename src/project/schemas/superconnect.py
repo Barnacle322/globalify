@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
@@ -45,4 +45,7 @@ class SessionSchema(BaseModel):
     type: str
     status: str
     paid_amount: float | None
-    created_at: date
+    refund_id: str | None
+    canceled_at: datetime | None
+    payment_date: datetime | None
+    created_at: datetime

@@ -78,7 +78,6 @@ const SessionRequestComponent = defineComponent({
             expert: null,
             loading: false,
             notes: "",
-            error: null,
             errorMessage: "",
         };
     },
@@ -296,28 +295,7 @@ const SessionInfoComponent = defineComponent({
         },
     },
     data() {
-        return {
-            statusClasses: {
-                pending: "bg-yellow-100 text-yellow-800",
-                upcoming: "bg-green-100 text-green-800",
-                past: "bg-gray-100 text-gray-800",
-                canceled: "bg-red-100 text-red-800",
-            },
-            statusText() {
-                switch (this.session.status) {
-                    case "pending":
-                        return "Awaiting Approval";
-                    case "upcoming":
-                        return "Upcoming";
-                    case "past":
-                        return "Completed";
-                    case "canceled":
-                        return "Canceled";
-                    default:
-                        return this.session.status;
-                }
-            },
-        };
+        return {};
     },
 });
 
@@ -364,14 +342,6 @@ const SessionComponent = defineComponent({
                 this.sessions = [];
             }
         },
-        async handleAction(session, groupType) {
-            const actionConfig = this.config[groupType];
-            if (!session.confirmRequested) {
-                session.confirmRequested = true;
-            } else {
-                await this.processAction(session, actionConfig);
-            }
-        },
         sortSessions(sessions) {
             return [...sessions].sort((a, b) => {
                 const dateA = new Date(a.created_at);
@@ -398,16 +368,6 @@ const SessionComponent = defineComponent({
         },
         toggleSortOrder() {
             this.sortOrder = this.sortOrder === "newest" ? "oldest" : "newest";
-        },
-        toggleFilter(type) {
-            this.filters[type] = !this.filters[type];
-        },
-
-        resetConfirm(session) {
-            session.confirmRequested = false;
-        },
-        getButtonColor(session, groupType) {
-            return session.confirmRequested ? this.config[groupType].confirmColor : this.config[groupType].baseColor;
         },
         handleClickOutside(event) {
             const dropdown = this.$refs.dropdownContainer;

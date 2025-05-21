@@ -337,7 +337,6 @@ def checkout_cancel(session_request_id):
         session_request.status = SessionStatus.CANCELED
         db.session.commit()
 
-    print("Payment was canceled. You can try again later.", "info")
     return redirect(url_for("superconnect.expert_list"))
 
 
@@ -366,7 +365,6 @@ def change_session_status():
 
             if session.stripe_payment_intent_id:
                 payment_intent = stripe.PaymentIntent.retrieve(session.stripe_payment_intent_id)
-                print("Payment intent status:", payment_intent)
                 try:
                     payment_intent = stripe.PaymentIntent.retrieve(session.stripe_payment_intent_id)
                     print("Payment intent status:", payment_intent.status)
@@ -447,10 +445,8 @@ def get_user_sessions():
         return jsonify({"error": "User not found"}), 404
 
     if not user.is_expert:
-        print("User is a client")
         session_requests = SessionRequest.get_all_by_user_id(current_user.id)
     else:
-        print("User is an expert")
         expert = Expert.get_by_user_id(current_user.id)
         if not expert:
             return jsonify({"error": "Expert not found"}), 404

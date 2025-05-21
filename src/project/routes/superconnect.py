@@ -33,6 +33,7 @@ from ..utils.enums import SessionType, Status, StatusType
 from ..utils.errors.error_messages import PICTURE_NOT_LOADED
 from ..utils.google_helpers.google_storage import upload_picture
 from ..utils.scraper import add_https_prefix
+from ..utils.stripe import get_or_create_stripe_price, get_or_create_stripe_product
 
 superconnect = Blueprint("superconnect", __name__)
 
@@ -191,54 +192,6 @@ def get_expert_by_id(expert_id):
     return jsonify({"expert": expert_data.model_dump()})
 
 
-def get_or_create_stripe_product(expert):
-    """Получает существующий или создает новый продукт Stripe для эксперта"""
-    stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
-
-    # Ищем существующий продукт
-    products = stripe.Product.list(limit=100, active=True, expand=["data.default_price"])
-
-    for product in products.data:
-        if product.metadata.get("expert_id") == str(expert.id):
-            return product.id
-
-    # Создаем новый продукт если не найден
-    product = stripe.Product.create(
-        name=f"Expert Session: {expert.full_name}",
-        description=expert.bio[:500] if expert.bio else f"Expert session with {expert.full_name}",
-        metadata={
-            "expert_id": str(expert.id),
-            "expert_name": str(expert.full_name),
-            "expert_email": str(expert.email),
-            "type": "expert_session",
-        },
-        images=[expert.picture_url] if expert.picture_url else [],
-        active=True,
-    )
-    return product.id
-
-
-def get_or_create_stripe_price(product_id, amount):
-    """Получает существующую или создает новую цену для продукта"""
-    stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
-
-    # Ищем существующую цену
-    prices = stripe.Price.list(product=product_id, active=True, limit=10)
-
-    # Ищем цену с нужной суммой
-    for price in prices.data:
-        if price.unit_amount == int(amount * 100):
-            return price.id
-
-    # Создаем новую цену
-    price = stripe.Price.create(
-        unit_amount=int(amount * 100),
-        currency="usd",
-        product=product_id,
-    )
-    return price.id
-
-
 def create_payment_intent(expert, user, session_type, notes):
     """Создает PaymentIntent с manual capture"""
     stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
@@ -272,7 +225,6 @@ def create_checkout_session(expert_id):
     session_type = form_data.get("session_type", "consultation")
 
     try:
-        # Создаем запрос на сессию
         session_request = SessionRequest(
             user_id=current_user.id,
             expert_id=expert.id,
@@ -280,19 +232,12 @@ def create_checkout_session(expert_id):
             type=SessionType(session_type),
             status=SessionStatus.PENDING,
         )
-
-        # Создаем PaymentIntent с manual capture
-        payment_intent = create_payment_intent(expert, current_user, session_type, notes)
-
-        session_request.stripe_payment_intent_id = payment_intent.id
         db.session.add(session_request)
         db.session.flush()
 
-        # Получаем или создаем продукт и цену Stripe
         product_id = get_or_create_stripe_product(expert)
         price_id = get_or_create_stripe_price(product_id, expert.price)
 
-        # Создаем checkout сессию
         success_url = (
             url_for("superconnect.checkout_success", session_request_id=session_request.id, _external=True)
             + "?session_id={CHECKOUT_SESSION_ID}"
@@ -319,9 +264,8 @@ def create_checkout_session(expert_id):
                 "session_request_id": str(session_request.id),
                 "user_id": str(current_user.id),
                 "expert_id": str(expert.id),
-                "payment_intent_id": payment_intent.id,
             },
-            expires_at=int((datetime.now(UTC) + timedelta(days=3)).timestamp()),  # Сессия истекает через 3 дня
+            expires_at=int((datetime.now(UTC) + timedelta(hours=23, minutes=59)).timestamp()),
         )
 
         session_request.stripe_session_id = checkout_session.id
@@ -351,11 +295,27 @@ def checkout_success(session_request_id):
 
     try:
         stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
-        checkout_session = stripe.checkout.Session.retrieve(session_id)
-        # Проверяем статус платежа
+        checkout_session = stripe.checkout.Session.retrieve(
+            session_id,
+            expand=["payment_intent"],
+        )
+
+        print("Checkout session:", checkout_session)
+
         if checkout_session.payment_status == "paid":
-            # send_expert_notification(session_request)
-            # send_user_confirmation(session_request)
+            payment_intent = checkout_session.payment_intent
+            if isinstance(payment_intent, stripe.PaymentIntent) and hasattr(payment_intent, "id"):
+                session_request.stripe_payment_intent_id = payment_intent.id
+            else:
+                raise ValueError("Invalid payment_intent object or missing 'id' attribute")
+
+            if isinstance(payment_intent, stripe.PaymentIntent) and hasattr(payment_intent, "amount"):
+                session_request.paid_amount = payment_intent.amount / 100  # конвертируем центы в доллары
+            else:
+                raise ValueError("Invalid payment_intent object or missing 'amount' attribute")
+            session_request.payment_date = datetime.now(UTC)
+
+            db.session.commit()
 
             print("Payment successful! Your session request has been sent to the expert.", "success")
         else:
@@ -374,7 +334,6 @@ def checkout_success(session_request_id):
 def checkout_cancel(session_request_id):
     session_request = SessionRequest.get_by_id(session_request_id)
     if session_request:
-        # Обновляем статус запроса на отмененный ########### Или удаление сессии
         session_request.status = SessionStatus.CANCELED
         db.session.commit()
 
@@ -400,32 +359,71 @@ def change_session_status():
     if session.expert_id != current_user.id:
         return jsonify({"error": "Access denied"}), 403
 
-    if action == "confirm":
+    if action == SessionStatus.UPCOMING.value:
         try:
             if session.status != SessionStatus.PENDING:
                 return jsonify({"error": "Session cannot be modified"}), 400
-            # Проверяем, что платеж не был отменен
+
             if session.stripe_payment_intent_id:
                 payment_intent = stripe.PaymentIntent.retrieve(session.stripe_payment_intent_id)
-                if payment_intent.status == "canceled":
-                    return jsonify({"error": "Payment was canceled"}), 400
+                print("Payment intent status:", payment_intent)
+                try:
+                    payment_intent = stripe.PaymentIntent.retrieve(session.stripe_payment_intent_id)
+                    print("Payment intent status:", payment_intent.status)
 
-            # Захватываем платеж (деньги переводятся эксперту)
-            stripe.PaymentIntent.capture(session.stripe_payment_intent_id)
-            session.status = SessionStatus.UPCOMING
+                    if payment_intent.status == "succeeded":
+                        session.status = SessionStatus.UPCOMING
+                    elif payment_intent.status == "canceled":
+                        return jsonify({"error": "Payment was canceled"}), 400
+                    elif payment_intent.status == "requires_payment_method":
+                        return jsonify(
+                            {"error": "Payment not completed. The client needs to complete payment first."}
+                        ), 400
+                    elif payment_intent.status == "requires_confirmation":
+                        payment_intent = stripe.PaymentIntent.confirm(session.stripe_payment_intent_id)
 
-            # send_session_confirmed_notification(session)
+                    if payment_intent.status == "requires_capture":
+                        stripe.PaymentIntent.capture(session.stripe_payment_intent_id)
+                    elif payment_intent.status != "succeeded":
+                        return jsonify({"error": f"Payment cannot be captured in status: {payment_intent.status}"}), 400
+
+                except stripe.error.StripeError as e:  # type: ignore
+                    print(f"Invalid request error with payment intent: {e}")
         except Exception as e:
+            print(f"Capture error: {str(e)}")
             return jsonify({"error": f"Capture failed: {str(e)}"}), 400
-    elif action == "cancel":
-        try:
-            # Отменяем платеж (возврат средств клиенту)
-            stripe.PaymentIntent.cancel(session.stripe_payment_intent_id)
-            session.status = SessionStatus.CANCELED
+    elif action == SessionStatus.CANCELED.value:
+        if session.status != SessionStatus.PENDING:
+            return jsonify({"error": "Session cannot be modified"}), 400
 
-            # send_session_declined_notification(session)
-        except Exception as e:
-            return jsonify({"error": f"Cancel failed: {str(e)}"}), 400
+        if session.stripe_payment_intent_id:
+            try:
+                stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
+
+                payment_intent = stripe.PaymentIntent.retrieve(session.stripe_payment_intent_id)
+
+                if payment_intent.status == "succeeded":
+                    refund = stripe.Refund.create(
+                        payment_intent=session.stripe_payment_intent_id, reason="requested_by_customer"
+                    )
+                    print(f"Refund created: {refund.id}")
+                    session.refund_id = refund.id
+
+                elif payment_intent.status == "requires_capture":
+                    stripe.PaymentIntent.cancel(session.stripe_payment_intent_id)
+                    print(f"Payment intent canceled: {session.stripe_payment_intent_id}")
+
+                session.status = SessionStatus.CANCELED
+                session.canceled_at = datetime.now(UTC)
+                session.canceled_by = "expert"
+
+            except Exception as e:
+                print(f"Error processing refund: {e}")
+                return jsonify({"error": f"Failed to process refund: {str(e)}"}), 500
+        else:
+            session.status = SessionStatus.CANCELED
+            session.canceled_at = datetime.now(UTC)
+            session.canceled_by = "expert"
 
     db.session.commit()
     return jsonify({"message": "Session status updated"}), 200
@@ -475,6 +473,7 @@ def get_user_sessions():
             type=s_request.type.value,
             status=s_request.status.value,
             created_at=s_request.created_at.date(),
+            paid_amount=s_request.paid_amount,
         )
         session_list.append(session_data.model_dump())
 
@@ -580,8 +579,8 @@ def update_expert(expert_id):
             start_date_str = qual_data.get("start_date")
             end_date_str = qual_data.get("end_date")
 
-            start_date = datetime.datetime.fromisoformat(start_date_str) if start_date_str else None
-            end_date = datetime.datetime.fromisoformat(end_date_str) if end_date_str else None
+            start_date = datetime.fromisoformat(start_date_str) if start_date_str else None
+            end_date = datetime.fromisoformat(end_date_str) if end_date_str else None
 
             if start_date and end_date and end_date < start_date:
                 return jsonify({"error": "Validation error: end_date cannot be before start_date"}), 400

@@ -250,30 +250,6 @@
                                             ></span>
                                         </div>
                                     </div>
-                                    {% if current_user.is_expert %}
-                                    <div class="flex flex-col w-1/4 h-full pl-4">
-                                        <input
-                                            type="hidden"
-                                            id="csrf_token"
-                                            name="csrf_token"
-                                            value="{{ csrf_token() }}"
-                                        />
-
-                                        <button
-                                            @click="handleAction(session, group.type)"
-                                            @mouseleave="resetConfirm(session)"
-                                            class="cursor-pointer text-lg font-medium h-full w-full flex items-center justify-center text-black rounded-r-lg button-hover"
-                                            :style="{ '--current-color': getButtonColor(session, group.type) }"
-                                        >
-                                            <span
-                                                class="z-20"
-                                                v-if="!session.confirmRequested"
-                                                v-text="config[group.type].defaultText"
-                                            ></span>
-                                            <span class="z-20" v-else v-text="config[group.type].confirmText"></span>
-                                        </button>
-                                    </div>
-                                    {% endif %}
                                 </div>
                             </div>
                         </transition-group>

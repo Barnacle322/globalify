@@ -44,4 +44,5 @@ class SessionSchema(BaseModel):
     user_picture_url: str | None
     type: str
     status: str
+    paid_amount: float | None
     created_at: date

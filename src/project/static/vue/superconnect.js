@@ -248,16 +248,12 @@ const SessionInfoComponent = defineComponent({
                 }
 
                 const actionMap = {
-                    approve: "upcoming",
-                    cancel: "canceled",
-                    delete: "deleted",
+                    upcoming: "upcoming",
+                    canceled: "canceled",
                 };
-                if (action === "delete") {
-                    this.$parent.sessions = this.$parent.sessions.filter((s) => s.id !== session.id);
-                } else {
-                    session.status = actionMap[action] || session.status;
-                    session.confirmRequested = false;
-                }
+
+                session.status = actionMap[action] || session.status;
+                session.confirmRequested = false;
 
                 this.$emit("close");
 
@@ -270,10 +266,20 @@ const SessionInfoComponent = defineComponent({
             }
         },
         formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString("en-US", {
+            if (!dateString) return "N/A";
+            const date = new Date(dateString);
+            return new Intl.DateTimeFormat("en-US", {
                 year: "numeric",
-                month: "long",
+                month: "short",
                 day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+            }).format(date);
+        },
+        formatPrice(price) {
+            return parseFloat(price).toLocaleString("en-US", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
             });
         },
         formatTime(timeString) {
@@ -363,38 +369,6 @@ const SessionComponent = defineComponent({
             } catch (error) {
                 console.error("Error fetching sessions:", error);
                 this.sessions = [];
-            }
-        },
-        async processAction(session, actionConfig) {
-            try {
-                const csrf_token = document.getElementById("csrf_token").value;
-                const response = await fetch("/expert/session/action/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrf_token,
-                    },
-                    body: JSON.stringify({
-                        session_id: session.id,
-                        action: actionConfig.nextStatus,
-                    }),
-                });
-
-                data = await response.json();
-                if (data.error) {
-                    console.error("Error changing session status:", data.error);
-                    return;
-                }
-
-                session.status = actionConfig.nextStatus;
-                session.confirmRequested = false;
-
-                this.$nextTick(() => {
-                    this.sessions = [...this.sessions];
-                });
-            } catch (error) {
-                console.error("Action failed:", error);
-                return;
             }
         },
         async handleAction(session, groupType) {

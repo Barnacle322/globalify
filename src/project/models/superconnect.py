@@ -140,6 +140,9 @@ class SessionRequest(MappedAsDataclass, db.Model, unsafe_hash=True):
         DateTime(timezone=True), server_default=func.now(), init=False
     )
 
+    canceled_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, init=False)
+    canceled_by: Mapped[str | None] = mapped_column(String(50), nullable=True, init=False)
+    refund_id: Mapped[str | None] = mapped_column(String(255), nullable=True, init=False)
     stripe_session_id: Mapped[str] = mapped_column(String, nullable=True, init=False)
     stripe_payment_intent_id: Mapped[str] = mapped_column(String, nullable=True, init=False)
     paid_amount: Mapped[float | None] = mapped_column(Float, nullable=True, init=False)

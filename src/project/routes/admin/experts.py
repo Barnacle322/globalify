@@ -260,7 +260,7 @@ def create_expert():
 
 
 # Регистрация эксперта через Stripe Connect (Express Account) ????????????
-# @expert.post("/stripe/connect/<int:id>")
+# @expert.post("/stripe/connect/<int:id>")x3
 # @admin_only
 # def connect_stripe():
 #     try:

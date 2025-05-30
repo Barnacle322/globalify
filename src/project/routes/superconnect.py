@@ -209,10 +209,45 @@ def create_payment_intent(expert, user, session_type, notes):
     )
 
 
-@superconnect.post("/create-checkout/<int:expert_id>")
+# @superconnect.post("/stripe-webhook")
+# def stripe_webhook():
+#     payload = request.get_data(as_text=True)
+#     sig_header = request.headers.get("Stripe-Signature")
+#     webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+#     try:
+#         event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+#     except ValueError as e:
+#         return jsonify({"error": "Invalid payload"}), 400
+#     except stripe.error.SignatureVerificationError as e:
+#         return jsonify({"error": "Invalid signature"}), 400
+
+#     # Логирование всех событий
+#     print(f"Webhook event received: {event.type}")
+
+#     # Обработка различных событий
+#     if event.type == "invoice.sent":
+#         invoice = event.data.object
+#         print(f"Invoice {invoice.id} sent to {invoice.customer_email}")
+
+#     if event.type == "invoice.payment_succeeded":
+#         invoice = event.data.object
+#         session_request_id = invoice.metadata.get("session_request_id")
+#         if session_request_id:
+#             session_request = SessionRequest.get_by_id(int(session_request_id))
+#             if session_request:
+#                 session_request.status = SessionStatus.PENDING
+#                 session_request.payment_date = datetime.now(UTC)
+#                 session_request.paid_amount = invoice.amount_paid / 100
+#                 db.session.commit()
+
+#     return jsonify({"status": "success"}), 200
+
+
+@superconnect.post("/book-session/<int:expert_id>")
 @check_user_info_complete
 @check_verification
-def create_checkout_session(expert_id):
+def book_session(expert_id):
     expert = Expert.get_by_id(expert_id)
     if not expert:
         return jsonify({"success": False, "error": "Expert not found"}), 404
@@ -235,47 +270,65 @@ def create_checkout_session(expert_id):
         db.session.add(session_request)
         db.session.flush()
 
+        stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
+
+        customers = stripe.Customer.list(email=current_user.email, limit=1)
+        if customers.data:
+            customer = customers.data[0]
+        else:
+            customer = stripe.Customer.create(
+                email=current_user.email,
+                name=current_user.user_info.full_name if hasattr(current_user, "user_info") else current_user.email,
+                metadata={"user_id": str(current_user.id)},
+            )
+
+        print(f"Stripe customer created or retrieved: {customer.id}")
+
         product_id = get_or_create_stripe_product(expert)
-        price_id = get_or_create_stripe_price(product_id, expert.price)
 
-        success_url = (
-            url_for("superconnect.checkout_success", session_request_id=session_request.id, _external=True)
-            + "?session_id={CHECKOUT_SESSION_ID}"
+        print(f"Stripe product created or retrieved: {product_id}")
+
+        price = stripe.Price.create(
+            unit_amount=int(expert.price * 100),
+            currency="usd",
+            product=product_id,
         )
 
-        cancel_url = url_for("superconnect.checkout_cancel", session_request_id=session_request.id, _external=True)
-
-        checkout_session = stripe.checkout.Session.create(
-            customer_email=current_user.email,
-            payment_method_types=["card"],
-            payment_intent_data={
-                "setup_future_usage": "off_session",  # Для будущих платежей
-            },
-            line_items=[
-                {
-                    "price": price_id,
-                    "quantity": 1,
-                }
-            ],
-            mode="payment",
-            success_url=success_url,
-            cancel_url=cancel_url,
-            metadata={
-                "session_request_id": str(session_request.id),
-                "user_id": str(current_user.id),
-                "expert_id": str(expert.id),
-            },
-            expires_at=int((datetime.now(UTC) + timedelta(hours=23, minutes=59)).timestamp()),
+        print(f"Stripe price created: {price.id}")
+        invoice = stripe.Invoice.create(
+            customer=customer.id,
+            collection_method="send_invoice",
+            days_until_due=7,
         )
 
-        session_request.stripe_session_id = checkout_session.id
+        invoice_item = stripe.InvoiceItem.create(
+            customer=customer.id,
+            price=price.id,
+            quantity=1,
+            invoice=invoice.id,  # type: ignore
+            description=f"Consultation with {expert.full_name}",
+        )
+
+        stripe.Invoice.send_invoice(invoice.id)  # type: ignore
+
+        print(f"Stripe invoice created: {invoice.id}")
+        print(f"Invoice hosted URL: {invoice}")
+
+        session_request.stripe_session_id = str(invoice.id)
         db.session.commit()
 
-        return jsonify({"success": True, "checkout_url": checkout_session.url, "session_id": checkout_session.id})
+        # 8. Возвращаем успешный ответ с URL просмотра счета
+        return jsonify(
+            {
+                "success": True,
+                "message": "Session request has been created. Payment invoice has been sent to your email.",
+                "invoice_url": "https://dashboard.stripe.com/invoices/" + invoice.id,  # type: ignore
+            }
+        )
 
     except Exception as e:
         db.session.rollback()
-        print(f"Error creating checkout session: {e}")
+        print(f"Error creating session request: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 

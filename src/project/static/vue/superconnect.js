@@ -16,7 +16,7 @@ const SessionRequestComponent = defineComponent({
         async requestSession() {
             const csrfToken = document.getElementById("csrf_token").value;
             try {
-                const response = await fetch(`/expert/create-checkout/${this.expertId}`, {
+                const response = await fetch(`/expert/book-session/${this.expertId}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -38,7 +38,7 @@ const SessionRequestComponent = defineComponent({
 
                 if (data.success) {
                     // Перенаправляем на Stripe Checkout
-                    window.location.href = data.checkout_url;
+                    window.location.href = data.invoice_url;
                 } else {
                     this.errorMessage = data.error || "Failed to create checkout session";
                 }

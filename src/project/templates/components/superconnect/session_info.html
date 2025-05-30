@@ -14,6 +14,7 @@
         ></div>
 
         <div class="p-8">
+            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <div class="mx-auto w-full">
                 <!-- Иконка статуса -->
                 <div class="flex justify-center items-center mb-6">
@@ -179,12 +180,59 @@
                     </div>
 
                     <!-- Additional notes -->
-                    <div class="flex">
-                        <div class="w-1/4 flex items-start mt-1">
+                    <div class="flex items-center">
+                        <div class="w-1/4 flex items-start">
                             <span class="text-gray-500 font-medium">Notes</span>
                         </div>
                         <div class="w-3/4">
                             <p class="text-gray-900" v-text="session.notes || 'No additional notes provided'"></p>
+                        </div>
+                    </div>
+
+                    <div class="flex mt-5 items-center">
+                        <div class="w-1/4 flex items-start">
+                            <span class="text-gray-500 font-medium">Payment</span>
+                        </div>
+                        <div class="w-3/4">
+                            <div class="flex flex-col">
+                                <div class="flex items-center">
+                                    <span
+                                        class="text-gray-900 font-semibold"
+                                        v-if="session.paid_amount"
+                                        v-text="formatPrice(session.paid_amount)"
+                                    >
+                                    </span>
+                                    <span
+                                        class="text-gray-900 font-semibold"
+                                        v-else-if="session.expert_price"
+                                        v-text="formatPrice(session.expert_price)"
+                                    >
+                                    </span>
+                                    <span class="text-gray-900 font-semibold" v-else> Not available </span>
+                                    <span
+                                        v-if="session.status === 'canceled' && session.refund_id"
+                                        class="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium"
+                                    >
+                                        Refunded
+                                    </span>
+                                    <span
+                                        v-else="session.paid_amount"
+                                        class="ml-2 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium"
+                                    >
+                                        Paid
+                                    </span>
+                                </div>
+                                <p
+                                    v-if="session.refund_id"
+                                    class="text-sm text-gray-600 mt-1"
+                                    v-text="formatDate(session.canceled_at)"
+                                ></p>
+                                <p
+                                    v-else-if="session.payment_date"
+                                    class="text-sm text-gray-600 mt-1"
+                                    v-text="formatDate(session.payment_date)"
+                                ></p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -205,40 +253,109 @@
                     </div>
                 </div>
 
-                <!-- Buttons -->
+                {% if user.is_expert %}
                 <div class="flex justify-end space-x-4 mt-6">
+                    <!-- Кнопка закрытия -->
                     <button
                         @click="closeSessionInfo"
-                        class="px-5 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                        class="px-5 py-2.5 bg-white border border-gray-300 shadow-sm text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50"
                     >
-                        Close
+                        <span class="flex items-center justify-center">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 mr-1.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                            </svg>
+                            Close
+                        </span>
                     </button>
 
+                    <!-- Кнопка отмены (условная) -->
                     <template v-if="session.status === 'pending' || session.status === 'upcoming'">
                         <button
-                            @click="processAction(session, 'cancel')"
-                            class="px-5 py-2 border border-red-500 text-red-600 font-medium rounded-lg hover:bg-red-50 transition-colors"
+                            @click="processAction(session, 'canceled')"
+                            class="px-5 py-2.5 bg-white border border-red-500 shadow-sm text-red-600 font-medium rounded-lg hover:bg-red-50 hover:shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                         >
-                            Cancel Session
+                            <span class="flex items-center justify-center">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-4 w-4 mr-1.5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                                Cancel Session
+                            </span>
                         </button>
                     </template>
 
+                    <!-- Кнопка подтверждения (условная) -->
                     <button
                         v-if="session.status === 'pending'"
-                        @click="processAction(session, 'approve')"
-                        class="px-5 py-2 bg-sky-500 text-white font-medium rounded-lg hover:bg-sky-600 transition-colors"
+                        @click="processAction(session, 'upcoming')"
+                        class="px-5 py-2.5 bg-sky-500 shadow-sm text-white font-medium rounded-lg hover:bg-sky-600 hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-50"
                     >
-                        Approve
+                        <span class="flex items-center justify-center">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 mr-1.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5 13l4 4L19 7"
+                                />
+                            </svg>
+                            Approve
+                        </span>
                     </button>
 
+                    <!-- Кнопка завершения (условная) -->
                     <button
                         v-if="session.status === 'upcoming'"
                         @click="processAction(session, 'past')"
-                        class="px-5 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition-colors"
+                        class="px-5 py-2.5 bg-green-500 shadow-sm text-white font-medium rounded-lg hover:bg-green-600 hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
                     >
-                        Mark as Completed
+                        <span class="flex items-center justify-center">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 mr-1.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5 13l4 4L19 7"
+                                />
+                            </svg>
+                            Mark as Completed
+                        </span>
                     </button>
                 </div>
+                {% endif %}
             </div>
         </div>
     </article>

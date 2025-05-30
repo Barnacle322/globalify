@@ -27,16 +27,21 @@ const SessionRequestComponent = defineComponent({
                         notes: this.notes,
                     }),
                 });
-                const result = await response.json();
+                const data = await response.json();
 
-                if (result.error) {
-                    this.errorMessage = result.error;
+                if (data.error) {
+                    this.errorMessage = data.error;
                     return;
                 }
 
-                console.log("Session booking result:", result);
+                console.log("Session booking result:", data);
 
-                window.location.href = result.redirect_url;
+                if (data.success) {
+                    // Перенаправляем на Stripe Checkout
+                    window.location.href = data.invoice_url;
+                } else {
+                    this.errorMessage = data.error || "Failed to create checkout session";
+                }
             } catch (error) {
                 console.error("Error booking session:", error);
             }
@@ -73,7 +78,6 @@ const SessionRequestComponent = defineComponent({
             expert: null,
             loading: false,
             notes: "",
-            error: null,
             errorMessage: "",
         };
     },
@@ -243,16 +247,12 @@ const SessionInfoComponent = defineComponent({
                 }
 
                 const actionMap = {
-                    approve: "upcoming",
-                    cancel: "canceled",
-                    delete: "deleted",
+                    upcoming: "upcoming",
+                    canceled: "canceled",
                 };
-                if (action === "delete") {
-                    this.$parent.sessions = this.$parent.sessions.filter((s) => s.id !== session.id);
-                } else {
-                    session.status = actionMap[action] || session.status;
-                    session.confirmRequested = false;
-                }
+
+                session.status = actionMap[action] || session.status;
+                session.confirmRequested = false;
 
                 this.$emit("close");
 
@@ -264,11 +264,14 @@ const SessionInfoComponent = defineComponent({
                 return;
             }
         },
-        formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
+        formatDate(date) {
+            const options = { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" };
+            return new Date(date).toLocaleString("en-US", options);
+        },
+        formatPrice(price) {
+            return parseFloat(price).toLocaleString("en-US", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
             });
         },
         formatTime(timeString) {
@@ -292,28 +295,7 @@ const SessionInfoComponent = defineComponent({
         },
     },
     data() {
-        return {
-            statusClasses: {
-                pending: "bg-yellow-100 text-yellow-800",
-                upcoming: "bg-green-100 text-green-800",
-                past: "bg-gray-100 text-gray-800",
-                canceled: "bg-red-100 text-red-800",
-            },
-            statusText() {
-                switch (this.session.status) {
-                    case "pending":
-                        return "Awaiting Approval";
-                    case "upcoming":
-                        return "Upcoming";
-                    case "past":
-                        return "Completed";
-                    case "canceled":
-                        return "Canceled";
-                    default:
-                        return this.session.status;
-                }
-            },
-        };
+        return {};
     },
 });
 
@@ -360,46 +342,6 @@ const SessionComponent = defineComponent({
                 this.sessions = [];
             }
         },
-        async processAction(session, actionConfig) {
-            try {
-                const csrf_token = document.getElementById("csrf_token").value;
-                const response = await fetch("/expert/session/action/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrf_token,
-                    },
-                    body: JSON.stringify({
-                        session_id: session.id,
-                        action: actionConfig.nextStatus,
-                    }),
-                });
-
-                data = await response.json();
-                if (data.error) {
-                    console.error("Error changing session status:", data.error);
-                    return;
-                }
-
-                session.status = actionConfig.nextStatus;
-                session.confirmRequested = false;
-
-                this.$nextTick(() => {
-                    this.sessions = [...this.sessions];
-                });
-            } catch (error) {
-                console.error("Action failed:", error);
-                return;
-            }
-        },
-        async handleAction(session, groupType) {
-            const actionConfig = this.config[groupType];
-            if (!session.confirmRequested) {
-                session.confirmRequested = true;
-            } else {
-                await this.processAction(session, actionConfig);
-            }
-        },
         sortSessions(sessions) {
             return [...sessions].sort((a, b) => {
                 const dateA = new Date(a.created_at);
@@ -426,16 +368,6 @@ const SessionComponent = defineComponent({
         },
         toggleSortOrder() {
             this.sortOrder = this.sortOrder === "newest" ? "oldest" : "newest";
-        },
-        toggleFilter(type) {
-            this.filters[type] = !this.filters[type];
-        },
-
-        resetConfirm(session) {
-            session.confirmRequested = false;
-        },
-        getButtonColor(session, groupType) {
-            return session.confirmRequested ? this.config[groupType].confirmColor : this.config[groupType].baseColor;
         },
         handleClickOutside(event) {
             const dropdown = this.$refs.dropdownContainer;

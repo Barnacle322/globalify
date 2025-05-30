@@ -174,34 +174,6 @@ def create_expert():
         db.session.add(expert)
         db.session.flush()
 
-        try:
-            stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
-            product = stripe.Product.create(
-                name=f"Expert Session: {expert.full_name}",
-                description=expert.bio[:500] if expert.bio else f"Expert session with {expert.full_name}",
-                metadata={
-                    "expert_id": str(expert.id),
-                    "expert_name": str(expert.full_name),
-                    "expert_email": str(expert.email),
-                    "type": "expert_session",
-                },
-                images=[expert.picture_url] if expert.picture_url else [],
-                active=True,
-            )
-
-            if price is not None:
-                price = stripe.Price.create(
-                    unit_amount=int(price * 100),
-                    currency="usd",
-                    product=product.id,
-                )
-
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error creating Stripe product: {e}")
-            status = Status(StatusType.ERROR, str(e)).get_status()
-            return redirect(url_for("admin.experts.create_expert", _external=True, **status))
-
         qualifications_data = form_data.get("qualifications", [])
         if qualifications_data:
             for qual_data in qualifications_data:
@@ -248,6 +220,35 @@ def create_expert():
                 db.session.add(qualification)
 
         try:
+            stripe.api_key = os.getenv("_STRIPE_SECRET_KEY")
+            product = stripe.Product.create(
+                name=f"Expert Session: {expert.full_name}",
+                description=expert.bio[:500] if expert.bio else f"Expert session with {expert.full_name}",
+                metadata={
+                    "expert_id": str(expert.id),
+                    "expert_name": str(expert.full_name),
+                    "expert_email": str(expert.email),
+                    "price": str(expert.price) if expert.price else "0",
+                    "type": "expert_session",
+                },
+                images=[expert.picture_url] if expert.picture_url else [],
+                active=True,
+            )
+
+            if price is not None:
+                stripe.Price.create(
+                    unit_amount=int(expert.price * 100),
+                    currency="usd",
+                    product=product.id,
+                )
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating Stripe product: {e}")
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("admin.experts.create_expert", _external=True, **status))
+
+        try:
             db.session.commit()
         except Exception as e:
             print(f"Error: {e}")
@@ -256,6 +257,28 @@ def create_expert():
 
         status = Status(StatusType.SUCCESS, "Expert created successfully!").get_status()
         return redirect(url_for("admin.experts.index", _external=True, **status))
+
+
+# Регистрация эксперта через Stripe Connect (Express Account) ????????????
+# @expert.post("/stripe/connect/<int:id>")x3
+# @admin_only
+# def connect_stripe():
+#     try:
+#         account = stripe.Account.create(
+#             type="express",
+#             country="US",
+#             email="expert@example.com",
+#             capabilities={"card_payments": {"requested": True}, "transfers": {"requested": True}},
+#         )
+#         account_link = stripe.AccountLink.create(
+#             account=account.id,
+#             refresh_url=url_for("connect_stripe", _external=True),
+#             return_url=url_for("expert_profile", _external=True),
+#             type="account_onboarding",
+#         )
+#         return jsonify({"url": account_link.url})
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 400
 
 
 @expert.get("/stripe-product/<int:expert_id>")

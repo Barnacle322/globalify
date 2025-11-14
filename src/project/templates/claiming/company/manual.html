@@ -5,7 +5,7 @@
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <!-- prettier-ignore -->
 {% endblock %} 
-{% block title %} Claim Profile {% endblock %} 
+{% block title %} Claim Company {% endblock %} 
 {% block head %} {{ super() }} {% endblock %} 
 {% block content %}
 
@@ -13,7 +13,7 @@
     <section class="max-w-md">
         <a
             class="group flex items-center gap-1.5 text-gray-500 transition-colors ease-in-out"
-            href="/investor/{{investor.slug}}/claim"
+            href="/company/{{company.slug}}/claim"
         >
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -43,7 +43,7 @@
             <div class="rounded-xl text-lime-500">{{ msg }}</div>
             {% endif %} {% endif %}
         </div>
-        <form id="claimForm" class="mt-2 flex w-full flex-col gap-3" slug="{{ investor.slug }}">
+        <form id="claimForm" class="mt-2 flex w-full flex-col gap-3" slug="{{ company.slug }}">
             <input type="hidden" id="url_type" name="url_type" value="{{ url_type }}" />
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input

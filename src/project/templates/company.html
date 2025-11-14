@@ -67,6 +67,13 @@
                 ></aside-mobile-component>
             </transition>
             <main class="mx-auto flex min-h-screen flex-col items-center gap-5 px-4 pb-16 pt-5 sm:px-9">
+                {% if status_type %} {% if status_type == '3' %}
+                <div class="flex w-full rounded-xl text-red-500">{{ msg }}</div>
+                {% elif status_type == '2' %}
+                <div class="flex w-full rounded-xl text-orange-400">{{ msg }}</div>
+                {% elif status_type == '1' %}
+                <div class="flex w-full rounded-xl text-lime-500">{{ msg }}</div>
+                {% endif %} {% endif %}
                 <section class="mx-auto flex w-full max-w-7xl items-center gap-4">
                     {% if company.picture_url %}
                     <img class="shadow-card h-20 rounded-lg" src="{{ company.picture_url }}" alt="" loading="lazy" />

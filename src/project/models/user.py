@@ -484,6 +484,9 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     funding_rounds: Mapped[list[FundingRound]] = relationship(
         "FundingRound", back_populates="company", uselist=True, init=False
     )
+    claim_requests: Mapped[list[ClaimRequest]] = relationship(
+        "ClaimRequest", back_populates="company", uselist=True, init=False
+    )
 
     country: Mapped[Country] = relationship(init=False)
     preferred_round: Mapped[Round] = relationship(init=False)

@@ -7,13 +7,16 @@ from sqlalchemy import select
 from ...extensions import db
 from ...models import (
     ClaimRequest,
+    Company,
     Industry,
     Investor,
     NotableInvestment,
     User,
+    UserCompany,
 )
 from ...utils.decorators import admin_only
 from ...utils.enums import (
+    CompanyRole,
     RequestStatus,
     Status,
     StatusType,
@@ -22,6 +25,7 @@ from ...utils.errors.error_messages import (
     INVALID_CLAIM_REQUEST,
     INVESTOR_NOT_FOUND,
     NO_CLAIM_REQUEST,
+    USER_ALREADY_IN_COMPANY,
 )
 from .company import company as company_blueprint
 from .funding_round import funding_round as funding_round_blueprint
@@ -70,9 +74,32 @@ def search_notable_investment(search_input):
 @admin.get("/claim-requests")
 @admin_only
 def claim_requests_view():
-    claim_requests = ClaimRequest.get_all()
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
 
-    return render_template("admin/claim_requests.html", claim_requests=claim_requests)
+    claim_requests = ClaimRequest.get_all_for_investors()
+
+    return render_template("admin/claim_requests.html", claim_requests=claim_requests, status_type=status_type, msg=msg)
+
+
+@admin.get("/claim-company-requests")
+@admin_only
+def claim_company_requests_view():
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
+    claim_requests = ClaimRequest.get_all_for_companies()
+
+    return render_template(
+        "admin/claim_company_requests.html",
+        claim_requests=claim_requests,
+        status_type=status_type,
+        msg=msg,
+    )
 
 
 @admin.post("/claim-request/<int:id>")
@@ -121,6 +148,68 @@ def edit_claim_request(id):
     elif claim_status == RequestStatus.REJECTED.value:
         claim_request.status = RequestStatus.REJECTED
         investor.user = None
+    db.session.commit()
+
+    return jsonify({"message": "Claim request updated"}), 200
+
+
+@admin.post("/claim-company-request/<int:id>")
+@admin_only
+def edit_claim_company_request(id):
+    if not isinstance(current_user, User):
+        return redirect(url_for("auth.login"))
+
+    claim_request = ClaimRequest.get_by_id(id)
+
+    if not claim_request:
+        status = Status(StatusType.ERROR, NO_CLAIM_REQUEST).get_status()
+        return redirect(url_for("admin.claim_company_requests_view", _external=False, **status))
+
+    claiming_user = User.get_by_id(claim_request.user_id)
+    if not claiming_user:
+        status = Status(StatusType.ERROR, "User not found").get_status()
+        return redirect(url_for("admin.claim_company_requests_view", _external=False, **status))
+
+    company = Company.get_by_id(claim_request.company_id)
+    if not company:
+        status = Status(StatusType.ERROR, "Company not found.").get_status()
+        return redirect(url_for("admin.claim_company_requests_view", _external=False, **status))
+
+    form_data = request.get_json()
+    claim_status = form_data.get("status")
+
+    if claim_status not in [RequestStatus.APPROVED.value, RequestStatus.REJECTED.value]:
+        status = Status(StatusType.ERROR, INVALID_CLAIM_REQUEST).get_status()
+        return redirect(url_for("admin.claim_company_requests_view", _external=True, **status))
+    elif claim_status == RequestStatus.APPROVED.value:
+        existing_user_company = UserCompany.get_by_user_and_company_id(claiming_user.id, company.id)
+        if existing_user_company:
+            status = Status(StatusType.ERROR, USER_ALREADY_IN_COMPANY).get_status()
+            return redirect(url_for("admin.claim_company_requests_view", _external=False, **status))
+
+        existing_user_companies = UserCompany.get_by_user_id(user_id=current_user.id)
+        is_primary = not existing_user_companies
+
+        claim_request.status = RequestStatus.APPROVED
+        claim_request.approved_at = datetime.now(UTC)
+        claim_request.approved_by = current_user.id
+
+        user_company = UserCompany(
+            user_id=claiming_user.id,
+            company_id=company.id,
+            position=CompanyRole.TEAM.value,
+            is_primary=is_primary,
+        )
+        db.session.add(user_company)
+
+        if not claiming_user.user_info.username:
+            claiming_user.user_info.set_username()
+        if not claiming_user.user_info.is_complete:
+            claiming_user.user_info.is_complete = True
+
+    elif claim_status == RequestStatus.REJECTED.value:
+        claim_request.status = RequestStatus.REJECTED
+
     db.session.commit()
 
     return jsonify({"message": "Claim request updated"}), 200

@@ -420,6 +420,11 @@ def get_investment_firm_investment(firm_id):
 
 @main.get("/company/<slug>")
 def company_slug(slug):
+    status_type, msg = None, None
+    if query := request.args:
+        status_type = query.get("type")
+        msg = query.get("msg")
+
     company = Company.get_by_slug(slug)
     if not company:
         return redirect(url_for("search.search_companies"))
@@ -457,6 +462,8 @@ def company_slug(slug):
         description=description,
         twitter_slug=twitter_slug,
         current_user=current_user if current_user.is_authenticated else None,
+        status_type=status_type,
+        msg=msg,
     )
 
 

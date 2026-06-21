@@ -11,6 +11,7 @@ from itsdangerous import base64_decode
 from jwt.exceptions import InvalidKeyError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+from .config import get_settings
 from .extensions import csrf, db, login_manager, migrate, oauth
 from .routes.admin import admin
 from .routes.auth import auth
@@ -61,21 +62,21 @@ def get_apple_client_secret():
     return token
 
 
-def create_app(database_url="sqlite:///db.sqlite"):
-    sentry_sdk.init(
-        dsn=os.getenv("_SENTRY_DSN"), traces_sample_rate=0.25, profiles_sample_rate=0.1, attach_stacktrace=True
-    )
+def create_app():
+    cfg = get_settings()
+
+    sentry_sdk.init(dsn=cfg.sentry_dsn, traces_sample_rate=0.25, profiles_sample_rate=0.1, attach_stacktrace=True)
 
     app = Flask(__name__)
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("_DATABASE_URL", database_url)
+    app.config["SQLALCHEMY_DATABASE_URI"] = cfg.database_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SQLALCHEMY_POOL_SIZE"] = int(os.getenv("SQLALCHEMY_POOL_SIZE", 5))
-    app.config["SQLALCHEMY_POOL_RECYCLE"] = int(os.getenv("SQLALCHEMY_POOL_RECYCLE", 1800))
+    app.config["SQLALCHEMY_POOL_SIZE"] = cfg.sqlalchemy_pool_size
+    app.config["SQLALCHEMY_POOL_RECYCLE"] = cfg.sqlalchemy_pool_recycle
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
-    app.secret_key = os.getenv("SECRET_KEY", "18c2ff95-83a1-4998-8bee-0c6a2170497c")
+    app.secret_key = cfg.secret_key
 
-    if os.getenv("FLASK_ENV") == "testing":
+    if cfg.is_testing:
         app.config["TESTING"] = True
         app.config["WTF_CSRF_ENABLED"] = False
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test_db.sqlite"

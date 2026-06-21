@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class SearchHistory(MappedAsDataclass, db.Model, unsafe_hash=True):
-    user: Mapped["User"] = relationship("User", back_populates="search_histories", init=False, uselist=False)
+    user: Mapped[User] = relationship("User", back_populates="search_histories", init=False, uselist=False)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))

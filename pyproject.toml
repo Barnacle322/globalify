@@ -3,7 +3,7 @@ name = "globalify"
 version = "1.0.0"
 description = "This is the main project of the Globalify Ecosystem. It is a web app that help entrepreneurs and investors find each other easeier."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     "flask>=3.0.3",
     "flask-sqlalchemy>=3.1.1",
@@ -24,7 +24,7 @@ dependencies = [
     "feedparser>=6.0.11",
     "thefuzz>=0.22.1",
     "geopy>=2.4.1",
-    "typesense>=0.21.0",
+    "typesense>=0.21.0,<1.0.0",
     "click>=8.1.7",
     "python-slugify>=8.0.4",
     "pydantic>=2.8.2",
@@ -35,6 +35,8 @@ dependencies = [
     "more-itertools>=10.4.0",
     "pyjwt>=2.9.0",
     "posthog>=3.7.4",
+    "granian>=2.7.6",
+    "pydantic-settings>=2.14.2",
 ]
 
 
@@ -87,7 +89,7 @@ exclude = [
 line-length = 120
 indent-width = 4
 
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "B", "Q", "I", "N", "UP"]

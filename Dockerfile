@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bookworm
+FROM python:3.14-slim-bookworm
 
 COPY src/ app/
 COPY pyproject.toml /app
@@ -9,7 +9,6 @@ WORKDIR /app
 
 RUN pip install uv
 RUN uv sync --frozen --no-install-project
-RUN uv pip install granian
 RUN rm -rf /root/.cache/pip/*
 
 ENV PORT 80

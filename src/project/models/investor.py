@@ -389,7 +389,7 @@ class Investor(InvestorBase):
         return db.session.scalar(db.select(Investor).where(Investor.user_id == user_id))
 
     @staticmethod
-    def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[Investor], None, None]:
+    def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[Investor]]:
         stmt = db.select(Investor.id) if isinstance(stmt, bool) else stmt
 
         ids_query = db.session.scalars(stmt).all()
@@ -1347,7 +1347,7 @@ class InvestmentFirm(db.Model):
             self._country = geo_data.get("country_name")
 
     @staticmethod
-    def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[InvestmentFirm], None, None]:
+    def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[InvestmentFirm]]:
         stmt = db.select(InvestmentFirm.id) if isinstance(stmt, bool) else stmt
         ids_query = db.session.scalars(stmt).all()
 

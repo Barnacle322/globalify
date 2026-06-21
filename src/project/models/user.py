@@ -667,7 +667,7 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
         return {"companies": company_list, "found": found, "pages": pages, "page": page}
 
     @staticmethod
-    def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[Company], None, None]:
+    def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[Company]]:
         stmt = db.select(Company.id) if isinstance(stmt, bool) else stmt
 
         ids_query = db.session.scalars(stmt).all()

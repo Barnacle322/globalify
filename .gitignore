@@ -402,3 +402,5 @@ typesense-data
 .DS_Store
 cert.pem
 key.pem
+# SDD scratch
+.superpowers/

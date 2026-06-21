@@ -57,7 +57,15 @@ Internet (Cloud Run, TLS)
 ### Dependency overhaul
 - **Bump:** Flask, Flask-SQLAlchemy/SQLAlchemy, Flask-Migrate, Flask-Login, Flask-WTF, Pillow, pydantic, Sentry, etc. to current majors. Verify 3.14 wheels exist for each; fall back to 3.13 only if a critical dep lags.
 - **Remove (dead/replaced):** `stripe`, `sendgrid`, `google-cloud-storage`, `google-cloud-pubsub`, `authlib`, `googlemaps`, `flask-debugtoolbar` (optional), `pillow-heif` (keep if HEIC uploads still needed).
-- **Add:** `typesense>=2.0`, `paddle-python-sdk`, `resend`, `boto3` (R2). Keep `flask-login`, `geopy` (geocoding via Nominatim if needed), `python-slugify`, `thefuzz`/entity-resolution libs.
+- **Add:** `typesense>=2.0`, `paddle-python-sdk`, `resend`, `boto3` (R2), `pydantic-settings`. Keep `flask-login`, `geopy` (geocoding via Nominatim if needed), `python-slugify`, `thefuzz`/entity-resolution libs.
+
+### Typed configuration (pydantic-settings)
+Replace the scattered, defaulted `os.getenv(...)` calls — the root cause of the forgeable-`SECRET_KEY` class of bugs — with a single typed `Settings` object built on **`pydantic-settings`** (`BaseSettings`).
+- **Fail-fast secrets:** required values (`SECRET_KEY`, `_DATABASE_URL`, Typesense/Paddle/Resend/R2/Cap/Gemini keys) are declared as required fields with **no insecure defaults** — the app refuses to boot in non-debug environments if any are missing, instead of silently falling back. This *is* the proper fix for the critical `SECRET_KEY` finding.
+- **Typed & validated once:** ints/bools/URLs parsed and validated at startup; typed access (`settings.typesense.api_key`) replaces stringly-typed `os.getenv` everywhere.
+- **Grouped:** nested settings models per integration (`DatabaseSettings`, `TypesenseSettings`, `PaddleSettings`, `ResendSettings`, `R2Settings`, `CapSettings`, `GeminiSettings`, `SentrySettings`) for organization and discoverability.
+- **Naming continuity:** keep the existing leading-underscore env var names via per-field `validation_alias`/`AliasChoices`, so Cloud Run / cloudbuild env doesn't break. `.env` is loaded directly by pydantic-settings — retires the manual `start.sh`/`start.ps1` variable sourcing.
+- **Environment selection:** a typed `env` field (`prod|testing|debug`) drives config, replacing today's imperative `FLASK_ENV == "testing"` string checks in `create_app`.
 
 ---
 
@@ -159,7 +167,7 @@ Each phase = its own spec → implementation plan → build. Ordered by dependen
 
 | Phase | Scope | Notes |
 |---|---|---|
-| **0 — Modernize foundation** | Verified security fixes (hardcoded `SECRET_KEY` fail-fast, investment IDOR, search filter/`delete_data` bugs, `expire_all_by_user_id`); Python 3.14 + full dep overhaul; Typesense server v26→v30.2 (stepwise, snapshot) + client 2.0; GitHub Actions CI (ruff + pytest); non-destructive reindex CLI | Get the dormant app booting cleanly on a modern base. No new features. |
+| **0 — Modernize foundation** | Typed config layer (`pydantic-settings`, fail-fast secrets); verified security fixes (`SECRET_KEY` via required setting, investment IDOR, search filter/`delete_data` bugs, `expire_all_by_user_id`); Python 3.14 + full dep overhaul; Typesense server v26→v30.2 (stepwise, snapshot) + client 2.0; GitHub Actions CI (ruff + pytest); non-destructive reindex CLI | Get the dormant app booting cleanly on a modern base. No new features. |
 | **1 — Strip + remodel** | Delete the dead platform (§9); consolidate to Person/Org/Affiliation + investor_profile + polymorphic facets + geography + rich fields; collapse to one Typesense collection; Alembic migration + data backfill | The heart of the pivot. |
 | **2 — SSR + SEO engine** | Jinja SSR for all public pages; one base layout; htmx/Alpine sprinkles; programmatic facet pages; JSON-LD; sitemaps/robots; Core Web Vitals | Remove Vue SPA fully here. |
 | **3 — Infra swaps + auth** | Resend + magic-link auth (+ `login_tokens`); R2 storage (+ GCS migration); Cap captcha | Auth/email needed before monetization & claim. |
@@ -171,7 +179,7 @@ Each phase = its own spec → implementation plan → build. Ordered by dependen
 
 ## 11. Decisions log
 
-**User decisions:** investors/firms hero (startups thin); ads + cheap Pro tier (~$7/mo + lifetime); keep claim + bookmarks/saved-searches/alerts + admin console; drop public crowdsourcing; Flask+Jinja SSR; magic-link only (drop all OAuth); Paddle (drop Stripe, no migration); Resend; R2; drop Pub/Sub; Cap captcha; Python 3.14; full dep bump; **Gemini embeddings**; public-domain data sources first; master doc + per-phase specs.
+**User decisions:** investors/firms hero (startups thin); ads + cheap Pro tier (~$7/mo + lifetime); keep claim + bookmarks/saved-searches/alerts + admin console; drop public crowdsourcing; Flask+Jinja SSR; magic-link only (drop all OAuth); Paddle (drop Stripe, no migration); Resend; R2; drop Pub/Sub; Cap captcha; Python 3.14; full dep bump; **typed config via `pydantic-settings` (fail-fast env vars)**; **Gemini embeddings**; public-domain data sources first; master doc + per-phase specs.
 
 **Defaults taken (vetoable):** NL search deferred past v1; magic-link stateful tokens; Paddle one product / two prices; polymorphic facet joins; `fund` entity deferred; house/sponsor ads before AdSense; bookmarks free / other Pro features gated.
 

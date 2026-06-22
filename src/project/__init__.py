@@ -20,6 +20,7 @@ from .routes.main import (
     service_unavailable,
     unauthorized,
 )
+from .routes.public import public
 from .routes.search import search
 from .routes.settings import settings
 
@@ -58,6 +59,7 @@ def create_app():
     app.register_blueprint(auth)
     app.register_blueprint(main)
     app.register_blueprint(claim)
+    app.register_blueprint(public)
     app.register_blueprint(search)
     app.register_blueprint(settings, url_prefix="/settings")
     app.register_blueprint(admin, url_prefix="/admin")

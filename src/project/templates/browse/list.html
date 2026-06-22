@@ -1,0 +1,169 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block meta_description %}{{ meta_description }}{% endblock %}
+
+{% block canonical %}https://globalify.xyz{{ canonical_path }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pt-20">
+
+    {# ── Page header ── #}
+    <header class="bg-white border-b border-gray-100">
+        <div class="mx-auto max-w-7xl px-6 py-10">
+            <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{{ heading }}</h1>
+            <p class="mt-2 text-sm text-gray-500">
+                {% if found > 0 %}
+                    {{ found }} result{{ 's' if found != 1 else '' }} found
+                    {% if query %} for <span class="font-medium text-gray-700">&ldquo;{{ query }}&rdquo;</span>{% endif %}
+                {% else %}
+                    No results found{% if query %} for <span class="font-medium text-gray-700">&ldquo;{{ query }}&rdquo;</span>{% endif %}
+                {% endif %}
+            </p>
+        </div>
+    </header>
+
+    {# ── Search bar ── #}
+    <div class="bg-white border-b border-gray-100">
+        <div class="mx-auto max-w-7xl px-6 py-4">
+            <form method="get" action="{{ canonical_path }}" class="flex w-full max-w-xl gap-2">
+                <input
+                    type="search"
+                    name="q"
+                    value="{{ query }}"
+                    placeholder="Search by name, firm, or focus area…"
+                    class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                    aria-label="Search {{ heading }}"
+                />
+                <button
+                    type="submit"
+                    class="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                >
+                    Search
+                </button>
+                {% if query %}
+                <a
+                    href="{{ canonical_path }}"
+                    class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                >
+                    Clear
+                </a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    {# ── Results grid ── #}
+    <main class="mx-auto max-w-7xl px-6 py-8">
+        {% if entities %}
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {% for entity in entities %}
+                {% if entity_type == 'person' %}
+                    {% include "partials/_person_card.html" %}
+                {% else %}
+                    {% include "partials/_org_card.html" %}
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center justify-center py-24 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-4 size-12 text-gray-300" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <p class="text-lg font-medium text-gray-700">No {{ heading | lower }} found</p>
+            <p class="mt-1 text-sm text-gray-500">
+                {% if query %}
+                    Try a different search term or <a href="{{ canonical_path }}" class="text-sky-500 underline">clear the search</a>.
+                {% else %}
+                    Check back soon — we're always adding new profiles.
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+
+        {# ── Pagination ── #}
+        {% if pagination and pagination.has_other_pages %}
+        <nav class="mt-12 flex items-center justify-center gap-1" aria-label="Pagination">
+            {% if pagination.has_prev %}
+            <a
+                href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page=1"
+                class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                aria-label="First page"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5" />
+                </svg>
+            </a>
+            <a
+                href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.prev }}"
+                class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                aria-label="Previous page"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+            </a>
+            {% endif %}
+
+            {% for p in pagination.pages %}
+                {% if p == 0 %}
+                <span class="inline-flex size-10 items-center justify-center text-gray-400">&hellip;</span>
+                {% elif p == pagination.current_page %}
+                <a
+                    href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ p }}"
+                    class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500"
+                    aria-current="page"
+                >{{ p }}</a>
+                {% else %}
+                <a
+                    href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ p }}"
+                    class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+            <a
+                href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.next }}"
+                class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                aria-label="Next page"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                </svg>
+            </a>
+            <a
+                href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.last_page }}"
+                class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                aria-label="Last page"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5" />
+                </svg>
+            </a>
+            {% endif %}
+        </nav>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+
+{% block json_ld %}
+{%- if entities %}
+{%- set items = [] %}
+{%- for entity in entities %}
+{%- set item_url = "https://globalify.xyz" + canonical_path + "/" + (entity.slug or entity.id | string) %}
+{%- set item = {"name": entity.name, "url": item_url, "description": entity.headline or entity.about or ""} %}
+{%- set _ = items.append(item) %}
+{%- endfor %}
+{%- set list_name = heading + " on Globalify" %}
+{% include "partials/_jsonld_itemlist.html" %}
+{%- endif %}
+
+{%- set breadcrumbs = [
+    {"name": "Home", "url": "https://globalify.xyz/"},
+    {"name": heading, "url": "https://globalify.xyz" + canonical_path}
+] %}
+{% include "partials/_jsonld_breadcrumb.html" %}
+{% endblock %}

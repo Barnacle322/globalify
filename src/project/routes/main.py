@@ -1,4 +1,3 @@
-import json
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timedelta
 
@@ -17,22 +16,19 @@ from flask_login import current_user, login_required
 from ..extensions import db
 from ..models import (
     InvestmentFirm,
-    InvestmentFirmBookmark,
     Investor,
-    InvestorBookmark,
     Notification,
     User,
     UserInfo,
     UserPayment,
 )
+from ..models.entity import EntityBookmark
 from ..schemas.investor import (
-    InvestmentFirmBookmarkSchema,
     InvestmentFirmSchema,
-    InvestorBookmarkSchema,
     InvestorSchema,
 )
 from ..utils.decorators import check_user_info_complete, check_verification
-from ..utils.enums import Status, StatusType
+from ..utils.enums import EntityType, Status, StatusType
 from ..utils.errors.error_messages import (
     NOT_AUTHORIZED,
 )
@@ -140,7 +136,8 @@ def get_investor(slug):
     )
 
     if current_user.is_authenticated:
-        is_bookmarked = InvestorBookmark.exists(investor.id, current_user.id)
+        # Phase 1b: check EntityBookmark (PERSON) instead of InvestorBookmark.
+        is_bookmarked = EntityBookmark.exists(current_user.id, EntityType.PERSON, investor.id)
     else:
         is_bookmarked = False
 
@@ -184,14 +181,20 @@ def toggle_bookmark_investor(investor_id):
     if not investor or not investor.is_public:
         return jsonify({"status": "error", "message": "Investor not found."}), 404
 
-    bookmark = InvestorBookmark.get_by_id(investor.id, current_user.id)
-    if bookmark:
-        db.session.delete(bookmark)
+    # Phase 1b: use EntityBookmark (PERSON entity type) instead of InvestorBookmark.
+    if EntityBookmark.exists(current_user.id, EntityType.PERSON, investor.id):
+        existing = db.session.scalar(
+            db.select(EntityBookmark).where(
+                EntityBookmark.user_id == current_user.id,
+                EntityBookmark.entity_type == EntityType.PERSON,
+                EntityBookmark.entity_id == investor.id,
+            )
+        )
+        db.session.delete(existing)
         db.session.commit()
-
         return jsonify({"bookmarked": False}, 200)
 
-    new_bookmark = InvestorBookmark(investor_id=investor.id, user_id=current_user.id)
+    new_bookmark = EntityBookmark(user_id=current_user.id, entity_type=EntityType.PERSON, entity_id=investor.id)
     db.session.add(new_bookmark)
     db.session.commit()
 
@@ -203,30 +206,19 @@ def toggle_bookmark_investor(investor_id):
 @check_user_info_complete
 @check_verification
 def get_investor_bookmarks():
+    # Phase 1b: return EntityBookmark records for PERSON entities.
+    # NOTE(phase-2): when the frontend is rebuilt this response shape will be
+    # updated to serve Person/Organization data directly.
     user_id = current_user.id
 
-    page = request.args.get("page", default=1, type=int)
-    limit = 10
-    offset = (page - 1) * limit
+    bookmarks = EntityBookmark.get_by_user_id(user_id)
+    person_bookmarks = [bm for bm in bookmarks if bm.entity_type == EntityType.PERSON]
 
-    investors = []
-    bookmarks = InvestorBookmark.get_by_user_id(user_id, offset=offset, limit=limit)
-    for db_investor in bookmarks:
-        if not isinstance(db_investor, Investor):
-            return jsonify({"status": "error", "message": "Investors not found."}), 404
-
-        investor = InvestorBookmarkSchema(
-            id=db_investor.id,
-            name=f"{db_investor.first_name} {db_investor.last_name}",
-            position=db_investor.position,
-            firm_name=db_investor.firm_name,
-            about=db_investor.about,
-            twitter=db_investor.twitter,
-            slug=db_investor.slug,
-        )
-        investors.append(json.loads(investor.model_dump_json()))
-
-    return jsonify({"bookmarks": investors})
+    result = [
+        {"entity_type": bm.entity_type, "entity_id": bm.entity_id, "created_at": str(bm.created_at)}
+        for bm in person_bookmarks
+    ]
+    return jsonify({"bookmarks": result})
 
 
 @main.get("/bookmarks/investor")
@@ -234,8 +226,10 @@ def get_investor_bookmarks():
 @check_user_info_complete
 @check_verification
 def get_investor_bookmark_ids():
-    bookmarks_ids = InvestorBookmark.get_id_list(current_user.id)
-    return jsonify({"bookmark_ids": bookmarks_ids})
+    # Phase 1b: return entity_ids for PERSON bookmarks via EntityBookmark.
+    bookmarks = EntityBookmark.get_by_user_id(current_user.id)
+    bookmark_ids = [bm.entity_id for bm in bookmarks if bm.entity_type == EntityType.PERSON]
+    return jsonify({"bookmark_ids": bookmark_ids})
 
 
 @main.get("/investment-firm/<slug>/get")
@@ -281,7 +275,8 @@ def get_investment_firm(slug):
     ).model_dump()
 
     if current_user.is_authenticated:
-        is_bookmarked = InvestmentFirmBookmark.exists(investment_firm_model.id, current_user.id)
+        # Phase 1b: check EntityBookmark (ORG) instead of InvestmentFirmBookmark.
+        is_bookmarked = EntityBookmark.exists(current_user.id, EntityType.ORG, investment_firm_model.id)
     else:
         is_bookmarked = False
 
@@ -305,14 +300,20 @@ def toggle_bookmark_investment_firm(firm_id):
     if not investment_firm or not investment_firm.is_public:
         return jsonify({"status": "error", "message": "Investment Firm not found."}), 404
 
-    bookmark = InvestmentFirmBookmark.get_by_id(investment_firm.id, current_user.id)
-    if bookmark:
-        db.session.delete(bookmark)
+    # Phase 1b: use EntityBookmark (ORG entity type) instead of InvestmentFirmBookmark.
+    if EntityBookmark.exists(current_user.id, EntityType.ORG, investment_firm.id):
+        existing = db.session.scalar(
+            db.select(EntityBookmark).where(
+                EntityBookmark.user_id == current_user.id,
+                EntityBookmark.entity_type == EntityType.ORG,
+                EntityBookmark.entity_id == investment_firm.id,
+            )
+        )
+        db.session.delete(existing)
         db.session.commit()
-
         return jsonify({"bookmarked": False}, 200)
 
-    new_bookmark = InvestmentFirmBookmark(investment_firm_id=investment_firm.id, user_id=current_user.id)
+    new_bookmark = EntityBookmark(user_id=current_user.id, entity_type=EntityType.ORG, entity_id=investment_firm.id)
     db.session.add(new_bookmark)
     db.session.commit()
 
@@ -372,27 +373,19 @@ def investment_firm_slug(slug):
 @check_user_info_complete
 @check_verification
 def get_investment_firms_bookmarks():
+    # Phase 1b: return EntityBookmark records for ORG entities.
+    # NOTE(phase-2): when the frontend is rebuilt this response shape will be
+    # updated to serve Organization data directly.
     user_id = current_user.id
 
-    page = request.args.get("page", default=1, type=int)
-    limit = 10
-    offset = (page - 1) * limit
+    bookmarks = EntityBookmark.get_by_user_id(user_id)
+    org_bookmarks = [bm for bm in bookmarks if bm.entity_type == EntityType.ORG]
 
-    investment_firms = []
-    bookmarks = InvestmentFirmBookmark.get_by_user_id(user_id, offset=offset, limit=limit)
-    for db_investment_firm in bookmarks:
-        if not isinstance(db_investment_firm, InvestmentFirm):
-            return jsonify({"status": "error", "message": "Investment Firms not found."}), 404
-
-        investment_firm = InvestmentFirmBookmarkSchema(
-            id=db_investment_firm.id,
-            name=db_investment_firm.name,
-            about=db_investment_firm.about,
-            slug=db_investment_firm.slug,
-        )
-        investment_firms.append(json.loads(investment_firm.model_dump_json()))
-
-    return jsonify({"bookmarks": investment_firms})
+    result = [
+        {"entity_type": bm.entity_type, "entity_id": bm.entity_id, "created_at": str(bm.created_at)}
+        for bm in org_bookmarks
+    ]
+    return jsonify({"bookmarks": result})
 
 
 @main.get("/bookmarks/investment-firm")
@@ -400,8 +393,10 @@ def get_investment_firms_bookmarks():
 @check_user_info_complete
 @check_verification
 def get_investment_firm_bookmark_ids():
-    bookmarks_ids = InvestmentFirmBookmark.get_id_list(current_user.id)
-    return jsonify({"bookmark_ids": bookmarks_ids})
+    # Phase 1b: return entity_ids for ORG bookmarks via EntityBookmark.
+    bookmarks = EntityBookmark.get_by_user_id(current_user.id)
+    bookmark_ids = [bm.entity_id for bm in bookmarks if bm.entity_type == EntityType.ORG]
+    return jsonify({"bookmark_ids": bookmark_ids})
 
 
 @main.get("/notification/edit/<int:notification_id>")

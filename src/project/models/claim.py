@@ -5,12 +5,12 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func, table
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 
 from ..extensions import db
-from ..utils.enums import RequestStatus
+from ..utils.enums import EntityType, RequestStatus
 
 if TYPE_CHECKING:
     from .investor import Investor
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class ClaimVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
     user: Mapped[User] = relationship("User", back_populates="claim_verifications", init=False)
-    investor: Mapped[Investor] = relationship("Investor", back_populates="claim_verifications", init=False)
+    investor: Mapped[Investor | None] = relationship("Investor", back_populates="claim_verifications", init=False)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
@@ -28,9 +28,15 @@ class ClaimVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
     )
-    investor_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("investor.id", ondelete="CASCADE"), nullable=False, kw_only=True
+    # Legacy FK — nullable during migration window; kept until Phase 1c drops the investor table.
+    investor_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("investor.id", ondelete="CASCADE"), nullable=True, default=None, kw_only=True
     )
+    # Polymorphic entity reference (Phase 1b)
+    entity_type: Mapped[EntityType | None] = mapped_column(
+        SQLEnum(EntityType, name="entity_type"), nullable=True, default=None, kw_only=True
+    )
+    entity_id: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None, kw_only=True)
 
     @property
     def is_expired(self) -> bool:
@@ -71,11 +77,17 @@ class ClaimVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 class ClaimRequest(db.Model):
     user: Mapped[User] = relationship("User", back_populates="claim_requests", uselist=False)
-    investor: Mapped[Investor] = relationship("Investor", back_populates="claim_requests", uselist=False)
+    investor: Mapped[Investor | None] = relationship("Investor", back_populates="claim_requests", uselist=False)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-    investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
+    # Legacy FK — nullable during migration window; kept until Phase 1c drops the investor table.
+    investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=True, default=None)
+    # Polymorphic entity reference (Phase 1b)
+    entity_type: Mapped[EntityType | None] = mapped_column(
+        SQLEnum(EntityType, name="entity_type"), nullable=True, default=None
+    )
+    entity_id: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
     status: Mapped[RequestStatus] = mapped_column(SQLEnum(RequestStatus), nullable=False, default=RequestStatus.PENDING)
     status_info: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     approved_by: Mapped[int] = mapped_column(Integer, nullable=True, default=None)
@@ -99,10 +111,13 @@ class ClaimRequest(db.Model):
 
     @staticmethod
     def get_with_investor_by_user_id(user_id: int) -> Sequence[ClaimRequest]:
+        """Return requests that still have an investor FK (legacy path)."""
+        from .investor import Investor
+
         return (
             db.session.execute(
                 db.select(ClaimRequest)
-                .join(ClaimRequest.investor)
+                .join(Investor, ClaimRequest.investor_id == Investor.id)
                 .where(ClaimRequest.user_id == user_id)
                 .order_by(ClaimRequest.requested_at.desc())
             )
@@ -116,21 +131,14 @@ class ClaimRequest(db.Model):
 
     @staticmethod
     def get_all() -> Sequence[ClaimRequest]:
-        return (
-            db.session.scalars(
-                db.select(ClaimRequest, table("User"), table("Investor"))
-                .join(ClaimRequest.user)
-                .join(ClaimRequest.investor)
-            )
-            .unique()
-            .all()
-        )
+        """Return all ClaimRequests (ORM only — no raw table() literals)."""
+        return db.session.scalars(db.select(ClaimRequest)).unique().all()
 
     @staticmethod
     def get_pending_by_user_id(user_id: int) -> Sequence[ClaimRequest]:
+        """Return pending requests for a user (ORM only — no raw table() literals)."""
         return db.session.scalars(
-            db.select(ClaimRequest, table("Investor"))
+            db.select(ClaimRequest)
             .where(ClaimRequest.user_id == user_id)
             .where(ClaimRequest.status == RequestStatus.PENDING)
-            .join(ClaimRequest.investor)
         ).all()

@@ -46,9 +46,13 @@ class RequestStatus(Enum):
 
 
 class SearchHistoryType(Enum):
+    # Legacy values — kept for back-compat with existing search code (Phase 1c will remap).
     INVESTOR = "investor"
     INVESTMENT_FIRM = "investment_firm"
     COMPANY = "company"
+    # Phase 1b — new entity-aligned values.
+    PERSON = "person"
+    ORG = "org"
 
 
 # ---------------------------------------------------------------------------

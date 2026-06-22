@@ -50,47 +50,15 @@ def privacy_policy():
 
 @main.route("/investor/<slug>")
 def investor_slug(slug):
-    status_type, msg = None, None
-    if query := request.args:
-        status_type = query.get("type")
-        msg = query.get("msg")
+    """Legacy route — 301 redirect to the new SSR profile page /investors/<slug>.
 
-    investor = Investor.get_by_slug(slug)
-    if not investor or not investor.is_public:
-        return redirect(url_for("search.investor_search"))
-
-    description = ""
-    if investor.about:
-        description = investor.about[:140]
-        if not description.endswith("."):
-            description += "."
-
-    if investor.firm_name:
-        if investor.position:
-            description += f" {investor.full_name} is also a {investor.position} in {investor.firm_name}."
-        else:
-            description += f" {investor.full_name} is also working with {investor.firm_name}."
-
-    if investor.location:
-        description += f" Located in {investor.location}."
-
-    twitter_slug = f"@{investor.twitter.split('/')[-1]}" if investor.twitter else None
-    picture_url = (
-        f"https://unavatar.io/twitter/{investor.twitter.split('/')[-1]}"
-        if investor.twitter
-        else "https://globalify.xyz/static/elements/metapreview.png"
-    )
-
-    return render_template(
-        "investor.html",
-        investor=investor,
-        description=description,
-        picture_url=picture_url,
-        twitter_slug=twitter_slug,
-        current_user=current_user if current_user.is_authenticated else None,
-        status_type=status_type,
-        msg=msg,
-    )
+    Preserves query string so status flash params forwarded from claim flow still work.
+    """
+    qs = request.query_string.decode()
+    target = url_for("public.investor_profile", slug=slug)
+    if qs:
+        target = f"{target}?{qs}"
+    return redirect(target, code=301)
 
 
 @main.get("/investor/<slug>/get")
@@ -328,51 +296,13 @@ def toggle_bookmark_investment_firm(firm_id):
 
 
 @main.route("/investment-firm/<slug>")
-@login_required
-@check_user_info_complete
-@check_verification
 def investment_firm_slug(slug):
-    investment_firm = InvestmentFirm.get_by_slug(slug)
-    if not investment_firm:
-        return redirect(url_for("search.investor_search"))
-
-    description = ""
-    if investment_firm.about:
-        description = investment_firm.about[:140]
-        if not description.endswith("."):
-            description += "."
-
-    if investment_firm.notable_investments:
-        investments_list = ", ".join(investment.name for investment in investment_firm.notable_investments)
-        description += f" {investment_firm.name} has notable investments in companies such as: {investments_list}."
-
-    if investment_firm.industries:
-        industries_list = ", ".join(industry.name for industry in investment_firm.industries)
-        description += f" Works with {industries_list}."
-
-    if investment_firm.rounds:
-        rounds_list = ", ".join(investment_round.name for investment_round in investment_firm.rounds)
-        description += f" Prefered rounds: {rounds_list}."
-
-    if investment_firm.location:
-        description += f" Located in {investment_firm.location}."
-
-    twitter_slug = f"@{investment_firm.twitter.split('/')[-1]}" if investment_firm.twitter else None
-
-    picture_url = (
-        f"https://unavatar.io/twitter/{investment_firm.twitter.split('/')[-1]}"
-        if investment_firm.twitter
-        else "https://globalify.xyz/static/elements/metapreview.png"
-    )
-
-    return render_template(
-        "investment_firm.html",
-        description=description,
-        picture_url=picture_url,
-        twitter_slug=twitter_slug,
-        investment_firm=investment_firm,
-        current_user=current_user if current_user.is_authenticated else None,
-    )
+    """Legacy route — 301 redirect to the new SSR profile page /firms/<slug>."""
+    qs = request.query_string.decode()
+    target = url_for("public.firm_profile", slug=slug)
+    if qs:
+        target = f"{target}?{qs}"
+    return redirect(target, code=301)
 
 
 @main.get("/bookmarks/investment-firms")

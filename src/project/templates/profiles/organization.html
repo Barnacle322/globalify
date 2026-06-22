@@ -1,0 +1,258 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ org.name }}{% endblock %}
+
+{% block meta_description %}{{ meta_description }}{% endblock %}
+
+{% block canonical %}{{ canonical }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pt-20">
+
+    {# ── Breadcrumb nav ── #}
+    <nav class="bg-white border-b border-gray-100" aria-label="Breadcrumb">
+        <div class="mx-auto max-w-5xl px-6 py-3">
+            <ol class="flex items-center gap-1.5 text-sm text-gray-500">
+                <li><a href="/" class="hover:text-sky-600">Home</a></li>
+                <li aria-hidden="true">/</li>
+                <li><a href="/firms" class="hover:text-sky-600">Investment Firms</a></li>
+                <li aria-hidden="true">/</li>
+                <li class="font-medium text-gray-900" aria-current="page">{{ org.name }}</li>
+            </ol>
+        </div>
+    </nav>
+
+    <div class="mx-auto max-w-5xl px-6 py-10">
+        <div class="grid gap-8 lg:grid-cols-3">
+
+            {# ── Left / main column ── #}
+            <div class="lg:col-span-2 space-y-8">
+
+                {# ── Identity card ── #}
+                <section class="rounded-2xl bg-white border border-gray-100 shadow-sm p-8">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{ org.name }}</h1>
+
+                            {% if org.org_type %}
+                            <span class="mt-2 inline-block rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-700">
+                                {{ org.org_type.value | replace('_', ' ') | title }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# Location ── #}
+                    {% if bundle.geographies %}
+                    <p class="mt-4 flex items-center gap-2 text-sm text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 shrink-0 text-gray-400" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        {{ bundle.geographies | map(attribute='name') | join(', ') }}
+                    </p>
+                    {% endif %}
+
+                    {# Social links ── #}
+                    <div class="mt-4 flex flex-wrap gap-3">
+                        {% if org.website %}
+                        <a href="{{ org.website }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50">
+                            Website
+                        </a>
+                        {% endif %}
+                        {% if org.linkedin %}
+                        <a href="{{ org.linkedin }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50">
+                            LinkedIn
+                        </a>
+                        {% endif %}
+                        {% if org.twitter %}
+                        <a href="{{ org.twitter }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50">
+                            X / Twitter
+                        </a>
+                        {% endif %}
+                    </div>
+                </section>
+
+                {# ── About ── #}
+                {% if org.about %}
+                <section class="rounded-2xl bg-white border border-gray-100 shadow-sm p-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-3">About</h2>
+                    <p class="text-sm text-gray-600 leading-relaxed">{{ org.about }}</p>
+                </section>
+                {% endif %}
+
+                {# ── Investment thesis ── #}
+                {% if profile and profile.thesis %}
+                <section class="rounded-2xl bg-white border border-gray-100 shadow-sm p-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-3">Investment Thesis</h2>
+                    <p class="text-sm text-gray-600 leading-relaxed">{{ profile.thesis }}</p>
+                </section>
+                {% endif %}
+
+                {# ── Notable investments ── #}
+                {% if bundle.notables %}
+                <section class="rounded-2xl bg-white border border-gray-100 shadow-sm p-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Portfolio / Notable Investments</h2>
+                    <ul class="flex flex-wrap gap-2">
+                        {% for notable in bundle.notables %}
+                        <li class="rounded-lg bg-gray-50 border border-gray-200 px-3 py-1.5 text-sm text-gray-700">{{ notable.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </section>
+                {% endif %}
+
+                {# ── Team ── #}
+                {% if affiliations %}
+                <section class="rounded-2xl bg-white border border-gray-100 shadow-sm p-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Team</h2>
+                    <ul class="space-y-3">
+                        {% for aff in affiliations %}
+                        {% if aff.person %}
+                        <li class="flex items-center gap-3">
+                            <div>
+                                <a href="/investors/{{ aff.person.slug }}" class="text-sm font-medium text-gray-900 hover:text-sky-600">
+                                    {{ aff.person.first_name }} {{ aff.person.last_name or '' }}
+                                </a>
+                                {% if aff.title %}
+                                <span class="text-xs text-gray-500"> — {{ aff.title }}</span>
+                                {% endif %}
+                                {% if not aff.is_current %}
+                                <span class="ml-1 text-xs text-gray-400">(past)</span>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                </section>
+                {% endif %}
+
+            </div>{# /left column #}
+
+            {# ── Right / sidebar ── #}
+            <div class="space-y-6">
+
+                {# Investment preferences ── #}
+                {% if profile %}
+                <section class="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
+                    <h2 class="text-base font-semibold text-gray-900 mb-4">Investment Details</h2>
+                    <dl class="space-y-3 text-sm">
+                        {% if profile.investor_type %}
+                        <div>
+                            <dt class="text-gray-400 text-xs uppercase tracking-wide">Type</dt>
+                            <dd class="mt-0.5 font-medium text-gray-800">{{ profile.investor_type.value | replace('_', ' ') | title }}</dd>
+                        </div>
+                        {% endif %}
+
+                        {% if profile.lead_pref %}
+                        <div>
+                            <dt class="text-gray-400 text-xs uppercase tracking-wide">Lead preference</dt>
+                            <dd class="mt-0.5 font-medium text-gray-800">{{ profile.lead_pref.value | replace('_', ' ') | title }}</dd>
+                        </div>
+                        {% endif %}
+
+                        {% if profile.min_investment or profile.max_investment %}
+                        <div>
+                            <dt class="text-gray-400 text-xs uppercase tracking-wide">Check size</dt>
+                            <dd class="mt-0.5 font-medium text-gray-800">
+                                {% if profile.min_investment and profile.max_investment %}
+                                    ${{ "{:,}".format(profile.min_investment) }} – ${{ "{:,}".format(profile.max_investment) }}
+                                {% elif profile.min_investment %}
+                                    ${{ "{:,}".format(profile.min_investment) }}+
+                                {% else %}
+                                    Up to ${{ "{:,}".format(profile.max_investment) }}
+                                {% endif %}
+                            </dd>
+                        </div>
+                        {% endif %}
+
+                        {% if profile.n_investments %}
+                        <div>
+                            <dt class="text-gray-400 text-xs uppercase tracking-wide">Investments</dt>
+                            <dd class="mt-0.5 font-medium text-gray-800">{{ profile.n_investments }}</dd>
+                        </div>
+                        {% endif %}
+
+                        {% if profile.n_exits %}
+                        <div>
+                            <dt class="text-gray-400 text-xs uppercase tracking-wide">Exits</dt>
+                            <dd class="mt-0.5 font-medium text-gray-800">{{ profile.n_exits }}</dd>
+                        </div>
+                        {% endif %}
+
+                        {% if org.n_employees %}
+                        <div>
+                            <dt class="text-gray-400 text-xs uppercase tracking-wide">Team size</dt>
+                            <dd class="mt-0.5 font-medium text-gray-800">{{ org.n_employees }} employees</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </section>
+                {% endif %}
+
+                {# Stages ── #}
+                {% if bundle.stages %}
+                <section class="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
+                    <h2 class="text-base font-semibold text-gray-900 mb-3">Investment Stages</h2>
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for stage in bundle.stages %}
+                        <span class="rounded-full bg-pink-50 px-2.5 py-1 text-xs font-medium text-pink-700">{{ stage.value | replace('_', ' ') | title }}</span>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                {# Industries ── #}
+                {% if bundle.industries %}
+                <section class="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
+                    <h2 class="text-base font-semibold text-gray-900 mb-3">Industries</h2>
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for ind in bundle.industries %}
+                        <span class="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700">{{ ind.name }}</span>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                {# Contact (Pro-gated) ── #}
+                <section class="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
+                    <h2 class="text-base font-semibold text-gray-900 mb-3">Contact</h2>
+                    {% if viewer_is_pro %}
+                    {# Pro viewer — emit real contact details #}
+                    {% if org.email %}
+                    <p class="text-sm text-gray-700 break-all">{{ org.email }}</p>
+                    {% endif %}
+                    {% if org.phone_number %}
+                    <p class="mt-1 text-sm text-gray-700">{{ org.phone_number }}</p>
+                    {% endif %}
+                    {% else %}
+                    {# Non-Pro / anonymous — contact details intentionally absent from DOM #}
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-center gap-2 rounded-lg bg-gray-50 border border-dashed border-gray-200 px-4 py-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 shrink-0 text-gray-400" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                            </svg>
+                            <span class="text-xs text-gray-500">Contact info available on Pro plan</span>
+                        </div>
+                        <a href="/pricing" class="inline-flex items-center justify-center rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-400 transition-colors">
+                            Unlock with Pro
+                        </a>
+                    </div>
+                    {% endif %}
+                </section>
+
+            </div>{# /sidebar #}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block json_ld %}
+{# Organization JSON-LD — uses _OrgProxy bridging object #}
+{% set org = org_proxy %}
+{% set affiliations = aff_proxies %}
+{% include "partials/_jsonld_organization.html" %}
+
+{# BreadcrumbList JSON-LD #}
+{% include "partials/_jsonld_breadcrumb.html" %}
+{% endblock %}

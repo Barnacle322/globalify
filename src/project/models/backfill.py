@@ -16,15 +16,42 @@ Round name → InvestmentStage mapping
 "Series C"  → SERIES_C
 Names that imply "B+" (contain "B+" or both B and C) expand to SERIES_B +
 SERIES_C.  Unrecognised names are silently skipped.
+
+Legacy table isolation
+-----------------------
+The Investor / InvestmentFirm / InvestorBookmark / InvestmentFirmBookmark ORM
+classes below are declared against a *separate* MetaData (_legacy_metadata)
+so they are NEVER part of db.metadata.  This means:
+
+    - db.create_all()      → does NOT create investor / investment_firm / …
+    - db.drop_all()        → does NOT drop those tables
+    - the Phase 2d Task 5 destructive migration is the authoritative drop
+
+Test fixtures that need the legacy tables must call:
+    from project.models.backfill import _legacy_metadata
+    _legacy_metadata.create_all(bind=engine)
 """
 
 from __future__ import annotations
 
 import uuid
 
+import sqlalchemy as sa
 from slugify import slugify
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, func, text
-from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    func,
+    text,
+)
+from sqlalchemy.orm import Mapped, declarative_base, joinedload, mapped_column, relationship
 from thefuzz import fuzz
 
 from ..extensions import db
@@ -50,52 +77,66 @@ from .entity import (
 from .helpers import Industry, Round
 
 # ---------------------------------------------------------------------------
-# Legacy ORM classes — defined here so that db.create_all() creates the old
-# tables in test environments and backfill_entities() can query them.
-# These classes are NOT registered in models/__init__.py and should NOT be
-# used outside this module.  The real tables still exist in production until
-# Phase 2d Task 5's migration drops them.
+# Isolated metadata — legacy tables live here, NEVER in db.metadata
 # ---------------------------------------------------------------------------
 
-_investor_round = db.Table(
+_legacy_metadata = MetaData()
+_LegacyBase = declarative_base(metadata=_legacy_metadata)
+
+# ---------------------------------------------------------------------------
+# Legacy M2M association tables (registered in _legacy_metadata only)
+# ---------------------------------------------------------------------------
+
+_investor_round = Table(
     "investor_round",
+    _legacy_metadata,
+    # FK to investor.id (same metadata) — declared as FK
     Column("investor_id", Integer, ForeignKey("investor.id"), primary_key=True),
-    Column("round_id", Integer, ForeignKey("round.id"), primary_key=True),
+    # FK to round.id (db.metadata) — declared as plain Integer to avoid cross-metadata resolution
+    Column("round_id", Integer, primary_key=True),
 )
 
-_investor_industry = db.Table(
+_investor_industry = Table(
     "investor_industry",
+    _legacy_metadata,
     Column("investor_id", Integer, ForeignKey("investor.id"), primary_key=True),
-    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+    Column("industry_id", Integer, primary_key=True),
 )
 
-_investor_notable_investment = db.Table(
+_investor_notable_investment = Table(
     "investor_notable_investment",
+    _legacy_metadata,
     Column("investor_id", Integer, ForeignKey("investor.id"), primary_key=True),
-    Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
+    Column("notable_investment_id", Integer, primary_key=True),
 )
 
-_investment_firm_notable_investment = db.Table(
+_investment_firm_notable_investment = Table(
     "investment_firm_notable_investment",
+    _legacy_metadata,
     Column("investment_firm_id", Integer, ForeignKey("investment_firm.id"), primary_key=True),
-    Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
+    Column("notable_investment_id", Integer, primary_key=True),
 )
 
-_investment_firm_round = db.Table(
+_investment_firm_round = Table(
     "investment_firm_round",
+    _legacy_metadata,
     Column("investment_firm_id", Integer, ForeignKey("investment_firm.id"), primary_key=True),
-    Column("round_id", Integer, ForeignKey("round.id"), primary_key=True),
+    Column("round_id", Integer, primary_key=True),
 )
 
-_investment_firm_industry = db.Table(
+_investment_firm_industry = Table(
     "investment_firm_industry",
+    _legacy_metadata,
     Column("investment_firm_id", Integer, ForeignKey("investment_firm.id"), primary_key=True),
-    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+    Column("industry_id", Integer, primary_key=True),
 )
 
 
-class Investor(db.Model):
-    """Legacy ORM class — reads the 'investor' table for backfill purposes only."""
+class Investor(_LegacyBase):
+    """Legacy ORM class — reads the 'investor' table for backfill purposes only.
+
+    Registered against _legacy_metadata, NOT db.metadata.
+    """
 
     __tablename__ = "investor"
 
@@ -120,13 +161,32 @@ class Investor(db.Model):
     _country: Mapped[str | None] = mapped_column(String, nullable=True)
     bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True)
-    user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    # user_id references user.id (db.metadata) — declared as plain Integer to avoid cross-metadata issues
+    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
     is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
 
-    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=_investor_notable_investment)
-    rounds: Mapped[list[Round]] = relationship(secondary=_investor_round)
-    industries: Mapped[list[Industry]] = relationship(secondary=_investor_industry)
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(
+        NotableInvestment,
+        secondary=_investor_notable_investment,
+        primaryjoin=lambda: Investor.__table__.c.id == _investor_notable_investment.c.investor_id,
+        secondaryjoin=lambda: NotableInvestment.__table__.c.id == _investor_notable_investment.c.notable_investment_id,
+        viewonly=False,
+    )
+    rounds: Mapped[list[Round]] = relationship(
+        Round,
+        secondary=_investor_round,
+        primaryjoin=lambda: Investor.__table__.c.id == _investor_round.c.investor_id,
+        secondaryjoin=lambda: Round.__table__.c.id == _investor_round.c.round_id,
+        viewonly=False,
+    )
+    industries: Mapped[list[Industry]] = relationship(
+        Industry,
+        secondary=_investor_industry,
+        primaryjoin=lambda: Investor.__table__.c.id == _investor_industry.c.investor_id,
+        secondaryjoin=lambda: Industry.__table__.c.id == _investor_industry.c.industry_id,
+        viewonly=False,
+    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -135,8 +195,11 @@ class Investor(db.Model):
         return f"<Investor {self.first_name} {self.last_name}>"
 
 
-class InvestmentFirm(db.Model):
-    """Legacy ORM class — reads the 'investment_firm' table for backfill purposes only."""
+class InvestmentFirm(_LegacyBase):
+    """Legacy ORM class — reads the 'investment_firm' table for backfill purposes only.
+
+    Registered against _legacy_metadata, NOT db.metadata.
+    """
 
     __tablename__ = "investment_firm"
 
@@ -161,9 +224,29 @@ class InvestmentFirm(db.Model):
     search_index: Mapped[str | None] = mapped_column(String, nullable=True)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
-    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=_investment_firm_notable_investment)
-    rounds: Mapped[list[Round]] = relationship(secondary=_investment_firm_round)
-    industries: Mapped[list[Industry]] = relationship(secondary=_investment_firm_industry)
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(
+        NotableInvestment,
+        secondary=_investment_firm_notable_investment,
+        primaryjoin=lambda: InvestmentFirm.__table__.c.id == _investment_firm_notable_investment.c.investment_firm_id,
+        secondaryjoin=lambda: (
+            NotableInvestment.__table__.c.id == _investment_firm_notable_investment.c.notable_investment_id
+        ),
+        viewonly=False,
+    )
+    rounds: Mapped[list[Round]] = relationship(
+        Round,
+        secondary=_investment_firm_round,
+        primaryjoin=lambda: InvestmentFirm.__table__.c.id == _investment_firm_round.c.investment_firm_id,
+        secondaryjoin=lambda: Round.__table__.c.id == _investment_firm_round.c.round_id,
+        viewonly=False,
+    )
+    industries: Mapped[list[Industry]] = relationship(
+        Industry,
+        secondary=_investment_firm_industry,
+        primaryjoin=lambda: InvestmentFirm.__table__.c.id == _investment_firm_industry.c.investment_firm_id,
+        secondaryjoin=lambda: Industry.__table__.c.id == _investment_firm_industry.c.industry_id,
+        viewonly=False,
+    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -172,28 +255,38 @@ class InvestmentFirm(db.Model):
         return f"<InvestmentFirm {self.name}>"
 
 
-class InvestorBookmark(db.Model):
-    """Legacy ORM class — reads 'investor_bookmark' for backfill purposes only."""
+class InvestorBookmark(_LegacyBase):
+    """Legacy ORM class — reads 'investor_bookmark' for backfill purposes only.
+
+    Registered against _legacy_metadata, NOT db.metadata.
+    user_id is a plain Integer (no FK constraint) to avoid cross-metadata resolution.
+    """
 
     __tablename__ = "investor_bookmark"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    # user_id references user.id (db.metadata) — declared as plain Integer
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False)
     investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
 
-class InvestmentFirmBookmark(db.Model):
-    """Legacy ORM class — reads 'investment_firm_bookmark' for backfill purposes only."""
+class InvestmentFirmBookmark(_LegacyBase):
+    """Legacy ORM class — reads 'investment_firm_bookmark' for backfill purposes only.
+
+    Registered against _legacy_metadata, NOT db.metadata.
+    user_id is a plain Integer (no FK constraint) to avoid cross-metadata resolution.
+    """
 
     __tablename__ = "investment_firm_bookmark"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    # user_id references user.id (db.metadata) — declared as plain Integer
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False)
     investment_firm_id: Mapped[int] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=False)
 
     def __init__(self, **kwargs):
@@ -313,7 +406,7 @@ def backfill_entities(session) -> dict[str, int]:  # noqa: C901 (acceptable leng
     # ------------------------------------------------------------------
     # Step 1: Investors → Person
     # ------------------------------------------------------------------
-    investors = session.scalars(db.select(Investor)).all()
+    investors = session.scalars(sa.select(Investor)).all()
 
     # investor.id → Person (needed later for facets / bookmarks)
     investor_person: dict[int, Person] = {}
@@ -345,7 +438,7 @@ def backfill_entities(session) -> dict[str, int]:  # noqa: C901 (acceptable leng
     # ------------------------------------------------------------------
     # Step 2: InvestmentFirms → Organization
     # ------------------------------------------------------------------
-    firms = session.scalars(db.select(InvestmentFirm)).all()
+    firms = session.scalars(sa.select(InvestmentFirm)).all()
 
     # firm.id → Organization
     firm_org: dict[int, Organization] = {}
@@ -384,7 +477,7 @@ def backfill_entities(session) -> dict[str, int]:  # noqa: C901 (acceptable leng
     # Reload investors with their relationship data
     investors = (
         session.scalars(
-            db.select(Investor).options(
+            sa.select(Investor).options(
                 *[],  # already loaded above; re-query ensures fresh state
             )
         )
@@ -505,7 +598,7 @@ def backfill_entities(session) -> dict[str, int]:  # noqa: C901 (acceptable leng
     # Reload investors with relationships eagerly loaded
     investors_with_facets = (
         session.scalars(
-            db.select(Investor).options(
+            sa.select(Investor).options(
                 joinedload(Investor.industries),
                 joinedload(Investor.rounds),
                 joinedload(Investor.notable_investments),
@@ -539,7 +632,7 @@ def backfill_entities(session) -> dict[str, int]:  # noqa: C901 (acceptable leng
     # InvestmentFirm M2M
     firms_with_facets = (
         session.scalars(
-            db.select(InvestmentFirm).options(
+            sa.select(InvestmentFirm).options(
                 joinedload(InvestmentFirm.industries),
                 joinedload(InvestmentFirm.rounds),
                 joinedload(InvestmentFirm.notable_investments),
@@ -606,7 +699,7 @@ def backfill_entities(session) -> dict[str, int]:  # noqa: C901 (acceptable leng
     # ------------------------------------------------------------------
     # Step 7: EntityBookmark
     # ------------------------------------------------------------------
-    inv_bookmarks = session.scalars(db.select(InvestorBookmark)).all()
+    inv_bookmarks = session.scalars(sa.select(InvestorBookmark)).all()
     for bm in inv_bookmarks:
         person = investor_person.get(bm.investor_id)
         if person is None:
@@ -619,7 +712,7 @@ def backfill_entities(session) -> dict[str, int]:  # noqa: C901 (acceptable leng
         session.add(eb)
         counts["entity_bookmarks"] += 1
 
-    firm_bookmarks = session.scalars(db.select(InvestmentFirmBookmark)).all()
+    firm_bookmarks = session.scalars(sa.select(InvestmentFirmBookmark)).all()
     for bm in firm_bookmarks:
         org = firm_org.get(bm.investment_firm_id)
         if org is None:

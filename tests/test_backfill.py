@@ -34,13 +34,21 @@ import pytest  # noqa: E402
 
 @pytest.fixture()
 def db_session(app):
-    """Push an app context, create ALL tables, yield the db object, then teardown."""
+    """Push an app context, create ALL tables, yield the db object, then teardown.
+
+    db.create_all() creates the current-model tables (db.metadata).
+    _legacy_metadata.create_all() creates the legacy tables (investor, investment_firm,
+    etc.) that live in a separate MetaData so they don't pollute db.metadata.
+    """
     from project.extensions import db
+    from project.models.backfill import _legacy_metadata
 
     with app.app_context():
         db.create_all()
+        _legacy_metadata.create_all(bind=db.engine)
         yield db
         db.session.remove()
+        _legacy_metadata.drop_all(bind=db.engine)
         db.drop_all()
 
 

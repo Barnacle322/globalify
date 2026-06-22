@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-import pycountry
 from slugify import slugify
 from sqlalchemy import Integer, String, event
 from sqlalchemy.orm import Mapped, mapped_column
@@ -167,50 +166,6 @@ class Round(db.Model):
             db.session.commit()
         except Exception:
             db.session.rollback()
-
-
-class Country(db.Model):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    code: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<Country {self.name}>"
-
-    @staticmethod
-    def get_all() -> Sequence[Country]:
-        return db.session.scalars(db.select(Country)).all()
-
-    @staticmethod
-    def get_by_code(code: str) -> Country | None:
-        return db.session.scalar(db.select(Country).where(Country.code == code))
-
-    @staticmethod
-    def get_by_id(id: int) -> Country | None:
-        return db.session.scalar(db.select(Country).where(Country.id == id))
-
-    @staticmethod
-    def get_by_name(name: str) -> Country | None:
-        return db.session.scalar(db.select(Country).where(Country.name == name))
-
-    @staticmethod
-    def populate() -> None:
-        try:
-            country_list: list[Country] = []
-            for country in pycountry.countries:
-                country_list.append(Country(name=country.name, code=country.alpha_2))  # type: ignore
-            db.session.add_all(country_list)
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-
-
-@event.listens_for(Country.__table__, "after_create")  # type: ignore
-def populate_country(*args, **kwargs):
-    Country.populate()
 
 
 @event.listens_for(Round.__table__, "after_create")  # type: ignore

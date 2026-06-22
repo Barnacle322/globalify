@@ -13,7 +13,7 @@ from .entity import (
     Person,
 )
 from .entity_search import delete_data, get_search, sync_one, sync_search_index
-from .helpers import Country, Industry, Round
+from .helpers import Industry, Round
 from .search import SearchHistory
 from .user import (
     EmailVerification,
@@ -24,7 +24,6 @@ from .user import (
 )
 
 __all__ = [
-    "Country",
     "Industry",
     "Round",
     "EmailVerification",

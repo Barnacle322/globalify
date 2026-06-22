@@ -29,12 +29,6 @@ class Status:
         return {"type": str(self.status_type.value), "msg": self.msg, **kwargs}
 
 
-class OauthProvider(Enum):
-    GOOGLE = "google"
-    LINKEDIN = "linkedin"
-    APPLE = "apple"
-
-
 class Tier(Enum):
     FREE = "free"
     PREMIUM_MONTHLY = "premium monthly"
@@ -42,23 +36,7 @@ class Tier(Enum):
 
 
 class Events(Enum):
-    STRIPE_INVOICE_PAID = "stripe.invoice_paid"
-    STRIPE_INVOICE_UPCOMING = "stripe.invoice_upcoming"
-    STRIPE_TRIAL_WILL_END = "stripe.trial_will_end"
-    STRIPE_PAYMENT_FAILED = "stripe.payment_failed"
-    STRIPE_PAYMENT_SUCCEDED = "stripe.payment_succeeded"
-
-    USER_COMPLETED_ONBOARDING = "user.completed_onboarding"
-
     INVESTOR_PROFILE_CLAIM_REQUEST = "investor.profile_claim_request"
-
-    COMPANY_INVITATION = "company.invitation"
-
-
-class CompanyRole(Enum):
-    OWNER = "owner"
-    ADMIN = "admin"
-    TEAM = "team"
 
 
 class RequestStatus(Enum):

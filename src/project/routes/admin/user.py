@@ -4,7 +4,7 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from sqlalchemy import or_
 
 from ...extensions import db
-from ...models import User, UserCompany, UserInfo, UserPayment
+from ...models import User, UserInfo, UserPayment
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     Status,
@@ -96,19 +96,16 @@ def update_user_view(id):
     user_payment = UserPayment.get_by_user_id(id)
     tiers = [tier for tier in Tier]
 
-    user_companies = UserCompany.get_by_user_id(user.id)
-    companies_in_user = UserCompany.get_company_ids_by_user_id(user_id=user.id)
-
     return render_template(
         "admin/update_user.html",
         user=user,
-        user_companies=user_companies,
+        user_companies=[],
         user_info=user_info,
         user_payment=user_payment,
         tiers=tiers,
         status_type=status_type,
         msg=msg,
-        companies_in_user=companies_in_user,
+        companies_in_user=[],
     )
 
 
@@ -190,7 +187,6 @@ def update_user(id):
     user_info.bio = form_data.get("bio", user_info.bio)
 
     user_info.is_complete = form_data.get("is_complete", user_info.is_complete)
-    user_info.refuse_all_invitations = form_data.get("refuse_all_invitations", user_info.refuse_all_invitations)
     user_info.email_public = form_data.get("email_public", user_info.email_public)
     user_info.instagram_public = form_data.get("instagram_public", user_info.instagram_public)
     user_info.linkedin_public = form_data.get("linkedin_public", user_info.linkedin_public)
@@ -244,84 +240,19 @@ def delete_user(id):
 @user.post("/<int:user_id>/companies/add")
 @admin_only
 def add_member(user_id: int):
-    form_data = request.get_json()
-
-    company_id = form_data.get("company_id")
-    role = form_data.get("role")
-    position = form_data.get("position")
-    is_primary = form_data.get("is_primary")
-    is_public = form_data.get("is_public")
-
-    if not company_id and not role:
-        status = Status(StatusType.ERROR, "Data fields missing").get_status()
-        return redirect(url_for("admin.company.update_user_view", id=company_id, _external=True, **status))
-
-    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
-
-    if user_company:
-        status = Status(StatusType.ERROR, "Member already exists").get_status()
-        return redirect(url_for("admin.company.update_user_view", id=company_id, _external=True, **status))
-
-    user_company = UserCompany(
-        user_id=user_id, company_id=company_id, position=position, role=role, is_public=is_public, is_primary=is_primary
-    )
-    db.session.add(user_company)
-    db.session.commit()
-
-    status = Status(StatusType.SUCCESS, "Member was added successfully!").get_status()
-    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))
+    # TODO(phase-1a): Company model removed — delete this route
+    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True))
 
 
 @user.post("/<int:user_id>/companies")
 @admin_only
 def edit_user_company(user_id: int):
-    form_data = request.get_json()
-
-    company_id = form_data.get("company_id")
-    role = form_data.get("role")
-    position = form_data.get("position")
-    is_primary = form_data.get("is_primary")
-    is_public = form_data.get("is_public")
-
-    if not company_id and not role:
-        status = Status(StatusType.ERROR, "Data fields missing").get_status()
-        return redirect(url_for("admin.company.update_user_view", id=company_id, _external=True, **status))
-
-    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
-    if not user_company:
-        status = Status(StatusType.ERROR, "Member not found").get_status()
-        return redirect(url_for("admin.company.update_user_view", id=company_id, _external=True, **status))
-
-    try:
-        user_company.role = role
-        user_company.position = position
-        user_company.is_primary = is_primary
-        user_company.is_public = is_public
-
-        db.session.commit()
-    except Exception as e:
-        status = Status(StatusType.ERROR, f"An error occurred: {e}").get_status()
-        return redirect(url_for("admin.company.update_user_view", id=company_id, _external=True, **status))
-
-    status = Status(StatusType.SUCCESS, "Member updated successfully!").get_status()
-    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))
+    # TODO(phase-1a): Company model removed — delete this route
+    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True))
 
 
 @user.get("/<int:user_id>/companies/<int:company_id>/delete")
 @admin_only
 def delete_member(user_id: int, company_id: int):
-    user_company = UserCompany.get_by_user_and_company_id(user_id=user_id, company_id=company_id)
-
-    if not user_company:
-        status = Status(StatusType.ERROR, "Member not found").get_status()
-        return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))
-
-    try:
-        db.session.delete(user_company)
-        db.session.commit()
-    except Exception as e:
-        status = Status(StatusType.ERROR, f"An error occurred: {e}").get_status()
-        return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))
-
-    status = Status(StatusType.SUCCESS, "Member was deleted successfully!").get_status()
-    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True, **status))
+    # TODO(phase-1a): Company model removed — delete this route
+    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True))

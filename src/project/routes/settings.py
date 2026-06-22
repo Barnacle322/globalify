@@ -176,7 +176,6 @@ def change_personal_info():
     user_info.linkedin_public = bool(request.form.get("linkedin_public"))
     user_info.instagram_public = bool(request.form.get("instagram_public"))
     user_info.twitter_public = bool(request.form.get("twitter_public"))
-    user_info.refuse_all_invitations = bool(request.form.get("refuse_all_invitations"))
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Personal info successfully changed.").get_status()
@@ -503,7 +502,6 @@ def search_user(search_input):
             .join(UserInfo, User.id == UserInfo.user_id)
             .where(User.email.contains(search_input))
             .where(User.id != current_user.id)
-            .where(UserInfo.refuse_all_invitations.is_(False))
         )
         .unique()
         .all()

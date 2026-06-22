@@ -84,7 +84,6 @@ def create_app():
     @app.cli.command("setup")
     def populate():
         from .models import InvestmentFirm, Investor, User, UserInfo, UserPayment
-        from .utils.enums import OauthProvider
 
         with app.app_context():
             db.drop_all()
@@ -106,7 +105,6 @@ def create_app():
             ]
             for administrator in admin_list:
                 user = User(
-                    oauth_provider=OauthProvider.GOOGLE,
                     email=administrator["email"],
                     is_verified=True,
                     is_admin=True,

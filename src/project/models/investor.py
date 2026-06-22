@@ -3,7 +3,6 @@ from __future__ import annotations
 import csv
 import datetime
 import json
-import random
 import uuid
 from ast import literal_eval
 from collections.abc import Generator, Sequence
@@ -26,23 +25,7 @@ from sqlalchemy.orm import (
 from thefuzz import fuzz
 
 from ..extensions import db
-from ..utils.fake_data import (
-    get_abouts,
-    get_companies,
-    get_countrys,
-    get_emails,
-    get_job_positions,
-    get_last_names,
-    get_names,
-    get_phone_numbers,
-    get_websites,
-)
 from ..utils.info_lists import notable_investment_list
-from ..utils.scraper import populate_blockchain, populate_demo
-from ..utils.scraper_helpers.population import (
-    get_rounds,
-)
-from ..utils.suggestion import WEIGHTS, geocode_location
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
     create_schema,
@@ -58,100 +41,6 @@ if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
     from .investment import Investment
     from .user import Company, User
-
-
-class SuggestionBuilder:
-    def __init__(self, investor_list: list[dict], company: Company | None):
-        self.investor_list = investor_list
-        self.company = company
-
-    def calculate_all_scores(self):
-        for investor in self.investor_list:
-            # Calculate bias score
-            try:
-                bias_score = (investor["bias"] / 100) if investor["bias"] else 0
-            except Exception as e:
-                print(f"An error occurred while calculating bias score: {e}")
-                bias_score = 0
-
-            # Calculate location score
-            try:
-                if self.company and self.company.coordinates and investor["coordinates"]:
-                    distance = float(geodesic(self.company.coordinates, investor["coordinates"]).kilometers)  # type: ignore
-                    location_score = 1 - (distance / 20038)
-                else:
-                    location_score = 0
-            except Exception as e:
-                print(f"An error occurred while calculating location score: {e}")
-                location_score = 0
-
-            # Calculate exits score
-            try:
-                if investor["n_investments"] and investor["n_exits"]:
-                    exits_score = 1 if (investor["n_exits"] / investor["n_investments"]) >= 0.5 else 0
-                else:
-                    exits_score = 0
-            except Exception as e:
-                print(f"An error occurred while calculating exits score: {e}")
-                exits_score = 0
-
-            # Calculate industry score
-            try:
-                if self.company.industry.name in investor["industries"] and len(investor["industries"]) == 1:  # type: ignore
-                    industry_score = 1
-                elif self.company.industry.name in investor["industries"]:  # type: ignore
-                    industry_score = 0.8
-                else:
-                    industry_score = 0
-            except Exception as e:
-                print(f"An error occurred while calculating industry score: {e}")
-                industry_score = 0
-
-            # Calculate round score
-            try:
-                if self.company.preferred_round.name in investor["rounds"] and len(investor["rounds"]) == 1:  # type: ignore
-                    round_score = 1
-                elif self.company.preferred_round.name in investor["rounds"]:  # type: ignore
-                    round_score = 0.8
-                else:
-                    round_score = 0
-            except Exception as e:
-                print(f"An error occurred while calculating round score: {e}")
-                round_score = 0
-
-            # Calculate completeness score
-            try:
-                completeness_score = 1
-                for value in investor.values():
-                    if not value:
-                        completeness_score -= 0.1
-                if completeness_score < 0:
-                    completeness_score = 0
-            except Exception as e:
-                print(f"An error occurred while calculating completeness score: {e}")
-                completeness_score = 0
-
-            try:
-                total_score = (
-                    WEIGHTS["bias"] * bias_score
-                    + WEIGHTS["location"] * location_score
-                    + WEIGHTS["exits"] * exits_score
-                    + WEIGHTS["industry"] * industry_score
-                    + WEIGHTS["round"] * round_score
-                    + WEIGHTS["completeness"] * completeness_score
-                )
-                investor["total_score"] = total_score
-            except Exception as e:
-                print(f"An error occurred while calculating total score: {e}")
-                investor["total_score"] = 0
-        return self
-
-    def sort_by_score(self):
-        self.investor_list = sorted(self.investor_list, key=lambda x: x["total_score"], reverse=True)
-        return self
-
-    def get_id_list(self, quantity: int):
-        return [investor["id"] for investor in self.investor_list[:quantity]]
 
 
 class NotableInvestment(MappedAsDataclass, db.Model, unsafe_hash=True):
@@ -321,10 +210,8 @@ class Investor(InvestorBase):
 
     @coordinates.setter
     def coordinates(self, location: str) -> None:
-        geo_data = geocode_location(location)
-        if geo_data is not None:
-            self._coordinates = geo_data["coordinates"]  # type: ignore
-            self._country = geo_data["country_name"]  # type: ignore
+        # TODO(phase-3): geocode via Geography table
+        pass
 
     @property
     def country(self):
@@ -348,11 +235,7 @@ class Investor(InvestorBase):
 
     @validates("location")
     def on_location_change(self, key, value):
-        if value != self.location:
-            geo_data = geocode_location(value)
-            if geo_data is not None:
-                self._coordinates = geo_data["coordinates"]  # type: ignore
-                self._country = geo_data["country_name"]  # type: ignore
+        # TODO(phase-3): geocode via Geography table
         return value
 
     @staticmethod
@@ -405,35 +288,6 @@ class Investor(InvestorBase):
                 .all()
             )
             yield investors
-
-    @staticmethod
-    def get_suggestions(company: Company | None, quantity: int) -> Sequence[Investor] | None:
-        investor_list = []
-        for investor in Investor.get_all():
-            investor_info = {
-                "id": investor.id,
-                "bias": investor.bias,
-                "n_investments": investor.n_investments,
-                "n_exits": investor.n_exits,
-                "coordinates": investor.coordinates,
-                "rounds": [round.name for round in investor.rounds],
-                "industries": [industry.name for industry in investor.industries],
-                "min_investment": investor.min_investment,
-                "max_investment": investor.max_investment,
-                "about": investor.about,
-            }
-            investor_list.append(investor_info)
-        investor_ids = (
-            SuggestionBuilder(investor_list, company).calculate_all_scores().sort_by_score().get_id_list(quantity)
-        )
-        suggestions = Investor.get_by_id_list(investor_ids)
-        if not suggestions:
-            return None
-        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}
-        sorted_suggestions = [
-            suggestions_dict[investor_id] for investor_id in investor_ids if investor_id in suggestions_dict
-        ]
-        return sorted_suggestions
 
     @classmethod
     def get_search(
@@ -604,82 +458,6 @@ class Investor(InvestorBase):
             print(f"Processed {len(items)} {model.__name__}(s).")
 
     @staticmethod
-    def populate() -> None:
-        investor_list = []
-        firstnames = get_names(50)
-        lastnames = get_last_names(50)
-        emails = get_emails(50)
-        websites = get_websites(50)
-        job_positions = get_job_positions(50)
-        locations = get_countrys(50)
-        companies = get_companies(50)
-        for i in range(1, 10):
-            num_rounds = random.randint(1, 5)
-            rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
-            num_industries = random.randint(1, 6)
-            industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
-            notable_investments = [
-                NotableInvestment.get_by_id(random.randint(1, len(NotableInvestment.get_all())))
-                for _ in range(random.randint(1, 10))
-            ]
-            min_investment = random.randrange(100000, 50000001, 100000)
-            investor_populate = Investor(
-                first_name=f"{firstnames[i]}",
-                last_name=f"{lastnames[i]}",
-                about=f"{firstnames[i]} is a {job_positions[i]} at {companies[i]}. {get_abouts(1)[0]}",
-                firm_name=f"{companies[i]}",
-                position=f"{job_positions[i]}",
-                website=f"{websites[i]}",
-                linkedin=f"https://www.linkedin.com/in/{firstnames[i]}-{lastnames[i]}",
-                twitter=f"https://twitter.com/{firstnames[i]}{lastnames[i]}",
-                email=f"{str(i) + emails[i]}",
-                phone_number=f"+1{random.randrange(1000000000, 9999999999)}",
-                n_investments=random.randint(100, 200),
-                n_exits=random.randint(1, 100),
-                location=locations[i],
-                coordinates=locations[i],
-                rounds=list(set(rounds)),
-                industries=list(set(industries)),
-                min_investment=min_investment,
-                max_investment=random.randrange(min_investment, 50000001, 100000),
-                notable_investments=list(set(notable_investments)),
-            )
-            investor_populate.full_name = True
-            investor_list.append(investor_populate)
-        db.session.add_all(investor_list)
-        db.session.commit()
-
-    @staticmethod
-    def populate_all():
-        investors_list = []
-        investors_list += populate_demo(NotableInvestment, Industry)
-        investors_list += populate_blockchain(NotableInvestment, Industry)
-        count = 0
-        for investor in investors_list:
-            item = Investor(
-                first_name=investor.get("first_name"),
-                last_name=investor.get("last_name"),
-                firm_name=investor.get("firm_name"),
-                position=investor.get("position"),
-                about=investor.get("about"),
-                email=investor.get("email"),
-                location=investor.get("location"),
-                coordinates=investor.get("location"),
-                industries=investor.get("industries"),
-                linkedin=investor.get("linkedin"),
-                twitter=investor.get("twitter"),
-                min_investment=investor.get("min_investment"),
-                max_investment=investor.get("max_investment"),
-                rounds=investor.get("rounds"),
-                notable_investments=investor.get("notable_investments"),
-            )
-            db.session.add(item)
-            count += 1
-            print("Added investor:", item)
-        print(f"Added {count} investors")
-        db.session.commit()
-
-    @staticmethod
     def populate_demo(file_name="data/investor.csv"):
         with open(file_name, newline="") as file:
             existing_notable_investments = NotableInvestment.get_all()
@@ -821,7 +599,7 @@ class Investor(InvestorBase):
                     max_investment=int(investor.get("max_investment") or 0),
                     n_investments=int(investor.get("n_investments") or 0),
                     industries=list(set(industries)),
-                    rounds=get_rounds(investor.get("rounds")),
+                    rounds=[],
                     notable_investments=nis_to_add,
                 )
                 db.session.add(investor)
@@ -1341,10 +1119,8 @@ class InvestmentFirm(db.Model):
 
     @coordinates.setter
     def coordinates(self, location: str) -> None:
-        geo_data = geocode_location(location)
-        if geo_data is not None:
-            self._coordinates = geo_data.get("coordinates")
-            self._country = geo_data.get("country_name")
+        # TODO(phase-3): geocode via Geography table
+        pass
 
     @staticmethod
     def get_batches(batch_size: int = 100, stmt: Any = False) -> Generator[Sequence[InvestmentFirm]]:
@@ -1374,41 +1150,6 @@ class InvestmentFirm(db.Model):
             .unique()
             .all()
         )
-
-    @staticmethod
-    def get_suggestions(company: Company | None, quantity: int) -> Sequence[InvestmentFirm] | None:
-        investment_firm_list = []
-        for investment_firm in InvestmentFirm.get_all():
-            investment_firm_info = {
-                "id": investment_firm.id,
-                "bias": investment_firm.bias,
-                "n_investments": investment_firm.n_investments,
-                "n_exits": investment_firm.n_exits,
-                "n_employees": investment_firm.n_employees,
-                "coordinates": investment_firm.coordinates,
-                "rounds": [round.name for round in investment_firm.rounds],
-                "industries": [industry.name for industry in investment_firm.industries],
-                "min_investment": investment_firm.min_investment,
-                "max_investment": investment_firm.max_investment,
-                "about": investment_firm.about,
-            }
-            investment_firm_list.append(investment_firm_info)
-        investment_firm_ids = (
-            SuggestionBuilder(investment_firm_list, company)
-            .calculate_all_scores()
-            .sort_by_score()
-            .get_id_list(quantity)
-        )
-        suggestions = InvestmentFirm.get_by_id_list(investment_firm_ids)
-        if not suggestions:
-            return None
-        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}
-        sorted_suggestions = [
-            suggestions_dict[investment_firm_id]
-            for investment_firm_id in investment_firm_ids
-            if investment_firm_id in suggestions_dict
-        ]
-        return sorted_suggestions
 
     @classmethod
     def get_search(
@@ -1479,58 +1220,6 @@ class InvestmentFirm(db.Model):
                 }
             )
         return {"investment_firms": investment_firm_list, "found": found, "pages": pages, "page": page}
-
-    @staticmethod
-    def populate():
-        try:
-            investment_firms_list = []
-            names = get_companies(50)
-            abouts = get_abouts(50)
-            websites = get_websites(50)
-            emails = get_emails(50)
-            phone_numbers = get_phone_numbers(50)
-            locations = get_countrys(50)
-            for i in range(1, 50):
-                num_rounds = random.randint(1, 5)
-                rounds = [Round.get_by_id(random.randint(1, 5)) for _ in range(num_rounds)]
-                num_industries = random.randint(1, 6)
-                industries = [Industry.get_by_id(random.randint(1, 92)) for _ in range(num_industries)]
-                [
-                    NotableInvestment.get_by_id(random.randint(1, len(NotableInvestment.get_all())))
-                    for _ in range(random.randint(1, 10))
-                ]
-                n_investments = random.randint(100, 200)
-                n_exits = random.randint(1, 100)
-                n_employees = random.randint(1, 300)
-                min_investment = random.randrange(100000, 50000001, 100000)
-                max_investment = random.randrange(min_investment, 50000001, 100000)
-                investment_firm = InvestmentFirm(
-                    name=f"{names[i]}",
-                    about=f"{abouts[i]}",
-                    website=f"{websites[i]}",
-                    linkedin=f"https://www.linkedin.com/company/{names[i]}",
-                    twitter=f"https://twitter.com/{names[i]}",
-                    email=f"{str(i) + emails[i]}",
-                    phone_number=f"{phone_numbers[i]}",
-                    n_investments=n_investments,
-                    n_exits=n_exits,
-                    n_employees=n_employees,
-                    location=locations[i],
-                    # coordinates=locations[i],
-                    rounds=list(set(rounds)),
-                    industries=list(set(industries)),
-                    min_investment=min_investment,
-                    max_investment=max_investment,
-                    # notable_investments=list(set(notable_investments)),
-                )
-                investment_firm.set_slug()
-
-                investment_firms_list.append(investment_firm)
-            db.session.add_all(investment_firms_list)
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            return f"An error occurred: {e}"
 
     @staticmethod
     def slugify_existing():

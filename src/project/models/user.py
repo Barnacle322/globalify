@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from flask_login import UserMixin
-from geopy.distance import geodesic
 from more_itertools import chunked
 from slugify import slugify
 from sqlalchemy import (
@@ -33,9 +32,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, MappedAsDataclass, joinedload, mapped_column, relationship, validates
 
 from ..extensions import db
-from ..utils import suggestion
 from ..utils.enums import CompanyRole, OauthProvider, Tier
-from ..utils.suggestion import COMPANY_WEIGHTS
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
     create_schema,
@@ -409,68 +406,6 @@ class EmailVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
         return last_verification
 
 
-class CompanySuggestionBuilder:
-    def __init__(self, company_list: list[dict], investor: Investor | None):
-        self.company_list = company_list
-        self.investor = investor
-
-    def calculate_all_scores(self):
-        for company in self.company_list:
-            try:
-                bias_score = (company["bias"] / 100) if company["bias"] else 0
-            except Exception as e:
-                print(f"An error occurred while calculating bias score: {e}")
-                bias_score = 0
-
-            try:
-                if self.investor.coordinates and company["coordinates"]:  # type: ignore
-                    distance = float(geodesic(self.investor.coordinates, company["coordinates"]).kilometers)  # type: ignore
-                    location_score = 1 - (distance / 20038)
-                else:
-                    location_score = 0
-            except Exception as e:
-                print(f"An error occurred while calculating location score: {e}")
-                location_score = 0
-
-            try:
-                if company["industry"] in [industry.name for industry in self.investor.industries]:  # type: ignore
-                    industry_score = 1
-                else:
-                    industry_score = 0
-            except Exception as e:
-                print(f"An error occurred while calculating industry score: {e}")
-                industry_score = 0
-
-            try:
-                if company["preferred_round"] in [round.name for round in self.investor.rounds]:  # type: ignore
-                    round_score = 1
-                else:
-                    round_score = 0
-            except Exception as e:
-                print(f"An error occurred while calculating round score: {e}")
-                round_score = 0
-
-            try:
-                total_score = (
-                    COMPANY_WEIGHTS["bias"] * bias_score
-                    + COMPANY_WEIGHTS["location"] * location_score
-                    + COMPANY_WEIGHTS["industry"] * industry_score
-                    + COMPANY_WEIGHTS["round"] * round_score
-                )
-                company["total_score"] = total_score
-            except Exception as e:
-                print(f"An error occurred while calculating total score: {e}")
-                company["total_score"] = 0
-        return self
-
-    def sort_by_score(self):
-        self.company_list = sorted(self.company_list, key=lambda x: x["total_score"], reverse=True)
-        return self
-
-    def get_id_list(self, quantity: int):
-        return [company["id"] for company in self.company_list[:quantity]]
-
-
 class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     user_companies: Mapped[list[UserCompany]] = relationship(
         "UserCompany", back_populates="company", uselist=True, init=False
@@ -512,7 +447,8 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     @coordinates.setter
     def coordinates(self, coordinates: str) -> None:
-        self._coordinates = suggestion.geocode_location(coordinates).get("coordinates")
+        # TODO(phase-3): geocode via Geography table
+        pass
 
     @validates("website_url")
     def validate_website(self, key, website):
@@ -584,31 +520,6 @@ class Company(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_by_id_list(ids: list[int]) -> Sequence[Company]:
         return db.session.scalars(db.select(Company).where(Company.id.in_(ids))).all()
-
-    @staticmethod
-    def get_suggestions(investor: Investor | None, quantity: int) -> Sequence[Company] | None:
-        company_list = []
-        for company in Company.get_all():
-            company_info = {
-                "id": company.id,
-                "coordinates": company.coordinates,
-                "preferred_round": company.preferred_round.name,
-                "industry": company.industry.name,
-                "description": company.description,
-            }
-            company_list.append(company_info)
-        company_ids = (
-            CompanySuggestionBuilder(company_list, investor)
-            .calculate_all_scores()
-            .sort_by_score()
-            .get_id_list(quantity)
-        )
-        suggestions = Company.get_by_id_list(company_ids)
-        suggestions_dict = {suggestion.id: suggestion for suggestion in suggestions}
-        sorted_suggestions = [
-            suggestions_dict[company_id] for company_id in company_ids if company_id in suggestions_dict
-        ]
-        return sorted_suggestions
 
     @staticmethod
     def get_search(

@@ -18,8 +18,17 @@ from ...utils.errors.error_messages import (
     USER_PAYMENT_NOT_FOUND,
 )
 from ...utils.funcs import generate_pagination
-from ...utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from ...utils.scraper import add_https_prefix
+
+
+# TODO(phase-3): upload via R2 — replace stubs below with real upload_picture / delete_blob_from_url
+def upload_picture(picture):  # type: ignore[override]
+    raise NotImplementedError("TODO(phase-3): implement upload via R2")
+
+
+def delete_blob_from_url(url):  # type: ignore[override]
+    pass
+
 
 user = Blueprint("user", __name__)
 

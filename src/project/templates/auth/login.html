@@ -8,33 +8,7 @@
         <article class="flex max-w-[400px] flex-col gap-2">
             <div class="mb-4 flex flex-col gap-1 font-medium">
                 <h1 class="text-4xl">Welcome!</h1>
-                <span class="text-sm">Sign in with your social media </span>
             </div>
-
-            <a
-                href="/login-google"
-                class="flex w-full items-center justify-center gap-1 rounded-xl border bg-white px-6 py-3 transition-colors ease-in-out hover:bg-gray-100"
-                onclick="this.classList.add('idempotency');"
-            >
-                <img src="/static/elements/g-logo.svg" alt="" />
-                <span class="w-full text-center text-sm font-medium">Continue with Google</span>
-            </a>
-            <a
-                href="/login-apple"
-                class="flex w-full items-center justify-center gap-1 rounded-xl border bg-white px-6 py-3 transition-colors ease-in-out hover:bg-gray-100"
-                onclick="this.classList.add('idempotency');"
-            >
-                <img src="/static/elements/apple.svg" alt="" />
-                <span class="w-full text-center text-sm font-medium">Continue with Apple</span>
-            </a>
-            <a
-                href="/login-linkedin"
-                class="flex w-full items-center justify-center gap-1 rounded-xl border bg-white px-6 py-3 transition-colors ease-in-out hover:bg-gray-100"
-                onclick="this.classList.add('idempotency');"
-            >
-                <img class="w-4" src="/static/elements/linkedin.png" alt="" />
-                <span class="w-full text-center text-sm font-medium">Continue with LinkedIn</span>
-            </a>
             {% if status_type %} {% if status_type == '3' %}
             <div class="rounded-xl text-red-500">{{ msg }}</div>
             {% endif %} {% if status_type == '2' %}

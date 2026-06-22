@@ -100,11 +100,11 @@ def seeded_data(app_ctx):
         EntityStage,
         Geography,
         InvestorProfile,
+        NotableInvestment,
         Organization,
         Person,
     )
     from project.models.helpers import Industry
-    from project.models.investor import NotableInvestment
     from project.utils.enums import (
         AffiliationRole,
         EntityType,

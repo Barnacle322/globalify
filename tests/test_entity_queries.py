@@ -275,8 +275,7 @@ def test_load_profile_bundle_geographies(db_session):
 
 
 def test_load_profile_bundle_notables(db_session):
-    from project.models.entity import EntityNotable, Person, load_profile_bundle
-    from project.models.investor import NotableInvestment
+    from project.models.entity import EntityNotable, NotableInvestment, Person, load_profile_bundle
     from project.utils.enums import EntityType
 
     db = db_session
@@ -356,12 +355,12 @@ def test_load_profile_bundle_full_integration(db_session):
         EntityStage,
         Geography,
         InvestorProfile,
+        NotableInvestment,
         Organization,
         Person,
         load_profile_bundle,
     )
     from project.models.helpers import Industry
-    from project.models.investor import NotableInvestment
     from project.utils.enums import (
         AffiliationRole,
         EntityType,

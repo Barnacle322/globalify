@@ -2,6 +2,7 @@
 
 Exposes:
     sync_search_index(recreate=False) — build / refresh the Typesense index
+    sync_one(entity_type, entity_id)  — upsert a single entity document
     get_search(query, **filters)      — run a search and return raw Typesense results
     delete_data(entity_type, db_id)   — remove a single entity document
 """
@@ -93,6 +94,184 @@ def _build_schema() -> dict:
 # ---------------------------------------------------------------------------
 
 
+def _build_entity_doc(entity_type: object, entity: object, session: object) -> dict:
+    """Build a Typesense document dict for a single Person or Organization.
+
+    This is the ONE source of truth for document construction; both
+    ``sync_search_index`` and ``sync_one`` call it.
+
+    Args:
+        entity_type: An ``EntityType`` enum value (PERSON or ORG).
+        entity:      The ORM row (Person or Organization instance).
+        session:     The active SQLAlchemy session (unused directly; db.session
+                     is used via lazy import to stay consistent with the rest of
+                     the module's pattern).
+
+    Returns:
+        A dict ready to upsert into the ``entities`` Typesense collection.
+    """
+    # Lazy imports to keep module-level import graph clean.
+    from ..extensions import db
+    from ..utils.enums import EntityType
+    from .entity import (
+        Affiliation,
+        EntityGeography,
+        EntityIndustry,
+        EntityNotable,
+        EntityStage,
+        InvestorProfile,
+        NotableInvestment,
+        Organization,
+        Person,
+    )
+    from .helpers import Industry
+
+    is_person = entity_type == EntityType.PERSON
+
+    if is_person:
+        doc: dict = {
+            "id": f"person_{entity.id}",
+            "entity_type": "person",
+            "db_id": entity.id,
+            "name": f"{entity.first_name} {entity.last_name or ''}".strip(),
+        }
+        if entity.slug:
+            doc["slug"] = entity.slug
+        if entity.about:
+            doc["about"] = entity.about
+        if entity.headline:
+            doc["headline"] = entity.headline
+        if entity.website:
+            doc["website"] = entity.website
+        if entity.linkedin:
+            doc["linkedin"] = entity.linkedin
+        if entity.twitter:
+            doc["twitter"] = entity.twitter
+
+        # org_name: first current affiliation's organization name
+        affiliation = db.session.scalar(
+            db.select(Affiliation).where(Affiliation.person_id == entity.id, Affiliation.is_current.is_(True)).limit(1)
+        )
+        if affiliation:
+            org = db.session.get(Organization, affiliation.organization_id)
+            if org:
+                doc["org_name"] = org.name
+    else:
+        doc = {
+            "id": f"org_{entity.id}",
+            "entity_type": "org",
+            "db_id": entity.id,
+            "name": entity.name,
+        }
+        if entity.slug:
+            doc["slug"] = entity.slug
+        if entity.about:
+            doc["about"] = entity.about
+        if entity.website:
+            doc["website"] = entity.website
+        if entity.linkedin:
+            doc["linkedin"] = entity.linkedin
+        if entity.twitter:
+            doc["twitter"] = entity.twitter
+        if entity.org_type is not None:
+            doc["org_type"] = entity.org_type.value
+
+        # person_names: all affiliated persons
+        affiliations = db.session.scalars(db.select(Affiliation).where(Affiliation.organization_id == entity.id)).all()
+        person_names = []
+        for aff in affiliations:
+            p = db.session.get(Person, aff.person_id)
+            if p:
+                person_names.append(f"{p.first_name} {p.last_name or ''}".strip())
+        if person_names:
+            doc["person_names"] = person_names
+
+    # industries — indexed as slugs for facet URL matching
+    entity_industries = db.session.scalars(
+        db.select(EntityIndustry).where(
+            EntityIndustry.entity_type == entity_type,
+            EntityIndustry.entity_id == entity.id,
+        )
+    ).all()
+    industries = []
+    for ei in entity_industries:
+        ind = db.session.get(Industry, ei.industry_id)
+        if ind:
+            industries.append(ind.slug if ind.slug else ind.name)
+    if industries:
+        doc["industries"] = industries
+
+    # stages
+    entity_stages = db.session.scalars(
+        db.select(EntityStage).where(
+            EntityStage.entity_type == entity_type,
+            EntityStage.entity_id == entity.id,
+        )
+    ).all()
+    stages = [es.stage.value for es in entity_stages]
+    if stages:
+        doc["stages"] = stages
+
+    # geographies
+    entity_geos = db.session.scalars(
+        db.select(EntityGeography).where(
+            EntityGeography.entity_type == entity_type,
+            EntityGeography.entity_id == entity.id,
+        )
+    ).all()
+    geo_slugs = []
+    country_code = None
+    for eg in entity_geos:
+        if eg.geography:
+            geo_slugs.append(eg.geography.slug)
+            if country_code is None and eg.geography.country_code:
+                country_code = eg.geography.country_code
+    if geo_slugs:
+        doc["geographies"] = geo_slugs
+    if country_code:
+        doc["country_code"] = country_code
+
+    # notable investments
+    entity_notables = db.session.scalars(
+        db.select(EntityNotable).where(
+            EntityNotable.entity_type == entity_type,
+            EntityNotable.entity_id == entity.id,
+        )
+    ).all()
+    notables = []
+    for en in entity_notables:
+        ni = db.session.get(NotableInvestment, en.notable_investment_id)
+        if ni:
+            notables.append(ni.name)
+    if notables:
+        doc["notable_investments"] = notables
+
+    # investor profile
+    profile = db.session.scalar(
+        db.select(InvestorProfile).where(
+            InvestorProfile.entity_type == entity_type,
+            InvestorProfile.entity_id == entity.id,
+        )
+    )
+    if profile:
+        if profile.investor_type is not None:
+            doc["investor_type"] = profile.investor_type.value
+        if profile.lead_pref is not None:
+            doc["lead_pref"] = profile.lead_pref.value
+        doc["accepts_cold_inbound"] = profile.accepts_cold_inbound
+        doc["is_active"] = profile.is_active
+        if profile.min_investment is not None:
+            doc["check_size_min"] = int(profile.min_investment)
+        if profile.max_investment is not None:
+            doc["check_size_max"] = int(profile.max_investment)
+        if profile.n_investments is not None:
+            doc["n_investments"] = profile.n_investments
+        if profile.n_exits is not None:
+            doc["n_exits"] = profile.n_exits
+
+    return doc
+
+
 def sync_search_index(recreate: bool = False) -> None:
     """Upsert all Person and Organization rows into the 'entities' Typesense collection.
 
@@ -107,18 +286,7 @@ def sync_search_index(recreate: bool = False) -> None:
         delete_schema,
         upsert_documents,
     )
-    from .entity import (
-        Affiliation,
-        EntityGeography,
-        EntityIndustry,
-        EntityNotable,
-        EntityStage,
-        InvestorProfile,
-        Organization,
-        Person,
-    )
-    from .helpers import Industry
-    from .investor import NotableInvestment
+    from .entity import Organization, Person
 
     if recreate:
         try:
@@ -138,122 +306,7 @@ def sync_search_index(recreate: bool = False) -> None:
         if not persons:
             break
 
-        docs: list[dict] = []
-        for person in persons:
-            doc: dict = {
-                "id": f"person_{person.id}",
-                "entity_type": "person",
-                "db_id": person.id,
-                "name": f"{person.first_name} {person.last_name or ''}".strip(),
-            }
-            if person.slug:
-                doc["slug"] = person.slug
-            if person.about:
-                doc["about"] = person.about
-            if person.headline:
-                doc["headline"] = person.headline
-            if person.website:
-                doc["website"] = person.website
-            if person.linkedin:
-                doc["linkedin"] = person.linkedin
-            if person.twitter:
-                doc["twitter"] = person.twitter
-
-            # org_name: first current affiliation's organization name
-            affiliation = db.session.scalar(
-                db.select(Affiliation)
-                .where(Affiliation.person_id == person.id, Affiliation.is_current.is_(True))
-                .limit(1)
-            )
-            if affiliation:
-                org = db.session.get(Organization, affiliation.organization_id)
-                if org:
-                    doc["org_name"] = org.name
-
-            # industries — indexed as slugs for facet URL matching
-            entity_industries = db.session.scalars(
-                db.select(EntityIndustry).where(
-                    EntityIndustry.entity_type == EntityType.PERSON,
-                    EntityIndustry.entity_id == person.id,
-                )
-            ).all()
-            industries = []
-            for ei in entity_industries:
-                ind = db.session.get(Industry, ei.industry_id)
-                if ind:
-                    industries.append(ind.slug if ind.slug else ind.name)
-            if industries:
-                doc["industries"] = industries
-
-            # stages
-            entity_stages = db.session.scalars(
-                db.select(EntityStage).where(
-                    EntityStage.entity_type == EntityType.PERSON,
-                    EntityStage.entity_id == person.id,
-                )
-            ).all()
-            stages = [es.stage.value for es in entity_stages]
-            if stages:
-                doc["stages"] = stages
-
-            # geographies
-            entity_geos = db.session.scalars(
-                db.select(EntityGeography).where(
-                    EntityGeography.entity_type == EntityType.PERSON,
-                    EntityGeography.entity_id == person.id,
-                )
-            ).all()
-            geo_slugs = []
-            country_code = None
-            for eg in entity_geos:
-                if eg.geography:
-                    geo_slugs.append(eg.geography.slug)
-                    if country_code is None and eg.geography.country_code:
-                        country_code = eg.geography.country_code
-            if geo_slugs:
-                doc["geographies"] = geo_slugs
-            if country_code:
-                doc["country_code"] = country_code
-
-            # notable investments
-            entity_notables = db.session.scalars(
-                db.select(EntityNotable).where(
-                    EntityNotable.entity_type == EntityType.PERSON,
-                    EntityNotable.entity_id == person.id,
-                )
-            ).all()
-            notables = []
-            for en in entity_notables:
-                ni = db.session.get(NotableInvestment, en.notable_investment_id)
-                if ni:
-                    notables.append(ni.name)
-            if notables:
-                doc["notable_investments"] = notables
-
-            # investor profile
-            profile = db.session.scalar(
-                db.select(InvestorProfile).where(
-                    InvestorProfile.entity_type == EntityType.PERSON,
-                    InvestorProfile.entity_id == person.id,
-                )
-            )
-            if profile:
-                if profile.investor_type is not None:
-                    doc["investor_type"] = profile.investor_type.value
-                if profile.lead_pref is not None:
-                    doc["lead_pref"] = profile.lead_pref.value
-                doc["accepts_cold_inbound"] = profile.accepts_cold_inbound
-                doc["is_active"] = profile.is_active
-                if profile.min_investment is not None:
-                    doc["check_size_min"] = int(profile.min_investment)
-                if profile.max_investment is not None:
-                    doc["check_size_max"] = int(profile.max_investment)
-                if profile.n_investments is not None:
-                    doc["n_investments"] = profile.n_investments
-                if profile.n_exits is not None:
-                    doc["n_exits"] = profile.n_exits
-
-            docs.append(doc)
+        docs: list[dict] = [_build_entity_doc(EntityType.PERSON, person, db.session) for person in persons]
 
         if docs:
             upsert_documents(COLLECTION, docs)
@@ -273,121 +326,7 @@ def sync_search_index(recreate: bool = False) -> None:
         if not orgs:
             break
 
-        docs = []
-        for org in orgs:
-            doc = {
-                "id": f"org_{org.id}",
-                "entity_type": "org",
-                "db_id": org.id,
-                "name": org.name,
-            }
-            if org.slug:
-                doc["slug"] = org.slug
-            if org.about:
-                doc["about"] = org.about
-            if org.website:
-                doc["website"] = org.website
-            if org.linkedin:
-                doc["linkedin"] = org.linkedin
-            if org.twitter:
-                doc["twitter"] = org.twitter
-            if org.org_type is not None:
-                doc["org_type"] = org.org_type.value
-
-            # person_names: all affiliated persons
-            affiliations = db.session.scalars(db.select(Affiliation).where(Affiliation.organization_id == org.id)).all()
-            person_names = []
-            for aff in affiliations:
-                p = db.session.get(Person, aff.person_id)
-                if p:
-                    person_names.append(f"{p.first_name} {p.last_name or ''}".strip())
-            if person_names:
-                doc["person_names"] = person_names
-
-            # industries — indexed as slugs for facet URL matching
-            entity_industries = db.session.scalars(
-                db.select(EntityIndustry).where(
-                    EntityIndustry.entity_type == EntityType.ORG,
-                    EntityIndustry.entity_id == org.id,
-                )
-            ).all()
-            industries = []
-            for ei in entity_industries:
-                ind = db.session.get(Industry, ei.industry_id)
-                if ind:
-                    industries.append(ind.slug if ind.slug else ind.name)
-            if industries:
-                doc["industries"] = industries
-
-            # stages
-            entity_stages = db.session.scalars(
-                db.select(EntityStage).where(
-                    EntityStage.entity_type == EntityType.ORG,
-                    EntityStage.entity_id == org.id,
-                )
-            ).all()
-            stages = [es.stage.value for es in entity_stages]
-            if stages:
-                doc["stages"] = stages
-
-            # geographies
-            entity_geos = db.session.scalars(
-                db.select(EntityGeography).where(
-                    EntityGeography.entity_type == EntityType.ORG,
-                    EntityGeography.entity_id == org.id,
-                )
-            ).all()
-            geo_slugs = []
-            country_code = None
-            for eg in entity_geos:
-                if eg.geography:
-                    geo_slugs.append(eg.geography.slug)
-                    if country_code is None and eg.geography.country_code:
-                        country_code = eg.geography.country_code
-            if geo_slugs:
-                doc["geographies"] = geo_slugs
-            if country_code:
-                doc["country_code"] = country_code
-
-            # notable investments
-            entity_notables = db.session.scalars(
-                db.select(EntityNotable).where(
-                    EntityNotable.entity_type == EntityType.ORG,
-                    EntityNotable.entity_id == org.id,
-                )
-            ).all()
-            notables = []
-            for en in entity_notables:
-                ni = db.session.get(NotableInvestment, en.notable_investment_id)
-                if ni:
-                    notables.append(ni.name)
-            if notables:
-                doc["notable_investments"] = notables
-
-            # investor profile
-            profile = db.session.scalar(
-                db.select(InvestorProfile).where(
-                    InvestorProfile.entity_type == EntityType.ORG,
-                    InvestorProfile.entity_id == org.id,
-                )
-            )
-            if profile:
-                if profile.investor_type is not None:
-                    doc["investor_type"] = profile.investor_type.value
-                if profile.lead_pref is not None:
-                    doc["lead_pref"] = profile.lead_pref.value
-                doc["accepts_cold_inbound"] = profile.accepts_cold_inbound
-                doc["is_active"] = profile.is_active
-                if profile.min_investment is not None:
-                    doc["check_size_min"] = int(profile.min_investment)
-                if profile.max_investment is not None:
-                    doc["check_size_max"] = int(profile.max_investment)
-                if profile.n_investments is not None:
-                    doc["n_investments"] = profile.n_investments
-                if profile.n_exits is not None:
-                    doc["n_exits"] = profile.n_exits
-
-            docs.append(doc)
+        docs = [_build_entity_doc(EntityType.ORG, org, db.session) for org in orgs]
 
         if docs:
             upsert_documents(COLLECTION, docs)
@@ -397,6 +336,40 @@ def sync_search_index(recreate: bool = False) -> None:
             db.session.commit()
 
         offset += batch
+
+
+def sync_one(entity_type: object, entity_id: int) -> None:
+    """Upsert a single Person or Organization document into Typesense.
+
+    Builds the document via ``_build_entity_doc`` (same builder used by
+    ``sync_search_index``) and upserts it.  Uses ``delete_data`` internally
+    to remove stale docs before upserting — callers may also call
+    ``delete_data`` directly for delete-only operations.
+
+    Args:
+        entity_type: An ``EntityType`` enum value (PERSON or ORG).
+        entity_id:   The primary-key integer of the Person or Organization row.
+    """
+    from ..extensions import db
+    from ..utils.enums import EntityType
+    from ..utils.typesense_helpers.typesense_search import upsert_documents
+    from .entity import Organization, Person
+
+    if entity_type == EntityType.PERSON:
+        entity = db.session.get(Person, entity_id)
+    else:
+        entity = db.session.get(Organization, entity_id)
+
+    if entity is None:
+        log.warning("sync_one: no %s with id=%s found; skipping upsert", entity_type, entity_id)
+        return
+
+    doc = _build_entity_doc(entity_type, entity, db.session)
+    upsert_documents(COLLECTION, [doc])
+
+    # Write search_index back to the row
+    entity.search_index = doc["id"]
+    db.session.commit()
 
 
 # ---------------------------------------------------------------------------

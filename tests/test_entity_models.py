@@ -433,8 +433,7 @@ def test_entity_geography_unique_constraint(db_session):
 
 
 def test_create_entity_notable(db_session):
-    from project.models.entity import EntityNotable, Person
-    from project.models.investor import NotableInvestment
+    from project.models.entity import EntityNotable, NotableInvestment, Person
     from project.utils.enums import EntityType
 
     db = db_session
@@ -455,8 +454,7 @@ def test_create_entity_notable(db_session):
 def test_entity_notable_unique_constraint(db_session):
     from sqlalchemy.exc import IntegrityError
 
-    from project.models.entity import EntityNotable, Person
-    from project.models.investor import NotableInvestment
+    from project.models.entity import EntityNotable, NotableInvestment, Person
     from project.utils.enums import EntityType
 
     db = db_session
@@ -579,11 +577,11 @@ def test_full_entity_graph(db_session):
         EntityStage,
         Geography,
         InvestorProfile,
+        NotableInvestment,
         Organization,
         Person,
     )
     from project.models.helpers import Industry
-    from project.models.investor import NotableInvestment
     from project.models.user import User
     from project.utils.enums import (
         AffiliationRole,

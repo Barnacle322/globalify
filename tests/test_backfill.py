@@ -47,13 +47,13 @@ def db_session(app):
 @pytest.fixture()
 def seeded(db_session):  # noqa: C901  (acceptable complexity for a fixture)
     """Seed a minimal fixture and return a namespace with all seeded objects."""
+    from project.models.entity import NotableInvestment
     from project.models.helpers import Industry, Round
     from project.models.investor import (
         InvestmentFirm,
         InvestmentFirmBookmark,
         Investor,
         InvestorBookmark,
-        NotableInvestment,
     )
     from project.models.user import User
 

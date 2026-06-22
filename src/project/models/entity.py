@@ -4,8 +4,7 @@ Adds Person, Organization, Affiliation, InvestorProfile, Geography and the
 polymorphic entity_* facet join tables (EntityIndustry, EntityStage,
 EntityGeography, EntityNotable) plus EntityBookmark.
 
-All new tables are purely ADDITIVE — the old Investor / InvestmentFirm /
-NotableInvestment catalog tables are left completely untouched.
+Also hosts NotableInvestment (relocated from investor.py in Phase 2d Task 1).
 
 Discriminator pattern:
     Polymorphic references use a (entity_type: EntityType, entity_id: int)
@@ -50,8 +49,44 @@ from ..utils.enums import (
 
 if TYPE_CHECKING:
     from .helpers import Industry
-    from .investor import NotableInvestment
     from .user import User
+
+
+# ---------------------------------------------------------------------------
+# NotableInvestment — relocated from investor.py (Phase 2d Task 1)
+# ---------------------------------------------------------------------------
+
+
+class NotableInvestment(MappedAsDataclass, db.Model, unsafe_hash=True):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+
+    def to_dict(self) -> dict[str, str | int | None]:
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
+
+    @staticmethod
+    def get_all() -> Sequence[NotableInvestment]:
+        return db.session.scalars(db.select(NotableInvestment)).all()
+
+    @staticmethod
+    def get_by_id(id: int) -> NotableInvestment | None:
+        return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.id == id))
+
+    @staticmethod
+    def get_by_name(name: str) -> NotableInvestment | None:
+        return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.name == name))
+
+    @staticmethod
+    def get_by_id_list(id_list) -> Sequence[NotableInvestment]:
+        if len(id_list) == 0:
+            return []
+        valid_id_list = [i for i in id_list if isinstance(i, int)]
+        stmt = db.select(NotableInvestment).where(NotableInvestment.id.in_(valid_id_list))
+        industries = db.session.execute(stmt).scalars().all()
+        return industries
 
 
 class Person(MappedAsDataclass, db.Model, unsafe_hash=True):
@@ -328,7 +363,6 @@ def load_profile_bundle(entity_type: EntityType, entity_id: int) -> dict:
     """
     # Deferred imports to avoid circular imports at module load time
     from .helpers import Industry
-    from .investor import NotableInvestment
 
     # --- InvestorProfile -------------------------------------------------------
     profile: InvestorProfile | None = db.session.scalar(

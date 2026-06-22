@@ -23,6 +23,7 @@ from sqlalchemy.orm import (
 from thefuzz import fuzz
 
 from ..extensions import db
+from .entity import NotableInvestment
 from .helpers import Industry, Round
 
 if TYPE_CHECKING:
@@ -30,36 +31,9 @@ if TYPE_CHECKING:
     from .user import User
 
 
-class NotableInvestment(MappedAsDataclass, db.Model, unsafe_hash=True):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
-    name: Mapped[str] = mapped_column(String, nullable=False)
-
-    def to_dict(self) -> dict[str, str | int | None]:
-        return {
-            "id": self.id,
-            "name": self.name,
-        }
-
-    @staticmethod
-    def get_all() -> Sequence[NotableInvestment]:
-        return db.session.scalars(db.select(NotableInvestment)).all()
-
-    @staticmethod
-    def get_by_id(id: int) -> NotableInvestment | None:
-        return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.id == id))
-
-    @staticmethod
-    def get_by_name(name: str) -> NotableInvestment | None:
-        return db.session.scalar(db.select(NotableInvestment).where(NotableInvestment.name == name))
-
-    @staticmethod
-    def get_by_id_list(id_list) -> Sequence[NotableInvestment]:
-        if len(id_list) == 0:
-            return []
-        valid_id_list = [i for i in id_list if isinstance(i, int)]
-        stmt = db.select(NotableInvestment).where(NotableInvestment.id.in_(valid_id_list))
-        industries = db.session.execute(stmt).scalars().all()
-        return industries
+# NotableInvestment has been relocated to entity.py (Phase 2d Task 1).
+# It is imported above and re-exported here for backward compatibility.
+__all__ = ["NotableInvestment"]
 
 
 investor_round = db.Table(

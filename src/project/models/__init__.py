@@ -8,10 +8,11 @@ from .entity import (
     EntityStage,
     Geography,
     InvestorProfile,
+    NotableInvestment,
     Organization,
     Person,
 )
-from .entity_search import delete_data, get_search, sync_search_index
+from .entity_search import delete_data, get_search, sync_one, sync_search_index
 from .helpers import Country, Industry, Round
 from .investor import (
     InvestmentFirm,
@@ -20,7 +21,6 @@ from .investor import (
     InvestorBackup,
     InvestorBookmark,
     InvestorOriginPoint,
-    NotableInvestment,
 )
 from .search import SearchHistory
 from .user import (
@@ -52,6 +52,7 @@ __all__ = [
     "SearchHistory",
     # Phase 1c — entity search
     "sync_search_index",
+    "sync_one",
     "get_search",
     "delete_data",
     # Phase 1b — new entity model layer

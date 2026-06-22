@@ -8,7 +8,7 @@ def test_app_boots(app):
 
 
 def test_expected_blueprints_registered(app):
-    for name in ("auth", "main", "search", "settings", "profile", "admin"):
+    for name in ("auth", "main", "search", "settings", "admin"):
         assert name in app.blueprints
 
 

@@ -1,6 +1,3 @@
-import os
-
-import requests
 from flask import (
     Blueprint,
     jsonify,
@@ -19,7 +16,7 @@ from ..models import (
     InvestorOriginPoint,
     User,
 )
-from ..utils.enums import Events, Status, StatusType
+from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import (
     CLAIM_REQUEST_ALREADY_SUBMITTED,
     EXPIRED_CODE,
@@ -27,7 +24,6 @@ from ..utils.errors.error_messages import (
     INVALID_EMAIL,
     INVESTOR_ALREADY_CLAIMED,
 )
-from ..utils.google_helpers.google_pubsub import send_event
 
 claim = Blueprint("claim", __name__)
 
@@ -58,13 +54,10 @@ def manual_view(slug):
     if not investor:
         return redirect(url_for("search.investor_search"))
 
-    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
-
     return render_template(
         "claiming/manual.html",
         investor=investor,
         status_type=status_type,
-        captcha_site_key=captcha_site_key,
         msg=msg,
     )
 
@@ -74,17 +67,6 @@ def manual_view(slug):
 def manual(slug):
     form_data = request.get_json()
     email = form_data.get("email")
-    recaptcha_response = form_data.get("recaptcha")
-
-    secret_key = os.getenv("_GOOGLE_RECAPTCHA_SECRET_KEY_DEV")
-    captcha_verification_url = "https://www.google.com/recaptcha/api/siteverify"
-    payload = {"secret": secret_key, "response": recaptcha_response}
-    response = requests.post(captcha_verification_url, data=payload)
-    result = response.json()
-
-    if not result.get("success"):
-        status = Status(StatusType.ERROR, "CAPTCHA verification failed.").get_status()
-        return redirect(url_for("claim.manual_view", slug=slug, _external=False, **status))
 
     existing_claim = Investor.get_by_user_id(current_user.id)
     if existing_claim:
@@ -148,33 +130,16 @@ def email_view(slug):
         status_type = query.get("type")
         msg = query.get("msg")
 
-    captcha_site_key = os.getenv("_GOOGLE_RECAPTCHA_SITE_KEY_DEV")
-
     investor = Investor.get_by_slug(slug)
     if not investor:
         return redirect(url_for("search.investor_search"))
 
-    return render_template(
-        "claiming/email.html", investor=investor, status_type=status_type, msg=msg, captcha_site_key=captcha_site_key
-    )
+    return render_template("claiming/email.html", investor=investor, status_type=status_type, msg=msg)
 
 
 @claim.post("/investor/<slug>/claim/email")
 @login_required
 def email(slug):
-    form_data = request.get_json()
-    recaptcha_response = form_data.get("recaptcha")
-
-    secret_key = os.getenv("_GOOGLE_RECAPTCHA_SECRET_KEY_DEV")
-    captcha_verification_url = "https://www.google.com/recaptcha/api/siteverify"
-    payload = {"secret": secret_key, "response": recaptcha_response}
-    response = requests.post(captcha_verification_url, data=payload)
-    result = response.json()
-
-    if not result.get("success"):
-        status = Status(StatusType.ERROR, "CAPTCHA verification failed.").get_status()
-        return redirect(url_for("claim.email_view", slug=slug, _external=False, **status))
-
     investor = Investor.get_by_slug(slug)
     if not investor or investor.user_id:
         return redirect(url_for("search.investor_search"))
@@ -188,13 +153,7 @@ def email(slug):
     db.session.add(verification)
     db.session.commit()
 
-    send_event(
-        "User wants to claim investor!",
-        event_type=Events.INVESTOR_PROFILE_CLAIM_REQUEST.value,
-        email=investor.email,
-        investor_slug=slug,
-        verification_token=verification.token,
-    )
+    # TODO Phase 3: send claim verification email via magic-link service
 
     status = Status(StatusType.SUCCESS, "Verification email sent.").get_status()
     return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))

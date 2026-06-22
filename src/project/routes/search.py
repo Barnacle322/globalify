@@ -4,39 +4,27 @@ from flask import (
     redirect,
     render_template,
     request,
-    url_for,
 )
 from flask_login import current_user, login_required
 from sqlalchemy.exc import IntegrityError
 
 from ..extensions import db
 from ..models import (
-    Company,
     Country,
     Industry,
     InvestmentFirm,
-    InvestmentFirmBookmark,
     Investor,
-    InvestorBookmark,
-    Notification,
     Round,
     SearchHistory,
-    User,
-    UserCompany,
-    UserPayment,
 )
-from ..schemas.notification import NotificationItem, NotificationLayout
 from ..schemas.user import SearchHistorySchema
 from ..utils.decorators import (
-    check_investor_mode,
-    check_investor_mode_for_suggestions,
     check_user_info_complete,
     check_verification,
 )
-from ..utils.enums import NotificationType, SearchHistoryType
+from ..utils.enums import SearchHistoryType
 from ..utils.funcs import generate_pagination
 from ..utils.posthog import capture_event, capture_page_visit
-from ..utils.suggestion import COMPANY_WEIGHTS, WEIGHTS, check_weights
 
 search = Blueprint("search", __name__)
 
@@ -100,9 +88,6 @@ def search_entities(search_input):
 
 @search.route("/search", methods=["GET", "POST"])
 def investor_search():
-    if current_user.is_authenticated and current_user.is_investor_mode_active:
-        return redirect(url_for("search.search_companies"))
-
     capture_page_visit("investor_search")
 
     if next_url := request.args.get("next"):
@@ -206,9 +191,6 @@ def investor_search():
 
 @search.route("/search/investment-firms", methods=["GET", "POST"])
 def search_investment_firms():
-    if current_user.is_authenticated and current_user.is_investor_mode_active:
-        return redirect(url_for("search.search_companies"))
-
     capture_page_visit("investment_firm_search")
 
     search_string = request.args.get("search", "").strip()
@@ -301,199 +283,6 @@ def search_investment_firms():
         countries=Country.get_all(),
         type=SearchHistoryType.INVESTMENT_FIRM.value.lower().replace("_", ""),
         user=current_user if current_user.is_authenticated else None,
-    )
-
-
-@search.route("/search/companies", methods=["GET", "POST"])
-@login_required
-@check_user_info_complete
-@check_verification
-@check_investor_mode
-def search_companies():
-    capture_page_visit("company_search")
-
-    search_string = request.args.get("search", "").strip()
-    page = request.args.get("page", 1, type=int)
-    result = Company.get_search(
-        query_string=search_string,
-        query_by=[
-            "country",
-            "preferred_round",
-            "industry",
-            "embedding",
-            "name",
-        ],
-        sort_by=request.args.get("sort_field", "db_id"),
-        sort_desc=request.args.get("descending", False, type=bool),
-        preferred_rounds=request.args.getlist("round"),
-        industries=request.args.getlist("industry"),
-        page=page,
-        per_page=18,
-        countries=request.args.getlist("country"),
-        is_public=True,
-    )
-
-    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
-
-    if search_string != "" and current_user.is_authenticated:
-        try:
-            new_search_history = SearchHistory(
-                user_id=current_user.id, query=search_string, type=SearchHistoryType.COMPANY
-            )
-            db.session.add(new_search_history)
-            db.session.commit()
-
-            capture_event(
-                event="search_company_performed",
-                properties={
-                    "search_query": search_string,
-                    "user_id": current_user.id,
-                    "page": page,
-                    "filters": {
-                        "rounds": request.args.getlist("round"),
-                        "industries": request.args.getlist("industry"),
-                        "countries": request.args.getlist("country"),
-                    },
-                    "sort_field": request.args.get("sort_field", "db_id"),
-                    "descending": request.args.get("descending", False, type=bool),
-                },
-                distinct_id=current_user.id,
-            )
-
-        except IntegrityError:
-            db.session.rollback()
-
-    return render_template(
-        "search_companies.html",
-        companies=result.get("companies"),
-        query=search_string,
-        pagination=pagination,
-        total_pages=len(pagination.get("pages", [])),
-        industry_list=Industry.get_all(),
-        round_list=Round.get_all(),
-        countries=Country.get_all(),
-        type=SearchHistoryType.COMPANY.value.lower(),
-        user=current_user if current_user.is_authenticated else None,
-    )
-
-
-@search.route("/suggestions")
-@login_required
-@check_user_info_complete
-@check_verification
-@check_investor_mode_for_suggestions
-def get_suggestions():
-    if not isinstance(current_user, User):
-        return redirect(url_for("auth.login"))
-
-    access = True
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-    if current_user.is_admin:
-        access = True
-    elif not user_payment:
-        access = False
-    elif user_payment and not user_payment.is_active:
-        access = False
-
-    user_company = UserCompany.get_primary_by_user_id(current_user.id)
-    if not user_company:
-        notification = Notification(
-            user=current_user,
-            json_data=NotificationLayout(
-                title="Info",
-                msg="It looks like you don't have a primary company set! Please set a primary company to access suggestions.",
-                type="system",
-                item=NotificationItem(
-                    type=NotificationType.INFO.value,
-                    url=url_for("settings.company_list_view"),
-                ),
-            ).model_dump(),
-        )
-        db.session.add(notification)
-        db.session.commit()
-        return redirect(url_for("settings.company_list_view"))
-
-    bookmarks = InvestorBookmark.get_id_list(current_user.id)
-    company = Company.get_by_id(user_company.company_id)
-
-    suggested_investors = Investor.get_suggestions(company=company, quantity=15)
-
-    return render_template(
-        "suggestions.html",
-        investors=suggested_investors,
-        access=access,
-        bookmark_ids=bookmarks,
-    )
-
-
-@search.route("/suggestions/investment-firms")
-@login_required
-@check_user_info_complete
-@check_verification
-@check_investor_mode_for_suggestions
-def get_suggestion_investment_firms():
-    if not isinstance(current_user, User):
-        return redirect(url_for("auth.login"))
-
-    access = True
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-    if current_user.is_admin:
-        access = True
-    elif not user_payment:
-        access = False
-    elif user_payment and not user_payment.is_active:
-        access = False
-
-    user_company = UserCompany.get_primary_by_user_id(current_user.id)
-    if not user_company:
-        notification = Notification(
-            user=current_user,
-            json_data=NotificationLayout(
-                title="Info",
-                msg="Please mark a company as primary to access suggestions.",
-                type="system",
-                item=NotificationItem(type=NotificationType.INFO.value, url=url_for("settings.company_list_view")),
-            ).model_dump(),
-        )
-        db.session.add(notification)
-        db.session.commit()
-        return redirect(url_for("settings.company_list_view"))
-
-    check_weights(WEIGHTS)
-
-    return render_template(
-        "suggestions_investment_firms.html",
-        investment_firms=InvestmentFirm.get_suggestions(
-            company=Company.get_by_id(user_company.company_id), quantity=15
-        ),
-        access=access,
-        bookmark_ids=InvestmentFirmBookmark.get_id_list(current_user.id),
-    )
-
-
-@search.route("/suggestions/companies")
-@login_required
-@check_user_info_complete
-@check_verification
-@check_investor_mode_for_suggestions
-def get_suggestion_companies():
-    if not isinstance(current_user, User):
-        return redirect(url_for("auth.login"))
-    access = True
-    user_payment = UserPayment.get_by_user_id(current_user.id)
-    if current_user.is_admin:
-        access = True
-    elif not user_payment:
-        access = False
-    elif user_payment and not user_payment.is_active:
-        access = False
-
-    check_weights(COMPANY_WEIGHTS)
-
-    return render_template(
-        "suggestions_companies.html",
-        companies=Company.get_suggestions(investor=Investor.get_by_user_id(current_user.id), quantity=15),
-        access=access,
     )
 
 

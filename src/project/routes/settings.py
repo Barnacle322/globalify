@@ -26,6 +26,7 @@ from ..models.claim import ClaimRequest
 from ..schemas.investment import FundingRoundSchema
 from ..schemas.investor import InvestorOriginPointSchema, MiniInvestorSchema, RoundSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, SearchCompanySchema, UserSchema
+from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
     AUTH_USERNAME_USED,
@@ -54,8 +55,6 @@ from ..utils.errors.error_messages import (
 from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from ..utils.scraper import add_https_prefix
-from .main import check_user_info_complete, check_verification
-from .payment import get_invoices
 
 settings = Blueprint("settings", __name__)
 
@@ -140,10 +139,11 @@ def billing():
     if not isinstance(current_user, User):
         return redirect(url_for("main.login"))
 
+    # TODO Phase 3: restore invoice listing via payment service
     return render_template(
         "settings/billing.html",
         user=current_user,
-        invoices=get_invoices(current_user),
+        invoices=[],
     )
 
 

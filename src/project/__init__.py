@@ -1,22 +1,16 @@
-import os
-import time
 from datetime import timedelta
 from uuid import uuid4
 
-import jwt
 import sentry_sdk
 from flask import Flask, g, session
 from flask_login import current_user
-from itsdangerous import base64_decode
-from jwt.exceptions import InvalidKeyError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import get_settings
-from .extensions import csrf, db, login_manager, migrate, oauth
+from .extensions import csrf, db, login_manager, migrate
 from .routes.admin import admin
 from .routes.auth import auth
 from .routes.claim import claim
-from .routes.investment import investment
 from .routes.main import (
     bad_request,
     forbidden,
@@ -26,40 +20,8 @@ from .routes.main import (
     service_unavailable,
     unauthorized,
 )
-from .routes.onboarding import onboarding
-from .routes.payment import payment
-from .routes.profile import profile
 from .routes.search import search
 from .routes.settings import settings
-
-
-def get_apple_client_secret():
-    try:
-        private_key = os.getenv("_APPLE_OAUTH2_PRIVATE_KEY", "")
-        if not private_key:
-            raise ValueError("Private key not found in environment variables")
-        private_key = base64_decode(private_key).decode("utf-8")
-
-        token = jwt.encode(
-            headers={"kid": "T86FS463PW"},
-            payload={
-                "iss": "4F97NW68H8",
-                "iat": int(time.time()),
-                "exp": int(time.time()) + 86400 * 180,
-                "aud": "https://appleid.apple.com",
-                "sub": os.getenv("_APPLE_OAUTH2_CLIENT_ID"),
-            },
-            key=private_key,
-            algorithm="ES256",
-        )
-    except InvalidKeyError as e:
-        print(f"Invalid key error: {e}")
-        return
-    except Exception as e:
-        print(f"An error occurred while generating the token: {e}")
-        return
-
-    return token
 
 
 def create_app():
@@ -97,12 +59,8 @@ def create_app():
     app.register_blueprint(main)
     app.register_blueprint(claim)
     app.register_blueprint(search)
-    app.register_blueprint(payment, url_prefix="/payment")
     app.register_blueprint(settings, url_prefix="/settings")
-    app.register_blueprint(profile, url_prefix="/profile")
     app.register_blueprint(admin, url_prefix="/admin")
-    app.register_blueprint(onboarding, url_prefix="/onboarding")
-    app.register_blueprint(investment, url_prefix="/investment")
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)
@@ -114,36 +72,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    oauth.init_app(app)
     csrf.init_app(app)
-
-    oauth.register(
-        "google",
-        client_id=str(os.getenv("_GOOGLE_OAUTH2_CLIENT_ID")),
-        client_secret=str(os.getenv("_GOOGLE_OAUTH2_CLIENT_SECRET")),
-        server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
-        client_kwargs={"scope": "openid email profile"},
-    )
-
-    oauth.register(
-        "linkedin",
-        client_id=str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_ID")),
-        client_secret=str(os.getenv("_LINKEDIN_OAUTH2_CLIENT_SECRET")),
-        server_metadata_url="https://www.linkedin.com/oauth/.well-known/openid-configuration",
-        client_kwargs={"scope": "r_liteprofile r_emailaddress"},
-    )
-
-    oauth.register(
-        "apple",
-        client_id=str(os.getenv("_APPLE_OAUTH2_CLIENT_ID")),
-        client_secret=get_apple_client_secret(),
-        server_metadata_url="https://appleid.apple.com/.well-known/openid-configuration",
-        client_kwargs={
-            "scope": "name email",
-            "response_mode": "form_post",
-            "token_endpoint_auth_method": "client_secret_post",
-        },
-    )
 
     @app.before_request
     def assign_anonymous_id():

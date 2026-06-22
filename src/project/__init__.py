@@ -84,6 +84,16 @@ def create_app():
 
     app.jinja_env.globals["r2_public_url"] = r2_storage.public_url
 
+    # Expose Cap captcha config to all Jinja2 templates so forms can render
+    # the widget only when Cap is configured.
+    @app.context_processor
+    def inject_cap_config():
+        return {
+            "cap_is_configured": cfg.cap_is_configured,
+            "cap_site_key": cfg.cap_site_key,
+            "cap_api_endpoint": cfg.cap_api_endpoint,
+        }
+
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)
     app.register_error_handler(403, forbidden)

@@ -1,6 +1,9 @@
 <!-- prettier-ignore -->
 {% extends "layouts/layout_clean.html" %}
 {% block additional_scripts %}
+{% if cap_is_configured %}
+<script src="{{ cap_api_endpoint }}/cap.js" async></script>
+{% endif %}
 <script src="/static/scripts/claiming/email.js" defer></script>
 {% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
 content %}
@@ -42,6 +45,12 @@ content %}
         <form id="claimForm" class="mt-2 flex w-full flex-col gap-3" slug="{{ investor.slug }}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="hidden" id="email" name="email" value="{{ investor.email }}" />
+            {% if cap_is_configured %}
+            <cap-widget
+                data-cap-api-endpoint="{{ cap_api_endpoint }}"
+                data-cap-sitekey="{{ cap_site_key }}"
+            ></cap-widget>
+            {% endif %}
             <button
                 type="submit"
                 class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 py-2 font-semibold text-white"

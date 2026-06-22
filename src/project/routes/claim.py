@@ -22,6 +22,7 @@ from ..models import (
     User,
 )
 from ..models.entity import Person
+from ..utils.cap import verify_captcha
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import (
     CLAIM_REQUEST_ALREADY_SUBMITTED,
@@ -75,6 +76,12 @@ def manual(slug):
     form_data = request.get_json()
     email = form_data.get("email")
 
+    # Cap captcha verify (skipped automatically when _CAP_* vars are absent).
+    cap_token = form_data.get("cap-token") or form_data.get("cap_token")
+    if not verify_captcha(cap_token):
+        status = Status(StatusType.ERROR, "Captcha verification failed. Please try again.").get_status()
+        return redirect(url_for("claim.manual_view", slug=slug, _external=False, **status))
+
     existing_claim = Person.get_by_user_id(current_user.id)
     if existing_claim:
         status = Status(StatusType.ERROR, "You can't claim another investor account!").get_status()
@@ -126,6 +133,14 @@ def email_view(slug):
 @claim.post("/investor/<slug>/claim/email")
 @login_required
 def email(slug):
+    form_data = request.get_json() or {}
+
+    # Cap captcha verify (skipped automatically when _CAP_* vars are absent).
+    cap_token = form_data.get("cap-token") or form_data.get("cap_token")
+    if not verify_captcha(cap_token):
+        status = Status(StatusType.ERROR, "Captcha verification failed. Please try again.").get_status()
+        return redirect(url_for("claim.email_view", slug=slug, _external=False, **status))
+
     person = Person.get_by_slug(slug)
     if not person or person.user_id:
         return redirect(url_for("public.investors"))

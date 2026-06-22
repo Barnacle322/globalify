@@ -1,7 +1,11 @@
 <!-- prettier-ignore -->
 {% extends "layouts/layout_auth.html" %}
 {% block title %}Login{% endblock %}
-{% block head %} {{ super() }} {% endblock %}
+{% block head %} {{ super() }}
+{% if cap_is_configured %}
+<script src="{{ cap_api_endpoint }}/cap.js" async></script>
+{% endif %}
+{% endblock %}
 {% block content %}
 <main class="flex h-full w-full flex-row items-center text-gray-900">
     <div class="max w-full justify-center px-9 md:w-1/2 md:justify-start md:px-16">
@@ -37,6 +41,12 @@
                         class="rounded-xl border border-gray-300 px-4 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                     />
                 </div>
+                {% if cap_is_configured %}
+                <cap-widget
+                    data-cap-api-endpoint="{{ cap_api_endpoint }}"
+                    data-cap-sitekey="{{ cap_site_key }}"
+                ></cap-widget>
+                {% endif %}
                 <button
                     type="submit"
                     class="inline-flex items-center justify-center rounded-xl bg-slate-900 py-2 text-sm font-semibold text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2"

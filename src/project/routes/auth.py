@@ -33,6 +33,7 @@ from ..models import (
     UserInfo,
     UserPayment,
 )
+from ..utils.cap import verify_captcha
 from ..utils.decorators import check_user_info_complete
 from ..utils.email import send_magic_link
 from ..utils.enums import Status, StatusType
@@ -101,7 +102,12 @@ def login():
             db.session.add(UserPayment(user=user))
             db.session.commit()
 
-        # TODO(phase-3): Cap captcha verify here before issuing the token.
+        # Cap captcha verify (skipped automatically when _CAP_* vars are absent).
+        cap_token = request.form.get("cap-token") or request.form.get("cap_token")
+        if not verify_captcha(cap_token):
+            status = Status(StatusType.ERROR, "Captcha verification failed. Please try again.").get_status()
+            return redirect(url_for("auth.login", _external=False, **status))
+
         raw = LoginToken.issue(user, "login", ttl_minutes=30)
 
         link = url_for("auth.verify_magic_link", token=raw, _external=True)

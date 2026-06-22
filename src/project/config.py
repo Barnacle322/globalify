@@ -43,6 +43,11 @@ class Settings(BaseSettings):
     r2_bucket: str | None = Field(default=None, alias="_R2_BUCKET")
     r2_public_domain: str | None = Field(default=None, alias="_R2_PUBLIC_DOMAIN")
 
+    # Cap captcha (self-hosted, reCAPTCHA-compatible; all optional — gates captcha vs skip)
+    cap_api_endpoint: str | None = Field(default=None, alias="_CAP_API_ENDPOINT")
+    cap_site_key: str | None = Field(default=None, alias="_CAP_SITE_KEY")
+    cap_secret: str | None = Field(default=None, alias="_CAP_SECRET")
+
     @property
     def is_testing(self) -> bool:
         return self.env is Environment.TESTING
@@ -59,6 +64,11 @@ class Settings(BaseSettings):
     def r2_is_configured(self) -> bool:
         """True when all required R2 credentials are present."""
         return bool(self.r2_account_id and self.r2_access_key_id and self.r2_secret_access_key and self.r2_bucket)
+
+    @property
+    def cap_is_configured(self) -> bool:
+        """True when the Cap endpoint and secret are both present."""
+        return bool(self.cap_api_endpoint and self.cap_secret)
 
 
 def get_settings() -> Settings:

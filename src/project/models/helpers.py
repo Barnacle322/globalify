@@ -10,7 +10,7 @@ from ..extensions import db
 from ..utils.info_lists import aggregate as industry_aggregate
 from ..utils.typesense_helpers.typesense_search import (
     create_schema,
-    create_synonyms,
+    create_synonym_sets,
     delete_schema,
     upsert_documents,
 )
@@ -106,7 +106,7 @@ class Industry(db.Model):
             except Exception:
                 print("Schema does not exist")
             create_schema(industry_schema)
-            create_synonyms("industries")
+            create_synonym_sets()
         data = []
         for industry in Industry.get_industry_list():
             industry_object = {}

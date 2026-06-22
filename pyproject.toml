@@ -18,7 +18,6 @@ dependencies = [
     "feedparser>=6.0.11",
     "thefuzz>=0.22.1",
     "geopy>=2.4.1",
-    "typesense>=0.21.0,<1.0.0",
     "click>=8.1.7",
     "python-slugify>=8.0.4",
     "pydantic>=2.8.2",
@@ -29,6 +28,7 @@ dependencies = [
     "posthog>=3.7.4",
     "granian>=2.7.6",
     "pydantic-settings>=2.14.2",
+    "typesense>=2.0,<3",
 ]
 
 

@@ -27,7 +27,7 @@ from ..extensions import db
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
     create_schema,
-    create_synonyms,
+    create_synonym_sets,
     delete_documents,
     delete_schema,
     upsert_documents,
@@ -700,7 +700,7 @@ class Investor(InvestorBase):
                 print("Schema does not exist")
             print("Creating schema")
             create_schema(investor_schema)
-            create_synonyms("investors")
+            create_synonym_sets()
 
         batch_count = 1
         for investors in Investor.get_batches(batch_size=100):
@@ -1208,7 +1208,7 @@ class InvestmentFirm(db.Model):
                 print("Schema does not exist")
             print("Creating schema")
             create_schema(investment_firm_schema)
-            create_synonyms("investment_firms")
+            create_synonym_sets()
 
         batch_count = 1
         for investment_firms in InvestmentFirm.get_batches(batch_size=100):

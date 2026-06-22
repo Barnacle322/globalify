@@ -1,8 +1,8 @@
 import os
 from typing import Any
 
-from typesense.client import Client
 from typesense.exceptions import ObjectNotFound
+from typesense.sync import Client
 
 from ..info_lists import synonyms
 
@@ -123,10 +123,7 @@ def populate_schema_from_file(
             print(f"Populating {schema_name} schema")
             client.collections[schema_name].documents.import_(
                 jsonl_file.read().encode("utf-8"),
-                {
-                    "action": "upsert",
-                    "filter_by": "db_id",
-                },
+                {"action": "upsert"},
             )
             client.collections[schema_name].documents.export({"include_fields": "id, db_id"})
             print(f"Populated {schema_name} schema")
@@ -139,7 +136,7 @@ def upsert_documents(schema_name: str, data: list[dict]) -> list[dict[str, Any]]
         print(f"Populating {schema_name} schema")
         import_return = client.collections[schema_name].documents.import_(
             data,
-            {"action": "upsert", "filter_by": "db_id", "return_id": "true"},
+            {"action": "upsert", "return_id": True},
         )
         print(f"Populated {schema_name} schema")
         return import_return
@@ -202,9 +199,10 @@ def setup():
 def update_schema(schema_name: str, file_path: str) -> None:
     if schema_name and file_path:
         with open(file_path, encoding="utf-8") as jsonl_file:
-            smth = client.collections[schema_name]
-            if smth:
-                smth.documents.import_(jsonl_file.read().encode("utf-8"), params={"action": "upsert"})
+            client.collections[schema_name].documents.import_(
+                jsonl_file.read().encode("utf-8"),
+                {"action": "upsert"},
+            )
     else:
         raise ValueError("Schema name and file path are required")
 
@@ -228,7 +226,16 @@ def search(
     return results
 
 
-def create_synonyms(schema_name: str) -> None:
+def create_synonym_sets() -> None:
+    """Create global synonym sets using the v30 synonym_sets API.
+
+    The ``synonyms`` list in ``info_lists.py`` contains entries of the form
+    ``{"name": "<set-name>", "item": {"synonyms": [...]}}``.  The v30 API
+    groups each of those entries into a named SynonymSet where the payload is
+    ``{"items": [{"id": "<set-name>", "synonyms": [...]}]}``.
+    """
     for synonym in synonyms:
-        print("Adding synonyms for", synonym["name"])
-        client.collections[schema_name].synonyms.upsert(synonym["name"], synonym["item"])
+        set_name = synonym["name"]
+        item_synonyms = synonym["item"]["synonyms"]
+        print("Adding synonym set:", set_name)
+        client.synonym_sets[set_name].upsert({"items": [{"id": set_name, "synonyms": item_synonyms}]})

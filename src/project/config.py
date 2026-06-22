@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     sqlalchemy_pool_size: int = Field(default=5, alias="SQLALCHEMY_POOL_SIZE")
     sqlalchemy_pool_recycle: int = Field(default=1800, alias="SQLALCHEMY_POOL_RECYCLE")
     sentry_dsn: str | None = Field(default=None, alias="_SENTRY_DSN")
+    resend_api_key: str | None = Field(default=None, alias="_RESEND_API_KEY")
+    email_from: str = Field(default="Globalify <noreply@mail.globalify.xyz>", alias="_EMAIL_FROM")
 
     @property
     def is_testing(self) -> bool:
@@ -41,6 +43,10 @@ class Settings(BaseSettings):
     @property
     def is_debug(self) -> bool:
         return self.env is Environment.DEBUG
+
+    @property
+    def email_is_configured(self) -> bool:
+        return bool(self.resend_api_key)
 
 
 def get_settings() -> Settings:

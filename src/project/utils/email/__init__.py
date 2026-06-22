@@ -1,18 +1,22 @@
 """Email utilities.
 
-Phase 2e: stub implementation — logs the magic link to the app logger.
-Phase 3 will replace send_magic_link with a real Resend API call.
+Phase 3: send_magic_link renders a Jinja2 HTML email template and dispatches
+it via the env-gated Resend client (resend_client.py).  When no
+``_RESEND_API_KEY`` is configured (dev / CI), the client stubs the send and
+logs the intent — no credentials required.
 """
 
-from flask import current_app
+from flask import render_template
+
+from .resend_client import send_email
 
 
 def send_magic_link(email: str, link: str) -> None:
     """Send a magic-link login email to *email*.
 
-    Currently STUBBED: logs the link at INFO level so developers can click
-    through during local development / tests without a real mail provider.
+    Renders ``email/magic_link.html`` with the login *link*, then hands off to
+    the Resend-gated ``send_email`` helper.  Falls back to a log stub when no
+    API key is configured.
     """
-    # TODO(phase-3): send via Resend — replace the log line below with an
-    #   actual HTTP call to the Resend API (or the resend-python SDK).
-    current_app.logger.info("magic link for %s: %s", email, link)
+    html = render_template("email/magic_link.html", link=link)
+    send_email(email, "Your Globalify login link", html)

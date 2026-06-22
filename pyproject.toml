@@ -29,6 +29,7 @@ dependencies = [
     "granian>=2.7.6",
     "pydantic-settings>=2.14.2",
     "typesense>=2.0,<3",
+    "resend>=2.32.2",
 ]
 
 

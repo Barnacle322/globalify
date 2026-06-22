@@ -23,6 +23,7 @@ from __future__ import annotations
 import uuid
 
 from slugify import slugify
+from sqlalchemy.orm import joinedload
 from thefuzz import fuzz
 
 from ..extensions import db
@@ -354,8 +355,6 @@ def backfill_entities(session) -> dict[str, int]:  # noqa: C901 (acceptable leng
     # Step 5: EntityIndustry / EntityStage / EntityNotable (Investor M2M)
     # ------------------------------------------------------------------
     # Reload investors with relationships eagerly loaded
-    from sqlalchemy.orm import joinedload
-
     investors_with_facets = (
         session.scalars(
             db.select(Investor).options(
@@ -390,14 +389,12 @@ def backfill_entities(session) -> dict[str, int]:  # noqa: C901 (acceptable leng
             counts["entity_notables"] += 1
 
     # InvestmentFirm M2M
-    from sqlalchemy.orm import joinedload as jl
-
     firms_with_facets = (
         session.scalars(
             db.select(InvestmentFirm).options(
-                jl(InvestmentFirm.industries),
-                jl(InvestmentFirm.rounds),
-                jl(InvestmentFirm.notable_investments),
+                joinedload(InvestmentFirm.industries),
+                joinedload(InvestmentFirm.rounds),
+                joinedload(InvestmentFirm.notable_investments),
             )
         )
         .unique()

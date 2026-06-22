@@ -303,9 +303,9 @@ def test_backfill_entity_stages(seeded):
     db = seeded.db
     counts = backfill_entities(db.session)
 
-    # investor_a → Round("Seed") → InvestmentStage.SEED
-    assert counts["entity_stages"] >= 1
-    assert db.session.query(EntityStage).count() >= 1
+    # investor_a → Round("Seed") → InvestmentStage.SEED (exactly 1 stage row)
+    assert counts["entity_stages"] == 1
+    assert db.session.query(EntityStage).count() == 1
 
     stages = db.session.scalars(db.select(EntityStage)).all()
     stage_values = {s.stage for s in stages}
@@ -332,14 +332,14 @@ def test_backfill_entity_geographies(seeded):
     db = seeded.db
     counts = backfill_entities(db.session)
 
-    # 1 geography for investor_a's "New York" location
-    assert counts["entity_geographies"] >= 1
+    # 1 geography for investor_a's "New York" location (investor_b has no location)
+    assert counts["entity_geographies"] == 1
     geos = db.session.scalars(db.select(Geography)).all()
     geo_names = {g.name for g in geos}
     assert "New York" in geo_names
 
     entity_geos = db.session.scalars(db.select(EntityGeography)).all()
-    assert len(entity_geos) >= 1
+    assert len(entity_geos) == 1
 
 
 def test_backfill_entity_bookmarks(seeded):
@@ -417,3 +417,168 @@ def test_backfill_investor_profile_fields(seeded):
     assert profile.n_exits == 2
     assert profile.accepts_cold_inbound is False
     assert profile.is_active is True
+
+
+def test_backfill_series_b_plus_expansion(db_session):
+    """Round name 'Series B+' must produce BOTH SERIES_B and SERIES_C EntityStage rows."""
+    from project.models.backfill import backfill_entities
+    from project.models.entity import EntityStage, Person
+    from project.models.helpers import Round
+    from project.models.investor import Investor
+    from project.utils.enums import InvestmentStage
+
+    db = db_session
+
+    round_b_plus = Round(name="Series B+")
+    db.session.add(round_b_plus)
+    db.session.flush()
+
+    investor = Investor(
+        first_name="Carol",
+        last_name="Chen",
+        slug="carol-chen-bplus",
+        is_public=False,
+        is_approved=False,
+    )
+    db.session.add(investor)
+    db.session.flush()
+
+    investor.rounds.append(round_b_plus)
+    db.session.commit()
+
+    backfill_entities(db.session)
+
+    person = db.session.scalar(db.select(Person).where(Person.slug == "carol-chen-bplus"))
+    assert person is not None, "Person for Series B+ investor not found"
+
+    stages = db.session.scalars(db.select(EntityStage).where(EntityStage.entity_id == person.id)).all()
+    stage_values = {s.stage for s in stages}
+
+    assert InvestmentStage.SERIES_B in stage_values, f"SERIES_B missing from expanded B+ stages; got {stage_values}"
+    assert InvestmentStage.SERIES_C in stage_values, f"SERIES_C missing from expanded B+ stages; got {stage_values}"
+
+
+def test_backfill_fuzzy_match_near_name(db_session):
+    """A firm_name that fuzzy-scores >= 90 against an existing firm must link to that org."""
+    from project.models.backfill import backfill_entities
+    from project.models.entity import Affiliation, Organization, Person
+    from project.models.investor import InvestmentFirm, Investor
+
+    db = db_session
+
+    firm = InvestmentFirm(name="Acme Capital", slug="acme-capital-fuzz")
+    db.session.add(firm)
+    db.session.flush()
+
+    # "acme capital" (lowercase) scores 100 via fuzz.ratio against "acme capital"
+    investor = Investor(
+        first_name="Dave",
+        last_name="Diaz",
+        slug="dave-diaz-fuzz",
+        firm_name="acme capital",  # lowercase near-variant; ratio == 100
+        is_public=False,
+        is_approved=False,
+    )
+    db.session.add(investor)
+    db.session.commit()
+
+    org_count_before = db.session.query(Organization).count()
+    backfill_entities(db.session)
+
+    # Organization count should not have grown beyond the 1 real firm
+    org_count_after = db.session.query(Organization).count()
+    # Only 1 org from the firm — no new stub should have been created
+    assert org_count_after == org_count_before + 1, (
+        f"Expected exactly 1 new org (the real firm), got {org_count_after - org_count_before}"
+    )
+
+    person = db.session.scalar(db.select(Person).where(Person.slug == "dave-diaz-fuzz"))
+    assert person is not None
+
+    real_org = db.session.scalar(db.select(Organization).where(Organization.name == "Acme Capital"))
+    assert real_org is not None
+
+    aff = db.session.scalar(
+        db.select(Affiliation).where(
+            Affiliation.person_id == person.id,
+            Affiliation.organization_id == real_org.id,
+        )
+    )
+    assert aff is not None, "Affiliation to existing 'Acme Capital' org not found after fuzzy match"
+
+
+def test_backfill_duplicate_firm_name_shares_stub(db_session):
+    """Two investors with the SAME unmatched firm_name share exactly ONE stub Organization."""
+    from project.models.backfill import backfill_entities
+    from project.models.entity import Affiliation, Organization, Person
+    from project.models.investor import Investor
+
+    db = db_session
+
+    inv1 = Investor(
+        first_name="Eve",
+        last_name="Evans",
+        slug="eve-evans-ghost",
+        firm_name="Ghost Ventures",
+        is_public=False,
+        is_approved=False,
+    )
+    inv2 = Investor(
+        first_name="Frank",
+        last_name="Fong",
+        slug="frank-fong-ghost",
+        firm_name="Ghost Ventures",
+        is_public=False,
+        is_approved=False,
+    )
+    db.session.add_all([inv1, inv2])
+    db.session.commit()
+
+    backfill_entities(db.session)
+
+    ghost_orgs = db.session.scalars(db.select(Organization).where(Organization.name == "Ghost Ventures")).all()
+    assert len(ghost_orgs) == 1, f"Expected exactly 1 stub org for 'Ghost Ventures', found {len(ghost_orgs)}"
+    stub_org = ghost_orgs[0]
+
+    person1 = db.session.scalar(db.select(Person).where(Person.slug == "eve-evans-ghost"))
+    person2 = db.session.scalar(db.select(Person).where(Person.slug == "frank-fong-ghost"))
+    assert person1 is not None
+    assert person2 is not None
+
+    aff1 = db.session.scalar(
+        db.select(Affiliation).where(
+            Affiliation.person_id == person1.id,
+            Affiliation.organization_id == stub_org.id,
+        )
+    )
+    aff2 = db.session.scalar(
+        db.select(Affiliation).where(
+            Affiliation.person_id == person2.id,
+            Affiliation.organization_id == stub_org.id,
+        )
+    )
+    assert aff1 is not None, "Affiliation for eve-evans-ghost to Ghost Ventures stub not found"
+    assert aff2 is not None, "Affiliation for frank-fong-ghost to Ghost Ventures stub not found"
+
+
+def test_backfill_entity_industry_discriminator(seeded):
+    """EntityIndustry for an investor has entity_type == PERSON and correct entity_id."""
+    from project.models.backfill import backfill_entities
+    from project.models.entity import EntityIndustry, Person
+    from project.utils.enums import EntityType
+
+    db = seeded.db
+    backfill_entities(db.session)
+
+    person_a = db.session.scalar(db.select(Person).where(Person.slug == "alice-smith-bf"))
+    assert person_a is not None
+
+    ei = db.session.scalar(
+        db.select(EntityIndustry).where(
+            EntityIndustry.entity_id == person_a.id,
+            EntityIndustry.entity_type == EntityType.PERSON,
+        )
+    )
+    assert ei is not None, "EntityIndustry row for investor_a not found"
+    assert ei.entity_type == EntityType.PERSON, f"Expected entity_type PERSON, got {ei.entity_type}"
+    assert ei.entity_id == person_a.id, f"Expected entity_id {person_a.id}, got {ei.entity_id}"

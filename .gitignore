@@ -404,3 +404,8 @@ cert.pem
 key.pem
 # SDD scratch
 .superpowers/
+
+# Playwright verification artifacts
+.playwright-mcp/
+phase2a-home.jpeg
+*.playwright.jpeg

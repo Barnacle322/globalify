@@ -3,7 +3,34 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {% include "partials/_head_meta.html" %}
+
+        {# Overridable SEO head blocks — MUST live directly in base.html (an
+           {% include %} would break block inheritance, so child templates
+           could not override them). Children override title/meta_description/
+           canonical; the og block derives from them via self.*() #}
+        <title>{% block title %}Globalify{% endblock %} · Globalify</title>
+        <meta
+            name="description"
+            content="{% block meta_description %}Discover investors and venture capital firms on Globalify — the open investor directory.{% endblock %}"
+        />
+        <link rel="canonical" href="{% block canonical %}{{ request.url }}{% endblock %}" />
+
+        {% block og %}
+        {%- set _t = self.title() -%}
+        {%- set _d = self.meta_description() -%}
+        {%- set _u = self.canonical() -%}
+        <meta property="og:type" content="{{ og_type | default('website') }}" />
+        <meta property="og:url" content="{{ og_url | default(_u) }}" />
+        <meta property="og:title" content="{{ og_title | default(_t ~ ' · Globalify') }}" />
+        <meta property="og:description" content="{{ og_description | default(_d) }}" />
+        <meta property="og:image" content="{{ og_image | default('https://globalify.xyz/static/elements/metapreview.png') }}" />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="{{ og_url | default(_u) }}" />
+        <meta property="twitter:title" content="{{ og_title | default(_t ~ ' · Globalify') }}" />
+        <meta property="twitter:description" content="{{ og_description | default(_d) }}" />
+        <meta property="twitter:image" content="{{ og_image | default('https://globalify.xyz/static/elements/metapreview.png') }}" />
+        {% endblock %}
+
         <link rel="stylesheet" href="/static/css/main.css" />
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
         <link

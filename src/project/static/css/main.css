@@ -3297,9 +3297,6 @@ select {
 .\@container {
   container-type: inline-size;
 }
-.\[a-zA-Z\:\\-\\\.\] {
-  a-z-a--z: \-\.;
-}
 
 @font-face {
     font-family: "Lexend";

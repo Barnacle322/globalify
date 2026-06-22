@@ -93,6 +93,7 @@ class Person(MappedAsDataclass, db.Model, unsafe_hash=True):
     """A natural person in the investor directory."""
 
     __tablename__ = "person"
+    __table_args__ = (UniqueConstraint("source", "source_id", name="uq_person_source"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
@@ -109,6 +110,12 @@ class Person(MappedAsDataclass, db.Model, unsafe_hash=True):
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
     is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
     user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True, default=None)
+    source: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    source_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    source_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    last_synced_at: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     search_index: Mapped[str | None] = mapped_column(String, nullable=True, default=None, init=False)
     created_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=True, init=False
@@ -158,11 +165,75 @@ class Person(MappedAsDataclass, db.Model, unsafe_hash=True):
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name or ''}".strip()
 
+    @classmethod
+    def upsert_from_source(
+        cls,
+        source: str,
+        source_id: str,
+        *,
+        name: str,
+        defaults: dict | None = None,
+    ) -> tuple[Person, bool]:
+        """Find or create a Person by (source, source_id).
+
+        If the person is claimed (user_id is not None), only last_synced_at is
+        refreshed.  If unclaimed, empty/None fields are filled from *defaults*.
+        Returns (person, created).
+        """
+        import uuid as _uuid
+
+        entity = db.session.scalar(db.select(cls).where(cls.source == source, cls.source_id == source_id))
+        now = datetime.datetime.utcnow()
+
+        if entity is not None:
+            if entity.user_id is not None:
+                # Claimed — only bump sync timestamp
+                entity.last_synced_at = now
+            else:
+                # Unclaimed — fill empty fields only
+                parts = name.split(" ", 1)
+                first = parts[0]
+                last = parts[1] if len(parts) > 1 else None
+                if not entity.first_name:
+                    entity.first_name = first
+                if entity.last_name is None and last is not None:
+                    entity.last_name = last
+                if defaults:
+                    for key, val in defaults.items():
+                        if hasattr(entity, key) and getattr(entity, key) in (None, ""):
+                            setattr(entity, key, val)
+                entity.last_synced_at = now
+            return entity, False
+
+        # Not found — create
+        parts = name.split(" ", 1)
+        first_name = parts[0]
+        last_name = parts[1] if len(parts) > 1 else None
+        tmp_slug = f"_tmp_{_uuid.uuid4().hex[:8]}"
+        entity = cls(
+            first_name=first_name,
+            slug=tmp_slug,
+            last_name=last_name,
+            is_public=True,
+            source=source,
+            source_id=source_id,
+            last_synced_at=now,
+        )
+        if defaults:
+            for key, val in defaults.items():
+                if hasattr(entity, key):
+                    setattr(entity, key, val)
+        db.session.add(entity)
+        db.session.flush()
+        entity.set_slug()
+        return entity, True
+
 
 class Organization(MappedAsDataclass, db.Model, unsafe_hash=True):
     """An investment firm, accelerator, or other investing organization."""
 
     __tablename__ = "organization"
+    __table_args__ = (UniqueConstraint("source", "source_id", name="uq_organization_source"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
@@ -179,6 +250,12 @@ class Organization(MappedAsDataclass, db.Model, unsafe_hash=True):
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=text("true"))
     is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
     user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True, default=None)
+    source: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    source_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    source_url: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    last_synced_at: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     search_index: Mapped[str | None] = mapped_column(String, nullable=True, default=None, init=False)
     created_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=True, init=False
@@ -229,6 +306,64 @@ class Organization(MappedAsDataclass, db.Model, unsafe_hash=True):
             db.session.rollback()
             self.slug = f"{base_slug}-{_uuid.uuid4().hex[:4]}"
             db.session.commit()
+
+    @classmethod
+    def upsert_from_source(
+        cls,
+        source: str,
+        source_id: str,
+        *,
+        name: str,
+        defaults: dict | None = None,
+    ) -> tuple[Organization, bool]:
+        """Find or create an Organization by (source, source_id).
+
+        If the org is claimed (user_id is not None), only last_synced_at is
+        refreshed.  If unclaimed, empty/None fields are filled from *defaults*.
+        Returns (organization, created).
+        """
+        import uuid as _uuid
+
+        entity = db.session.scalar(db.select(cls).where(cls.source == source, cls.source_id == source_id))
+        now = datetime.datetime.utcnow()
+
+        if entity is not None:
+            if entity.user_id is not None:
+                # Claimed — only bump sync timestamp
+                entity.last_synced_at = now
+            else:
+                # Unclaimed — fill empty fields only
+                if not entity.name:
+                    entity.name = name
+                if defaults:
+                    for key, val in defaults.items():
+                        if hasattr(entity, key) and getattr(entity, key) in (None, ""):
+                            setattr(entity, key, val)
+                entity.last_synced_at = now
+            return entity, False
+
+        # Not found — create
+        org_type = OrgType.OTHER
+        if defaults and "org_type" in defaults:
+            org_type = defaults["org_type"]
+        tmp_slug = f"_tmp_{_uuid.uuid4().hex[:8]}"
+        entity = cls(
+            name=name,
+            slug=tmp_slug,
+            org_type=org_type,
+            is_public=True,
+            source=source,
+            source_id=source_id,
+            last_synced_at=now,
+        )
+        if defaults:
+            for key, val in defaults.items():
+                if hasattr(entity, key):
+                    setattr(entity, key, val)
+        db.session.add(entity)
+        db.session.flush()
+        entity.set_slug()
+        return entity, True
 
 
 class Affiliation(MappedAsDataclass, db.Model, unsafe_hash=True):

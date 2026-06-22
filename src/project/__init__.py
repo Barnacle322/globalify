@@ -1,6 +1,7 @@
 from datetime import timedelta
 from uuid import uuid4
 
+import click
 import sentry_sdk
 from flask import Flask, g, send_from_directory, session
 from flask_login import current_user
@@ -192,6 +193,25 @@ def create_app():
             entity_search.sync_search_index(recreate=False)
 
     app.cli.add_command(reindex)
+
+    @app.cli.command("collect")
+    @click.argument("source")
+    @click.option("--limit", default=50, show_default=True, help="Max records to fetch.")
+    @click.option("--dry-run", is_flag=True, default=False, help="Parse without writing to DB.")
+    def collect_cmd(source: str, limit: int, dry_run: bool):
+        """Run a named collector. Use 'sample' to test the pipeline."""
+        from .collectors import REGISTRY
+
+        with app.app_context():
+            if source not in REGISTRY:
+                available = ", ".join(sorted(REGISTRY)) or "(none registered)"
+                raise click.ClickException(f"Unknown source '{source}'. Available: {available}")
+            collector = REGISTRY[source]()
+            stats = collector.run(limit=limit, dry_run=dry_run)
+            mode = "[dry-run] " if dry_run else ""
+            click.echo(f"{mode}created={stats.created} updated={stats.updated} skipped={stats.skipped}")
+
+    app.cli.add_command(collect_cmd)
 
     return app
 

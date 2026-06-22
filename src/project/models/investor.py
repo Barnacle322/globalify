@@ -9,7 +9,6 @@ from collections.abc import Generator, Sequence
 from itertools import islice
 from typing import TYPE_CHECKING, Any
 
-from geopy.distance import geodesic
 from more_itertools import chunked
 from slugify import slugify
 from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, exists, func, text
@@ -25,37 +24,29 @@ from sqlalchemy.orm import (
 from thefuzz import fuzz
 
 from ..extensions import db
-from ..utils.info_lists import notable_investment_list
 from ..utils.typesense_helpers.typesense_search import (
     SearchBuilder,
     create_schema,
     create_synonyms,
     delete_documents,
     delete_schema,
-    update_collection,
     upsert_documents,
 )
 from .helpers import Industry, Round
 
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
-    from .user import Company, User
+    from .user import User
 
 
 class NotableInvestment(MappedAsDataclass, db.Model, unsafe_hash=True):
-    company: Mapped[Company | None] = relationship(
-        "Company", back_populates="notable_investment", uselist=True, init=False
-    )
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    company_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("company.id"), nullable=True, init=False)
 
     def to_dict(self) -> dict[str, str | int | None]:
         return {
             "id": self.id,
             "name": self.name,
-            "company_id": self.company_id,
         }
 
     @staticmethod
@@ -78,15 +69,6 @@ class NotableInvestment(MappedAsDataclass, db.Model, unsafe_hash=True):
         stmt = db.select(NotableInvestment).where(NotableInvestment.id.in_(valid_id_list))
         industries = db.session.execute(stmt).scalars().all()
         return industries
-
-    @staticmethod
-    def populate() -> None:
-        try:
-            notable_investments = list(set(notable_investment_list))
-            db.session.add_all(list(map(lambda x: NotableInvestment(name=x), notable_investments)))
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
 
 
 investor_round = db.Table(
@@ -429,32 +411,6 @@ class Investor(InvestorBase):
             batch_count += 1
 
     @staticmethod
-    def fix_twitter_links():
-        from ..models import Company, InvestmentFirm, Investor, UserInfo
-
-        models = [
-            (Company, "twitter_url"),
-            (UserInfo, "twitter_url"),
-            (Investor, "twitter"),
-            (InvestmentFirm, "twitter"),
-        ]
-        for model, twitter_field in models:
-            stmt = db.select(model).where(getattr(model, twitter_field).like("%x.com/%"))
-            items = db.session.scalars(stmt).all()
-
-            for item in items:
-                current_url = getattr(item, twitter_field)
-                if current_url and "x.com" in current_url:
-                    try:
-                        setattr(item, twitter_field, current_url.replace("x.com", "twitter.com"))
-                        db.session.add(item)
-                    except Exception as e:
-                        print(f"Error processing {model.__name__} ID {item.id}: {e}")
-
-            db.session.commit()
-            print(f"Processed {len(items)} {model.__name__}(s).")
-
-    @staticmethod
     def populate_demo(file_name="data/investor.csv"):
         with open(file_name, newline="") as file:
             existing_notable_investments = NotableInvestment.get_all()
@@ -545,64 +501,6 @@ class Investor(InvestorBase):
         db.session.commit()
 
     @staticmethod
-    def populate_cli():
-        with open("data/mercury_investor.jsonl", encoding="utf-8-sig") as file:
-            investors = file.readlines()
-            existing_nis = list(NotableInvestment.get_all())
-            for investor in investors:
-                investor = json.loads(investor)
-
-                industry_list = Industry.get_industry_list()
-                cached_results = {}
-                industries = []
-                for i in investor.get("industries"):
-                    if i not in cached_results:
-                        result = SearchBuilder("industries").query(i).query_by(["embedding"]).search()
-
-                        hit = result.get("hits", [])[0] if result.get("hits") else None
-
-                        for industry in industry_list:
-                            if hit and int(industry.id) == int(hit.get("document").get("db_id")):
-                                industries.append(industry)
-                                cached_results[i] = industry
-                    else:
-                        industries.append(cached_results[i])
-
-                nis_to_add = []
-                for ni_name_to_add in investor.get("notable_investments"):
-                    existing_ni_name_list = map(lambda x: x.name, existing_nis)
-                    if ni_name_to_add not in existing_ni_name_list:
-                        ni = NotableInvestment(name=ni_name_to_add)
-                        db.session.add(ni)
-                        existing_nis.append(ni)
-                    else:
-                        ni = next(filter(lambda x: x.name == ni_name_to_add, existing_nis))
-
-                    nis_to_add.append(ni)
-
-                investor = Investor(
-                    first_name=investor.get("first_name"),
-                    last_name=investor.get("last_name"),
-                    firm_name=investor.get("firm_name"),
-                    position=investor.get("position"),
-                    about=investor.get("about"),
-                    email=investor.get("email"),
-                    linkedin=investor.get("linkedin"),
-                    twitter=investor.get("twitter"),
-                    website=investor.get("website"),
-                    location=investor.get("location"),
-                    coordinates=investor.get("location"),
-                    min_investment=int(investor.get("min_investment") or 0),
-                    max_investment=int(investor.get("max_investment") or 0),
-                    n_investments=int(investor.get("n_investments") or 0),
-                    industries=list(set(industries)),
-                    rounds=[],
-                    notable_investments=nis_to_add,
-                )
-                db.session.add(investor)
-            db.session.commit()
-
-    @staticmethod
     def populate_vcsheet(file_name="data/investors_vc.csv"):
         with open(file_name, newline="", encoding="utf-8") as file:
             reader = csv.reader(file, delimiter=",", quotechar='"')
@@ -690,93 +588,6 @@ class Investor(InvestorBase):
                 db.session.add(investor)
         db.session.commit()
 
-    def calculate_bias_score(self):
-        try:
-            bias_score = (self.bias / 100) if self.bias else 0
-        except (AttributeError, TypeError, ZeroDivisionError) as e:
-            print(f"An error occurred while calculating the score: {e}")
-            bias_score = 0
-        return bias_score
-
-    def calculate_location_score(self, company):
-        try:
-            if company.coordinates and self.coordinates:
-                distance = float(geodesic(company.coordinates, self.coordinates).kilometers)
-                location_score = 1 - (distance / 20038)
-            else:
-                location_score = 0
-        except (AttributeError, TypeError, ZeroDivisionError) as e:
-            print(f"An error occurred while calculating the score: {e}")
-            location_score = 0
-        return location_score
-
-    def calculate_exits_score(self):
-        try:
-            if self.n_investments:
-                successful_exits = 1 if (self.n_exits / self.n_investments) >= 0.5 else 0
-            else:
-                successful_exits = 0
-        except (AttributeError, TypeError, ZeroDivisionError) as e:
-            print(f"An error occurred while calculating the score: {e}")
-            successful_exits = 0
-        return successful_exits
-
-    def calculate_industry_score(self, company):
-        if company.industry in self.industries and len(self.industries) == 1:
-            industry_score = 1
-        elif company.industry in self.industries:
-            industry_score = 0.8
-        else:
-            industry_score = 0
-        return industry_score
-
-    def calculate_round_score(self, company):
-        if company.preferred_round in self.rounds and len(self.rounds) == 1:
-            round_score = 1
-        elif company.preferred_round in self.rounds:
-            round_score = 0.8
-        else:
-            round_score = 0
-        return round_score
-
-    def calculate_completeness_score(self):
-        attributes_dict = vars(self)
-        completeness_score = 1
-        for value in attributes_dict.values():
-            if not value:
-                completeness_score -= 0.1
-        if completeness_score < 0:
-            completeness_score = 0
-        return completeness_score
-
-    @staticmethod
-    def generate_index_file():
-        investors = Investor.get_all()
-
-        with open("investor_index.jsonl", "w") as file:
-            for investor in investors:
-                investor_json = {}
-                investor_json["db_id"] = investor.id
-                investor_json["name"] = investor.full_name
-                investor_json["firm_name"] = investor.firm_name
-                investor_json["about"] = investor.about
-                investor_json["position"] = investor.position
-                investor_json["n_investments"] = investor.n_investments
-                investor_json["n_exits"] = investor.n_exits
-                investor_json["min_investment"] = investor.min_investment
-                investor_json["max_investment"] = investor.max_investment
-                investor_json["location"] = investor.location
-                investor_json["country"] = investor._country
-                investor_json["rounds"] = [round_.name for round_ in investor.rounds]
-                investor_json["industries"] = [industry.name for industry in investor.industries]
-                investor_json["notable_investments"] = [
-                    notable_investment.name for notable_investment in investor.notable_investments
-                ]
-
-                file.write(json.dumps(investor_json) + "\n")
-
-        return investors
-
     def upsert_data(self):
         investor_object = {}
         if self.search_index:
@@ -839,16 +650,6 @@ class Investor(InvestorBase):
 
     def delete_data(self):
         delete_documents("investors", str(self.id))
-
-    @staticmethod
-    def update_typesense_collection():
-        update_schema = {
-            "fields": [
-                {"name": "is_approved", "drop": True},
-                {"name": "is_approved", "type": "bool", "optional": True},
-            ]
-        }
-        update_collection("investors", update_schema)
 
     @staticmethod
     def sync_search_index(recreate: bool = False):
@@ -1302,65 +1103,6 @@ class InvestmentFirm(db.Model):
                 db.session.add(investment_firm)
                 print(name)
         db.session.commit()
-
-    def calculate_bias_score(self):
-        try:
-            bias_score = (self.bias / 100) if self.bias else 0
-        except (AttributeError, TypeError, ZeroDivisionError) as e:
-            print(f"An error occurred while calculating the score: {e}")
-            bias_score = 0
-        return bias_score
-
-    def calculate_location_score(self, company):
-        try:
-            if company.coordinates and self.coordinates:
-                distance = float(geodesic(company.coordinates, self.coordinates).kilometers)
-                location_score = 1 - (distance / 20038)
-            else:
-                location_score = 0
-        except (AttributeError, TypeError, ZeroDivisionError) as e:
-            print(f"An error occurred while calculating the score: {e}")
-            location_score = 0
-        return location_score
-
-    def calculate_exits_score(self):
-        try:
-            if self.n_investments:
-                successful_exits = 1 if (self.n_exits / self.n_investments) >= 0.5 else 0
-            else:
-                successful_exits = 0
-        except (AttributeError, TypeError, ZeroDivisionError) as e:
-            print(f"An error occurred while calculating the score: {e}")
-            successful_exits = 0
-        return successful_exits
-
-    def calculate_industry_score(self, company):
-        if company.industry in self.industries and len(self.industries) == 1:
-            industry_score = 1
-        elif company.industry in self.industries:
-            industry_score = 0.8
-        else:
-            industry_score = 0
-        return industry_score
-
-    def calculate_round_score(self, company):
-        if company.preferred_round in self.rounds and len(self.rounds) == 1:
-            round_score = 1
-        elif company.preferred_round in self.rounds:
-            round_score = 0.8
-        else:
-            round_score = 0
-        return round_score
-
-    def calculate_completeness_score(self):
-        attributes_dict = vars(self)
-        completeness_score = 1
-        for value in attributes_dict.values():
-            if not value:
-                completeness_score -= 0.1
-        if completeness_score < 0:
-            completeness_score = 0
-        return completeness_score
 
     def upsert_data(self):
         investment_firm_object = {}

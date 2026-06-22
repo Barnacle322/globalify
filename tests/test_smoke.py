@@ -26,3 +26,10 @@ def test_create_app_requires_secret_key(monkeypatch):
 
     with pytest.raises(ValidationError):
         from project import create_app  # noqa: F401
+
+
+def test_db_metadata_creates_all_tables(app):
+    from project.extensions import db
+
+    with app.app_context():
+        db.create_all()  # raises NoReferencedTableError if any FK points at a deleted table

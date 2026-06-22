@@ -216,7 +216,7 @@ def delete_account():
 
         return redirect(url_for("main.index", _external=False))
 
-    return render_template("settings/delete_oauth_account.html")
+    return render_template("settings/delete_account.html")
 
 
 @settings.get("/rounds")

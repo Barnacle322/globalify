@@ -1,3 +1,4 @@
+from .auth_token import LoginToken
 from .claim import ClaimRequest, ClaimVerification
 from .entity import (
     Affiliation,
@@ -26,6 +27,7 @@ from .user import (
 __all__ = [
     "Industry",
     "Round",
+    "LoginToken",
     "EmailVerification",
     "User",
     "UserInfo",

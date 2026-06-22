@@ -2238,10 +2238,6 @@ select {
   -moz-column-gap: 1.25rem;
        column-gap: 1.25rem;
 }
-.gap-x-6 {
-  -moz-column-gap: 1.5rem;
-       column-gap: 1.5rem;
-}
 .gap-x-8 {
   -moz-column-gap: 2rem;
        column-gap: 2rem;
@@ -2488,6 +2484,10 @@ select {
 .border-slate-200 {
   --tw-border-opacity: 1;
   border-color: rgb(226 232 240 / var(--tw-border-opacity));
+}
+.border-slate-300 {
+  --tw-border-opacity: 1;
+  border-color: rgb(203 213 225 / var(--tw-border-opacity));
 }
 .border-stone-300 {
   --tw-border-opacity: 1;
@@ -4225,6 +4225,10 @@ textarea {
   --tw-bg-opacity: 1;
   background-color: rgb(241 245 249 / var(--tw-bg-opacity));
 }
+.hover\:bg-slate-50:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(248 250 252 / var(--tw-bg-opacity));
+}
 .hover\:bg-slate-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(51 65 85 / var(--tw-bg-opacity));
@@ -4312,6 +4316,10 @@ textarea {
 .focus\:ring-sky-500:focus {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(14 165 233 / var(--tw-ring-opacity));
+}
+.focus\:ring-slate-900:focus {
+  --tw-ring-opacity: 1;
+  --tw-ring-color: rgb(15 23 42 / var(--tw-ring-opacity));
 }
 .focus\:ring-offset-2:focus {
   --tw-ring-offset-width: 2px;
@@ -4705,6 +4713,11 @@ textarea {
 
   .md\:text-center {
     text-align: center;
+  }
+
+  .md\:text-4xl {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
   }
 
   .md\:text-5xl {

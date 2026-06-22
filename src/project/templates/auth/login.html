@@ -1,22 +1,51 @@
 <!-- prettier-ignore -->
-{% extends "layouts/layout_auth.html" %} 
-{% block title %}Login{% endblock %} 
-{% block head %} {{ super() }} {% endblock %} 
+{% extends "layouts/layout_auth.html" %}
+{% block title %}Login{% endblock %}
+{% block head %} {{ super() }} {% endblock %}
 {% block content %}
 <main class="flex h-full w-full flex-row items-center text-gray-900">
     <div class="max w-full justify-center px-9 md:w-1/2 md:justify-start md:px-16">
         <article class="flex max-w-[400px] flex-col gap-2">
             <div class="mb-4 flex flex-col gap-1 font-medium">
                 <h1 class="text-4xl">Welcome!</h1>
+                <p class="text-sm text-gray-500">Enter your email and we'll send you a login link.</p>
             </div>
-            {% if status_type %} {% if status_type == '3' %}
-            <div class="rounded-xl text-red-500">{{ msg }}</div>
-            {% endif %} {% if status_type == '2' %}
-            <div class="rounded-xl text-orange-400">{{ msg }}</div>
-            {% endif %} {% if status_type == '1' %}
-            <div class="rounded-xl text-lime-500">{{ msg }}</div>
-            {% endif %} {% endif %}
-            <div class="my-2 text-xs text-gray-400">
+
+            {% if status_type %}
+                {% if status_type == '3' %}
+                <div class="rounded-xl text-red-500">{{ msg }}</div>
+                {% endif %}
+                {% if status_type == '2' %}
+                <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                {% endif %}
+                {% if status_type == '1' %}
+                <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                {% endif %}
+            {% endif %}
+
+            <form action="{{ url_for('auth.login') }}" method="POST" class="flex flex-col gap-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="flex flex-col gap-1">
+                    <label for="email" class="text-sm font-medium text-gray-700">Email address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="you@example.com"
+                        required
+                        autocomplete="email"
+                        class="rounded-xl border border-gray-300 px-4 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                    />
+                </div>
+                <button
+                    type="submit"
+                    class="inline-flex items-center justify-center rounded-xl bg-slate-900 py-2 text-sm font-semibold text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2"
+                >
+                    Send me a login link
+                </button>
+            </form>
+
+            <div class="mt-2 text-xs text-gray-400">
                 <span>By signing in, you agree to </span
                 ><a href="/terms-of-service" class="underline">Terms of Service</a><span> and </span
                 ><a href="/privacy-policy" class="underline">Privacy Policy</a>

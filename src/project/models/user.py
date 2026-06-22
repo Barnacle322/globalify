@@ -279,6 +279,10 @@ class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalar(db.select(UserPayment).where(UserPayment.customer_id == customer_id))
 
     @staticmethod
+    def get_by_paddle_customer_id(paddle_customer_id: str) -> UserPayment | None:
+        return db.session.scalar(db.select(UserPayment).where(UserPayment.paddle_customer_id == paddle_customer_id))
+
+    @staticmethod
     def get_by_subscription_id(subscription_id: str) -> UserPayment | None:
         return db.session.scalar(db.select(UserPayment).where(UserPayment.subscription_id == subscription_id))
 

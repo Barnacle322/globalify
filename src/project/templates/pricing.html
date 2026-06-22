@@ -133,6 +133,7 @@
                         type="button"
                         class="block w-full text-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-sky-600 hover:bg-sky-50 transition-colors"
                         data-paddle-price-id="{{ paddle_price_id_monthly or paddle_price_id_lifetime }}"
+                        data-paddle-user-id="{{ current_user.id if current_user and current_user.is_authenticated else '' }}"
                         id="paddle-checkout-btn"
                     >
                         Go Pro
@@ -172,4 +173,34 @@
 
     </div>
 </div>
+
+{% if paddle_is_configured %}
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script>
+  (function () {
+    var env = {{ paddle_environment | tojson }};
+    var token = {{ paddle_client_token | tojson }};
+
+    if (env !== "production") {
+      Paddle.Environment.set(env);
+    }
+    Paddle.Initialize({ token: token });
+
+    var btn = document.getElementById("paddle-checkout-btn");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        var priceId = btn.getAttribute("data-paddle-price-id");
+        var userId = btn.getAttribute("data-paddle-user-id");
+        var checkoutOptions = {
+          items: [{ priceId: priceId, quantity: 1 }],
+        };
+        if (userId) {
+          checkoutOptions.customData = { user_id: parseInt(userId, 10) };
+        }
+        Paddle.Checkout.open(checkoutOptions);
+      });
+    }
+  })();
+</script>
+{% endif %}
 {% endblock %}

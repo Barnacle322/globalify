@@ -31,6 +31,7 @@ dependencies = [
     "typesense>=2.0,<3",
     "resend>=2.32.2",
     "boto3>=1.43.34",
+    "paddle-python-sdk>=1.14.1",
 ]
 
 

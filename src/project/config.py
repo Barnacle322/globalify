@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     paddle_client_token: str | None = Field(default=None, alias="_PADDLE_CLIENT_TOKEN")
     paddle_price_id_monthly: str | None = Field(default=None, alias="_PADDLE_PRICE_ID_MONTHLY")
     paddle_price_id_lifetime: str | None = Field(default=None, alias="_PADDLE_PRICE_ID_LIFETIME")
+    paddle_api_key: str | None = Field(default=None, alias="_PADDLE_API_KEY")
+    paddle_webhook_secret: str | None = Field(default=None, alias="_PADDLE_WEBHOOK_SECRET")
+    paddle_environment: str = Field(default="sandbox", alias="_PADDLE_ENVIRONMENT")
 
     @property
     def is_testing(self) -> bool:
@@ -77,8 +80,17 @@ class Settings(BaseSettings):
 
     @property
     def paddle_is_configured(self) -> bool:
-        """True when Paddle client token and at least one price ID are present."""
-        return bool(self.paddle_client_token and (self.paddle_price_id_monthly or self.paddle_price_id_lifetime))
+        """True when Paddle client token, webhook secret, and at least one price ID are present."""
+        return bool(
+            self.paddle_client_token
+            and self.paddle_webhook_secret
+            and (self.paddle_price_id_monthly or self.paddle_price_id_lifetime)
+        )
+
+    @property
+    def paddle_webhook_is_configured(self) -> bool:
+        """True when the Paddle webhook secret is set (enables signature verification)."""
+        return bool(self.paddle_webhook_secret)
 
 
 def get_settings() -> Settings:

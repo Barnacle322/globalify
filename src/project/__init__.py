@@ -20,6 +20,7 @@ from .routes.main import (
     service_unavailable,
     unauthorized,
 )
+from .routes.payment import payment
 from .routes.public import public
 from .routes.search import search
 from .routes.settings import settings
@@ -65,6 +66,7 @@ def create_app():
     app.register_blueprint(search)
     app.register_blueprint(settings, url_prefix="/settings")
     app.register_blueprint(admin, url_prefix="/admin")
+    app.register_blueprint(payment)
 
     # Dev-only route: serve locally uploaded images from instance/uploads/
     # In production, images are served from the R2 custom domain — this route
@@ -96,6 +98,7 @@ def create_app():
             "paddle_client_token": cfg.paddle_client_token if cfg.paddle_is_configured else None,
             "paddle_price_id_monthly": cfg.paddle_price_id_monthly if cfg.paddle_is_configured else None,
             "paddle_price_id_lifetime": cfg.paddle_price_id_lifetime if cfg.paddle_is_configured else None,
+            "paddle_environment": cfg.paddle_environment,
         }
 
     app.register_error_handler(400, bad_request)

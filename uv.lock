@@ -387,6 +387,7 @@ dependencies = [
     { name = "geopy" },
     { name = "granian" },
     { name = "more-itertools" },
+    { name = "paddle-python-sdk" },
     { name = "posthog" },
     { name = "psycopg" },
     { name = "psycopg-binary" },
@@ -427,6 +428,7 @@ requires-dist = [
     { name = "geopy", specifier = ">=2.4.1" },
     { name = "granian", specifier = ">=2.7.6" },
     { name = "more-itertools", specifier = ">=10.4.0" },
+    { name = "paddle-python-sdk", specifier = ">=1.14.1" },
     { name = "posthog", specifier = ">=3.7.4" },
     { name = "psycopg", specifier = ">=3.2.1" },
     { name = "psycopg-binary", specifier = ">=3.2.1" },
@@ -683,6 +685,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d7/f1/e7a6dd94a8d4a5626c03e4e99c87f241ba9e350cd9e6d75123f992427270/packaging-26.2.tar.gz", hash = "sha256:ff452ff5a3e828ce110190feff1178bb1f2ea2281fa2075aadb987c2fb221661", size = 228134, upload-time = "2026-04-24T20:15:23.917Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/df/b2/87e62e8c3e2f4b32e5fe99e0b86d576da1312593b39f47d8ceef365e95ed/packaging-26.2-py3-none-any.whl", hash = "sha256:5fc45236b9446107ff2415ce77c807cee2862cb6fac22b8a73826d0693b0980e", size = 100195, upload-time = "2026-04-24T20:15:22.081Z" },
+]
+
+[[package]]
+name = "paddle-python-sdk"
+version = "1.14.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/97/8a/e82a6cfeb066680b0fb11c3976a764c210373ba5df987e4450b9bb7a4b56/paddle_python_sdk-1.14.1.tar.gz", hash = "sha256:d2fbee1a97c5c95c627d51380650f38a286667f8394b61f1b9cb95c98fa78ef1", size = 171649, upload-time = "2026-04-21T08:21:08.528Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/33/bb/ba579a96f5948072ab88cf994a94fb4669203f57a88815bffc58dd055641/paddle_python_sdk-1.14.1-py3-none-any.whl", hash = "sha256:921127b2b82057f7c77255571a4effedf362e8d0e699a913d0c302b0a682494b", size = 461778, upload-time = "2026-04-21T08:21:06.839Z" },
 ]
 
 [[package]]

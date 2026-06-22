@@ -23,8 +23,10 @@ from .user import (
     UserInfo,
     UserPayment,
 )
+from .webhook import ProcessedWebhook
 
 __all__ = [
+    "ProcessedWebhook",
     "Industry",
     "Round",
     "LoginToken",

@@ -23,12 +23,12 @@ from ..models import (
 )
 from ..models.entity import Person
 from ..utils.cap import verify_captcha
+from ..utils.email.resend_client import send_email
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import (
     CLAIM_REQUEST_ALREADY_SUBMITTED,
     EXPIRED_CODE,
     INVALID_CODE,
-    INVALID_EMAIL,
     INVESTOR_ALREADY_CLAIMED,
 )
 
@@ -145,6 +145,14 @@ def email(slug):
     if not person or person.user_id:
         return redirect(url_for("public.investors"))
 
+    # Guard: no email on file for this profile — send user to manual review instead.
+    if not person.email:
+        status = Status(
+            StatusType.ERROR,
+            "There is no email on file for this profile. Please use the manual review option.",
+        ).get_status()
+        return redirect(url_for("claim.manual_view", slug=slug, _external=False, **status))
+
     existing_claim = Person.get_by_user_id(current_user.id)
     if existing_claim:
         status = Status(StatusType.ERROR, "You can't claim another investor account!").get_status()
@@ -160,7 +168,14 @@ def email(slug):
     db.session.add(verification)
     db.session.commit()
 
-    # TODO Phase 3: send claim verification email via magic-link service
+    link = url_for("claim.verification_view", slug=slug, verification_code=verification.token, _external=True)
+    html = render_template(
+        "email/claim_verification.html",
+        name=person.full_name,
+        link=link,
+        token=verification.token,
+    )
+    send_email(person.email, "Verify your Globalify profile claim", html)
 
     status = Status(StatusType.SUCCESS, "Verification email sent.").get_status()
     return redirect(url_for("main.investor_slug", slug=slug, _external=False, **status))
@@ -197,11 +212,15 @@ def verification(slug):
 
     form_data = request.get_json()
     verification_code = form_data.get("code")
-    user_email = form_data.get("email")
 
     person = Person.get_by_slug(slug)
     if not person:
         return redirect(url_for("public.investors"))
+
+    # Guard: profile already claimed by someone.
+    if person.user_id:
+        status = Status(StatusType.ERROR, INVESTOR_ALREADY_CLAIMED).get_status()
+        return redirect(url_for("claim.verification_view", slug=slug, _external=False, **status))
 
     claim_verification = ClaimVerification.get_by_token(verification_code)
     if not claim_verification:
@@ -212,9 +231,14 @@ def verification(slug):
         status = Status(StatusType.ERROR, EXPIRED_CODE).get_status()
         return redirect(url_for("claim.verification_view", slug=slug, _external=False, **status))
 
-    if user_email != current_user.email:
-        status = Status(StatusType.ERROR, INVALID_EMAIL).get_status()
+    if claim_verification.is_used:
+        status = Status(StatusType.ERROR, INVALID_CODE).get_status()
         return redirect(url_for("claim.verification_view", slug=slug, _external=False, **status))
+
+    # NOTE: we intentionally do NOT check user_email == current_user.email here.
+    # Possession of the token is the proof of identity — the email address check
+    # is redundant and breaks legitimate claim flows (e.g. user changed email,
+    # or person's on-file email differs from the logged-in account's email).
 
     person.user_id = current_user.id
     claim_verification.is_used = True

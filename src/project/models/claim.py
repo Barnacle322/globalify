@@ -49,7 +49,7 @@ class ClaimVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
                 db.select(ClaimVerification).where(ClaimVerification.user_id == user_id)
             ).all()
             for claim_verification in claim_verifications:
-                claim_verification.is_expired = True
+                claim_verification.is_used = True
             db.session.commit()
         except Exception:
             db.session.rollback()

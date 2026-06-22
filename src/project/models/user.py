@@ -108,7 +108,7 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
         expires = self.user_payment.pro_expires_at
         if expires is None:
             return True
-        return expires > datetime.datetime.utcnow()
+        return expires > datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
 
 
 class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):

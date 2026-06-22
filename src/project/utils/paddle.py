@@ -139,7 +139,7 @@ def _resolve_user(data: dict[str, Any]):
     if raw_user_id is not None:
         try:
             user_id = int(raw_user_id)
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             logger.warning("Paddle event: invalid user_id in custom_data: %r", raw_user_id)
             return None
 
@@ -277,7 +277,7 @@ def _handle_subscription_canceled(data: dict[str, Any]) -> None:
 
     # Honour the remaining period: keep Pro active until the period end
     expires_at = _parse_billing_period_end(data)
-    if expires_at and expires_at > datetime.datetime.utcnow():
+    if expires_at and expires_at > datetime.datetime.now(datetime.UTC).replace(tzinfo=None):
         from project.extensions import db
 
         payment.pro_expires_at = expires_at
@@ -306,6 +306,6 @@ def _parse_billing_period_end(data: dict[str, Any]):
         dt = datetime.datetime.fromisoformat(ends_at_str)
         # Return naive UTC for consistency with existing codebase
         return dt.replace(tzinfo=None)
-    except ValueError, AttributeError:
+    except (ValueError, AttributeError):
         logger.warning("Paddle: could not parse billing period ends_at: %r", ends_at_str)
         return None

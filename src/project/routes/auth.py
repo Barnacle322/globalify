@@ -15,6 +15,7 @@ verified account that pre-dates this migration.
 """
 
 import datetime
+from urllib.parse import urlparse
 
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import (
@@ -30,6 +31,7 @@ from ..models import (
     LoginToken,
     User,
     UserInfo,
+    UserPayment,
 )
 from ..utils.decorators import check_user_info_complete
 from ..utils.email import send_magic_link
@@ -37,6 +39,14 @@ from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import ACCOUNT_NOT_FOUND
 
 auth = Blueprint("auth", __name__)
+
+
+def _is_safe_next(target: str | None) -> bool:
+    """Return True only for same-host relative paths (no scheme, no netloc)."""
+    if not target:
+        return False
+    parsed = urlparse(target)
+    return not parsed.scheme and not parsed.netloc and target.startswith("/") and not target.startswith("//")
 
 
 @login_manager.user_loader
@@ -87,6 +97,8 @@ def login():
                 user=user,
             )
             db.session.add(user_info)
+            # Create companion UserPayment so navbar tier deref never 500s.
+            db.session.add(UserPayment(user=user))
             db.session.commit()
 
         # TODO(phase-3): Cap captcha verify here before issuing the token.
@@ -122,11 +134,11 @@ def verify_magic_link():
 
     login_user(user)
 
-    next_url = request.args.get("next") or url_for("public.investors")
+    next_url = request.args.get("next")
     status = Status(StatusType.SUCCESS, "Welcome! You are now logged in.").get_status()
-    return redirect(
-        url_for("public.investors", _external=False, **status) if next_url == url_for("public.investors") else next_url
-    )
+    if _is_safe_next(next_url):
+        return redirect(next_url)
+    return redirect(url_for("public.investors", _external=False, **status))
 
 
 @auth.route("/logout")

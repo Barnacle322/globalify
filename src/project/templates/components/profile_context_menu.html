@@ -33,7 +33,7 @@
                     href="/settings/plan"
                     class="mt-2 rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-300 px-2 py-1 text-xs font-medium text-white"
                 >
-                    {{ user.user_payment.tier.value.upper() }}
+                    {{ user.user_payment.tier.value.upper() if user.user_payment and user.user_payment.tier else "FREE" }}
                 </a>
             </div>
         </div>

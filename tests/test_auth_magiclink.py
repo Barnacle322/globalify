@@ -262,3 +262,132 @@ class TestGetVerifyMagicLink:
         assert response.status_code in (302, 303)
         location = response.headers.get("Location", "")
         assert "login" in location
+
+
+# ---------------------------------------------------------------------------
+# Fix 1: open-redirect tests
+# ---------------------------------------------------------------------------
+
+
+class TestOpenRedirectProtection:
+    """GET /auth/verify?next= must not redirect off-host."""
+
+    def test_evil_next_ignored(self, db_app, client):
+        """next=https://evil.com must NOT appear in the Location header."""
+        from project.extensions import db
+        from project.models import LoginToken
+
+        with db_app.app_context():
+            user = _make_user(db, "redirect_evil@example.com")
+            db.session.commit()
+            raw = LoginToken.issue(user, "login")
+
+        response = client.get(
+            f"/auth/verify?token={raw}&next=https://evil.com",
+            follow_redirects=False,
+        )
+        assert response.status_code in (302, 303)
+        location = response.headers.get("Location", "")
+        assert "evil.com" not in location, f"Open redirect! Location was: {location}"
+
+    def test_safe_relative_next_honored(self, db_app, client):
+        """next=/firms (safe relative path) must be followed."""
+        from project.extensions import db
+        from project.models import LoginToken
+
+        with db_app.app_context():
+            user = _make_user(db, "redirect_safe@example.com")
+            db.session.commit()
+            raw = LoginToken.issue(user, "login")
+
+        response = client.get(
+            f"/auth/verify?token={raw}&next=/firms",
+            follow_redirects=False,
+        )
+        assert response.status_code in (302, 303)
+        location = response.headers.get("Location", "")
+        assert "/firms" in location, f"Safe next not honored. Location was: {location}"
+
+    def test_protocol_relative_next_ignored(self, db_app, client):
+        """next=//evil.com (protocol-relative) must NOT be followed."""
+        from project.extensions import db
+        from project.models import LoginToken
+
+        with db_app.app_context():
+            user = _make_user(db, "redirect_proto@example.com")
+            db.session.commit()
+            raw = LoginToken.issue(user, "login")
+
+        response = client.get(
+            f"/auth/verify?token={raw}&next=//evil.com",
+            follow_redirects=False,
+        )
+        assert response.status_code in (302, 303)
+        location = response.headers.get("Location", "")
+        assert "evil.com" not in location, f"Protocol-relative redirect! Location was: {location}"
+
+
+# ---------------------------------------------------------------------------
+# Fix 2: UserPayment created on find-or-create
+# ---------------------------------------------------------------------------
+
+
+class TestFindOrCreateCreatesUserPayment:
+    """POST /login with a brand-new email must create a UserPayment row."""
+
+    def test_post_login_new_email_creates_user_payment(self, db_app, client, caplog):
+        """POST /login for an unknown email must result in a UserPayment row."""
+        import logging
+
+        from project.models import UserPayment
+
+        with caplog.at_level(logging.INFO, logger="project"):
+            resp = client.post(
+                "/login",
+                data={"email": "newuser_payment@example.com"},
+                follow_redirects=False,
+            )
+
+        assert resp.status_code in (302, 303)
+
+        with db_app.app_context():
+            payment = UserPayment.get_by_customer_email("newuser_payment@example.com")
+            assert payment is not None, "UserPayment was NOT created for a new magic-link user"
+
+
+# ---------------------------------------------------------------------------
+# Fix 2 (defense-in-depth): settings page must not 500 without UserPayment
+# ---------------------------------------------------------------------------
+
+
+class TestSettingsNoFiveHundredWithoutUserPayment:
+    """GET /settings/general must not 500 when the user has no UserPayment row
+    (mimics a user created via the old find-or-create path before the fix)."""
+
+    def test_settings_general_no_user_payment(self, db_app, client):
+        """User+UserInfo only (no UserPayment) — /settings/general must not 500."""
+        from project.extensions import db
+        from project.models import User, UserInfo
+
+        with db_app.app_context():
+            user = User(email="nopayment@example.com", is_verified=True)
+            db.session.add(user)
+            db.session.flush()
+            user_info = UserInfo(
+                first_name="No",
+                last_name="Payment",
+                username=f"nopayment_{user.id}",
+                is_complete=True,
+                user=user,
+            )
+            db.session.add(user_info)
+            # Intentionally NOT adding UserPayment — this simulates pre-fix state.
+            db.session.commit()
+            user_id = user.id
+
+        with client.session_transaction() as sess:
+            sess["_user_id"] = str(user_id)
+            sess["_fresh"] = True
+
+        resp = client.get("/settings/general", follow_redirects=False)
+        assert resp.status_code != 500, f"Got 500 without UserPayment: {resp.data[:300]}"

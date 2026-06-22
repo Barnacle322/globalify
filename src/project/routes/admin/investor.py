@@ -11,6 +11,7 @@ from ...models import (
     User,
     entity_search,
 )
+from ...models.entity import load_profile_bundle
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     EntityType,
@@ -138,12 +139,19 @@ def update_investor_view(id):
         status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", _external=True, **status))
 
+    bundle = load_profile_bundle(EntityType.PERSON, person.id)
+
     return render_template(
         "admin/update_investor.html",
         investor=person,
         investments_by_round={},
         rounds=Round.get_all(),
-        industries=Industry.get_all(),
+        all_industries=Industry.get_all(),
+        investor_industries=bundle["industries"],
+        stages=bundle["stages"],
+        profile=bundle["profile"],
+        affiliations=bundle["affiliations"],
+        geographies=bundle["geographies"],
         status_type=status_type,
         msg=msg,
     )

@@ -47,14 +47,8 @@
     </head>
 
     <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %} 
+    {% import "components/navbar.html" as navbar %}
     {{ navbar.render(current_user) }}
-    {% import "components/create_investment.html" as create_investment %}
-    {{ create_investment.render("investor", true) }}
-    {% import "components/delete_investment.html" as delete_investment %}
-    {{ delete_investment.render() }}
-    {% import "components/update_investment.html" as update_investment %}
-    {{ update_investment.render(investor.id, "investor", true) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -70,30 +64,6 @@
             <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
                 <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
             </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
-                    v-if="createInvestmentOpened || updateInvestmentOpened "
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <create-investment-component
-                    investorid="{{ investor.id }}"
-                    v-if="createInvestmentOpened"
-                    @close="createInvestmentOpened = null"
-                    type="investor"
-                ></create-investment-component>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <update-investment-component
-                    v-if="updateInvestmentOpened"
-                    @close="updateInvestmentOpened = null"
-                    investorid="{{ investor.id }}"
-                    :investment="investment"
-                    :id="investmentId"
-                ></update-investment-component>
-            </transition>
-
             <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <div class="flex">
@@ -181,7 +151,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="text"
                             id="firm_name"
-                            value="{{ investor.firm_name if investor.firm_name else '' }}"
+                            value="{{ affiliations[0].organization.name if affiliations else '' }}"
                             placeholder="ACME Inc."
                         />
                     </div>
@@ -191,7 +161,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="text"
                             id="position"
-                            value="{{ investor.position if investor.position else ''}}"
+                            value="{{ investor.headline if investor.headline else '' }}"
                             placeholder="CEO"
                         />
                     </div>
@@ -201,7 +171,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="text"
                             id="location"
-                            value="{{ investor.location if investor.location else ''}}"
+                            value="{{ geographies[0].name if geographies else '' }}"
                             placeholder="New York, NY"
                         />
                     </div>
@@ -254,22 +224,13 @@
                                     class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
                                 >
-                                    {% if round in investor.rounds %}
-                                    <input
-                                        type="checkbox"
-                                        name="selected_rounds"
-                                        value="{{ round.id }}"
-                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
-                                        checked
-                                    />
-                                    {% else %}
                                     <input
                                         type="checkbox"
                                         name="selected_rounds"
                                         value="{{ round.id }}"
                                         class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
                                     />
-                                    {% endif %} {{ round.name }}
+                                    {{ round.name }}
                                 </label>
                                 {% endfor %}
                             </div>
@@ -320,7 +281,7 @@
                                 >
                                     Selected
                                 </label>
-                                {% for industry in investor.industries %}
+                                {% for industry in investor_industries %}
                                 <label
                                     class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
@@ -334,13 +295,13 @@
                                     />
                                     <span>{{ industry.name }}</span>
                                 </label>
-                                {% endfor %} {% for category, industries_list in industries.items() %}
+                                {% endfor %} {% for category, industries_list in all_industries.items() %}
                                 <label
                                     class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                 >
                                     {{ category }}
                                 </label>
-                                {% for industry in industries_list %} {% if industry not in investor.industries %}
+                                {% for industry in industries_list %} {% if industry not in investor_industries %}
                                 <label
                                     class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
@@ -541,7 +502,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="number"
                             id="n_investments"
-                            value="{{ investor.n_investments }}"
+                            value="{{ profile.n_investments if profile else '' }}"
                             placeholder="14"
                         />
                     </div>
@@ -551,7 +512,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="number"
                             id="n_exits"
-                            value="{{ investor.n_exits }}"
+                            value="{{ profile.n_exits if profile else '' }}"
                             placeholder="5"
                         />
                     </div>
@@ -561,7 +522,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="number"
                             id="min_investment"
-                            value="{{ investor.min_investment }}"
+                            value="{{ profile.min_investment if profile else '' }}"
                             placeholder="10000"
                         />
                     </div>
@@ -571,7 +532,7 @@
                             class="w-full rounded-lg bg-transparent bg-white"
                             type="number"
                             id="max_investment"
-                            value="{{ investor.max_investment }}"
+                            value="{{ profile.max_investment if profile else '' }}"
                             placeholder="1000000"
                         />
                     </div>
@@ -633,7 +594,7 @@
                             type="text"
                             id="searchInput"
                             ref="searchInput"
-                            value="{{ investor.user.email }}"
+                            value="{{ investor.user.email if investor.user else '' }}"
                             class="w-full rounded-lg bg-transparent bg-white"
                             placeholder="jennifer@gmail.com"
                             @input="getUserList"

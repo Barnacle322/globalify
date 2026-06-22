@@ -14,6 +14,7 @@ from ..models import (
     entity_search,
 )
 from ..models.claim import ClaimRequest
+from ..models.entity import load_profile_bundle
 from ..schemas.investor import MiniInvestorSchema, RoundSchema
 from ..schemas.user import UserSchema
 from ..utils.decorators import check_user_info_complete, check_verification
@@ -56,6 +57,13 @@ def index():
     investor = Person.get_by_user_id(current_user.id)
     pending_claim_requests = ClaimRequest.get_pending_by_user_id(current_user.id)
 
+    # Load profile bundle for the investor section (stages, industries, profile, etc.)
+    bundle: dict = {}
+    if investor:
+        from ..utils.enums import EntityType as _EntityType
+
+        bundle = load_profile_bundle(_EntityType.PERSON, investor.id)
+
     return render_template(
         "settings/general.html",
         user=current_user._get_current_object(),
@@ -63,7 +71,13 @@ def index():
         investor_origin=False,
         pending_claim_requests=pending_claim_requests,
         rounds=Round.get_all(),
-        industries=Industry.get_all(),
+        all_industries=Industry.get_all(),
+        investor_industries=bundle.get("industries", []),
+        stages=bundle.get("stages", []),
+        profile=bundle.get("profile"),
+        affiliations=bundle.get("affiliations", []),
+        geographies=bundle.get("geographies", []),
+        investments_by_round={},
         status_type=status_type,
         msg=msg,
     )

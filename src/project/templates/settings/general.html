@@ -51,12 +51,6 @@
     {{ navbar.render(current_user) }}
     {% import "components/confirm_restore.html" as confirm_restore %}
     {{ confirm_restore.render(current_user) }}
-    {% import "components/create_investment.html" as create_investment %}
-    {{ create_investment.render("investor", false) }}
-    {% import "components/delete_investment.html" as delete_investment %}
-    {{ delete_investment.render() }}
-    {% import "components/update_investment.html" as update_investment %}
-    {{ update_investment.render(investor.id, "investor", false) }}
 
     <body class="h-full overflow-x-clip" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
@@ -77,33 +71,10 @@
                 <div class="fixed top-0 z-50 h-full w-full" v-if="confirmRestoreOpened"></div>
             </transition>
             <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
-                    v-if="createInvestmentOpened || updateInvestmentOpened "
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
                 <confirm-restore-component
                     v-if="confirmRestoreOpened"
                     @close-confirm-restore="confirmRestoreOpened = null"
                 ></confirm-restore-component>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <create-investment-component
-                    investorid="{{ investor.id }}"
-                    v-if="createInvestmentOpened"
-                    @close="createInvestmentOpened = null"
-                    type="company"
-                ></create-investment-component>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <update-investment-component
-                    v-if="updateInvestmentOpened"
-                    @close="updateInvestmentOpened = null"
-                    investorid="{{ investor.id }}"
-                    :investment="investment"
-                    :id="investmentId"
-                ></update-investment-component>
             </transition>
 
             <div class="relative w-full">
@@ -477,22 +448,12 @@
                                         >
                                     </div>
                                     <label class="inline-flex cursor-pointer items-center pt-2">
-                                        {% if user.user_info.refuse_all_invitations %}
-                                        <input
-                                            type="checkbox"
-                                            name="refuse_all_invitations"
-                                            value="True"
-                                            class="peer sr-only"
-                                            checked
-                                        />
-                                        {% else %}
                                         <input
                                             type="checkbox"
                                             name="refuse_all_invitations"
                                             value="True"
                                             class="peer sr-only"
                                         />
-                                        {% endif %}
                                         <div
                                             class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
                                         ></div>
@@ -559,7 +520,7 @@
                                         type="text"
                                         id="firm_name"
                                         placeholder="ACME Capital"
-                                        value="{{ investor.firm_name if investor.firm_name else '' }}"
+                                        value="{{ affiliations[0].organization.name if affiliations else '' }}"
                                     />
                                 </div>
                                 <div class="col-span-full space-y-1 sm:col-span-3">
@@ -569,7 +530,7 @@
                                         type="text"
                                         id="position"
                                         placeholder="Investor"
-                                        value="{{ investor.position if investor.position else '' }}"
+                                        value="{{ investor.headline if investor.headline else '' }}"
                                     />
                                 </div>
                                 <div class="col-span-full space-y-1">
@@ -579,7 +540,7 @@
                                         type="text"
                                         id="location"
                                         placeholder="San Francisco, CA"
-                                        value="{{ investor.location if investor.location else '' }}"
+                                        value="{{ geographies[0].name if geographies else '' }}"
                                     />
                                 </div>
                                 <div class="col-span-full space-y-1">
@@ -631,22 +592,13 @@
                                                 class="flex w-full cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900"
                                                 role="menuitem"
                                             >
-                                                {% if round in investor.rounds %}
-                                                <input
-                                                    type="checkbox"
-                                                    name="selected_rounds"
-                                                    value="{{ round.id }}"
-                                                    class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-gray-200 text-sky-500"
-                                                    checked
-                                                />
-                                                {% else %}
                                                 <input
                                                     type="checkbox"
                                                     name="selected_rounds"
                                                     value="{{ round.id }}"
                                                     class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-gray-200 text-sky-500"
                                                 />
-                                                {% endif %} {{ round.name }}
+                                                {{ round.name }}
                                             </label>
                                             {% endfor %}
                                         </div>
@@ -697,7 +649,7 @@
                                             >
                                                 Selected
                                             </label>
-                                            {% for industry in investor.industries %}
+                                            {% for industry in investor_industries %}
                                             <label
                                                 class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                                 role="menuitem"
@@ -712,16 +664,16 @@
                                                 <span>{{ industry.name }}</span>
                                             </label>
                                             <!-- prettier-ignore -->
-                                            {% endfor %} 
-                                            {% for category, industries_list in industries.items() %}
+                                            {% endfor %}
+                                            {% for category, industries_list in all_industries.items() %}
                                             <label
                                                 class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                             >
                                                 {{ category }}
                                             </label>
                                             <!-- prettier-ignore -->
-                                            {% for industry in industries_list %} 
-                                            {% if industry not in investor.industries %}
+                                            {% for industry in industries_list %}
+                                            {% if industry not in investor_industries %}
                                             <label
                                                 class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                                 role="menuitem"
@@ -735,8 +687,8 @@
                                                 <span>{{ industry.name }}</span>
                                             </label>
                                             <!-- prettier-ignore -->
-                                            {% endif %} 
-                                            {% endfor %} 
+                                            {% endif %}
+                                            {% endfor %}
                                             {% endfor %}
                                         </div>
                                     </div>
@@ -898,7 +850,7 @@
                                         class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="number"
                                         id="n_investments"
-                                        value="{{ investor.n_investments }}"
+                                        value="{{ profile.n_investments if profile else '' }}"
                                         placeholder="30"
                                     />
                                 </div>
@@ -908,7 +860,7 @@
                                         class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="number"
                                         id="n_exits"
-                                        value="{{ investor.n_exits }}"
+                                        value="{{ profile.n_exits if profile else '' }}"
                                         placeholder="10"
                                     />
                                 </div>
@@ -920,7 +872,7 @@
                                         class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="number"
                                         id="min_investment"
-                                        value="{{ investor.min_investment }}"
+                                        value="{{ profile.min_investment if profile else '' }}"
                                         placeholder="1000"
                                     />
                                 </div>
@@ -932,7 +884,7 @@
                                         class="h-12 w-full rounded-xl border-2 border-gray-300 bg-transparent bg-white"
                                         type="number"
                                         id="max_investment"
-                                        value="{{ investor.max_investment }}"
+                                        value="{{ profile.max_investment if profile else '' }}"
                                         placeholder="1000000"
                                     />
                                 </div>
@@ -1045,8 +997,8 @@
                         {% elif pending_claim_requests and not investor %} {% for claim_request in
                         pending_claim_requests %}
                         <div class="col-span-4 flex w-full items-center justify-between rounded-xl border-2 p-3 py-6">
-                            <a href="/search?investor={{ claim_request.investor.slug }}" class="text-lg font-medium"
-                                >{{ claim_request.investor.full_name }}</a
+                            <span class="text-lg font-medium"
+                                >{{ claim_request.entity_type.value.title() if claim_request.entity_type else 'Profile' }} #{{ claim_request.entity_id or '' }}</span
                             >
                             <span class="italic text-orange-500">{{ claim_request.status.value.title() }}</span>
                         </div>

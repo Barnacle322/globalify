@@ -121,8 +121,8 @@
                                             <span class=""> User: {{ claim_request.user.user_info.full_name }} </span>
                                             <span class=""> Requested at: {{ claim_request.requested_at }} </span>
                                             <span class=""> Contact email: {{ claim_request.email }} </span>
-                                            <a href="/investor/{{claim_request.investor.slug}}" class="font-medium"
-                                                >Investor: {{ claim_request.investor.full_name }}</a
+                                            <a href="/investor/{{claim_request.target_slug}}" class="font-medium"
+                                                >{{ claim_request.entity_type.value.title() if claim_request.entity_type else 'Entity' }}: {{ claim_request.target_name }}</a
                                             >
                                             <span class="font-medium"
                                                 >Status: {{ claim_request.status.value.capitalize() }}</span

@@ -10,6 +10,7 @@ from ...models import (
     Round,
     entity_search,
 )
+from ...models.entity import load_profile_bundle
 from ...utils.decorators import admin_only
 from ...utils.enums import (
     EntityType,
@@ -77,12 +78,17 @@ def update_investment_firm_view(id):
         status = Status(StatusType.ERROR, INVESTMENT_FIRM_NOT_FOUND).get_status()
         return redirect(url_for("admin.investment_firm.index", _external=True, **status))
 
+    bundle = load_profile_bundle(EntityType.ORG, org.id)
+
     return render_template(
         "admin/update_investment_firm.html",
         investment_firm=org,
         investments=[],
         rounds=Round.get_all(),
-        industries=Industry.get_all(),
+        all_industries=Industry.get_all(),
+        firm_industries=bundle["industries"],
+        stages=bundle["stages"],
+        profile=bundle["profile"],
         status_type=status_type,
         msg=msg,
     )

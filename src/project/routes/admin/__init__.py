@@ -9,6 +9,7 @@ from ...models import (
     ClaimRequest,
     Industry,
     NotableInvestment,
+    Organization,
     Person,
     User,
 )
@@ -65,6 +66,22 @@ def search_notable_investment(search_input):
 @admin_only
 def claim_requests_view():
     claim_requests = ClaimRequest.get_all()
+
+    # Resolve the target entity (Person or Organization) for each claim request
+    # so templates don't access the removed `.investor` relationship.
+    for cr in claim_requests:
+        if cr.entity_type == EntityType.PERSON and cr.entity_id:
+            entity = Person.get_by_id(cr.entity_id)
+            cr.target_name = entity.full_name if entity else f"Person #{cr.entity_id}"
+            cr.target_slug = entity.slug if entity else ""
+        elif cr.entity_id:
+            # ORG or unknown type with an entity_id
+            entity = Organization.get_by_id(cr.entity_id)
+            cr.target_name = entity.name if entity else f"Entity #{cr.entity_id}"
+            cr.target_slug = entity.slug if entity else ""
+        else:
+            cr.target_name = "Unknown"
+            cr.target_slug = ""
 
     return render_template("admin/claim_requests.html", claim_requests=claim_requests)
 

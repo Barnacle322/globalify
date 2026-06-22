@@ -235,24 +235,3 @@ def delete_user(id):
         return redirect(url_for("admin.user.index", _external=True, **status))
 
     return redirect(url_for("admin.user.index"), code=302)
-
-
-@user.post("/<int:user_id>/companies/add")
-@admin_only
-def add_member(user_id: int):
-    # TODO(phase-1a): Company model removed — delete this route
-    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True))
-
-
-@user.post("/<int:user_id>/companies")
-@admin_only
-def edit_user_company(user_id: int):
-    # TODO(phase-1a): Company model removed — delete this route
-    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True))
-
-
-@user.get("/<int:user_id>/companies/<int:company_id>/delete")
-@admin_only
-def delete_member(user_id: int, company_id: int):
-    # TODO(phase-1a): Company model removed — delete this route
-    return redirect(url_for("admin.user.update_user_view", id=user_id, _external=True))

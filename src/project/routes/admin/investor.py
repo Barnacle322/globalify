@@ -334,7 +334,11 @@ def undo_investor_data(id):
     investor.user = investor_backup.user
 
     db.session.commit()
-    investor.upsert_data()
+    try:
+        investor.upsert_data()  # TODO(phase-2): rewire onto entity model
+    except Exception as e:
+        status = Status(StatusType.ERROR, str(e)).get_status()
+        return redirect(url_for("admin.investor.update_investor_view", id=id, _external=True, **status))
 
     status = Status(StatusType.SUCCESS, "Investor backed up successfully!").get_status()
     return redirect(url_for("admin.investor.update_investor_view", id=id, _external=True, **status))
@@ -371,7 +375,11 @@ def restore_investor_data(id):
         investor.notable_investments = investor_point_origin.notable_investments
 
         db.session.commit()
-        investor.upsert_data()
+        try:
+            investor.upsert_data()  # TODO(phase-2): rewire onto entity model
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("admin.investor.update_investor_view", id=id, _external=False, **status))
     else:
         status = Status(StatusType.ERROR, INVESTOR_BACKUP_NOT_FOUND).get_status()
         return redirect(url_for("admin.investor.index", id=id, _external=True, **status))

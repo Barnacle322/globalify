@@ -17,6 +17,7 @@ from ..models import (
 )
 from ..models.claim import ClaimRequest
 from ..schemas.investor import InvestorOriginPointSchema, MiniInvestorSchema, RoundSchema
+from ..schemas.user import UserSchema
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import (
@@ -482,7 +483,11 @@ def restore_investor_data():
 
         db.session.commit()
 
-        investor.upsert_data()
+        try:
+            investor.upsert_data()  # TODO(phase-2): rewire onto entity model
+        except Exception as e:
+            status = Status(StatusType.ERROR, str(e)).get_status()
+            return redirect(url_for("settings.index", _external=True, **status))
     else:
         status = Status(StatusType.ERROR, NO_BACKUP_DATA).get_status()
         return redirect(url_for("settings.index", _external=True, **status))
@@ -512,8 +517,6 @@ def search_user(search_input):
         if re.match(email_regex, search_input) and not search_input == current_user.email:
             return jsonify({"search_input": search_input})
         return jsonify({"users": []})
-
-    from ..schemas.user import UserSchema
 
     user_list = []
     for user in users:

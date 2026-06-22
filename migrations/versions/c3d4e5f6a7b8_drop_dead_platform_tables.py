@@ -23,7 +23,10 @@ def upgrade():
     op.drop_table('user_company')
     op.drop_table('company_invitation')
     op.drop_table('company')
-    op.drop_table('country')
+    # NOTE: 'country' is intentionally NOT dropped here. The Country model is
+    # still live (used by routes/search.py, which Phase 1c owns). Dropping it
+    # now would break search in prod. The country drop is deferred to the
+    # Phase 1c destructive revision that also flips search onto `geography`.
 
     # Drop dead columns
     # user.is_investor_mode_active was added in migration a687120402a9
@@ -43,16 +46,6 @@ def downgrade():
 
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.add_column(sa.Column('is_investor_mode_active', sa.Boolean(), server_default=sa.text('false'), nullable=False))
-
-    op.create_table(
-        'country',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('name', sa.String(), nullable=False),
-        sa.Column('code', sa.String(), nullable=False),
-        sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name'),
-        sa.UniqueConstraint('code'),
-    )
 
     op.create_table(
         'company',

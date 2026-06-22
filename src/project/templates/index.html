@@ -1,11 +1,10 @@
-<!-- prettier-ignore -->
-{% extends "layouts/layout.html" %}
-{% block title %}Globalify{% endblock %} 
-{% block head %} 
-{{ super() }} 
-{% endblock %} 
-{% block content %}
+{% extends "layouts/base.html" %}
 
+{% block title %}Globalify — Your Gateway to Investors{% endblock %}
+{% block meta_description %}Discover investors and venture capital firms on Globalify — the open investor directory. Find the right connections to get your startup funded.{% endblock %}
+{% block canonical %}https://globalify.xyz/{% endblock %}
+
+{% block content %}
 <article class="fixed bottom-0 right-0 max-w-md z-50 sm:p-6 p-3 transition-all ease-in-out">
     <div class="p-5 bg-white rounded-xl shadow-xl relative">
         <button
@@ -29,7 +28,7 @@
     </div>
 </article>
 
-<main class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
+<div class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
     <section
         class="relative mx-auto flex max-w-7xl flex-col items-center justify-center px-6 pb-5 pt-5 text-center lg:pt-24"
     >
@@ -153,7 +152,7 @@
             <div
                 class="relative flex aspect-[2/3] min-w-[300px] flex-col gap-4 overflow-hidden rounded-2xl bg-[#01151d] p-6 sm:w-full"
             >
-                <p class="text-xs text-gray-400">Advisory & Partnership</p>
+                <p class="text-xs text-gray-400">Advisory &amp; Partnership</p>
                 <span class="font-medium text-white">
                     Helped <u><a href="https://qubic.org" target="_blank">Qubic</a></u> organize hackathons in Central
                     Asia. Helped set up and secure new investors.
@@ -170,7 +169,7 @@
             <div
                 class="relative flex aspect-[2/3] min-w-[300px] flex-col gap-4 overflow-hidden rounded-2xl bg-[#edeff1] p-6 sm:w-full"
             >
-                <p class="text-xs text-gray-700">Advisory & Series A</p>
+                <p class="text-xs text-gray-700">Advisory &amp; Series A</p>
                 <span class="font-medium text-black">
                     Globalify backed the vision by introducing
                     <u><a href="https://www.climate-x.com/" target="_blank">Climate X</a></u> to Google Ventures and
@@ -295,7 +294,7 @@
                             </p>
                             <div class="mt-5 flex flex-col">
                                 <span class="font-bold">JM </span>
-                                <span class="text-slate-400">Chair, Single Family Office, US & Asia</span>
+                                <span class="text-slate-400">Chair, Single Family Office, US &amp; Asia</span>
                             </div>
                         </div>
                     </article>
@@ -408,10 +407,6 @@
                     <br /><br />
                     Sign up now to get access to our free course and start building your dream startup today!
                 </p>
-                <!-- <p class="text-4xl">
-                    <s class="text-slate-400">$499</s>
-                    $199<span class="text-base">USD</span>
-                </p> -->
                 <a
                     href="https://hub.globalify.xyz"
                     target="_blank"
@@ -425,5 +420,5 @@
             </div>
         </div>
     </section>
-</main>
+</div>
 {% endblock %}

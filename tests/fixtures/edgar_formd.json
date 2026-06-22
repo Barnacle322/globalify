@@ -1,0 +1,76 @@
+{
+  "hits": {
+    "total": {
+      "value": 6,
+      "relation": "eq"
+    },
+    "hits": [
+      {
+        "_id": "0001234567-23-000001",
+        "_source": {
+          "cik": "0001234567",
+          "display_names": ["SEQUOIA CAPITAL OPERATIONS LLC (CIK 0001234567)"],
+          "entity_name": "SEQUOIA CAPITAL OPERATIONS LLC",
+          "file_date": "2023-03-15",
+          "form_type": "D",
+          "period_of_report": "2023-03-01"
+        }
+      },
+      {
+        "_id": "0001567890-23-000042",
+        "_source": {
+          "cik": "0001567890",
+          "display_names": ["BENCHMARK CAPITAL MANAGEMENT CO LLC (CIK 0001567890)"],
+          "entity_name": "BENCHMARK CAPITAL MANAGEMENT CO LLC",
+          "file_date": "2023-04-10",
+          "form_type": "D",
+          "period_of_report": "2023-04-01"
+        }
+      },
+      {
+        "_id": "0001891234-23-000099",
+        "_source": {
+          "cik": "0001891234",
+          "display_names": ["Andreessen Horowitz Fund VI LP (CIK 0001891234)"],
+          "entity_name": "Andreessen Horowitz Fund VI LP",
+          "file_date": "2023-05-20",
+          "form_type": "D",
+          "period_of_report": "2023-05-01"
+        }
+      },
+      {
+        "_id": "0001777777-23-000200",
+        "_source": {
+          "cik": "0001777777",
+          "display_names": ["FIRST ROUND CAPITAL VENTURE FUND IV LP (CIK 0001777777)"],
+          "entity_name": "FIRST ROUND CAPITAL VENTURE FUND IV LP",
+          "file_date": "2023-06-01",
+          "form_type": "D",
+          "period_of_report": "2023-06-01"
+        }
+      },
+      {
+        "_id": "",
+        "_source": {
+          "cik": "",
+          "display_names": ["MISSING CIK FUND LP"],
+          "entity_name": "MISSING CIK FUND LP",
+          "file_date": "2023-07-01",
+          "form_type": "D",
+          "period_of_report": "2023-07-01"
+        }
+      },
+      {
+        "_id": "0002000000-23-000400",
+        "_source": {
+          "cik": "0002000000",
+          "display_names": [],
+          "entity_name": "",
+          "file_date": "2023-08-01",
+          "form_type": "D",
+          "period_of_report": "2023-08-01"
+        }
+      }
+    ]
+  }
+}

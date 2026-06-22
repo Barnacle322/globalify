@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     paddle_webhook_secret: str | None = Field(default=None, alias="_PADDLE_WEBHOOK_SECRET")
     paddle_environment: str = Field(default="sandbox", alias="_PADDLE_ENVIRONMENT")
 
+    # SEC EDGAR — polite identified User-Agent (required by SEC fair-access policy)
+    edgar_user_agent: str = Field(
+        default="Globalify Directory contact@globalify.xyz",
+        alias="_EDGAR_USER_AGENT",
+    )
+
     @property
     def is_testing(self) -> bool:
         return self.env is Environment.TESTING

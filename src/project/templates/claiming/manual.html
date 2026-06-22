@@ -4,18 +4,24 @@
 {% if cap_is_configured %}
 <script src="{{ cap_api_endpoint }}/cap.js" async></script>
 {% endif %}
+{% if entity_type == 'org' %}
+<script src="/static/scripts/claiming/firm_manual.js" defer></script>
+{% else %}
 <script src="/static/scripts/claiming/manual.js" defer></script>
+{% endif %}
 <!-- prettier-ignore -->
-{% endblock %} 
-{% block title %} Claim Profile {% endblock %} 
-{% block head %} {{ super() }} {% endblock %} 
+{% endblock %}
+{% block title %} Claim Profile {% endblock %}
+{% block head %} {{ super() }} {% endblock %}
 {% block content %}
+
+{% set entity_slug = entity.slug if entity else investor.slug %}
 
 <main class="mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center gap-5 px-4 sm:px-9">
     <section class="max-w-md">
         <a
             class="group flex items-center gap-1.5 text-gray-500 transition-colors ease-in-out"
-            href="/investor/{{investor.slug}}/claim"
+            href="{% if entity_type == 'org' %}/firm/{{ entity_slug }}/claim{% else %}/investor/{{ entity_slug }}/claim{% endif %}"
         >
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -45,7 +51,7 @@
             <div class="rounded-xl text-lime-500">{{ msg }}</div>
             {% endif %} {% endif %}
         </div>
-        <form id="claimForm" class="mt-2 flex w-full flex-col gap-3" slug="{{ investor.slug }}">
+        <form id="claimForm" class="mt-2 flex w-full flex-col gap-3" slug="{{ entity_slug }}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input
                 id="email"

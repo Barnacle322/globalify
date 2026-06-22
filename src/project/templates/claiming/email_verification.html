@@ -1,16 +1,22 @@
 <!-- prettier-ignore -->
 {% extends "layouts/layout_clean.html" %}
 {% block additional_scripts %}
+{% if entity_type == 'org' %}
+<script src="/static/scripts/claiming/firm_email_verification.js" defer></script>
+{% else %}
 <script src="/static/scripts/claiming/email_verification.js" defer></script>
-{% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
+{% endif %}
+{% endblock %} {% block title %} Claim Profile {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
 content %}
+
+{% set entity_slug = entity.slug if entity else investor.slug %}
 
 <main class="mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center gap-5 px-4 sm:px-9">
     <section class="max-w-md">
         <article class="mt-4 flex flex-col gap-2">
             <h1 class="text-3xl font-semibold md:text-5xl">Claim your profile</h1>
             <p class="max-w-xl text-base text-slate-600 md:text-lg">
-                Input your email, that you've used to sign up with Globalify.
+                Input the code from the verification email.
             </p>
         </article>
         <div class="col-span-full empty:hidden">
@@ -22,7 +28,7 @@ content %}
             <div class="rounded-xl text-lime-500">{{ msg }}</div>
             {% endif %} {% endif %}
         </div>
-        <form id="verifyForm" class="flex w-full flex-col gap-3" slug="{{investor.slug}}">
+        <form id="verifyForm" class="flex w-full flex-col gap-3" slug="{{ entity_slug }}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input
                 id="code"

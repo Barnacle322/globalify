@@ -87,8 +87,8 @@ def create_app():
 
     @app.cli.command("setup")
     def populate():
-        from .models import InvestmentFirm, Investor, User, UserInfo, UserPayment, entity_search
-        from .models.backfill import backfill_entities
+        from .models import User, UserInfo, UserPayment, entity_search
+        from .models.seed import seed_demo_entities
 
         with app.app_context():
             db.drop_all()
@@ -126,13 +126,10 @@ def create_app():
                 db.session.add(user_info)
                 db.session.add(user_payment)
 
-            Investor.populate_demo()
-            Investor.slugify_existing()
+            db.session.flush()
 
-            InvestmentFirm.populate_vcsheet()
-            InvestmentFirm.slugify_existing()
-
-            backfill_entities(db.session)
+            counts = seed_demo_entities(db.session)
+            print(f"Seeded: {counts}")
 
             entity_search.sync_search_index(recreate=True)
 
